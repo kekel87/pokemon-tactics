@@ -3,7 +3,7 @@
 > Document de référence pour l'implémentation du multijoueur (Phase 7).
 > Écrit le 2026-04-06, **révisé le 2026-08-29** après une passe d'audit de faisabilité, puis
 > **corrigé le 2026-09-04 par le Lot B1, qui est le premier à avoir été implémenté**.
-> Décisions associées : #209-212 (fondations), #862-870 (révision), #895-908 (Lot B1).
+> Décisions associées : #209-212 (fondations), #862-870 (révision), #895-912 (Lot B1).
 
 ---
 

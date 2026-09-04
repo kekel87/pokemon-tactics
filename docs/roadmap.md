@@ -413,7 +413,7 @@ La carte au centre, une palette de blocs + décorations sur le côté ; on pose 
 > itch.io et GitHub Pages, relevé live protégé par mot de passe (`GET /tableau`), `pnpm stats` pour
 > l'équilibrage, Goatcounter retiré du bundle. **Lot C (écran de victoire enrichi) livré et validé le
 > 2026-09-03** (plan 197). **Lot B1 (transport, salon, lancement accusé) livré le 2026-09-04** (plan
-> 199, décisions #895-908) : deux navigateurs se trouvent par un code et entrent en combat avec un
+> 199, décisions #895-912) : deux navigateurs se trouvent par un code et entrent en combat avec un
 > état identique. `docs/plans/195` reste `in-progress` : **B2 (combat en réseau), B3 (robustesse) et
 > B4 (détection de désync)** restent à faire.
 
@@ -438,7 +438,7 @@ existe déjà.
       détection de désync (sérialisation canonique à écrire), chronomètre local auto-déclarant
       (#864, #865), reconnexion par le chemin du plan 181. **Viser le 1v1**, retester le FFA à 12
       ensuite. **Lot B1 (transport et salon) LIVRÉ le 2026-09-04** (plan 199, paquet
-      `packages/network/`, décisions #895-908) : code de partie, écran `lobby`, salle d'attente,
+      `packages/network/`, décisions #895-912) : code de partie, écran `lobby`, salle d'attente,
       lancement accusé, trois graines partagées (combat/placement/IA). Restent **B2** (échange des
       actions), **B3** (chronomètre, reconnexion, abandon) et **B4** (checksum de désync)
 - [x] **Écran de victoire enrichi** — sans dépendance réseau, garde sa place ici : même matière que
