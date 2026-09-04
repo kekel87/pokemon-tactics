@@ -6,8 +6,9 @@ import type { Locator, Page } from "@playwright/test";
 export class BattleModeScreen {
   readonly title: Locator;
   readonly local: Locator;
-  /** Unimplemented modes — always disabled. */
+  /** Ouvre l'écran `lobby` depuis le plan 199. */
   readonly online: Locator;
+  /** Le seul mode encore à faire — toujours désactivé. */
   readonly tutorial: Locator;
   readonly back: Locator;
   constructor(page: Page) {

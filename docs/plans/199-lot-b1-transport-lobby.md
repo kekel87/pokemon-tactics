@@ -1,6 +1,6 @@
 # Plan 199 — Lot B1 : transport et salon en ligne
 
-> **Statut** : ready
+> **Statut** : done — livré le 2026-09-04
 > **Créé** : 2026-09-03
 > **Lot B1 de la Phase 7** — plan-cadre : `docs/plans/195-phase7-multijoueur-telemetrie.md`
 > **Périmètre arrêté avec l'humain le 2026-09-03**, au cours d'une discussion de cadrage qui a
@@ -320,6 +320,163 @@ combat que lorsque tous ont confirmé, et annule le lancement avec un message si
    et le plan-cadre 195 § Lot B, dont les **deux corrections à faire dans ce lot** doivent être
    mises à jour : la première (identifiant stable de carte) est **absorbée par l'étape 6**, la
    seconde (l'IA non rejouable sur deux pairs) est **annulée** par la graine d'IA partagée (`#901`).
+
+## Ce que l'exécution a appris (2026-09-04)
+
+Les neuf étapes sont livrées. Cinq choses n'étaient pas dans le plan et méritent de rester écrites.
+
+1. 🔴 **Les lettres de la roue collisionnaient avec les touches de mouvement.** `KeyS` est lié à
+   « bas » et `KeyD` à « droite » (bindings AZERTY, remappables), et l'`InputSystem` écoute `window`
+   en bouillonnement : sans `stopPropagation`, chaque lettre partait **aussi** comme un mouvement.
+   Taper `SNSD2` posait `SNSDA` — le `S` faisait défiler la lettre voisine, le `D` sortait le focus
+   de la roue, et le dernier caractère n'avait plus de destinataire. Trouvé par l'e2e, pas par
+   l'inspection. La roue arrête donc les touches qu'elle consomme, et laisse passer les flèches.
+2. 🔴 **`Room.join` rendait la main avant le premier `room_state`.** Le `welcome` ne porte que la
+   version et les places occupées : ni carte, ni format, ni options. L'invité lisait donc une
+   configuration vide, cherchait la carte d'identifiant `""`, et affichait « versions
+   incompatibles » alors que tout allait bien. Un invité **n'est pas dans le salon** tant qu'il n'en
+   connaît pas la configuration.
+3. 🔴 **L'écran de terrain ne transmettait pas l'intention réseau.** La salle d'attente se montait
+   en mode local, sans code ni salon, et **rien ne le signalait** — l'écran étant par ailleurs
+   parfaitement fonctionnel. Le genre de trou qu'aucun test unitaire n'attrape.
+4. **La ligne humaine de l'invité n'est pas la première.** `buildInitialSlots` codait l'index 0 en
+   dur ; un invité assis à la place 3 voyait sa dernière équipe posée sur la ligne de l'hôte.
+5. **Les sélections d'équipe n'étaient annoncées par personne.** Le salon ne devine pas ce que
+   l'écran a composé : sans appel explicite, le `start` de l'hôte partait avec des équipes **vides**.
+
+**Deux réglages du transport, mesurés et non supposés :**
+- Le **balayage** des places ne réessaie pas, là où la prise de **sa propre** adresse réessaie. Un
+  salon à 12 dont 6 places sont prises mettrait une demi-minute à laisser entrer si chaque « occupée »
+  coûtait ses trois réessais.
+- L'e2e **désactive STUN/TURN**. Les deux pairs sont sur la boucle locale ; attendre la résolution de
+  `*.turn.peerjs.com` faisait dépasser le scénario. Une suite de tests ne demande rien à Internet.
+
+## Ce que la revue de code a corrigé le même jour (2026-09-04)
+
+Deux **Critical** et six **Important**, tous corrigés avant le commit définitif. Les deux Critical
+méritent d'être écrits, parce que chacun invalide une affirmation que ce plan portait.
+
+### 🔴 Le salon faisait confiance à `message.seat`
+
+L'adresse d'annuaire d'un canal est **fiable** — la prise d'identifiant est exclusive, personne ne
+peut se présenter à la place d'un autre. Mais le salon ne confrontait cette adresse au contenu du
+message **qu'une fois sur sept** : seul `hello` était vérifié. L'attaque la plus simple était
+silencieuse et marchait en 1v1 nu :
+
+```
+{ type: "team_select", seat: 1, selection: { pokemonDefinitionIds: ["magikarp"] } }
+```
+
+L'hôte entrait en combat avec une équipe qu'il n'avait jamais choisie, **son écran ayant affiché la
+vraie jusqu'au bout** — l'interface lit `slots`, le `start` lit `selections`. Même famille : un
+`start_ack` au nom d'autrui faisait lancer l'hôte alors qu'un pair n'avait rien reçu, ce qui est
+précisément la panne que l'accusé existe pour empêcher ; un `room_state` forgé réécrivait la
+configuration d'un invité ; un `bye` au nom d'autrui faisait tomber son délai de grâce de 45 s à 10 s.
+
+Le commentaire de `setSeatSelection` **affirmait la propriété que le code n'avait pas** : `ownsSeat`
+ne gardait que le setter local, jamais le chemin réseau. Et le test « refuse celles des autres »
+donnait une fausse assurance — il n'exerçait que le setter.
+
+Corrigé par `isSpokenFor`, franchi avant tout traitement : un message qui parle d'une place doit venir
+de cette place, et ceux qui font autorité sur le salon (`room_state`, `start`) de l'hôte seul. Quatre
+tests d'intégration nouveaux, tous par le pair nu.
+
+### 🔴 `close({ flush: true })` ne vide rien, et l'accusé de lancement pouvait être perdu
+
+Ce plan affirmait que l'accusé partait avant le démontage de l'écran, « la fermeture du canal réel
+vidant sa file ». **C'est faux sur `peerjs@1.5.5`**, vérifié dans sa source :
+
+- `close({ flush: true })` **ne ferme rien** : il envoie une sentinelle puis rend la main.
+- `close()` **jette** la file : `BufferedConnection.close()` fait `this._buffer = []`.
+- `Peer.destroy()` passe par la seconde branche, puis coupe la `RTCPeerConnection`.
+
+`PeerJsTransport.destroy()` enchaînait les deux dans la même boucle synchrone : le `flush` était
+annulé par la ligne suivante. L'accusé pouvait donc ne jamais partir, l'hôte annulait au bout de 15 s,
+et rediffusait un salon déverrouillé **à un invité qui n'avait plus de salon pour l'entendre** —
+invité en combat seul, hôte revenu en salle d'attente.
+
+Ni l'intégration ni l'e2e ne pouvaient l'attraper : le canal factice, lui, **vide correctement** sa
+file (fermeture déposée en micro-tâche derrière les envois), donc l'intégration validait une
+propriété que la production n'avait pas ; et l'e2e tourne sur la boucle locale, où la transmission est
+immédiate. C'était de la chance de temporisation, pas une vérification.
+
+**Corrigé à la racine, pas contourné** : le salon a quitté l'écran. Il appartient désormais à la
+session (`packages/app/src/network/online-room.ts`) et **survit à l'entrée en combat** — ce qui est
+aussi l'architecture dont le Lot B2 a besoin. Il se ferme sur les deux vrais chemins de sortie :
+« Retour » depuis la salle d'attente, et tout retour au menu principal (`combat` ne transite que vers
+lui, donc l'écran de combat n'a pas à connaître le réseau). Le drainage avant destruction est corrigé
+en plus, pour le `bye`.
+
+Corollaire vital : les **écouteurs** de l'écran de sélection d'équipe sont désormais soldés à son
+démontage. Le salon lui survivant, les oublier ferait rendre un écran détruit à chaque message reçu
+pendant le combat.
+
+### Ce que la recette humaine a corrigé (2026-09-04, second tour)
+
+Neuf retours, dont un **bloquant que la recette seule pouvait trouver**.
+
+| Retour | Cause, et ce qu'elle apprend |
+|---|---|
+| 🔴 **« ICE failed », impossible de rejoindre** | J'avais coupé STUN dans la surcharge `?peerPort=`, pour que l'e2e ne résolve pas `*.turn.peerjs.com`. Sauf que c'est **la même URL** que j'avais donnée à l'humain pour tester. Chromium s'en sort avec ses seuls candidats « host » sur la boucle locale, **Firefox refuse**. Le besoin du harnais s'était invité dans le chemin qu'un humain emprunte : `peerIce=off` est désormais propre au harnais |
+| 🔴 **Les paramètres de partie ne partaient pas au salon** | Les bascules du pied écrivaient la préférence persistée et la variable locale, mais n'appelaient **jamais** `setOptions`. L'encart affichait l'ancienne valeur, les autres joueurs ne l'apprenaient pas, et c'est celle du salon qui est diffusée au lancement — on aurait joué sous une règle que l'hôte croyait avoir changée |
+| **L'hôte s'affichait « En attente » chez tout le monde** | Il n'appelait jamais `setReady` : sa place restait `ready: false` **à jamais** dans l'état du salon. Les invités ne pouvaient pas savoir s'il avait fini de composer, et devaient se déclarer prêts à l'aveugle. Sa préparation se **dérive** maintenant de son équipe composée — pas de second bouton à côté de « Lancer », qui dirait deux fois la même chose |
+| **« En attente » sur sa propre ligne** | Contresens : on est là par définition. Le badge ne dit plus que l'état **des autres** |
+| **Une place libre s'affichait « IA »** | Un salon en ligne était indistinguable d'une partie solo au premier regard. Nouvel état `waiting` — « ⏳ Place libre » — qui ne bloque pas le lancement et part en IA au `start`, donc le salon reste jouable si personne ne vient |
+| **Les contrôles désactivés ne le montraient pas** | `disabled` les écartait de la navigation, mais rien à l'œil ne disait pourquoi cliquer ne faisait rien. Grisés désormais, segment **et** bouton d'équipe |
+| **Coller le code n'était pas possible** | Un code arrive par messagerie, donc par le presse-papier. `paste` est écouté (donc aussi clic droit → Coller et le menu du téléphone), tolérant aux espaces, tirets, casse, et à une adresse `pkmntac-XXXXX-1` collée par erreur |
+
+**Deux retours renvoyés au Lot B2, avec l'humain** : le **kick** et le **changement de format dans la
+salle d'attente**. Les deux rouvrent la décision #896 — le format se choisit avant la création
+précisément pour ne pas avoir à éjecter quelqu'un — et le kick demande un message de protocole, une
+raison affichée à l'éjecté, et une règle sur qui peut éjecter qui. Ça se cadre, ça ne s'improvise pas.
+
+**La leçon de méthode** : ma vérification tournait sur Chromium, la sienne sur Firefox. Le bloquant
+ICE n'était atteignable que de son côté. Une auto-vérification sur un seul moteur ne remplace pas la
+recette humaine — c'est exactement ce que la règle du re-test après la chaîne existe pour attraper.
+
+### Recette humaine, troisième tour (2026-09-04) — la salle d'attente dit enfin qui est qui
+
+Sept retours d'ergonomie, tous sur le même malentendu : **l'écran demandait au joueur de comprendre
+pourquoi des contrôles étaient grisés**, au lieu de lui dire ce qui se passe.
+
+| Retour | Correction |
+|---|---|
+| Le segment Humain / IA de l'hôte, grisé sans raison lisible | Remplacé par **« 👑 Joueur hôte »** — vu de tous, lui compris |
+| Idem pour un joueur distant, et pour sa propre place quand on est invité | **« 🌐 Joueur distant »** et **« 🎮 Vous »**. Plus **aucune** place tenue par un humain n'affiche de segment grisé ; une place libre vue par un invité n'affiche plus rien du tout, l'en-tête disant déjà « Place libre » |
+| Une puce seule s'arrêtait au milieu de la carte | La rangée passe en colonnes **automatiques** : deux boutons se partagent la largeur, une puce seule la prend entière (mesuré 399 px sur 410) |
+| **L'équipe des autres joueurs était visible** | Elle **disparaît**. Fuite d'information : le jeu masque déjà l'objet tenu et le talent de l'adversaire (#729). On voit la sienne et celles que personne ne tient (IA, place libre) — celles-là sont composées par l'hôte, mais visibles de tous |
+| L'hôte ne pouvait plus changer ses options | Le gel se déclenchait dès qu'un **invité** était prêt, retirant à l'hôte une décision qui n'était pas la sienne, sans moyen de la reprendre |
+| L'hôte n'avait pas de « Prêt / Pas prêt » | **Il l'a**, en plus de « Lancer ». Et c'est **là** que ses options gèlent — sur son propre engagement, réversible d'un « Pas prêt » |
+
+🔴 **Ce retour a annulé un choix que j'avais fait au tour précédent.** J'avais *dérivé* la préparation
+de l'hôte de son équipe composée, en écartant un second bouton comme redondant avec « Lancer ». C'est
+l'humain qui a vu ce que ça coûtait : sans bouton, l'hôte n'a aucun moyen de dire « attendez », ni de
+dégeler ses options. Un bouton explicite pour tout le monde est plus simple à expliquer **et** plus
+utile. `isEveryoneReady` n'exempte donc plus personne.
+
+**Sur le combat, pour éviter le malentendu** : arriver à l'écran de combat des deux côtés est le
+critère de ce lot, et il est atteint — même plateau, même ordre de jeu. Mais **aucune action ne
+traverse encore** : chacun joue sa copie locale, et les coups de l'autre n'arrivent pas. C'est le
+Lot B2.
+
+### Les six Important
+
+| Défaut | Ce qu'il coûtait |
+|---|---|
+| Le bouton « Lancer » de l'hôte n'avait pas de `data-testid` | `renderPreservingFocus` ne restaure que par famille de testid, **sans repli**. En réseau le re-rendu part de chaque message distant : l'hôte perdait le liseré à l'instant où l'invité pressait « Prêt », donc quand le bouton devenait actionnable. C'est la régression du plan 194, sur le contrôle le plus important de l'écran |
+| La rangée de formats du `lobby` contournait `renderPreservingFocus` | Même régression, écran neuf : changer de format au clavier ou au pad éjectait le focus |
+| `waitForWelcome` n'écoutait pas la fermeture | Rejoindre une partie **déjà lancée** donnait dix secondes d'écran muet puis « plus de réponse ». Et `PartieCommencee` n'avait **aucun producteur** : du code mort avec son message déjà traduit en deux langues |
+| Graine d'IA manquante rattrapée sur `Date.now()` | Deux pairs, deux IA différentes, **sans erreur ni trace** — la divergence la plus coûteuse à diagnostiquer, sur le seul chemin où elle est invisible en jeu. Lève désormais |
+| Les boutons d'équipe des autres joueurs étaient focalisables | Un invité en partie à 4 traversait aux flèches trois boutons qui n'ouvraient rien. `disabled` règle l'affichage et la navigation d'un coup |
+| Localisateur par classe CSS dans le POM e2e | Banni sans réserve par les règles du projet — couplé au style |
+
+Le reste de la revue (conventions, dette) est consigné dans `docs/next.md` § Reporté.
+
+**Un défaut préexistant relevé au passage, non corrigé** (hors périmètre) : en local, tous les
+contrôleurs d'IA d'une partie sont semés sur `createPrng(Date.now())` **dans la même boucle**, donc
+très probablement sur la même milliseconde — plusieurs camps IA partagent alors le même flux
+d'aléa. Sans effet visible connu, mais c'est une source d'entropie qui n'en est pas une. En ligne le
+problème n'existe pas : chaque place a sa graine dérivée.
 
 ## Vérifications
 

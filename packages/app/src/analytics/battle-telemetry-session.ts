@@ -10,7 +10,7 @@
  */
 
 import type { BattleEvent, TeamSelection } from "@pokemon-tactic/core";
-import { MAPS_REGISTRY } from "../maps/maps-registry";
+import { mapIdFromUrl } from "../maps/map-identity";
 import { type BattleTelemetryCollector, createBattleTelemetryCollector } from "./battle-telemetry";
 import { countControllers, trackedSidesOf } from "./team-telemetry";
 import {
@@ -21,11 +21,6 @@ import {
 } from "./telemetry";
 
 let collector: BattleTelemetryCollector | null = null;
-
-/** `assets/maps/the-wall.tmj` → `the-wall`, l'identifiant stable du registre. */
-function mapIdOf(mapUrl: string): string {
-  return MAPS_REGISTRY.find((entry) => mapUrl.endsWith(entry.url))?.id ?? "unknown";
-}
 
 /**
  * Modes de la V1. `online` et `story` viendront avec le Lot B et la Phase 9 ; les distinguer
@@ -58,7 +53,7 @@ export function beginBattleTelemetry(input: {
   trackBattleStarted({
     battleId,
     mode: modeOf(humans),
-    map: mapIdOf(input.mapUrl),
+    map: mapIdFromUrl(input.mapUrl),
     format: input.formatKey,
     humans,
     ai,

@@ -75,12 +75,19 @@ export function ephemeralTeamName(): string {
   return t("teamSelect.teams.random");
 }
 
-/** Slot 1 = human (restoring its last team), others = AI with a random team. */
-export function buildInitialSlots(format: MapFormat): SlotState[] {
+/**
+ * Slot 1 = human (restoring its last team), others = AI with a random team.
+ *
+ * @param humanIndex quelle ligne est celle du joueur local. `0` en partie locale, où c'est toujours
+ * le premier camp. **En ligne, c'est la place de l'invité** (plan 199) : un invité assis à la place 3
+ * doit voir sa propre ligne en humaine avec sa dernière équipe, pas la première ligne, qui est celle
+ * de l'hôte.
+ */
+export function buildInitialSlots(format: MapFormat, humanIndex = 0): SlotState[] {
   const lastSelection = loadLastSelection();
   const slots: SlotState[] = [];
   for (let i = 0; i < format.teamCount; i++) {
-    const controller = i === 0 ? PlayerController.Human : PlayerController.Ai;
+    const controller = i === humanIndex ? PlayerController.Human : PlayerController.Ai;
     const slot: SlotState = {
       controller,
       assignedTeam: null,

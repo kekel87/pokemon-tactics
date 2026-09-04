@@ -128,4 +128,4 @@ loin. C'est le **rôle** qu'on grep, pas le nom.
 - **e2e** : atteignabilité au clavier et au pad (manette synthétique, `pages/gamepad.ts`), seuils
   responsive (`dom/responsive-screens.spec.ts`), état persisté après bascule.
 - **Œil / téléphone réel** : confort de la hit-area, lisibilité en 4K, gestes tactiles multi-doigts.
-  Le harnais ne les remplace pas — voir `docs/test-plan.md` §6.10 et §6.13.
+  Le harnais ne les remplace pas — voir `docs/test-plan.md` §6.11 et §6.14.

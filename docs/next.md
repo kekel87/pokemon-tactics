@@ -18,19 +18,37 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ## À faire maintenant
 
-### 2026-09-04 — Le plan 198 est livré : exécuter le plan 199 (Lot B1)
+### 2026-09-04 (soir) — Le Lot B1 est livré : le faire valider, puis cadrer le Lot B2
 
-`docs/plans/198-previsualisation-degats-parametre-partie.md` est **`done`** (voir § Fait récemment).
-Son seul rôle vis-à-vis du Lot B1 est rempli : `CombatSetup` porte désormais `damagePreview`, gelé à
-l'entrée en combat, donc le salon a une valeur à afficher dans son encart de paramètres et l'hôte
-aura quelque chose à fixer.
+`docs/plans/199-lot-b1-transport-lobby.md` est **`done`**. Le jeu en ligne se joue jusqu'à l'entrée
+en combat : deux navigateurs se trouvent par un code, se mettent d'accord, et montent le même
+plateau. Gate local complet vert ; **la validation à la main reste à faire**.
 
-**Prochaine action : `docs/plans/199-lot-b1-transport-lobby.md`**, en `ready` — paquet
-`packages/network/`, écran `lobby`, salle d'attente, lancement accusé. Décisions #895-908 à inscrire
-dans `docs/decisions.md` au fil de l'exécution (#893-894 y sont, ajoutées par le plan 198). Son
-étape 9 met `docs/multiplayer.md` à jour, encore périmé sur cinq points.
+**Prochaine action : la recette à la main.** Deux navigateurs sur la même machine d'abord, puis — et
+c'est le vrai test — **un ordinateur et un téléphone sur deux réseaux différents**, en allant coller
+le code dans une messagerie entre les deux. C'est ce cas qui met l'onglet en arrière-plan, et c'est
+le comportement que le délai de grâce existe pour absorber. Prévoir aussi la passe multi-entrée
+mesurée sur l'écran `lobby` (la roue de caractères est neuve) : clavier, manette, tactile, et les
+cinq viewports.
 
-Le cadrage ci-dessous reste la référence de ce qui a été arrêté avec l'humain.
+⚠️ **Ce qui n'est PAS testé par la suite automatisée**, et qu'il faut donc regarder :
+- la **traversée de pare-feu** entre deux réseaux réels (l'e2e tourne sur la boucle locale, STUN et
+  TURN désactivés) — c'est le risque assumé de la V1, avec un message clair pour seul recours ;
+- les **délais de grâce** en conditions réelles (10 s après un départ propre, 45 s après un silence) ;
+- la roue de caractères **à la manette et au doigt** (le clavier, lui, est couvert en e2e).
+
+**Ensuite : le Lot B2** (combat en réseau) — échange des actions, tour distant greffé sur
+`humanPlayerIds`, validation de chaque action reçue contre `getLegalActions()`. Il n'a pas encore de
+plan. Trois réglages de forfait restent à arrêter **avant** d'écrire le Lot B3, pas dedans : délais
+suivants raccourcis à 10 s, forfait qui contourne les clauses de survie, et 45 s peut-être court pour
+une attaque de zone à plusieurs cibles (plan 199, encadré « Le modèle mental »).
+
+
+### ~~2026-09-04 — Le plan 198 est livré : exécuter le plan 199 (Lot B1)~~ — FAIT le 2026-09-04
+
+Le plan 199 est **`done`**, décisions #895-908 inscrites, `docs/multiplayer.md` corrigé sur ses cinq
+points périmés. Le cadrage ci-dessous reste la référence de ce qui a été arrêté avec l'humain, et il
+garde son intérêt pour les Lots B2 et B3.
 
 ### 2026-09-03 (soir) — Lot B1 du multijoueur : deux plans rédigés et relus, zéro ligne de code
 
@@ -334,8 +352,35 @@ sur `*.workers.dev`.
 
 ## Reporté / backlog technique
 
+- **Le reset CSS ne couvre que `.tb-root` et `.tb-dialog` (repéré 2026-09-04)** : `styles/reset.css` pose `box-sizing: border-box` sur ces deux racines et leurs descendants — **pas** sur `.ts-root` (écran de sélection d'équipe), `.mn-screen` (écrans de menu), `.ms-screen` (choix de carte), ni `.lb-screen` (salon).
+  - **Conséquence mesurée** : dans ces écrans, un `<button>` reçoit `border-box` du **navigateur** tandis qu'un `<span>` reste en `content-box`. Deux éléments portant la même classe et le même `min-height` ne font donc pas la même hauteur — 34 px contre 26 px sur la puce d'état de la salle d'attente, corrigée en posant `box-sizing` sur `.ts-segment`.
+  - **Pourquoi ça compte** : le dimensionnement de ces écrans dépend aujourd'hui d'un **défaut de navigateur**, pas d'une règle du projet. Tout `min-height`, `width` ou `padding` posé sur un élément non-formulaire y réserve la même surprise, et elle ne se voit qu'à la capture.
+  - **Correctif attendu** : élargir le reset aux racines d'écran, ou mieux, le rendre global (`*, *::before, *::after`). ⚠️ **Blast radius important** — ça change le calcul de taille de tous les écrans DOM d'un coup, donc ça demande une passe visuelle complète (les 5 viewports du cahier) et probablement `visual-tester`. À faire comme chantier propre, pas en marge d'autre chose.
+
+- 🔴 **Flaky dans le gate — `type-manip.integration.test.ts`, jet de dégâts non épinglé (repéré 2026-09-04)** : le test « grants STAB when the caster's type is overridden to the move's type » (`packages/core/src/battle/type-manip.integration.test.ts`) affirme que les dégâts avec STAB sont **strictement supérieurs** à ceux sans, mais l'aléa du jet n'est pas épinglé — les deux plages se chevauchent. **Mesuré : 2 échecs sur 10 runs de `pnpm test:integration`** (`expected 59 to be greater than 59`, `expected 53 to be greater than 59`).
+  - **Antérieur au Lot B1** : ce fichier n'est pas dans le diff du plan 199. C'est la classe de flaky que les décisions **#759-#760** décrivent, et que `.claude/rules/core.md` interdit explicitement (« tout test qui affirme un résultat dépendant d'un jet doit épingler l'aléa »).
+  - **Coût du gate** : environ une fois sur cinq, `/ci-gate` ressort rouge sans qu'aucune ligne de code n'ait changé — ce qui apprend à ignorer le gate, exactement ce qu'il ne faut pas.
+  - **Correctif attendu** : épingler l'aléa du harnais de ce test (`random` seedé via `createPrng`, ou `vi.spyOn(Math, "random")` avec `afterEach(() => vi.restoreAllMocks())`), et comparer alors des valeurs exactes plutôt qu'un `toBeGreaterThan`. Petit, mais il touche `packages/core` — donc hors du périmètre d'un commit réseau, et il appelle sa propre passe `core-guardian`.
+
+- **Conventions et dette du paquet `packages/network/` (revue de code du 2026-09-04, plan 199)** : la revue a relevé 2 Critical et 6 Important **corrigés le jour même** ; ce qui suit est le reste, tout en conventions ou en dette, aucun bug.
+  - **`NetworkMessageType` en objet constant** plutôt qu'un `switch` sur 8 littéraux de chaîne (`room.ts`). Bénéfice concret au-delà de la règle : `MESSAGE_TYPES` (`protocol.ts`) recopie **à la main** les mêmes 8 littéraux et deviendrait `Object.values(...)` — une liste dupliquée en moins, que rien ne synchronise aujourd'hui.
+  - **`PlayerController` contourné par des littéraux** en deux sites (`room.ts` `? "ai" : "human"`, et `team-select-screen.ts` `controller === "ai"`) alors que l'enum porte déjà ces valeurs. Même famille : `NetworkIntent.role` redéclare `"host" | "guest"` là où `RoomRole` existe déjà.
+  - **`FakeNetworkDirectory` est exporté par le barrel public** du paquet. Un double de test appartient à `packages/network/src/testing/` avec son propre point d'entrée, comme `packages/core/src/testing/`. Ce sont les `export *` en gros qui le font fuir.
+  - **`ScreenParamsById["team-select"]` a perdu une garantie de compilation** : `mapUrl` est devenu optionnel avec un `throw` au montage pour le rattraper. Une union discriminée (`{ mapUrl } | { network: { role: "guest" } }`) la rendrait au compilateur. C'est le seul endroit où le mode réseau a affaibli le typage du chemin local.
+  - **Deux tests sans comportement** dans `protocol.test.ts` : `Number.isInteger(NETWORK_VERSION)` sur une constante, et `Object.values(NetworkErrorCode)` qui teste le contenu d'une déclaration (et fige l'ordre d'un littéral d'objet). Le `satisfies Record<NetworkErrorCode, TelemetryAction>` de `telemetry.ts` fait mieux, à la compilation.
+  - **`mapIdFromUrl` renvoie `"unknown"`**, et cette chaîne alimente désormais `NetworkRoomOptions.mapId`. Une carte hors registre chez l'hôte fait afficher « versions incompatibles » à l'invité pour un simple raté de registre. Fail-fast : l'hôte devrait refuser d'ouvrir un salon sur une carte qu'il ne sait pas nommer.
+  - **`leave()` ne solde pas `pendingLaunch`**, donc la promesse de `waitForStartAcks` ne se règle jamais (elle est `void`-ée, l'effet se limite à une promesse pendante). Plus largement, après `leave()` les méthodes du salon « fonctionnent » encore sur un objet mort — l'app s'en protège en nullant sa référence, ce qui est la discipline de l'appelant et non celle de l'objet.
+  - **Une fermeture pendant le lancement n'annule pas tôt** : `awaitedSeats` est un instantané, donc on attend les 15 s en entier pour un pair dont on sait déjà qu'il est parti.
+  - Divers : JSDoc périmée sur `holdsFocus` de `code-wheel.ts` (elle dit le contraire du code depuis que le `lobby` prend l'axe horizontal), `focusActiveSlot` exporté mais jamais appelé de l'extérieur, deux blocs JSDoc consécutifs sur `wireScoredAi`, deux `@media (pointer: coarse)` adjacents dans `lobby.css`, un token de **bordure de bouton** utilisé pour une couleur de texte, `REQUIRED_TEAM_COUNTS[0] ?? 2` (branche inatteignable + `2` magique), et une JSDoc mi-anglais mi-français dans `battle-mode-screen.ts`.
+
+- **`slot-state.ts` — `humanIndex` ne tient qu'une moitié de sa promesse (2026-09-04)** : `loadLastSelection()` est indexé **par emplacement**, pas par joueur. Un invité assis à la place 3 lit donc `lastSelection[2]`, sa dernière équipe *du troisième camp d'une partie locale* — quasi toujours vide. Sa ligne est bien humaine, mais « avec sa dernière équipe » ne se produit jamais pour un invité, qui ne peut pas s'asseoir à la place 1. Effet de bord involontairement correct : « Prêt » reste inerte jusqu'à ce qu'il choisisse. À traiter avec le Lot B2, où la persistance des équipes en ligne se posera pour de bon.
+
+- **À trancher : l'hôte peut basculer une ligne IA en « Humain » dans une partie en ligne (2026-09-04)** — le segment offre les deux sens, et `composeStartSeats` rend alors `controller: "human"`, donc l'hôte pilote deux camps depuis son écran (hot-seat dans une partie en ligne). La JSDoc ne considérait que le sens `→ Ai` (forcer le lancement). Probablement non voulu, mais c'est une décision de design, pas un bug de code.
+
 - **Rappel Phase 7 — le menu de combat grignotera le temps du joueur sans le dire** (noté par le plan 187, 2026-08-25 ; **repris dans `docs/multiplayer.md` § Chronomètre le 2026-08-29**, il n'est plus orphelin ici). Quand le chronomètre multijoueur existera, ouvrir le menu de combat consommera du temps de tour au même titre que n'importe quelle autre action — c'est le prix explicite du cadrage « un seul comportement, dès le solo » (décision #819 : pas de pause). Il faudra probablement une mention « le temps continue » sur la modale à ce moment-là.
-- **Télémétrie `battle_started` — `damagePreview` absent, `autoPlacement` présent (2026-09-04)** : le plan 198 a fait de `damagePreview` un paramètre de partie au même titre que `autoPlacement` (`CombatSetup`), mais seul `autoPlacement` a été ajouté au schéma télémétrie (`packages/app/src/analytics/{battle-telemetry-session,telemetry}.ts`, `packages/telemetry-worker/src/report.ts`) — câblage hors périmètre du plan 198. Coût : un champ booléen de plus dans la ligne `battle_started` côté client, worker et rapport. Candidat Phase 8 (équilibrage) — savoir si les joueurs gardent la prévisualisation de dégâts active est le genre de signal d'usage que cette phase veut collecter.
+- **Télémétrie `battle_started` — `damagePreview` absent, `autoPlacement` présent (2026-09-04)** : le plan 198 a fait de `damagePreview` un paramètre de partie au même titre que `autoPlacement` (`CombatSetup`), mais seul `autoPlacement` a été ajouté au schéma télémétrie (`packages/app/src/analytics/{battle-telemetry-session,telemetry}.ts`, `packages/telemetry-worker/src/report.ts`) — câblage hors périmètre du plan 198. Coût : un champ booléen de plus dans la ligne `battle_started` côté client, worker et rapport. Candidat Phase 8 (équilibrage) — savoir si les joueurs gardent la prévisualisation de dégâts active est le genre de signal d'usage que cette phase veut collecter. **Toujours ouvert après le plan 199**, qui a ajouté les compteurs du jeu en ligne mais pas ce champ.
+
+- **Une partie en ligne n'émet pas `battle_started` (2026-09-04, plan 199)** : `telemetryTeams` est délibérément absent du setup composé depuis le `start`, parce que la composition des autres camps n'est **pas** de l'information locale — un pair ne connaît des autres que ce qu'ils ont annoncé, et `battle_started` n'a de toute façon pas encore de mode `online` (#857 n'en prévoyait pas). Conséquence : le jeu en ligne est visible par ses compteurs de salon (`room-created`, `room-joined`, échecs par cause) mais **pas** dans les statistiques de combat. À traiter avec le Lot B2, qui est le premier à faire réellement jouer une partie en ligne — c'est là que « une partie en ligne a eu lieu » devient une donnée qui veut dire quelque chose.
 - ~~**Légende de contrôles caméra qui suit la timeline (décision #798)**~~ **RÉSOLU le 2026-08-27 — option B implémentée.** `.tt-active` réserve désormais la hauteur d'une vignette active même quand la case se vide (`min-block-size`, avec la valeur du format téléphone du plan 179 et les deux bordures du portrait, qui est en `content-box`). La légende, la liste et les deux capuchons de défilement ne bougent plus d'un pixel pendant la prévisualisation de coût en CT ; **la boussole non plus** — `chrome-insets` écarte toute mesure de largeur nulle, et un slot vide reste large de 0, ce qui distingue ce cas du `min-inline-size` rejeté par le plan 185. Test e2e §4.18 « la légende ne bouge pas quand la timeline perd son entrée active » **repassé au vert** (6/6 sur la spec).
 
 ### e2e Playwright — chantier de rattrapage CLOS (2026-07-22)
@@ -466,6 +511,40 @@ Ce qu'il ne résout **pas**, à traiter en Phase 7 (détail complet § « Prépa
 - Frustration/Retour mis de côté (inutilisables Gen 8/9, décision #423) ; Puissance Cachée exclue définitivement (0 learner côté Champions, confirmé 2026-07-11) ; Morphing/Imposteur/Métamorph livrés (plan 157, roster 151/151 complet).
 
 ## Fait récemment
+
+- 2026-09-04 (soir) — **Plan 199 — Lot B1 du multijoueur : transport, salon, lancement.** Livré d'un
+  trait, les 9 étapes. Nouveau paquet `packages/network/` **pur** (aucune dépendance d'interface, et
+  du moteur il ne connaît que des **types**) : protocole et `NETWORK_VERSION`, codes et **adresses
+  dérivées du code** (`pkmntac-<CODE>-<place>` — l'hôte est celui qui a pris la place 1, ce qui donne
+  d'un coup l'allocation sans arbitre, le maillage et la reconnexion sans serveur), transport à deux
+  mises en œuvre (`peerjs@1.5.5` et un **canal en mémoire**), et le salon. Écran `lobby` + salle
+  d'attente greffée sur l'écran de sélection d'équipe. Décisions #895-908.
+
+  **Le point structurel est le déterminisme.** Le setup diffusé porte **trois graines** — combat,
+  placement, IA. Le placement automatique tirait au hasard **localement** : sans sa graine, deux
+  pairs avaient **deux plateaux différents avant le premier tour**. Et l'affirmation du plan-cadre
+  « l'IA ne peut pas tourner sur les deux pairs » était **fausse** : elle est pure à état et
+  générateur donnés, donc une graine dérivée par place suffit, sans un seul message (#901).
+
+  **Cinq trous trouvés en exécutant, aucun par inspection** : les lettres de la roue collisionnaient
+  avec les touches de mouvement (`KeyS` = bas, `KeyD` = droite — taper `SNSD2` posait `SNSDA`) ;
+  `Room.join` rendait la main **avant** le premier `room_state`, donc l'invité lisait une
+  configuration vide et affichait « versions incompatibles » alors que tout allait bien ; l'écran de
+  terrain ne **transmettait pas** l'intention réseau, si bien que la salle d'attente se montait en
+  mode local **sans que rien ne le signale** ; la ligne humaine de l'invité était codée sur la
+  première place, alors que c'est celle de l'hôte ; et les sélections d'équipe n'étaient annoncées
+  par personne, donc le `start` de l'hôte partait avec des équipes **vides**.
+
+  ⚠️ Un sixième, attrapé par le seul canal factice : le premier correctif de poignée de main marchait
+  en e2e et cassait **16 tests d'intégration** — le canal en mémoire livre au plus serré, et
+  l'attente du `room_state` s'armait après son passage. C'est exactement la raison d'être de ce canal.
+
+  71 tests dans `packages/network`, un scénario e2e à deux contextes sur **annuaire local** (jamais
+  le service public : une coupure d'Internet rendrait le gate rouge). Compteurs de télémétrie du jeu
+  en ligne, avec une **cause par compteur** pour les échecs de mise en relation — c'est ce qui dira
+  si le pair-à-pair sans relais est tenable. `docs/multiplayer.md` corrigé sur ses cinq points
+  périmés. **Validation humaine encore à faire.**
+
 
 - 2026-09-04 — **Plan 198 — La prévisualisation de dégâts devient un paramètre de partie.** Livrée
   d'un trait (plan `ready`, les 8 étapes). Elle quitte les Réglages pour le pied de l'écran de

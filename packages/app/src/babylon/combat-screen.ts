@@ -12,6 +12,7 @@ import {
   PlayerId,
 } from "@pokemon-tactic/core";
 import { getMoveName, getPokemonName } from "@pokemon-tactic/data";
+import { deriveAiSeedsBySeat } from "@pokemon-tactic/network";
 import type {
   CombatPokemonHandle,
   CombatScene,
@@ -302,8 +303,11 @@ async function mountPlacement(
      * Une seule source d'entropie pour toute la partie : le placement en faisait une seconde, sur
      * `Math.random`, donc les douze Pokemon se posaient ailleurs à chaque lancement — et une capture
      * censée être reproductible ne l'était pas.
+     *
+     * En ligne, la graine vient de l'HÔTE (plan 199) : deux pairs qui tireraient chacun la leur
+     * auraient deux plateaux différents avant le premier tour.
      */
-    randomSeed: randomSeed(),
+    randomSeed: setup.seeds?.placement ?? randomSeed(),
     openCombatMenu,
     host: stage.screenLayer,
     onComplete: (result) => onComplete(result, loaded.map),
@@ -805,22 +809,57 @@ function runBattle(options: {
 }
 
 /** EASY AI (seeded) for the given AI-controlled player ids (placement path). */
+/**
+ * @param aiRootSeed graine d'IA d'une partie en ligne (plan 199). Présente, chaque place en dérive
+ * la sienne dans l'**ordre croissant des places**, ce qui rend l'IA identique sur les deux pairs sans
+ * qu'un seul message ne s'échange (décision #901). Absente en local, où l'horloge suffit.
+ */
 function wireScoredAi(
   battle: BattleSetupResult,
   aiPlayerIds: readonly PlayerId[],
+  allPlayerIds: readonly PlayerId[],
+  aiRootSeed: number | undefined,
 ): BattleOrchestrator["onTurnReady"] {
   if (aiPlayerIds.length === 0) {
     return null;
   }
+  // Toutes les places sont dérivées, pas seulement celles tenues par l'IA : dériver à la demande
+  // ferait dépendre les valeurs du nombre d'IA de la partie, donc deux pairs qui n'interrogent pas
+  // les mêmes places obtiendraient des graines différentes pour la même place.
+  const seedBySeat =
+    aiRootSeed === undefined
+      ? undefined
+      : deriveAiSeedsBySeat(
+          allPlayerIds.map((_, index) => index + 1),
+          createPrng(aiRootSeed),
+        );
+
   const aiControllers = new Map<string, AiTeamController>();
   for (const playerId of aiPlayerIds) {
+    const seat = allPlayerIds.indexOf(playerId) + 1;
+    const seed = seedBySeat?.get(seat);
+    /*
+     * 🔴 En ligne, une graine manquante est une ERREUR, pas un cas à rattraper.
+     *
+     * Retomber sur l'horloge donnerait à deux pairs deux IA différentes, **sans erreur et sans
+     * trace** — la divergence la plus coûteuse à diagnostiquer du multijoueur, sur le seul chemin où
+     * elle est invisible en jeu. Mieux vaut ne pas démarrer.
+     *
+     * Cela arriverait si l'ordre des places cessait de correspondre à l'ordre de `placementTeams`,
+     * dont cette ligne re-dérive la place par `indexOf`. Cet invariant court sur trois fichiers
+     * (`room.ts` trie par place → le setup mappe l'index sur `PLAYER_IDS` → le placement préserve
+     * l'ordre) ; il tient aujourd'hui, et c'est ce `throw` qui le dira le jour où il cassera.
+     */
+    if (seedBySeat !== undefined && seed === undefined) {
+      throw new Error(`Partie en ligne : aucune graine d'IA dérivée pour la place ${seat}`);
+    }
     aiControllers.set(
       playerId,
       new AiTeamController(
         battle.engine,
         playerId,
         EASY_PROFILE,
-        createPrng(Date.now()),
+        createPrng(seed ?? Date.now()),
         battle.moveDefinitions,
       ),
     );
@@ -854,8 +893,12 @@ function startBattleLoop(
      * Le seed du placement, repris tel quel : une seule source d'entropie par partie, placement
      * compris. C'est ce que cette ligne prétendait déjà être — elle en tirait en fait un SECOND, et le
      * placement, lui, n'en avait aucun.
+     *
+     * En ligne, le combat a sa **propre** graine, distincte de celle du placement (plan 199) : les
+     * deux voyagent dans le setup, et les rabattre l'une sur l'autre ferait dépendre les jets de
+     * combat du nombre de tirages consommés par le placement.
      */
-    seed: result.seed,
+    seed: setup.seeds?.battle ?? result.seed,
   };
   const battle = buildBattle(inputs, map);
   return runResolvedBattle({
@@ -951,7 +994,13 @@ function runResolvedBattle(options: {
     onReplay,
     initialLogEvents: options.initialLogEvents,
     onExit: () => navigate("main-menu", undefined),
-    wireTurnReady: (built) => wireScoredAi(built, aiPlayerIds),
+    wireTurnReady: (built) =>
+      wireScoredAi(
+        built,
+        aiPlayerIds,
+        inputs.placementTeams.map((team) => team.playerId),
+        inputs.setup.seeds?.ai,
+      ),
     // A real battle always withholds enemy information (plan 176) — no player-facing opt-out.
     enemyInfoHidden: true,
     // Gelée pour toute la partie (plan 198) : la reprise repasse par ici avec le setup sauvegardé,

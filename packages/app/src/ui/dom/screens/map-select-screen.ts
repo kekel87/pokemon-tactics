@@ -1,6 +1,7 @@
 import { createMapPreviewStage, type MapPreviewStage } from "@pokemon-tactic/render-babylon";
 import { countScreen, TelemetryScreen } from "../../../analytics/telemetry";
 import type { Navigate, Screen } from "../../../app/screen-manager";
+import type { NetworkIntent } from "../../../app/screens";
 import { getLanguage, t } from "../../../i18n";
 import { getInputSystem } from "../../../input/input-system";
 import { MAPS_REGISTRY } from "../../../maps/maps-registry";
@@ -17,13 +18,24 @@ export function createMapSelectScreen(navigate: Navigate): Screen<"map-select"> 
   let selectedIndex = 0;
   const listButtons: HTMLButtonElement[] = [];
   let unregisterInput: (() => void) | undefined;
+  /**
+   * L'intention de partie en ligne, quand l'hôte passe par ici pour choisir son terrain (plan 199).
+   *
+   * 🔴 Elle doit être **transmise** à l'écran suivant : sans ça, la salle d'attente se monterait en
+   * mode local, sans code ni salon — et rien ne le signalerait, l'écran étant par ailleurs
+   * parfaitement fonctionnel.
+   */
+  let networkIntent: NetworkIntent | undefined;
 
-  const goBack = (): void => navigate("battle-mode", undefined);
+  const goBack = (): void => {
+    // L'hôte revient au `lobby`, d'où il vient ; un joueur local au choix du mode de combat.
+    navigate(networkIntent === undefined ? "battle-mode" : "lobby", undefined);
+  };
 
   const confirmSelection = (): void => {
     const entry = MAPS_REGISTRY[selectedIndex];
     if (entry) {
-      navigate("team-select", { mapUrl: entry.url });
+      navigate("team-select", { mapUrl: entry.url, network: networkIntent });
     }
   };
 
@@ -62,7 +74,8 @@ export function createMapSelectScreen(navigate: Navigate): Screen<"map-select"> 
   };
 
   return {
-    mount(host) {
+    mount(host, params) {
+      networkIntent = params?.network;
       countScreen(TelemetryScreen.MapSelect);
       root = el("div", "ms-screen");
 
@@ -127,6 +140,7 @@ export function createMapSelectScreen(navigate: Navigate): Screen<"map-select"> 
     dispose() {
       unregisterInput?.();
       unregisterInput = undefined;
+      networkIntent = undefined;
       preview?.dispose();
       preview = null;
       root?.remove();

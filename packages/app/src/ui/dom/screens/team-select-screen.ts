@@ -1,9 +1,31 @@
-import type { MapFormat, PlayerController } from "@pokemon-tactic/core";
+import type { MapFormat, PlayerController, TeamSelection } from "@pokemon-tactic/core";
+import { REQUIRED_TEAM_COUNTS } from "@pokemon-tactic/data";
+import {
+  HOST_SEAT,
+  NetworkErrorCode,
+  NetworkSeatOccupancy,
+  type NetworkSeatState,
+  PeerJsTransport,
+  Room,
+  type RoomView,
+  type StartMessage,
+} from "@pokemon-tactic/network";
 import { buildTelemetryTeams } from "../../../analytics/team-telemetry";
-import { countScreen, TelemetryScreen } from "../../../analytics/telemetry";
+import {
+  countAction,
+  countScreen,
+  ROOM_FAILURE_ACTIONS,
+  TelemetryAction,
+  TelemetryScreen,
+} from "../../../analytics/telemetry";
 import type { Navigate, Screen } from "../../../app/screen-manager";
+import type { NetworkIntent } from "../../../app/screens";
 import { t } from "../../../i18n";
+import type { TranslationKey } from "../../../i18n/types";
 import { loadTiledMap } from "../../../maps/load-tiled-map";
+import { mapIdFromUrl, mapUrlFromId } from "../../../maps/map-identity";
+import { holdOnlineRoom, releaseOnlineRoom } from "../../../network/online-room";
+import { signallingOverride } from "../../../network/signalling-override";
 import { getSettings, updateSettings } from "../../../settings";
 import {
   buildFormatKey,
@@ -15,10 +37,12 @@ import {
   createPlayersColumnElement,
   type PlayerColumnEntry,
 } from "../../team-select/PlayersColumn";
+import { createRoomPanelElement } from "../../team-select/RoomPanel";
 import {
   assignTeamToSlot,
   buildInitialSlots,
   buildTeamSelections,
+  PLAYER_IDS,
   playerLabel,
   playerShortLabel,
   type SlotState,
@@ -60,7 +84,46 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
   let autoPlacement = getSettings().autoPlacement;
   let damagePreview = getSettings().damagePreview;
 
-  const goBack = (): void => navigate("map-select", undefined);
+  /*
+   * Mode réseau (plan 199, étape 5). L'écran devient la **salle d'attente** : il n'y a pas de second
+   * écran de salon (décision #897), celui-ci portant déjà les lignes par camp.
+   *
+   * `room` absent = partie locale, et tout ce qui suit reste inerte — c'est ce qui garde le chemin
+   * local exactement tel qu'il était.
+   */
+  let networkIntent: NetworkIntent | undefined;
+  let room: Room | null = null;
+  let roomView: RoomView | null = null;
+  let networkError: NetworkErrorCode | null = null;
+  /** Les désabonnements du salon, soldés au démontage — le salon, lui, survit à cet écran. */
+  const roomListeners: (() => void)[] = [];
+
+  const isHost = (): boolean => networkIntent?.role === "host";
+  const isOnline = (): boolean => networkIntent !== undefined;
+
+  const goBack = (): void => {
+    if (room !== null) {
+      // Compté seulement si la partie n'est pas lancée : « Retour » n'est plus le chemin de l'entrée
+      // en combat, mais le rester explicite protège du jour où il le redeviendrait.
+      if (!room.view.locked) {
+        countAction(TelemetryAction.RoomAbandoned);
+      }
+      /*
+       * Quitter la salle d'attente met fin à la session en ligne — c'est un départ **propre**, donc
+       * le `bye` part et vaut aux autres le délai court plutôt que les 45 s du silence.
+       *
+       * `releaseOnlineRoom` et non `room.leave()` : le salon appartient désormais à la session, et
+       * le laisser derrière ferait tenir un pair que plus personne ne lit.
+       */
+      releaseOnlineRoom();
+      room = null;
+    }
+    if (isOnline()) {
+      navigate("lobby", undefined);
+      return;
+    }
+    navigate("map-select", undefined);
+  };
 
   const currentFormat = (): MapFormat => {
     const option = formatOptions.find((candidate) => candidate.key === formatKey);
@@ -92,14 +155,156 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     });
   };
 
+  /**
+   * L'hôte grave la partie et la diffuse (plan 199, étape 6). Les trois graines sont tirées **ici**,
+   * une fois, et voyagent dans le `start` : c'est ce qui fait que les deux pairs montent le même
+   * combat sans échanger un mot de plus.
+   */
+  const onNetworkLaunch = (): void => {
+    if (room === null || !isHost() || !isEveryoneReady()) {
+      return;
+    }
+    void room.launch({
+      battle: freshSeed(),
+      placement: freshSeed(),
+      ai: freshSeed(),
+    });
+  };
+
+  /** Chacun confirme sa propre sélection, l'hôte compris. Une place IA est prête d'office. */
+  const onToggleReady = (): void => {
+    room?.setReady(!isSelfReady());
+  };
+
+  /**
+   * Quelles lignes ce joueur compose : la sienne, plus celles que personne ne tient s'il est
+   * l'hôte — les IA **et les places libres**, dont l'équipe servira si personne ne vient. Une place
+   * distante n'appartient à personne d'autre que celui qui est derrière.
+   */
+  const canEditSlot = (slotIndex: number): boolean => {
+    if (room === null) {
+      return true;
+    }
+    const seat = slotIndex + 1;
+    if (seat === room.seat) {
+      return true;
+    }
+    const occupancy = roomView?.seats.find((candidate) => candidate.seat === seat)?.occupancy;
+    return (
+      isHost() &&
+      (occupancy === NetworkSeatOccupancy.Ai || occupancy === NetworkSeatOccupancy.Waiting)
+    );
+  };
+
+  /**
+   * Plus aucune exemption : l'hôte a désormais son propre « Prêt », donc sa confirmation compte comme
+   * celle des autres. Les places IA et libres sont prêtes d'office — il n'y a personne dont on
+   * attendrait quoi que ce soit.
+   */
+  const isEveryoneReady = (): boolean => roomView?.seats.every((seat) => seat.ready) === true;
+
+  /**
+   * L'entrée en combat, des deux côtés.
+   *
+   * 🔴 La composition vient **entièrement du `start`**, jamais de l'état local : un invité ne connaît
+   * pas l'équipe de l'hôte, et l'hôte ne connaît celles des autres que par ce qu'ils ont annoncé.
+   * Reconstruire depuis `slots` donnerait à chaque pair un plateau différent — exactement ce que ce
+   * lot existe pour empêcher.
+   */
+  const enterNetworkBattle = (start: StartMessage): void => {
+    const url = mapUrlFromId(start.options.mapId);
+    if (url === undefined) {
+      // Un pair qui connaît une carte que nous n'avons pas. `NETWORK_VERSION` est là pour l'éviter ;
+      // le jour où on oubliera de l'incrémenter, un refus lisible vaut mieux qu'un chargement d'une
+      // URL construite au hasard.
+      showNetworkError(NetworkErrorCode.VersionIncompatible);
+      return;
+    }
+
+    const teams: TeamSelection[] = [];
+    for (const [index, seat] of start.seats.entries()) {
+      const playerId = PLAYER_IDS[index];
+      if (playerId === undefined) {
+        return;
+      }
+      teams.push({
+        playerId,
+        pokemonDefinitionIds: [...seat.selection.pokemonDefinitionIds],
+        controller: seat.controller,
+        ...(seat.selection.slots === undefined ? {} : { slots: [...seat.selection.slots] }),
+      });
+    }
+
+    navigate("combat", {
+      mapUrl: url,
+      setup: {
+        teams,
+        formatKey,
+        autoPlacement: start.options.autoPlacement,
+        damagePreview: start.options.damagePreview,
+        seeds: start.seeds,
+        // Pas de `telemetryTeams` : la composition des autres camps n'est pas de l'information
+        // locale, et `battle_started` n'a pas encore de mode `online`. Les compteurs du jeu en ligne
+        // sont l'étape 7 de ce plan.
+      },
+    });
+  };
+
+  /**
+   * Fait suivre au salon les deux paramètres de partie que l'hôte vient de changer.
+   *
+   * 🔴 Il manquait, et le trou était visible : les bascules du pied écrivaient la préférence
+   * persistée et la variable locale, mais **rien ne partait au salon** — l'encart de paramètres en
+   * haut de l'écran continuait d'afficher l'ancienne valeur, et les autres joueurs ne l'apprenaient
+   * jamais. Or c'est celle du salon qui est diffusée au lancement : on aurait joué sous une règle que
+   * l'hôte croyait avoir changée. Relevé à la recette du 2026-09-04.
+   *
+   * Sans effet hors du rôle d'hôte : `setOptions` est réservé à l'hôte, et le pied n'est de toute
+   * façon éditable que par lui.
+   */
+  const publishRoomOptions = (): void => {
+    if (room === null || !isHost()) {
+      return;
+    }
+    room.setOptions({ autoPlacement, damagePreview });
+    render();
+  };
+
+  const showNetworkError = (code: NetworkErrorCode): void => {
+    networkError = code;
+    // Une cause par compteur (plan 199, étape 7) : c'est ce qui dira si le pair-à-pair sans relais
+    // est tenable, la traversée de pare-feu étant assumée faillible en V1.
+    countAction(ROOM_FAILURE_ACTIONS[code]);
+    render();
+  };
+
+  function freshSeed(): number {
+    return crypto.getRandomValues(new Uint32Array(1))[0] ?? 0;
+  }
+
   const setController = (slotIndex: number, controller: PlayerController): void => {
     const slot = slots[slotIndex];
-    if (slot && setSlotController(slot, controller)) {
-      render();
+    if (!slot || !setSlotController(slot, controller)) {
+      return;
     }
+    // En ligne, la bascule est aussi un fait de salon : elle doit parvenir aux autres, sinon eux
+    // continueraient d'attendre le « Prêt » d'une ligne que l'hôte vient de donner à l'IA.
+    room?.setSeatOccupancy(
+      slotIndex + 1,
+      controller === "ai" ? NetworkSeatOccupancy.Ai : NetworkSeatOccupancy.Human,
+    );
+    // Une ligne passée en IA reçoit une équipe aléatoire séance tenante : il faut la poser au salon,
+    // sinon la place partirait vide dans le `start`.
+    announceSelection(slotIndex, slot);
+    render();
   };
 
   const chooseTeam = (slotIndex: number): void => {
+    // On ne choisit pas l'équipe de quelqu'un d'autre : en ligne, chaque joueur ne compose que la
+    // sienne, et l'hôte celles des lignes IA.
+    if (isOnline() && !canEditSlot(slotIndex)) {
+      return;
+    }
     openTeamPickerModal({
       slotIndex,
       playerLabel: playerLabel(slotIndex),
@@ -113,8 +318,33 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     if (!slot || !assignTeamToSlot(slot, slotIndex, teamId)) {
       return;
     }
+    announceSelection(slotIndex, slot);
     render();
     focusNextUnassigned(slotIndex);
+  };
+
+  /**
+   * Pose au salon l'équipe d'une place qu'on possède (plan 199, étape 6).
+   *
+   * 🔴 Sans cet appel, le `start` de l'hôte partirait avec des équipes **vides** : le salon ne
+   * devine pas ce que l'écran a composé, et c'est le `start` qui porte la composition de chaque
+   * place jusqu'aux autres pairs.
+   */
+  const announceSelection = (slotIndex: number, slot: SlotState): void => {
+    if (room === null || slot.assignedTeam === null) {
+      return;
+    }
+    room.setSeatSelection(slotIndex + 1, {
+      pokemonDefinitionIds: slot.assignedTeam.slots.map((entry) => entry.pokemonId),
+      slots: [...slot.assignedTeam.slots],
+    });
+  };
+
+  /** Toutes les places qu'on possède, posées d'un coup — à l'ouverture du salon et à chaque bascule. */
+  const announceOwnedSelections = (): void => {
+    for (const [index, slot] of slots.entries()) {
+      announceSelection(index, slot);
+    }
   };
 
   /**
@@ -158,6 +388,14 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     const title = el("h2", "ts-header-title");
     title.textContent = `${t("teamSelect.title")} — ${mapName}`;
 
+    // En ligne, le format est **gravé depuis le `lobby`** : le sélecteur disparaît plutôt que de
+    // s'afficher désactivé, parce qu'il n'y a pas de choix en attente — la décision est déjà prise,
+    // et l'encart de salon la rappelle (décision #896).
+    if (isOnline()) {
+      header.append(back, title);
+      return header;
+    }
+
     const picker = createFormatPickerElement(
       // Le libellé est assemblé ici, jamais stocké : il dépend de la langue courante. Garde de
       // code, pas un cas de recette — aucun écran de préparation ne porte de bascule de langue
@@ -172,26 +410,138 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     return header;
   };
 
-  const buildPlayerEntry = (slotIndex: number, slot: SlotState): PlayerColumnEntry => ({
-    props: {
-      slotIndex,
-      playerLabel: playerLabel(slotIndex),
-      shortLabel: playerShortLabel(slotIndex),
-      colorHex: teamColorToHex(slotIndex),
-      controller: slot.controller,
-      assignedTeam: slot.assignedTeam,
-      ephemeral: slot.ephemeral,
-      labels: {
-        controllerHuman: t("teamSelect.controller.human"),
-        controllerAi: t("teamSelect.controller.ai"),
-        chooseTeam: t("teamSelect.players.choose"),
+  /** L'encart de salon : le code et les paramètres. N'existe qu'en ligne. */
+  const buildRoomPanel = (): HTMLElement | null => {
+    if (room === null || roomView === null) {
+      return null;
+    }
+    return createRoomPanelElement(
+      {
+        code: room.code,
+        mapName,
+        teamCount: roomView.options.teamCount,
+        autoPlacement: roomView.options.autoPlacement,
+        damagePreview: roomView.options.damagePreview,
+        isHost: isHost(),
       },
-    },
-    callbacks: {
-      onChooseTeam: () => chooseTeam(slotIndex),
-      onSetController: (controller) => setController(slotIndex, controller),
-    },
-  });
+      { onCopyCode: (code) => void navigator.clipboard?.writeText(code) },
+    );
+  };
+
+  /**
+   * L'état d'une ligne **tel qu'on l'affiche**, distinct de la préparation que le salon calcule pour
+   * verrouiller le lancement : une place libre y est « prête » (personne dont on attende la
+   * confirmation) alors qu'à l'écran elle doit dire qu'elle attend un joueur.
+   */
+  const seatStatusOf = (
+    seatState: NetworkSeatState | undefined,
+  ): "open" | "ready" | "not-ready" | undefined => {
+    if (seatState === undefined) {
+      return undefined;
+    }
+    if (seatState.occupancy === NetworkSeatOccupancy.Waiting) {
+      return "open";
+    }
+    return seatState.ready ? "ready" : "not-ready";
+  };
+
+  /** Le rôle qui remplace le segment Humain / IA, quand il n'y a rien à choisir sur cette ligne. */
+  const lockedRoleOf = (
+    seatState: NetworkSeatState | undefined,
+  ): "remote" | "host" | "self" | undefined => {
+    if (seatState === undefined) {
+      return undefined;
+    }
+    if (seatState.seat === HOST_SEAT) {
+      return "host";
+    }
+    if (seatState.occupancy !== NetworkSeatOccupancy.Remote) {
+      return undefined;
+    }
+    // Ma place est « moi », pas « un joueur distant » : vue de mon écran, c'est moi qui y suis.
+    return seatState.seat === room?.seat ? "self" : "remote";
+  };
+
+  /** Une place tenue par un humain — l'hôte ou un joueur distant. Son équipe ne se montre pas. */
+  const isHeldByHuman = (seatState: NetworkSeatState | undefined): boolean =>
+    seatState !== undefined &&
+    (seatState.seat === HOST_SEAT || seatState.occupancy === NetworkSeatOccupancy.Remote);
+
+  const buildPlayerEntry = (slotIndex: number, slot: SlotState): PlayerColumnEntry => {
+    // La place du salon correspondant à ce camp : la place 1 est l'hôte, donc l'index + 1.
+    const seatState = roomView?.seats.find((seat) => seat.seat === slotIndex + 1);
+    const isMine = room !== null && seatState?.seat === room.seat;
+
+    return {
+      props: {
+        slotIndex,
+        playerLabel: playerLabel(slotIndex),
+        shortLabel: playerShortLabel(slotIndex),
+        colorHex: teamColorToHex(slotIndex),
+        controller: slot.controller,
+        assignedTeam: slot.assignedTeam,
+        ephemeral: slot.ephemeral,
+        labels: {
+          controllerHuman: t("teamSelect.controller.human"),
+          controllerAi: t("teamSelect.controller.ai"),
+          chooseTeam: t("teamSelect.players.choose"),
+          controllerRemote: t("room.remotePlayer"),
+          controllerHost: t("room.hostPlayer"),
+          controllerSelf: t("room.selfPlayer"),
+          ready: t("room.ready"),
+          waiting: t("room.waiting"),
+          seatOpen: t("room.seatOpen"),
+        },
+        /*
+         * Les deux rôles qui remplacent le segment Humain / IA par un état unique : la place de
+         * l'hôte, et celle d'un joueur distant. Rien à y choisir, donc rien à griser.
+         *
+         * La ligne de l'HÔTE porte son rôle **y compris vu de lui-même** (recette 2026-09-04) : il
+         * voyait deux boutons grisés sans savoir pourquoi, alors que ce qu'il faut dire est
+         * simplement « c'est toi qui tiens la partie ».
+         */
+        lockedRole: lockedRoleOf(seatState),
+        /*
+         * Pas de badge sur MA propre ligne : je suis là, par définition, et « En attente » à côté de
+         * son propre nom est un contresens — relevé à la recette du 2026-09-04. Le badge dit où en
+         * sont **les autres**, ce qui est la seule chose qu'on ne peut pas voir soi-même.
+         *
+         * Ma confirmation existe, mais c'est le bouton de décision qui la porte : « Lancer » pour
+         * l'hôte, « Prêt / Pas prêt » pour un invité.
+         *
+         * « Place libre » se distingue de « En attente » : la première n'attend personne en
+         * particulier, la seconde attend la confirmation de quelqu'un qui est déjà là.
+         */
+        seatStatus: isMine ? undefined : seatStatusOf(seatState),
+        /*
+         * Seul l'hôte bascule une ligne, et seulement une ligne **IA**.
+         *
+         * Sa propre ligne ne se bascule pas en V1 : `Room.setSeatOccupancy` refuse la place de
+         * l'hôte, donc l'autoriser ici afficherait un bouton qui ne changerait rien chez les autres.
+         * Une place distante ne se bascule pas non plus — elle n'affiche d'ailleurs pas le segment,
+         * mais un état unique et non interactif.
+         */
+        controllerEditable: !isOnline() || (isHost() && canEditSlot(slotIndex) && !isMine),
+        // Chacun ne compose que ce qu'il possède : sa ligne, plus les lignes IA pour l'hôte.
+        teamEditable: canEditSlot(slotIndex),
+        /*
+         * On voit sa propre équipe, et celles que **personne ne tient** (IA, place libre) — pas
+         * celle d'un autre humain.
+         *
+         * Distinct de `teamEditable` : un invité **voit** les équipes IA sans pouvoir les composer,
+         * c'est l'hôte qui les choisit. Ce qui se masque, c'est l'équipe d'un adversaire humain, dont
+         * la montrer avant le combat serait une fuite d'information — le jeu masque déjà son objet
+         * tenu et son talent (#729). En local tout est visible : c'est un hot-seat, les joueurs sont
+         * côte à côte.
+         */
+        teamVisible: !isOnline() || isMine || !isHeldByHuman(seatState),
+      },
+      callbacks: {
+        onChooseTeam: () => chooseTeam(slotIndex),
+        onSetController: (controller) => setController(slotIndex, controller),
+      },
+    };
+  };
 
   /** Les cartes de camp — `PlayersColumn` décide seul d'une ou deux colonnes selon leur nombre. */
   const buildMain = (): HTMLElement => {
@@ -234,6 +584,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
       (value) => {
         autoPlacement = value;
         updateSettings({ autoPlacement: value });
+        publishRoomOptions();
       },
     );
 
@@ -244,21 +595,89 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
       (value) => {
         damagePreview = value;
         updateSettings({ damagePreview: value });
+        publishRoomOptions();
       },
     );
 
     const spacer = el("div", "ts-footer-spacer");
 
-    const launch = el("button", "tb-btn");
-    launch.type = "button";
-    launch.dataset.variant = "primary";
-    launch.textContent = t("teamSelect.actions.launch");
-    launch.disabled = !isLaunchable();
-    launch.addEventListener("click", onLaunch);
+    /*
+     * En ligne, les deux paramètres appartiennent à l'HÔTE, et se gèlent quand **lui** se déclare
+     * prêt (recette 2026-09-04).
+     *
+     * Ils se gelaient auparavant dès qu'un INVITÉ était prêt, ce qui retirait le contrôle à l'hôte
+     * sur une décision qui n'était pas la sienne — et le laissait sans aucun moyen de le reprendre.
+     * Le rattacher à sa propre confirmation lui rend la main : « Pas prêt » dégèle.
+     */
+    if (isOnline() && (!isHost() || isSelfReady())) {
+      for (const input of [autoPlacementToggle, damagePreviewToggle]) {
+        for (const checkbox of input.querySelectorAll("input")) {
+          checkbox.disabled = true;
+        }
+      }
+    }
 
-    footer.append(autoPlacementToggle, damagePreviewToggle, spacer, launch);
+    footer.append(autoPlacementToggle, damagePreviewToggle, spacer, ...buildActions());
+    if (networkError !== null) {
+      const error = el("p", "ts-footer-error", "room-error");
+      error.role = "alert";
+      error.textContent = t(`room.error.${networkError}` as TranslationKey);
+      footer.append(error);
+    }
     return footer;
   };
+
+  /**
+   * Les boutons de décision.
+   *
+   * **Tout le monde a « Prêt / Pas prêt »**, l'hôte compris (recette 2026-09-04) : il n'en avait pas,
+   * et sa préparation se devinait de son équipe composée — ce qui marchait, mais ne lui laissait
+   * aucun moyen de dire « attendez » ni de dégeler ses options. Lui seul garde « Lancer » en plus.
+   */
+  const buildActions = (): readonly HTMLButtonElement[] => {
+    if (!isOnline()) {
+      return [buildLaunchButton()];
+    }
+    return isHost() ? [buildReadyButton(), buildLaunchButton()] : [buildReadyButton()];
+  };
+
+  const buildReadyButton = (): HTMLButtonElement => {
+    const button = el("button", "tb-btn");
+    button.type = "button";
+    button.dataset.variant = "ghost";
+    button.dataset.testid = "room-ready";
+    button.textContent = isSelfReady() ? t("room.notReady") : t("room.ready");
+    button.disabled = !isLaunchable();
+    button.addEventListener("click", onToggleReady);
+    return button;
+  };
+
+  const buildLaunchButton = (): HTMLButtonElement => {
+    const button = el("button", "tb-btn");
+    button.type = "button";
+    button.dataset.variant = "primary";
+
+    /*
+     * 🔴 `data-testid` OBLIGATOIRE, et pas seulement pour les tests : `renderPreservingFocus` ne
+     * restaure le focus que **par famille de `data-testid`** et sort sans repli quand il n'y en a
+     * pas. En local c'était bénin — seul un clic du joueur déclenchait un re-rendu. En réseau, le
+     * re-rendu part de **chaque** message distant : sans ce testid, l'hôte au clavier ou à la manette
+     * perdait le liseré vers `<body>` à l'instant où l'invité pressait « Prêt », c'est-à-dire
+     * précisément quand le bouton devenait actionnable. C'est la régression du plan 194 (#835),
+     * reproduite sur le contrôle le plus important de l'écran.
+     */
+    button.dataset.testid = "team-select-launch";
+    button.textContent = t("teamSelect.actions.launch");
+    // En ligne, l'hôte attend en plus que tout le monde soit prêt. Il peut toujours **forcer** en
+    // repassant en IA les lignes qui traînent, ce qui les rend prêtes d'office.
+    button.disabled = !isLaunchable() || (isOnline() && !isEveryoneReady());
+    button.addEventListener("click", isOnline() ? onNetworkLaunch : onLaunch);
+    return button;
+  };
+
+  /** Ma propre place est-elle confirmée ? C'est elle qui gèle mes options, et rien d'autre. */
+  const isSelfReady = (): boolean =>
+    roomView?.seats.find((seat) => seat.seat === room?.seat)?.ready === true;
 
   const render = (): void => {
     if (!root) {
@@ -270,36 +689,196 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     // le problème était général au Team Builder.
     const host = root;
     renderPreservingFocus(host, () => {
-      host.replaceChildren(buildHeader(), buildMain(), buildFooter());
+      const panel = buildRoomPanel();
+      host.replaceChildren(
+        buildHeader(),
+        ...(panel === null ? [] : [panel]),
+        buildMain(),
+        buildFooter(),
+      );
     });
   };
 
   return {
     async mount(host, params) {
       countScreen(TelemetryScreen.TeamSelect);
-      mapUrl = params.mapUrl;
+      networkIntent = params.network;
+
+      // L'invité n'a pas choisi de carte : elle lui arrive de l'hôte, et il faut donc ouvrir le
+      // salon AVANT de savoir quoi charger.
+      if (networkIntent?.role === "guest") {
+        root = el("div", "ts-root");
+        host.append(root);
+        await joinAsGuest(networkIntent.code);
+        unbindScreenInput = bindScreenInput(goBack);
+        return;
+      }
+
+      const requestedUrl = params.mapUrl;
+      if (requestedUrl === undefined) {
+        throw new Error("team-select sans carte hors du chemin invité en ligne");
+      }
+      mapUrl = requestedUrl;
       const loaded = await loadTiledMap(mapUrl);
       mapName = loaded.map.name;
       formatOptions = loaded.map.formats.map((format) => ({
         key: buildFormatKey(format),
         format,
       }));
-      const firstOption = formatOptions[0];
-      if (!firstOption) {
+      const chosen = pickFormatOption(
+        networkIntent?.role === "host" ? networkIntent.teamCount : undefined,
+      );
+      if (!chosen) {
         throw new Error(`Map "${mapUrl}" has no formats`);
       }
-      formatKey = firstOption.key;
-      slots = buildInitialSlots(firstOption.format);
+      formatKey = chosen.key;
+      slots = buildInitialSlots(chosen.format);
       root = el("div", "ts-root");
       host.append(root);
+
+      if (networkIntent?.role === "host") {
+        await createAsHost(networkIntent.teamCount);
+      }
       render();
       unbindScreenInput = bindScreenInput(goBack);
     },
     dispose() {
       unbindScreenInput?.();
       unbindScreenInput = null;
+      /*
+       * 🔴 **Le salon N'EST PAS fermé ici** : il appartient à la session (`online-room.ts`), pas à
+       * cet écran, et il doit survivre à l'entrée en combat pour que l'accusé de lancement ait le
+       * temps de partir. Il se ferme sur les deux vrais chemins de sortie — « Retour » (`goBack`) et
+       * le retour au menu principal.
+       *
+       * Ce qu'on solde en revanche, et qui est vital : les **écouteurs** de cet écran. Le salon leur
+       * survivant, les oublier ferait rendre un écran détruit à chaque message reçu en combat.
+       */
+      for (const unsubscribe of roomListeners) {
+        unsubscribe();
+      }
+      roomListeners.length = 0;
+      room = null;
+      roomView = null;
+      networkError = null;
       root?.remove();
       root = null;
     },
   };
+
+  /**
+   * Le format de la carte qui porte le nombre de joueurs demandé. En local, le premier — comme
+   * avant. Le couple carte/format est **revalidé ici** avant que l'hôte ne diffuse quoi que ce soit.
+   */
+  function pickFormatOption(
+    teamCount: number | undefined,
+  ): Omit<FormatOption, "label"> | undefined {
+    if (teamCount === undefined) {
+      return formatOptions[0];
+    }
+    return formatOptions.find((option) => option.format.teamCount === teamCount);
+  }
+
+  /** L'hôte ouvre le salon. Le code naît ICI, à l'entrée sur cet écran, jamais avant. */
+  async function createAsHost(teamCount: number): Promise<void> {
+    try {
+      room = await Room.create(
+        { transport: new PeerJsTransport(signallingOverride()), maxSeats: maxSeats() },
+        {
+          mapId: mapIdFromUrl(mapUrl),
+          teamCount,
+          autoPlacement,
+          damagePreview,
+        },
+      );
+    } catch (error) {
+      showNetworkError(codeOfError(error));
+      return;
+    }
+    countAction(TelemetryAction.RoomCreated);
+    wireRoom(room);
+    // L'hôte arrive ici avec ses lignes déjà composées (`buildInitialSlots` a tiré une équipe pour
+    // chaque IA) : il les pose au salon d'emblée, faute de quoi elles partiraient vides au `start`.
+    announceOwnedSelections();
+  }
+
+  /** L'invité rejoint, puis découvre la carte et le format dans le premier état de salon reçu. */
+  async function joinAsGuest(code: string): Promise<void> {
+    try {
+      room = await Room.join(
+        { transport: new PeerJsTransport(signallingOverride()), maxSeats: maxSeats() },
+        code,
+      );
+    } catch (error) {
+      showNetworkError(codeOfError(error));
+      return;
+    }
+    countAction(TelemetryAction.RoomJoined);
+    wireRoom(room);
+
+    const url = mapUrlFromId(room.view.options.mapId);
+    if (url === undefined) {
+      showNetworkError(NetworkErrorCode.VersionIncompatible);
+      return;
+    }
+    mapUrl = url;
+    const loaded = await loadTiledMap(mapUrl);
+    mapName = loaded.map.name;
+    formatOptions = loaded.map.formats.map((format) => ({
+      key: buildFormatKey(format),
+      format,
+    }));
+    const chosen = pickFormatOption(room.view.options.teamCount);
+    if (!chosen) {
+      showNetworkError(NetworkErrorCode.VersionIncompatible);
+      return;
+    }
+    formatKey = chosen.key;
+    // La ligne humaine est **celle de l'invité**, pas la première : assis à la place 3, il doit voir
+    // sa propre ligne porter sa dernière équipe, la première étant celle de l'hôte.
+    slots = buildInitialSlots(chosen.format, room.seat - 1);
+    // L'invité ne tient qu'une ligne : les autres ne sont pas des IA locales à composer, ce sont
+    // les places des autres joueurs, dont l'état vient du salon. `setSeatSelection` refuse d'ailleurs
+    // toute place qu'il ne possède pas, donc seule la sienne part.
+    announceOwnedSelections();
+    render();
+  }
+
+  /**
+   * Branche l'écran sur le salon, et **confie celui-ci à la session** (`holdOnlineRoom`).
+   *
+   * 🔴 Les désabonnements sont gardés et rejoués au démontage. Ce n'était pas nécessaire quand le
+   * salon mourait avec l'écran ; depuis qu'il lui **survit** — pour que l'accusé de lancement ait le
+   * temps de partir — des écouteurs oubliés ici feraient rendre un écran détruit à chaque message
+   * distant reçu pendant le combat.
+   */
+  function wireRoom(joined: Room): void {
+    holdOnlineRoom(joined);
+    roomView = joined.view;
+    roomListeners.push(
+      joined.onChange((view) => {
+        roomView = view;
+        render();
+      }),
+      joined.onError((code) => showNetworkError(code)),
+      joined.onStart((start) => enterNetworkBattle(start)),
+      joined.onLaunchCancelled(() => showNetworkError(NetworkErrorCode.DelaiDepasse)),
+    );
+  }
+
+  /**
+   * Le plus grand format existant. Fourni au salon parce que le paquet réseau ne dépend pas de
+   * `@pokemon-tactic/data` : c'est jusque-là qu'un arrivant balaie les places, ne connaissant pas
+   * encore le format de la partie qu'il rejoint.
+   */
+  function maxSeats(): number {
+    return Math.max(...REQUIRED_TEAM_COUNTS);
+  }
+
+  function codeOfError(error: unknown): NetworkErrorCode {
+    if (typeof error === "object" && error !== null && "code" in error) {
+      return (error as { code: NetworkErrorCode }).code;
+    }
+    return NetworkErrorCode.ConnexionImpossible;
+  }
 }

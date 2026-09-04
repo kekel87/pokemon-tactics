@@ -9,6 +9,7 @@ import type { Navigate, Screen } from "../../../app/screen-manager";
 import { getLanguage, setLanguage, t } from "../../../i18n";
 import { Language } from "../../../i18n/types";
 import { MAPS_REGISTRY } from "../../../maps/maps-registry";
+import { releaseOnlineRoom } from "../../../network/online-room";
 import { bindScreenInput, el, menuButton } from "./elements";
 
 const VERSION_TEXT = __APP_VERSION__;
@@ -83,6 +84,16 @@ export function createMainMenuScreen(navigate: Navigate): Screen<"main-menu"> {
   return {
     mount(host) {
       countScreen(TelemetryScreen.MainMenu);
+      /*
+       * Toute retombée au menu principal met fin à une éventuelle session en ligne (plan 199).
+       *
+       * C'est le point de fermeture qui **couvre tous les cas** : le salon appartient à la session
+       * et non à l'écran qui le crée — pour que l'accusé de lancement ait le temps de partir — et
+       * `combat` ne transite que vers ici (`SCREEN_TRANSITIONS`). Quitter un combat en ligne, ou
+       * l'abandonner, referme donc le canal sans que l'écran de combat ait à connaître le réseau.
+       * Sans effet quand on jouait en local.
+       */
+      releaseOnlineRoom();
       render(host);
       // Sans « retour » (c'est le premier écran), mais les flèches doivent y naviguer comme partout.
       unbindScreenInput = bindScreenInput();

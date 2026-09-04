@@ -12,6 +12,20 @@ const devPort = existsSync(".worktree-port")
 const port = Number(process.env.PT_PORT) || devPort + E2E_PORT_OFFSET;
 const baseURL = `http://localhost:${port}`;
 
+/**
+ * Annuaire de mise en relation LOCAL pour les specs du jeu en ligne (plan 199, étape 8).
+ *
+ * Le jeu passe en production par le service public de PeerJS. Le faire faire à la suite e2e la
+ * rendrait dépendante d'un **tiers sans engagement de service** : une coupure d'Internet, ou une
+ * panne chez eux, rendrait le gate local rouge sans qu'une seule ligne de notre code ait changé. Le
+ * projet publie un serveur autonome (paquet `peer`), qu'on lance donc ici.
+ *
+ * Port dérivé de celui de l'app, comme le port e2e l'est du port de dev : deux worktrees qui jouent
+ * la suite en parallèle ne se disputent pas l'annuaire.
+ */
+const SIGNALLING_PORT_OFFSET = 100;
+const signallingPort = port + SIGNALLING_PORT_OFFSET;
+
 export default defineConfig({
   testDir: "./e2e",
   // Chaque test boote sa propre scène seedée (aucun état partagé entre tests) → on parallélise AU
@@ -74,14 +88,29 @@ export default defineConfig({
     { name: "combat", testMatch: "**/combat/**/*.spec.ts", timeout: 60_000 },
     { name: "visual", testMatch: "**/visual/**/*.spec.ts", retries: 0 },
   ].map((project) => ({ ...project, use: { ...devices["Desktop Chrome"], locale: "fr-FR" } })),
-  webServer: {
-    command: "pnpm --filter @pokemon-tactic/app dev",
-    url: baseURL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-    // VITE_E2E unlocks the read-only scene-graph debug hook (stripped from prod builds).
-    env: { VITE_E2E: "true", PT_PORT: String(port) },
-    stdout: "ignore",
-    stderr: "pipe",
-  },
+  webServer: [
+    {
+      command: "pnpm --filter @pokemon-tactic/app dev",
+      url: baseURL,
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+      // VITE_E2E unlocks the read-only scene-graph debug hook (stripped from prod builds).
+      env: { VITE_E2E: "true", PT_PORT: String(port) },
+      stdout: "ignore",
+      stderr: "pipe",
+    },
+    {
+      // `GET /` d'un PeerServer répond 200 : c'est un signal de disponibilité suffisant, et il évite
+      // d'appeler `/peerjs/id`, qui **consomme** un identifiant à chaque appel.
+      command: `npx peerjs --port ${signallingPort} --path /`,
+      url: `http://localhost:${signallingPort}/`,
+      reuseExistingServer: !process.env.CI,
+      timeout: 30_000,
+      stdout: "ignore",
+      stderr: "pipe",
+    },
+  ],
 });
+
+/** Le port de l'annuaire local, lu par les specs du jeu en ligne pour construire leur URL. */
+export { signallingPort };

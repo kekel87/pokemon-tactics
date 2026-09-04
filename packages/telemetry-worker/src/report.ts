@@ -483,6 +483,7 @@ export const MAP_NAMES: Record<string, string> = {
 export const SCREEN_LABELS: Record<string, string> = {
   "main-menu": "Menu principal",
   "battle-mode": "Mode de combat",
+  lobby: "Salon en ligne",
   "team-builder": "Constructeur d'équipe",
   "map-select": "Sélection de carte",
   "team-select": "Sélection d'équipe",
@@ -506,6 +507,15 @@ export const ACTION_LABELS: Record<string, string> = {
   "resume-offered": "Reprise proposée",
   "resume-accepted": "Reprise acceptée",
   "remap-binding": "Touche réassignée",
+  "room-created": "Partie en ligne créée",
+  "room-joined": "Partie en ligne rejointe",
+  "room-abandoned": "Salon quitté avant le lancement",
+  "room-failed-code_introuvable": "Échec en ligne — code introuvable",
+  "room-failed-salon_plein": "Échec en ligne — salon plein",
+  "room-failed-partie_commencee": "Échec en ligne — partie déjà commencée",
+  "room-failed-version_incompatible": "Échec en ligne — versions incompatibles",
+  "room-failed-connexion_impossible": "Échec en ligne — connexion impossible",
+  "room-failed-delai_depasse": "Échec en ligne — délai dépassé",
 };
 export const INPUT_LABELS: Record<string, string> = {
   pointer: "Souris",

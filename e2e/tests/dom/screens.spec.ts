@@ -4,7 +4,7 @@ import { BattleModeScreen, MapSelectScreen, TeamSelectScreen } from "../../pages
 
 // Cahier §6.2 / §6.3 / §6.4 — écrans DOM hors combat (modes, carte, sélection d'équipe).
 
-test("§6.2 mode de combat : Local actif, En ligne et Tutoriel désactivés", async ({ page }) => {
+test("§6.2 mode de combat : Local et En ligne actifs, Tutoriel désactivé", async ({ page }) => {
   const menu = new MainMenu(page);
   const mode = new BattleModeScreen(page);
 
@@ -12,7 +12,8 @@ test("§6.2 mode de combat : Local actif, En ligne et Tutoriel désactivés", as
   await menu.combat.click();
 
   await expect(mode.local).toBeEnabled();
-  await expect(mode.online).toBeDisabled();
+  // « En ligne » ouvre l'écran `lobby` depuis le plan 199 ; seul le Tutoriel reste à faire.
+  await expect(mode.online).toBeEnabled();
   await expect(mode.tutorial).toBeDisabled();
 });
 

@@ -1,8 +1,9 @@
 # Multijoueur P2P — Architecture et design
 
 > Document de référence pour l'implémentation du multijoueur (Phase 7).
-> Écrit le 2026-04-06, **révisé le 2026-08-29** après une passe d'audit de faisabilité.
-> Décisions associées : #209-212 (fondations) et #862-870 (révision).
+> Écrit le 2026-04-06, **révisé le 2026-08-29** après une passe d'audit de faisabilité, puis
+> **corrigé le 2026-09-04 par le Lot B1, qui est le premier à avoir été implémenté**.
+> Décisions associées : #209-212 (fondations), #862-870 (révision), #895-908 (Lot B1).
 
 ---
 
@@ -19,6 +20,45 @@ il faut savoir qu'elles ont existé — plusieurs décisions d'août ont été p
 Corrigés au passage : les scènes Phaser (§ Écrans), l'absence du plan 181 dans le schéma de resync
 (§ Reconnexion), et les mentions « WebSocket » de `roadmap.md` / `game-design.md` §14, reliquats
 d'avant la décision #209.
+
+---
+
+## Ce que le Lot B1 a changé, en le codant (2026-09-04)
+
+Le Lot B1 (plan 199 — transport, salon, lancement) est **livré**. Cinq points de ce document, écrits
+avant tout code, se sont révélés faux ou impraticables à l'écriture. Ils sont corrigés dans les
+sections concernées ; les voici groupés, parce que plusieurs décisions d'août s'appuyaient dessus.
+
+1. **Plus de lien d'invitation** (#895). Il serait construit depuis l'origine courante, laquelle vaut
+   `html-classic.itch.zone/…` dans l'iframe itch.io — un lien qu'on ne peut ni prévoir ni partager.
+   Le **code seul**, en 5 caractères.
+2. **Le format se choisit AVANT la création** (#896), dans l'écran `lobby`. Il fixe le nombre de
+   places avant la naissance du code, ce qui supprime le cas « l'hôte change de format alors que
+   quelqu'un est entré », qui aurait demandé d'éjecter un joueur.
+3. **Pas de second écran de salon** (#897). La salle d'attente **est** l'écran de sélection
+   d'équipe, qui porte déjà les lignes par camp depuis le plan 188.
+4. **L'IA est autorisée en ligne** (#901). Ce document disait le contraire ; vérification faite,
+   l'IA est **pure** à état et générateur donnés (aucun `Math.random` ni `Date.now` dans
+   `packages/core/src/ai/`), donc une graine dérivée par place suffit, sans un seul message.
+5. **Le refus de version ne porte pas sur `buildVersion`** (#900). `__APP_VERSION__` vient de
+   `git describe`, change à **chaque commit**, et diffère entre les déploiements Pages et itch.io :
+   refuser dessus **interdirait le jeu entre plateformes**. Une constante `NETWORK_VERSION`,
+   incrémentée à la main, la remplace.
+
+🔴 **La règle à retenir de tout ça** : `NETWORK_VERSION` (`packages/network/src/protocol.ts`)
+**s'incrémente à la main** dès que toucher au moteur, aux données de jeu ou au protocole peut faire
+diverger deux pairs. On l'oubliera au moins une fois ; le filet est la somme de contrôle du Lot B4,
+qui transformera l'oubli en erreur lisible au lieu d'un combat qui part en silence.
+
+**Deux pièges de déterminisme trouvés en écrivant**, tous deux corrigés :
+
+- **Le placement automatique tirait au hasard localement** (`PlacementPhase`), depuis un tirage
+  `crypto.getRandomValues` propre à chaque pair. Sans graine venue de l'hôte, deux joueurs avaient
+  **deux plateaux différents avant le premier tour**. Le setup diffusé porte donc **trois** graines :
+  combat, placement, IA (#902).
+- **Le lancement doit être accusé** (#903). Sans accusé, un pair qui manque le `start` reste sur
+  l'écran d'équipe pendant que les autres jouent, et **aucun moment n'existe** où quelqu'un s'en
+  aperçoit : il attend un tour qui n'arrivera jamais.
 
 ---
 
@@ -77,40 +117,85 @@ Les deux joueurs ont le même BattleEngine avec le même seed PRNG. Quand un jou
 
 ## Flow d'une partie
 
-### 1. Connexion (code de partie / lien d'invitation)
+### 1. Connexion (code de partie) — LIVRÉ (plan 199)
+
+**Le code est l'adressage** (#898). L'hôte prend l'identifiant `pkmntac-<CODE>-1`, la place *n* est
+`pkmntac-<CODE>-n`. Personne n'annonce qu'il est l'hôte : c'est le fait d'avoir pris la place 1 qui
+le définit, et la prise d'identifiant étant exclusive, deux pairs ne peuvent pas s'en croire
+titulaires tous les deux.
 
 ```
-Joueur A crée une partie
-  → Génère un code court (ex: ABCD-1234)
-  → PeerJS utilise ce code PRÉFIXÉ comme peer ID : new Peer("pkmntac-ABCD-1234")
-  → A voit le code court + un bouton "Copier le lien"
-  → Le lien : https://kekel87.github.io/pokemon-tactics/?join=ABCD-1234
-  → A attend une connexion
+Hôte : menu → Combat → En ligne → lobby (format + « Créer »)
+  → écran de terrain (aperçu 3D)
+  → écran de sélection d'équipe : LE CODE NAÎT ICI, et s'y affiche
+     (là où l'hôte attend, donc là où il le partage)
 
-Joueur B entre le code OU clique le lien
-  → PeerJS établit une connexion WebRTC data channel
-  → Handshake : échange des versions du jeu
+Invité : menu → Combat → En ligne → lobby (saisie du code + « Rejoindre »)
+  → il tente la place 2 ; prise → la place 3 ; etc. jusqu'au nombre de places du format
+  → hello (version, place réclamée) → welcome (places occupées) → room_state (carte, format, options)
+  → écran de sélection d'équipe, en salle d'attente
 ```
+
+Trois propriétés tombent de ce seul choix d'adressage :
+
+- **L'allocation de place sans arbitre** : le refus de l'annuaire **est** le mécanisme. Personne ne
+  coordonne, et deux arrivants simultanés ne peuvent pas obtenir la même place.
+- **Le maillage complet** (#899) : tout le monde joint tout le monde en connaissant le seul code —
+  c'est ce qui fait qu'un hôte qui part n'emporte pas les connexions des autres entre eux.
+- **La reconnexion sans serveur** (Lot B3) : celui qui revient réclame **la même place**, à une
+  adresse que les autres connaissent déjà, même si l'hôte est parti entre-temps.
+
+Le code fait **5 caractères** d'un alphabet de 32 sans ambiguïté (les 26 lettres moins `I` et `O`,
+les chiffres `2` à `9`), soit ~33 millions de combinaisons. Affiché d'un bloc (`A7K2M`), jamais avec
+son préfixe.
 
 ⚠️ **Le préfixe n'est pas cosmétique** (décision #866). Sur le cloud gratuit PeerJS, les IDs vivent
-dans un **namespace mondial partagé entre toutes les applications** : un code nu comme `ABCD-1234`
+dans un **namespace mondial partagé entre toutes les applications** : un code nu comme `A7K2M`
 entrerait en collision avec n'importe quelle autre appli PeerJS. Le préfixe n'est jamais montré au
 joueur, qui ne voit et ne saisit que la partie courte.
 
-Pas de comptes, pas de matchmaking. Le code se partage par Discord, SMS, ou tout autre moyen. Le lien
-d'invitation pré-remplit le code dans l'écran de lobby.
+⚠️ **Toute prise d'identifiant qu'on s'attend à posséder réessaie** avec un délai croissant : après
+une coupure, l'annuaire retient l'ancienne adresse quelques secondes, et sans ces réessais recharger
+sa page suffirait à se voir refuser sa propre place. En revanche le **balayage** des places d'un
+arrivant ne réessaie pas — là, « occupée » est la réponse normale, et insister ajouterait plusieurs
+secondes par place déjà prise.
 
-> **Deux hôtes, deux liens.** Le jeu tourne sur GitHub Pages **et** en iframe sur itch.io. Le lien
-> d'invitation doit être construit depuis l'origine courante, pas codé en dur.
+Pas de comptes, pas de matchmaking, **pas de lien d'invitation** (#895) : le code se partage par
+Discord, SMS, ou tout autre moyen.
 
-### 2. Sélection d'équipe
+**La saisie du code passe par une roue de caractères** — cinq emplacements montrant leurs voisins
+d'alphabet — et non par un champ texte. Motif : un champ texte n'est **pas saisissable à la manette**
+(choix explicite du projet), donc garder les deux aurait voulu dire échanger un sous-arbre DOM selon
+la source active, et perdre le focus à chaque bascule. Un seul widget sert les quatre entrées : les
+lettres au clavier, les directions et `A` au pad, la tape au doigt, le clic et la molette à la souris.
+
+### 2. Sélection d'équipe — LIVRÉ (plan 199)
+
+**Il n'y a pas d'écran de salon séparé** (#897) : l'écran de sélection d'équipe **est** la salle
+d'attente. Ce qu'il gagne en mode réseau :
+
+| Ajout | Détail |
+|---|---|
+| Le code, en évidence, avec « Copier » | C'est là que l'hôte attend, donc là qu'il partage |
+| Encart de paramètres | Carte (nom), format, placement auto, prévisualisation de dégâts. Modifiable par l'**hôte** tant que personne n'est prêt, en lecture seule pour les autres |
+| Une ligne dit **qui la tient**, pas ce qu'on pourrait y choisir | « 👑 Joueur hôte », « 🎮 Vous », « 🌐 Joueur distant » remplacent le segment Humain / IA sur toute place tenue par un humain, **sur la largeur entière**. Seules les places libres et IA gardent le segment, et seulement chez l'hôte : plus aucun contrôle grisé sans raison lisible |
+| « ⏳ Place libre » | Personne encore. Ne bloque pas le lancement, part en IA au `start` |
+| Les équipes des **autres humains sont masquées** | Fuite d'information, sinon : le jeu masque déjà l'objet tenu et le talent de l'adversaire (#729). On voit la sienne et celles que personne ne tient |
+| **Tout le monde a « Prêt / Pas prêt »**, l'hôte compris | Lui seul garde « Lancer » en plus. Et c'est **sa** confirmation qui gèle les paramètres de partie — réversible d'un « Pas prêt ». Les geler sur le « prêt » d'un invité lui retirait une décision qui n'était pas la sienne |
+| « Prêt » | Remplace « Lancer » pour les invités. L'hôte garde « Lancer », actif quand tout le monde est prêt, et peut **forcer** en repassant les lignes qui traînent en IA |
+| Sélecteur de format masqué | Il est gravé depuis le `lobby` |
 
 ```
-Les deux joueurs choisissent leur équipe localement
-  → Quand prêt, chaque joueur envoie sa sélection
-  → Les deux ont les mêmes données → construction du BattleState identique
-  → Seed PRNG partagé (généré par A, envoyé à B)
+Chacun compose les lignes qu'il possède : la sienne, plus les lignes IA pour l'hôte
+  → chaque sélection est annoncée au salon
+  → l'hôte grave le setup et le diffuse (`start`)
+  → chaque pair ACCUSE réception (`start_ack`)
+  → l'hôte n'entre en combat que lorsque tous ont accusé, et annule sinon
 ```
+
+Le setup diffusé porte : l'**identifiant stable de carte** (jamais l'URL — elle dépend de la base de
+déploiement et n'est pas un contrat entre deux pairs), le format, les options de partie, la
+composition de **chaque** place, et les **trois graines** (combat, placement, IA).
 
 ### 3. Combat
 
@@ -140,21 +225,34 @@ Les deux moteurs détectent la victoire indépendamment
 
 ## Protocole de messages
 
+**Ce qui est LIVRÉ** (Lot B1, `packages/network/src/protocol.ts`) :
+
 ```typescript
 type NetworkMessage =
-  | { type: "handshake"; version: string; playerName: string }
-  | { type: "team_select"; selection: TeamSelection }
-  | { type: "ready" }
-  | { type: "seed"; seed: number }
-  | { type: "action"; action: Action }
-  | { type: "checksum"; round: number; hash: string }
-  | { type: "desync"; round: number }
-  | { type: "forfeit" }
-  | { type: "rematch" }
-  | { type: "chat"; message: string };
+  | { type: "hello"; networkVersion: number; seat: number }
+  | { type: "welcome"; networkVersion: number; occupiedSeats: readonly number[] }
+  | { type: "room_state"; options: NetworkRoomOptions; seats: …; locked: boolean }
+  | { type: "team_select"; seat: number; selection: NetworkTeamSelection }
+  | { type: "ready"; seat: number; ready: boolean }
+  | { type: "start"; options: …; seeds: NetworkSeeds; seats: readonly StartSeat[] }
+  | { type: "start_ack"; seat: number }
+  | { type: "bye"; seat: number };
 ```
 
+**Ce qui reste à écrire** : `action` (Lot B2), `checksum` / `desync` (Lot B4), `forfeit` (B2),
+`rematch` et `chat` (hors V1). Le **nom de joueur a été écarté de la V1** (#906) : il revient avec le
+compte et le classement ; la salle d'attente affiche « Joueur 2 ».
+
 **Pas de message `timeout`** — c'est délibéré, voir § Chronomètre.
+
+**Le déverrouillage du salon EST le message d'annulation du lancement.** Il n'y en a pas de
+troisième : un invité entre en combat dès le `start` (il n'a aucun moyen de savoir où en sont les
+autres), et un `room_state` déverrouillé le ramène à la salle d'attente si l'hôte a dû annuler.
+
+**Les causes de refus sont une énumération fermée** — `code_introuvable`, `salon_plein`,
+`partie_commencee`, `version_incompatible`, `connexion_impossible`, `delai_depasse` — et ce sont
+aussi les valeurs envoyées en télémétrie : jamais de texte libre, sinon le rapport devient
+inagrégeable.
 
 ---
 
@@ -282,12 +380,16 @@ et il tourne en production depuis le 2026-08-14 :
 - la persistance est un **port** `load` / `save` / `clear` (décision #751), pas un accès direct à
   `localStorage` — donc la source du journal peut changer sans toucher à l'écran de combat.
 
-En multijoueur, le pair qui revient rejoue par **ce même chemin**. Ce qui reste à faire :
+En multijoueur, le pair qui revient rejoue par **ce même chemin**. Deux des trois inconnues d'alors
+sont déjà réglées par le Lot B1, comme effet de bord du salon plutôt que de la reconnexion
+elle-même : le setup diffusé porte l'**identifiant stable de carte** (jamais l'URL, § Sélection
+d'équipe) et la **version de protocole au handshake** est `NETWORK_VERSION`, **pas** `buildVersion`
+(#900, § Protocole) — `buildVersion` reste le garde-fou du solo (décision #748), un autre mécanisme.
+Ce qui reste à faire, au **Lot B3** :
 
-- `mapUrl` → **identifiant stable de carte** (`MAPS_REGISTRY`) ; une URL n'est pas un contrat ;
-- version de protocole au handshake — `buildVersion` invalide déjà les sauvegardes (décision #748),
-  la même donnée sert à refuser un pair qui ne joue pas le même build ;
-- politique de reconnexion (délai, qui attend, ce que voit l'autre).
+- politique de reconnexion **en combat** (délai, qui attend, ce que voit l'autre) — les délais de
+  grâce du salon (10 s après un `bye`, 45 s après un silence, #905) en sont le prototype, pas encore
+  transposés au combat.
 
 ### Abandon volontaire
 
@@ -452,27 +554,37 @@ offrirait au besoin une topologie étoile sans réintroduire un « host » joueu
 | Core découplé du renderer | Le réseau s'insère entre les deux sans tout casser |
 | **Hot-seat N joueurs déjà livré** | `humanPlayerIds` dans l'orchestrateur, Humain/IA par camp au team-select (plan 188), jusqu'à 12 équipes. **Le tour distant se greffe là où le tour hot-seat existe déjà** — le plus gros cadeau de la Phase 6.5 |
 | Couche d'entrée device-agnostique (plans 184-186) | Un lobby doit être jouable à la manette : la couche existe, la saisie d'un code reste à cadrer |
-| `AiTeamController` | Remplacement si un joueur se déconnecte — voir la réserve ci-dessous |
+| `AiTeamController` | Remplacement si un joueur se déconnecte — voir le paragraphe suivant |
 
-⚠️ **L'IA ne peut pas tourner sur les deux pairs.** Elle est seedée sur `createPrng(Date.now())`
-(`combat-screen.ts:782`) : deux pairs qui la font tourner en parallèle divergeraient immédiatement. Il
-faut **désigner un pair émetteur** qui joue l'IA et diffuse ses actions, ou fournir un seed d'IA de
-session. Le plan 181 l'avait noté ; le document d'avril l'ignorait.
+✅ **L'IA tourne bien sur les deux pairs, résolu au Lot B1 (#901).** En solo elle est seedée sur
+`createPrng(Date.now())` (`combat-screen.ts:782`) ; ce seed-là diverge d'un pair à l'autre, mais ça
+n'a plus d'importance en ligne : le setup diffusé porte une graine d'IA dérivée **par place**, et
+c'est suffisant, l'IA étant **pure** à état et générateur donnés (aucun `Math.random` ni `Date.now`
+dans `packages/core/src/ai/`). Pas de « pair émetteur » à désigner — cette idée, notée par le plan 181
+et reprise sans vérification par le document d'avril, est **annulée** par #901.
 
 ---
 
-## Packages à créer
+## Le paquet `packages/network/`
+
+**Créé au Lot B1.** Pur : aucune dépendance d'interface, et du moteur il ne connaît que des **types**.
 
 ```
-packages/
-  network/       Nouveau package
-    src/
-      protocol.ts            Types des messages réseau
-      peer-connection.ts     Wrapper PeerJS (connect, send, receive, reconnect)
-      network-controller.ts  Orchestre le tour réseau (attend action distante)
-      room.ts                Création/rejoindre une partie, codes préfixés
-      checksum.ts            Sérialisation canonique + hash du BattleState
+packages/network/src/
+  protocol.ts            LIVRÉ — messages, NETWORK_VERSION, causes de refus, graines
+  room-code.ts           LIVRÉ — alphabet, génération, adresses dérivées du code
+  transport.ts           LIVRÉ — le contrat commun + la prise d'identifiant à réessais
+  peer-connection.ts     LIVRÉ — la mise en œuvre PeerJS
+  fake-transport.ts      LIVRÉ — canal en mémoire : c'est lui qui rend le salon testable sans réseau
+  room.ts                LIVRÉ — état de salon, arrivées, départs, lancement accusé
+  network-controller.ts  Lot B2 — orchestre le tour réseau (attend l'action distante)
+  checksum.ts            Lot B4 — sérialisation canonique + hash du BattleState
 ```
+
+Le **canal en mémoire n'est pas un artifice de test** : c'est lui qui permet de faire tourner deux
+salons — ou douze — dans le même processus, donc de couvrir l'allocation concurrente, les départs et
+le lancement annulé **sans réseau ni service tiers**. C'est ce qui garde le gate vert le jour où
+Internet tombe.
 
 ---
 
@@ -482,34 +594,65 @@ packages/
 > n'existent plus** : depuis la migration Babylon (Phase 5), l'application est une **FSM d'écrans
 > DOM** décrite par `ScreenId` et `SCREEN_TRANSITIONS` dans `packages/app/src/app/screens.ts`.
 
-- **`lobby`** — nouvel `ScreenId` : créer une partie, saisir un code, attendre la connexion. À câbler
-  dans `SCREEN_TRANSITIONS` (depuis `battle-mode`, vers `team-select`) et à rendre jouable à la
-  manette comme tous les écrans depuis le plan 188.
-- **`team-select`** — échanger les sélections via le réseau. L'écran a été refondu au plan 188
-  (formats en segments, Humain/IA à deux états, une modale d'équipe par camp) : c'est l'état
-  Humain/IA qui devient « Humain distant ».
-- **`combat`** — `runBattle` distingue tour local et tour distant. C'est le point d'accroche
-  `humanPlayerIds` qui porte déjà la distinction humain/IA.
+- **`lobby`** — **LIVRÉ** : format (avant la création) puis « Créer » / « Rejoindre ». Câblé dans
+  `SCREEN_TRANSITIONS` depuis `battle-mode`, vers `map-select` (l'hôte, qui choisit son terrain) et
+  vers `team-select` (l'invité, à qui la carte arrive de l'hôte).
+- **`map-select`** — **LIVRÉ** : accepte une intention de partie en ligne et la **transmet**. Sans
+  cette transmission la salle d'attente se montait en mode local, sans code ni salon, et rien ne le
+  signalait — l'écran étant par ailleurs parfaitement fonctionnel.
+- **`team-select`** — **LIVRÉ** : la salle d'attente. Le troisième état de ligne n'est pas un
+  contrôleur mais un état de **salon** — le moteur ne connaît qu'« humain » ou « IA », et un joueur
+  distant est un humain, simplement pas celui qui est devant cet écran.
+- **`combat`** — Lot B2 : `runBattle` distinguera tour local et tour distant. Le point d'accroche
+  `humanPlayerIds` porte déjà la distinction humain/IA. Le Lot B1 y a déjà mis les **trois graines**
+  du setup, seule chose dont le combat ait besoin pour être identique sur les deux pairs.
+
+🔴 **Le salon n'appartient à AUCUN écran** (`packages/app/src/network/online-room.ts`). Il est détenu
+par la session et **survit à l'entrée en combat**.
+
+Ce n'est pas une élégance, c'est un correctif : quand il appartenait à l'écran de sélection d'équipe,
+entrer en combat le détruisait, et `peerjs` **jette** le tampon d'un canal qu'on détruit — l'accusé de
+lancement de l'invité pouvait donc ne jamais partir, l'hôte annulait, et son annulation n'atteignait
+plus personne. Un salon qui doit vivre plus longtemps que l'écran qui le crée ne peut pas lui
+appartenir. Il se ferme sur les deux vrais chemins de sortie : « Retour » depuis la salle d'attente,
+et **tout retour au menu principal** — `combat` ne transite que vers lui, donc l'écran de combat n'a
+pas à connaître le réseau. C'est aussi ce dont le Lot B2 a besoin, où les actions s'échangent pendant
+le combat.
+
+⚠️ **Corollaire pour tout écran qui s'y branche** : ses écouteurs doivent être soldés à son
+démontage. Le salon leur survivant, les oublier fait rendre un écran détruit à chaque message reçu.
 
 ---
 
 ## Comment les joueurs se trouvent
 
-### V1 : code de partie + lien d'invitation
+### V1 : code de partie seul — LIVRÉ (#895)
 
 Pas de matchmaking. Les joueurs se trouvent par leurs propres moyens (Discord, SMS, en personne) et
-partagent un code ou un lien.
+partagent **un code**. Pas de lien d'invitation : il serait construit depuis l'origine courante,
+laquelle vaut `html-classic.itch.zone/…` dans l'iframe itch.io.
 
 ```
-Écran de lobby :
-  ┌─────────────────────────────┐
-  │  Créer une partie           │  → génère un code, affiche "ABCD-1234"
-  │                             │    + bouton "Copier le lien"
-  │  Rejoindre (entrer un code) │  → champ texte, bouton Rejoindre
-  │                             │
-  │  Retour au menu             │
-  └─────────────────────────────┘
+Écran `lobby` :
+  ┌───────────────────────────────────────────────┐
+  │  Créer une partie                             │
+  │    Joueurs : [2] 3  4  6  12    ← AVANT de créer
+  │    « Créer une partie »                       │
+  │                                               │
+  │  Rejoindre une partie                         │
+  │      Z     6     J     Z     L                │
+  │    ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐              │
+  │    │ A │ │ 7 │ │ K │ │ 2 │ │ M │  ← roue de caractères
+  │    └───┘ └───┘ └───┘ └───┘ └───┘              │
+  │      B     8     L     3     N                │
+  │    « Rejoindre »                              │
+  │                                               │
+  │  Retour                                       │
+  └───────────────────────────────────────────────┘
 ```
+
+Le code s'affiche ensuite dans la **salle d'attente**, avec un bouton « Copier » — c'est là que
+l'hôte attend, donc là qu'il le partage.
 
 C'est suffisant pour une communauté naissante. Un matchmaking avec personne en ligne, c'est une salle
 d'attente vide — pire qu'un code.
@@ -524,22 +667,34 @@ Supabase (#862). Si le besoin se représente un jour, il se ferait sur un Durabl
 
 ## Tests
 
-### 1. Tests unitaires (protocole)
+### 1. Tests unitaires (protocole) — LIVRÉ
 
-Pas besoin de réseau. On mock les connexions PeerJS.
-« Quand je reçois un message `action`, est-ce que le moteur l'applique ? »
+Pas besoin de réseau : alphabet et génération de code, adresses dérivées, reconnaissance des
+messages, refus de version, dérivation des graines d'IA, prise d'identifiant à réessais.
 
-### 2. Tests d'intégration (deux moteurs en mémoire)
+### 2. Tests d'intégration (deux salons en mémoire) — LIVRÉ
 
-Deux `BattleEngine` communiquant via un faux canal (EventEmitter au lieu de WebRTC). Combat complet
-1v1, vérification que les états restent identiques. Couvre l'essentiel des bugs sans toucher au
-réseau.
+Plusieurs `Room` dans le **même processus**, par le canal en mémoire : allocation de places
+concurrente, maillage, arrivée et départ (propre et silencieux), hôte qui part, refus au-delà du
+format, refus de version, lancement accusé, **lancement annulé quand un accusé manque**.
 
-### 3. Tests E2E (Playwright)
+Le Lot B2 y ajoutera deux `BattleEngine` communiquant par le même canal, pour vérifier que les états
+restent identiques sur un combat complet.
 
-Deux contextes navigateur, un crée la partie, l'autre rejoint. Combat de bout en bout. Le harnais e2e
-existe (`.claude/rules/e2e.md`) et sait déjà piloter une manette synthétique et un hook de scène.
+### 3. Tests E2E (Playwright) — LIVRÉ, un seul scénario
 
-⚠️ **Coût machine** : la suite complète est déjà à 519 tests et tourne sous plafond CPU
-(`scripts/with-cpu-cap.sh`). Une famille de tests à deux contextes est à budgéter, pas à ajouter sans
-y penser.
+`e2e/tests/dom/online-lobby.spec.ts` : deux contextes de navigateur, l'un crée, l'autre saisit le
+code au clavier et rejoint, les deux entrent en combat (assertion sur le **signal de disponibilité de
+la scène**, pas sur la présence d'un `<canvas>`, qui existe dès le montage).
+
+🔴 **L'annuaire est LOCAL**, lancé par le harnais (paquet `peer`, second `webServer` de
+`playwright.config.ts`, port dérivé de celui de l'app). Le service public ferait dépendre la suite
+d'un tiers sans engagement de service : une coupure d'Internet rendrait le gate rouge sans qu'une
+ligne de notre code ait changé. La surcharge passe par `?peerPort=`, **verrouillée sur `DEV` ou
+`VITE_E2E`** comme `?seed=` — sans ce verrou, ce serait une porte ouverte à l'interception de
+parties. Les serveurs STUN/TURN sont désactivés pour les mêmes raisons : les deux pairs sont sur la
+boucle locale, et attendre la résolution de `*.turn.peerjs.com` faisait dépasser le scénario.
+
+⚠️ **Coût machine** : la suite complète est à ~520 tests et tourne sous plafond CPU
+(`scripts/with-cpu-cap.sh`). D'où **un seul** scénario à deux contextes (mesuré ~9 s isolé) ; tout ce
+qui se teste sans réseau reste en intégration, qui ne coûte rien.

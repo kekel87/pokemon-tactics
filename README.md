@@ -62,6 +62,7 @@ packages/
   render-canvas2d/ Canvas2D HUD primitives (HP bars, pills, text)
   ui-dom/          Reusable HTML/CSS battle chrome
   app/             App shell (boot, i18n, settings, team UI, DI wiring)
+  network/         P2P multiplayer transport (protocol, room code, WebRTC via PeerJS)
 docs/              Game design, architecture, decisions, roadmap
 ```
 
@@ -108,6 +109,7 @@ See [CREDITS.md](CREDITS.md) for detailed per-Pokemon sprite credits.
 |------|-------|---------|
 | [Goxel](https://goxel.xyz/) | Voxel editing (entry hazards, decorations — tree, tall grass, rocks) | GPL-3.0, free |
 | [gltf-pipeline](https://github.com/CesiumGS/gltf-pipeline) | `.gltf` → `.glb` conversion for voxel assets | Apache-2.0 |
+| [PeerJS](https://peerjs.com/) | WebRTC data channels for peer-to-peer online multiplayer | MIT |
 
 ### Inspiration
 

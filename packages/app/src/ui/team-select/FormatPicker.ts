@@ -1,10 +1,18 @@
 import type { MapFormat } from "@pokemon-tactic/core";
 import { t } from "../../i18n";
 
-export interface FormatOption {
+/**
+ * Le strict nécessaire pour dessiner un segment. Distinct de `FormatOption` parce que l'écran
+ * `lobby` propose des formats **avant qu'aucune carte n'existe** (plan 199) : il n'a donc pas de
+ * `MapFormat` à donner, et n'en a pas besoin — la rangée ne lit que la clé et le libellé.
+ */
+export interface SegmentOption {
   key: string;
-  format: MapFormat;
   label: string;
+}
+
+export interface FormatOption extends SegmentOption {
+  format: MapFormat;
 }
 
 export interface FormatPickerCallbacks {
@@ -46,7 +54,7 @@ export function formatLabel(format: MapFormat): string {
  * native d'un `<select>`, donc le choix du format était inaccessible au pad.
  */
 export function createFormatPickerElement(
-  options: readonly FormatOption[],
+  options: readonly SegmentOption[],
   activeKey: string,
   labelText: string,
   callbacks: FormatPickerCallbacks,

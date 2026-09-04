@@ -33,8 +33,12 @@ export class MainMenu {
     this.languageToggle = page.getByTestId("language-toggle");
   }
 
-  async goto(): Promise<void> {
-    await this.page.goto("/");
+  /**
+   * @param search chaîne de requête optionnelle (`?peerPort=…`), pour les specs qui doivent
+   * paramétrer le boot — la mise en relation locale du jeu en ligne (plan 199).
+   */
+  async goto(search = ""): Promise<void> {
+    await this.page.goto(`/${search}`);
     // Boot now shows a splash that downloads the sprite bundle before the menu mounts
     // (plan 135). Wait for it to dismiss so menu locators resolve instead of racing the
     // download. Resolves immediately when the splash is already gone.

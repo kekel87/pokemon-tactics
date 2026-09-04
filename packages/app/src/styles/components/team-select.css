@@ -74,8 +74,23 @@
     border-radius: var(--radius-sm);
   }
 
+  /* Centrage et interlignage posés ICI, sur la classe partagée, et non sur la seule puce d'état
+     (recette 2026-09-04 — « le bouton et le texte ne sont plus synchronisés en hauteur »).
+     Mesuré : un `<button>` centre son texte nativement et retombe sur `line-height: normal`, soit
+     16 px ; un `<span>` ne centre rien et **hérite** la hauteur de ligne du corps, 20,8 px. La puce
+     faisait donc 34 px contre 26 px pour un segment, texte collé en haut — alors que la taille de
+     police était la même des deux côtés. Une seule règle pour les deux formes les remet d'aplomb. */
   .ts-segment {
     appearance: none;
+    /* Explicite, parce que le reset du projet ne couvre que `.tb-root` / `.tb-dialog` — pas
+       `.ts-root`, où vit cet écran. Un `<button>` y reçoit `border-box` du navigateur, un `<span>`
+       reste en `content-box` : avec `min-height`, la puce mesurait 34 px contre 26 px pour un
+       segment. Le voir sur cette classe évite de dépendre d'un défaut de navigateur. */
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
     padding: var(--spacing-xs) var(--spacing-sm);
     background: transparent;
     color: var(--color-text-dim);
@@ -100,6 +115,20 @@
       background: var(--color-btn-bg);
       border-color: var(--color-btn-border);
       color: var(--color-text-primary);
+    }
+
+    /* Désactivé et QUI LE MONTRE (retour de recette 2026-09-04 : « il faudrait griser le bouton IA
+       en plus de le désactiver »). En ligne, un invité voit les segments des autres et l'hôte le
+       sien : `disabled` les écartait bien de la navigation, mais rien à l'œil ne disait pourquoi
+       cliquer ne faisait rien. Le curseur repasse au défaut pour la même raison. */
+    &:disabled {
+      color: var(--color-btn-disabled-text);
+      cursor: default;
+
+      &[data-state="active"] {
+        background: var(--color-btn-disabled-bg);
+        border-color: var(--color-btn-disabled-border);
+      }
     }
   }
 
@@ -179,9 +208,14 @@
      centre tombait à droite de celui du bouton d'équipe, donc ← depuis « Humain » trouvait l'équipe
      comme « voisin de gauche ». Aligné sur la même bande horizontale, ← → restent dans le segment et
      ↑ ↓ traversent la carte. */
+  /* Colonnes AUTOMATIQUES et non `repeat(2, …)` : la rangée porte deux boutons (Humain / IA) en
+     local, mais **un seul état** en ligne quand la place est tenue (« 👑 Joueur hôte », « 🎮 Vous »,
+     « 🌐 Joueur distant »). Figée à deux colonnes, la puce seule n'en occupait qu'une — elle
+     s'arrêtait au milieu de la carte, et on cherchait le bouton manquant (recette 2026-09-04). */
   .ts-player-cell-controller {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
     width: 100%;
   }
 
@@ -210,6 +244,15 @@
     &:hover { background: var(--color-bg-elevated-hover); }
     &[data-state="empty"] { color: var(--color-text-dim); font-style: italic; }
     &[data-state="ephemeral"] .ts-player-cell-team-name { color: var(--color-text-dim); }
+
+    /* En ligne, on ne compose que ce qu'on possède : les lignes des autres sont désactivées, et le
+       montrent. Même motif que le segment ci-dessus (recette 2026-09-04). */
+    &:disabled {
+      background: var(--color-btn-disabled-bg);
+      border-color: var(--color-btn-disabled-border);
+      color: var(--color-btn-disabled-text);
+      cursor: default;
+    }
   }
 
   .ts-player-cell-team-name {
@@ -373,5 +416,98 @@
     gap: var(--spacing-sm);
     color: var(--color-text-dim);
     font-size: var(--font-size-sm);
+  }
+
+  /* — Salle d'attente en ligne (plan 199) ————————————————————————————————————— */
+
+  .ts-footer-error {
+    margin: 0;
+    color: var(--color-feedback-error-text);
+    font-size: var(--font-size-sm);
+  }
+
+  /* L'encart de salon, entre l'en-tête et les cartes de camp : le code est ce que l'hôte vient
+     chercher ici, donc il est en tête et non noyé dans le pied. */
+  .ts-room-panel {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-xl);
+    padding: var(--spacing-md) var(--spacing-xl);
+    background: var(--color-bg-elevated);
+    border-bottom: 1px solid var(--color-border-surface);
+  }
+
+  .ts-room-code {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+  }
+
+  .ts-room-code-caption {
+    color: var(--color-text-dim);
+    font-size: var(--font-size-sm);
+  }
+
+  /* Le code se recopie à la main ou se dicte à voix haute : chasse fixe, interlettrage ouvert, et
+     assez gros pour être lu depuis un téléphone tenu à côté d'un écran. */
+  .ts-room-code-value {
+    font-family: var(--font-family-mono);
+    font-size: clamp(22px, 3.4vmin, 44px);
+    font-weight: bold;
+    letter-spacing: 0.18em;
+    color: var(--color-accent);
+  }
+
+  .ts-room-settings {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xxs);
+  }
+
+  .ts-room-settings-list {
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: var(--spacing-xxs) var(--spacing-md);
+    margin: 0;
+    color: var(--color-text-dim);
+    font-size: var(--font-size-sm);
+
+    & dt {
+      color: var(--color-text-muted);
+    }
+
+    & dd {
+      margin: 0;
+      color: var(--color-text-secondary);
+    }
+  }
+
+  .ts-room-settings-note {
+    margin: 0;
+    color: var(--color-text-faint);
+    font-size: var(--font-size-xs);
+  }
+
+  /* Une place TENUE — par l'hôte ou par un joueur distant. Non interactif : ce n'est pas un choix en
+     attente, c'est un fait. Sur toute la largeur de la carte (recette 2026-09-04) : un état unique
+     occupant la moitié du segment donnait l'impression qu'un second bouton manquait. */
+  .ts-player-cell-role {
+    flex: 1;
+    cursor: default;
+  }
+
+  .ts-player-cell-status {
+    margin-inline-start: auto;
+    font-size: var(--font-size-xs);
+
+    &[data-state="ready"] {
+      color: var(--color-btn-primary-border);
+    }
+
+    &[data-state="waiting"] {
+      color: var(--color-text-faint);
+    }
   }
 }

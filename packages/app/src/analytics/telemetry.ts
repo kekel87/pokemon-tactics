@@ -10,6 +10,7 @@
  *      519 tests e2e n'écrivent pas une ligne dans la base de production.
  */
 
+import type { NetworkErrorCode } from "@pokemon-tactic/network";
 import { getLanguage } from "../i18n";
 import {
   NARROW_SCREEN_BUCKET,
@@ -30,6 +31,7 @@ export const TelemetryScreen = {
   MainMenu: "main-menu",
   BattleMode: "battle-mode",
   TeamBuilder: "team-builder",
+  Lobby: "lobby",
   MapSelect: "map-select",
   TeamSelect: "team-select",
   Credits: "credits",
@@ -66,8 +68,42 @@ export const TelemetryAction = {
   ResumeAccepted: "resume-accepted",
   /** L'écran de remapping du plan 186 sert-il ? */
   RemapBinding: "remap-binding",
+  /*
+   * Jeu en ligne (plan 199, étape 7). Deux questions, et une seule vraiment brûlante :
+   *
+   * 1. **Le jeu en ligne aboutit-il ?** L'écart entre « partie créée » et « partie rejointe » dit
+   *    combien de salons n'ont jamais trouvé de second joueur, et « salon abandonné » combien ont
+   *    été quittés avant le lancement.
+   * 2. **La mise en relation échoue-t-elle, et pourquoi ?** C'est le vrai enjeu : la traversée de
+   *    pare-feu est assumée faillible en V1 (NAT symétrique, réseau mobile), et sans compteur par
+   *    cause on ne saurait pas si le pair-à-pair sans relais est tenable. Une cause par compteur
+   *    plutôt qu'une clé construite : l'énumération reste fermée, donc agrégeable.
+   */
+  RoomCreated: "room-created",
+  RoomJoined: "room-joined",
+  RoomAbandoned: "room-abandoned",
+  RoomFailedCodeIntrouvable: "room-failed-code_introuvable",
+  RoomFailedSalonPlein: "room-failed-salon_plein",
+  RoomFailedPartieCommencee: "room-failed-partie_commencee",
+  RoomFailedVersionIncompatible: "room-failed-version_incompatible",
+  RoomFailedConnexionImpossible: "room-failed-connexion_impossible",
+  RoomFailedDelaiDepasse: "room-failed-delai_depasse",
 } as const;
 export type TelemetryAction = (typeof TelemetryAction)[keyof typeof TelemetryAction];
+
+/**
+ * La cause de refus réseau → son compteur. Table exhaustive : `satisfies` fait échouer la
+ * compilation le jour où `NetworkErrorCode` gagne une valeur sans compteur, plutôt que de la perdre
+ * en silence dans le rapport.
+ */
+export const ROOM_FAILURE_ACTIONS = {
+  code_introuvable: TelemetryAction.RoomFailedCodeIntrouvable,
+  salon_plein: TelemetryAction.RoomFailedSalonPlein,
+  partie_commencee: TelemetryAction.RoomFailedPartieCommencee,
+  version_incompatible: TelemetryAction.RoomFailedVersionIncompatible,
+  connexion_impossible: TelemetryAction.RoomFailedConnexionImpossible,
+  delai_depasse: TelemetryAction.RoomFailedDelaiDepasse,
+} as const satisfies Record<NetworkErrorCode, TelemetryAction>;
 
 export const TeamSource = {
   /** La seule provenance qui porte une composition (décision humaine du 2026-08-31). */

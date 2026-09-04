@@ -25,6 +25,7 @@ import "./styles/menu-screens.css";
 import "./styles/controls-screen.css";
 import "./styles/combat-menu.css";
 import "./styles/map-select.css";
+import "./styles/lobby.css";
 import { initTelemetry } from "./analytics/telemetry.js";
 import { type Navigate, ScreenManager } from "./app/screen-manager.js";
 import { loadPersistedScreen } from "./app/screen-persistence.js";
@@ -45,6 +46,7 @@ import {
 import { createBattleModeScreen } from "./ui/dom/screens/battle-mode-screen.js";
 import { createControlsScreen } from "./ui/dom/screens/controls-screen.js";
 import { createCreditsScreen } from "./ui/dom/screens/credits-screen.js";
+import { createLobbyScreen } from "./ui/dom/screens/lobby-screen.js";
 import { createMainMenuScreen } from "./ui/dom/screens/main-menu-screen.js";
 import { createMapSelectScreen } from "./ui/dom/screens/map-select-screen.js";
 import { createMyTeamsScreen } from "./ui/dom/screens/my-teams-screen.js";
@@ -146,6 +148,7 @@ async function boot(root: HTMLElement): Promise<void> {
   const manager = new ScreenManager(root, {
     "main-menu": () => createMainMenuScreen(navigate),
     "battle-mode": () => createBattleModeScreen(navigate),
+    lobby: () => createLobbyScreen(navigate),
     "map-select": () => createMapSelectScreen(navigate),
     "team-select": () => createTeamSelectScreen(navigate),
     "my-teams": () => createMyTeamsScreen(navigate),

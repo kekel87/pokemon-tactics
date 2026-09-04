@@ -1,0 +1,18 @@
+{
+  "name": "@pokemon-tactic/network",
+  "version": "0.0.1",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pokemon-tactic/core": "workspace:*",
+    "peerjs": "^1.5.5"
+  }
+}

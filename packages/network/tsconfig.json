@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // `WebWorker` pour le seul `crypto.getRandomValues` du tirage de code — c'est ce qui déclare
+    // `crypto` sans tirer tout le DOM, que ce paquet n'a pas à connaître (même choix que view-core).
+    "lib": ["ES2022", "WebWorker"]
+  },
+  "include": ["src"]
+}

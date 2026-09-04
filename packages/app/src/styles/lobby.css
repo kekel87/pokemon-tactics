@@ -1,0 +1,122 @@
+/* Écran `lobby` et roue de caractères (plan 199, étape 4).
+ * Se pose sur `.mn-screen` (menu-screens.css) : mêmes tokens, mêmes clamps vmin. */
+
+@layer components {
+  .lb-screen {
+    --lb-slot-block-size: clamp(72px, 14vmin, 132px);
+    gap: clamp(12px, 3vmin, 36px);
+
+    /* 🔴 Filet de sécurité, mesuré à la recette : `.mn-screen` centre son contenu sans permettre de
+       défiler, donc à 568×320 le titre sortait AU-DESSUS du cadre et « Retour » EN DESSOUS — tous
+       deux injoignables, et `scrollHeight` ne le signalait même pas (un débordement de conteneur
+       centré ne l'allonge pas). `safe center` cesse de centrer dès que ça ne tient plus et remet le
+       contenu au début, ce que `overflow-y` rend alors atteignable. La media query ci-dessous fait
+       que le cas ne se produit pas aux tailles visées ; ceci couvre celles qu'on n'a pas mesurées. */
+    justify-content: safe center;
+    overflow-y: auto;
+  }
+
+  /* Écran court (téléphone en paysage) : le contenu doit TENIR, pas seulement défiler. Mesuré à
+     568×320 — 374 px de contenu pour 320 px de hauteur, soit 54 px à trouver. La hauteur de la roue
+     n'est pas négociable (plancher tactile), donc l'économie vient des espacements et du titre. */
+  @media (max-height: 420px) {
+    .lb-screen {
+      --mn-gap: 4px;
+      gap: 8px;
+    }
+
+    .mn-title:has(~ .lb-section) {
+      font-size: 20px;
+    }
+  }
+
+  /* Au doigt, l'aide de saisie clavier est une information FAUSSE — il n'y a pas de clavier, et la
+     roue se tape directement. La masquer rend l'écran plus juste ET libère la hauteur qui manquait. */
+  @media (pointer: coarse) {
+    .lb-hint {
+      display: none;
+    }
+  }
+
+  /* Un emplacement se tape en trois zones — voisin du haut, caractère courant, voisin du bas — donc
+     chacune doit tenir le plancher de 30 px sous `pointer: coarse` : 3 × 30 = 90 px de bouton. Sans
+     ce plancher, le clamp en vmin retombe à 72 px sur un téléphone en paysage (14 vmin de 320 px
+     valent 45 px, rattrapés par le minimum du clamp), soit 24 px par zone — sous le seuil. */
+  @media (pointer: coarse) {
+    .lb-screen {
+      --lb-slot-block-size: max(90px, clamp(72px, 14vmin, 132px));
+    }
+  }
+
+  .lb-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--mn-gap);
+  }
+
+  .lb-section-title {
+    margin: 0;
+    font-size: clamp(16px, 2.2vmin, 32px);
+    font-weight: bold;
+    color: var(--color-text-secondary);
+  }
+
+  .lb-wheel {
+    display: flex;
+    gap: clamp(6px, 1.2vmin, 16px);
+  }
+
+  .lb-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    inline-size: clamp(44px, 9vmin, 86px);
+    block-size: var(--lb-slot-block-size);
+    padding-block: clamp(4px, 0.8vmin, 10px);
+    border: 1px solid var(--color-border-surface);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-surface);
+    color: var(--color-text-primary);
+    cursor: pointer;
+
+    &[data-state="active"] {
+      border-color: var(--color-accent);
+      background: var(--color-bg-elevated);
+    }
+  }
+
+  /* Les voisins d'alphabet : présents sur les CINQ emplacements (maquette validée 2026-09-04), ce
+     qui dit sans légende que chaque case défile. Estompés pour que le caractère retenu reste le
+     seul lisible d'un coup d'œil. */
+  .lb-slot-neighbour {
+    font-size: clamp(11px, 1.5vmin, 20px);
+    line-height: 1;
+    color: var(--color-text-faint);
+  }
+
+  .lb-slot-current {
+    font-size: clamp(22px, 4.2vmin, 56px);
+    font-weight: bold;
+    line-height: 1;
+    color: var(--color-accent);
+  }
+
+  .lb-hint {
+    margin: 0;
+    font-size: clamp(12px, 1.6vmin, 22px);
+    color: var(--color-text-muted);
+    text-align: center;
+  }
+
+  /* Hauteur réservée même vide : sinon l'apparition du refus décalerait le bouton « Retour »
+     sous le curseur (même raison que `.tt-active` du plan 185). */
+  .lb-error {
+    margin: 0;
+    min-block-size: clamp(16px, 2vmin, 28px);
+    font-size: clamp(12px, 1.6vmin, 22px);
+    color: var(--color-feedback-error-text);
+    text-align: center;
+  }
+}

@@ -412,8 +412,10 @@ La carte au centre, une palette de blocs + décorations sur le côté ; on pose 
 > (`https://pokemon-tactics-telemetry.kekel87.workers.dev`), collecte vérifiée en production sur
 > itch.io et GitHub Pages, relevé live protégé par mot de passe (`GET /tableau`), `pnpm stats` pour
 > l'équilibrage, Goatcounter retiré du bundle. **Lot C (écran de victoire enrichi) livré et validé le
-> 2026-09-03** (plan 197). `docs/plans/195` reste `in-progress` : seul le **Lot B (multijoueur P2P
-> 1v1)** n'est pas commencé.
+> 2026-09-03** (plan 197). **Lot B1 (transport, salon, lancement accusé) livré le 2026-09-04** (plan
+> 199, décisions #895-908) : deux navigateurs se trouvent par un code et entrent en combat avec un
+> état identique. `docs/plans/195` reste `in-progress` : **B2 (combat en réseau), B3 (robustesse) et
+> B4 (détection de désync)** restent à faire.
 
 **Ce qui est déjà prêt** : replay et déterminisme verrouillés (plan 181), port de persistance (#751),
 hot-seat N joueurs avec `humanPlayerIds` (plan 188) — le tour distant se greffe là où le tour hot-seat
@@ -435,7 +437,10 @@ existe déjà.
 - [ ] **Multijoueur réseau P2P** — lobby (`ScreenId` neuf), protocole d'actions, validation,
       détection de désync (sérialisation canonique à écrire), chronomètre local auto-déclarant
       (#864, #865), reconnexion par le chemin du plan 181. **Viser le 1v1**, retester le FFA à 12
-      ensuite
+      ensuite. **Lot B1 (transport et salon) LIVRÉ le 2026-09-04** (plan 199, paquet
+      `packages/network/`, décisions #895-908) : code de partie, écran `lobby`, salle d'attente,
+      lancement accusé, trois graines partagées (combat/placement/IA). Restent **B2** (échange des
+      actions), **B3** (chronomètre, reconnexion, abandon) et **B4** (checksum de désync)
 - [x] **Écran de victoire enrichi** — sans dépendance réseau, garde sa place ici : même matière que
       l'événement `battle_ended` de la télémétrie (durée, tours, camp vainqueur). **LIVRÉ ET VALIDÉ
       (2026-09-03, plan 197)** : rangée de portraits de l'équipe du vainqueur (K.O. grisés) + « N tours ·

@@ -43,7 +43,7 @@ Découpage en packages (plan 125, noms finalisés plan 126) pour rendre un chang
 
 | Préfixe | Signification | Exemples |
 |---------|---------------|---------|
-| _(aucun)_ | Domaine pur, zéro UI/DOM | `core`, `data` |
+| _(aucun)_ | Domaine pur, zéro UI/DOM | `core`, `data`, `network` |
 | `view-` | Logique de vue engine-agnostic, headless (jamais DOM direct) | `view-core` |
 | `render-` | Besoin d'un moteur de rendu ou du DOM navigateur | `render-babylon`, `render-canvas2d`, `render-ports` |
 | `ui-` | Widgets DOM purs (HTML/CSS, pas de moteur 3D) | `ui-dom` |
@@ -201,24 +201,30 @@ pokemon-tactics/
 │   │
 │   ├── app/                     # Composition root / app-shell Vite (plan 125, renommé plan 126)
 │   │   ├── src/
-│   │   │   ├── app/             # ScreenManager FSM + écrans DOM (main-menu, battle-mode, team-select,
-│   │   │   │                    # my-teams, team-edit, settings, controls, credits, combat-screen,
-│   │   │   │                    # map-select)
+│   │   │   ├── app/             # ScreenManager FSM + écrans DOM (main-menu, battle-mode, lobby,
+│   │   │   │                    # team-select, my-teams, team-edit, settings, controls, credits,
+│   │   │   │                    # combat-screen, map-select)
 │   │   │   ├── babylon/         # Écrans qui câblent les backends : combat-screen (boucle combat),
 │   │   │   │                    # placement-flow
 │   │   │   ├── input/           # Couche d'entrée device-agnostique (plans 184/186) : actions logiques,
 │   │   │   │                    # routeur par contexte, sources clavier/manette/pointeur, magasin de
 │   │   │   │                    # bindings, navigation du focus DOM, étiquettes de touches
+│   │   │   ├── network/         # Câblage réseau côté app (plan 199, Phase 7 Lot B1) : signalling-override.ts
+│   │   │   │                    # (surcharge d'annuaire PeerJS verrouillée DEV/VITE_E2E, pour l'e2e uniquement)
 │   │   │   ├── i18n/            # Système i18n maison (t, setLanguage, detectLanguage, Language enum)
 │   │   │   │   └── locales/     # fr.ts, en.ts
 │   │   │   ├── settings/        # Paramètres persistants : GameSettings, getSettings(), updateSettings()
 │   │   │   ├── styles/          # CSS global + tokens.css (vars primitives/sémantiques)
 │   │   │   ├── ui/
 │   │   │   │   ├── dom/         # Modal, Stepper, MovesList, form-controls, SandboxPanel
-│   │   │   │   │   └── screens/ # Écrans DOM supplémentaires
+│   │   │   │   │   └── screens/ # Écrans DOM supplémentaires (dont lobby-screen.ts, plan 199)
 │   │   │   │   ├── team/        # Composants Team Builder (SlotCardsRow, TeamEditPanel, PokemonPickerModal…)
-│   │   │   │   └── team-select/ # Composants TeamSelectScene (FormatPicker, TeamListItem, PlayersColumn…)
-│   │   │   ├── analytics/       # Tracking GoatCounter (AnalyticsEvent, trackEvent, beacon Image pixel)
+│   │   │   │   ├── team-select/ # Composants TeamSelectScene (FormatPicker, TeamListItem, PlayersColumn…)
+│   │   │   │   └── lobby/       # code-wheel.ts + code-wheel-model.ts (plan 199) : la roue de caractères,
+│   │   │   │                    # seul widget de saisie du code de partie pour les 4 entrées
+│   │   │   ├── analytics/       # Télémétrie de jeu (plan 196) : telemetry.ts, battle-telemetry.ts,
+│   │   │   │                    # team-telemetry.ts, telemetry-contract.ts — remplace `analytics.ts` /
+│   │   │   │                    # Goatcounter (retiré du bundle)
 │   │   │   ├── constants.ts     # Constantes visuelles renderer restantes
 │   │   │   └── main.ts          # Câble DI (PresentationContext, UiDomConfig) au boot
 │   │   ├── public/
@@ -277,6 +283,20 @@ pokemon-tactics/
 │       │   └── fetch-champions.ts   # Fetch mod Showdown Champions (data/mods/champions/) et extrait overrides par regex
 │       ├── tsconfig.json
 │       └── package.json
+│   │
+│   ├── network/                 # Transport pair-à-pair du multijoueur (plan 199, Phase 7 Lot B1) —
+│   │   │                        # pur : aucune dépendance d'interface, et du moteur il ne connaît
+│   │   │                        # que des types
+│   │   ├── src/
+│   │   │   ├── protocol.ts             # NetworkMessage, NETWORK_VERSION, causes de refus, graines (combat/placement/IA)
+│   │   │   ├── room-code.ts            # Alphabet du code (5 caractères), génération, adresses dérivées pkmntac-<CODE>-<place>
+│   │   │   ├── transport.ts            # Contrat commun de transport + prise d'identifiant à réessais
+│   │   │   ├── peer-connection.ts      # Mise en œuvre PeerJS (WebRTC)
+│   │   │   ├── fake-transport.ts       # Canal en mémoire — rend le salon testable sans réseau (plusieurs Room dans le même processus)
+│   │   │   ├── room.ts                 # État de salon : arrivées, départs, lancement accusé
+│   │   │   └── index.ts                # Barrel export
+│   │   ├── tsconfig.json
+│   │   └── package.json         # dependencies: @pokemon-tactic/core (workspace, types uniquement), peerjs
 │   │
 │   └── telemetry-worker/        # Cloudflare Worker de télémétrie (plan 196, Phase 7 Lot A) — HORS JEU,
 │       │                        # ne fait pas partie du client ; pas de script `build` (un Worker se
@@ -762,7 +782,7 @@ Un combat en cours survit au rechargement (décharge d'onglet mobile, fermeture 
 - **Point d'accroche core** : `BattleOrchestratorConfig.onActionCommitted?: () => void`, appelé après chaque action validée (humaine et IA) et une première fois au démarrage — l'app y branche `saveBattleProgress(...engine.exportReplay())` (décision #747, écriture synchrone assumée). L'orchestrateur ne connaît ni `localStorage` ni le format de sauvegarde.
 - **UI** : entrée « Reprendre le combat — <carte> » en tête du menu principal, visible seulement si `loadBattleProgress()` renvoie une sauvegarde valide (décision #745 — pas de reprise silencieuse en combat, pas de modale au boot). Effacement sur un event `BattleEventType.BattleEnded`, retour au menu, ou remontage « Rejouer ».
 - **`packages/core/src/battle/replay-runner.ts`** : `runReplay` gagne un `ReplayActionObserver` optionnel (§ 9) — seul changement core du plan.
-- **Ce que ce plan prépare pour la Phase 7 (multijoueur)**, sans le résoudre : le port `load`/`save`/`clear` permet à un serveur de détenir `seed` + journal à la place de `localStorage`, un client qui revient rejouant par le même chemin. Restent à traiter : identifiant stable de carte (`MAPS_REGISTRY`) à la place d'un `mapUrl`, politique de reconnexion, seed d'IA — l'IA ne peut pas tourner sur les deux pairs (`createPrng(Date.now())`), il faut désigner un pair émetteur —, version de protocole. **Révisé le 2026-08-29** : « autorité serveur sur chaque action » et « fog côté serveur » sont **retirés de cette liste** (décisions #862, #863 — pas de backend, le pair distant remplace le magasin serveur imaginé par #751). Détail : `docs/plans/181-reprise-combat-en-cours.md` § Préparation Phase 7.
+- **Ce que ce plan prépare pour la Phase 7 (multijoueur)**, sans le résoudre : le port `load`/`save`/`clear` permet à un pair distant de détenir `seed` + journal à la place de `localStorage`, un client qui revient rejouant par le même chemin. **Révisé le 2026-08-29** : « autorité serveur sur chaque action » et « fog côté serveur » sont **retirés de cette liste** (décisions #862, #863 — pas de backend, le pair distant remplace le magasin serveur imaginé par #751). **Révisé le 2026-09-04 par le Lot B1** (plan 199) : trois des quatre inconnues restantes sont réglées, comme effet de bord du salon — identifiant stable de carte (`MAPS_REGISTRY`, plus de `mapUrl`), version de protocole (`NETWORK_VERSION`, pas `buildVersion`, #900), seed d'IA dérivé **par place** dans le setup diffusé (#901 — l'IA est pure, aucun `Math.random`/`Date.now` dans `packages/core/src/ai/`, donc pas de « pair émetteur » à désigner). Seule reste **la politique de reconnexion en combat** (délai, qui attend, ce que voit l'autre) — Lot B3. Détail : `docs/plans/181-reprise-combat-en-cours.md` § Préparation Phase 7, `docs/multiplayer.md` § Reconnexion.
 
 ---
 

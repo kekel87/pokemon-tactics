@@ -38,6 +38,7 @@ Claude = dev principal, autonome implémentation, valide design avec humain.
 | `docs/plans/` | Plan en cours avant coder |
 | `docs/next.md` | Agenda persistant (`/next`) |
 | `docs/plans/196-telemetrie-cloudflare-workers.md` | Avant toucher à la télémétrie, au Worker Cloudflare ou à `pnpm stats` |
+| `docs/multiplayer.md` | **Avant tout code réseau/multijoueur** — architecture P2P, protocole, adressage, `NETWORK_VERSION`, déterminisme. Manquait à cette table jusqu'au 2026-09-04 |
 | `docs/test-plan.md` | Cahier de recette visuelle — avant valider un changement de rendu, avant release |
 | `.claude/rules/e2e.md` | Conventions harness Playwright e2e (fixtures, POMs, seed, hook scène) |
 | `.claude/rules/multi-input.md` | **Avant d'ajouter/déplacer un contrôle d'interface** — les 4 axes obligatoires (clavier, manette, tactile, responsive) + recette de mesure |

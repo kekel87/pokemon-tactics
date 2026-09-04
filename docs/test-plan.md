@@ -74,10 +74,11 @@ stratégie (automatiser le **sens**, pas les **pixels**) sont en §11.
 | Écran / menu / navigation | §6 |
 | Team Builder / sandbox | §7 |
 | Placement / zones de spawn | §8.5 |
-| Responsive / mobile / `--ui-scale` / safe-area / cible tactile | §4.16, §6.9, §7.5, §8.5 |
-| Plateforme (plein écran, manifeste PWA, veille/Wake Lock, reprise d'écran au rechargement) | §6.10, §4.17, §6.7 |
-| Reprise d'un combat en cours (sauvegarde `pt-battle-resume`, entrée de menu, rejeu du journal d'actions) | §6.11, §6.1, §6.10 |
-| Menu de combat / sorties d'un combat en cours (`Échap`, `Start`, `☰` — Reprendre/Paramètres/Recommencer/Abandonner/Quitter) | §4.20, §6.12, §6.11 |
+| Responsive / mobile / `--ui-scale` / safe-area / cible tactile | §4.16, §6.10, §7.5, §8.5 |
+| Plateforme (plein écran, manifeste PWA, veille/Wake Lock, reprise d'écran au rechargement) | §6.11, §4.17, §6.7 |
+| Reprise d'un combat en cours (sauvegarde `pt-battle-resume`, entrée de menu, rejeu du journal d'actions) | §6.12, §6.1, §6.11 |
+| Menu de combat / sorties d'un combat en cours (`Échap`, `Start`, `☰` — Reprendre/Paramètres/Recommencer/Abandonner/Quitter) | §4.20, §6.13, §6.12 |
+| Jeu en ligne (code de partie, roue de saisie, salle d'attente, lancement accusé) | §6.8, §6.2 |
 | Panoramique caméra (clavier, stick droit, glissé) | §4.19, §4.18 |
 | Capuchon de touche sous un bouton du chrome / indice de défilement d'une liste | §4.2, §4.9, §4.19, §4.18 |
 | Clé i18n (`packages/app/src/i18n/locales/*`) — libellé de bouton, ligne de journal, nouvelle valeur d'enum journalisée | §4.9 (clés brutes + parité FR/EN), §4.4 (les libellés d'action sont des **sélecteurs e2e** : changer « Déplacement » impose de balayer `e2e/`), §6.7 |
@@ -763,20 +764,20 @@ seuil, tout le chrome grossit d'un coup ×1,5, la maquette restant homothétique
 - 🤖 **Meta viewport** : `viewport-fit=cover` + `interactive-widget=resizes-content` présents. Garde-fou
   de configuration assumé : leur **effet** est invisible en Chromium de bureau (ni encoche ni clavier
   virtuel) mais leur absence casse silencieusement tout `env(safe-area-inset-*)` et toute modale en
-  `dvh` (§6.9, `responsive-screens.spec`).
+  `dvh` (§6.10, `responsive-screens.spec`).
 - 👁 **Safe-area réelle** (`env(safe-area-inset-left/right/bottom)` sur `.bc-root`, `.bc-left-col`,
   `.bl-panel`, `.pl-roster`) : en paysage l'encoche passe sur le **côté**. Non automatisable — les
   insets résolvent à 0px sans encoche physique, et Chromium n'en émule aucune. **Téléphone réel.**
 - 👁 **Lisibilité ressentie et esthétique** du chrome au zoom ×1,5 (densité du menu, InfoPanel réduit,
   timeline, portraits de la timeline à petite taille) : jugement d'œil, pas de signal DOM.
-- 👁 **Overlay d'orientation en portrait** *pendant un combat* : l'invite est globale (§6.9), son
+- 👁 **Overlay d'orientation en portrait** *pendant un combat* : l'invite est globale (§6.10), son
   interaction avec une scène montée reste à l'œil.
 
 ### 4.17 Bouton plein écran du chrome de combat (plan 180-a)
 
 *src : `ui-dom/fullscreen-button.ts` + `styles/fullscreen-button.css`, `styles/battle-log.css`
 (rangée `.bl-log-row`), `app/platform/fullscreen.ts`, `app/babylon/combat-screen.ts`*
-*e2e : `combat/platform-chrome.spec.ts` — la ligne équivalente des réglages est en §6.10*
+*e2e : `combat/platform-chrome.spec.ts` — la ligne équivalente des réglages est en §6.11*
 
 *Second point d'entrée assumé (la ligne des réglages oblige à quitter le combat, or c'est en plein
 combat sur téléphone que la barre d'URL coûte le plus). Il vit dans la même rangée que le journal
@@ -2641,7 +2642,7 @@ Débloque en 🤖 les cas RÉUSSITE jusqu'ici 👁 de §5.36/§5.37 grâce aux c
 - 🤖 Le **titre** « POKEMON TACTICS » s'affiche (heading h1).
 - 🤖 **5 entrées** dans l'ordre, libellés FR : **Aventure**, **Combat**, **Constructeur d'équipe**,
   **Paramètres**, **Crédits**. Une **6ᵉ entrée conditionnelle** (« Reprendre le combat — <carte> ») se
-  place **avant** elles quand un combat est reprenable → §6.11.
+  place **avant** elles quand un combat est reprenable → §6.12.
 - 🤖 **Aventure** est **désactivée** (`disabled`).
 - 🤖 **Numéro de version** visible en bas à gauche (`.mn-version`).
 - 🤖 Clic sur le bouton de langue (bas-droite, « FR » → « EN ») : les 5 entrées passent en anglais
@@ -2651,7 +2652,8 @@ Débloque en 🤖 les cas RÉUSSITE jusqu'ici 👁 de §5.36/§5.37 grâce aux c
 
 ### 6.2 Mode de combat
 - 🤖 Local (actif) → écran « Choix de la carte » ; Retour → menu (`navigation.spec`).
-- 🤖 En ligne / Tutoriel **désactivés** (`screens.spec`).
+- 🤖 **En ligne (actif)** → écran `lobby` ; **Tutoriel** seul reste désactivé (`screens.spec`,
+  plan 199).
 - 👁 i18n FR/EN des libellés.
 
 ### 6.3 Choix de la carte (map preview)
@@ -2774,17 +2776,64 @@ d'entrée mais de conception d'écran (retour humain 2026-08-21). Décisions #83
   de partie, cf §6.4 ; le test vérifie qu'elle n'est plus ici. L'option « Curseur » avait été retirée
   avant : le curseur de survol est un modèle voxel unique non configurable — cf §3.8.)* Deux lignes
   **conditionnées à la plateforme** s'y ajoutent — **Plein écran** (si l'API existe) et **Installer
-  l'app** (iPhone non installé) : voir §6.10.
+  l'app** (iPhone non installé) : voir §6.11.
 - 🤖 Changer la langue **persiste en localStorage** (`pt-lang`). La persistance de `pt-settings` se
   vérifie désormais en §6.4, sur les deux paramètres de partie.
 
-### 6.8 Crédits
+### 6.8 Jeu en ligne — `lobby` et salle d'attente (plan 199)
+
+*src : `app/ui/dom/screens/lobby-screen.ts`, `app/ui/lobby/`, `app/ui/team-select/RoomPanel.ts`,
+`packages/network/`*
+*e2e : `tests/dom/online-lobby.spec.ts` — voir §11*
+*libellés : `lobby.*`, `room.*`*
+
+**Écran `lobby`**
+- 🤖 « En ligne » → `lobby` ; rangée de formats (**nombre de joueurs seul** : le nombre de Pokemon
+  par camp dépend de la carte, pas encore choisie) ; « Retour » → Mode de combat.
+- 🤖 **Roue de caractères** : 5 emplacements, chacun montrant ses **deux voisins d'alphabet**
+  (maquette validée avec l'humain le 2026-09-04). Taper le code au clavier le pose et avance d'un
+  emplacement.
+  🔴 **Cas de régression** : `KeyS` est lié à « bas » et `KeyD` à « droite ». Sans arrêt de
+  propagation, chaque lettre partait AUSSI comme un mouvement — taper `SNSD2` posait `SNSDA`.
+- 🤖 Un code incomplet est refusé sans réseau (« Ce code est incomplet »).
+- 👁 **Manette** : gauche/droite change d'emplacement (navigation spatiale), haut/bas défile,
+  `A` vaut « Rejoindre ». 👁 **Tactile** : les trois zones du bouton (voisin haut / caractère /
+  voisin bas), plancher de 30 px par zone sous `pointer: coarse` → bouton ≥ 90 px.
+- 👁 i18n FR/EN.
+
+**Salle d'attente** (= écran de sélection d'équipe en mode réseau)
+- 🤖 Le **code** s'affiche à l'entrée sur l'écran, jamais avant, avec « Copier ».
+- 🤖 **Encart de paramètres** : carte (nom), format, placement auto, prévisualisation de dégâts.
+- 🤖 Le **sélecteur de format a disparu** : il est gravé depuis le `lobby`.
+- 🤖 **Une ligne dit qui la tient** : « 👑 Joueur hôte », « 🎮 Vous », « 🌐 Joueur distant »
+  remplacent le segment Humain / IA sur toute place tenue par un humain, **sur la largeur entière**
+  de la carte. Seules les places libres et IA gardent le segment, et seulement chez l'hôte.
+  👁 **Aucun contrôle grisé sans raison lisible** ne doit subsister sur cet écran.
+- 🤖 **« ⏳ Place libre »** pour une place que personne ne tient — et **pas** « IA », qui faisait
+  ressembler un salon en ligne à une partie solo. Elle ne bloque pas le lancement et part en IA au
+  `start`.
+- 🤖 **Le badge de préparation ne s'affiche jamais sur sa propre ligne** : on est là par définition.
+- 🔴 🤖 **Les équipes des autres joueurs humains sont MASQUÉES** (ligne de Pokemon absente, pas
+  inerte) : les montrer avant le combat serait une fuite d'information, le jeu masquant déjà l'objet
+  tenu et le talent de l'adversaire (#729). On voit la sienne et celles que personne ne tient.
+- 🤖 **Tout le monde a « Prêt » / « Pas prêt », l'hôte compris** ; lui seul garde « Lancer » en plus,
+  inerte tant que tout le monde n'est pas prêt.
+- 🤖 Les paramètres de partie gèlent quand **l'hôte** se déclare prêt, pas quand un invité le fait, et
+  « Pas prêt » dégèle.
+- 👁 Les paramètres se **gèlent** dès que quelqu'un est prêt (cases désactivées).
+- 👁 L'hôte **force** le lancement en repassant en IA une ligne qui traîne.
+- 👁 Départs : ligne « en attente » pendant le délai de grâce (10 s après un `bye`, 45 s après un
+  silence), puis retour à l'IA ; l'hôte parti ramène au `lobby`.
+- 👁 Messages de refus : code introuvable, salon plein, partie commencée, versions incompatibles,
+  connexion impossible, délai dépassé.
+
+### 6.9 Crédits
 *libellés : `credits.*`*
 - 🤖 Clic « Crédits » → écran crédits ; titre « Crédits » ; Retour → menu (`menus.spec`).
 - 🤖 Contenu présent (disclaimer fan-project, sprites PMDCollab, tileset, police, code).
 - 🤖 Valider le titre/contenu en **anglais** (« Credits ») après switch de langue.
 
-### 6.9 Écrans DOM sur petit écran (plan 179)
+### 6.10 Écrans DOM sur petit écran (plan 179)
 
 *src : `app/ui/OrientationPrompt.ts` + `styles/orientation-prompt.css`, `styles/map-select.css`,
 `components/team-select.css`, `app/index.html`*
@@ -2818,10 +2867,10 @@ nouvel écran DOM.*
   ressentie** des écrans réduits : pixel/anim.
 - 👁 **Menu principal, Paramètres, Crédits sur téléphone** : vérifiés sans défaut au human-testing, pas
   d'assertion propre à ajouter — ils n'ont pas de bloc mobile parce que l'essentiel de leurs métriques
-  est déjà en `clamp()` / `vmin` (`menu-screens.css`). Re-dérouler §6.1 / §6.7 / §6.8 à l'œil en cas de
+  est déjà en `clamp()` / `vmin` (`menu-screens.css`). Re-dérouler §6.1 / §6.7 / §6.9 à l'œil en cas de
   changement de tokens.
 
-### 6.10 Comportement plateforme — PWA, plein écran, veille, reprise d'écran (plan 180-a/180-b)
+### 6.11 Comportement plateforme — PWA, plein écran, veille, reprise d'écran (plan 180-a/180-b)
 
 *src : `app/public/manifest.json` + `app/index.html` (liens `manifest`/`apple-touch-icon`,
 `theme-color`), `app/platform/{fullscreen,pwa,wake-lock}.ts`, `app/app/screen-persistence.ts`
@@ -2856,7 +2905,7 @@ et ce qui **survit à un rechargement** (reprise d'écran).*
 - 🤖 **Un combat ne se remonte pas tout seul au boot** : parcours réel jusqu'à la scène montée →
   `pt-last-screen` effacé → rechargement = menu principal, sans chrome de combat remonté. Depuis le
   plan 181 le combat n'est plus **perdu** pour autant : le menu propose de le reprendre, sur décision
-  du joueur → §6.11 (`platform-chrome.spec` vérifie les deux : menu nu de combat **et** entrée de
+  du joueur → §6.12 (`platform-chrome.spec` vérifie les deux : menu nu de combat **et** entrée de
   reprise présente).
 - 🤖 **Réglages — ligne « Plein écran »** présente et à « NON » hors plein écran (état lu du
   document, **jamais** persisté dans `pt-settings` : c'est un état vivant, pas une préférence), et
@@ -2882,11 +2931,11 @@ et ce qui **survit à un rechargement** (reprise d'écran).*
 - 👁 **Comportement iOS** : ligne « Plein écran » **absente** (API non implémentée), ligne
   « Installer l'app » **visible** puis masquée une fois installée (`shouldOfferIosInstall`), et
   `orientation: "landscape"` du manifeste **ignoré** par WebKit même en PWA installée → l'invite
-  d'obstruction (§6.9) reste le seul levier. Demande un vrai WebKit iOS.
+  d'obstruction (§6.10) reste le seul levier. Demande un vrai WebKit iOS.
 - 👁 **Péremption du point de reprise à 1 h** : dépend de l'horloge, pas de la navigation — le sens
   est couvert en unit (`app/screen-persistence.test.ts`).
 
-### 6.11 Reprise d'un combat en cours (plan 181)
+### 6.12 Reprise d'un combat en cours (plan 181)
 
 *src : `app/app/battle-persistence.ts` (clé `pt-battle-resume`, port `load`/`save`/`clear`),
 `app/babylon/battle-resume.ts` (`buildBattle` + `resumeBattle`), `app/babylon/combat-screen.ts`
@@ -2954,7 +3003,7 @@ rejet par test** : chaque rechargement re-traverse le splash, et trois d'affilé
 
 ---
 
-### 6.12 Écran de contrôles — réassignation clavier & manette (plan 186)
+### 6.13 Écran de contrôles — réassignation clavier & manette (plan 186)
 
 *src : `app/input/bindings-store.ts`, `app/ui/dom/screens/controls-screen.ts`, `styles/controls-screen.css` ; storage `pt-bindings` (+ `invertRightStick` dans `pt-settings`)*
 *e2e : `dom/controls-remapping.spec.ts` (écran) · `dom/gamepad-menus.spec.ts` (manette synthétique) · `combat/controls-remapping.spec.ts` (effet réel + légende) · `combat/combat-menu.spec.ts` (le même panneau monté dans la modale de combat)*
@@ -3018,7 +3067,7 @@ quelque part ferait mentir la légende sans casser le jeu — d'où la moitié c
 - 👁 **Rendu sur téléphone** : sous 760px la grille passe en cartes (action en titre, ses 3 cases
   dessous) — mise en page à valider sur téléphone réel.
 
-### 6.13 Manette dans le Team Builder et ses sélecteurs (plan 188, volet 2)
+### 6.14 Manette dans le Team Builder et ses sélecteurs (plan 188, volet 2)
 
 *src : `app/input/focus-navigation.ts` (`applyToControl`, `closeOpenModal`), `app/input/input-system.ts` (chemin manette), `app/input/gamepad-source.ts` (résilience du poller), `app/ui/dom/preserve-focus.ts` (focus survit au re-rendu, partagé), `app/ui/dom/screens/elements.ts` (`cancel`), `app/ui/team/{PokemonPickerModal,MovePickerModal,ItemPickerModal,ShowdownIoModal,NaturePickerModal,picker-focus}.ts`, `app/ui/team/{EditLeftPanel,EditRightPanel,MovesList}.ts` (contrôles convertis en `<button>`)*
 *e2e : `dom/gamepad-pickers.spec.ts` — manette synthétique partagée (`e2e/pages/gamepad.ts`)*
@@ -3219,7 +3268,7 @@ garde-fou du projet est de toujours recompter depuis la source réelle.)*
 - 👁 **Clavier virtuel** : en-tête `.tb-modal-header` collant + `.tb-dialog` plafonnée à `100dvh` +
   `interactive-widget=resizes-content`. **Non automatisable** — Chromium de bureau n'a pas de clavier
   virtuel, donc rien ne rétrécit le viewport de mise en page. Seule la présence des drapeaux du meta
-  viewport est 🤖 (§6.9). **Téléphone réel.**
+  viewport est 🤖 (§6.10). **Téléphone réel.**
 - 👁 **Fondu de bord droit** signalant que la rangée de puces défile (`mask-image`) : pixel pur.
 - 👁 **Densité ressentie** des cellules de résultat réduites, des puces et de la topbar : jugement
   d'œil.
@@ -3298,7 +3347,7 @@ Raccourci `/ci-gate`. Zéro warning Biome toléré.
    champ, §2).
 8. Écran 4K / redimensionnement (§3.13, §4.11) ; console navigateur : **zéro erreur**.
 9. Reprise : recharger en plein combat → menu avec « Reprendre le combat — <carte> » → le combat
-   revient tel quel ; puis gagner un combat → l'entrée a **disparu** (§6.11).
+   revient tel quel ; puis gagner un combat → l'entrée a **disparu** (§6.12).
 
 ## 11. E2E — Playwright (`pnpm test:e2e`)
 
@@ -3318,15 +3367,15 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `dom/navigation.spec.ts` | menu → mode de combat → choix carte → retour |
 | `dom/main-menu.spec.ts` | §6.1 — titre, 5 entrées, Aventure disabled, version, switch FR→EN + `pt-lang` |
 | `dom/settings.spec.ts` | §6.7 — l'option inconditionnelle (Langue) + **absence** de « Prévisualisation dégâts », partie en §6.4 au plan 198 ; persistance `pt-lang` |
-| `dom/controls-remapping.spec.ts` | §6.12 — écran de contrôles (plan 186) : accès depuis Réglages, 5 sections listées, **aucune case `displaced` à l'ouverture**, actions fixes (Annuler) inertes, **panoramique de retour** (remappable au clavier depuis le plan 189, « Stick droit » inerte en colonne manette, secours `Maj` + flèches en lecture seule), capture d'une touche → `custom` + écart seul écrit dans `pt-bindings`, échange (ancien slot `displaced` + message nommant l'action délogée), annulation par bouton **et** par `Échap` (jamais assigné, ne quitte pas l'écran), persistance au rechargement, « Tout réinitialiser ». La capture **au pad** est couverte par `dom/gamepad-menus.spec.ts` (manette synthétique) ; seul un **pad réel** reste 👁 |
-| `dom/gamepad-menus.spec.ts` | §6.12 manette dans les menus (plan 186) : manette **synthétique** injectée via `navigator.getGamepads`, arrivée à la souris puis croix directionnelle → focus pris **et** anneau applicable. Joué sur `mapping: "standard"` et `mapping: ""` (réponse de Firefox pour une Switch Pro, qui rendait le pad muet) ; échange de bouton nommant l'action délogée. **§6.4** : changer de format au pad garde le liseré sur le segment pressé (le `data-testid` manquant du sélecteur de format le renvoyait sur « ◀ Retour »). Les segments sont visés par leur **rôle** dans la rangée, jamais par ce testid — s'en servir rendrait le test aveugle à la régression qu'il garde |
-| `dom/gamepad-pickers.spec.ts` | §6.13 manette dans le Team Builder (plan 188) : le sélecteur s'ouvre sur un **résultat** et non dans le champ de recherche, on remonte de la grille aux chips de filtre puis on choisit (navigation spatiale), **B** referme (là où `Échap` n'existe pas sur un pad), **← →** règlent un curseur de PS jusqu'à sortir du contrôle par l'axe vertical — c'est ce test qui a attrapé le bug précis tuant toute la manette (#842, `applyToControl`/`stepUp`). Manette synthétique partagée (`pages/gamepad.ts`). Nature en liste (#839) hors couverture e2e ici (unit `focus-navigation.test.ts` pour l'arbitrage du contrôle focalisé) ; le filet générique de résilience du poller (`try/catch` sur `emit`) n'est testé nulle part directement, 👁 §6.13 |
-| `combat/controls-remapping.spec.ts` | §6.12 moitié combat : une touche réassignée **fait tourner la caméra** et la **légende dessine la nouvelle lettre** (tuile du capuchon lue en propriétés calculées) ; l'ancienne position ne fait plus rien |
-| `dom/platform.spec.ts` | §6.10 comportement plateforme (plan 180-a/180-b) : manifeste PWA servi + JSON valide (`name`, `display: standalone`) + **chaque icône répond 200 en `image/png`** ; `<link rel="manifest">`, `<link rel="apple-touch-icon">` (fichier joignable) et `<meta name="theme-color">` déclarés ; **reprise d'écran** — Crédits enregistré (`pt-last-screen`) et retrouvé après rechargement ; **garde-fou** — « Sélection d'équipe » (écran à paramètres) efface le point de reprise → rechargement = menu principal ; réglages : ligne « Plein écran » présente à « NON », ligne « Installer l'app » absente hors iPhone, **aller-retour de la bascule** (clic → `document.fullscreenElement` renseigné + « OUI », re-clic → sortie + « NON »). Barre d'URL réellement masquée / verrouillage paysage (avalé par le `try/catch`) / Wake Lock / installation / iOS = 👁 (validés téléphone réel 2026-08-14) |
-| `combat/platform-chrome.spec.ts` | §4.17 bouton plein écran du chrome de combat : visible hors plein écran, nom accessible « Plein écran », dans le viewport ; **clic → document en plein écran + bouton `hidden`**, puis **sortie non déclenchée par lui** (`exitFullscreen()`) **→ bouton de retour** (abonnement `fullscreenchange`) ; §6.10 **un combat perdu revient au menu principal** (parcours réel jusqu'à la scène montée → `pt-last-screen` effacé → rechargement = menu, aucun chrome de combat remonté). Barre d'URL masquée + verrouillage paysage = 👁 (aucun signal DOM ; le `lock()` est refusé en desktop et avalé par le `try/catch`) |
-| `dom/battle-resume-menu.spec.ts` | §6.11 entrée « Reprendre le combat » — les cas où elle **ne doit pas** apparaître, **un par test** (chaque rechargement re-traverse le splash : les trois rejets enchaînés dans un seul test le mettaient à 27 s sous charge, le plus lent du projet `dom` pour un budget de 30 s) : aucune sauvegarde (menu intact : 5 entrées, « Aventure » en tête, clé absente) ; sauvegarde d'un **autre build** (`buildVersion` étranger, forme par ailleurs complète) ; **schéma inconnu** (`version: 999` estampillée du BON build → le rejet vient du numéro de schéma, pas du build) ; **entrée corrompue** (JSON tronqué). Dans les trois cas de rejet : pas d'entrée, menu debout, et **aucune exception non attrapée** au boot (`pageerror` surveillé) |
-| `combat/battle-resume.spec.ts` | §6.11 reprise d'un combat en cours (plan 181), sur le **chemin réel** (la sauvegarde n'existe pas en sandbox) : combat lancé avec un joueur Humain (équipe « 🎲 Aléatoire ») → clé `pt-battle-resume` écrite **dès le démarrage** (journal d'actions vide), deux « Attendre » → le compte d'actions **grossit** ; rechargement → menu principal avec l'entrée **en tête** nommant la carte (« Reprendre le combat — Arène Simple », nom relu de l'écran de carte) ; clic → scène remontée **sans repasser par le placement** (même nombre de `pokemon_plane`, menu d'action rendu), **journal reconstruit à l'identique** (mêmes lignes, même ordre, en tête), **même Pokemon actif et mêmes PV**, **même nombre d'actions** ré-exporté. Aucune valeur en dur (équipes + seed aléatoires côté production) : tout est comparé avant/après. Fin de combat → clé effacée = 👁 (non déterministe : équipes aléatoires, 12 mons ; le sandbox qui sait finir un combat ne persiste pas) |
-| `dom/credits.spec.ts` | §6.8 — titre + contenu + EN |
+| `dom/controls-remapping.spec.ts` | §6.13 — écran de contrôles (plan 186) : accès depuis Réglages, 5 sections listées, **aucune case `displaced` à l'ouverture**, actions fixes (Annuler) inertes, **panoramique de retour** (remappable au clavier depuis le plan 189, « Stick droit » inerte en colonne manette, secours `Maj` + flèches en lecture seule), capture d'une touche → `custom` + écart seul écrit dans `pt-bindings`, échange (ancien slot `displaced` + message nommant l'action délogée), annulation par bouton **et** par `Échap` (jamais assigné, ne quitte pas l'écran), persistance au rechargement, « Tout réinitialiser ». La capture **au pad** est couverte par `dom/gamepad-menus.spec.ts` (manette synthétique) ; seul un **pad réel** reste 👁 |
+| `dom/gamepad-menus.spec.ts` | §6.13 manette dans les menus (plan 186) : manette **synthétique** injectée via `navigator.getGamepads`, arrivée à la souris puis croix directionnelle → focus pris **et** anneau applicable. Joué sur `mapping: "standard"` et `mapping: ""` (réponse de Firefox pour une Switch Pro, qui rendait le pad muet) ; échange de bouton nommant l'action délogée. **§6.4** : changer de format au pad garde le liseré sur le segment pressé (le `data-testid` manquant du sélecteur de format le renvoyait sur « ◀ Retour »). Les segments sont visés par leur **rôle** dans la rangée, jamais par ce testid — s'en servir rendrait le test aveugle à la régression qu'il garde |
+| `dom/gamepad-pickers.spec.ts` | §6.14 manette dans le Team Builder (plan 188) : le sélecteur s'ouvre sur un **résultat** et non dans le champ de recherche, on remonte de la grille aux chips de filtre puis on choisit (navigation spatiale), **B** referme (là où `Échap` n'existe pas sur un pad), **← →** règlent un curseur de PS jusqu'à sortir du contrôle par l'axe vertical — c'est ce test qui a attrapé le bug précis tuant toute la manette (#842, `applyToControl`/`stepUp`). Manette synthétique partagée (`pages/gamepad.ts`). Nature en liste (#839) hors couverture e2e ici (unit `focus-navigation.test.ts` pour l'arbitrage du contrôle focalisé) ; le filet générique de résilience du poller (`try/catch` sur `emit`) n'est testé nulle part directement, 👁 §6.14 |
+| `combat/controls-remapping.spec.ts` | §6.13 moitié combat : une touche réassignée **fait tourner la caméra** et la **légende dessine la nouvelle lettre** (tuile du capuchon lue en propriétés calculées) ; l'ancienne position ne fait plus rien |
+| `dom/platform.spec.ts` | §6.11 comportement plateforme (plan 180-a/180-b) : manifeste PWA servi + JSON valide (`name`, `display: standalone`) + **chaque icône répond 200 en `image/png`** ; `<link rel="manifest">`, `<link rel="apple-touch-icon">` (fichier joignable) et `<meta name="theme-color">` déclarés ; **reprise d'écran** — Crédits enregistré (`pt-last-screen`) et retrouvé après rechargement ; **garde-fou** — « Sélection d'équipe » (écran à paramètres) efface le point de reprise → rechargement = menu principal ; réglages : ligne « Plein écran » présente à « NON », ligne « Installer l'app » absente hors iPhone, **aller-retour de la bascule** (clic → `document.fullscreenElement` renseigné + « OUI », re-clic → sortie + « NON »). Barre d'URL réellement masquée / verrouillage paysage (avalé par le `try/catch`) / Wake Lock / installation / iOS = 👁 (validés téléphone réel 2026-08-14) |
+| `combat/platform-chrome.spec.ts` | §4.17 bouton plein écran du chrome de combat : visible hors plein écran, nom accessible « Plein écran », dans le viewport ; **clic → document en plein écran + bouton `hidden`**, puis **sortie non déclenchée par lui** (`exitFullscreen()`) **→ bouton de retour** (abonnement `fullscreenchange`) ; §6.11 **un combat perdu revient au menu principal** (parcours réel jusqu'à la scène montée → `pt-last-screen` effacé → rechargement = menu, aucun chrome de combat remonté). Barre d'URL masquée + verrouillage paysage = 👁 (aucun signal DOM ; le `lock()` est refusé en desktop et avalé par le `try/catch`) |
+| `dom/battle-resume-menu.spec.ts` | §6.12 entrée « Reprendre le combat » — les cas où elle **ne doit pas** apparaître, **un par test** (chaque rechargement re-traverse le splash : les trois rejets enchaînés dans un seul test le mettaient à 27 s sous charge, le plus lent du projet `dom` pour un budget de 30 s) : aucune sauvegarde (menu intact : 5 entrées, « Aventure » en tête, clé absente) ; sauvegarde d'un **autre build** (`buildVersion` étranger, forme par ailleurs complète) ; **schéma inconnu** (`version: 999` estampillée du BON build → le rejet vient du numéro de schéma, pas du build) ; **entrée corrompue** (JSON tronqué). Dans les trois cas de rejet : pas d'entrée, menu debout, et **aucune exception non attrapée** au boot (`pageerror` surveillé) |
+| `combat/battle-resume.spec.ts` | §6.12 reprise d'un combat en cours (plan 181), sur le **chemin réel** (la sauvegarde n'existe pas en sandbox) : combat lancé avec un joueur Humain (équipe « 🎲 Aléatoire ») → clé `pt-battle-resume` écrite **dès le démarrage** (journal d'actions vide), deux « Attendre » → le compte d'actions **grossit** ; rechargement → menu principal avec l'entrée **en tête** nommant la carte (« Reprendre le combat — Arène Simple », nom relu de l'écran de carte) ; clic → scène remontée **sans repasser par le placement** (même nombre de `pokemon_plane`, menu d'action rendu), **journal reconstruit à l'identique** (mêmes lignes, même ordre, en tête), **même Pokemon actif et mêmes PV**, **même nombre d'actions** ré-exporté. Aucune valeur en dur (équipes + seed aléatoires côté production) : tout est comparé avant/après. Fin de combat → clé effacée = 👁 (non déterministe : équipes aléatoires, 12 mons ; le sandbox qui sait finir un combat ne persiste pas) |
+| `dom/credits.spec.ts` | §6.9 — titre + contenu + EN |
 | `dom/picker.spec.ts` | §7.2 — ouverture/liste/recherche, filtres type (union/toggle/reset), choisir/grisé/fermer |
 | `dom/picker-search.spec.ts` | §7.2 recherche bilingue tolérante (`team/search-index.ts`) : en UI FR, nom EN + sans-accent filtrent vers le résultat FR — Pokemon (gyarados/leviator → Léviator), capacité (vinewhip → Fouet Lianes), objet (charcoal → Charbon) |
 | `dom/team-builder.spec.ts` | §6.5 — créer+nommer+persist, générer aléatoire, supprimer (« tout vider » skippé : régression modale, cf backlog) |
@@ -3396,7 +3445,8 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/touch-controls.spec.ts` | §4.18 comportement au doigt via **`tapTile`** (seule entrée du hook qui traverse la vraie couche d'entrée) : **un tap agit du premier coup** ; un **pattern directionnel** s'ouvre cône affiché, retaper la même **direction** lance, une autre direction re-vise sans lancer (validation depuis une case différente = la comparaison est directionnelle). + **annulation atteignable au doigt** sur les 3 phases réparées (destination, cible, orientation). Pinch / pan 2 doigts / orientation de fin de tour / seuil de glissé / `pointercancel` = 👁 téléphone réel ; la boussole est couverte par `compass-and-legend.spec` |
 | `combat/input-prompt-glyph.spec.ts` | §4.8 glyphe du geste attendu dans la ligne d'instruction (chantier « aide visuelle des gestes attendus », suite du Lot 1 du plan 173) : `data-glyph` = `act-twice` sur les 2 phases **directionnelles** (visée de cône/ligne/fauche/charge, orientation de fin de tour) et `act` sur les 4 autres (cible, confirmation, destination de déplacement, case de repli de Demi-Tour) ; **suffixe « ×2 » présent en pointeur grossier** (`hasTouch`) et **absent en pointeur fin** ; la pastille entière (glyphe compris) disparaît hors phase d'input ; **non-régression** du `textContent` exact de `combat-instruction`, restée un nœud de texte pur alors que la pastille est passée à la rangée parente ; **la feuille de tuiles change avec le pointeur** (plan 185) : `input-prompts-pixel-1-bit` en pointeur fin, `cursor-pixel-pack` en pointeur grossier, feuille et grille ensemble. Le DESSIN (souris vs main, masque CSS) = 👁 pixel |
 | `combat/compass-and-legend.spec.ts` | §4.18 boussole + légende de contrôles (ex `compass-rotate-hint.spec.ts`, renommé et étendu au plan 185) : **zone tapable CARRÉE ancrée sur le portrait** (plancher 44 px — le glyphe qui l'étendait vers la droite est supprimé) ; **un clic fait tourner la vue d'un cran** (vrai clic souris sur le point projeté du proxy de picking, donc à travers la couche d'entrée réelle) ; **cliquer juste sous la boussole ne tourne pas**, contre-épreuve dans le même test ; **légende posée à droite (glyphe « ça se clique »)**, ancrée sur la même mesure que le renderer (`chrome-insets.ts`), ses **lignes de contrôles caméra descendues dans la colonne latérale de l'ordre de jeu** entre les capuchons `Page↑`/`Page↓` (plan 189 — sous la boussole, elles finissaient par-dessus elle) ; **la légende suit la source d'entrée active** (`data-input-source` : souris/doigt/clavier/manette) ; **la légende reste immobile quand la timeline perd son entrée active** (case vide en prévisualisation de coût CT — trois approches successives : ancrage DOM dans la case active, réservation de sa largeur, et enfin réservation de sa **hauteur** au plan 189, la seule qui ne déplace pas la boussole ; décision #798). Dessin des glyphes / sens de rotation lu à l'œil / tap au doigt = 👁 |
-| `dom/screens.spec.ts` | §6.0 Échap retour, §6.2 modes off, §6.3 carte (9 + détail + ↑/↓ aria-current), §6.4 libellé du format actif (« 2J × 6 », #835) + Lancer gating + **persistance et relecture des 2 paramètres de partie** (plan 198) |
+| `dom/screens.spec.ts` | §6.0 Échap retour, §6.2 **Local et En ligne actifs, Tutoriel seul désactivé** (plan 199), §6.3 carte (9 + détail + ↑/↓ aria-current), §6.4 libellé du format actif (« 2J × 6 », #835) + Lancer gating + **persistance et relecture des 2 paramètres de partie** (plan 198) |
+| `dom/online-lobby.spec.ts` | §6.8 jeu en ligne (plan 199) — **un seul** scénario, à **deux contextes de navigateur** : l'hôte choisit son format, crée, passe par le terrain, et voit naître le code ; le sélecteur de format a disparu de la salle d'attente ; l'invité **saisit le code au clavier dans la roue** (couvre la collision `KeyS`/`KeyD` avec les touches de mouvement) et rejoint sans avoir choisi de carte ; l'hôte voit la ligne passer en « Joueur distant » et « Lancer » reste inerte ; l'invité compose SA ligne (la deuxième — sa place, pas la première) puis confirme ; l'hôte lance et **les deux scènes deviennent prêtes**, ce qui prouve le lancement accusé. 🔴 **Annuaire LOCAL** (paquet `peer`, second `webServer`, `?peerPort=` verrouillé sur DEV/E2E) et **STUN/TURN désactivés** : la suite ne demande rien à Internet. Tout ce qui se teste sans réseau — allocation de places, maillage, départs, lancement annulé — est en **intégration** (`packages/network`), sur le canal en mémoire |
 | `dom/screens-i18n.spec.ts` | §6.3 / §6.4 i18n des écrans de préparation, par le bouton de langue du menu (le geste du joueur, et le seul qui existe — aucun de ces écrans ne porte de bascule) : **étiquettes de terrain** d'une carte en FR puis en EN (« couloirs, dénivelé » → « corridors, elevation », avec contre-épreuve que le français ne fuit plus), **libellé de format** « 2P × 6 » et non « 2J × 6 », re-vérifié **après un changement de format** qui reconstruit l'écran. Un changement de langue *pendant* qu'on est sur l'écran n'est pas atteignable (cf §6.4) |
 | `combat/scene-hook-lifecycle.spec.ts` | §6.3 / §8.6 cycle de vie du hook de scène `__ptE2e__` — le HARNAIS lui-même : l'aperçu de carte est une `createCombatScene` complète, donc quitter cet écran doit **désinstaller** le hook (sinon `waitReady()` franchit sa barrière sur une scène détruite). Deux gardes : hook installé **et prêt** sur l'aperçu puis absent après « Retour » ; absent sur la sélection d'équipe (DOM pur, et point de lancement du combat) puis réinstallé par le combat sur une scène qui **porte de la géométrie** |
 | `dom/pokemon-edit.spec.ts` | §7.1 compteur + vider slot, §7.3 fiche (sections, stats, 25 natures, move picker, preset, **picker d'objet** : objet boost-de-type listé/sélectionnable → assigné au slot) |
@@ -3408,7 +3458,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/multi-hit.spec.ts` | §5 multi-hit : Balle Graine → récap « Touché N fois » |
 | `combat/floating-text.spec.ts` | §5.2 texte flottant de dégâts (`hud_text_plane`) à la résolution |
 | `combat/responsive-chrome.spec.ts` | §4.16 responsive du chrome (plan 179) : `--ui-scale` sur 4 tailles (téléphone paysage 851×393 ≈0,546, tablette debout 820×1180 ≈0,641, **garde du seuil** 1280×720 → 0,667 desktop, 1920×1080 → 1) ; menu d'action + bannière de tour à `28px × --ui-scale` ; planchers tactiles ≥ 30px (menu, liste d'attaques, bouton du journal) avec contre-épreuve pointeur fin (≈19px) ; journal élargi 400/26px sous le seuil vs maquette 288/18,4px à 1920 ; aucun débordement à 851×393 et 640×360 ; §8.5 barre de placement montée + portraits compactés (parcours réel, joueur Humain + « Placement auto » décoché). Safe-area réelle + lisibilité ressentie = 👁 |
-| `dom/responsive-screens.spec.ts` | §6.9 écrans DOM sur petit écran (plan 179) : invite d'orientation sur 4 combinaisons (portrait tactile → affichée ; paysage, tablette debout 820×1180, fenêtre étroite à la souris → masquée) ; choix de la carte (9 cartes + « Retour »/« Choisir cette carte » dans le viewport, audit sans débordement) ; §6.3 voile de chargement de l'aperçu (`loading` → `idle` enregistré par MutationObserver) ; sélection d'équipe (titre 28 → 18px, portraits rétrécis, audit sans débordement) ; meta viewport `viewport-fit=cover` + `interactive-widget=resizes-content` |
+| `dom/responsive-screens.spec.ts` | §6.10 écrans DOM sur petit écran (plan 179) : invite d'orientation sur 4 combinaisons (portrait tactile → affichée ; paysage, tablette debout 820×1180, fenêtre étroite à la souris → masquée) ; choix de la carte (9 cartes + « Retour »/« Choisir cette carte » dans le viewport, audit sans débordement) ; §6.3 voile de chargement de l'aperçu (`loading` → `idle` enregistré par MutationObserver) ; sélection d'équipe (titre 28 → 18px, portraits rétrécis, audit sans débordement) ; meta viewport `viewport-fit=cover` + `interactive-widget=resizes-content` |
 | `dom/responsive-team-builder.spec.ts` | §7.5 Team Builder + sélecteurs sur petit écran (plan 179), ancre Ectoplasma : 6 slots à largeur égale (`minmax(0,1fr)`, 6e dans le viewport) ; chips `type-chip` identiques entre carte de slot et panneau d'édition ; icône = 0,8 × police (⇒ `--type-chip-px` valide hors `#game-stage`) ; grille de résultats atteignable ; puces de filtre sur une seule ligne + noms FR (Plante/Ténèbres) dans les sélecteurs de Pokemon ET de capacité ; focus auto du champ de recherche sur pointeur fin / **pas** sur pointeur grossier ; modales (Pokemon + Showdown) dans l'écran avec « Fermer » atteignable ; §7.3 icônes d'objet (`naturalWidth` 24 ⇒ vrai crop) ; audit sans débordement. Clavier virtuel + `mask-image` = 👁 |
 | `visual/screens.spec.ts` | golden : menu, mode combat, paramètres, crédits, scène de combat |
 
@@ -3433,7 +3483,7 @@ complète dont seul le tampon `version`/`buildVersion` est falsifié).
       pré-évo Pikachu (`sprite-bundle.spec`). *Fade/anim du splash + portrait du picker = 👁.*
 - [x] **Menu principal** : 5 entrées, Aventure disabled, version, switch FR→EN (`main-menu.spec`).
 - [x] **Paramètres** : 2 options inconditionnelles + persistance `pt-lang`/`pt-settings`
-      (`settings.spec`) ; lignes conditionnées à la plateforme en §6.10 (`platform.spec`).
+      (`settings.spec`) ; lignes conditionnées à la plateforme en §6.11 (`platform.spec`).
 - [x] **Crédits** : titre + contenu + EN (`credits.spec`).
 - [x] **Pokemon Picker** : ouverture, liste, recherche, filtres type (union/toggle/reset), grisé
       inter-slots, fermeture (`picker.spec`) ; **fiche détaillée §7.3** (`pokemon-edit.spec`) ;
@@ -3462,14 +3512,14 @@ complète dont seul le tampon `version`/`buildVersion` est falsifié).
       (`combat-flow`) ; Échap retour, ↑/↓ aria-current, format (`screens`) ; Paramètres 2 options +
       persistance (`settings`) ; état vide (`team-builder`) ; compteur/vider-slot/natures/move-picker/preset
       (`pokemon-edit`).
-- [x] **§4.16 / §6.9 / §7.5 Responsive + dette mobile** (plan 179) : second référentiel `--ui-scale` sur
+- [x] **§4.16 / §6.10 / §7.5 Responsive + dette mobile** (plan 179) : second référentiel `--ui-scale` sur
       4 tailles dont la **garde du seuil** 1280×720, chrome à l'échelle, planchers tactiles avec
       contre-épreuve pointeur fin, journal élargi, invite d'orientation sur 4 combinaisons, audits « rien
       hors viewport » (chrome 851×393 + 640×360, carte, sélection d'équipe, Team Builder), chips de type
       unifiées, sélecteurs (grille atteignable, une ligne de puces, noms FR, focus conditionné au
       pointeur), modales dans l'écran, barre de placement, voile de chargement de l'aperçu
       (`responsive-chrome`, `responsive-screens`, `responsive-team-builder`).
-- [x] **§4.17 / §6.10 Comportement plateforme** (plan 180-a/180-b) : manifeste PWA servi + icônes
+- [x] **§4.17 / §6.11 Comportement plateforme** (plan 180-a/180-b) : manifeste PWA servi + icônes
       réellement joignables, liens/`theme-color` du document, **reprise de l'écran courant** au
       rechargement + ses deux garde-fous (écran à paramètres et combat → menu principal), ligne
       « Plein écran » des réglages, bouton plein écran du chrome de combat (`platform.spec`,
@@ -3479,7 +3529,7 @@ complète dont seul le tampon `version`/`buildVersion` est falsifié).
       tests, 0 échec**, dont `--repeat-each=10`, le projet `dom` répété ×3 et la suite complète.
       ⚠️ Vaut pour **Chromium headless** (le seul navigateur du harness, et le seul mode du gate) ; en
       `--headed` un refus de plein écran ferait ÉCHOUER le test, pas passer à faux.
-- [x] **§6.11 Reprise d'un combat en cours** (plan 181) : sauvegarde écrite dès le démarrage puis
+- [x] **§6.12 Reprise d'un combat en cours** (plan 181) : sauvegarde écrite dès le démarrage puis
       grossissante, entrée de menu en tête nommant la carte, combat remonté **sans repasser par le
       placement** avec journal reconstruit à l'identique / même Pokemon actif / mêmes PV / même compte
       d'actions (`battle-resume.spec`, projet `combat` — la sauvegarde n'existe pas en sandbox) ; rejets
@@ -3544,7 +3594,7 @@ complète dont seul le tampon `version`/`buildVersion` est falsifié).
         réel** obligatoire.
       - **Clavier virtuel** (`interactive-widget=resizes-content`, `.tb-dialog` en `100dvh`, en-tête
         collant) : aucun clavier virtuel en Chromium de bureau, donc rien ne rétrécit le viewport de
-        mise en page. Seule la **présence** des drapeaux du meta viewport est 🤖 (§6.9).
+        mise en page. Seule la **présence** des drapeaux du meta viewport est 🤖 (§6.10).
       - **Lisibilité et densité ressenties** au zoom ×1,5, `mask-image` de la rangée de puces,
         animation du glyphe d'orientation, **4K** (`--tb-px` du Team Builder inerte en production) :
         jugement d'œil / pixel.

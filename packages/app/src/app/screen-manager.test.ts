@@ -7,6 +7,7 @@ const hostStub = {} as HTMLElement;
 const PARAMS: ScreenParamsById = {
   "main-menu": undefined,
   "battle-mode": undefined,
+  lobby: undefined,
   "map-select": undefined,
   "team-select": { mapUrl: "maps/volcano.tmj" },
   "my-teams": undefined,

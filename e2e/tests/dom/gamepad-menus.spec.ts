@@ -9,6 +9,7 @@ import {
   tapPadButton,
   withFakeGamepad,
 } from "../../pages/gamepad";
+import { LobbyScreen } from "../../pages/lobby";
 import { MainMenu } from "../../pages/MainMenu";
 import {
   BattleModeScreen,
@@ -169,4 +170,52 @@ test("§6.4 à la manette, changer de format garde le focus dans la rangée de f
   await tapPadButton(page, PadButton.DpadLeft);
   await expect.poll(() => focusedDataValue(page, "formatKey")).not.toBe(targetKey);
   expect(await focusedTestId(page)).toBe("format-segment");
+});
+
+/*
+ * §6.10 la roue de caractères à la manette (plan 199).
+ *
+ * Le cas qui a été TROUVÉ par la mesure, pas par l'inspection : la roue garde l'axe vertical (le
+ * défilement de l'alphabet, qui **boucle**, donc n'atteint jamais de butée), si bien qu'à la manette
+ * comme au clavier elle était un **piège à focus complet** — haut et bas ne sortaient pas, et aux
+ * extrémités il n'y a rien à gauche ni à droite, la roue étant centrée. Au pad c'est bloquant : ni
+ * `Tab`, ni autre issue que B, qui quitte l'écran entier.
+ */
+test("§6.10 la roue de code se pilote au pad, et on peut en sortir", async ({ page }) => {
+  await withFakeGamepad(page);
+  const menu = new MainMenu(page);
+  const mode = new BattleModeScreen(page);
+  const lobby = new LobbyScreen(page);
+
+  await menu.goto();
+  await menu.combat.click();
+  await mode.online.click();
+  await expect(lobby.title).toBeVisible();
+  await connectPad(page);
+
+  // On entre dans la roue par le bas depuis la rangée de formats.
+  await page.getByTestId("format-segment").first().focus();
+  await tapPadButton(page, PadButton.DpadDown);
+  await expect.poll(() => focusedTestId(page)).toBe("code-slot");
+
+  // Bas fait DÉFILER la lettre de l'emplacement actif, il ne déplace pas le focus.
+  const slotBefore = await focusedDataValue(page, "slot");
+  const codeBefore = await lobby.readCode();
+  await tapPadButton(page, PadButton.DpadDown);
+  await expect.poll(() => lobby.readCode()).not.toBe(codeBefore);
+  expect(await focusedDataValue(page, "slot")).toBe(slotBefore);
+
+  // Droite change d'emplacement.
+  await tapPadButton(page, PadButton.DpadRight);
+  await expect.poll(() => focusedDataValue(page, "slot")).not.toBe(slotBefore);
+  expect(await focusedTestId(page)).toBe("code-slot");
+
+  // 🔴 Et surtout : on SORT de la roue par la droite. On pousse jusqu'à ce que le focus la quitte —
+  // c'est l'existence d'une issue qu'on affirme, pas un nombre d'appuis (la roue compte cinq
+  // emplacements, mais le point de départ dépend des appuis précédents).
+  for (let step = 0; step < 8 && (await focusedTestId(page)) === "code-slot"; step += 1) {
+    await tapPadButton(page, PadButton.DpadRight);
+  }
+  expect(await focusedTestId(page)).toBeNull();
+  expect(await page.evaluate(() => document.activeElement?.textContent?.trim())).toBe("Rejoindre");
 });

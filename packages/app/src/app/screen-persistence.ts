@@ -5,11 +5,18 @@
  * app switched away). No web API can prevent that — the tab-unloader is an OS/browser decision — so
  * the only robust answer is to SURVIVE the reload rather than try to avoid it.
  *
- * Deliberate scope: only screens that take NO parameters are remembered. `team-select` needs a
+ * Deliberate scope: only screens that need NO parameter are remembered. `team-select` needs a
  * `mapUrl`, `team-edit` a `teamId`, `combat` a whole `CombatSetup` — restoring those without their
  * parameters is not possible, and restoring a battle means serialising engine state, which is
  * lot 180-c. Anything else falls back to the main menu, which is why a lost battle returns to the
  * menu instead of half-restoring something wrong.
+ *
+ * « Besoin d'aucun paramètre » et non « n'en prend aucun » : depuis le plan 199, `map-select` accepte
+ * une intention de partie en ligne **optionnelle**, et se monte toujours sans rien. Conséquence
+ * assumée : l'hôte qui recharge pendant qu'il choisit son terrain revient sur un choix de terrain
+ * LOCAL, son intention en ligne étant perdue avec les paramètres. Il n'y a rien à sauver de mieux —
+ * le salon lui-même n'existe plus, son adresse ayant été rendue à l'annuaire — et reprendre un
+ * salon en cours est du Lot B3.
  */
 
 import type { ScreenId, ScreenParamsById } from "./screens";
@@ -22,12 +29,16 @@ const STORAGE_KEY = "pt-last-screen";
  * parameters removes it from the union (and breaks the `satisfies` below until the list is fixed).
  */
 type ParamlessScreenId = {
-  [Id in ScreenId]: ScreenParamsById[Id] extends undefined ? Id : never;
+  [Id in ScreenId]: undefined extends ScreenParamsById[Id] ? Id : never;
 }[ScreenId];
 
 const RESTORABLE_SCREENS = [
   "main-menu",
   "battle-mode",
+  // Le `lobby` ne prend aucun paramètre, et y revenir après un rechargement est la bonne réponse :
+  // le salon qu'on était en train de préparer n'existe plus (l'adresse a été rendue à l'annuaire),
+  // donc il faut le recréer ou le rejoindre. La reprise d'un salon en cours est du Lot B3.
+  "lobby",
   "map-select",
   "my-teams",
   "settings",

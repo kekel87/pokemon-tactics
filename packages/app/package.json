@@ -13,6 +13,7 @@
     "@babylonjs/loaders": "^9.17.1",
     "@pokemon-tactic/core": "workspace:*",
     "@pokemon-tactic/data": "workspace:*",
+    "@pokemon-tactic/network": "workspace:*",
     "@pokemon-tactic/render-babylon": "workspace:*",
     "@pokemon-tactic/render-ports": "workspace:*",
     "@pokemon-tactic/ui-dom": "workspace:*",

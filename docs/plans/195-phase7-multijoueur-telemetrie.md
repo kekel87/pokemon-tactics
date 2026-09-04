@@ -5,7 +5,9 @@
 > **Phase démarrée** : 2026-09-02 — par le Lot A (télémétrie, plan 196). Compte Cloudflare créé le même jour.
 > **Avancement** : **Lot A ✅ clos le 2026-09-02** (plan 196 `done`, télémétrie en production, relevé live,
 > Goatcounter fermé). **Lot C ✅ livré le 2026-09-03** (plan 197 `done`, écran de victoire enrichi —
-> portraits + tours/durée, validé à la main). **Lot B** (multijoueur P2P 1v1) : pas commencé.
+> portraits + tours/durée, validé à la main). **Lot B** (multijoueur P2P 1v1) : **B1 ✅ livré le
+> 2026-09-04** (plan 199 — transport, salon, lancement accusé) ; **B2** (combat en réseau), **B3**
+> (robustesse) et **B4** (détection de désync) restent à faire.
 > ⚠️ Ce plan reste `in-progress` tant que le Lot B n'est pas fait.
 > **Nature** : plan-cadre d'une phase entière. Chaque lot sera détaillé dans son propre plan au moment de l'attaquer. Ce document fixe le périmètre, l'ordre, les acquis, les décisions déjà prises et celles qui restent ouvertes.
 > **Référence de conception** : `docs/multiplayer.md` (réécrit en v2 le 2026-08-29). Décisions `#209-212` (fondations) et `#862-870` (cadrage). Ce plan **ne rejoue pas** le raisonnement de ce document — il l'ordonne en lots exécutables.
@@ -60,14 +62,16 @@ Périmètre :
 
 Viser le **1v1**, pas le FFA à 12 (§ ci-dessous). Découpage proposé, chaque tranche livrable et testable seule :
 
-- **B1 — Transport et lobby.** Package `packages/network/` (`protocol.ts`, `peer-connection.ts`, `room.ts`), nouvel `ScreenId` `lobby` câblé dans `SCREEN_TRANSITIONS`, codes de partie **préfixés** (#866), lien d'invitation construit **depuis l'origine courante** (le jeu tourne sur GitHub Pages *et* en iframe itch.io), handshake avec version de protocole (`buildVersion` sert déjà à invalider les sauvegardes, #748). Critère : deux navigateurs se connectent et s'échangent un message.
+- **B1 — Transport et lobby.** ✅ **LIVRÉ le 2026-09-04 (plan 199).** Paquet `packages/network/`, écran `lobby`, salle d'attente, lancement accusé. Décisions #895-908. **Trois points de ce cadrage ont été révisés en l'écrivant** : plus de **lien d'invitation** (#895 — il serait construit depuis l'origine courante, laquelle vaut `html-classic.itch.zone/…` dans l'iframe itch.io) ; le refus de version ne porte **pas** sur `buildVersion` mais sur une constante `NETWORK_VERSION` incrémentée à la main (#900 — `buildVersion` change à chaque commit et diffère entre les déploiements Pages et itch.io, ce qui interdirait le jeu entre plateformes) ; et il n'y a **pas** de second écran de salon, la salle d'attente étant l'écran de sélection d'équipe (#897). Critère atteint et dépassé : deux navigateurs se trouvent, se mettent d'accord et **entrent en combat** avec un état identique (couvert par un scénario e2e à deux contextes).
 - **B2 — Combat en réseau.** Seed partagé, échange des sélections d'équipe, tour distant greffé sur `humanPlayerIds`, validation de chaque action reçue contre `getLegalActions()` avec le barème 1er/2e/3e (rejet → avertissement → forfait). Critère : un combat 1v1 complet de bout en bout.
 - **B3 — Robustesse.** Chronomètre **local auto-déclarant** dont le timeout produit une *action* et non un message réseau (#864) ; chien de garde de connexion **distinct** du chrono, à `chrono + marge` (#865) ; reconnexion par le chemin du plan 181 ; abandon volontaire. Critère : couper le réseau d'un pair et revenir.
 - **B4 — Détection de désync.** `checksum.ts` : **sérialisation canonique** du `BattleState` (ordre des clés, ordre d'itération des `Map`, arrondi des flottants comme `tile.height`) puis hash comparé tous les N tours. ⚠️ **Le point le plus sous-estimé du document d'avril** — petit chantier réel, à ne pas traiter comme un `JSON.stringify`. Reconstruction depuis le replay quand ça diverge.
 
-**Deux corrections à faire dans ce lot, notées par l'audit :**
-1. `mapUrl` → **identifiant stable de carte** (`MAPS_REGISTRY`). Une URL n'est pas un contrat entre deux pairs.
-2. **L'IA ne peut pas tourner sur les deux pairs** : elle est seedée sur `createPrng(Date.now())` (`combat-screen.ts:782`), deux pairs divergeraient au premier tour. Il faut soit désigner un pair émetteur qui joue l'IA et diffuse ses actions, soit fournir un seed d'IA de session.
+**Deux corrections notées par l'audit — les deux soldées par le Lot B1 :**
+1. ✅ `mapUrl` → **identifiant stable de carte** (`MAPS_REGISTRY`). **Fait** : le setup diffusé porte l'identifiant, et `maps/map-identity.ts` tient les deux conversions au même endroit. Une URL n'est pas un contrat entre deux pairs — elle dépend de la base de déploiement.
+2. ❌ **« L'IA ne peut pas tourner sur les deux pairs » est FAUX** — correction **annulée** (#901). Vérifié en écrivant le lot : l'IA est **pure** à état et générateur donnés, il n'y a aucun `Math.random` ni `Date.now` dans `packages/core/src/ai/`, et le chemin du bac à sable faisait déjà la bonne chose. Une **graine d'IA dans le setup**, dérivée par place dans l'ordre croissant des places, suffit — sans pair émetteur, sans un seul message échangé. Conséquence agréable : le maillage ne coûte qu'en **humains**.
+
+**Un troisième piège, que l'audit avait manqué** (#902) : le **placement automatique tirait au hasard localement**, depuis un tirage propre à chaque pair. Sans graine venue de l'hôte, deux joueurs avaient **deux plateaux différents avant le premier tour**. Le setup porte donc **trois** graines : combat, placement, IA.
 
 ### Lot C — Écran de victoire enrichi *(sans dépendance réseau)* — ✅ livré le 2026-09-03 (plan 197)
 

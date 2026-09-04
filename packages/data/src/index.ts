@@ -41,5 +41,11 @@ export type {
   TiledMapValidation,
   TiledTileset,
 } from "./tiled/index";
-export { DecorationKind, decodeTiledGid, parseTiledMap, validateTiledMap } from "./tiled/index";
+export {
+  DecorationKind,
+  decodeTiledGid,
+  parseTiledMap,
+  REQUIRED_TEAM_COUNTS,
+  validateTiledMap,
+} from "./tiled/index";
 export { typeChart } from "./type-chart";
