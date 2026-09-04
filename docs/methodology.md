@@ -131,6 +131,21 @@ Claude Code peut utiliser **Playwright MCP** pour :
 
 L'humain peut aussi simplement ouvrir `localhost` après `pnpm dev`.
 
+### Un contrôle d'interface se valide sur 4 axes, mesurés
+
+Depuis la Phase 6.5, le jeu se joue à la **souris**, au **clavier**, à la **manette** et au **doigt**,
+du téléphone à la 4K. Un screenshot ne dit ni si un contrôle est atteignable au clavier, ni si une
+zone tapable fait 30 px : ces vérifications se **mesurent**.
+
+Dès que le diff touche `packages/app/src/ui/**`, `packages/app/src/styles/**` ou `packages/ui-dom/**`,
+cette passe est l'**étape 0 de `human-testing`** : Claude mesure seul, au chrome-devtools, *avant* de
+dérouler les scénarios — pour ne pas faire tester un écran cassé à la manette. Les quatre axes, la
+recette de mesure et les viewports de référence sont dans **`.claude/rules/multi-input.md`**.
+
+🔴 **Mesurer, jamais supposer.** Origine : plan 198, une media query responsive ajoutée « au cas où »
+que la mesure a montrée inutile — 240 px de marge restaient au viewport le plus étroit. Pour prouver
+qu'une règle responsive sert, la neutraliser et re-mesurer.
+
 ---
 
 ## 7. Boucles de feedback temps réel

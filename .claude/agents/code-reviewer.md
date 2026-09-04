@@ -68,6 +68,26 @@ export type TargetingKind = (typeof TargetingKind)[keyof typeof TargetingKind];
   - `grep -rn "export function\|export class\|export const"` dans src/ → vérifier que chaque export est importé quelque part
   - Coverage < 100% sur un fichier → investiguer les lignes non couvertes
 
+### Contrôles d'interface — multi-entrée (BLOQUANT)
+
+S'applique dès que le diff touche `packages/app/src/ui/**`, `packages/app/src/styles/**` ou
+`packages/ui-dom/**`. Règle complète : `.claude/rules/multi-input.md`.
+
+- **Élément natif obligatoire** : `<button>`, `<input>`, `<select>`, `<textarea>`. Un
+  `<div role="button">` n'est pas dans `FOCUSABLE_SELECTOR` — il est **injoignable** au clavier et à
+  la manette. BLOQUANT.
+- **`data-testid` sur tout contrôle interactif**, même sans test qui le vise :
+  `renderPreservingFocus` ne restaure le focus que par famille de `testid`, donc un contrôle qui n'en
+  porte pas éjecte le focus vers `<body>` à chaque re-rendu du sous-arbre.
+- **Localisateur e2e ambigu** : ajouter un second contrôle du même rôle casse tout `getByRole` non
+  scopé (Playwright échoue en mode strict). Greper le **rôle** sur `e2e/` entier, specs comprises —
+  pas le nom de la variable, et pas seulement `e2e/pages/` :
+  `grep -rn 'getByRole("checkbox")\|getByRole("radio")\|getByRole("combobox")' e2e/`.
+- **Media query non justifiée** : une règle responsive ajoutée « au cas où », sans mesure prouvant que
+  la marge manque, est du code au cas où — donc du bruit. Demander la mesure ; à défaut, signaler.
+- **Hit-area** : sous `pointer: coarse`, plancher 30 px sur la zone tapable (le `<label>`, pas la
+  case). Signaler tout nouveau contrôle en dessous.
+
 ### Architecture
 - `packages/core` n'importe rien d'UI (délègue au core-guardian si doute)
 - Les attaques sont déclaratives (targeting + effects), pas de code custom par move

@@ -73,6 +73,19 @@ sleep 3
 - Les zones de déplacement/portée s'affichent
 - Les actions du menu fonctionnent
 
+### Multi-entrée et responsive (si le diff touche un contrôle d'interface)
+
+Règle complète : `.claude/rules/multi-input.md`. **Mesurer, pas juger à l'œil** — un screenshot ne
+dit ni si un contrôle est atteignable au clavier, ni si une hit-area fait 30 px.
+
+- **Clavier** : partir d'un contrôle voisin, presser de vraies flèches (`browser_press_key`), relire
+  `document.activeElement.dataset.testid` après chaque appui. `.focus()` sur la cible ne prouve rien.
+- **Géométrie** : par viewport, relever `scrollWidth > clientWidth` sur le conteneur, la marge
+  restante, et la taille des hit-areas (`getBoundingClientRect` via `browser_evaluate`).
+- **Viewports** : 568×320, 667×375, 1024×768, 1920×1080, 2560×1440.
+- **Media query suspecte** : la neutraliser en ligne et re-mesurer. Si rien ne change, elle est
+  inutile — le signaler.
+
 ### Erreurs
 - Pas d'erreurs JavaScript dans la console
 - Pas de requêtes réseau en échec

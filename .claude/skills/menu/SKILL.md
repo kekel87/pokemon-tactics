@@ -21,7 +21,8 @@ Pop le menu post-implémentation **maintenant**, sans attendre la fin d'une impl
 
    | Option | Pré-coché si |
    |--------|--------------|
-   | `human-testing` | changement observable (move/ability/mécanique/UI/rendu/IA) — **mode interactif**, voir § dédié |
+   | `e2e (test-writer)` | changement **observable automatisable** (DOM/écran, ou mécanique pilotable via journal/scène) → `test-writer` ajoute/MAJ le scénario e2e **et** le cahier `docs/test-plan.md`. Décoché si purement pixel/anim |
+   | `human-testing` | changement observable (move/ability/mécanique/UI/rendu/IA) — **mode interactif**, voir § dédié. Inclut la **passe multi-entrée mesurée** si le diff touche un contrôle d'interface |
    | `visual-tester` | **JAMAIS auto-coché** (≥2 min Playwright, je pilote) |
 
    **Q2 — `"Validations locales ?"`** (multiSelect)
@@ -44,13 +45,22 @@ Pop le menu post-implémentation **maintenant**, sans attendre la fin d'une impl
    - **Session fin** ("fin", "/status") : ajoute `[x] session-closer`.
 
 3. Attends la sélection humaine. Exécute en **ordre fixe** :
-   `human-testing → visual-tester → core-guardian → code-reviewer → doc-keeper → /ci-gate → /commit`
-4. **Stop sur fail bloquant** (`core-guardian` UI-dep, `code-reviewer` Critical, `/ci-gate` rouge, `visual-tester` régression).
+   `e2e (test-writer) → human-testing (passe multi-entrée incluse) → visual-tester → core-guardian → code-reviewer → doc-keeper → /ci-gate → /commit`
+4. **Stop sur fail bloquant** (`core-guardian` UI-dep, `code-reviewer` Critical, `/ci-gate` rouge, `visual-tester` régression, contrôle injoignable au clavier ou au pad).
 
 ## human-testing — test manuel interactif (mode par défaut)
 
 Quand `human-testing` coché : déroulé **interactif, un scénario à la fois**. Je lance, tu regardes, tu valides. Je ne dump **pas** toute la checklist d'un bloc.
 
+0. **Passe multi-entrée, MESURÉE, avant de déranger l'humain** — si le diff touche
+   `packages/app/src/ui/**`, `packages/app/src/styles/**` ou `packages/ui-dom/**`. Quatre axes vérifiés
+   **par moi**, au chrome-devtools sur Chromium (jamais le Firefox de l'humain) : **clavier** (atteint
+   aux flèches, vraies pressions depuis un contrôle voisin — jamais `.focus()` sur la cible),
+   **manette**, **tactile** (hit-area ≥ 30 px sous `pointer: coarse`), **responsive** (568×320,
+   667×375, 1024×768, 1920×1080, 2560×1440). 🔴 **Mesurer, jamais supposer.** Grep obligatoire des
+   localisateurs e2e génériques que le nouveau contrôle rend ambigus (`getByRole("checkbox")`…). Ce
+   que je trouve, je le corrige ou je le remonte **avant** les scénarios. Détail et recette :
+   `.claude/rules/multi-input.md`.
 1. Analyse `git diff HEAD` → liste les scénarios **observables** par l'humain (nouveau move/ability/mécanique, changement UI, rendu, IA). Noms FR officiels (ex: `Lame de Roche`), ID EN entre parenthèses si besoin technique.
 2. Par scénario, construit la config sandbox JSON **minimale** (seuls les champs utiles au scénario, le reste = défauts) :
    - Config pré-remplie (Pokemon, moves, terrain) — **jamais** "puis clique sur X pour configurer".

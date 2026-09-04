@@ -87,6 +87,24 @@ Dès qu'un changement est **observable** — un move/mécanique pilotable, une U
 scène — tu ajoutes/MAJ le scénario e2e correspondant **et** tu mets le cahier à jour. C'est le
 pendant e2e de « 1 move = 1 fichier de test » : **1 case du cahier automatisable = 1 assertion e2e**.
 
+### Nouveau contrôle d'interface — ce qui doit être couvert
+
+Le jeu se joue souris, clavier, manette et doigt (`.claude/rules/multi-input.md`). Pour tout contrôle
+ajouté ou déplacé dans `packages/app/src/ui/**` ou `packages/ui-dom/**` :
+
+- **Atteignabilité au clavier** : partir d'un contrôle voisin, presser de vraies flèches, asserter le
+  `data-testid` focalisé. Ne **jamais** appeler `.focus()` sur la cible dans le test — ça court-circuite
+  précisément ce qu'on veut prouver (le chemin de navigation spatiale).
+- **Manette** : manette synthétique (`e2e/pages/gamepad.ts`) pour un contrôle qui n'est pas un simple
+  bouton (case, curseur, segment) — `activateFocusedControl()` fait `active.click()`, ce qui ne
+  couvre pas tous les types de la même façon.
+- **État persisté** : basculer, relire le magasin `localStorage`, **et** revenir sur l'écran pour
+  prouver la relecture. La moitié « relecture » est celle qu'on oublie.
+- **Localisateurs de POM** : un second contrôle du même rôle rend ambigu un `getByRole` non scopé
+  dans `e2e/pages/**`. Vérifier et basculer sur `data-testid`.
+- **Seuils responsive** : si le contrôle vit dans une barre/pied contraint, ajouter le viewport
+  concerné à `dom/responsive-screens.spec.ts` plutôt qu'un golden.
+
 ### Principe : automatiser le SENS, pas les PIXELS
 
 Du moins cher au plus coûteux : unit `view-core` → **DOM** (`getByRole`/`getByTestId`) → **scène**

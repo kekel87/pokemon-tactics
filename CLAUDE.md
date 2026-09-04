@@ -40,6 +40,7 @@ Claude = dev principal, autonome implémentation, valide design avec humain.
 | `docs/plans/196-telemetrie-cloudflare-workers.md` | Avant toucher à la télémétrie, au Worker Cloudflare ou à `pnpm stats` |
 | `docs/test-plan.md` | Cahier de recette visuelle — avant valider un changement de rendu, avant release |
 | `.claude/rules/e2e.md` | Conventions harness Playwright e2e (fixtures, POMs, seed, hook scène) |
+| `.claude/rules/multi-input.md` | **Avant d'ajouter/déplacer un contrôle d'interface** — les 4 axes obligatoires (clavier, manette, tactile, responsive) + recette de mesure |
 
 Pas tout charger. Lire fichier pertinent moment pertinent.
 
@@ -110,7 +111,7 @@ Détails : `docs/agent-orchestration.md`.
 | Option | Pré-coché si |
 |--------|--------------|
 | `e2e (test-writer)` | changement **observable automatisable** (DOM/écran, ou mécanique pilotable via journal/scène) → l'agent `test-writer` ajoute/MAJ le scénario e2e **et** le cahier `docs/test-plan.md` (case 🤖/👁 + §11). Décoché si purement pixel/anim |
-| `human-testing` | changement observable (move/ability/mécanique/UI/rendu/IA) — **mode interactif**, voir § dédié |
+| `human-testing` | changement observable (move/ability/mécanique/UI/rendu/IA) — **mode interactif**, voir § dédié. Inclut la **passe multi-entrée mesurée** (clavier/manette/tactile/responsive) quand le diff touche un contrôle d'interface |
 | `visual-tester` | **JAMAIS auto-coché** (≥2 min Playwright, je pilote) |
 
 **Q2 — `"Validations locales ?"`** (multiSelect)
@@ -134,9 +135,9 @@ Spéciaux selon contexte :
 
 #### Ordre d'exécution fixe
 
-`e2e (test-writer) → human-testing → **commit WIP** → visual-tester → core-guardian → code-reviewer → doc-keeper → **re-test humain** → /ci-gate → /commit (amende le WIP)`
+`e2e (test-writer) → human-testing (passe multi-entrée incluse) → **commit WIP** → visual-tester → core-guardian → code-reviewer → doc-keeper → **re-test humain** → /ci-gate → /commit (amende le WIP)`
 
-Stop sur fail bloquant (`core-guardian` UI-dep, `code-reviewer` Critical, `/ci-gate` rouge, `visual-tester` régression).
+Stop sur fail bloquant (`core-guardian` UI-dep, `code-reviewer` Critical, `/ci-gate` rouge, `visual-tester` régression, contrôle injoignable au clavier ou au pad).
 
 **🔴 Garde-fous WIP + re-test (chantier visuel/renderer surtout) — RÈGLE DURE :**
 - **Commit WIP AVANT la code-review** : point de restauration propre avant que la chaîne de finalisation (code-reviewer, doc-keeper, corrections mineures, « standardisations ») ne modifie code/assets.
@@ -144,6 +145,16 @@ Stop sur fail bloquant (`core-guardian` UI-dep, `code-reviewer` Critical, `/ci-g
 - Origine : plan 166 — une « standardisation » post-validation auto-vérifiée à tort a écrasé le rendu et fut poussée. Voir mémoire `feedback_wip_commit_retest_before_final`.
 
 **`human-testing` — mode interactif (par défaut)** : je ne dump pas tout, je déroule **un scénario à la fois**, je lance, tu regardes, tu valides.
+0. **Passe multi-entrée, MESURÉE, avant de te déranger** — quand le diff touche un contrôle
+   d'interface (`packages/app/src/ui/**`, `packages/app/src/styles/**`, `packages/ui-dom/**`). Le jeu
+   se joue souris, clavier, manette et doigt, du téléphone à la 4K : je vérifie **moi-même**, au
+   chrome-devtools sur Chromium, avant de te faire tester. Quatre axes : **clavier** (atteint aux
+   flèches, par de vraies pressions depuis un contrôle voisin — jamais `.focus()` sur la cible),
+   **manette**, **tactile** (hit-area ≥ 30 px sous `pointer: coarse`), **responsive** (568×320,
+   667×375, 1024×768, 1920×1080, 2560×1440 — débordement, chevauchement, hit-areas). 🔴 **Mesurer,
+   jamais supposer** : origine plan 198, une media query ajoutée « au cas où » que la mesure a montrée
+   inutile. Détail et recette : `.claude/rules/multi-input.md`. Ce que je trouve, je le corrige ou je
+   te le remonte **avant** les scénarios — pas la peine de te faire tester un écran cassé au pad.
 1. Analyse `git diff HEAD` → scénarios observables (noms FR).
 2. Par scénario : construis la config JSON **minimale** (seuls les champs nécessaires au scénario, le reste = défauts), moves/Pokemon validés (`packages/data` ; doute → agent `sandbox-json`). **Jamais coller la commande à l'humain.** Si le scénario demande à l'humain d'agir/déplacer/attaquer **avec la cible (Dummy)** → mettre `"dummyControl": "player"` (+ `dummyMoves`), **jamais laisser le défaut `"ai"`** (l'humain ne pourrait pas la contrôler).
 3. **Boucle** : (a) **je lance moi-même** le serveur via `Bash run_in_background` (`pnpm dev:sandbox '{...}'` ; HMR ne suffit pas — config bakée à l'env au boot, donc relancer le process à chaque scénario). Port du checkout : `PT_PORT` env → `.worktree-port` à la racine → sinon `5173` (cf `vite.config.ts`) ; **en worktree c'est PAS 5173**. **Avant chaque relance : j'arrête d'abord MON process sandbox précédent** (`TaskStop` du background task — sûr et indépendant du port ; en dernier recours kill le PID du vite/node de CE checkout) pour **réutiliser le même port — jamais laisser vite incrémenter** (5174, 5175…). Je cible **uniquement mon process sandbox** : jamais kill Firefox (ni aucun navigateur de l'humain), jamais le serveur dev global de l'humain. (b) résumé en chat — **URL** (`http://localhost:<port résolu>`) + **quoi tester** (1-2 lignes) + **résultat attendu** (noms FR) ; (c) **pause**, tu testes ; (d) ta réponse `suivant`/`ok` → scénario suivant ; bug/retour → on traite avant de continuer.
