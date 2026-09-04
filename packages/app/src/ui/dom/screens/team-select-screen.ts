@@ -4,6 +4,7 @@ import { countScreen, TelemetryScreen } from "../../../analytics/telemetry";
 import type { Navigate, Screen } from "../../../app/screen-manager";
 import { t } from "../../../i18n";
 import { loadTiledMap } from "../../../maps/load-tiled-map";
+import { getSettings, updateSettings } from "../../../settings";
 import {
   buildFormatKey,
   createFormatPickerElement,
@@ -51,7 +52,13 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
   let formatOptions: Omit<FormatOption, "label">[] = [];
   let formatKey = "";
   let slots: SlotState[] = [];
-  let autoPlacement = true;
+  /*
+   * Les deux paramètres de partie (plan 198). Initialisés depuis les préférences persistées et
+   * réécrits à chaque bascule : c'est ce qui corrige l'oubli de « Placement auto », jusqu'ici une
+   * simple variable locale qui repartait au défaut à chaque entrée d'écran.
+   */
+  let autoPlacement = getSettings().autoPlacement;
+  let damagePreview = getSettings().damagePreview;
 
   const goBack = (): void => navigate("map-select", undefined);
 
@@ -75,7 +82,13 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     }
     navigate("combat", {
       mapUrl,
-      setup: { teams, formatKey, autoPlacement, telemetryTeams: buildTelemetryTeams(slots) },
+      setup: {
+        teams,
+        formatKey,
+        autoPlacement,
+        damagePreview,
+        telemetryTeams: buildTelemetryTeams(slots),
+      },
     });
   };
 
@@ -191,16 +204,48 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
   const buildFooter = (): HTMLElement => {
     const footer = el("footer", "ts-footer");
 
-    const autoLabel = el("label", "ts-footer-toggle");
-    const autoInput = document.createElement("input");
-    autoInput.type = "checkbox";
-    autoInput.checked = autoPlacement;
-    autoInput.addEventListener("change", () => {
-      autoPlacement = autoInput.checked;
-    });
-    const autoText = document.createElement("span");
-    autoText.textContent = t("teamSelect.autoPlacement.label");
-    autoLabel.append(autoInput, autoText);
+    /*
+     * Les deux paramètres de partie (plan 198). Chaque bascule persiste immédiatement : le magasin
+     * ne sert qu'à re-proposer le dernier choix, la valeur qui compte pour la partie est celle gelée
+     * dans le `CombatSetup` au lancement.
+     */
+    const toggle = (
+      testId: string,
+      label: string,
+      checked: boolean,
+      onChange: (value: boolean) => void,
+    ): HTMLElement => {
+      const wrapper = el("label", "ts-footer-toggle");
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.checked = checked;
+      input.dataset.testid = testId;
+      input.addEventListener("change", () => onChange(input.checked));
+      const text = document.createElement("span");
+      text.textContent = label;
+      wrapper.append(input, text);
+      return wrapper;
+    };
+
+    const autoPlacementToggle = toggle(
+      "team-select-auto-placement",
+      t("teamSelect.autoPlacement.label"),
+      autoPlacement,
+      (value) => {
+        autoPlacement = value;
+        updateSettings({ autoPlacement: value });
+      },
+    );
+
+    const damagePreviewToggle = toggle(
+      "team-select-damage-preview",
+      t("teamSelect.damagePreview.label"),
+      damagePreview,
+      (value) => {
+        damagePreview = value;
+        updateSettings({ damagePreview: value });
+      },
+    );
 
     const spacer = el("div", "ts-footer-spacer");
 
@@ -211,7 +256,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     launch.disabled = !isLaunchable();
     launch.addEventListener("click", onLaunch);
 
-    footer.append(autoLabel, spacer, launch);
+    footer.append(autoPlacementToggle, damagePreviewToggle, spacer, launch);
     return footer;
   };
 

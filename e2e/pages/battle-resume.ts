@@ -45,6 +45,7 @@ export class BattleResumeStore {
       ],
       formatKey: "2v1",
       autoPlacement: true,
+      damagePreview: true,
     },
     placementTeams: [
       { playerId: "player-1", availablePokemonIds: ["raichu"], controller: "human" },

@@ -233,7 +233,9 @@ test.describe("§8.5 barre de placement sur téléphone paysage", () => {
     // seule façon d'obtenir la phase de placement interactive — un joueur IA auto-place. Passe par
     // le POM depuis le plan 188 : la liste d'équipes est dans une modale qu'il faut ouvrir (#832).
     await teamSelect.pickRandomTeam(0);
-    await page.getByRole("checkbox").uncheck(); // « Placement auto » décoché
+    // Par le POM : le pied d'écran porte DEUX cases depuis le plan 198 (« Placement auto » et
+    // « Prévisualisation dégâts »), donc `getByRole("checkbox")` seul y est ambigu.
+    await teamSelect.autoPlacement.uncheck();
     await expect(teamSelect.launch).toBeEnabled();
     await teamSelect.launch.click();
     await scene.waitReady();

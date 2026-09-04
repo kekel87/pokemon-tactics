@@ -2,18 +2,20 @@ import { expect, test } from "../../fixtures";
 import { MainMenu } from "../../pages/MainMenu";
 import { SettingsScreen } from "../../pages/screens";
 
-// Cahier §6.7. Les deux options INCONDITIONNELLES ; les lignes conditionnées à la plateforme
-// (« Plein écran », « Installer l'app ») sont en §6.10 (`platform.spec`).
-test("paramètres : les 2 options de base (libellés FR), retour au menu", async ({ page }) => {
+// Cahier §6.7. La seule option INCONDITIONNELLE depuis le plan 198 (« Prévisualisation dégâts » est
+// partie à la sélection d'équipe) ; les lignes conditionnées à la plateforme (« Plein écran »,
+// « Installer l'app ») sont en §6.10 (`platform.spec`).
+test("paramètres : l'option de base (libellé FR), retour au menu", async ({ page }) => {
   const menu = new MainMenu(page);
   const settings = new SettingsScreen(page);
   await menu.goto();
   await menu.settings.click();
 
   await expect(settings.title).toBeVisible();
-  // Les 2 libellés sont du texte user-facing → getByText (pas de testid nécessaire).
+  // Libellé user-facing → getByText (pas de testid nécessaire).
   await expect(page.getByText("Langue", { exact: true })).toBeVisible();
-  await expect(page.getByText("Prévisualisation dégâts", { exact: true })).toBeVisible();
+  // Partie à l'écran de sélection d'équipe (plan 198, décision #893) : elle ne doit plus être ici.
+  await expect(page.getByText("Prévisualisation dégâts", { exact: true })).toHaveCount(0);
 
   await settings.back.click();
   await expect(menu.combat).toBeVisible();
@@ -31,19 +33,4 @@ test("paramètres : la langue persiste en localStorage et bascule les libellés"
 
   expect(await page.evaluate(() => localStorage.getItem("pt-lang"))).toBe("en");
   await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
-});
-
-test("paramètres : la prévisualisation des dégâts persiste en localStorage (pt-settings)", async ({
-  page,
-}) => {
-  const menu = new MainMenu(page);
-  const settings = new SettingsScreen(page);
-  await menu.goto();
-  await menu.settings.click();
-
-  await settings.damagePreviewToggle.click();
-
-  const stored = await page.evaluate(() => localStorage.getItem("pt-settings"));
-  expect(stored).toBeTruthy();
-  expect(JSON.parse(stored ?? "{}")).toHaveProperty("damagePreview");
 });

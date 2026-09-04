@@ -178,6 +178,7 @@ export interface Translations {
   "teamSelect.actions.launch": string;
   "teamSelect.actions.back": string;
   "teamSelect.autoPlacement.label": string;
+  "teamSelect.damagePreview.label": string;
   "placement.done": string;
   "pokemon.bulbasaur": string;
   "pokemon.venusaur": string;
@@ -247,7 +248,6 @@ export interface Translations {
   "mapSelect.back": string;
   "settings.title": string;
   "settings.language": string;
-  "settings.damagePreview": string;
   "settings.fullscreen": string;
   "settings.installApp": string;
   "settings.installAppIosHint": string;

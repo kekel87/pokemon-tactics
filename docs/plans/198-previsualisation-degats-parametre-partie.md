@@ -1,7 +1,8 @@
 # Plan 198 — Prévisualisation de dégâts en paramètre de partie
 
-> **Statut** : ready
+> **Statut** : done
 > **Créé** : 2026-09-03
+> **Livré** : 2026-09-04
 > **Prérequis du Lot B1** (plan 199) — mais autonome et utile seul, donc livré avant.
 > **Périmètre arrêté avec l'humain le 2026-09-03** : la prévisualisation de dégâts quitte l'écran
 > des réglages pour devenir un **paramètre de partie**, à côté de « Placement auto » sur l'écran de
@@ -110,3 +111,56 @@ participe ni au journal d'actions ni au déterminisme.
 |---|---|---|---|
 | 893 | 2026-09-03 | La prévisualisation de dégâts est-elle un réglage du joueur ou un paramètre de partie ? | **Paramètre de partie**, gelé à l'entrée en combat, choisi à côté de « Placement auto », y compris en solo. Retirée de l'écran des réglages. Motif : en ligne, l'hôte doit pouvoir le fixer, et deux joueurs ne peuvent pas jouer sous deux règles différentes |
 | 894 | 2026-09-03 | Nouveau magasin « options de partie », ou réutilisation de `pt-settings` ? | **Réutilisation.** La lecture fusionne déjà avec les défauts, donc aucune migration et les choix existants sont conservés. Un second magasin coûterait une migration pour une pureté conceptuelle sans effet visible |
+
+## Réalisation (2026-09-04)
+
+Les 8 étapes sont faites. Trois écarts au plan, tous mineurs :
+
+1. **Le golden n'attendait pas de régénération.** La ligne de `docs/next.md` que l'étape 8 devait
+   marquer comme soldée décrivait une régénération **déjà faite** (« régénéré », au passé, pour la
+   3ᵉ ligne ajoutée à l'époque). Elle est complétée d'une mention de la régénération de ce plan —
+   cette fois pour une ligne en **moins**. Rien n'était en attente.
+2. **`e2e/pages/screens.ts` visait la case « Placement auto » par `page.getByRole("checkbox")`.** Le
+   pied d'écran en portant désormais deux, ce localisateur devenait ambigu et aurait fait tomber
+   `placement-menu.spec`. Les deux cases sont visées par leur `data-testid`.
+3. **Une media query sur `.ts-footer` ajoutée puis RETIRÉE.** Ajoutée par crainte que l'écart
+   `--spacing-xl` ne pousse « Lancer » hors du pied à deux bascules. La mesure l'a démentie : au
+   viewport le plus étroit (568 × 320), l'écart calculé vaut déjà **10 px** — les tokens
+   d'espacement ont leur propre réduction sous ce seuil — et il restait **240 px** de marge, sans
+   aucun débordement. Neutraliser la règle en ligne ne changeait rien. Retirée : c'était du code
+   « au cas où ».
+
+4. **Un chemin de repli annoncé de trop.** L'étape 4 et la décision #893 parlaient de « trois
+   chemins sans configuration de partie (bac à sable, `?combat=1`, reprise) ». Vérifié en revue :
+   il n'y en a qu'**un**. `?combat=1` s'arrête à `mountDemoContent` et ne construit aucun
+   `PresentationContext`, donc ne lit ni le setup ni la préférence ; une partie reprise rejoue le
+   `setup` sauvegardé, donc elle retrouve la valeur **gelée**, elle ne retombe sur rien. Seul le bac
+   à sable lit la préférence persistée. Corrigé dans le code (commentaires) et dans #893.
+
+## Vérification multi-entrée (mesurée, 2026-09-04)
+
+Le contrôle ajouté est une case à cocher, donc il traverse les quatre entrées supportées depuis la
+Phase 6.5. Mesuré au chrome-devtools plutôt que supposé — c'est ce chantier qui a fait naître
+`.claude/rules/multi-input.md`.
+
+| Axe | Résultat |
+|---|---|
+| **Clavier** | ↓ depuis le bouton d'équipe atteint « Prévisualisation dégâts », ← revient sur « Placement auto », **Espace** bascule, `pt-settings` s'écrit, le focus reste sur la case. Vérifié par de vraies pressions de touches, pas par `.focus()` |
+| **Manette** | `activateFocusedControl()` fait `active.click()` : bascule bien une case et fire `change`. Les deux cases sont dans `FOCUSABLE_SELECTOR` (`input:not(:disabled)`) et ne portent pas `data-nav-skip`. **Vérifié par lecture de code, pas joué au pad synthétique** |
+| **Responsive** | 568 × 320, 667 × 375, 1920 × 1080 : aucun débordement (`scrollWidth === clientWidth`), 240 à 1461 px de marge restante, « Lancer » toujours dans le pied |
+| **Tactile** | ⚠️ **Sous le plancher** : hit-area du `<label>` de 19 px (667 × 375) à 23 px (1920 × 1080), contre 30 px exigés sous `pointer: coarse`. Écart **pré-existant** que ce plan double. Non corrigé — porté à `docs/backlog.md` avec la mesure, parce que le remède grandit le pied d'écran et que « Lancer ▶ » (27 px) ne tient pas le plancher non plus : ça mérite une passe globale, pas un correctif local |
+
+Le cahier `docs/test-plan.md` suit : §6.4 gagne la case des deux paramètres de partie, §6.7 tombe à
+une seule entrée inconditionnelle, §4.14 dit « paramètre » et non « réglage » (et précise que son
+test emprunte le chemin bac à sable, donc le repli). Une case de §6.12 passe 🤖 → 👁 : « une bascule
+des réglages garde le focus » n'a plus de signal e2e, « Prévisualisation dégâts » étant la seule
+bascule de l'écran à muter son libellé en place.
+
+**Effet de bord favorable, non prévu** : les cases portant désormais un `data-testid`,
+`renderPreservingFocus` sait les retrouver après un re-rendu (il ne restaure que par famille de
+`testid`, le repli par rang global ayant été retiré exprès). « Placement auto » n'en portait aucun :
+presser un segment de format pendant que le focus était sur elle l'éjectait vers `<body>`.
+
+Nouveau `packages/app/src/settings/index.test.ts` (5 cas) : défauts, relecture, écriture, **clé
+absente complétée sans écraser les autres** (le cas qui prouve l'absence de migration, #894), et
+magasin illisible.

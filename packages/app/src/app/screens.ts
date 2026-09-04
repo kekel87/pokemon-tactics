@@ -24,6 +24,13 @@ export interface CombatSetup {
   formatKey: string;
   autoPlacement: boolean;
   /**
+   * Prévisualisation des dégâts (plan 198) : paramètre de PARTIE, pas réglage d'interface — gelé ici
+   * à l'entrée en combat plutôt que relu en direct dans `getSettings()` (décision #893). En ligne,
+   * l'hôte le fixe pour tout le monde ; deux joueurs ne peuvent pas jouer sous deux règles
+   * différentes.
+   */
+  damagePreview: boolean;
+  /**
    * Provenance des équipes pour `battle_started` (plan 196). Portée ici parce que `TeamSelection`
    * (core) ne connaît pas la notion d'équipe éphémère : c'est un concept de l'écran de sélection,
    * et le core n'a pas à l'apprendre pour de la télémétrie.

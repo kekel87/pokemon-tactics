@@ -634,8 +634,9 @@ survol via `hoverTile`. Seed test-only `debugTiles` (hazards/champ/zones/distors
 
 *Prévision affichée à la **confirmation** d'une attaque. Le panneau du lanceur s'étire (3ᵉ colonne +
 pointe de flèche) et porte le bloc d'attaque ; la carte curseur devient la cible focalisée avec sa
-barre de vie prédite. Le panneau d'info de case s'efface pendant le ciblage. Gaté par le réglage
-« Prévisualisation dégâts ». Core : `BattleEngine.previewMove` ; view-model :
+barre de vie prédite. Le panneau d'info de case s'efface pendant le ciblage. Gaté par le **paramètre
+de partie** « Prévisualisation dégâts » (§6.4 depuis le plan 198 ; le bac à sable, qui n'a pas de
+configuration de partie, retombe sur la préférence `pt-settings`). Core : `BattleEngine.previewMove` ; view-model :
 `buildCombatPreviewView`. e2e : `combat-preview.spec`.*
 
 - 🤖 **K.O. garanti** : chiffre de dégâts en rouge (`data-outcome="guaranteed-ko"`), PV restants
@@ -655,8 +656,9 @@ barre de vie prédite. Le panneau d'info de case s'efface pendant le ciblage. Ga
 - 🤖 **Zone multi-cibles** : compteur `n/N` sur la ligne des types, cycle au **survol** d'une autre
   cible de l'empreinte et au clavier (`Tab` / `Shift+Tab`), tir allié reconnaissable à la couleur
   d'équipe de la carte (`combat-preview.spec`).
-- 🤖 **Réglage désactivé** : « Prévisualisation dégâts » OFF → aucune prévision, ni panneau ni
-  étiquettes in-world ; le panneau de case reste (`combat-preview.spec`).
+- 🤖 **Paramètre désactivé** : « Prévisualisation dégâts » OFF → aucune prévision, ni panneau ni
+  étiquettes in-world ; le panneau de case reste. Joué sur le chemin **bac à sable**, donc c'est le
+  repli sur `pt-settings` qu'il couvre (`combat-preview.spec`).
 - 👁 **Coût CT exact** (`combat-preview-ct`, plan 178) — sur **sa propre ligne** sous
   précision/critique (en 3ᵉ valeur de cette ligne il débordait le bloc et passait inaperçu, corrigé en
   human-testing). Les cibles étant verrouillées, la surtaxe **Pression** est ici calculable : elle est
@@ -980,9 +982,11 @@ sont donc assumées, pas oubliées.*
 - 🤖 **Le focus survit au re-rendu du menu** : chaque phase reconstruit le menu (`replaceChildren`),
   ce qui éjectait le focus vers `<body>` — la navigation clavier repartait de zéro à chaque étape
   d'un tour. Le menu reprend le focus **seulement** si la source active est le clavier ou la manette.
-- 🤖 **Une bascule des réglages garde le focus** (Prévisualisation dégâts) : le libellé est muté sur
-  place au lieu de reconstruire l'écran. Le changement de **langue** reste un re-rendu complet (tout
-  est retraduit) mais repose le focus sur sa ligne.
+- 👁 **Une bascule des réglages garde le focus** : le libellé est muté sur place au lieu de
+  reconstruire l'écran. Plus de signal e2e depuis le plan 198 — « Prévisualisation dégâts » était la
+  seule bascule de l'écran à muter son libellé, et elle est partie à la sélection d'équipe (§6.4) ;
+  « Plein écran » est conditionnée à la plateforme. Le changement de **langue** reste un re-rendu
+  complet (tout est retraduit) mais repose le focus sur sa ligne, et reste 🤖.
 - 🤖 **`KeyQ`/`KeyE` tournent la vue d'un quart de tour** (A/E en AZERTY, Q/E en QWERTY) — les flèches
   ne tournent plus la caméra, c'est le seul changement de rôle assumé de ce lot.
 - 👁 **`KeyR`/`KeyF` font un cran de zoom relatif**. `+`/`−` ne sont **pas** bindés (la position
@@ -2716,6 +2720,25 @@ d'entrée mais de conception d'écran (retour humain 2026-08-21). Décisions #83
   la convention `<dialog>`, qui vise la modale refermée **sans rien faire**. Une sortie par `Échap`,
   par B ou par la croix rend bien le focus au déclencheur.
 - 🤖 « Lancer ▶ » **désactivé tant que les camps ne sont pas tous pourvus** (`screens.spec`).
+- 🤖 **Deux paramètres de partie au pied de l'écran** (plan 198, #893) : « Placement auto » et
+  « Prévisualisation dégâts », cochés par défaut. La seconde **vivait aux Réglages** ; c'est
+  désormais un paramètre de partie, gelé dans le `CombatSetup` au lancement plutôt que relu en direct
+  — en ligne, l'hôte doit pouvoir le fixer pour tout le monde. Les deux **persistent** dans
+  `pt-settings` et sont **relus** en revenant sur l'écran ; « Placement auto » ne l'était pas du tout
+  avant ce plan (simple variable locale qui repartait au défaut). Les cases sont visées par
+  `data-testid` (`team-select-auto-placement`, `team-select-damage-preview`) : à deux cases,
+  `getByRole("checkbox")` est ambigu (`screens.spec`).
+- 🤖 **Les flèches atteignent les deux paramètres, Espace les bascule** (plan 198). La navigation est
+  **spatiale** : un contrôle focalisable peut rester injoignable s'il est isolé. Le test part du
+  bouton d'équipe du camp 1 et presse de vraies touches — il ne focalise **jamais** la cible
+  lui-même, ce qui court-circuiterait ce qu'il prouve. `Space` est l'activation **native** du
+  navigateur sur une case, et le focus ne doit pas retomber au `<body>` après la bascule
+  (`screens.spec`). Au **pad**, l'activation passe par `activateFocusedControl()` → `active.click()`,
+  vérifié par lecture de code seulement — 👁 tant qu'aucun scénario `gamepad-menus.spec` ne couvre le
+  pied d'écran.
+- 👁 **Zone tapable des deux cases sous le plancher de 30 px** (`pointer: coarse`) : 19 px à
+  667 × 375, 23 px à 1920 × 1080 — mesuré au plan 198, **pré-existant**, porté à `docs/backlog.md`.
+  À revoir dans une passe globale (« Lancer ▶ » ne tient pas le plancher non plus).
 - 🤖 **Seuil mobile** : le token `--ts-portrait-size` est déclaré sur `.ts-team-list` et **non** sur
   `.ts-root` — la liste vit dans un `<dialog>` sur `document.body`, hors de l'arbre de l'écran, donc
   un token posé sur l'écran ne l'atteindrait plus. Mesuré en ouvrant le sélecteur à chaque viewport
@@ -2746,13 +2769,14 @@ d'entrée mais de conception d'écran (retour humain 2026-08-21). Décisions #83
 ### 6.7 Paramètres
 *libellés : `settings.*` ; storage `pt-lang`, `pt-settings`*
 - 🤖 Accès depuis le menu ; titre « Paramètres » ; Retour → menu.
-- 🤖 **2 entrées inconditionnelles** : **Langue** (FR/EN), **Prévisualisation dégâts** (Oui/Non).
-  Valider chaque libellé en FR **et** EN. *(L'option « Curseur » a été retirée : le curseur de survol
-  est désormais un modèle voxel unique non configurable — cf §3.8.)* Deux lignes **conditionnées à la
-  plateforme** s'y ajoutent — **Plein écran** (si l'API existe) et **Installer l'app** (iPhone non
-  installé) : voir §6.10.
-- 🤖 Changer une option **persiste en localStorage** : langue → `pt-lang` ; prévisualisation →
-  `pt-settings` (JSON).
+- 🤖 **1 entrée inconditionnelle** : **Langue** (FR/EN). Valider le libellé en FR **et** EN.
+  *(« Prévisualisation dégâts » est partie à la sélection d'équipe au plan 198 — c'est un paramètre
+  de partie, cf §6.4 ; le test vérifie qu'elle n'est plus ici. L'option « Curseur » avait été retirée
+  avant : le curseur de survol est un modèle voxel unique non configurable — cf §3.8.)* Deux lignes
+  **conditionnées à la plateforme** s'y ajoutent — **Plein écran** (si l'API existe) et **Installer
+  l'app** (iPhone non installé) : voir §6.10.
+- 🤖 Changer la langue **persiste en localStorage** (`pt-lang`). La persistance de `pt-settings` se
+  vérifie désormais en §6.4, sur les deux paramètres de partie.
 
 ### 6.8 Crédits
 *libellés : `credits.*`*
@@ -3293,7 +3317,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `smoke/splash.spec.ts` | §6.0 splash de boot (plan 135) : overlay présent + titre + barre de progression pendant le téléchargement du bundle (requête `sprites.bin` retenue), puis retiré du DOM et le menu monte |
 | `dom/navigation.spec.ts` | menu → mode de combat → choix carte → retour |
 | `dom/main-menu.spec.ts` | §6.1 — titre, 5 entrées, Aventure disabled, version, switch FR→EN + `pt-lang` |
-| `dom/settings.spec.ts` | §6.7 — 2 options inconditionnelles (Langue + Prévisualisation dégâts), persistance `pt-lang`/`pt-settings` |
+| `dom/settings.spec.ts` | §6.7 — l'option inconditionnelle (Langue) + **absence** de « Prévisualisation dégâts », partie en §6.4 au plan 198 ; persistance `pt-lang` |
 | `dom/controls-remapping.spec.ts` | §6.12 — écran de contrôles (plan 186) : accès depuis Réglages, 5 sections listées, **aucune case `displaced` à l'ouverture**, actions fixes (Annuler) inertes, **panoramique de retour** (remappable au clavier depuis le plan 189, « Stick droit » inerte en colonne manette, secours `Maj` + flèches en lecture seule), capture d'une touche → `custom` + écart seul écrit dans `pt-bindings`, échange (ancien slot `displaced` + message nommant l'action délogée), annulation par bouton **et** par `Échap` (jamais assigné, ne quitte pas l'écran), persistance au rechargement, « Tout réinitialiser ». La capture **au pad** est couverte par `dom/gamepad-menus.spec.ts` (manette synthétique) ; seul un **pad réel** reste 👁 |
 | `dom/gamepad-menus.spec.ts` | §6.12 manette dans les menus (plan 186) : manette **synthétique** injectée via `navigator.getGamepads`, arrivée à la souris puis croix directionnelle → focus pris **et** anneau applicable. Joué sur `mapping: "standard"` et `mapping: ""` (réponse de Firefox pour une Switch Pro, qui rendait le pad muet) ; échange de bouton nommant l'action délogée. **§6.4** : changer de format au pad garde le liseré sur le segment pressé (le `data-testid` manquant du sélecteur de format le renvoyait sur « ◀ Retour »). Les segments sont visés par leur **rôle** dans la rangée, jamais par ce testid — s'en servir rendrait le test aveugle à la régression qu'il garde |
 | `dom/gamepad-pickers.spec.ts` | §6.13 manette dans le Team Builder (plan 188) : le sélecteur s'ouvre sur un **résultat** et non dans le champ de recherche, on remonte de la grille aux chips de filtre puis on choisit (navigation spatiale), **B** referme (là où `Échap` n'existe pas sur un pad), **← →** règlent un curseur de PS jusqu'à sortir du contrôle par l'axe vertical — c'est ce test qui a attrapé le bug précis tuant toute la manette (#842, `applyToControl`/`stepUp`). Manette synthétique partagée (`pages/gamepad.ts`). Nature en liste (#839) hors couverture e2e ici (unit `focus-navigation.test.ts` pour l'arbitrage du contrôle focalisé) ; le filet générique de résilience du poller (`try/catch` sur `emit`) n'est testé nulle part directement, 👁 §6.13 |
@@ -3372,7 +3396,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 | `combat/touch-controls.spec.ts` | §4.18 comportement au doigt via **`tapTile`** (seule entrée du hook qui traverse la vraie couche d'entrée) : **un tap agit du premier coup** ; un **pattern directionnel** s'ouvre cône affiché, retaper la même **direction** lance, une autre direction re-vise sans lancer (validation depuis une case différente = la comparaison est directionnelle). + **annulation atteignable au doigt** sur les 3 phases réparées (destination, cible, orientation). Pinch / pan 2 doigts / orientation de fin de tour / seuil de glissé / `pointercancel` = 👁 téléphone réel ; la boussole est couverte par `compass-and-legend.spec` |
 | `combat/input-prompt-glyph.spec.ts` | §4.8 glyphe du geste attendu dans la ligne d'instruction (chantier « aide visuelle des gestes attendus », suite du Lot 1 du plan 173) : `data-glyph` = `act-twice` sur les 2 phases **directionnelles** (visée de cône/ligne/fauche/charge, orientation de fin de tour) et `act` sur les 4 autres (cible, confirmation, destination de déplacement, case de repli de Demi-Tour) ; **suffixe « ×2 » présent en pointeur grossier** (`hasTouch`) et **absent en pointeur fin** ; la pastille entière (glyphe compris) disparaît hors phase d'input ; **non-régression** du `textContent` exact de `combat-instruction`, restée un nœud de texte pur alors que la pastille est passée à la rangée parente ; **la feuille de tuiles change avec le pointeur** (plan 185) : `input-prompts-pixel-1-bit` en pointeur fin, `cursor-pixel-pack` en pointeur grossier, feuille et grille ensemble. Le DESSIN (souris vs main, masque CSS) = 👁 pixel |
 | `combat/compass-and-legend.spec.ts` | §4.18 boussole + légende de contrôles (ex `compass-rotate-hint.spec.ts`, renommé et étendu au plan 185) : **zone tapable CARRÉE ancrée sur le portrait** (plancher 44 px — le glyphe qui l'étendait vers la droite est supprimé) ; **un clic fait tourner la vue d'un cran** (vrai clic souris sur le point projeté du proxy de picking, donc à travers la couche d'entrée réelle) ; **cliquer juste sous la boussole ne tourne pas**, contre-épreuve dans le même test ; **légende posée à droite (glyphe « ça se clique »)**, ancrée sur la même mesure que le renderer (`chrome-insets.ts`), ses **lignes de contrôles caméra descendues dans la colonne latérale de l'ordre de jeu** entre les capuchons `Page↑`/`Page↓` (plan 189 — sous la boussole, elles finissaient par-dessus elle) ; **la légende suit la source d'entrée active** (`data-input-source` : souris/doigt/clavier/manette) ; **la légende reste immobile quand la timeline perd son entrée active** (case vide en prévisualisation de coût CT — trois approches successives : ancrage DOM dans la case active, réservation de sa largeur, et enfin réservation de sa **hauteur** au plan 189, la seule qui ne déplace pas la boussole ; décision #798). Dessin des glyphes / sens de rotation lu à l'œil / tap au doigt = 👁 |
-| `dom/screens.spec.ts` | §6.0 Échap retour, §6.2 modes off, §6.3 carte (9 + détail + ↑/↓ aria-current), §6.4 libellé du format actif (« 2J × 6 », #835) + Lancer gating |
+| `dom/screens.spec.ts` | §6.0 Échap retour, §6.2 modes off, §6.3 carte (9 + détail + ↑/↓ aria-current), §6.4 libellé du format actif (« 2J × 6 », #835) + Lancer gating + **persistance et relecture des 2 paramètres de partie** (plan 198) |
 | `dom/screens-i18n.spec.ts` | §6.3 / §6.4 i18n des écrans de préparation, par le bouton de langue du menu (le geste du joueur, et le seul qui existe — aucun de ces écrans ne porte de bascule) : **étiquettes de terrain** d'une carte en FR puis en EN (« couloirs, dénivelé » → « corridors, elevation », avec contre-épreuve que le français ne fuit plus), **libellé de format** « 2P × 6 » et non « 2J × 6 », re-vérifié **après un changement de format** qui reconstruit l'écran. Un changement de langue *pendant* qu'on est sur l'écran n'est pas atteignable (cf §6.4) |
 | `combat/scene-hook-lifecycle.spec.ts` | §6.3 / §8.6 cycle de vie du hook de scène `__ptE2e__` — le HARNAIS lui-même : l'aperçu de carte est une `createCombatScene` complète, donc quitter cet écran doit **désinstaller** le hook (sinon `waitReady()` franchit sa barrière sur une scène détruite). Deux gardes : hook installé **et prêt** sur l'aperçu puis absent après « Retour » ; absent sur la sélection d'équipe (DOM pur, et point de lancement du combat) puis réinstallé par le combat sur une scène qui **porte de la géométrie** |
 | `dom/pokemon-edit.spec.ts` | §7.1 compteur + vider slot, §7.3 fiche (sections, stats, 25 natures, move picker, preset, **picker d'objet** : objet boost-de-type listé/sélectionnable → assigné au slot) |

@@ -191,5 +191,5 @@ Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
 | 195 | [Phase 7 « Multijoueur & télémétrie » (plan-cadre)](./195-phase7-multijoueur-telemetrie.md) | in-progress | 2026-08-31 |
 | 196 | [Télémétrie de jeu (Cloudflare Workers + D1)](./196-telemetrie-cloudflare-workers.md) | done | 2026-08-31 |
 | 197 | [Écran de victoire enrichi](./197-ecran-victoire-enrichi.md) | done | 2026-09-03 |
-| 198 | [Prévisualisation de dégâts en paramètre de partie](./198-previsualisation-degats-parametre-partie.md) | ready | 2026-09-03 |
+| 198 | [Prévisualisation de dégâts en paramètre de partie](./198-previsualisation-degats-parametre-partie.md) | done | 2026-09-04 |
 | 199 | [Lot B1 : transport et salon en ligne](./199-lot-b1-transport-lobby.md) | ready | 2026-09-03 |

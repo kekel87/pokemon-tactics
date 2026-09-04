@@ -340,6 +340,13 @@ function runBattle(options: {
    * the sandbox studio drives it from `config.fogOfWar`.
    */
   enemyInfoHidden: boolean;
+  /**
+   * Prévisualisation des dégâts (plan 198) : paramètre de PARTIE gelé pour toute la durée du combat,
+   * jamais relu dans `getSettings()` en cours de route (décision #893). Les chemins qui ont une
+   * configuration de partie passent `setup.damagePreview` ; le bac à sable, seul chemin qui monte un
+   * vrai combat sans configuration de partie, retombe sur la préférence persistée.
+   */
+  damagePreview: boolean;
   /** Players a human drives — the fog reads through their eyes, never the acting AI's (plan 176). */
   humanPlayerIds: readonly string[];
   /**
@@ -367,6 +374,7 @@ function runBattle(options: {
     onReplay,
     wireTurnReady,
     enemyInfoHidden,
+    damagePreview,
     humanPlayerIds,
     initialLogEvents,
     onActionCommitted,
@@ -572,7 +580,7 @@ function runBattle(options: {
     getTypeIconUrl,
     getStatusIconUrl,
     getStatusLabelUrl,
-    isDamagePreviewEnabled: () => getSettings().damagePreview,
+    isDamagePreviewEnabled: () => damagePreview,
     isEnemyInfoHidden: () => enemyInfoHidden,
   };
   const spawnFloatingText = createFloatingTextSpawner(combat, battle.state, {
@@ -946,6 +954,9 @@ function runResolvedBattle(options: {
     wireTurnReady: (built) => wireScoredAi(built, aiPlayerIds),
     // A real battle always withholds enemy information (plan 176) — no player-facing opt-out.
     enemyInfoHidden: true,
+    // Gelée pour toute la partie (plan 198) : la reprise repasse par ici avec le setup sauvegardé,
+    // donc un combat repris retrouve le choix fait à la sélection d'équipe.
+    damagePreview: inputs.setup.damagePreview,
     humanPlayerIds: inputs.placementTeams
       .filter((team) => team.controller === PlayerController.Human)
       .map((team) => team.playerId),
@@ -1135,6 +1146,9 @@ function startSandboxBattle(options: {
     // Studio default is OFF (debugging wants exact figures); the checkbox turns the fog on. The panel
     // remounts the whole scene on every config change, so no live update path is needed.
     enemyInfoHidden: config.fogOfWar === true,
+    // Le bac à sable n'a pas de configuration de partie : c'est le seul chemin de combat qui lit
+    // encore la préférence persistée (plan 198).
+    damagePreview: getSettings().damagePreview,
     getElapsedMs: () => Date.now() - mountedAt,
     // A "player" team is human-driven; hotseat (both teams player) hands the viewpoint over with the
     // turn, exactly like `viewerPlayerId` expects.

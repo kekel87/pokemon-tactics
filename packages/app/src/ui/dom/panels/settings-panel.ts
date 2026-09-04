@@ -8,7 +8,6 @@ import {
   toggleFullscreen,
 } from "../../../platform/fullscreen";
 import { shouldOfferIosInstall } from "../../../platform/pwa";
-import { getSettings, updateSettings } from "../../../settings";
 import { el, menuButton } from "../screens/elements";
 import { EMBEDDED_PANEL_CLASS, type Panel, type PanelOptions } from "./panel";
 
@@ -18,7 +17,10 @@ export interface SettingsPanelOptions extends PanelOptions {
 }
 
 /**
- * Réglages : langue, prévisualisation de dégâts, plein écran, accès aux Contrôles.
+ * Réglages : langue, plein écran, accès aux Contrôles.
+ *
+ * La prévisualisation de dégâts n'est plus ici (plan 198) : c'est devenu un paramètre de PARTIE,
+ * choisi à l'écran de sélection d'équipe à côté de « Placement auto » (décision #893).
  *
  * Extrait de `settings-screen.ts` par le plan 187 sans changement de comportement : le menu de
  * combat monte ce même panneau, de sorte qu'un réglage changé en pleine partie n'a pas à quitter le
@@ -59,20 +61,6 @@ export function createSettingsPanel(options: SettingsPanelOptions): Panel {
     const title = el("h1", "mn-title");
     title.textContent = t("settings.title");
 
-    const damagePreviewToggle = menuButton(
-      getSettings().damagePreview ? t("settings.on") : t("settings.off"),
-      () => {
-        updateSettings({ damagePreview: !getSettings().damagePreview });
-        // Only this label changes — mutate it in place. Rebuilding the whole subtree used to drop the
-        // focus to `<body>` on every toggle, which makes keyboard and gamepad navigation unusable
-        // (plan 184, dette rapatriée du Lot 3 / décision #752).
-        damagePreviewToggle.textContent = getSettings().damagePreview
-          ? t("settings.on")
-          : t("settings.off");
-      },
-    );
-    damagePreviewToggle.dataset.testid = "setting-damage-preview";
-
     const rows = el("div", "mn-rows");
     /*
      * La LANGUE n'est pas proposée en cours de combat (revue de code 2026-08-25).
@@ -98,7 +86,6 @@ export function createSettingsPanel(options: SettingsPanelOptions): Panel {
       languageToggle.dataset.testid = "setting-language";
       rows.append(row(t("settings.language"), languageToggle));
     }
-    rows.append(row(t("settings.damagePreview"), damagePreviewToggle));
 
     // Plein écran (plan 180-a) : masque la barre d'URL du navigateur, qui ampute une bande d'un
     // viewport paysage déjà à l'étroit sur téléphone. La ligne n'apparaît que si l'API existe —

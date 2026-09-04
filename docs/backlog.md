@@ -35,6 +35,30 @@ Bugs connus et retours playtest **non traités**. Items résolus → `docs/backl
      étiquettes de carte en français en dur, libellé de format d'équipe en français en dur →
      docs/backlog-archive.md. -->
 
+### Cases à cocher du pied de l'écran de sélection d'équipe sous le plancher tactile (2026-09-04, plan 198)
+
+`.claude/rules/html.md` pose un **plancher de 30 px sur la hit-area sous `pointer: coarse`**, arbitré
+sur téléphone réel au plan 179. Les deux cases du pied de l'écran de sélection d'équipe
+(« Placement auto », « Prévisualisation dégâts ») sont en dessous — **mesuré** au plan 198 :
+
+| Viewport | Hit-area du `<label>` | Case native seule |
+|---|---|---|
+| 667 × 375 | 87 × **19** px | 13 × 13 px |
+| 1920 × 1080 | 113 × **23** px | 13 × 13 px |
+
+C'est le `<label>` qu'on mesure (il enveloppe la case **et** son texte, donc tout est tapable), et il
+plafonne à la hauteur de ligne du texte. Aucune règle CSS ne cible `pointer: coarse` sur ces cases —
+aucune ne cible les cases à cocher du tout dans le projet.
+
+**Pré-existant** (« Placement auto » était déjà comme ça), mais le plan 198 en a ajouté une seconde,
+donc l'écart est maintenant deux fois plus visible au doigt.
+
+**Non corrigé volontairement** : porter la hit-area à 30 px grandit le pied d'écran de ~11 px, ce qui
+mord sur la colonne des camps à 320 px de haut — c'est un changement de mise en page que l'humain doit
+voir avant. À noter aussi que « Lancer ▶ » mesure **27 px** de haut au viewport le plus étroit, donc
+le plancher n'est pas tenu uniformément ailleurs non plus : le sujet mérite une passe globale plutôt
+qu'un correctif local.
+
 ## Notes IA (à regrouper en plan d'amélioration IA)
 
 ## Feedback visuel

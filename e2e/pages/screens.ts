@@ -72,13 +72,21 @@ export class TeamSelectScreen {
    * (plan 189) — n'est atteignable.
    */
   readonly autoPlacement: Locator;
+  /**
+   * Case « Prévisualisation dégâts », **cochée par défaut** (plan 198). Elle vivait à l'écran des
+   * réglages ; c'est désormais un paramètre de partie, gelé dans le `CombatSetup` au lancement.
+   */
+  readonly damagePreview: Locator;
   readonly launch: Locator;
   constructor(private readonly page: Page) {
     this.title = page.getByText("Sélection d'équipe", { exact: false });
     this.formatSegments = page.getByTestId("format-segments");
     this.formatSegmentButtons = this.formatSegments.getByRole("button");
     this.activeFormatSegment = this.formatSegmentButtons.and(page.locator('[data-state="active"]'));
-    this.autoPlacement = page.getByRole("checkbox");
+    // Par `data-testid` depuis le plan 198 : le pied d'écran porte DEUX cases, donc
+    // `getByRole("checkbox")` seul y est devenu ambigu.
+    this.autoPlacement = page.getByTestId("team-select-auto-placement");
+    this.damagePreview = page.getByTestId("team-select-damage-preview");
     this.launch = page.getByRole("button", { name: "Lancer ▶", exact: true });
   }
 
@@ -122,7 +130,6 @@ export class SettingsScreen {
   readonly back: Locator;
   /** Each setting's control carries a dedicated `data-testid` (resilient to label/i18n changes). */
   readonly languageToggle: Locator;
-  readonly damagePreviewToggle: Locator;
   /** Fullscreen row (plan 180-a) — the row is ABSENT (not disabled) where the API is missing. */
   readonly fullscreenToggle: Locator;
   /** iOS-only « add to home screen » instruction (plan 180-a) — absent everywhere else. */
@@ -133,7 +140,6 @@ export class SettingsScreen {
     this.title = page.getByRole("heading", { name: "Paramètres" });
     this.back = page.getByRole("button", { name: "Retour" });
     this.languageToggle = page.getByTestId("setting-language");
-    this.damagePreviewToggle = page.getByTestId("setting-damage-preview");
     this.fullscreenToggle = page.getByTestId("setting-fullscreen");
     this.installHint = page.getByTestId("setting-install-hint");
     this.controls = page.getByTestId("setting-controls");

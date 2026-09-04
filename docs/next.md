@@ -18,6 +18,20 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ## À faire maintenant
 
+### 2026-09-04 — Le plan 198 est livré : exécuter le plan 199 (Lot B1)
+
+`docs/plans/198-previsualisation-degats-parametre-partie.md` est **`done`** (voir § Fait récemment).
+Son seul rôle vis-à-vis du Lot B1 est rempli : `CombatSetup` porte désormais `damagePreview`, gelé à
+l'entrée en combat, donc le salon a une valeur à afficher dans son encart de paramètres et l'hôte
+aura quelque chose à fixer.
+
+**Prochaine action : `docs/plans/199-lot-b1-transport-lobby.md`**, en `ready` — paquet
+`packages/network/`, écran `lobby`, salle d'attente, lancement accusé. Décisions #895-908 à inscrire
+dans `docs/decisions.md` au fil de l'exécution (#893-894 y sont, ajoutées par le plan 198). Son
+étape 9 met `docs/multiplayer.md` à jour, encore périmé sur cinq points.
+
+Le cadrage ci-dessous reste la référence de ce qui a été arrêté avec l'humain.
+
 ### 2026-09-03 (soir) — Lot B1 du multijoueur : deux plans rédigés et relus, zéro ligne de code
 
 Séance de **cadrage uniquement** (décision humaine : « on fait que les plans ce soir »,
@@ -62,7 +76,7 @@ cumulatif non réinitialisable**, 6 tours manqués sur le combat entier. Trois a
 à arrêter avant d'écrire B3 (délais suivants raccourcis à 10 s, forfait qui contourne les clauses de
 survie, 45 s peut-être court pour une attaque de zone) — plan 199, encadré « Le modèle mental ».
 
-**Les deux plans sont en `ready`.** Prochaine séance : exécuter le 198, puis le 199.
+**Les deux plans étaient en `ready`.** Le 198 est livré le 2026-09-04 ; reste le 199.
 
 ### Dans quelques jours — croiser nos compteurs avec le tableau de bord itch.io
 
@@ -405,7 +419,7 @@ Notées à la livraison des lots 180-a/180-b (livrés), non résolues :
 - **Service worker / mise à jour PWA** : aucun service worker aujourd'hui, donc la PWA installée charge depuis le réseau et est toujours à jour — rien à gérer. Le sujet « mise à jour bloquée derrière un cache » n'apparaîtrait qu'en ajoutant un service worker pour le hors-ligne (piste, non engagée).
 - **Firefox Android propose « Ajouter à l'écran d'accueil », jamais « Installer »** (constaté sur téléphone réel, 2026-08-14, via le tunnel). Firefox a deux modes : « Installer » consomme les **icônes du manifeste**, « Ajouter à l'écran d'accueil » crée un simple signet et prend le **favicon**. Notre manifeste porte pourtant tout ce qu'exige la liste publique de Chromium (`name`, `short_name`, icônes 192+512, `start_url`, `display: standalone`) — mais **Mozilla ne publie pas ses critères**, et l'hypothèse « service worker requis pour le mode Installer » n'a pu être ni prouvée ni écartée (angle mort documentaire, recherche `best-practices` du 2026-08-14). **Non engagé volontairement** : ajouter un service worker sur une intuition traînerait toute une machinerie de versionnage. Palliatif déjà en place : la 192×192 est aussi déclarée en `<link rel="icon">`, donc disponible dans le mode signet. **Précision de périmètre (2026-08-19, release `v2026.8.1`)** : l'installation ne peut de toute façon marcher **que depuis GitHub Pages**, jamais depuis itch.io — sur itch le jeu est servi dans une **iframe** du domaine itch.io, et un navigateur ne propose pas d'installer une application depuis un contexte de navigation imbriqué (le manifeste d'un document iframé n'est pas pris en compte). itch.io n'est donc pas un canal d'installation et ne le sera pas : ce n'est pas un bug à corriger, c'est la nature de l'embed. La question « Installer vs Ajouter à l'écran d'accueil » sur Firefox Android reste donc à trancher **sur GitHub Pages uniquement**, et n'est plus bloquée par le tunnel Cloudflare depuis la mise en production.
 - **Icône de raccourci absente sur le téléphone de l'humain — PAS notre bug** (2026-08-14). Symptôme identique constaté par l'humain avec **Instagram**, PWA tierce parfaitement configurée → la cause est côté Firefox Android/launcher, pas dans notre manifeste (servi valide, icônes en HTTP 200, résolution vérifiée sur les 3 bases de déploiement). À garder en tête pour ne pas rouvrir une chasse dans notre code : le bitmap d'un raccourci est **figé à sa création** et jamais re-téléchargé, donc tout test d'icône exige de supprimer le raccourci **et** de vider les données du site.
-- **Golden visuel `settings-visual-linux.png` régénéré** (la 3ᵉ ligne des réglages décale titre et boutons) — noter que le projet e2e `visual` est **local-only**, la CI GitHub ne l'aurait pas vu.
+- **Golden visuel `settings-visual-linux.png` régénéré** (la 3ᵉ ligne des réglages décale titre et boutons) — noter que le projet e2e `visual` est **local-only**, la CI GitHub ne l'aurait pas vu. **Régénéré à nouveau au plan 198** (2026-09-04), cette fois pour une ligne en **moins** : « Prévisualisation dégâts » a quitté l'écran des réglages.
 
 ### Préparation multijoueur (Phase 7) — issue du plan 181 (2026-08-14)
 
@@ -451,6 +465,26 @@ Ce qu'il ne résout **pas**, à traiter en Phase 7 (détail complet § « Prépa
 - Frustration/Retour mis de côté (inutilisables Gen 8/9, décision #423) ; Puissance Cachée exclue définitivement (0 learner côté Champions, confirmé 2026-07-11) ; Morphing/Imposteur/Métamorph livrés (plan 157, roster 151/151 complet).
 
 ## Fait récemment
+
+- 2026-09-04 — **Plan 198 — La prévisualisation de dégâts devient un paramètre de partie.** Livrée
+  d'un trait (plan `ready`, les 8 étapes). Elle quitte les Réglages pour le pied de l'écran de
+  sélection d'équipe, à côté de « Placement auto », et les **deux** sont persistées dans
+  `pt-settings` — « Placement auto » ne l'était pas du tout, c'était une variable locale qui
+  repartait au défaut à chaque entrée d'écran. Le point structurel est le **gel** : `CombatSetup`
+  porte `damagePreview` et `isDamagePreviewEnabled` lit cette valeur figée, là où il relisait
+  `getSettings()` en direct à chaque appel — sans conséquence en solo, intenable en ligne (#893). Le
+  magasin est réutilisé plutôt que dédoublé : sa lecture fusionne déjà avec les défauts, donc aucune
+  migration (#894). Le **bac à sable** est le seul chemin de combat sans configuration de partie, et
+  le seul à retomber sur la préférence persistée ; la reprise, elle, rejoue le setup sauvegardé, donc
+  elle retrouve le choix fait à la sélection d'équipe. **Trois écarts au plan**, tous mineurs : le
+  golden que l'étape 8 devait marquer comme soldé était **déjà régénéré** (rien n'attendait) ;
+  `e2e/pages/screens.ts` visait la case par `getByRole("checkbox")`, ambigu à deux cases, passé en
+  `data-testid` ; une media query sur `.ts-footer` resserre l'écart sous le seuil téléphone, sans
+  quoi « Lancer » sortait du pied. Cahier `docs/test-plan.md` suivi (§4.14, §6.4, §6.7, §6.12, table
+  des specs) — une case §6.12 passe **🤖 → 👁** : « une bascule des réglages garde le focus » n'a plus
+  de signal e2e, « Prévisualisation dégâts » étant la seule bascule de cet écran à muter son libellé
+  en place. Nouveau `packages/app/src/settings/index.test.ts` (5 cas, dont celui qui prouve l'absence
+  de migration). Décisions #893-894.
 
 - 2026-09-03 (soir) — **Lot B1 cadré : plans 198 et 199 rédigés, relus et corrigés, aucun code.**
   Longue discussion de cadrage avec l'humain qui a révisé cinq points du plan-cadre 195 et de

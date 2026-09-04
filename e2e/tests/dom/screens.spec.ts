@@ -123,3 +123,124 @@ test("§6.4 sélection d'équipe : « Lancer » désactivé tant que les slots n
   await teams.giveSlotToAi();
   await expect(teams.launch).toBeEnabled();
 });
+
+// Cahier §6.4 — plan 198. Ce contrôle vivait en §6.7 (`settings.spec`) sur la seule prévisualisation
+// de dégâts : il a suivi le paramètre, et couvre désormais les DEUX cases. « Placement auto » n'était
+// pas persisté du tout avant ce plan (simple variable locale), donc la seconde moitié est neuve.
+test("§6.4 sélection d'équipe : les 2 paramètres de partie persistent (pt-settings) et sont relus", async ({
+  page,
+}) => {
+  const menu = new MainMenu(page);
+  const mode = new BattleModeScreen(page);
+  const maps = new MapSelectScreen(page);
+  const teams = new TeamSelectScreen(page);
+
+  await menu.goto();
+  await menu.combat.click();
+  await mode.local.click();
+  await maps.confirm.click();
+  await expect(teams.title).toBeVisible();
+
+  // Les deux sont cochées par défaut.
+  await expect(teams.autoPlacement).toBeChecked();
+  await expect(teams.damagePreview).toBeChecked();
+
+  await teams.autoPlacement.uncheck();
+  await teams.damagePreview.uncheck();
+
+  const stored = await page.evaluate(() => localStorage.getItem("pt-settings"));
+  expect(stored).toBeTruthy();
+  expect(JSON.parse(stored ?? "{}")).toMatchObject({
+    autoPlacement: false,
+    damagePreview: false,
+  });
+
+  /*
+   * RECHARGER, et pas seulement ressortir de l'écran.
+   *
+   * Une simple sortie/retour rappelle bien la factory d'écran (`ScreenManager` fait dispose puis
+   * mount), mais `getSettings()` rendrait la copie EN MÉMOIRE que `updateSettings` vient d'écrire :
+   * le test passerait même si `localStorage.setItem` ne faisait rien. Le rechargement force le
+   * chemin réellement neuf — `initSettings()` au boot, qui repeuple depuis le magasin.
+   */
+  await page.reload();
+  await menu.combat.click();
+  await mode.local.click();
+  await maps.confirm.click();
+  await expect(teams.title).toBeVisible();
+
+  await expect(teams.autoPlacement).not.toBeChecked();
+  await expect(teams.damagePreview).not.toBeChecked();
+});
+
+/**
+ * §6.4 — les deux paramètres de partie sont **atteignables aux flèches**, pas seulement par `Tab`.
+ *
+ * La navigation du projet est **spatiale** (`focusInDirection`) : un contrôle focalisable peut très
+ * bien rester injoignable s'il est isolé dans un coin. Le test part donc d'un contrôle voisin et
+ * presse de vraies touches — il ne focalise **jamais** la cible lui-même, ce qui court-circuiterait
+ * précisément ce qu'il prouve (`.claude/rules/multi-input.md`).
+ *
+ * `Space` sur une case est une activation **native** du navigateur : c'est bien ce chemin-là qu'on
+ * vérifie, pas un `click()` synthétique.
+ */
+test("§6.4 sélection d'équipe : les flèches atteignent les 2 paramètres, Espace les bascule", async ({
+  page,
+}) => {
+  const menu = new MainMenu(page);
+  const mode = new BattleModeScreen(page);
+  const maps = new MapSelectScreen(page);
+  const teams = new TeamSelectScreen(page);
+
+  await menu.goto();
+  await menu.combat.click();
+  await mode.local.click();
+  await maps.confirm.click();
+  await expect(teams.title).toBeVisible();
+
+  const focusedTestId = () =>
+    page.evaluate(() => (document.activeElement as HTMLElement | null)?.dataset.testid ?? null);
+
+  // Départ sur le bouton d'équipe du camp 1, au-dessus du pied d'écran.
+  await teams.teamButton(0).focus();
+  expect(await focusedTestId()).toBe("player-team-button");
+
+  /*
+   * Descendre jusqu'au pied, en marchant plutôt qu'en comptant les appuis.
+   *
+   * Le nombre de ↓ dépend du FORMAT : chaque camp intercalé entre le point de départ et le pied
+   * ajoute un arrêt, et le format par défaut de la carte peut changer. En 2v6 il en faut deux — le
+   * premier ↓ passe du bouton d'équipe du camp 1 à celui du camp 2, qui partagent le `data-testid`
+   * `player-team-button` et ne se distinguent que par `data-slot-index`. Une assertion sur le seul
+   * testid après un appui unique lit donc « rien n'a bougé » alors que le focus a bien avancé : la
+   * première rédaction de ce test est tombée exactement là-dessus.
+   */
+  const MAX_STEPS = 8;
+  let landed: string | null = null;
+  for (let step = 0; step < MAX_STEPS; step++) {
+    await page.keyboard.press("ArrowDown");
+    landed = await focusedTestId();
+    if (landed !== null && /^team-select-(auto-placement|damage-preview)$/.test(landed)) {
+      break;
+    }
+  }
+  expect(landed).toMatch(/^team-select-(auto-placement|damage-preview)$/);
+
+  /*
+   * Normalise le point de départ sur la case de GAUCHE — ce n'est pas une assertion : selon le
+   * format, la boucle a pu atterrir directement dessus, et un ← sans voisin ne bouge pas le focus,
+   * donc l'assertion passerait sans rien démontrer.
+   */
+  await page.keyboard.press("ArrowLeft");
+  expect(await focusedTestId()).toBe("team-select-auto-placement");
+
+  // CELLE-CI est porteuse : les deux cases se joignent bien horizontalement.
+  await page.keyboard.press("ArrowRight");
+  expect(await focusedTestId()).toBe("team-select-damage-preview");
+
+  // Espace bascule la case focalisée — et le focus ne saute pas au `<body>`.
+  await expect(teams.damagePreview).toBeChecked();
+  await page.keyboard.press("Space");
+  await expect(teams.damagePreview).not.toBeChecked();
+  expect(await focusedTestId()).toBe("team-select-damage-preview");
+});

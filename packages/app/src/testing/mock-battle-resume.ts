@@ -39,6 +39,7 @@ export abstract class MockBattleResume {
     ],
     formatKey: "2v1",
     autoPlacement: true,
+    damagePreview: true,
   };
 
   static readonly placementTeams: PlacementTeam[] = [
