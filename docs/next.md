@@ -18,31 +18,34 @@ Maintenu par Claude Code. Lu via `/next`.
 
 ## À faire maintenant
 
-### 2026-09-04 (soir) — Le Lot B1 est livré : le faire valider, puis cadrer le Lot B2
+### 2026-09-05 — Le Lot B1 est CLOS : cadrer le Lot B2
 
-`docs/plans/199-lot-b1-transport-lobby.md` est **`done`**. Le jeu en ligne se joue jusqu'à l'entrée
-en combat : deux navigateurs se trouvent par un code, se mettent d'accord, et montent le même
-plateau. Gate local complet vert ; **la validation à la main reste à faire**.
+`docs/plans/199-lot-b1-transport-lobby.md` est **`done`**, livré **et validé à la main** le
+2026-09-04 : revue de code (2 Critical + 6 Important corrigés avant le commit) puis **deux tours de
+recette humaine, 17 retours**, tous traités. Décisions **#895-912**. Poussé sur `origin/main`
+(`3c4e751` + `c2eae14`). Le jeu en ligne se joue jusqu'à l'entrée en combat : deux navigateurs se
+trouvent par un code, se mettent d'accord, et montent le même plateau — **aucune action ne s'échange
+encore une fois en combat**, chacun joue sa copie locale. C'est le périmètre du lot, pas un manque.
 
-**Prochaine action : la recette à la main.** Deux navigateurs sur la même machine d'abord, puis — et
-c'est le vrai test — **un ordinateur et un téléphone sur deux réseaux différents**, en allant coller
-le code dans une messagerie entre les deux. C'est ce cas qui met l'onglet en arrière-plan, et c'est
-le comportement que le délai de grâce existe pour absorber. Prévoir aussi la passe multi-entrée
-mesurée sur l'écran `lobby` (la roue de caractères est neuve) : clavier, manette, tactile, et les
-cinq viewports.
+**Prochaine action : cadrer le Lot B2** (combat en réseau), qui n'a **pas encore de plan** — échange
+des actions, tour distant greffé sur `humanPlayerIds`, validation de chaque action reçue contre
+`getLegalActions()`. Le Lot B1 lui a déjà préparé le terrain sur son point le plus dur : le salon a
+quitté l'écran de sélection d'équipe pour appartenir à la session
+(`packages/app/src/network/online-room.ts`) et **survit à l'entrée en combat** — c'était un correctif
+de revue de code, c'est aussi l'architecture dont B2 a besoin.
 
-⚠️ **Ce qui n'est PAS testé par la suite automatisée**, et qu'il faut donc regarder :
-- la **traversée de pare-feu** entre deux réseaux réels (l'e2e tourne sur la boucle locale, STUN et
-  TURN désactivés) — c'est le risque assumé de la V1, avec un message clair pour seul recours ;
-- les **délais de grâce** en conditions réelles (10 s après un départ propre, 45 s après un silence) ;
-- la roue de caractères **à la manette et au doigt** (le clavier, lui, est couvert en e2e).
+⚠️ **Trois réglages de forfait restent à arrêter avec l'humain AVANT d'écrire le Lot B3**, pas
+dedans (plan 199, encadré « Le modèle mental ») : délais suivants raccourcis à 10 s une fois
+l'absence établie, forfait qui contourne les clauses de survie, et 45 s peut-être court pour une
+attaque de zone à plusieurs cibles.
 
-**Ensuite : le Lot B2** (combat en réseau) — échange des actions, tour distant greffé sur
-`humanPlayerIds`, validation de chaque action reçue contre `getLegalActions()`. Il n'a pas encore de
-plan. Trois réglages de forfait restent à arrêter **avant** d'écrire le Lot B3, pas dedans : délais
-suivants raccourcis à 10 s, forfait qui contourne les clauses de survie, et 45 s peut-être court pour
-une attaque de zone à plusieurs cibles (plan 199, encadré « Le modèle mental »).
-
+**Ce que la recette n'a pas pu couvrir**, et qui reste ouvert de fait — à regarder le jour où deux
+vrais appareils sont sous la main, pas à retester au gate :
+- la **traversée de pare-feu** entre deux réseaux réellement différents (un ordinateur et un
+  téléphone en 4G, en allant coller le code dans une messagerie entre les deux — le cas qui met
+  l'onglet en arrière-plan). L'e2e tourne sur la boucle locale ; c'est le risque assumé de la V1,
+  avec un message clair pour seul recours ;
+- les **délais de grâce** en conditions réelles (10 s après un départ propre, 45 s après un silence).
 
 ### ~~2026-09-04 — Le plan 198 est livré : exécuter le plan 199 (Lot B1)~~ — FAIT le 2026-09-04
 
@@ -512,6 +515,23 @@ Ce qu'il ne résout **pas**, à traiter en Phase 7 (détail complet § « Prépa
 
 ## Fait récemment
 
+- 2026-09-05 — **Deux désynchronisations de doc corrigées, dont une décision qui en contredisait une
+  autre.** (1) `docs/next.md` annonçait encore la recette du Lot B1 comme prochaine action alors que
+  `STATUS.md`, `docs/roadmap.md` et les décisions #909-912 (toutes marquées « sortie de recette »)
+  la donnaient faite : le commit de clôture avait mis à jour les quatre fichiers, mais pas celui-ci.
+  (2) La **roue de caractères** livrée au Lot B1 contredit la décision **#840**, qui écartait
+  nommément « une molette de caractères » — les deux cohabitaient dans `docs/decisions.md` sans que
+  rien ne les relie, donc le prochain lecteur de #840 aurait été induit en erreur. Arbitré en faveur
+  de la roue (**#913** + § Révisé au Lot B1) : #840 réglait un problème de **confort**, alors que le
+  code de partie est la seule porte d'entrée du jeu en ligne. Le plan 199 porte désormais la même
+  note à son étape 4.
+
+  ⚠️ **Ce qui a fait trouver ces deux écarts** : une session est repartie sur un `main` local en
+  retard de 2 commits sur `origin/main`, a donc relu des docs d'avant le Lot B1, et a commencé à
+  réimplémenter le plan 199 de zéro avant que l'humain ne l'arrête. Premier geste d'une reprise :
+  `git fetch`, puis comparer `main`, `origin/main` et les branches locales **avant** de lire
+  `docs/next.md`.
+
 - 2026-09-04 (soir) — **Plan 199 — Lot B1 du multijoueur : transport, salon, lancement.** Livré d'un
   trait, les 9 étapes. Nouveau paquet `packages/network/` **pur** (aucune dépendance d'interface, et
   du moteur il ne connaît que des **types**) : protocole et `NETWORK_VERSION`, codes et **adresses
@@ -543,7 +563,27 @@ Ce qu'il ne résout **pas**, à traiter en Phase 7 (détail complet § « Prépa
   le service public : une coupure d'Internet rendrait le gate rouge). Compteurs de télémétrie du jeu
   en ligne, avec une **cause par compteur** pour les échecs de mise en relation — c'est ce qui dira
   si le pair-à-pair sans relais est tenable. `docs/multiplayer.md` corrigé sur ses cinq points
-  périmés. **Validation humaine encore à faire.**
+  périmés.
+
+  ✅ **Revue de code puis validation humaine faites le même jour — décisions #895 à #912.** La revue
+  a sorti **2 Critical**, tous deux corrigés avant le commit : le salon faisait confiance au
+  `seat` **annoncé dans le message** plutôt qu'à la place dérivée de l'adresse d'annuaire (un invité
+  pouvait poser l'équipe de l'hôte en silence, usurper un accusé de lancement, réécrire l'état d'un
+  autre) ; et `close({ flush: true })` **ne vide rien** dans `peerjs@1.5.5` — vérifié en source —,
+  donc l'accusé de lancement pouvait se perdre. Le second a été corrigé **à la racine** : le salon a
+  quitté l'écran de sélection d'équipe pour appartenir à la session
+  (`packages/app/src/network/online-room.ts`) et **survit à l'entrée en combat**. C'est aussi
+  l'architecture dont le Lot B2 a besoin.
+
+  🔴 **La recette humaine, en deux tours, a rendu 17 retours — dont un bloquant que seule elle
+  pouvait trouver** : les serveurs STUN étaient coupés dans l'URL `?peerPort=` servant à la fois à
+  l'e2e et au test manuel. Chromium s'en sort sur la boucle locale, **Firefox refuse** (« ICE
+  failed »). Trois corrections de conception en sont sorties, toutes contre un choix pris plus tôt le
+  même jour : l'hôte a **son propre bouton « Prêt »**, réversible (#909 — dérivée de son équipe, sa
+  préparation lui retirait le droit de dire « attendez » et de dégeler ses options) ; une place
+  vacante s'annonce **« ⏳ Place libre »** et non « IA » (#910 — sinon un salon en attente ressemble à
+  une partie solo déjà complète) ; et les **équipes des autres joueurs sont masquées** (#911, même
+  fuite d'information que #729).
 
 
 - 2026-09-04 — **Plan 198 — La prévisualisation de dégâts devient un paramètre de partie.** Livrée

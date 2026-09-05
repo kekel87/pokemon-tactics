@@ -291,6 +291,16 @@ combat que lorsque tous ont confirmé, et annule le lancement avec un message si
    🔴 **La roue est un élément visuel neuf : sa maquette se présente à l'humain et se fait valider
    AVANT d'être codée** (règle du projet : décrire le résultat attendu, obtenir le feu vert, puis
    implémenter). C'est la seule étape du plan qui a une dépendance humaine.
+   ✅ **Maquette validée avec l'humain le 2026-09-04**, puis livrée : les cinq emplacements montrent
+   leurs **voisins d'alphabet**, ce qui dit sans légende que chaque case défile.
+
+   ⚠️ **Cette étape contredit frontalement la décision #840** (2026-08-26, plan 188 : « pas de
+   saisie de texte à la manette », prise explicitement *contre* une molette de caractères) — ce plan,
+   écrit une semaine plus tard, ne l'avait pas croisée, et l'écart n'a été relevé que le 2026-09-05.
+   L'arbitrage est **en faveur de la roue** : #840 réglait un problème de **confort** (les quatre
+   champs qu'elle visait ont tous une autre voie), là où le code de partie est la **seule porte
+   d'entrée** du jeu en ligne. #840 est révisée sur son périmètre, pas annulée — voir **#913** et
+   `docs/decisions.md` § Révisé au Lot B1.
 5. **Salle d'attente** — l'écran de sélection d'équipe en mode réseau : encart de paramètres, code et
    « Copier », lignes distantes, « Prêt », bascule Humain ↔ IA réservée à l'hôte, sélecteur de format
    masqué. L'hôte change la carte en repassant par l'écran de terrain (la transition existe déjà dans
