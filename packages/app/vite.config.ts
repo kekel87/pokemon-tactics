@@ -141,7 +141,19 @@ if(navigator.sendBeacon&&navigator.sendBeacon(${JSON.stringify(TELEMETRY_ENDPOIN
 }
 
 export default defineConfig({
-  base: process.env.ITCH_DEPLOY ? "./" : process.env.GITHUB_ACTIONS ? "/pokemon-tactics/" : "/",
+  /*
+   * `/pokemon-tactics/` est le chemin des GitHub Pages, déduit de `GITHUB_ACTIONS`. Mais cette
+   * variable dit « je tourne sur un runner », pas « je construis pour les Pages » — et depuis que
+   * le harnais e2e construit l'application au lieu de servir le serveur de développement, il
+   * construit LUI AUSSI sur un runner, alors qu'il sert à la RACINE. La suite du 2026-09-05 l'a
+   * montré : les pages se chargeaient (vite preview redirige) mais un `fetch` direct du manifeste
+   * tombait en 404. `VITE_E2E` tranche donc en premier — le harnais n'est jamais publié.
+   */
+  base: process.env.ITCH_DEPLOY
+    ? "./"
+    : process.env.GITHUB_ACTIONS && process.env.VITE_E2E !== "true"
+      ? "/pokemon-tactics/"
+      : "/",
   resolve: {
     tsconfigPaths: true,
   },
