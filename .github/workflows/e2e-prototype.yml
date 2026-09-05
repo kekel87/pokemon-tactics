@@ -143,3 +143,73 @@ jobs:
             test-results/
           retention-days: 5
           if-no-files-found: ignore
+
+  # ---------------------------------------------------------------------------
+  # La suite ENTIÈRE, découpée en tranches parallèles.
+  #
+  # La question que ça tranche : peut-on se passer de la vérification locale avant publication ?
+  # Le dépôt est public, donc les minutes de runner sont gratuites et illimitées, et le plan Free
+  # autorise 20 jobs simultanés — 8 tranches n'en approchent pas.
+  #
+  # SwiftShader, puisque c'est lui qui passe. `workers: 2` sur 4 vCPU : deux Chromium en rendu
+  # logiciel se partagent la machine sans se l'arracher.
+  # ---------------------------------------------------------------------------
+  full-suite:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: npx playwright install --with-deps chromium
+
+      - name: Tranche ${{ matrix.shard }}/8
+        env:
+          PT_GL: swiftshader
+          PT_E2E_WORKERS: "2"
+        # Rapport `blob` : le format prévu pour être recousu entre tranches par `merge-reports`.
+        run: npx playwright test --shard=${{ matrix.shard }}/8 --reporter=blob
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: blob-${{ matrix.shard }}
+          path: blob-report/
+          retention-days: 3
+          if-no-files-found: ignore
+
+  # Recoud les 8 rapports en un seul, pour qu'un échec se lise à un seul endroit.
+  rapport:
+    needs: full-suite
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - uses: actions/download-artifact@v5
+        with:
+          path: tranches
+          pattern: blob-*
+          merge-multiple: true
+
+      - run: npx playwright merge-reports --reporter=html tranches
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rapport-suite-complete
+          path: playwright-report/
+          retention-days: 7
