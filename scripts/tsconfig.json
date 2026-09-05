@@ -1,5 +1,6 @@
 {
   "//1": "Les scripts de la séquence d'intro (plan 194) n'étaient couverts par aucune cible : ni le tsconfig racine (packages/*/src + scenarios), ni e2e/tsconfig.json. Mille deux cents lignes hors de tout filet, relevé par la revue de code du 2026-08-28.",
+  "//3": "`lib` inclut DOM pour `webgl-probe.ts`, dont le `page.evaluate` s'exécute dans le navigateur et manipule canvas/WebGL. Les autres scripts n'en dépendent pas.",
   "//2": "`files` et non `include` à dessein : les scripts plus anciens (extract-sprites, pack-sprites, generate-golden-replay, extract-item-icons) ne passent pas `strict` aujourd'hui. Les inclure ici rendrait le gate rouge sur du code que ce chantier ne touche pas ; les corriger est un chantier à part, à ouvrir pour eux-mêmes. Tout nouveau script s'ajoute à cette liste.",
   "compilerOptions": {
     "strict": true,
@@ -7,7 +8,7 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "target": "ES2022",
-    "lib": ["ES2022"],
+    "lib": ["ES2022", "DOM"],
     "types": ["node"],
     "noEmit": true,
     "skipLibCheck": true,
@@ -21,6 +22,9 @@
     "build-intro-trailer.ts",
     "build-intro-gifs.ts",
     "build-release-assets.ts",
-    "telemetry-stats.ts"
+    "telemetry-stats.ts",
+    "e2e-affected.ts",
+    "e2e-status.ts",
+    "webgl-probe.ts"
   ]
 }

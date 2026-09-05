@@ -13,7 +13,7 @@
  * Les arguments de lancement sont ceux de `playwright.config.ts` (même arbitrage `PT_GL`), pour que
  * la sonde mesure exactement ce que la suite lancera.
  *
- * Usage : PT_GL=llvmpipe tsx scripts/webgl-probe.ts
+ * Usage : PT_GL=system tsx scripts/webgl-probe.ts   (ou PT_GL=swiftshader)
  * Sort en 1 si le contexte WebGL ne se crée pas du tout.
  */
 import { chromium } from "@playwright/test";
@@ -30,9 +30,7 @@ interface WebglIdentity {
 async function main(): Promise<void> {
   const args = config.use?.launchOptions?.args ?? [];
   process.stderr.write(
-    `\nwebgl-probe → PT_GL=${process.env.PT_GL ?? "(non défini)"}\n  arguments : ${
-      args.length > 0 ? args.join(" ") : "(aucun — GPU matériel)"
-    }\n`,
+    `\nwebgl-probe → PT_GL=${process.env.PT_GL ?? "(non défini)"}\n  arguments : ${args.join(" ")}\n`,
   );
 
   const browser = await chromium.launch({ args });

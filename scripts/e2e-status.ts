@@ -41,8 +41,28 @@ interface Run {
  * juste avant le message qui l'explique donnerait l'impression d'une panne.
  */
 function gh(args: string[]): string {
-  return execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  try {
+    return execFileSync("gh", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  } catch (error) {
+    const texte = String(error);
+    // Un outil lu à CHAQUE `/next` doit dire quoi faire, pas dérouler une pile d'appels.
+    if (/ENOENT/.test(texte)) {
+      throw new UsageError(
+        "`gh` n'est pas installé — c'est lui qui lit le verdict GitHub. Voir https://cli.github.com",
+      );
+    }
+    if (/auth login|not logged into|authentication/i.test(texte)) {
+      throw new UsageError("`gh` n'est pas authentifié — lance `gh auth login`.");
+    }
+    if (/dial tcp|no such host|network is unreachable|timeout/i.test(texte)) {
+      throw new UsageError("GitHub est injoignable — vérifie la connexion réseau.");
+    }
+    throw error;
+  }
 }
+
+/** Erreur à afficher telle quelle, sans pile d'appels : elle s'adresse à l'humain. */
+class UsageError extends Error {}
 
 /**
  * Rend `null` — et non une erreur — quand GitHub ne connaît pas encore le workflow. C'est l'état
@@ -99,19 +119,35 @@ function main(): void {
     return;
   }
 
-  const finished = runs.filter((run) => run.status === "completed");
   const running = runs.find((run) => run.status !== "completed");
+  /*
+   * `cancelled` n'est ni un succès ni un échec, et le compter comme rouge est une fausse alerte —
+   * exactement ce que ce script existe pour éviter. Le workflow pose `cancel-in-progress: true`,
+   * donc deux poussées rapprochées EN PRODUISENT couramment, et le rouge qui en résulterait
+   * n'aurait aucune tranche en échec à montrer : inexplicable, donc vite ignoré.
+   */
+  const finished = runs.filter(
+    (run) =>
+      run.status === "completed" && (run.conclusion === "success" || run.conclusion === "failure"),
+  );
+  const cancelled = runs.filter(
+    (run) => run.status === "completed" && run.conclusion === "cancelled",
+  ).length;
 
-  if (finished.length === 0) {
+  const latest = finished[0];
+  if (latest === undefined) {
     const message =
       running === undefined
-        ? "Suite e2e — aucune exécution trouvée, alors que le workflow existe. Déclenche-la : `gh workflow run e2e.yml`."
+        ? "Suite e2e — aucune exécution concluante trouvée. Déclenche-la : `gh workflow run e2e.yml`."
         : `Suite e2e — aucune exécution terminée ; une est EN COURS (${running.url})`;
-    process.stdout.write(`${message}\n`);
+    process.stdout.write(
+      wantsJson
+        ? `${JSON.stringify({ deployed: true, latest: null, running: running ?? null })}\n`
+        : `${message}\n`,
+    );
     return;
   }
 
-  const latest = finished[0];
   const green = latest.conclusion === "success";
 
   // La transition : la plus ancienne exécution consécutive à partager le verdict courant. C'est
@@ -140,6 +176,7 @@ function main(): void {
           latest,
           since: transition,
           running: running ?? null,
+          cancelled,
           failedJobs: green ? [] : failedJobs(latest.databaseId),
         },
         null,
@@ -187,6 +224,11 @@ function main(): void {
     );
   }
 
+  if (cancelled > 0) {
+    lines.push(
+      `   (${cancelled} exécution(s) annulée(s) ignorée(s) — poussées rapprochées, ni vert ni rouge)`,
+    );
+  }
   if (running !== undefined) {
     lines.push(`   ⏳ une exécution est en cours : ${running.url}`);
   }
@@ -194,4 +236,12 @@ function main(): void {
   process.stdout.write(lines.join("\n"));
 }
 
-main();
+try {
+  main();
+} catch (error) {
+  if (error instanceof UsageError) {
+    process.stderr.write(`\nSuite e2e — ${error.message}\n\n`);
+    process.exit(2);
+  }
+  throw error;
+}

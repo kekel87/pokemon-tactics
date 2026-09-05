@@ -9,7 +9,9 @@
  *   L3 full     — tout. Réservé au diff qu'on ne sait honnêtement pas scoper.
  *
  * Biais conservateur : tout doute → L3. Un faux positif coûte du temps ; un faux négatif cache une
- * régression → interdit. Le full reste obligatoire au /publish (filet, hors de ce script).
+ * régression → interdit. **Le filet exhaustif est la suite GitHub** (`.github/workflows/e2e.yml`,
+ * les 531 à chaque poussée vers `main` et chaque nuit), et `/publish` refuse de publier sur son
+ * rouge — ce n'est plus `/ci-gate slow`, qui reste le recours hors ligne.
  *
  * ⚠️ **Ce que la version d'avant le 2026-09-05 faisait vraiment** : elle n'avait qu'un cran
  * d'escalade, et il se déclenchait sur `packages/core/`, tout le rendu, toute l'UI, `packages/app/`,
@@ -75,8 +77,23 @@ function changedFiles(baseRef: string | undefined): string[] {
 
 // --- Classement des chemins -------------------------------------------------
 
+/**
+ * Fichiers racine qui ne produisent aucun octet livré : les toucher ne peut casser aucun écran.
+ * Sans cette liste, une ligne ajoutée à `.gitignore` faisait « chemin non classé → sûreté », donc
+ * les 531 tests (mesuré à la revue du 2026-09-05).
+ */
+const ROOT_NON_CODE = new Set([
+  ".gitignore",
+  ".gitattributes",
+  ".editorconfig",
+  ".npmrc",
+  ".nvmrc",
+  "LICENSE",
+  "renovate.json",
+]);
+
 const isNonCode = (f: string) =>
-  f.startsWith("docs/") || f.endsWith(".md") || f.startsWith(".claude/");
+  f.startsWith("docs/") || f.endsWith(".md") || f.startsWith(".claude/") || ROOT_NON_CODE.has(f);
 const isE2e = (f: string) => f.startsWith("e2e/");
 const isConfigBuild = (f: string) =>
   /(^|\/)(playwright\.config|vitest\.config|vite\.config)\.[cm]?tsx?$/.test(f) ||
@@ -147,8 +164,9 @@ const FAMILY_MATCHES: Readonly<Record<Family, (spec: string) => boolean>> = {
  * COUVERTURE paramétrée — le même chemin de câblage rejoué avec un identifiant différent, la
  * variation métier étant déjà tenue par les tests unitaires et d'intégration du core. Les rejouer à
  * chaque retouche de rendu coûtait ~10 min pour une information que le filet complet donne aussi.
- * Le filet complet reste donc la contrepartie NON NÉGOCIABLE de cet arbitrage : `slow` avant
- * publication. Si le filet complet cesse d'être joué, cette ligne doit être remise à `mechanics`.
+ * Le filet complet reste donc la contrepartie NON NÉGOCIABLE de cet arbitrage : **la suite
+ * GitHub**, dont `/publish` lit le verdict (`pnpm e2e:status`). Si elle cesse d'être jouée ou
+ * lue, cette ligne doit être remise à `mechanics`.
  */
 const SOURCE_TO_FAMILIES: ReadonlyArray<{
   readonly label: string;
@@ -301,8 +319,9 @@ function changedMoveIds(dataFiles: string[], baseRef: string | undefined): Chang
           ids.add(topKeyId);
           break;
         }
-        if (idField) {
-          ids.add(idField[1]);
+        const idFieldValue = idField?.[1];
+        if (idFieldValue !== undefined) {
+          ids.add(idFieldValue);
           break;
         }
       }
@@ -319,7 +338,10 @@ function parseConstBlocks(sandboxSource: string): Map<string, string> {
   const blockRe =
     /(?:export\s+)?const ([A-Za-z0-9_]+)\s*=([\s\S]*?)(?=\n(?:export\s+)?const |\n?$)/g;
   for (let m = blockRe.exec(sandboxSource); m !== null; m = blockRe.exec(sandboxSource)) {
-    blocks.set(m[1], m[2]);
+    const [, name, body] = m;
+    if (name !== undefined && body !== undefined) {
+      blocks.set(name, body);
+    }
   }
   return blocks;
 }
@@ -357,11 +379,23 @@ function configConstsForId(id: string, constBlocks: Map<string, string>): string
   return [...carrying];
 }
 
-/** Specs combat référençant l'id — directement, ou via une constante de config (spreads inclus). */
-function specsForId(id: string, constBlocks: Map<string, string>): string[] {
-  const specFiles = git(["ls-files", `${COMBAT_GLOB}/*.spec.ts`])
+/**
+ * Les specs de combat, listés UNE fois. `specsForId` est appelé par identifiant changé — un
+ * re-tuning d'une dizaine de moves relançait donc `git ls-files` dix fois, et relisait chaque spec
+ * autant de fois.
+ */
+function combatSpecFiles(): string[] {
+  return git(["ls-files", `${COMBAT_GLOB}/*.spec.ts`])
     .split("\n")
     .filter(Boolean);
+}
+
+/** Specs combat référençant l'id — directement, ou via une constante de config (spreads inclus). */
+function specsForId(
+  id: string,
+  constBlocks: Map<string, string>,
+  specFiles: readonly string[],
+): string[] {
   const matched = new Set<string>();
   const directNeedle = `"${id}"`;
   const consts = configConstsForId(id, constBlocks);
@@ -450,22 +484,26 @@ function decide(baseRef: string | undefined): Decision {
    * script npm dans `package.json` déclenchait 6,4 minutes de e2e.
    *
    * ⚠️ Ça ne tient QUE tant que la suite asynchrone tourne et que son verdict est lu
-   * (`pnpm e2e:status`, en tête de `/next`). Si elle s'arrête, remettre `FULL_RUN` ici.
-   * Hors ligne, ou pour une certitude locale immédiate : `/ci-gate slow`.
+   * (`pnpm e2e:status`, en tête de `/next`). Si elle s'arrête, remettre `["tour", "dom",
+   * "combat", "visual", "mechanics"]` ici. Hors ligne, ou pour une certitude locale
+   * immédiate : `/ci-gate slow`.
    */
+  //
+  // 🔴 Ces familles s'AJOUTENT au reste du calcul, elles ne le remplacent pas. La version qui
+  // sortait ici par un `return` faisait qu'un `package.json` dans le diff RÉDUISAIT le périmètre :
+  // « toucher au moteur de combat » perdait ses specs de mécanique, et un spec e2e tout neuf
+  // n'était pas joué du tout, parce qu'on avait bumpé une dépendance dans le même lot (revue du
+  // 2026-09-05, les trois cas mesurés). Une escalade qui rétrécit le périmètre est un contresens.
   const configHits = files.filter(isConfigBuild);
-  if (configHits.length > 0) {
-    const broad = new Set<Family>(["tour", "dom", "combat", "visual"]);
-    return {
-      level: "affected",
-      reason: `config/build touché (${configHits[0]}) → large mais borné (les mécaniques restent au filet GitHub)`,
-      runs: [specsOfFamilies(broad)],
-    };
-  }
+  const configFamilies: readonly Family[] =
+    configHits.length > 0 ? ["tour", "dom", "combat", "visual"] : [];
 
   const codeFiles = files.filter((f) => !isNonCode(f));
   const e2eFiles = codeFiles.filter(isE2e);
-  const sourceFiles = codeFiles.filter((f) => !isE2e(f));
+  // Les fichiers de config sont déjà traités par `configFamilies` : les laisser passer dans la
+  // table les ferait classer « chemin non classé → sûreté », donc la suite entière — ce que la
+  // ligne précédente vient précisément d'éviter.
+  const sourceFiles = codeFiles.filter((f) => !isE2e(f) && !isConfigBuild(f));
 
   // Tuning de move : la piste la plus fine qu'on sache suivre — remonter du diff aux identifiants,
   // puis des identifiants aux specs qui les jouent. Réservée au cas où la data touchée n'est QUE
@@ -474,31 +512,39 @@ function decide(baseRef: string | undefined): Decision {
   const onlyMoveTuningData = dataFiles.length > 0 && dataFiles.every(isMoveTuningData);
   const otherSources = sourceFiles.filter((f) => !isData(f));
 
+  // Comme pour la configuration : quand la piste fine ne mène nulle part, on ÉLARGIT aux mécaniques
+  // sans jeter ce que le reste du diff impose. Un « suppression de move + retouche d'écran » doit
+  // jouer les mécaniques ET les écrans, pas seulement les premières.
   const targetedMoveSpecs = new Set<string>();
+  const moveFallbackFamilies = new Set<Family>();
+  let moveFallbackReason = "";
   if (onlyMoveTuningData) {
     const constBlocks = parseConstBlocks(readFileSync(SANDBOX_CONFIGS, "utf8"));
     const { ids, ambiguous } = changedMoveIds(dataFiles, baseRef);
+    const specFiles = combatSpecFiles();
+    const unmapped: string[] = [];
     if (ambiguous || ids.length === 0) {
-      return {
-        level: "full",
-        reason: ambiguous
-          ? "suppression de move détectée (non mappable) → fallback combat complet"
-          : "tuning data détecté mais aucun id de move extrait du diff → sûreté",
-        runs: [[COMBAT_GLOB, SMOKE_GLOB]],
-      };
+      moveFallbackReason = ambiguous
+        ? "suppression de move détectée (non mappable)"
+        : "tuning data détecté mais aucun id de move extrait du diff";
+    } else {
+      for (const id of ids) {
+        const specs = specsForId(id, constBlocks, specFiles);
+        if (specs.length === 0) {
+          unmapped.push(id);
+        }
+        for (const spec of specs) {
+          targetedMoveSpecs.add(spec);
+        }
+      }
+      if (unmapped.length > 0) {
+        moveFallbackReason = `move(s) sans spec e2e mappé (${unmapped.join(", ")})`;
+      }
     }
-    for (const id of ids) {
-      const specs = specsForId(id, constBlocks);
-      if (specs.length === 0) {
-        return {
-          level: "full",
-          reason: `move sans spec e2e mappé (${id}) → fallback combat complet`,
-          runs: [[COMBAT_GLOB, SMOKE_GLOB]],
-        };
-      }
-      for (const spec of specs) {
-        targetedMoveSpecs.add(spec);
-      }
+    if (moveFallbackReason !== "") {
+      moveFallbackFamilies.add("mechanics");
+      moveFallbackFamilies.add("combat");
+      targetedMoveSpecs.clear();
     }
   }
 
@@ -513,6 +559,18 @@ function decide(baseRef: string | undefined): Decision {
   }
   if (dataFamilies.length > 0) {
     labels.add("data (hors tuning de move)");
+  }
+  for (const family of configFamilies) {
+    families.add(family);
+  }
+  if (configHits.length > 0) {
+    labels.add(`config/build (${configHits[0]}) → large mais borné`);
+  }
+  for (const family of moveFallbackFamilies) {
+    families.add(family);
+  }
+  if (moveFallbackReason !== "") {
+    labels.add(`${moveFallbackReason} → repli mécaniques`);
   }
 
   if (unclassified.length > 0) {
@@ -534,6 +592,16 @@ function decide(baseRef: string | undefined): Decision {
   // Un spec e2e modifié se rejoue, quoi qu'en dise la table.
   for (const spec of e2eFiles.filter((f) => f.endsWith(".spec.ts"))) {
     selected.add(spec);
+  }
+
+  // Playwright lit une liste de chemins VIDE comme « toute la suite ». C'est la direction sûre,
+  // mais silencieuse : on croirait avoir ciblé alors qu'on lance tout. On le dit.
+  if (selected.size === 0) {
+    return {
+      level: "full",
+      reason: "aucun spec sélectionné (familles vides) → suite entière, par sûreté",
+      runs: [FULL_RUN],
+    };
   }
 
   // Fixture ou objet de page changé (pas un spec) : le graphe d'import de Playwright sait seul qui

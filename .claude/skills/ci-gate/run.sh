@@ -40,15 +40,21 @@ step() {
 #
 # La sortie du tour est mise de côté et n'est rejouée qu'en cas d'échec : sinon elle s'entrelacerait
 # avec celle de tsc, et un rapport illisible ne vaut pas mieux qu'une absence de rapport.
-E2E_TOUR_LOG="$(mktemp -t ci-gate-tour-XXXXXX.log)"
+E2E_TOUR_LOG="$(mktemp --tmpdir ci-gate-tour-XXXXXX.log)"
 E2E_TOUR_PID=""
 
 # Une étape qui échoue sort par `exit 1` depuis `step`, sans repasser par `await_screen_tour` : sans
 # ce filet, le tour survivrait au gate, garderait son navigateur ouvert et son serveur Vite en
 # arrière-plan. On ne tue QUE le process qu'on a lancé soi-même.
+#
+# 🔴 `-INT`, PAS le SIGTERM par défaut (revue du 2026-09-05, défaut prouvé). Le runner Playwright
+# n'installe un gestionnaire que pour SIGINT ; sur SIGTERM, Node meurt sans jouer ses handlers de
+# sortie et le `webServer` détaché SURVIT. Et l'orphelin est pire que lui-même : avec
+# `reuseExistingServer`, le gate suivant trouve le port qui répond, saute la commande — donc le
+# BUILD — et teste un bundle périmé. Un gate vert sur du code jamais recompilé.
 cleanup_screen_tour() {
   if [[ -n "$E2E_TOUR_PID" ]] && kill -0 "$E2E_TOUR_PID" 2>/dev/null; then
-    kill "$E2E_TOUR_PID" 2>/dev/null || true
+    kill -INT "$E2E_TOUR_PID" 2>/dev/null || true
     wait "$E2E_TOUR_PID" 2>/dev/null || true
   fi
   rm -f "$E2E_TOUR_LOG"
@@ -56,7 +62,10 @@ cleanup_screen_tour() {
 trap cleanup_screen_tour EXIT
 
 start_screen_tour() {
-  npx playwright test e2e/tests/smoke >"$E2E_TOUR_LOG" 2>&1 &
+  # Sous le même plafond noyau que toutes les autres entrées e2e : en `fast`, Chromium et le build
+  # tournent PENDANT que vitest sature des cœurs, donc c'est le moment où l'humain a le plus besoin
+  # que sa machine lui reste. Règle dure du 2026-08-25.
+  bash scripts/with-cpu-cap.sh npx playwright test e2e/tests/smoke >"$E2E_TOUR_LOG" 2>&1 &
   E2E_TOUR_PID=$!
   echo ""
   echo "▶ tour des écrans (en parallèle, PID $E2E_TOUR_PID)"
@@ -66,9 +75,12 @@ await_screen_tour() {
   [[ -n "$E2E_TOUR_PID" ]] || return 0
   echo ""
   echo "▶ tour des écrans — attente"
-  if wait "$E2E_TOUR_PID"; then
+  local pid="$E2E_TOUR_PID"
+  # Vidé AVANT d'attendre : une fois moissonné, le PID est libre d'être réattribué, et le trap
+  # tirerait alors sur un process quelconque de l'utilisateur.
+  E2E_TOUR_PID=""
+  if wait "$pid"; then
     tail -n 3 "$E2E_TOUR_LOG"
-    rm -f "$E2E_TOUR_LOG"
     return 0
   fi
   echo ""
@@ -78,14 +90,16 @@ await_screen_tour() {
   echo ""
   echo "CI VERDICT: fail — tour des écrans ($MODE)"
   echo "suggestion: /goal /ci-gate passes (CI VERDICT: pass), or stop after 15 turns"
-  rm -f "$E2E_TOUR_LOG"
   exit 1
 }
 
 case "$MODE" in
   fast)
-    start_screen_tour
+    # Le tour démarre APRÈS `lint:fix` : `biome check --write` réécrit les sources que le build du
+    # serveur de test est en train de lire. Le recouvrement utile (typecheck + vitest, la partie
+    # longue) est conservé.
     step "lint:fix"        pnpm lint:fix
+    start_screen_tour
     step "typecheck"       pnpm typecheck
     step "test"            pnpm test
     step "test:integration" pnpm test:integration

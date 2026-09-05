@@ -27,6 +27,30 @@ const SIGNALLING_PORT_OFFSET = 100;
 const signallingPort = port + SIGNALLING_PORT_OFFSET;
 
 /**
+ * Ce qui sert l'application aux tests : un BUILD, pas le serveur de développement.
+ *
+ * Mesuré le 2026-09-05, mêmes tests, même machine, même GPU — 50 tests de combat :
+ *
+ *   serveur de dev … 104 s          build servi …  42 s
+ *
+ * Et sur la suite entière : **24,3 min → 4,0 min**. Le coût dominant d'un test e2e n'était ni le
+ * moteur, ni l'assertion : c'était le `page.goto()`. En développement, Vite sert le graphe de
+ * modules NON BUNDLÉ — des centaines de requêtes par navigation, transformées à la volée, depuis un
+ * seul serveur que tous les workers se partagent. Chaque test rejouait ce péage. Le bundle, lui,
+ * tient en trois fichiers déjà transformés.
+ *
+ * Ça ne coûte presque rien à produire : rolldown reconstruit l'application en **611 ms**, donc le
+ * build fait partie du démarrage du serveur sans se voir.
+ *
+ * `PT_E2E_DEV=1` rend le serveur de développement, pour DÉBOGUER un test (rechargement à chaud,
+ * sources non minifiées, `--ui` / `--headed` confortables). Jamais pour mesurer : les chiffres
+ * ci-dessus ne valent que pour le build.
+ */
+const appServerCommand = process.env.PT_E2E_DEV
+  ? "pnpm --filter @pokemon-tactic/app dev"
+  : `pnpm --filter @pokemon-tactic/app build && pnpm --filter @pokemon-tactic/app exec vite preview --port ${port} --strictPort`;
+
+/**
  * Arguments Chromium sélectionnant le rasteriseur LOGICIEL, quand aucun GPU n'est disponible.
  *
  * Deux implémentations existent, et elles ne se valent pas :
@@ -63,36 +87,20 @@ const signallingPort = port + SIGNALLING_PORT_OFFSET;
  *                      avec `LIBGL_ALWAYS_SOFTWARE=1` (défaut local)
  *   - `swiftshader`  → Google, embarqué (défaut sous CI, comportement historique inchangé)
  */
-/**
- * Ce qui sert l'application aux tests : un BUILD, pas le serveur de développement.
- *
- * Mesuré le 2026-09-05, mêmes tests, même machine, même GPU — 50 tests de combat :
- *
- *   serveur de dev … 104 s          build servi …  42 s
- *
- * Et sur la suite entière : **24,3 min → 4,0 min**. Le coût dominant d'un test e2e n'était ni le
- * moteur, ni l'assertion : c'était le `page.goto()`. En développement, Vite sert le graphe de
- * modules NON BUNDLÉ — des centaines de requêtes par navigation, transformées à la volée, depuis un
- * seul serveur que tous les workers se partagent. Chaque test rejouait ce péage. Le bundle, lui,
- * tient en trois fichiers déjà transformés.
- *
- * Ça ne coûte presque rien à produire : rolldown reconstruit l'application en **611 ms**, donc le
- * build fait partie du démarrage du serveur sans se voir.
- *
- * `PT_E2E_DEV=1` rend le serveur de développement, pour DÉBOGUER un test (rechargement à chaud,
- * sources non minifiées, `--ui` / `--headed` confortables). Jamais pour mesurer : les chiffres
- * ci-dessus ne valent que pour le build.
- */
-const appServerCommand = process.env.PT_E2E_DEV
-  ? "pnpm --filter @pokemon-tactic/app dev"
-  : `pnpm --filter @pokemon-tactic/app build && pnpm --filter @pokemon-tactic/app exec vite preview --port ${port} --strictPort`;
-
 function rasterizerArgs(): string[] {
   const requested = process.env.PT_GL ?? (process.env.CI ? "swiftshader" : "system");
   if (requested === "swiftshader") {
     return ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"];
   }
-  return ["--use-gl=angle", "--use-angle=gl"];
+  if (requested === "system") {
+    return ["--use-gl=angle", "--use-angle=gl"];
+  }
+  // Refus explicite plutôt qu'un repli silencieux : tout le propos de ce réglage est que ces
+  // arguments échouent SANS RIEN DIRE. Une faute de frappe qui donnerait le rasteriseur par défaut
+  // ferait mesurer autre chose que ce qu'on croit mesurer — le piège exact qu'on cherche à éviter.
+  throw new Error(
+    `PT_GL="${requested}" inconnu — valeurs acceptées : "system" (pilote OpenGL du système) ou "swiftshader" (rasteriseur embarqué de Chromium).`,
+  );
 }
 
 export default defineConfig({
@@ -157,7 +165,16 @@ export default defineConfig({
     {
       command: appServerCommand,
       url: baseURL,
-      reuseExistingServer: !process.env.CI,
+      /*
+       * 🔴 On ne réutilise un serveur existant QUE s'il sert le développement.
+       *
+       * Réutiliser un `vite preview` déjà debout revient à sauter la commande — donc le BUILD — et
+       * à tester un bundle périmé, avec un vert qui ne prouve rien. C'est arrivé (revue du
+       * 2026-09-05) : un serveur orphelin d'un gate précédent répondait encore sur le port, et la
+       * suite suivante a passé sans jamais recompiler. Un serveur de développement, lui, transforme
+       * à la demande : le réutiliser est inoffensif, et c'est tout l'intérêt de `PT_E2E_DEV=1`.
+       */
+      reuseExistingServer: Boolean(process.env.PT_E2E_DEV),
       timeout: 120_000,
       // VITE_E2E unlocks the read-only scene-graph debug hook (stripped from prod builds). Il est
       // lu à la COMPILATION (`import.meta.env`), donc il doit être posé sur le build autant que sur

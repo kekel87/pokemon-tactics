@@ -1,5 +1,4 @@
-import { signallingPort } from "../../../playwright.config";
-import { expect, test } from "../../fixtures";
+import { expect, localSignalling, test } from "../../fixtures";
 import { CombatScene } from "../../pages/CombatScene";
 import { LobbyScreen, WaitingRoom } from "../../pages/lobby";
 import { MainMenu } from "../../pages/MainMenu";
@@ -14,15 +13,6 @@ import { BattleModeScreen, MapSelectScreen, TeamSelectScreen } from "../../pages
 // Le second scénario, lui, n'a qu'UN contexte : il se joue entièrement sur l'écran de l'hôte, seul
 // dans son salon. Il ne paie donc pas la négociation WebRTC — seulement l'annuaire, qui lui donne son
 // identité, donc son code.
-
-/**
- * L'annuaire local du harnais, jamais le service public : la suite ne dépend d'aucun tiers.
- *
- * `peerIce=off` coupe STUN/TURN — **propre au harnais**, et pas le défaut de `?peerPort=` : les deux
- * pairs sont ici sur la boucle locale, alors qu'un humain qui teste sur un annuaire local en a besoin
- * (Firefox refuse la négociation sans STUN, retour de recette du 2026-09-04).
- */
-const localSignalling = `?peerPort=${signallingPort}&peerIce=off`;
 
 /*
  * Plus long que les 60 s du projet `dom`, pour une raison propre à ce scénario : il fait DEUX

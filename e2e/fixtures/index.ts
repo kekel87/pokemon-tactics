@@ -1,5 +1,6 @@
 // Composable test fixtures (extend here as the suite grows — never raw `beforeEach`).
 import { test as base, expect } from "@playwright/test";
+import { signallingPort } from "../../playwright.config";
 import { CombatScene } from "../pages/CombatScene";
 import { CombatMenuOverlay } from "../pages/combat-menu";
 import { PlacementPhase } from "../pages/placement";
@@ -39,3 +40,16 @@ export const test = base.extend<CombatFixtures>({
 });
 
 export { expect };
+
+/**
+ * Chaîne de requête pointant l'annuaire de mise en relation LOCAL, celui que `playwright.config.ts`
+ * démarre — jamais le service public de PeerJS.
+ *
+ * Sans elle, tout écran qui touche au jeu en ligne ferait dépendre la suite d'un tiers sans
+ * engagement de service : une panne chez eux rendrait le gate rouge sans qu'une ligne de notre code
+ * ait bougé. `peerIce=off` coupe STUN/TURN, propre au harnais (les deux pairs sont sur la boucle
+ * locale) et volontairement PAS le défaut de `?peerPort=`, dont un humain qui teste a besoin.
+ *
+ * Ici plutôt que recopiée dans chaque spec : elle l'était déjà à deux endroits.
+ */
+export const localSignalling = `?peerPort=${signallingPort}&peerIce=off`;

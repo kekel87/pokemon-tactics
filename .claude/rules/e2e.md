@@ -55,8 +55,15 @@ playwright.config.ts
 
 ## Vitesse
 
-- **1 seul serveur Vite** : `webServer` + `reuseExistingServer: !process.env.CI` (réutilise le
-  `pnpm dev` local, démarrage propre en CI). Réutiliser le serveur de l'humain, jamais le kill.
+- **L'app est servie en BUILD, pas par le serveur de développement** — c'est le gain principal du
+  2026-09-05 (suite complète 24,3 min → 4,0 min, décision #921). En développement, Vite sert le
+  graphe de modules non bundlé : des centaines de requêtes transformées à la volée **par
+  navigation**, depuis un serveur partagé par tous les workers. `PT_E2E_DEV=1` rend le serveur de
+  dev, pour DÉBOGUER (rechargement à chaud, sources lisibles) — jamais pour mesurer.
+- 🔴 **`reuseExistingServer: Boolean(process.env.PT_E2E_DEV)`** — on ne réutilise QUE le serveur de
+  développement. Réutiliser un `vite preview` déjà debout revient à sauter la commande, donc le
+  BUILD, et à tester un bundle périmé : un vert qui ne prouve rien. C'est arrivé (revue du
+  2026-09-05, orphelin d'un gate précédent). Un serveur de dev, lui, transforme à la demande.
 - **Booter par config sandbox**, pas par clics de menu : entrer droit dans l'état voulu via
   `pnpm dev:sandbox`-équivalent / URL + JSON seedé. Amortit le boot.
 - **Grouper par `projects`** : `smoke` (gate rapide) → `combat` → `visual`. Lancer `smoke`
@@ -89,10 +96,19 @@ L'humain **travaille et joue sur cette machine pendant que la suite tourne**. Un
 
 ## Après avoir INTERROMPU une suite (piège vécu — 2026-09-02)
 
-Une suite tuée (`TaskStop`, SIGTERM, délai dépassé) laisse son serveur Vite **en train de mourir**,
-et `reuseExistingServer: !process.env.CI` est actif en local. Le run suivant, lancé aussitôt, voit le
-port encore tenu, en conclut qu'un serveur sain tourne, **ne démarre donc pas le sien** — puis
-l'ancien s'éteint et les 524 tests tombent d'un bloc en `net::ERR_CONNECTION_REFUSED`.
+**En grande partie désamorcé depuis le 2026-09-05** : `reuseExistingServer` ne vaut plus que sous
+`PT_E2E_DEV=1`, donc un run ordinaire démarre toujours son propre serveur et échoue franchement si
+le port est pris (`--strictPort`) au lieu d'hériter d'un moribond. Le piège reste décrit ici parce
+qu'il s'applique encore en mode débogage, et parce que sa signature vaut d'être reconnue.
+
+Une suite tuée (`TaskStop`, SIGTERM, délai dépassé) laisse son serveur Vite **en train de mourir**.
+Sous `PT_E2E_DEV=1`, le run suivant voit le port encore tenu, en conclut qu'un serveur sain tourne,
+**ne démarre donc pas le sien** — puis l'ancien s'éteint et les tests tombent d'un bloc en
+`net::ERR_CONNECTION_REFUSED`.
+
+🔴 **Tuer un run Playwright se fait avec `SIGINT`, pas `SIGTERM`** : le runner n'installe un
+gestionnaire que pour SIGINT. Sur SIGTERM, Node meurt sans jouer ses handlers de sortie et le
+`webServer` détaché SURVIT (mesuré à la revue du 2026-09-05).
 
 - **Signature à reconnaître** : *tous* les tests échouent, la plupart en **130-160 ms** (la page ne
   charge pas du tout), et le smoke de boot tombe en timeout. Ce n'est **jamais** une régression du
@@ -169,8 +185,13 @@ les autres projets utilisent. Une mise à jour de Playwright peut la laisser abs
   retransformait le graphe de modules à chaque navigation. Sans Vite, SwiftShader passe.
   **Mesa llvmpipe, la piste que la littérature donnait gagnante, n'obtient AUCUN contexte WebGL** —
   ni sur le runner, ni en local. Question tranchée le 2026-09-05 ; ne pas la rouvrir sans mesure.
-- `retries: process.env.CI ? 2 : 0` — sans effet utile maintenant (e2e hors CI) ; localement 0 retry
-  → un test qui ne passe qu'au retry est flaky, on corrige la cause (déterminisme manquant).
+- `retries: process.env.CI ? 2 : 0` — **localement 0 retry**, règle inchangée : un test qui ne
+  passe qu'au second essai est instable, et on corrige la cause (déterminisme manquant), on ne le
+  rejoue pas. ⚠️ **En revanche la suite GitHub, elle, rejoue 2 fois** depuis qu'elle existe
+  (2026-09-05) — ce qui MASQUE les instables que cette discipline veut voir. Assumé pour l'instant :
+  un runner partagé sous SwiftShader a une gigue réelle, et un rouge sur gigue ferait ignorer le
+  signal. À rouvrir si des tests instables passent au travers ; la vraie réponse serait une mise en
+  quarantaine (détecter, isoler, rejouer à part), pas un rejeu silencieux.
 - **Rasteriseur : `PT_GL` arbitre** (`playwright.config.ts`, fonction `rasterizerArgs`). 🔴 **Une
   liste d'arguments vide ne donne PAS le GPU** — Chromium headless retombe silencieusement sur
   SwiftShader. C'est ce que faisait ce projet : la suite locale tournait en rendu LOGICIEL sur une
@@ -186,7 +207,6 @@ les autres projets utilisent. Une mise à jour de Playwright peut la laisser abs
   `--use-angle=gl` demande le pilote OpenGL **du système** : Mesa sert le GPU s'il y en a un, et
   llvmpipe sinon (avec `LIBGL_ALWAYS_SOFTWARE=1`). **Toujours sonder avant de conclure** — ces
   arguments échouent en silence, et `--disable-gpu` réactive SwiftShader sans rien dire.
-- Artefacts en échec : `trace: 'on-first-retry'`, `video`/`screenshot` `on-failure`.
 - Artefacts en échec : `trace: 'on-first-retry'`, `video`/`screenshot` `on-failure`.
 
 ## Anti-patterns bannis

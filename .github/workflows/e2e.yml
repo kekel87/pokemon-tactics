@@ -63,8 +63,10 @@ jobs:
           # 2 sur 4 vCPU — deux Chromium en rendu logiciel se partagent la machine sans se
           # l'arracher. Mesuré : 66 tests par tranche en 1,8 à 4,0 min.
           PT_E2E_WORKERS: "2"
-        # Rapport `blob` : le format prévu pour être recousu entre tranches par `merge-reports`.
-        run: npx playwright test --shard=${{ matrix.shard }}/8 --reporter=blob
+        # Le rapport `blob` — le format que `merge-reports` sait recoudre — vient déjà de
+        # `playwright.config.ts`, qui le pose sous `CI`. Ne pas le redire ici : deux sources pour
+        # un même réglage finissent par diverger.
+        run: npx playwright test --shard=${{ matrix.shard }}/8
 
       - uses: actions/upload-artifact@v4
         if: always()

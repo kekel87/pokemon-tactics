@@ -1,5 +1,4 @@
-import { signallingPort } from "../../../playwright.config";
-import { expect, test } from "../../fixtures";
+import { expect, localSignalling, test } from "../../fixtures";
 import { LobbyScreen } from "../../pages/lobby";
 import { MainMenu } from "../../pages/MainMenu";
 import {
@@ -16,12 +15,11 @@ import { MyTeamsScreen, TeamEditScreen } from "../../pages/teamBuilder";
  * Tour des écrans — le PLANCHER de la boucle d'itération : le plus d'écrans possible dans le moins
  * de temps possible.
  *
- * Pourquoi un seul test plutôt que dix : les écrans sont du DOM pur, et le coût dominant d'un test
- * e2e ici n'est pas l'assertion mais le `page.goto()` — le serveur Vite re-sert tout le graphe de
- * modules non bundlé, et le splash retélécharge le bundle de sprites. Dix tests = dix fois ce péage
- * pour vérifier des écrans qui sont, de toute façon, les étapes d'un même parcours. Un seul
- * chargement les visite tous, et **teste la navigation au passage** : chaque « Retour » et chaque
- * Échap est une assertion gratuite qu'un test par écran ne ferait pas.
+ * Pourquoi un seul test plutôt que dix : le coût dominant n'est pas l'assertion mais le
+ * `page.goto()` — contexte de navigateur neuf, splash qui retélécharge le bundle de sprites. Dix
+ * tests = dix fois ce péage pour vérifier des écrans qui sont, de toute façon, les étapes d'un même
+ * parcours. Un seul chargement les visite tous, et **teste la navigation au passage** : chaque
+ * « Retour » et chaque Échap est une assertion gratuite qu'un test par écran ne ferait pas.
  *
  * Le prix de ce choix — un échec arrête le tour et masque les écrans suivants — est payé par
  * `test.step` : le rapport nomme l'étape fautive, et les étapes franchies restent lisibles.
@@ -31,17 +29,9 @@ import { MyTeamsScreen, TeamEditScreen } from "../../pages/teamBuilder";
  * `combat/driving.spec.ts` (attaque, K.O., match nul, annulation de déplacement).
  */
 
-/*
- * Le tour visite le salon en ligne, dont le montage a besoin d'un annuaire de mise en relation.
- * Sans ce paramètre, l'écran viserait le service PUBLIC de PeerJS : la suite dépendrait alors d'un
- * tiers sans engagement de service, et une panne chez eux rendrait le plancher rouge sans qu'une
- * ligne de notre code ait bougé. On pointe l'annuaire local que `playwright.config.ts` démarre.
- */
-const localSignalling = `?peerPort=${signallingPort}&peerIce=off`;
-
 // Dix écrans en un seul test dépassent le défaut de 30 s du projet `smoke` sous charge (chaque
-// transition est un démontage/remontage d'écran). Mesuré très en dessous isolé ; la marge absorbe
-// la file d'attente du serveur Vite quand la suite entière tourne.
+// transition est un démontage/remontage d'écran). Mesuré à ~2 s isolé ; la marge absorbe la
+// contention quand la suite entière tourne.
 test.setTimeout(60_000);
 
 test("tour des écrans : les 10 écrans DOM montent et la navigation revient", async ({ page }) => {
@@ -59,6 +49,9 @@ test("tour des écrans : les 10 écrans DOM montent et la navigation revient", a
   await test.step("1. menu principal", async () => {
     await menu.goto(localSignalling);
     await expect(menu.title).toBeVisible();
+    // Comptages en dur ASSUMÉS, ici et pour les cartes : ce tour est joué à chaque gate, donc
+    // ajouter une entrée de menu ou une carte le fera virer au rouge. C'est voulu — c'est aussi de
+    // la couverture, et un écran qui gagne ou perd une entrée mérite qu'on le décide sciemment.
     await expect(menu.entries).toHaveCount(5);
     await expect(menu.adventure).toBeDisabled();
     await expect(menu.version).toBeVisible();
