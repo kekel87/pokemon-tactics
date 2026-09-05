@@ -4,7 +4,11 @@ description: Lit docs/next.md (agenda persistant), STATUS, roadmap et plan en co
 user-invocable: true
 ---
 
-Lis dans cet ordre :
+**D'abord** : `pnpm e2e:status` — la suite e2e complète tourne en asynchrone sur GitHub et ne
+bloque plus rien, donc personne ne voit son verdict si on ne le lit pas. Rouge → tu le dis en
+premier, avant l'agenda. Détail dans le skill `/e2e-status`.
+
+Lis ensuite dans cet ordre :
 
 1. **`docs/next.md`** — agenda persistant (à faire / reporté / fait récemment)
 2. `STATUS.md` — état actuel du projet

@@ -20,6 +20,7 @@
     "test:e2e:smoke": "bash scripts/with-cpu-cap.sh playwright test --project=smoke",
     "test:e2e:affected": "bash scripts/with-cpu-cap.sh tsx scripts/e2e-affected.ts",
     "test:e2e:ui": "playwright test --ui",
+    "e2e:status": "tsx scripts/e2e-status.ts",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "typecheck": "pnpm -r --parallel run typecheck && pnpm typecheck:scenarios && pnpm typecheck:e2e && pnpm typecheck:scripts",

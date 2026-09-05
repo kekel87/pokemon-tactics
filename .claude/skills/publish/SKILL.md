@@ -26,7 +26,12 @@ Un subagent ne peut ni poser de question à l'humain ni lancer d'autres agents. 
 **Phase 1 — agent `publisher` (préparation)** :
 1. **Compile changelog** depuis `git log <last_tag>..HEAD` + plans associés (format joueur : What's New / Improvements / Bug Fixes — **jamais de section « Distribution »**)
 2. **CI gate full** (`bash .claude/skills/ci-gate/run.sh full`) — BLOQUANT
-3. **Rapporte** tag proposé + changelog + résultat CI, puis s'arrête
+3. **Verdict de la suite e2e asynchrone** (`pnpm e2e:status`) — 🔴 **BLOQUANT si rouge.** Depuis le
+   2026-09-05 (décisions #924-925), les 531 tests ne tournent plus avant publication : ils tournent
+   sur GitHub à chaque `push` vers `main` et chaque nuit, sans bloquer. C'est la contrepartie de les
+   avoir sortis du chemin bloquant — leur verdict compte toujours, il se lit juste ici. Rouge → on
+   ne publie pas, on corrige d'abord.
+4. **Rapporte** tag proposé + changelog + résultat CI + verdict e2e, puis s'arrête
 
 **Validation (main loop)** : affiche le rapport, `AskUserQuestion` — l'humain confirme/override tag + changelog. Refus → stop.
 - 🔴 **LANGUE = ANGLAIS.** Le changelog GitHub ET le devlog itch sont **en anglais** (audience internationale itch/GitHub). NE PAS les traduire en FR. La règle « noms FR officiels » ne concerne QUE la communication chat avec l'humain, PAS les artefacts publiés. Quand tu présentes le changelog pour validation, colle-le **verbatim en anglais** — ne le résume/reformule/traduis pas en FR (une présentation FR a déjà induit une sur-correction erronée).

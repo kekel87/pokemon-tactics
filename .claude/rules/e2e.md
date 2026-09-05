@@ -152,13 +152,23 @@ les autres projets utilisent. Une mise à jour de Playwright peut la laisser abs
 
 ## Où tourne le harness
 
-- **Gate local uniquement** (`/ci-gate full` → étape `e2e` = `pnpm test:e2e`). **PAS en CI GitHub** :
-  le rendu Babylon (WebGL) est instable en CI headless ubuntu (même avec SwiftShader → tous les
-  tests combat timeout). La CI garde lint/typecheck/build/test/test:integration ; l'e2e est validé
-  en local avant commit. **Cause chiffrée (2026-09-05)** : SwiftShader consomme ~999 % de CPU sur
-  une charge 3D soutenue (≈10 cœurs pour un onglet) et le runner GitHub gratuit en a 4 — le budget
-  est dépassé par construction, ce n'est pas une fatalité du WebGL headless. Piste jamais essayée :
-  Mesa llvmpipe. Prototype de mesure : `.github/workflows/e2e-prototype.yml`.
+- **Deux endroits, deux rôles** (depuis le 2026-09-05, décision #924) :
+  - **En local, bloquant et rapide** — `/ci-gate fast` (43 s) joue le **tour des écrans** en
+    parallèle des vérifications statiques ; `/ci-gate full` joue `e2e:affected`.
+  - **Sur GitHub, asynchrone et complet** — `.github/workflows/e2e.yml` : les 531 tests en
+    8 tranches, **4 min 48 s de mur**, sur `push` vers `main`, une fois par nuit, ou à la main. Ne
+    bloque **jamais**. Son verdict se lit par `pnpm e2e:status` (skill `/e2e-status`), qui signale
+    les **transitions** vert↔rouge — une suite asynchrone qu'on laisse rouge cesse d'être un filet.
+  - 🔴 **Pas de `/publish` si la dernière exécution est rouge.** C'est la contrepartie d'avoir sorti
+    la suite complète du chemin bloquant.
+- **Ce qui a débloqué la CI**, et ce n'est pas ce qu'on croyait : le harnais sert un **build** au
+  lieu du serveur de développement. L'ancienne conclusion — « rendu Babylon instable en CI headless
+  ubuntu, même avec SwiftShader → tous les tests combat timeout » — était juste sur les faits et
+  fausse sur la cause. Le runner n'a que **4 vCPU**, et il devait les partager entre Chromium en
+  rendu logiciel (SwiftShader coûte ~999 % de CPU sur une charge 3D, soit ~10 cœurs) **et** Vite qui
+  retransformait le graphe de modules à chaque navigation. Sans Vite, SwiftShader passe.
+  **Mesa llvmpipe, la piste que la littérature donnait gagnante, n'obtient AUCUN contexte WebGL** —
+  ni sur le runner, ni en local. Question tranchée le 2026-09-05 ; ne pas la rouvrir sans mesure.
 - `retries: process.env.CI ? 2 : 0` — sans effet utile maintenant (e2e hors CI) ; localement 0 retry
   → un test qui ne passe qu'au retry est flaky, on corrige la cause (déterminisme manquant).
 - **Rasteriseur : `PT_GL` arbitre** (`playwright.config.ts`, fonction `rasterizerArgs`). 🔴 **Une
