@@ -437,14 +437,29 @@ function decide(baseRef: string | undefined): Decision {
     return { level: "smoke", reason: "diff non-code (docs/config .claude)", runs: [SMOKE_RUN] };
   }
 
-  // Config/build : le graphe d'import ne dit rien d'utile (un `tsconfig` ou un verrou de
-  // dépendances peut tout changer sous les pieds). Seule escalade `full` conservée.
+  /*
+   * Config/build : le graphe d'import ne dit rien d'utile — un `tsconfig` ou un verrou de
+   * dépendances peut tout changer sous les pieds. On lance donc LARGE, mais BORNÉ : le tour des
+   * écrans, les specs `dom`, le combat hors mécaniques, et le visuel.
+   *
+   * Pourquoi plus « tout » (2026-09-05, décision #926) : cette escalade datait d'un monde où le
+   * filet exhaustif n'existait qu'en local. Depuis, les 531 tournent sur GitHub à chaque poussée
+   * vers `main` et chaque nuit (`.github/workflows/e2e.yml`, ~5 min, sans bloquer personne).
+   * Rejouer les 531 EN LOCAL « au cas où » refait à la main ce qu'une machine gratuite fait déjà —
+   * et c'est exactement ce qui a rendu ce sélecteur inutile pendant des mois : un simple ajout de
+   * script npm dans `package.json` déclenchait 6,4 minutes de e2e.
+   *
+   * ⚠️ Ça ne tient QUE tant que la suite asynchrone tourne et que son verdict est lu
+   * (`pnpm e2e:status`, en tête de `/next`). Si elle s'arrête, remettre `FULL_RUN` ici.
+   * Hors ligne, ou pour une certitude locale immédiate : `/ci-gate slow`.
+   */
   const configHits = files.filter(isConfigBuild);
   if (configHits.length > 0) {
+    const broad = new Set<Family>(["tour", "dom", "combat", "visual"]);
     return {
-      level: "full",
-      reason: `config/build touché (${configHits[0]}) → non scopable`,
-      runs: [FULL_RUN],
+      level: "affected",
+      reason: `config/build touché (${configHits[0]}) → large mais borné (les mécaniques restent au filet GitHub)`,
+      runs: [specsOfFamilies(broad)],
     };
   }
 
