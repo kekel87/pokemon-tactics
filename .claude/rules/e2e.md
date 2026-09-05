@@ -155,11 +155,28 @@ les autres projets utilisent. Une mise à jour de Playwright peut la laisser abs
 - **Gate local uniquement** (`/ci-gate full` → étape `e2e` = `pnpm test:e2e`). **PAS en CI GitHub** :
   le rendu Babylon (WebGL) est instable en CI headless ubuntu (même avec SwiftShader → tous les
   tests combat timeout). La CI garde lint/typecheck/build/test/test:integration ; l'e2e est validé
-  en local avant commit.
+  en local avant commit. **Cause chiffrée (2026-09-05)** : SwiftShader consomme ~999 % de CPU sur
+  une charge 3D soutenue (≈10 cœurs pour un onglet) et le runner GitHub gratuit en a 4 — le budget
+  est dépassé par construction, ce n'est pas une fatalité du WebGL headless. Piste jamais essayée :
+  Mesa llvmpipe. Prototype de mesure : `.github/workflows/e2e-prototype.yml`.
 - `retries: process.env.CI ? 2 : 0` — sans effet utile maintenant (e2e hors CI) ; localement 0 retry
   → un test qui ne passe qu'au retry est flaky, on corrige la cause (déterminisme manquant).
-- WebGL local : `launchOptions.args` force SwiftShader (`--use-gl=angle --use-angle=swiftshader
-  --enable-unsafe-swiftshader`) — rendu logiciel déterministe, inoffensif sur machine avec GPU.
+- **Rasteriseur : `PT_GL` arbitre** (`playwright.config.ts`, fonction `rasterizerArgs`). 🔴 **Une
+  liste d'arguments vide ne donne PAS le GPU** — Chromium headless retombe silencieusement sur
+  SwiftShader. C'est ce que faisait ce projet : la suite locale tournait en rendu LOGICIEL sur une
+  machine équipée d'une Radeon RX 7900 XT inutilisée. Sondé le 2026-09-05 avec
+  `scripts/webgl-probe.ts`, qui lit `WEBGL_debug_renderer_info` et dit quel rasteriseur a
+  réellement été pris :
+
+  | `PT_GL` | arguments | rasteriseur obtenu ici |
+  |---|---|---|
+  | `system` (défaut local) | `--use-gl=angle --use-angle=gl` | ANGLE (AMD, Radeon RX 7900 XT, OpenGL 4.6) |
+  | `swiftshader` (défaut CI) | `--use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader` | ANGLE (Google, SwiftShader) |
+
+  `--use-angle=gl` demande le pilote OpenGL **du système** : Mesa sert le GPU s'il y en a un, et
+  llvmpipe sinon (avec `LIBGL_ALWAYS_SOFTWARE=1`). **Toujours sonder avant de conclure** — ces
+  arguments échouent en silence, et `--disable-gpu` réactive SwiftShader sans rien dire.
+- Artefacts en échec : `trace: 'on-first-retry'`, `video`/`screenshot` `on-failure`.
 - Artefacts en échec : `trace: 'on-first-retry'`, `video`/`screenshot` `on-failure`.
 
 ## Anti-patterns bannis

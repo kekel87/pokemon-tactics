@@ -17,7 +17,21 @@ Lance (tier passé en argument, défaut `full`) :
 bash .claude/skills/ci-gate/run.sh ${ARGUMENTS:-full}
 ```
 
-Tiers : `fast` = lint:fix → typecheck → test · `full` = + build + test:integration + **e2e `affected`** (niveau choisi d'après le diff, cf plan 170 : L1 smoke / L2 affected / L3 full, escalade auto si cross-cutting) · `slow` = + test:all (scenario) + **e2e `full`** (les 349, filet pré-release).
+Tiers :
+
+| Tier | Contenu | Budget |
+|---|---|---|
+| `fast` | lint:fix → typecheck → test → test:integration, **avec le tour des écrans lancé en parallèle** (`e2e/tests/smoke`) | **boucle d'itération** |
+| `full` | + build + test:scenario + **e2e `affected`** (niveau choisi d'après le diff : L1 smoke / L2 affected / L3 full) | point de contrôle |
+| `slow` | + test:all (scenario) + **e2e complet** (les 531) | filet pré-release |
+
+`fast` superpose le tour des écrans aux vérifications statiques : le tour attend un navigateur
+pendant que lint/typecheck/vitest prennent des cœurs, donc les deux attentes se recouvrent au lieu
+de s'additionner. Un échec du tour arrête le gate comme n'importe quelle étape.
+
+Depuis le 2026-09-05, `affected` route par **famille de code → famille de specs** au lieu de
+n'avoir qu'un cran « je ne sais pas scoper → je lance tout » : toucher au salon en ligne ne rejoue
+plus les 218 specs de mécanique. Le tour des écrans est le plancher, toujours joint.
 
 `pnpm lint:fix` peut modifier des fichiers (autofix Biome) — c'est attendu, ne les revert pas.
 

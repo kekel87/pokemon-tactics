@@ -1,0 +1,145 @@
+# Prototype MESURÉ — l'e2e Playwright peut-il tourner sur un runner GitHub sans GPU ?
+#
+# Contexte : l'e2e est aujourd'hui local-only. La décision d'alors — « rendu Babylon (WebGL)
+# instable en CI headless ubuntu (même avec SwiftShader → tous les tests combat timeout) » — a une
+# cause chiffrée : SwiftShader consomme ~999 % de CPU sur une charge 3D soutenue (≈10 cœurs pour un
+# onglet) et le runner GitHub gratuit en a 4. Le budget est dépassé par construction.
+#
+# Mesa llvmpipe, jamais essayé ici, mesure ~4× moins cher sur du 3D chez des tiers. Ce workflow ne
+# le SUPPOSE pas : il lance les DEUX rasteriseurs sur le MÊME runner, sur les MÊMES tests, et
+# compare. Une sonde WebGL confirme d'abord lequel Chromium a réellement pris — les arguments de
+# sélection échouent en silence, et sans elle on peut mesurer deux fois SwiftShader.
+#
+# Depuis le 2026-09-05, le harnais sert un BUILD au lieu du serveur de développement (voir
+# `playwright.config.ts`). Ça compte doublement ici : le runner n'a plus à faire tourner Vite en
+# transformation à la volée pendant que Chromium rame, donc le budget CPU du runner est bien moins
+# tendu que celui de la décision d'origine. Le prototype mesure le monde d'aujourd'hui, pas celui
+# qui avait conclu à l'échec.
+#
+# Jetable par construction : lancé au push de sa propre branche (ou à la main), ne bloque rien, ne
+# touche à aucun autre workflow. À supprimer une fois la question tranchée.
+name: e2e — prototype rasteriseur
+
+on:
+  # `workflow_dispatch` n'est déclenchable QUE si le fichier existe déjà sur la branche par défaut.
+  # Tant que ce prototype vit sur sa branche, c'est donc le push qui le lance — sinon il faudrait
+  # d'abord fusionner dans `main` un workflow dont on ignore encore s'il fonctionne.
+  push:
+    branches: [perf/e2e-gate-speedup]
+  workflow_dispatch:
+    inputs:
+      specs:
+        description: "Specs à mesurer (chemins Playwright, séparés par des espaces ; vide = toute la suite)"
+        required: false
+        default: "e2e/tests/smoke e2e/tests/combat/mechanics-status.spec.ts"
+      workers:
+        description: "Workers Playwright par run (1 = mesure propre du coût unitaire)"
+        required: false
+        default: "1"
+
+# Un push qui suit de près le précédent annule la mesure en cours : elle serait de toute façon
+# périmée, et deux mesures concurrentes se disputeraient les runners.
+concurrency:
+  group: e2e-prototype-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  rasterizer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      # Les deux jambes doivent rendre leur chiffre même si l'autre échoue : c'est une comparaison,
+      # pas un gate. Un échec de SwiftShader est d'ailleurs un RÉSULTAT attendu.
+      fail-fast: false
+      matrix:
+        gl: [swiftshader, llvmpipe]
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Contexte machine (le budget CPU est le cœur du sujet)
+        run: |
+          echo "vCPU : $(nproc)"
+          free -h | sed -n '1,2p'
+
+      - name: Chromium + dépendances système
+        run: npx playwright install --with-deps chromium
+
+      # Mesa n'est PAS embarqué dans Chromium (SwiftShader l'est). Sans ces paquets,
+      # `--use-angle=gl` retombe silencieusement sur le rasteriseur interne — la sonde le dirait.
+      - name: Paquets Mesa (llvmpipe uniquement)
+        if: matrix.gl == 'llvmpipe'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libgl1-mesa-dri libglx-mesa0 libegl-mesa0 mesa-utils xvfb
+
+      # Mesa sert le pilote OpenGL du système par une surface EGL ; sur un runner sans écran, un
+      # serveur X virtuel est le chemin le mieux attesté. SwiftShader, lui, n'en a pas besoin.
+      - name: Sonde WebGL — quel rasteriseur a été RÉELLEMENT pris ?
+        env:
+          PT_GL: ${{ matrix.gl }}
+          LIBGL_ALWAYS_SOFTWARE: ${{ matrix.gl == 'llvmpipe' && '1' || '' }}
+        run: |
+          if [ "${{ matrix.gl }}" = "llvmpipe" ]; then
+            xvfb-run -a npx tsx scripts/webgl-probe.ts
+          else
+            npx tsx scripts/webgl-probe.ts
+          fi
+
+      - name: Mesure — ${{ matrix.gl }}
+        id: measure
+        continue-on-error: true
+        env:
+          PT_GL: ${{ matrix.gl }}
+          PT_E2E_WORKERS: ${{ inputs.workers || '1' }}
+          LIBGL_ALWAYS_SOFTWARE: ${{ matrix.gl == 'llvmpipe' && '1' || '' }}
+          SPECS: ${{ inputs.specs || 'e2e/tests/smoke e2e/tests/combat/mechanics-status.spec.ts' }}
+        run: |
+          start=$(date +%s)
+          set +e
+          if [ "${{ matrix.gl }}" = "llvmpipe" ]; then
+            xvfb-run -a npx playwright test $SPECS --reporter=list
+          else
+            npx playwright test $SPECS --reporter=list
+          fi
+          status=$?
+          set -e
+          echo "duration=$(( $(date +%s) - start ))" >> "$GITHUB_OUTPUT"
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Verdict
+        run: |
+          {
+            echo "### Rasteriseur \`${{ matrix.gl }}\`"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Specs | \`${{ inputs.specs || 'échantillon par défaut' }}\` |"
+            echo "| Workers | ${{ inputs.workers || '1' }} |"
+            echo "| Durée | **${{ steps.measure.outputs.duration }} s** |"
+            echo "| Résultat | ${{ steps.measure.outputs.status == '0' && '✅ vert' || format('❌ échec (code {0})', steps.measure.outputs.status) }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rapport-${{ matrix.gl }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 5
+          if-no-files-found: ignore

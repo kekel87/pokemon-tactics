@@ -3,13 +3,19 @@
  * e2e-affected — choisit le NIVEAU de suite e2e à lancer d'après le diff git, et lance Playwright.
  *
  * 3 niveaux (plan 170) :
- *   L1 smoke    — `--project=smoke` (boot + nav). Plancher.
- *   L2 affected — sous-ensemble calculé du diff (specs e2e changés, ou combat specs référençant un
- *                 move re-tuné). Défaut au commit.
- *   L3 full     — tout. Escalade auto dès que le diff est cross-cutting (non scopable sûrement).
+ *   L1 smoke    — le tour des écrans. Plancher, joint à TOUS les niveaux.
+ *   L2 affected — sous-ensemble calculé du diff, par correspondance famille de code → famille de
+ *                 specs (voir `SOURCE_TO_FAMILIES`), plus la piste fine du tuning de move.
+ *   L3 full     — tout. Réservé au diff qu'on ne sait honnêtement pas scoper.
  *
  * Biais conservateur : tout doute → L3. Un faux positif coûte du temps ; un faux négatif cache une
  * régression → interdit. Le full reste obligatoire au /publish (filet, hors de ce script).
+ *
+ * ⚠️ **Ce que la version d'avant le 2026-09-05 faisait vraiment** : elle n'avait qu'un cran
+ * d'escalade, et il se déclenchait sur `packages/core/`, tout le rendu, toute l'UI, `packages/app/`,
+ * un `package.json` ou un `tsconfig`. Comme une séance de travail touche presque toujours l'un
+ * d'eux, le niveau EFFECTIF était « les 531, toujours » — les 24 minutes que le gate coûtait. La
+ * table de correspondance est la moitié qui manquait, pas un raffinement.
  *
  * Usage :
  *   tsx scripts/e2e-affected.ts [baseRef] [--print] [--level=smoke|affected|full]
@@ -78,9 +84,6 @@ const isConfigBuild = (f: string) =>
   /(^|\/)pnpm-lock\.yaml$/.test(f) ||
   /(^|\/)tsconfig[^/]*\.json$/.test(f) ||
   /(^|\/)biome\.jsonc?$/.test(f);
-const isCore = (f: string) => f.startsWith("packages/core/") && !f.endsWith(".test.ts");
-const isRenderOrUi = (f: string) =>
-  /^packages\/(render-[^/]+|renderer|render-ports|ui-dom|view-core|app)\//.test(f);
 /** Data confiné au tuning de move : overrides tactiques + JSON de référence moves/abilities. */
 const isMoveTuningData = (f: string) =>
   f === "packages/data/src/overrides/tactical.ts" ||
@@ -88,6 +91,143 @@ const isMoveTuningData = (f: string) =>
   f === "packages/data/reference/moves.json" ||
   f === "packages/data/reference/abilities.json";
 const isData = (f: string) => f.startsWith("packages/data/");
+
+// --- Familles de specs ------------------------------------------------------
+
+/**
+ * Le sélecteur n'avait qu'UN cran d'escalade : « je ne sais pas scoper → je lance tout ». Comme le
+ * cœur du jeu (`core`, `app`, rendu, UI) bouge à presque chaque séance, la branche L2 ne se
+ * déclenchait quasiment jamais et le niveau réel était « les 531, toujours » — 24 minutes.
+ *
+ * La moitié manquante est ici : une correspondance **famille de code → famille de specs**, pour que
+ * toucher au salon en ligne ne rejoue pas les 218 specs de mécanique, et réciproquement.
+ */
+type Family = "tour" | "dom" | "mechanics" | "combat" | "visual" | "online" | "input";
+
+/**
+ * Specs de saisie — elles chevauchent `combat` et `dom`, donc elles sont nommées une par une
+ * plutôt que déduites d'un dossier.
+ */
+const INPUT_SPEC_NAMES = new Set([
+  "e2e/tests/combat/keyboard-controls.spec.ts",
+  "e2e/tests/combat/touch-controls.spec.ts",
+  "e2e/tests/combat/input-prompt-glyph.spec.ts",
+  "e2e/tests/combat/controls-remapping.spec.ts",
+  "e2e/tests/combat/camera-pan-keyboard.spec.ts",
+  "e2e/tests/combat/chrome-key-hints.spec.ts",
+  "e2e/tests/combat/compass-and-legend.spec.ts",
+  "e2e/tests/dom/gamepad-menus.spec.ts",
+  "e2e/tests/dom/gamepad-pickers.spec.ts",
+  "e2e/tests/dom/screen-keyboard.spec.ts",
+  "e2e/tests/dom/controls-remapping.spec.ts",
+]);
+
+const isMechanicsSpec = (spec: string) => spec.startsWith(`${COMBAT_GLOB}/mechanics-`);
+
+const FAMILY_MATCHES: Readonly<Record<Family, (spec: string) => boolean>> = {
+  // Le plancher : le tour des écrans + le splash. Toujours joint, quoi qu'ait touché le diff.
+  tour: (spec) => spec.startsWith(`${SMOKE_GLOB}/`),
+  dom: (spec) => spec.startsWith("e2e/tests/dom/"),
+  visual: (spec) => spec.startsWith("e2e/tests/visual/"),
+  mechanics: isMechanicsSpec,
+  // « combat sans les mécaniques » : interface de combat, caméra, placement, scène, aperçu…
+  combat: (spec) => spec.startsWith(`${COMBAT_GLOB}/`) && !isMechanicsSpec(spec),
+  online: (spec) => spec.endsWith("online-lobby.spec.ts"),
+  input: (spec) => INPUT_SPEC_NAMES.has(spec),
+};
+
+/**
+ * Correspondance chemin de source → familles de specs à rejouer. Premier motif qui matche gagne ;
+ * un fichier qui ne matche AUCUNE règle fait escalader en `full` (le biais conservateur d'origine
+ * est conservé : un faux négatif cacherait une régression).
+ *
+ * ⚠️ **Arbitrage assumé sur le rendu** (2026-09-05) : un changement de `render-*` / `view-core`
+ * NE rejoue PAS les 218 specs de mécanique, alors qu'il pourrait en casser (certaines lisent le
+ * graphe de scène, par exemple l'icône de statut). Le motif : ces 218 specs sont une suite de
+ * COUVERTURE paramétrée — le même chemin de câblage rejoué avec un identifiant différent, la
+ * variation métier étant déjà tenue par les tests unitaires et d'intégration du core. Les rejouer à
+ * chaque retouche de rendu coûtait ~10 min pour une information que le filet complet donne aussi.
+ * Le filet complet reste donc la contrepartie NON NÉGOCIABLE de cet arbitrage : `slow` avant
+ * publication. Si le filet complet cesse d'être joué, cette ligne doit être remise à `mechanics`.
+ */
+const SOURCE_TO_FAMILIES: ReadonlyArray<{
+  readonly label: string;
+  readonly matches: (file: string) => boolean;
+  readonly families: readonly Family[];
+}> = [
+  {
+    label: "moteur de combat",
+    matches: (f) => f.startsWith("packages/core/battle/"),
+    families: ["mechanics"],
+  },
+  {
+    label: "grille / traversée",
+    matches: (f) => f.startsWith("packages/core/grid/"),
+    families: ["mechanics", "combat"],
+  },
+  { label: "IA", matches: (f) => f.startsWith("packages/core/ai/"), families: ["combat"] },
+  {
+    label: "équipes (core)",
+    matches: (f) => f.startsWith("packages/core/team/"),
+    families: ["combat", "dom"],
+  },
+  {
+    label: "core (autre)",
+    matches: (f) => f.startsWith("packages/core/"),
+    families: ["mechanics", "combat", "dom"],
+  },
+  {
+    label: "réseau",
+    matches: (f) => f.startsWith("packages/network/") || f.startsWith("packages/app/src/network/"),
+    families: ["online"],
+  },
+  {
+    label: "saisie (clavier / manette / tactile)",
+    matches: (f) => f.startsWith("packages/app/src/input/"),
+    families: ["input"],
+  },
+  {
+    label: "rendu",
+    matches: (f) =>
+      /^packages\/(render-babylon|render-canvas2d|render-ports|renderer|view-core)\//.test(f) ||
+      f.startsWith("packages/app/src/babylon/"),
+    families: ["combat", "visual"],
+  },
+  {
+    label: "interface de combat partagée",
+    matches: (f) => f.startsWith("packages/ui-dom/"),
+    families: ["combat", "dom"],
+  },
+  {
+    label: "écrans / styles de l'app",
+    matches: (f) =>
+      f.startsWith("packages/app/src/ui/") || f.startsWith("packages/app/src/styles/"),
+    families: ["dom", "combat"],
+  },
+  {
+    label: "cartes",
+    matches: (f) => f.startsWith("packages/app/src/maps/") || f.startsWith("packages/app/maps/"),
+    families: ["dom", "combat"],
+  },
+  {
+    label: "app (autre)",
+    matches: (f) => f.startsWith("packages/app/"),
+    families: ["dom", "combat"],
+  },
+  {
+    // Aucune couverture e2e : le Worker est testé par ses propres tests d'intégration.
+    label: "télémétrie",
+    matches: (f) => f.startsWith("packages/telemetry-worker/"),
+    families: [],
+  },
+  {
+    // Outillage : ne part pas dans le bundle, donc ne peut pas casser un écran. Ce que produisent
+    // les scripts d'assets est versionné — c'est le produit qui compte, pas le script.
+    label: "outillage",
+    matches: (f) => f.startsWith("scripts/") || f.startsWith(".github/"),
+    families: [],
+  },
+];
 
 // --- Heuristique move-id (L2 resserré) --------------------------------------
 
@@ -239,6 +379,55 @@ function specsForId(id: string, constBlocks: Map<string, string>): string[] {
 const SMOKE_RUN: string[] = [SMOKE_GLOB];
 const FULL_RUN: string[] = [];
 
+/**
+ * Tous les specs, la résolution des familles part de là.
+ *
+ * Les NON SUIVIS comptent : un spec tout juste écrit n'est pas encore dans l'index git, et
+ * l'oublier ici reviendrait à ne jamais jouer le test qu'on vient d'ajouter — précisément celui
+ * qu'on veut voir tourner.
+ */
+function allSpecs(): string[] {
+  const tracked = git(["ls-files", "e2e/tests/**/*.spec.ts"]);
+  const untracked = git(["ls-files", "--others", "--exclude-standard", "e2e/tests/"]);
+  const all = [...tracked.split("\n"), ...untracked.split("\n")]
+    .map((f) => f.trim())
+    .filter((f) => f.endsWith(".spec.ts"));
+  return [...new Set(all)];
+}
+
+/** Les fichiers de spec appartenant à l'une des familles retenues. */
+function specsOfFamilies(families: ReadonlySet<Family>): string[] {
+  const specs = allSpecs();
+  return specs.filter((spec) => [...families].some((family) => FAMILY_MATCHES[family](spec)));
+}
+
+interface Routing {
+  families: Set<Family>;
+  /** Chemins de source qu'aucune règle ne classe → on ne sait pas scoper, donc `full`. */
+  unclassified: string[];
+  /** Étiquettes des règles ayant matché, pour que la raison affichée soit lisible. */
+  labels: Set<string>;
+}
+
+/** Passe chaque fichier changé dans la table, et réunit les familles de specs concernées. */
+function route(files: readonly string[]): Routing {
+  const families = new Set<Family>();
+  const labels = new Set<string>();
+  const unclassified: string[] = [];
+  for (const file of files) {
+    const rule = SOURCE_TO_FAMILIES.find((candidate) => candidate.matches(file));
+    if (!rule) {
+      unclassified.push(file);
+      continue;
+    }
+    labels.add(rule.label);
+    for (const family of rule.families) {
+      families.add(family);
+    }
+  }
+  return { families, unclassified, labels };
+}
+
 function decide(baseRef: string | undefined): Decision {
   const files = changedFiles(baseRef);
   if (files.length === 0) {
@@ -248,7 +437,8 @@ function decide(baseRef: string | undefined): Decision {
     return { level: "smoke", reason: "diff non-code (docs/config .claude)", runs: [SMOKE_RUN] };
   }
 
-  // Escalades L3 (non scopables sûrement).
+  // Config/build : le graphe d'import ne dit rien d'utile (un `tsconfig` ou un verrou de
+  // dépendances peut tout changer sous les pieds). Seule escalade `full` conservée.
   const configHits = files.filter(isConfigBuild);
   if (configHits.length > 0) {
     return {
@@ -257,98 +447,100 @@ function decide(baseRef: string | undefined): Decision {
       runs: [FULL_RUN],
     };
   }
-  const coreHits = files.filter(isCore);
-  if (coreHits.length > 0) {
-    return {
-      level: "full",
-      reason: `moteur core touché (${coreHits[0]}) → cross-cutting`,
-      runs: [FULL_RUN],
-    };
-  }
-  const renderHits = files.filter(isRenderOrUi);
-  if (renderHits.length > 0) {
-    return {
-      level: "full",
-      reason: `rendu/UI touché (${renderHits[0]}) → couplé au scene-graph des combat specs`,
-      runs: [FULL_RUN],
-    };
-  }
 
-  // Reste : uniquement e2e et/ou data. Cas scopables (L2).
-  const dataFiles = files.filter(isData);
-  const nonMoveTuningData = dataFiles.filter((f) => !isMoveTuningData(f));
-  const e2eFiles = files.filter(isE2e);
+  const codeFiles = files.filter((f) => !isNonCode(f));
+  const e2eFiles = codeFiles.filter(isE2e);
+  const sourceFiles = codeFiles.filter((f) => !isE2e(f));
 
-  // Data hors tuning de move (pokemon.json, items.json, type-chart, loaders…) → trop large, full.
-  if (nonMoveTuningData.length > 0) {
-    return {
-      level: "full",
-      reason: `data hors tuning de move (${nonMoveTuningData[0]}) → portée large`,
-      runs: [FULL_RUN],
-    };
-  }
+  // Tuning de move : la piste la plus fine qu'on sache suivre — remonter du diff aux identifiants,
+  // puis des identifiants aux specs qui les jouent. Réservée au cas où la data touchée n'est QUE
+  // du tuning ; sinon la table générique reprend la main.
+  const dataFiles = sourceFiles.filter(isData);
+  const onlyMoveTuningData = dataFiles.length > 0 && dataFiles.every(isMoveTuningData);
+  const otherSources = sourceFiles.filter((f) => !isData(f));
 
-  // e2e-only : laisser Playwright résoudre les specs impactés par le graphe d'import. `--only-changed`
-  // ne peut PAS partager une invocation avec le plancher smoke (intersection) → deux runs séparés.
-  if (e2eFiles.length > 0 && dataFiles.length === 0) {
-    const base = baseRef ?? "HEAD";
-    return {
-      level: "affected",
-      reason: `specs/fixtures e2e changés → --only-changed depuis ${base} + smoke`,
-      runs: [SMOKE_RUN, [`--only-changed=${base}`]],
-    };
-  }
-
-  // Tuning de move data : mapper les ids changés → combat specs. Fallback full si doute.
-  if (dataFiles.length > 0) {
+  const targetedMoveSpecs = new Set<string>();
+  if (onlyMoveTuningData) {
     const constBlocks = parseConstBlocks(readFileSync(SANDBOX_CONFIGS, "utf8"));
     const { ids, ambiguous } = changedMoveIds(dataFiles, baseRef);
-    if (ambiguous) {
+    if (ambiguous || ids.length === 0) {
       return {
         level: "full",
-        reason: "suppression de move détectée (non mappable) → fallback combat complet",
+        reason: ambiguous
+          ? "suppression de move détectée (non mappable) → fallback combat complet"
+          : "tuning data détecté mais aucun id de move extrait du diff → sûreté",
         runs: [[COMBAT_GLOB, SMOKE_GLOB]],
       };
     }
-    if (ids.length === 0) {
-      return {
-        level: "full",
-        reason: "tuning data détecté mais aucun id de move extrait du diff → sûreté",
-        runs: [[COMBAT_GLOB, SMOKE_GLOB]],
-      };
-    }
-    const specGlobs = new Set<string>([SMOKE_GLOB]);
-    const unmapped: string[] = [];
     for (const id of ids) {
       const specs = specsForId(id, constBlocks);
       if (specs.length === 0) {
-        unmapped.push(id);
-      } else {
-        for (const s of specs) {
-          specGlobs.add(s);
-        }
+        return {
+          level: "full",
+          reason: `move sans spec e2e mappé (${id}) → fallback combat complet`,
+          runs: [[COMBAT_GLOB, SMOKE_GLOB]],
+        };
+      }
+      for (const spec of specs) {
+        targetedMoveSpecs.add(spec);
       }
     }
-    if (unmapped.length > 0) {
-      return {
-        level: "full",
-        reason: `move(s) sans spec e2e mappé (${unmapped.join(", ")}) → fallback combat complet`,
-        runs: [[COMBAT_GLOB, SMOKE_GLOB]],
-      };
-    }
-    // Ajoute aussi les specs e2e changés (cas mixte data + spec — positionnels, s'unionnent).
-    for (const spec of e2eFiles.filter((f) => f.endsWith(".spec.ts"))) {
-      specGlobs.add(spec);
-    }
+  }
+
+  // La data hors tuning (pokemon.json, objets, table des types, chargeurs) touche à tout ce qui se
+  // joue : mécaniques ET écrans qui affichent ces données.
+  const dataFamilies: Family[] =
+    dataFiles.length > 0 && !onlyMoveTuningData ? ["mechanics", "combat", "dom"] : [];
+
+  const { families, unclassified, labels } = route(otherSources);
+  for (const family of dataFamilies) {
+    families.add(family);
+  }
+  if (dataFamilies.length > 0) {
+    labels.add("data (hors tuning de move)");
+  }
+
+  if (unclassified.length > 0) {
     return {
-      level: "affected",
-      reason: `tuning move ${ids.join(", ")} → specs mappés`,
-      runs: [[...specGlobs]],
+      level: "full",
+      reason: `chemin non classé (${unclassified[0]}) → sûreté`,
+      runs: [FULL_RUN],
     };
   }
 
-  // Filet : rien de reconnu → full.
-  return { level: "full", reason: "diff non classé → sûreté", runs: [FULL_RUN] };
+  // Le plancher, toujours : le tour des écrans coûte quelques secondes et attrape ce qu'un
+  // périmètre trop étroit laisserait passer (un écran qui ne monte plus du tout).
+  families.add("tour");
+
+  const selected = new Set<string>(specsOfFamilies(families));
+  for (const spec of targetedMoveSpecs) {
+    selected.add(spec);
+  }
+  // Un spec e2e modifié se rejoue, quoi qu'en dise la table.
+  for (const spec of e2eFiles.filter((f) => f.endsWith(".spec.ts"))) {
+    selected.add(spec);
+  }
+
+  // Fixture ou objet de page changé (pas un spec) : le graphe d'import de Playwright sait seul qui
+  // en dépend — `--only-changed` le résout, en run séparé (il s'INTERSECTE avec un filtre de
+  // chemin, il ne s'y ajoute pas).
+  const e2eSupportChanged = e2eFiles.some((f) => !f.endsWith(".spec.ts"));
+  const base = baseRef ?? "HEAD";
+
+  const familyList = [...families].join(", ");
+  const reasonParts = [
+    labels.size > 0 ? [...labels].join(" + ") : "diff e2e seul",
+    `→ familles : ${familyList}`,
+    targetedMoveSpecs.size > 0 ? `(+ ${targetedMoveSpecs.size} spec(s) de tuning de move)` : "",
+    e2eSupportChanged ? `(+ --only-changed depuis ${base})` : "",
+  ].filter(Boolean);
+
+  const runs: string[][] = [[...selected]];
+  if (e2eSupportChanged) {
+    runs.push([`--only-changed=${base}`]);
+  }
+
+  return { level: "affected", reason: reasonParts.join(" "), runs };
 }
 
 // --- Entrée -----------------------------------------------------------------

@@ -38,31 +38,63 @@ compris pour un défaut que je n'ai pas introduit.
 `docs/backlog.md` sans accord explicite »), un hook, ou juste la mémoire corrigée ? Et où passe la
 frontière avec `docs/next.md`, que je maintiens légitimement seul.
 
-#### 2. Le gate est trop lent pour la vitesse d'itération actuelle
+#### 2. ~~Le gate est trop lent~~ — RÉGLÉ le 2026-09-05 (soir), reste à valider
 
-**Le reproche, littéral** : « Je ne peux pas me permettre d'attendre 25min à chaque fois. De plus,
-maintenant on itère vachement plus vite... » Cible énoncée : **sous la minute**.
+**Le reproche, littéral** : « Je ne peux pas me permettre d'attendre 25min à chaque fois. » Cible
+énoncée : **sous la minute**.
 
-⚠️ **Mesures du gate du 2026-09-05, à ne pas re-supposer** — l'humain parlait « du temps de test
-unitaire et e2e », mais l'unitaire n'est pas en cause :
+**Tenu : `/ci-gate fast` mesuré à 43 s, tour des écrans compris.** Et le filet complet est passé de
+**24,3 min à 4,0 min**, ce qui change tout le reste du raisonnement.
 
-| Suite | Tests | Durée |
-|---|---|---|
-| `pnpm test` (unit) | 4227 | **4,25 s** |
-| `pnpm test:integration` | 422 | **5,70 s** |
-| `pnpm test:e2e` | 531 | **24,3 min** |
+**Trois causes cumulées, toutes mesurées** (décision #921) :
 
-Unit + integration = **10 s**, déjà sous la cible. Les 25 minutes sont **entièrement** l'e2e, soit
-~2,7 s par test, et c'est le projet `combat` qui domine : chaque test y monte une scène Babylon WebGL
-complète. `playwright.config.ts` porte déjà les cicatrices de ce combat (le commentaire des 17 tests
-`dom` qui passent en 24 s isolés mais débordaient en suite ; `timeout: 60_000` sur `dom` et `combat`).
+1. **Le harnais servait l'application par le serveur de développement.** Vite y sert le graphe de
+   modules NON bundlé : chaque `page.goto()` payait des centaines de requêtes transformées à la
+   volée, depuis un serveur que tous les workers se partagent. C'était **le** goulot.
+2. **Chromium rendait en logiciel** (SwiftShader) sur une machine équipée d'une Radeon RX 7900 XT.
+   Une liste d'arguments vide ne demande PAS le GPU — le commentaire de `playwright.config.ts` qui
+   affirmait le contraire était faux. Sondé avec `scripts/webgl-probe.ts`.
+3. **`e2e-affected` n'avait qu'un cran d'escalade** (« je ne sais pas scoper → je lance tout »),
+   déclenché par `core`, `app`, le rendu, l'UI, un `package.json`, un `tsconfig` — donc presque
+   toujours. Le niveau effectif était « les 531, toujours ».
 
-**Donc la vraie question** : peut-on avoir une boucle d'itération qui **ne lance pas** l'e2e, et
-réserver l'e2e complet au commit ou à la release ? `/ci-gate [fast|full|slow]` existe déjà — première
-étape, **lire ce que chaque mode fait réellement aujourd'hui** et mesurer `fast`, plutôt que d'inventer
-un nouveau découpage. Pistes à évaluer ensuite, par ordre de rapport mesuré : ne rejouer que les specs
-touchées par le diff ; réutiliser une scène Babylon entre tests d'un même fichier ; sortir `combat` du
-gate d'itération. Rien à décider avant d'avoir chiffré où partent les 24 minutes **par projet**.
+**Mesures, mêmes tests, même machine, suite complète (531)** :
+
+| Configuration | Durée |
+|---|---|
+| Serveur de dev + SwiftShader (l'existant) | 24,3 min |
+| Serveur de dev + GPU | 16,5 min |
+| **Build servi + GPU, 6 workers** | **4,0 min** |
+
+La montée en workers ne rend presque rien (3 → 12 : 104 s → 81 s sur 50 tests) : ni le processeur
+ni le parallélisme n'étaient en cause. Le build ne coûte rien non plus — rolldown reconstruit
+l'application en **611 ms**.
+
+**Ce qui a changé dans le dépôt** (rien n'est committé, tout attend ta validation) :
+- `playwright.config.ts` — `webServer` construit puis sert le bundle (`vite preview`) ;
+  `PT_E2E_DEV=1` rend le serveur de dev pour déboguer ; `PT_GL` arbitre le rasteriseur.
+- `scripts/webgl-probe.ts` — **neuf** : dit quel rasteriseur Chromium a *réellement* pris. Les
+  arguments de sélection échouent en silence, donc on sonde au lieu de supposer.
+- `scripts/e2e-affected.ts` — table de correspondance famille de code → famille de specs.
+- `e2e/tests/smoke/screen-tour.spec.ts` — **neuf** : les 10 écrans DOM en un chargement (décision
+  #922). `smoke/boot.spec.ts` supprimé, redondant.
+- `.claude/skills/ci-gate/run.sh` — `fast` lance le tour **en parallèle** des vérifications
+  statiques, et ajoute `test:integration`.
+- `.github/workflows/e2e-prototype.yml` — **neuf**, jetable : compare SwiftShader et Mesa llvmpipe
+  sur un runner GitHub. Voir ci-dessous.
+
+**Reste à trancher avec l'humain** :
+- **Le prototype GitHub vaut-il encore le coup ?** Il était motivé par une suite de 24 min qu'on
+  voulait sortir de la machine. À 4 min locales, l'urgence tombe. Le workflow est écrit et ne
+  demande qu'un push pour être lançable à la main (`workflow_dispatch`, ne bloque rien). Le dépôt
+  est **public** → minutes Actions gratuites et illimitées, 20 jobs simultanés.
+- **Faut-il monter les workers par défaut ?** Aujourd'hui 3, plafond 400 %. À 6/600 % la suite
+  passe sous 4 min, mais la règle dure « la machine reste à l'humain » (2026-08-25) n'a pas été
+  touchée sans accord.
+- **Les 218 specs `mechanics-*`** : la route du rendu ne les rejoue plus (décision #923, arbitrage
+  assumé, contrepartie = filet complet avant publication). Reste la question de fond — les réduire
+  à ~1 test par **forme** de mécanique plutôt qu'un par identifiant, ce que la littérature
+  recommande. Non fait : ça touche à la couverture, donc ça se décide ensemble.
 
 ### 2026-09-05 — Le Lot B1 est CLOS : cadrer le Lot B2
 
@@ -569,6 +601,11 @@ Ce qu'il ne résout **pas**, à traiter en Phase 7 (détail complet § « Prépa
 - Frustration/Retour mis de côté (inutilisables Gen 8/9, décision #423) ; Puissance Cachée exclue définitivement (0 learner côté Champions, confirmé 2026-07-11) ; Morphing/Imposteur/Métamorph livrés (plan 157, roster 151/151 complet).
 
 ## Fait récemment
+
+- 2026-09-05 (soir) — **Le gate e2e passe de 24,3 min à 4,0 min, et `/ci-gate fast` à 43 s.** Trois
+  causes trouvées et mesurées (build servi au lieu du serveur de dev, GPU au lieu de SwiftShader,
+  `e2e-affected` réparé), un tour des 10 écrans DOM ajouté comme plancher, `boot.spec.ts` supprimé.
+  Décisions #921-923. Rien n'est committé : en attente de validation.
 
 - 2026-09-05 — **Deux désynchronisations de doc corrigées, dont une décision qui en contredisait une
   autre.** (1) `docs/next.md` annonçait encore la recette du Lot B1 comme prochaine action alors que

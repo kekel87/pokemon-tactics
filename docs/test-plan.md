@@ -2623,7 +2623,7 @@ Débloque en 🤖 les cas RÉUSSITE jusqu'ici 👁 de §5.36/§5.37 grâce aux c
 
 ## 6. Recette — écrans DOM (hors combat)
 *src : `app/ui/dom/screens/`, `app/app/screen-manager.ts`, `app/ui/SplashScreen.ts`*
-*e2e : `tests/smoke/boot.spec.ts`, `tests/smoke/splash.spec.ts`, `tests/dom/navigation.spec.ts`,
+*e2e : `tests/smoke/screen-tour.spec.ts`, `tests/smoke/splash.spec.ts`, `tests/dom/navigation.spec.ts`,
 `tests/dom/screens.spec.ts`, `tests/dom/main-menu.spec.ts`, `tests/dom/screens-i18n.spec.ts`,
 `tests/visual/screens.spec.ts` (golden)*
 
@@ -2632,7 +2632,10 @@ Débloque en 🤖 les cas RÉUSSITE jusqu'ici 👁 de §5.36/§5.37 grâce aux c
   titre « Pokémon Tactics » + barre de progression `role="progressbar"`) télécharge le bundle de
   sprites AVANT tout écran, puis se retire du DOM et le menu monte (`splash.spec`). *Le fade
   d'entrée/sortie = 👁 (pixel/anim).*
-- 🤖 Boot → le menu principal s'affiche (`boot.spec`).
+- 🤖 **Tour des écrans** (`screen-tour.spec`) : les 10 écrans DOM montent et la navigation revient,
+  en un seul chargement de page — menu principal, mode de combat, choix de carte, sélection
+  d'équipe, salon en ligne, mes équipes, édition d'équipe, paramètres, contrôles, crédits. C'est
+  le **plancher** de la boucle d'itération, joint à tous les niveaux de `e2e-affected`.
 - 👁 Transition **instantanée** (dispose → mount, pas d'animation).
 - 🤖 `Échap` = retour (sauf menu principal) ; clavier focalise les boutons.
 - 👁 Options désactivées **grisées** (Aventure, En ligne, Tutoriel).
@@ -3377,7 +3380,7 @@ scène. Port e2e dédié (port dev +1000). Un test = un état seedé.
 
 | Fichier | Couvre |
 |---------|--------|
-| `smoke/boot.spec.ts` | boot → menu principal |
+| `smoke/screen-tour.spec.ts` | §6 — tour des 10 écrans DOM en un seul chargement de page (montage + retour arrière par « Retour » et `Échap`). Remplace `boot.spec.ts`, dont la seule assertion — le menu monte — est le premier pas du tour |
 | `smoke/splash.spec.ts` | §6.0 splash de boot (plan 135) : overlay présent + titre + barre de progression pendant le téléchargement du bundle (requête `sprites.bin` retenue), puis retiré du DOM et le menu monte |
 | `dom/navigation.spec.ts` | menu → mode de combat → choix carte → retour |
 | `dom/main-menu.spec.ts` | §6.1 — titre, 5 entrées, Aventure disabled, version, switch FR→EN + `pt-lang` |
