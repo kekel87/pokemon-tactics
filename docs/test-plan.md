@@ -792,7 +792,7 @@ téléphone).*
   programmatique, l'équivalent d'Échap / d'un geste système) **le fait revenir** — ce qui n'est vrai
   que grâce à son abonnement `fullscreenchange` (`platform-chrome.spec`).
   ⚠️ **Ce test ne dit RIEN du plein écran mobile.** Il prouve l'état du document et la réaction du
-  chrome en Chromium de bureau, headless, au gate **local** (l'e2e ne tourne pas en CI GitHub). Il ne
+  chrome en Chromium de bureau, headless. Il ne
   prouve **ni** que la barre d'URL est réellement masquée sur téléphone, **ni** que le verrouillage
   paysage aboutit — voir les deux cases 👁 ci-dessous. Ne pas conclure « le plein écran mobile est
   couvert ».
@@ -2937,7 +2937,7 @@ et ce qui **survit à un rechargement** (reprise d'écran).*
   (aucun signal DOM) et le **verrouillage paysage** (`screen.orientation.lock` refusé en Chromium de
   bureau et avalé par le `try/catch` best-effort → le test passerait même si le `lock()` disparaissait
   du code). Ces deux points restent **téléphone réel, Android Chrome/Firefox** (validés 2026-08-14).
-  Et l'e2e ne tourne **qu'au gate local**, pas en CI GitHub : rien de tout ça n'est gardé par la CI.
+  Et aucune suite automatisée ne couvre ces deux points, ni en local ni sur GitHub : ils restent 👁.
 - 👁 **Wake Lock** (l'écran ne s'éteint plus pendant qu'on réfléchit, ré-acquisition au retour
   d'arrière-plan) : aucun signal observable en Chromium de bureau — la permission y est refusée
   (`console.warn` de diagnostic au boot, sans conséquence). **Téléphone réel.** Rappel des limites :

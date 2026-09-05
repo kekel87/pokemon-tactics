@@ -38,63 +38,51 @@ compris pour un défaut que je n'ai pas introduit.
 `docs/backlog.md` sans accord explicite »), un hook, ou juste la mémoire corrigée ? Et où passe la
 frontière avec `docs/next.md`, que je maintiens légitimement seul.
 
-#### 2. ~~Le gate est trop lent~~ — RÉGLÉ le 2026-09-05 (soir), reste à valider
+#### 2. ~~Le gate est trop lent~~ — RÉGLÉ, LIVRÉ ET FUSIONNÉ le 2026-09-05 (soir)
 
-**Le reproche, littéral** : « Je ne peux pas me permettre d'attendre 25min à chaque fois. » Cible
-énoncée : **sous la minute**.
+Cible « sous la minute » **tenue**. Sept commits, fusionnés en avance rapide dans `main`, revue de
+code passée (2 Critical + 10 Important corrigés avant fusion), décisions **#921-926**.
 
-**Tenu : `/ci-gate fast` mesuré à 43 s, tour des écrans compris.** Et le filet complet est passé de
-**24,3 min à 4,0 min**, ce qui change tout le reste du raisonnement.
+| | Avant | Après |
+|---|---|---|
+| `/ci-gate fast` (boucle) | ~30 s, **sans e2e** | **43 s**, tour des 10 écrans compris |
+| `/ci-gate full` (diff normal) | ~25 min | **~80 s** |
+| Suite complète | 24,3 min de la machine de l'humain | **4 min 48 s sur GitHub**, sans bloquer |
 
-**Trois causes cumulées, toutes mesurées** (décision #921) :
+**Trois causes, toutes mesurées** (décision #921) :
+1. Le harnais servait l'application par le **serveur de développement** — Vite y sert le graphe de
+   modules non bundlé, donc chaque `page.goto()` payait des centaines de requêtes transformées à la
+   volée. C'était LE goulot. Servir un build : 24,3 → 4,0 min. Le build coûte **611 ms**.
+2. Chromium rendait en **logiciel** (SwiftShader) sur une machine à Radeon RX 7900 XT — une liste
+   d'arguments vide ne demande PAS le GPU. Sondé par `scripts/webgl-probe.ts`.
+3. `e2e-affected` n'avait qu'un cran d'escalade, déclenché par presque tout diff réel.
 
-1. **Le harnais servait l'application par le serveur de développement.** Vite y sert le graphe de
-   modules NON bundlé : chaque `page.goto()` payait des centaines de requêtes transformées à la
-   volée, depuis un serveur que tous les workers se partagent. C'était **le** goulot.
-2. **Chromium rendait en logiciel** (SwiftShader) sur une machine équipée d'une Radeon RX 7900 XT.
-   Une liste d'arguments vide ne demande PAS le GPU — le commentaire de `playwright.config.ts` qui
-   affirmait le contraire était faux. Sondé avec `scripts/webgl-probe.ts`.
-3. **`e2e-affected` n'avait qu'un cran d'escalade** (« je ne sais pas scoper → je lance tout »),
-   déclenché par `core`, `app`, le rendu, l'UI, un `package.json`, un `tsconfig` — donc presque
-   toujours. Le niveau effectif était « les 531, toujours ».
+**La suite e2e tourne désormais sur GitHub** (décision #924) : `.github/workflows/e2e.yml`, les 531
+tests en 8 tranches, sur `push` vers `main` + chaque nuit + à la main, **sans jamais bloquer**.
+Première exécution réelle : **verte**. Dépôt public → minutes gratuites et illimitées.
+Verdict : `pnpm e2e:status` (skill `/e2e-status`), branché en tête de `/next`.
+🔴 **On ne l'attend jamais** (décision #925) — ni `gh run watch`, ni boucle de sondage.
+🔴 **Pas de `/publish` sur un rouge** : c'est la contrepartie d'avoir quitté le chemin bloquant.
 
-**Mesures, mêmes tests, même machine, suite complète (531)** :
+Ce que llvmpipe n'a PAS résolu : il n'obtient aucun contexte WebGL, ni sur le runner ni en local.
+C'est le retrait du serveur de développement qui a débloqué la CI, pas le rasteriseur. Question
+tranchée, ne pas la rouvrir sans nouvelle mesure.
 
-| Configuration | Durée |
-|---|---|
-| Serveur de dev + SwiftShader (l'existant) | 24,3 min |
-| Serveur de dev + GPU | 16,5 min |
-| **Build servi + GPU, 6 workers** | **4,0 min** |
+**Réglages laissés intacts à la demande de l'humain** : 3 workers, plafond 400 % (4 cœurs sur 16).
+La suite complète locale fait donc 5,9 min et la machine reste jouable. Monter à 6/600 % la
+descendrait à 4,0 min — non fait.
 
-La montée en workers ne rend presque rien (3 → 12 : 104 s → 81 s sur 50 tests) : ni le processeur
-ni le parallélisme n'étaient en cause. Le build ne coûte rien non plus — rolldown reconstruit
-l'application en **611 ms**.
-
-**Ce qui a changé dans le dépôt** (rien n'est committé, tout attend ta validation) :
-- `playwright.config.ts` — `webServer` construit puis sert le bundle (`vite preview`) ;
-  `PT_E2E_DEV=1` rend le serveur de dev pour déboguer ; `PT_GL` arbitre le rasteriseur.
-- `scripts/webgl-probe.ts` — **neuf** : dit quel rasteriseur Chromium a *réellement* pris. Les
-  arguments de sélection échouent en silence, donc on sonde au lieu de supposer.
-- `scripts/e2e-affected.ts` — table de correspondance famille de code → famille de specs.
-- `e2e/tests/smoke/screen-tour.spec.ts` — **neuf** : les 10 écrans DOM en un chargement (décision
-  #922). `smoke/boot.spec.ts` supprimé, redondant.
-- `.claude/skills/ci-gate/run.sh` — `fast` lance le tour **en parallèle** des vérifications
-  statiques, et ajoute `test:integration`.
-- `.github/workflows/e2e-prototype.yml` — **neuf**, jetable : compare SwiftShader et Mesa llvmpipe
-  sur un runner GitHub. Voir ci-dessous.
-
-**Reste à trancher avec l'humain** :
-- **Le prototype GitHub vaut-il encore le coup ?** Il était motivé par une suite de 24 min qu'on
-  voulait sortir de la machine. À 4 min locales, l'urgence tombe. Le workflow est écrit et ne
-  demande qu'un push pour être lançable à la main (`workflow_dispatch`, ne bloque rien). Le dépôt
-  est **public** → minutes Actions gratuites et illimitées, 20 jobs simultanés.
-- **Faut-il monter les workers par défaut ?** Aujourd'hui 3, plafond 400 %. À 6/600 % la suite
-  passe sous 4 min, mais la règle dure « la machine reste à l'humain » (2026-08-25) n'a pas été
-  touchée sans accord.
-- **Les 218 specs `mechanics-*`** : la route du rendu ne les rejoue plus (décision #923, arbitrage
-  assumé, contrepartie = filet complet avant publication). Reste la question de fond — les réduire
-  à ~1 test par **forme** de mécanique plutôt qu'un par identifiant, ce que la littérature
-  recommande. Non fait : ça touche à la couverture, donc ça se décide ensemble.
+**Deux points restés ouverts** :
+- **Les 2 rejeux en CI** (`retries: process.env.CI ? 2 : 0`) masquent les tests instables que la
+  discipline « 0 retry, on corrige la cause » veut voir. Assumé pour l'instant (gigue réelle d'un
+  runner partagé sous SwiftShader) ; la vraie réponse serait une mise en quarantaine, pas un rejeu
+  silencieux. À rouvrir après quelques jours d'exécutions.
+- **Les 218 specs `mechanics-*`** (51 % du projet `combat`) : suite de couverture paramétrée — le
+  même câblage rejoué avec un identifiant différent, alors que la variation métier est tenue par
+  4227 tests unitaires + 422 d'intégration. La littérature (Google, Kent C. Dodds, Fowler) dit un
+  test de câblage par **forme**, pas par donnée. **Décision prise de NE PAS les réduire** :
+  l'argument de vitesse est mort avec le passage à 4 min, il ne restait que le coût de maintenance.
+  Le rendu ne les rejoue plus (arbitrage assumé #923, contrepartie = filet GitHub).
 
 ### 2026-09-05 — Le Lot B1 est CLOS : cadrer le Lot B2
 
@@ -602,11 +590,13 @@ Ce qu'il ne résout **pas**, à traiter en Phase 7 (détail complet § « Prépa
 
 ## Fait récemment
 
-- 2026-09-05 (soir) — **Le gate e2e passe de 24,3 min à 4,0 min, et `/ci-gate fast` à 43 s.** Trois
-  causes trouvées et mesurées (build servi au lieu du serveur de dev, GPU au lieu de SwiftShader,
-  `e2e-affected` réparé), un tour des 10 écrans DOM ajouté comme plancher, `boot.spec.ts` supprimé.
-  Décisions #921-923. Rien n'est committé : en attente de validation.
-
+- 2026-09-05 (soir) — **Le gate e2e passe de 24,3 min à 4,0 min, `/ci-gate fast` à 43 s, et la
+  suite complète quitte la machine pour GitHub** (4 min 48 s, 8 tranches, non bloquante, première
+  exécution verte). Trois causes mesurées : build servi au lieu du serveur de développement, GPU au
+  lieu de SwiftShader, `e2e-affected` réparé par une table famille de code → famille de specs. Tour
+  des 10 écrans DOM ajouté comme plancher (`boot.spec.ts` supprimé), skill `/e2e-status` +
+  `pnpm e2e:status`. Revue de code : 2 Critical (un gate pouvait passer au vert sur un bundle jamais
+  recompilé) + 10 Important corrigés avant fusion. Décisions #921-926, fusionné dans `main`.
 - 2026-09-05 — **Deux désynchronisations de doc corrigées, dont une décision qui en contredisait une
   autre.** (1) `docs/next.md` annonçait encore la recette du Lot B1 comme prochaine action alors que
   `STATUS.md`, `docs/roadmap.md` et les décisions #909-912 (toutes marquées « sortie de recette »)

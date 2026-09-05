@@ -171,7 +171,8 @@ Stop sur fail bloquant (`core-guardian` UI-dep, `code-reviewer` Critical, `/ci-g
 ### Règles fond
 
 - Jamais > 1 agent long en foreground/turn — longs en background
-- Gate CI = `pnpm build && pnpm lint:fix && pnpm typecheck && pnpm test && pnpm test:integration && pnpm test:e2e`. **BLOQUANT** avant commit. ⚠️ L'e2e tourne **uniquement au gate local** (pas en CI GitHub : rendu Babylon WebGL instable en headless ubuntu)
+- **Gate local** : `/ci-gate fast` (~43 s) = boucle d'itération, **tour des 10 écrans compris** ; `/ci-gate full` (~80 s sur un diff normal) = **BLOQUANT avant commit**, avec l'e2e ciblé par `scripts/e2e-affected.ts`. `slow` = filet exhaustif local (recours hors ligne)
+- **Suite e2e complète = sur GitHub, asynchrone** (`.github/workflows/e2e.yml`, 531 tests en 8 tranches, **~5 min**, sur `push` vers `main` + chaque nuit). Elle **ne bloque jamais**. Verdict : `pnpm e2e:status` / skill `/e2e-status`, lu en tête de `/next`. 🔴 **On ne l'attend JAMAIS** (ni `gh run watch`, ni boucle de sondage) — décision #925. 🔴 **Pas de `/publish` sur un rouge** — décision #924
 - Reporté → `docs/next.md`
 
 ## Skills
