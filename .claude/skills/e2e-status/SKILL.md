@@ -7,6 +7,19 @@ user-invocable: true
 Tu rapportes l'état de la suite e2e **asynchrone** (`.github/workflows/e2e.yml` : 531 tests,
 8 tranches, ~5 min de mur, jamais bloquante).
 
+## 🔴 On n'ATTEND jamais cette suite
+
+Elle est asynchrone : c'est sa raison d'être. Après un push, **tu rends la main immédiatement** et
+tu passes à la suite — le verdict se lit au tour d'après, à la prochaine session, ou quand l'humain
+le demande.
+
+Interdit : `gh run watch`, une boucle de sondage (`sleep` + `gh run view`), ou tout appel bloquant
+qui campe sur un run distant. Sorti du chemin bloquant, puis attendu quand même, ce mécanisme ne
+sert plus à rien — et l'humain, lui, se retrouve devant un silence de plusieurs minutes sans savoir
+ce qui se passe (vécu le 2026-09-05, le jour même où la suite a été mise en place).
+
+La seule exception est un ordre explicite de l'humain (« attends le run », « surveille-le »).
+
 ## Exécution
 
 ```bash
