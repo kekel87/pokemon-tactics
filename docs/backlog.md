@@ -59,6 +59,25 @@ voir avant. À noter aussi que « Lancer ▶ » mesure **27 px** de haut au view
 le plancher n'est pas tenu uniformément ailleurs non plus : le sujet mérite une passe globale plutôt
 qu'un correctif local.
 
+### Segments de format du salon sous le plancher tactile, figés en 4K (2026-09-05, manque du plan 199)
+
+`.claude/rules/multi-input.md` et `.claude/rules/html.md` posent un **plancher de 30 px sur la
+hit-area sous `pointer: coarse`**. `.ts-segment` (`packages/app/src/styles/components/team-select.css:83`)
+n'a pas de `min-height` — il se dimensionne au `padding` + `line-height: 1`, soit **26 px** partout.
+Mesuré au chrome-devtools sur Chromium :
+
+- **Tactile** : 26 px < 30 px à **568×320, 667×375 et 1024×768** — donc pas un effet de la media
+  query « écran court », le défaut est constant.
+- **4K** : les segments ne grandissent pas non plus. À 2560×1440, 26 px face à **50 px** pour
+  « Créer une partie »/« Rejoindre »/« Retour » et **132 px** pour la roue de code. Capture :
+  `.screenshots/lobby-segments-2560.png` (gitignoré).
+
+Le composant est partagé (`FormatPicker`, `packages/app/src/ui/team-select/FormatPicker.ts`) — l'écran
+de sélection d'équipe local porte le même défaut.
+
+**Non corrigé volontairement** : hors du périmètre validé par l'humain pour la session du 2026-09-05,
+et l'agrandir rejoue la mise en page d'un écran déjà serré en paysage téléphone.
+
 ## Notes IA (à regrouper en plan d'amélioration IA)
 
 ## Feedback visuel

@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { FakeNetworkDirectory } from "./fake-transport.js";
 import {
   NETWORK_VERSION,
   NetworkErrorCode,
@@ -18,6 +17,7 @@ import {
   RoomRole,
 } from "./room.js";
 import { HOST_SEAT, hostPeerId, peerIdForSeat } from "./room-code.js";
+import { FakeNetworkDirectory } from "./testing/fake-transport.js";
 import type { NetworkChannel, NetworkTransport } from "./transport.js";
 import { NetworkTransportError } from "./transport.js";
 
@@ -410,19 +410,37 @@ describe("Room — paramètres de partie", () => {
   it("laisse l'hôte basculer une ligne libre en IA, et la marque prête d'office", async () => {
     const host = await Room.create(depsFor(directory), options(4));
 
-    host.setSeatOccupancy(3, NetworkSeatOccupancy.Human);
-    expect(host.view.seats[2]).toEqual({
-      seat: 3,
-      occupancy: NetworkSeatOccupancy.Human,
-      ready: false,
-    });
-
     host.setSeatOccupancy(3, NetworkSeatOccupancy.Ai);
     expect(host.view.seats[2]).toEqual({
       seat: 3,
       occupancy: NetworkSeatOccupancy.Ai,
       ready: true,
     });
+
+    // Et le retour : la place se rouvre à un joueur, toujours prête d'office puisque personne n'y est.
+    host.setSeatOccupancy(3, NetworkSeatOccupancy.Waiting);
+    expect(host.view.seats[2]).toEqual({
+      seat: 3,
+      occupancy: NetworkSeatOccupancy.Waiting,
+      ready: true,
+    });
+  });
+
+  it("refuse de poser « humain » sur une place que personne ne tient — c'était une impasse", async () => {
+    const host = await Room.create(depsFor(directory), options(4));
+
+    /*
+     * `Human` posait `ready: false` pour une confirmation que personne ne pouvait donner : « Lancer »
+     * restait mort, et l'écran ne rendait plus la main sur cette ligne. Le salon n'avait plus d'issue
+     * que d'être quitté. La place reste donc libre, et libre veut déjà dire « j'attends un joueur ».
+     */
+    host.setSeatOccupancy(3, NetworkSeatOccupancy.Human);
+    expect(host.view.seats[2]).toEqual({
+      seat: 3,
+      occupancy: NetworkSeatOccupancy.Waiting,
+      ready: true,
+    });
+    expect(host.view.seats.every((seat) => seat.ready || seat.seat === HOST_SEAT)).toBe(true);
   });
 
   it("ne bascule pas une place tenue par un joueur distant sous ses pieds", async () => {
@@ -694,6 +712,54 @@ describe("Room — lancement annulé", () => {
     // Le salon est déverrouillé : c'est **le** message d'annulation du protocole.
     expect(host.view.locked).toBe(false);
     expect(mute.received.at(-1)).toMatchObject({ type: "room_state", locked: false });
+  });
+
+  it("abandonne dès la fermeture d'un pair attendu, sans laisser courir les 15 secondes", async () => {
+    const host = await Room.create(depsFor(directory), options(2));
+    const mute = await rawGuest(directory, 2);
+    await flush();
+
+    const errors: NetworkErrorCode[] = [];
+    host.onError((code) => errors.push(code));
+
+    const launch = host.launch(SEEDS);
+    await flush();
+    expect(host.view.locked).toBe(true);
+
+    // Le pair se referme : son accusé n'arrivera jamais, et on le sait déjà. Aucun temps n'avance
+    // ici — c'est tout l'objet du test, l'annulation ne doit rien devoir au minuteur.
+    mute.transport.destroy();
+    await flush();
+    await launch;
+
+    expect(errors).toEqual([NetworkErrorCode.DelaiDepasse]);
+    expect(host.view.locked).toBe(false);
+  });
+
+  it("solde le lancement quand l'hôte quitte pendant l'attente, au lieu d'une promesse éternelle", async () => {
+    const host = await Room.create(depsFor(directory), options(2));
+    await rawGuest(directory, 2);
+    await flush();
+
+    const starts: StartMessage[] = [];
+    const errors: NetworkErrorCode[] = [];
+    host.onStart((start) => starts.push(start));
+    host.onError((code) => errors.push(code));
+
+    const launch = host.launch(SEEDS);
+    await flush();
+
+    /*
+     * `leave()` coupe le minuteur d'accusé. Sans solder la promesse, elle n'avait plus **aucun**
+     * dénouement : `launch()` restait suspendue pour toujours, retenant le salon avec elle.
+     */
+    host.leave();
+    await flush();
+    await launch;
+
+    // Ni entrée en combat, ni salon rouvert : il n'y a plus de salon à rouvrir.
+    expect(starts).toEqual([]);
+    expect(errors).toEqual([]);
   });
 
   it("rappelle l'invité déjà parti en combat, faute de troisième message dans le protocole", async () => {

@@ -10,7 +10,7 @@
  */
 
 import type { BattleEvent, TeamSelection } from "@pokemon-tactic/core";
-import { mapIdFromUrl } from "../maps/map-identity";
+import { MAP_ID_UNKNOWN, mapIdFromUrl } from "../maps/map-identity";
 import { type BattleTelemetryCollector, createBattleTelemetryCollector } from "./battle-telemetry";
 import { countControllers, trackedSidesOf } from "./team-telemetry";
 import {
@@ -44,6 +44,7 @@ export function beginBattleTelemetry(input: {
   mapUrl: string;
   formatKey: string;
   autoPlacement: boolean;
+  damagePreview: boolean;
   telemetryTeams: readonly TelemetryTeam[];
   teams: readonly TeamSelection[];
 }): void {
@@ -53,11 +54,12 @@ export function beginBattleTelemetry(input: {
   trackBattleStarted({
     battleId,
     mode: modeOf(humans),
-    map: mapIdFromUrl(input.mapUrl),
+    map: mapIdFromUrl(input.mapUrl) ?? MAP_ID_UNKNOWN,
     format: input.formatKey,
     humans,
     ai,
     autoPlacement: input.autoPlacement,
+    damagePreview: input.damagePreview,
     teams: input.telemetryTeams,
   });
 

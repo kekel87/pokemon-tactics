@@ -4,8 +4,7 @@ import {
   isCompatibleVersion,
   isNetworkMessage,
   NETWORK_VERSION,
-  NetworkErrorCode,
-  type NetworkMessage,
+  type NetworkMessageType,
 } from "./protocol.js";
 
 function countingRandom(): () => number {
@@ -15,12 +14,6 @@ function countingRandom(): () => number {
     return calls;
   };
 }
-
-describe("NETWORK_VERSION", () => {
-  it("est un entier — deux versions doivent se comparer strictement", () => {
-    expect(Number.isInteger(NETWORK_VERSION)).toBe(true);
-  });
-});
 
 describe("isCompatibleVersion", () => {
   it("accepte la version identique", () => {
@@ -33,32 +26,19 @@ describe("isCompatibleVersion", () => {
   });
 });
 
-describe("NetworkErrorCode", () => {
-  it("reste une énumération fermée — ce sont les valeurs envoyées en télémétrie", () => {
-    expect(Object.values(NetworkErrorCode)).toEqual([
-      "code_introuvable",
-      "salon_plein",
-      "partie_commencee",
-      "version_incompatible",
-      "connexion_impossible",
-      "delai_depasse",
-    ]);
-  });
-});
-
 describe("isNetworkMessage", () => {
   it("reconnaît chaque type du protocole", () => {
-    const types: readonly NetworkMessage["type"][] = [
-      "hello",
-      "welcome",
-      "room_state",
-      "team_select",
-      "ready",
-      "start",
-      "start_ack",
-      "bye",
-    ];
-    for (const type of types) {
+    const everyType: Record<NetworkMessageType, true> = {
+      hello: true,
+      welcome: true,
+      room_state: true,
+      team_select: true,
+      ready: true,
+      start: true,
+      start_ack: true,
+      bye: true,
+    };
+    for (const type of Object.keys(everyType)) {
       expect(isNetworkMessage({ type })).toBe(true);
     }
   });

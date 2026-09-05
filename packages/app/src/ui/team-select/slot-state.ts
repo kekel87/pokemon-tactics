@@ -76,6 +76,19 @@ export function ephemeralTeamName(): string {
 }
 
 /**
+ * L'entrée de `lastSelection` qui porte la dernière équipe **du joueur assis devant cet écran**.
+ *
+ * Le stockage est indexé par camp, ce qui a un sens en hot-seat local — chaque camp retient la
+ * sienne — et **aucun** en ligne, où le camp du joueur local n'est qu'un numéro de place tiré par
+ * l'ordre d'arrivée. Un invité assis à la place 3 lisait `lastSelection[2]`, c'est-à-dire sa dernière
+ * équipe du *troisième camp d'une partie locale* : quasi toujours vide, et sans rapport avec lui.
+ *
+ * Sa ligne lit et écrit donc ici, à l'entrée que la partie locale ordinaire utilise déjà pour le
+ * premier camp — soit, dans les deux cas, « la dernière équipe de la personne devant l'écran ».
+ */
+const LOCAL_PLAYER_SELECTION_SLOT = 0;
+
+/**
  * Slot 1 = human (restoring its last team), others = AI with a random team.
  *
  * @param humanIndex quelle ligne est celle du joueur local. `0` en partie locale, où c'est toujours
@@ -99,7 +112,7 @@ export function buildInitialSlots(format: MapFormat, humanIndex = 0): SlotState[
       slot.assignedTeamId = null;
       slot.ephemeral = true;
     } else {
-      const lastId = lastSelection[i];
+      const lastId = lastSelection[LOCAL_PLAYER_SELECTION_SLOT];
       if (lastId !== undefined) {
         const team = loadTeam(lastId);
         if (team !== null) {
@@ -143,11 +156,16 @@ export function setSlotController(slot: SlotState, controller: PlayerController)
 /**
  * Assign a saved team (or a fresh random one when `teamId` is null).
  * Returns false when the saved team no longer exists.
+ *
+ * @param humanIndex la ligne du joueur local, comme pour `buildInitialSlots`. Elle seule écrit dans
+ * `LOCAL_PLAYER_SELECTION_SLOT`, ce qui garde la lecture et l'écriture du même côté : sans ça, un
+ * invité rangeait son équipe sous son numéro de place et la relisait sous zéro.
  */
 export function assignTeamToSlot(
   slot: SlotState,
   slotIndex: number,
   teamId: string | null,
+  humanIndex = 0,
 ): boolean {
   if (teamId === null) {
     slot.assignedTeam = generateRandomTeam({ name: ephemeralTeamName() });
@@ -162,8 +180,14 @@ export function assignTeamToSlot(
   slot.assignedTeam = team;
   slot.assignedTeamId = teamId;
   slot.ephemeral = false;
-  if (slot.controller === PlayerController.Human) {
-    saveLastSelectionEntry(slotIndex, teamId);
+  /*
+   * Seule la ligne du joueur local est retenue. Les autres lignes humaines — le hot-seat local, où
+   * l'hôte bascule un camp en « Humain » — écrivaient sous leur propre index une entrée que
+   * `buildInitialSlots` ne relit jamais : il ne restaure que la ligne du joueur local. C'était une
+   * écriture morte avant ce correctif, elle l'aurait encore été après.
+   */
+  if (slot.controller === PlayerController.Human && slotIndex === humanIndex) {
+    saveLastSelectionEntry(LOCAL_PLAYER_SELECTION_SLOT, teamId);
   }
   return true;
 }

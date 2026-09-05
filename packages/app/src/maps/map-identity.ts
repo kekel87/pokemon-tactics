@@ -12,10 +12,23 @@ import { MAPS_REGISTRY } from "./maps-registry";
  * qui doivent rester réciproques valent mieux dans le même fichier, où on les lit ensemble.
  */
 
-/** `assets/maps/the-wall.tmj` → `the-wall`. `unknown` quand l'URL ne vient pas du registre. */
-export function mapIdFromUrl(mapUrl: string): string {
-  return MAPS_REGISTRY.find((entry) => mapUrl.endsWith(entry.url))?.id ?? "unknown";
+/**
+ * `assets/maps/the-wall.tmj` → `the-wall`. **`undefined`** quand l'URL ne vient pas du registre.
+ *
+ * Elle rendait `"unknown"` — un repli commode pour la télémétrie, qui a besoin d'un seau où ranger
+ * les cartes hors registre, et une **faute** pour le réseau, où cette chaîne partait telle quelle
+ * dans `NetworkRoomOptions.mapId` : l'invité cherchait la carte `unknown`, ne la trouvait pas, et
+ * lisait « versions incompatibles » pour un simple raté de registre chez l'hôte.
+ *
+ * Le repli appartient donc à l'appelant qui en veut un, pas à cette fonction : la télémétrie écrit
+ * `?? MAP_ID_UNKNOWN`, et l'ouverture d'un salon refuse.
+ */
+export function mapIdFromUrl(mapUrl: string): string | undefined {
+  return MAPS_REGISTRY.find((entry) => mapUrl.endsWith(entry.url))?.id;
 }
+
+/** Le seau de la télémétrie pour une carte hors registre. Jamais un identifiant de protocole. */
+export const MAP_ID_UNKNOWN = "unknown";
 
 /**
  * `the-wall` → `assets/maps/the-wall.tmj`.

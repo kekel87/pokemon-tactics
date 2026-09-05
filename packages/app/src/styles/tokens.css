@@ -167,6 +167,8 @@
   --color-feedback-warn-bg: #2a2614;
   --color-feedback-warn-border: #aa9944;
   --color-feedback-warn-text: #ffdd88;
+  /* Le pendant vert des deux au-dessus, même clarté qu'eux — un texte, pas une bordure. */
+  --color-feedback-success-text: #88ee88;
 
   /* Typographie */
   --font-family: "PokemonEmeraldPro", monospace;

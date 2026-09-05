@@ -1,5 +1,5 @@
-import { NetworkErrorCode, type NetworkMessage } from "./protocol.js";
-import { type NetworkChannel, type NetworkTransport, NetworkTransportError } from "./transport.js";
+import { NetworkErrorCode, type NetworkMessage } from "../protocol.js";
+import { type NetworkChannel, type NetworkTransport, NetworkTransportError } from "../transport.js";
 
 /**
  * Transport en mémoire (plan 199, étape 2).

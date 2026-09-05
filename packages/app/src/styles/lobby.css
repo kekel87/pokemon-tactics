@@ -30,19 +30,17 @@
     }
   }
 
-  /* Au doigt, l'aide de saisie clavier est une information FAUSSE — il n'y a pas de clavier, et la
-     roue se tape directement. La masquer rend l'écran plus juste ET libère la hauteur qui manquait. */
   @media (pointer: coarse) {
+    /* Au doigt, l'aide de saisie clavier est une information FAUSSE — il n'y a pas de clavier, et la
+       roue se tape directement. La masquer rend l'écran plus juste ET libère la hauteur qui manquait. */
     .lb-hint {
       display: none;
     }
-  }
 
-  /* Un emplacement se tape en trois zones — voisin du haut, caractère courant, voisin du bas — donc
-     chacune doit tenir le plancher de 30 px sous `pointer: coarse` : 3 × 30 = 90 px de bouton. Sans
-     ce plancher, le clamp en vmin retombe à 72 px sur un téléphone en paysage (14 vmin de 320 px
-     valent 45 px, rattrapés par le minimum du clamp), soit 24 px par zone — sous le seuil. */
-  @media (pointer: coarse) {
+    /* Un emplacement se tape en trois zones — voisin du haut, caractère courant, voisin du bas — donc
+       chacune doit tenir le plancher de 30 px sous `pointer: coarse` : 3 × 30 = 90 px de bouton. Sans
+       ce plancher, le clamp en vmin retombe à 72 px sur un téléphone en paysage (14 vmin de 320 px
+       valent 45 px, rattrapés par le minimum du clamp), soit 24 px par zone — sous le seuil. */
     .lb-screen {
       --lb-slot-block-size: max(90px, clamp(72px, 14vmin, 132px));
     }

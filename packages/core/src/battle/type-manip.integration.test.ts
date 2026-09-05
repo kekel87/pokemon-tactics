@@ -1,5 +1,5 @@
 import { typeChart } from "@pokemon-tactic/data";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ActionKind } from "../enums/action-kind";
 import { BattleEventType } from "../enums/battle-event-type";
 import { PlayerId } from "../enums/player-id";
@@ -278,6 +278,26 @@ describe("Type manip — Flamme Ultime (burn-up)", () => {
 });
 
 describe("Type manip — damage path reads the override end-to-end", () => {
+  /*
+   * 🔴 Le jet de dégâts est épinglé pour tout ce bloc, et les valeurs affirmées sont **exactes**.
+   *
+   * `buildItemTestEngine` ne fournit pas de `random`, donc le moteur retombe sur le vrai
+   * `Math.random` (seam de test délibéré). Les deux tests d'ici comparaient deux dégâts par
+   * `toBeGreaterThan` sur des plages qui **se chevauchent** : mesuré 2 échecs sur 10 exécutions de
+   * `pnpm test:integration` (« expected 59 to be greater than 59 »). Voir `.claude/rules/core.md` et
+   * les décisions #759-#760, qui interdisent exactement cette forme.
+   *
+   * 0.5 place le jet au milieu de sa plage — ni le plancher ni le plafond, donc un écart de calcul
+   * ne se cache derrière aucune borne.
+   */
+  beforeEach(() => {
+    vi.spyOn(Math, "random").mockReturnValue(0.5);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   function thunderboltDamage(targetOverride?: PokemonType[]): number {
     const caster = MockPokemon.fresh(MockPokemon.squirtle, {
       playerId: PlayerId.Player1,
@@ -305,7 +325,13 @@ describe("Type manip — damage path reads the override end-to-end", () => {
   it("recomputes effectiveness from a soaked target's Water type (×2 vs the Fire default)", () => {
     const vsFire = thunderboltDamage();
     const vsSoakedWater = thunderboltDamage([PokemonType.Water]);
-    expect(vsSoakedWater).toBeGreaterThan(vsFire);
+    /*
+     * Valeurs exactes, jet épinglé : Fulmifer contre le Fire par défaut est neutre, contre le Water
+     * du Détrempage il est ×2. Les 75 et non 74 viennent de l'arrondi de la formule, qui s'applique
+     * après le multiplicateur — c'est justement ce qu'un `toBeGreaterThan` laissait passer sans le
+     * dire.
+     */
+    expect({ vsFire, vsSoakedWater }).toEqual({ vsFire: 37, vsSoakedWater: 75 });
   });
 
   it("grants STAB when the caster's type is overridden to the move's type", () => {
@@ -349,7 +375,9 @@ describe("Type manip — damage path reads the override end-to-end", () => {
     });
     const stabDamage = 400 - (boosted.state.pokemon.get(stabTarget.id)?.currentHp ?? 400);
 
-    expect(stabDamage).toBeGreaterThan(baseDamage);
+    // Valeurs exactes, jet épinglé : le STAB vaut ×1.5, soit 37 → 56 (55,5 arrondi). C'est cette
+    // paire qui se chevauchait sans épinglage — « expected 59 to be greater than 59 ».
+    expect({ baseDamage, stabDamage }).toEqual({ baseDamage: 37, stabDamage: 56 });
   });
 });
 

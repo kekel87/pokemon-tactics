@@ -38,9 +38,13 @@ export interface CodeWheel {
   code(): string;
   /** Le haut/bas de l'appelant. Rend `false` s'il n'a rien à consommer. */
   step(direction: "up" | "down"): boolean;
-  /** Vrai quand le focus est posé dans la roue — l'appelant s'en sert pour savoir si haut/bas lui revient. */
+  /**
+   * Vrai quand le focus est posé dans la roue. L'appelant s'en sert pour savoir si la navigation lui
+   * revient — **les deux axes**, pas seulement haut/bas : la roue boucle sur l'alphabet, donc elle
+   * n'atteint jamais de butée verticale, et la sortie horizontale lui a été confiée pour ne pas
+   * dépendre de la géométrie du viewport (voir `lobby-screen.ts`).
+   */
   holdsFocus(): boolean;
-  focusActiveSlot(): void;
   dispose(): void;
 }
 
@@ -251,7 +255,6 @@ export function createCodeWheel(callbacks: CodeWheelCallbacks = {}): CodeWheel {
       return true;
     },
     holdsFocus,
-    focusActiveSlot,
     dispose() {
       listeners.abort();
       element.remove();

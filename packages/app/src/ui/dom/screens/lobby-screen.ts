@@ -1,5 +1,5 @@
 import { REQUIRED_TEAM_COUNTS } from "@pokemon-tactic/data";
-import { isValidRoomCode } from "@pokemon-tactic/network";
+import { isValidRoomCode, RoomRole } from "@pokemon-tactic/network";
 import { countScreen, TelemetryScreen } from "../../../analytics/telemetry";
 import type { Navigate, Screen } from "../../../app/screen-manager";
 import { t } from "../../../i18n";
@@ -34,13 +34,16 @@ export function createLobbyScreen(navigate: Navigate): Screen<"lobby"> {
   let root: HTMLElement | null = null;
   let wheel: CodeWheel | null = null;
   let unregisterInput: (() => void) | undefined;
-  let selectedTeamCount: number = REQUIRED_TEAM_COUNTS[0] ?? 2;
+  // `REQUIRED_TEAM_COUNTS` est un tuple `as const`, donc son premier élément existe à la compilation :
+  // le repli `?? 2` qui traînait ici était une branche inatteignable, et sa valeur en dur un second
+  // endroit où le format par défaut était écrit.
+  let selectedTeamCount: number = REQUIRED_TEAM_COUNTS[0];
   let errorText: HTMLElement | null = null;
 
   const goBack = (): void => navigate("battle-mode", undefined);
 
   const createRoom = (): void => {
-    navigate("map-select", { network: { role: "host", teamCount: selectedTeamCount } });
+    navigate("map-select", { network: { role: RoomRole.Host, teamCount: selectedTeamCount } });
   };
 
   const joinRoom = (): void => {
@@ -51,7 +54,7 @@ export function createLobbyScreen(navigate: Navigate): Screen<"lobby"> {
       showError(t("lobby.invalidCode"));
       return;
     }
-    navigate("team-select", { network: { role: "guest", code } });
+    navigate("team-select", { network: { role: RoomRole.Guest, code } });
   };
 
   const showError = (message: string): void => {

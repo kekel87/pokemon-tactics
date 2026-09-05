@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { FakeNetworkDirectory } from "./fake-transport.js";
 import { NetworkErrorCode } from "./protocol.js";
+import { FakeNetworkDirectory } from "./testing/fake-transport.js";
 import {
   CLAIM_RETRY_DELAYS_MS,
   claimOwnIdentity,

@@ -1,4 +1,4 @@
-import type { MapFormat, PlayerController, TeamSelection } from "@pokemon-tactic/core";
+import { type MapFormat, PlayerController, type TeamSelection } from "@pokemon-tactic/core";
 import { REQUIRED_TEAM_COUNTS } from "@pokemon-tactic/data";
 import {
   HOST_SEAT,
@@ -7,6 +7,7 @@ import {
   type NetworkSeatState,
   PeerJsTransport,
   Room,
+  RoomRole,
   type RoomView,
   type StartMessage,
 } from "@pokemon-tactic/network";
@@ -98,8 +99,14 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
   /** Les désabonnements du salon, soldés au démontage — le salon, lui, survit à cet écran. */
   const roomListeners: (() => void)[] = [];
 
-  const isHost = (): boolean => networkIntent?.role === "host";
+  const isHost = (): boolean => networkIntent?.role === RoomRole.Host;
   const isOnline = (): boolean => networkIntent !== undefined;
+
+  /**
+   * La ligne du joueur assis devant cet écran. Zéro en local, la place du salon en ligne — c'est elle
+   * qui dit quelle ligne restaure et enregistre « ma dernière équipe ».
+   */
+  const humanIndex = (): number => (room === null ? 0 : room.seat - 1);
 
   const goBack = (): void => {
     if (room !== null) {
@@ -287,12 +294,34 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     if (!slot || !setSlotController(slot, controller)) {
       return;
     }
-    // En ligne, la bascule est aussi un fait de salon : elle doit parvenir aux autres, sinon eux
-    // continueraient d'attendre le « Prêt » d'une ligne que l'hôte vient de donner à l'IA.
+    /*
+     * En ligne, la bascule est aussi un fait de salon : elle doit parvenir aux autres, sinon eux
+     * continueraient d'attendre le « Prêt » d'une ligne que l'hôte vient de donner à l'IA.
+     *
+     * « Humain » y vaut **place libre**, pas `Human` : sur une ligne que personne ne tient, `Human`
+     * réclamait une confirmation qui ne pouvait jamais venir et bloquait « Lancer » sans retour
+     * possible. `Waiting` dit ce que l'hôte veut réellement dire — « je rouvre cette place à un
+     * joueur » — et reste jouable si personne ne vient.
+     */
     room?.setSeatOccupancy(
       slotIndex + 1,
-      controller === "ai" ? NetworkSeatOccupancy.Ai : NetworkSeatOccupancy.Human,
+      controller === PlayerController.Ai ? NetworkSeatOccupancy.Ai : NetworkSeatOccupancy.Waiting,
     );
+    /*
+     * 🔴 En ligne, une place libre **garde une équipe**. C'est déjà ce que le reste de l'écran
+     * suppose — `canEditSlot` la rend composable « dont l'équipe servira si personne ne vient », et
+     * `composeStartSeats` la rend en IA au lancement.
+     *
+     * `setSlotController(…, Human)` vient de la vider, ce qui est juste en local (un humain va
+     * composer la sienne) et faux ici : la ligne se retrouvait sur trois états contradictoires —
+     * segment « Humain », carte vide, badge « Place libre » — et « Lancer » s'éteignait sur
+     * `isLaunchable()` pour une place que le salon déclare pourtant prête. Pire, `announceSelection`
+     * sortant sur une équipe nulle, le salon **conservait l'ancienne sélection** : la place partait
+     * en combat avec l'équipe que l'écran venait de montrer comme retirée.
+     */
+    if (isOnline() && controller !== PlayerController.Ai && slot.assignedTeam === null) {
+      assignTeamToSlot(slot, slotIndex, null, humanIndex());
+    }
     // Une ligne passée en IA reçoit une équipe aléatoire séance tenante : il faut la poser au salon,
     // sinon la place partirait vide dans le `start`.
     announceSelection(slotIndex, slot);
@@ -315,7 +344,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
 
   const assignTeam = (slotIndex: number, teamId: string | null): void => {
     const slot = slots[slotIndex];
-    if (!slot || !assignTeamToSlot(slot, slotIndex, teamId)) {
+    if (!slot || !assignTeamToSlot(slot, slotIndex, teamId, humanIndex())) {
       return;
     }
     announceSelection(slotIndex, slot);
@@ -704,21 +733,26 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
       countScreen(TelemetryScreen.TeamSelect);
       networkIntent = params.network;
 
-      // L'invité n'a pas choisi de carte : elle lui arrive de l'hôte, et il faut donc ouvrir le
-      // salon AVANT de savoir quoi charger.
-      if (networkIntent?.role === "guest") {
+      /*
+       * L'invité n'a pas choisi de carte : elle lui arrive de l'hôte, et il faut donc ouvrir le
+       * salon AVANT de savoir quoi charger. L'écarter ici suffit au compilateur pour donner la carte
+       * à coup sûr en dessous.
+       *
+       * L'absence de carte est un discriminant **sain** depuis que le membre invité déclare
+       * `mapUrl?: undefined` : « une carte avec une intention d'invité » ne se représente plus, donc
+       * ce test et « le rôle est invité » disent désormais exactement la même chose. Avant, le
+       * contrôle de propriétés en excès laissait compiler `{ mapUrl, network: <invité> }`, et un tel
+       * paramètre prenait cette branche-ci par la négative — mode réseau actif, aucun salon.
+       */
+      if (params.mapUrl === undefined) {
         root = el("div", "ts-root");
         host.append(root);
-        await joinAsGuest(networkIntent.code);
+        await joinAsGuest(params.network.code);
         unbindScreenInput = bindScreenInput(goBack);
         return;
       }
 
-      const requestedUrl = params.mapUrl;
-      if (requestedUrl === undefined) {
-        throw new Error("team-select sans carte hors du chemin invité en ligne");
-      }
-      mapUrl = requestedUrl;
+      mapUrl = params.mapUrl;
       const loaded = await loadTiledMap(mapUrl);
       mapName = loaded.map.name;
       formatOptions = loaded.map.formats.map((format) => ({
@@ -726,7 +760,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
         format,
       }));
       const chosen = pickFormatOption(
-        networkIntent?.role === "host" ? networkIntent.teamCount : undefined,
+        networkIntent?.role === RoomRole.Host ? networkIntent.teamCount : undefined,
       );
       if (!chosen) {
         throw new Error(`Map "${mapUrl}" has no formats`);
@@ -736,7 +770,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
       root = el("div", "ts-root");
       host.append(root);
 
-      if (networkIntent?.role === "host") {
+      if (networkIntent?.role === RoomRole.Host) {
         await createAsHost(networkIntent.teamCount);
       }
       render();
@@ -781,11 +815,28 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
 
   /** L'hôte ouvre le salon. Le code naît ICI, à l'entrée sur cet écran, jamais avant. */
   async function createAsHost(teamCount: number): Promise<void> {
+    /*
+     * 🔴 Pas de salon sur une carte qu'on ne sait pas nommer. L'identifiant est le contrat entre les
+     * deux pairs : ouvrir malgré tout envoyait « unknown » à l'invité, qui ne trouvait aucune carte
+     * de ce nom et affichait « versions incompatibles » — un diagnostic faux, prononcé par le mauvais
+     * camp, pour un salon qui n'aurait de toute façon jamais pu se jouer.
+     *
+     * Le refus est prononcé ici, avec le **même** code que le chemin symétrique de
+     * `enterNetworkBattle` : là-bas c'est un pair qui nomme une carte que nous n'avons pas, ici c'est
+     * notre propre registre qui ne nomme pas une carte que nous chargeons. Les deux disent la même
+     * chose au joueur — « vos versions diffèrent, rechargez » — et c'est ce qu'une page en cache
+     * ancien produit réellement.
+     */
+    const mapId = mapIdFromUrl(mapUrl);
+    if (mapId === undefined) {
+      showNetworkError(NetworkErrorCode.VersionIncompatible);
+      return;
+    }
     try {
       room = await Room.create(
         { transport: new PeerJsTransport(signallingOverride()), maxSeats: maxSeats() },
         {
-          mapId: mapIdFromUrl(mapUrl),
+          mapId,
           teamCount,
           autoPlacement,
           damagePreview,
@@ -836,7 +887,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     formatKey = chosen.key;
     // La ligne humaine est **celle de l'invité**, pas la première : assis à la place 3, il doit voir
     // sa propre ligne porter sa dernière équipe, la première étant celle de l'hôte.
-    slots = buildInitialSlots(chosen.format, room.seat - 1);
+    slots = buildInitialSlots(chosen.format, humanIndex());
     // L'invité ne tient qu'une ligne : les autres ne sont pas des IA locales à composer, ce sont
     // les places des autres joueurs, dont l'état vient du salon. `setSeatSelection` refuse d'ailleurs
     // toute place qu'il ne possède pas, donc seule la sienne part.

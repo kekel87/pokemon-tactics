@@ -503,7 +503,7 @@
     font-size: var(--font-size-xs);
 
     &[data-state="ready"] {
-      color: var(--color-btn-primary-border);
+      color: var(--color-feedback-success-text);
     }
 
     &[data-state="waiting"] {

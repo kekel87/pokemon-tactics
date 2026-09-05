@@ -3,7 +3,7 @@ import type { Navigate, Screen } from "../../../app/screen-manager";
 import { t } from "../../../i18n";
 import { bindScreenInput, el, menuButton } from "./elements";
 
-/** DOM port of BattleModeScene: Local et En ligne actifs, Tutoriel désactivé, retour au menu. */
+/** Le choix du mode de combat : Local et En ligne actifs, Tutoriel désactivé, retour au menu. */
 export function createBattleModeScreen(navigate: Navigate): Screen<"battle-mode"> {
   let root: HTMLElement | null = null;
   let unbindScreenInput: (() => void) | null = null;

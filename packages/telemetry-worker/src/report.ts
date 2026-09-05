@@ -71,6 +71,7 @@ export interface BattleStartedPayload {
   humans: number;
   ai: number;
   autoPlacement: boolean;
+  damagePreview: boolean;
   teams: TeamPayload[];
 }
 

@@ -204,16 +204,28 @@ export type NetworkMessage =
 
 export type NetworkMessageType = NetworkMessage["type"];
 
-const MESSAGE_TYPES: readonly NetworkMessageType[] = [
-  "hello",
-  "welcome",
-  "room_state",
-  "team_select",
-  "ready",
-  "start",
-  "start_ack",
-  "bye",
-];
+/**
+ * Les types reconnus au bord du réseau.
+ *
+ * C'était un **tableau de huit littéraux recopiés à la main**, que rien ne synchronisait avec
+ * l'union : un message ajouté au protocole restait rejeté par `isNetworkMessage`, en silence.
+ *
+ * `satisfies Record<NetworkMessageType, true>` le rend exhaustif **dans les deux sens** — une
+ * variante de l'union sans entrée ici ne compile pas, une entrée qui ne correspond à aucune variante
+ * non plus. Même idiome que le `satisfies Record<NetworkErrorCode, TelemetryAction>` de la
+ * télémétrie, et un objet plutôt qu'un tableau parce que seule la forme d'objet peut porter cette
+ * contrainte.
+ */
+const MESSAGE_TYPES = {
+  hello: true,
+  welcome: true,
+  room_state: true,
+  team_select: true,
+  ready: true,
+  start: true,
+  start_ack: true,
+  bye: true,
+} as const satisfies Record<NetworkMessageType, true>;
 
 /**
  * Reconnaît un message venu du réseau. Un pair peut envoyer n'importe quoi — un client modifié, une
@@ -226,7 +238,7 @@ export function isNetworkMessage(value: unknown): value is NetworkMessage {
     return false;
   }
   const type = (value as { type?: unknown }).type;
-  return typeof type === "string" && MESSAGE_TYPES.includes(type as NetworkMessageType);
+  return typeof type === "string" && Object.hasOwn(MESSAGE_TYPES, type);
 }
 
 /**

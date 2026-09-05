@@ -104,10 +104,20 @@ export class TeamSelectScreen {
    * tour humain à jouer : pour un combat que le test PILOTE, voir {@link pickRandomTeam}.
    */
   async giveSlotToAi(slotIndex = 0): Promise<void> {
-    await this.page
+    await this.controllerButton(slotIndex, "ai").click();
+  }
+
+  /**
+   * Un bouton du segment Humain / IA d'un camp (0-indexé).
+   *
+   * Visé par `data-controller`, qui porte la valeur de `PlayerController` (« human » / « ai ») : le
+   * libellé, lui, commence par un glyphe et se traduit. En ligne, ce segment n'existe que chez l'hôte,
+   * et seulement sur les lignes que personne ne tient.
+   */
+  controllerButton(slotIndex: number, controller: "human" | "ai"): Locator {
+    return this.page
       .getByTestId("player-controller")
-      .and(this.page.locator(`[data-slot-index="${slotIndex}"][data-controller="ai"]`))
-      .click();
+      .and(this.page.locator(`[data-slot-index="${slotIndex}"][data-controller="${controller}"]`));
   }
 
   /**

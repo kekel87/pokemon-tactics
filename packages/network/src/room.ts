@@ -1,3 +1,4 @@
+import { PlayerController } from "@pokemon-tactic/core";
 import {
   isCompatibleVersion,
   NETWORK_VERSION,
@@ -124,7 +125,16 @@ export class Room {
   private hasRoomState = false;
   private launchAckTimer: unknown;
   private pendingLaunch:
-    | { isComplete: () => boolean; settle: (acked: boolean) => void }
+    | {
+        /**
+         * Les places dont on attend l'accusé. Retenues et non recalculées : c'est la liste qui a
+         * reçu le `start`, et c'est elle qui dit si une fermeture survenue depuis rend le lancement
+         * caduc.
+         */
+        readonly awaitedSeats: readonly number[];
+        isComplete: () => boolean;
+        settle: (acked: boolean) => void;
+      }
     | undefined;
 
   private readonly timers: RoomTimers;
@@ -238,7 +248,7 @@ export class Room {
    * personne avant le `start`, qui les porte.
    */
   setSeatSelection(seat: number, selection: NetworkTeamSelection): void {
-    if (!this.ownsSeat(seat)) {
+    if (this.left || !this.ownsSeat(seat)) {
       return;
     }
     this.selections.set(seat, selection);
@@ -262,6 +272,9 @@ export class Room {
   }
 
   setReady(ready: boolean): void {
+    if (this.left) {
+      return;
+    }
     const seatState = this.seats.get(this.seat);
     if (seatState !== undefined) {
       this.seats.set(this.seat, { ...seatState, ready });
@@ -284,7 +297,7 @@ export class Room {
    */
   setOptions(options: Partial<Omit<NetworkRoomOptions, "teamCount">>): void {
     this.assertHost();
-    if (this.seats.get(this.seat)?.ready === true) {
+    if (this.left || this.seats.get(this.seat)?.ready === true) {
       return;
     }
     this.roomOptions = { ...this.roomOptions, ...options };
@@ -293,13 +306,24 @@ export class Room {
   }
 
   /**
-   * L'hôte bascule une ligne Humain ↔ IA. C'est aussi ce qui lui permet de **forcer** le lancement :
-   * repasser en IA les lignes pas prêtes.
+   * L'hôte bascule une ligne entre **IA** et **place libre**. C'est aussi ce qui lui permet de
+   * **forcer** le lancement : repasser en IA les lignes que personne ne tient.
+   *
+   * 🔴 `Human` est refusé, et ce n'est pas une restriction de confort — c'était une **impasse**
+   * (corrigé le 2026-09-05). `Human` sur une place que personne ne tient posait `ready: false` pour
+   * une confirmation que personne ne pouvait donner : « Lancer » restait mort, et l'hôte ne pouvait
+   * même pas revenir en arrière, `canEditSlot` ne rendant la main que sur `Ai` et `Waiting`. Le
+   * salon n'avait plus d'issue que d'être quitté.
+   *
+   * Rien n'est perdu au passage : `Waiting` **est** l'état « j'attends un joueur », il l'affiche
+   * (« Place libre »), il accueille un arrivant, et il part en IA au lancement si personne ne vient.
+   * `Human` ne décrit qu'une place tenue par celui qui est devant l'écran, ce que `setSeatOccupancy`
+   * ne vise jamais : sa propre place est déjà refusée deux lignes plus haut.
    */
   setSeatOccupancy(seat: number, occupancy: NetworkSeatOccupancy): void {
     this.assertHost();
     const seatState = this.seats.get(seat);
-    if (seatState === undefined || seat === HOST_SEAT) {
+    if (this.left || seatState === undefined || seat === HOST_SEAT) {
       return;
     }
     // Une place tenue par un joueur distant connecté ne se bascule pas sous ses pieds : il faudrait
@@ -307,10 +331,12 @@ export class Room {
     if (seatState.occupancy === NetworkSeatOccupancy.Remote) {
       return;
     }
+    if (occupancy === NetworkSeatOccupancy.Human) {
+      return;
+    }
     // Une place IA **ou libre** est prête d'office : il n'y a personne dont on attendrait la
     // confirmation, et l'exiger bloquerait le lancement pour toujours.
-    const ready = occupancy !== NetworkSeatOccupancy.Human;
-    this.seats.set(seat, { ...seatState, occupancy, ready });
+    this.seats.set(seat, { ...seatState, occupancy, ready: true });
     this.broadcastRoomState();
     this.notifyChange();
   }
@@ -332,7 +358,7 @@ export class Room {
    */
   async launch(seeds: NetworkSeeds): Promise<void> {
     this.assertHost();
-    if (this.locked) {
+    if (this.left || this.locked) {
       return;
     }
 
@@ -362,7 +388,13 @@ export class Room {
     const everyoneAcked = this.waitForStartAcks(awaitedSeats);
     this.broadcast(start);
 
-    if (await everyoneAcked) {
+    const acked = await everyoneAcked;
+    // Le salon a pu être quitté pendant l'attente — c'est même ce qui solde la promesse dans ce cas.
+    // Ni entrer en combat ni rouvrir un salon qui n'existe plus.
+    if (this.left) {
+      return;
+    }
+    if (acked) {
       this.emitStart(start);
       return;
     }
@@ -380,7 +412,13 @@ export class Room {
       this.timers.clearTimeout(timer.handle);
     }
     this.graceTimers.clear();
-    this.timers.clearTimeout(this.launchAckTimer);
+    // Solder le lancement en cours, sinon la promesse de `waitForStartAcks` ne se règle **jamais** :
+    // son seul autre dénouement était son minuteur d'accusé. `launch()` s'arrête alors sur
+    // `this.left` plutôt que d'annuler un lancement dans un salon qui n'existe plus.
+    //
+    // Ça coupe aussi le minuteur — `settle` le fait — donc pas de `clearTimeout` ici : les deux sont
+    // posés d'un seul geste par `waitForStartAcks` et n'ont aucun moyen d'être désynchronisés.
+    this.pendingLaunch?.settle(false);
     this.deps.transport.destroy();
     this.channels.clear();
     this.changeListeners.clear();
@@ -760,6 +798,7 @@ export class Room {
       return;
     }
     this.channels.delete(remoteSeat);
+    this.abandonLaunchIfAwaiting(remoteSeat);
 
     const cleanClose = this.announcedBye.has(remoteSeat);
     const delayMs = cleanClose ? GRACE_AFTER_CLEAN_CLOSE_MS : GRACE_AFTER_SILENCE_MS;
@@ -818,14 +857,13 @@ export class Room {
       .map((seatState) => ({
         seat: seatState.seat,
         // `remote` est un état de **salon** : le moteur ne connaît que « humain » ou « IA », et un
-        // joueur distant est un humain — simplement pas celui qui est devant cet écran.
-        // `remote` est un humain — simplement pas celui qui est devant cet écran. Une place
+        // joueur distant est un humain — simplement pas celui qui est devant cet écran. Une place
         // **libre** part en IA : c'est ce qui garde le salon jouable si personne n'est venu.
         controller:
           seatState.occupancy === NetworkSeatOccupancy.Ai ||
           seatState.occupancy === NetworkSeatOccupancy.Waiting
-            ? "ai"
-            : "human",
+            ? PlayerController.Ai
+            : PlayerController.Human,
         selection: this.selections.get(seatState.seat) ?? { pokemonDefinitionIds: [] },
       }));
   }
@@ -844,11 +882,35 @@ export class Room {
       };
 
       this.pendingLaunch = {
+        awaitedSeats,
         isComplete: () => awaitedSeats.every((seat) => this.startAcks.has(seat)),
         settle,
       };
       this.launchAckTimer = this.timers.setTimeout(() => settle(false), LAUNCH_ACK_TIMEOUT_MS);
     });
+  }
+
+  /**
+   * Une place se referme pendant qu'on attend son accusé : le lancement est **déjà** perdu, donc on
+   * l'abandonne tout de suite au lieu de laisser courir les 15 secondes du minuteur.
+   *
+   * Ce n'est pas une entorse à la règle « un départ est un silence, pas un événement » : le délai de
+   * grâce s'ouvre quand même juste après, et la place peut revenir. Ce qu'on refuse ici, c'est de
+   * faire attendre l'hôte devant un écran figé pour un accusé dont on sait qu'il n'arrivera pas —
+   * il retrouve son salon, et relance quand il veut.
+   *
+   * Une place qui a **déjà** accusé ne compte pas : elle a reçu le `start`, son départ relève du
+   * délai de grâce ordinaire.
+   */
+  private abandonLaunchIfAwaiting(remoteSeat: number): void {
+    const launch = this.pendingLaunch;
+    if (launch === undefined) {
+      return;
+    }
+    if (!launch.awaitedSeats.includes(remoteSeat) || this.startAcks.has(remoteSeat)) {
+      return;
+    }
+    launch.settle(false);
   }
 
   private cancelLaunch(): void {

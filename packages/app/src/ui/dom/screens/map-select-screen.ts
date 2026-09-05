@@ -1,7 +1,7 @@
 import { createMapPreviewStage, type MapPreviewStage } from "@pokemon-tactic/render-babylon";
 import { countScreen, TelemetryScreen } from "../../../analytics/telemetry";
 import type { Navigate, Screen } from "../../../app/screen-manager";
-import type { NetworkIntent } from "../../../app/screens";
+import type { HostIntent } from "../../../app/screens";
 import { getLanguage, t } from "../../../i18n";
 import { getInputSystem } from "../../../input/input-system";
 import { MAPS_REGISTRY } from "../../../maps/maps-registry";
@@ -25,7 +25,7 @@ export function createMapSelectScreen(navigate: Navigate): Screen<"map-select"> 
    * mode local, sans code ni salon — et rien ne le signalerait, l'écran étant par ailleurs
    * parfaitement fonctionnel.
    */
-  let networkIntent: NetworkIntent | undefined;
+  let networkIntent: HostIntent | undefined;
 
   const goBack = (): void => {
     // L'hôte revient au `lobby`, d'où il vient ; un joueur local au choix du mode de combat.

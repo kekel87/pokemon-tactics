@@ -149,6 +149,13 @@ export interface BattleStartedPayload {
   readonly humans: number;
   readonly ai: number;
   readonly autoPlacement: boolean;
+  /**
+   * Les deux paramètres de partie du plan 198 voyagent **ensemble** : ils se règlent au même endroit,
+   * et savoir si les joueurs gardent la prévisualisation de dégâts active est le genre de signal
+   * d'usage que la Phase 8 (équilibrage) veut lire — un joueur qui la coupe ne juge pas les dégâts
+   * comme celui qui les voit avant de frapper.
+   */
+  readonly damagePreview: boolean;
   readonly teams: readonly TelemetryTeam[];
 }
 

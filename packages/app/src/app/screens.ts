@@ -1,5 +1,5 @@
 import type { TeamSelection } from "@pokemon-tactic/core";
-import type { NetworkSeeds } from "@pokemon-tactic/network";
+import type { NetworkSeeds, RoomRole } from "@pokemon-tactic/network";
 import type { TelemetryTeam } from "../analytics/telemetry";
 import type { BattleResumeSave } from "./battle-persistence";
 
@@ -27,10 +27,18 @@ export type ScreenId =
  * création du salon, ce qui fixe le nombre de places avant la naissance du code et supprime donc
  * toute éjection de joueur (décision #896).
  */
-export type NetworkIntent =
-  | { readonly role: "host"; readonly teamCount: number }
-  /** L'invité ne configure rien : la carte et le format lui arrivent de l'hôte. */
-  | { readonly role: "guest"; readonly code: string };
+export interface HostIntent {
+  readonly role: typeof RoomRole.Host;
+  readonly teamCount: number;
+}
+
+/** L'invité ne configure rien : la carte et le format lui arrivent de l'hôte. */
+export interface GuestIntent {
+  readonly role: typeof RoomRole.Guest;
+  readonly code: string;
+}
+
+export type NetworkIntent = HostIntent | GuestIntent;
 
 /** Battle configuration carried from team-select into combat (plan 120 step 6). */
 export interface CombatSetup {
@@ -70,13 +78,32 @@ export interface ScreenParamsById {
   "main-menu": undefined;
   "battle-mode": undefined;
   lobby: undefined;
-  /** `network` = l'hôte choisit le terrain de sa partie en ligne ; le format est déjà gravé. */
-  "map-select": { network?: NetworkIntent } | undefined;
   /**
-   * `mapUrl` absent = l'invité d'une partie en ligne : il n'a pas choisi de carte, elle lui arrive de
-   * l'hôte, et il n'en verra que le nom (plan 199).
+   * `network` = l'hôte choisit le terrain de sa partie en ligne ; le format est déjà gravé.
+   *
+   * `HostIntent` et non `NetworkIntent` : un invité ne choisit pas de carte, il ne passe donc jamais
+   * par cet écran.
    */
-  "team-select": { mapUrl?: string; network?: NetworkIntent };
+  "map-select": { network?: HostIntent } | undefined;
+  /**
+   * Union **discriminée par la présence de `mapUrl`**, et non un `mapUrl` optionnel : l'invité d'une
+   * partie en ligne est le seul à entrer ici sans carte — il n'en a pas choisi, elle lui arrive de
+   * l'hôte, et il n'en verra que le nom (plan 199).
+   *
+   * Le rendre optionnel avait coûté une garantie de compilation, rattrapée par un `throw` au montage
+   * (« team-select sans carte hors du chemin invité en ligne »). Sous cette forme, c'est le
+   * compilateur qui interdit de naviguer sans carte autrement qu'en invité, et le `throw` disparaît
+   * avec le cas qu'il couvrait.
+   */
+  "team-select":
+    | { mapUrl: string; network?: HostIntent }
+    /**
+     * `mapUrl?: undefined` explicite, et non simplement absent : sans lui, le contrôle de propriétés
+     * en excès laisse compiler `{ mapUrl, network: <invité> }` — `mapUrl` appartenant à l'autre
+     * membre de l'union — et un tel paramètre prenait la branche hôte, avec un mode réseau actif
+     * mais aucun salon. Déclaré ainsi, il ne se représente plus.
+     */
+    | { mapUrl?: undefined; network: GuestIntent };
   "my-teams": undefined;
   "team-edit": { teamId: string };
   settings: undefined;

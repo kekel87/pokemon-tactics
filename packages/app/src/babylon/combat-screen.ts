@@ -287,6 +287,7 @@ async function mountPlacement(
       mapUrl,
       formatKey: setup.formatKey,
       autoPlacement: setup.autoPlacement,
+      damagePreview: setup.damagePreview,
       telemetryTeams: setup.telemetryTeams,
       teams: setup.teams,
     });
@@ -808,8 +809,9 @@ function runBattle(options: {
   return orchestrator;
 }
 
-/** EASY AI (seeded) for the given AI-controlled player ids (placement path). */
 /**
+ * EASY AI (seeded) for the given AI-controlled player ids (placement path).
+ *
  * @param aiRootSeed graine d'IA d'une partie en ligne (plan 199). Présente, chaque place en dérive
  * la sienne dans l'**ordre croissant des places**, ce qui rend l'IA identique sur les deux pairs sans
  * qu'un seul message ne s'échange (décision #901). Absente en local, où l'horloge suffit.

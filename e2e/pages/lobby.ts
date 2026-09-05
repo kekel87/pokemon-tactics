@@ -30,6 +30,16 @@ export class LobbyScreen {
   }
 
   /**
+   * Le segment de format d'un nombre de joueurs donné (`2`, `3`, `4`, `6`, `12`).
+   *
+   * Visé par `data-format-key` — la valeur qu'écrit le code, indépendante de l'i18n et du
+   * `text-transform` du libellé — et non par son texte « 4 joueurs ».
+   */
+  formatSegment(teamCount: number): Locator {
+    return this.formatSegments.and(this.page.locator(`[data-format-key="${teamCount}"]`));
+  }
+
+  /**
    * Saisit un code **au clavier**, dans la roue — le seul widget de saisie, pour les quatre entrées.
    * Passe par de vraies frappes plutôt que par un `fill()` : il n'y a pas de champ texte à remplir,
    * et c'est précisément le comportement qu'on veut couvrir.
@@ -62,7 +72,7 @@ export class WaitingRoom {
   /** La rangée de format, ABSENTE en ligne : le format est gravé depuis le `lobby`. */
   readonly formatSegments: Locator;
 
-  constructor(page: Page) {
+  constructor(private readonly page: Page) {
     this.panel = page.getByTestId("room-panel");
     this.code = page.getByTestId("room-code");
     this.copy = page.getByTestId("room-code-copy");
@@ -73,5 +83,15 @@ export class WaitingRoom {
     this.remoteSeats = page.getByTestId("player-remote");
     this.readyBadges = page.getByTestId("player-ready");
     this.formatSegments = page.getByTestId("format-segment");
+  }
+
+  /**
+   * Le badge d'état d'une ligne (0-indexé) : « ⏳ Place libre », « Prêt » ou « En attente ».
+   *
+   * `data-state` (`open` / `ready` / `not-ready`) porte le contrat, le texte porte l'i18n. Absent sur
+   * sa propre ligne : on est là par définition.
+   */
+  seatStatus(slotIndex: number): Locator {
+    return this.readyBadges.and(this.page.locator(`[data-slot-index="${slotIndex}"]`));
   }
 }
