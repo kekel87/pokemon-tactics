@@ -9,8 +9,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@babylonjs/core": "^9.17.1",
-    "@babylonjs/loaders": "^9.17.1",
+    "@babylonjs/core": "^9.25.0",
+    "@babylonjs/loaders": "^9.25.0",
     "@pokemon-tactic/core": "workspace:*",
     "@pokemon-tactic/data": "workspace:*",
     "@pokemon-tactic/network": "workspace:*",
@@ -20,13 +20,13 @@
     "@pokemon-tactic/view-core": "workspace:*"
   },
   "devDependencies": {
-    "@babylonjs/addons": "^9.17.1",
-    "@babylonjs/gui": "^9.17.1",
-    "@babylonjs/gui-editor": "^9.17.1",
-    "@babylonjs/inspector": "^9.17.1",
-    "@babylonjs/materials": "^9.17.1",
-    "@babylonjs/serializers": "^9.17.1",
-    "babylonjs-gltf2interface": "^9.17.1",
+    "@babylonjs/addons": "^9.25.0",
+    "@babylonjs/gui": "^9.25.0",
+    "@babylonjs/gui-editor": "^9.25.0",
+    "@babylonjs/inspector": "^9.25.0",
+    "@babylonjs/materials": "^9.25.0",
+    "@babylonjs/serializers": "^9.25.0",
+    "babylonjs-gltf2interface": "^9.25.0",
     "rollup-plugin-visualizer": "^7.1.1"
   }
 }
