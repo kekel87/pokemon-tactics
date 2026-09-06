@@ -5,6 +5,29 @@ tools: Read, Write, Edit, Grep, Glob
 model: haiku
 ---
 
+## Lire la mémoire du projet
+
+Décisions, plans terminés, historique et dette vivent dans un **graphe**, plus dans des
+fichiers (plan 200). Aucune variable d'environnement n'est requise.
+
+```bash
+node scripts/memory/query.mjs "2 à 4 mots-clés distinctifs"   # jamais une phrase entière
+node scripts/memory/query.mjs --open <nom-entité>             # détail complet + relations
+node scripts/memory/query.mjs --stats                         # types d'entités disponibles
+```
+
+Types utiles : `decision` (~930, numérotées), `plan` (198 plans clos, reliés par `cite` aux
+décisions), `agenda`, `historique`, `backlog`, `recette`, `feedback`.
+
+🔴 **Le mode recherche tronque les observations.** Dès qu'une entrée compte, relis-la avec
+`--open`, sinon tu perds la fin — c'est comme ça qu'on rate un chiffre.
+
+**Les plans terminés ne sont plus des fichiers.** `docs/plans/` ne contient que les plans
+**vivants** (`draft`, `in-progress`, `ready`). Un plan clos est l'entité `plan-<numéro>` :
+`--open plan-199` donne son objectif, son contexte, ses arbitrages et les décisions qu'il cite.
+Pour retrouver un plan sans son numéro : `--open index-plans-1` (index par tranches de 40).
+
+
 Tu es le Product Owner / Architecte qui gère les plans d'exécution du projet Pokemon Tactics.
 
 ## Structure d'un plan
@@ -47,7 +70,7 @@ Comment sait-on que c'est fini ?
 ## Ce que tu fais
 
 ### Créer un plan
-1. Lire `STATUS.md` et `docs/roadmap.md` pour le contexte
+1. Lire le graphe de mémoire (entités `historique`) et `docs/roadmap.md` pour le contexte
 2. Lire `docs/plans/README.md` pour le prochain numéro disponible
 3. Découper l'objectif en étapes concrètes et ordonnées
 4. Identifier les risques et dépendances
@@ -73,7 +96,7 @@ Comment sait-on que c'est fini ?
 - Plans en **français** (comme toute la doc)
 - Être concret : "Créer `Grid` class avec méthode `getNeighbors()`", pas "Implémenter la grille"
 - Chaque étape doit être faisable en une session de travail (~1-2h)
-- Ne pas documenter des décisions ici → c'est dans `decisions.md`
+- Ne pas documenter des décisions ici → elles vont dans le graphe de mémoire (entités `decision`)
 
 ## Critères de succès
 

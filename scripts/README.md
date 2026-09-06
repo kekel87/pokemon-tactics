@@ -157,8 +157,8 @@ in `packages/app/public/assets/maps/` references it via
 `tileset.tsj` once to update properties for all 24 maps at once.
 
 One-shot migration scripts (JAO → custom, MVP 5-terrains → 15-terrains,
-inline tilesets → external reference) were removed after migration — see
-`docs/plans/050-custom-tileset.md` for the historical record if needed.
+inline tilesets → external reference) were removed after migration — see entity
+`plan-050` in the project memory graph for the historical record if needed.
 
 ## Unrelated sprite scripts
 

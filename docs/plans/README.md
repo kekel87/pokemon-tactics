@@ -1,195 +1,37 @@
 # Plans d'exécution
 
-Plans numérotés par ordre chronologique. Chaque plan a un statut en en-tête.
+## Où sont les plans
+
+**Un plan terminé n'est pas un fichier.** Les 198 plans clos vivent dans le **graphe de mémoire** —
+une entité `plan-<numéro>` par plan, reliée par `cite` aux décisions qu'elle mentionne :
+
+```bash
+node scripts/memory/query.mjs "mots-clés du sujet"    # quel plan a traité X ?
+node scripts/memory/query.mjs --open plan-199         # un plan et ses décisions
+node scripts/memory/query.mjs --open index-plans-1    # l'index, par tranches de 40
+```
+
+Un plan terminé est de l'**histoire** : ce qu'on a décidé, et ce qu'on a trouvé en le faisant. Il ne
+décrit pas le système tel qu'il est — c'est le rôle de `docs/architecture.md` et consorts. Le fichier
+d'origine reste dans l'historique git si le détail littéral est nécessaire.
+
+🔴 **Le critère de migration est « travaille-t-on encore dessus ? », pas le statut écrit en en-tête.**
+Huit plans portaient `draft` ou `in-progress` avec un dernier commit en avril-juin : un en-tête périmé
+n'est pas une raison de garder un fichier.
 
 ## Statuts
+
 - **draft** — en cours de rédaction / discussion
 - **ready** — validé, prêt à exécuter
 - **in-progress** — en cours d'exécution
-- **done** — terminé
-- **abandoned** — abandonné (garder pour l'historique)
+- **done** / **abandoned** — part au graphe, le fichier est supprimé
 
-## Index
+## Plans encore sous forme de fichier
 
-| # | Titre | Statut | Créé |
-|---|-------|--------|------|
-| 001 | [Setup monorepo](./001-setup-monorepo.md) | done | 2026-03-20 |
-| 002 | [Modèles de base du core](./002-core-models.md) | done | 2026-03-20 |
-| 003 | [BattleEngine, data et validation](./003-battle-engine-data.md) | done | 2026-03-20 |
-| 004 | [Résolution des effets d'attaque](./004-effect-resolution.md) | done | 2026-03-20 |
-| 005 | [Refactor : phases de tour + effect registry](./005-turn-phases-effect-registry.md) | done | 2026-03-21 |
-| 006 | [Boucle de combat complète](./006-battle-loop.md) | done | 2026-03-21 |
-| 007 | [Renderer POC : grille iso + combat visuel](./007-renderer-poc.md) | done | 2026-03-21 |
-| 008 | [Move + Act dans le même tour (FFTA-like)](./008-move-plus-act.md) | done | 2026-03-21 |
-| 009 | [UI FFT-like : menu d'action, curseur, panel info, timeline](./009-ui-fft-like.md) | done | 2026-03-22 |
-| 010 | [Sprites PMDCollab : pipeline d'extraction + intégration renderer](./010-pmdcollab-sprites.md) | done | 2026-03-24 |
-| 011 | [KO définitif avec corps bloquant + suppression koCountdown](./011-ko-body-blocking.md) | done | 2026-03-24 |
-| 012 | [Direction de fin de tour](./012-end-turn-direction.md) | done | 2026-03-24 |
-| 013 | [Modèle de carte + phase de placement](./013-map-model-placement.md) | done | 2026-03-25 |
-| 014 | [Patterns slash et blast + mise à jour tactical.ts](./014-slash-blast-patterns.md) | done | 2026-03-27 |
-| 015 | [Stats niveau 50](./015-stats-level-50.md) | done | 2026-03-27 |
-| 016 | [Infos attaques UI + type icons + fix cone](./016-attack-info-ui-type-icons-cone-fix.md) | done | 2026-03-27 |
-| 017 | [Prévisualisation AoE sur la grille](./017-aoe-preview.md) | done | 2026-03-30 |
-| 018 | [Status icons ZA + HP bar FFTIC + badges stat changes + sleep animation](./018-status-icons-hp-bar-sleep-anim.md) | done | 2026-03-30 |
-| 019 | [Preview dégâts estimés avec random roll](./019-damage-estimate-preview.md) | done | 2026-03-30 |
-| 020 | [Canvas responsive, proportions agrandies et camera zoom/pan](./020-responsive-scaling-camera.md) | done | 2026-03-30 |
-| 021 | [Sprite offsets corrects via Shadow.png/Offsets.png PMDCollab + ombres sous sprites](./021-sprite-offsets-shadows.md) | done | 2026-03-31 |
-| 022 | [Refonte timeline turn order](./022-timeline-turn-order.md) | done | 2026-03-31 |
-| 023 | [Mode Sandbox : training dummy, carte mini, panels config, moves défensifs](./023-sandbox-mode.md) | done | 2026-03-31 |
-| 024 | [Bugfixes sandbox + relocalisation menu d'attaque](./024-bugfixes-menu-relocation.md) | done | 2026-04-01 |
-| 025 | [Tests d'intégration par move](./025-move-integration-tests.md) | done | 2026-04-01 |
-| 026 | [Nouvelles mécaniques core : badly_poisoned, confusion, bind, knockback, multi-hit, recharge](./026-roster-expansion-phase1.md) | done | 2026-04-02 |
-| 027 | [8 nouveaux Pokemon : données, sprites et documentation](./027-new-pokemon-roster.md) | done | 2026-04-02 |
-| 028 | [Replay déterministe avec PRNG seedé](./028-deterministic-replay.md) | done | 2026-04-02 |
-| 029 | [IA jouable avec niveaux de difficulté](./029-ai-difficulty-levels.md) | done | 2026-04-02 |
-| 030 | [Internationalisation FR/EN](./030-i18n-fr-en.md) | done | 2026-04-03 |
-| 031 | [Feedbacks visuels de combat et refactor statuts volatils](./031-battle-visual-feedback.md) | done | 2026-04-03 |
-| 032 | [Portée de déplacement variable par Pokemon](./032-variable-movement-by-speed.md) | done | 2026-04-03 |
-| 033 | [Écran de sélection d'équipe (Team Select)](./033-team-select.md) | done | 2026-04-03 |
-| 034 | [Supprimer l'accès sandbox via URL (query params)](./034-remove-sandbox.md) | abandoned | 2026-04-03 |
-| 035 | [Sandbox CLI : suppression query params + accès JSON](./035-sandbox-cli-json.md) | done | 2026-04-04 |
-| 036 | [Menu principal, Settings et Disclaimer](./036-main-menu-settings.md) | done | 2026-04-04 |
-| 037 | [Battle Log Panel](./037-battle-log.md) | done | 2026-04-04 |
-| 038 | [Afficher la portée de déplacement des ennemis au hover](./038-enemy-move-range-hover.md) | done | 2026-04-05 |
-| 039 | [Animations de combat : direction, catégorie de move, pipeline sprites](./039-battle-animations-direction-category.md) | done | 2026-04-05 |
-| 040 | [Hot-seat multi-équipes (2 à 12 joueurs)](./040-multi-team-hot-seat.md) | done | 2026-04-05 |
-| 041 | [Intégration Goatcounter (analytics)](./041-goatcounter-analytics.md) | done | 2026-04-07 |
-| 042 | [Bugfixes et feedback playtest](./042-bugfixes-feedback-session.md) | done | 2026-04-07 |
-| 043 | [Tileset arène Pokemon + intégration renderer](./043-arena-tileset-renderer.md) | done | 2026-04-07 |
-| 044 | [Mode pixelArt global + police Pokemon Emerald Pro](./044-pixelart-mode-font.md) | done | 2026-04-08 |
-| 045 | [Format de carte Tiled + parser + validation + preview](./045-tiled-map-format-parser-validation-preview.md) | done | 2026-04-08 |
-| 046 | [Dénivelés, hauteur des tiles et dégâts de chute](./046-height-elevation-fall-damage.md) | done | 2026-04-09 |
-| 047 | [Ligne de vue 3D et collisions terrain](./047-line-of-sight-3d-collisions.md) | done | 2026-04-11 |
-| 048 | [Pokedex reference knowledge base](./048-pokedex-reference-knowledge-base.md) | done | 2026-04-12 |
-| 049 | [Migrer les donnees de jeu vers la reference JSON](./049-migrate-game-data-to-reference.md) | done | 2026-04-12 |
-| 050 | [Tileset custom (remplacer JAO)](./050-custom-tileset.md) | done | 2026-04-12 |
-| 051 | [Types de terrain + modificateurs](./051-terrain-types-modifiers.md) | done | 2026-04-14 |
-| 052 | [Orientation tactique (bonus/malus dégâts face/flanc/dos)](./052-orientation-tactique.md) | done | 2026-04-14 |
-| 053 | [Undo déplacement](./053-undo-movement.md) | done | 2026-04-14 |
-| 054 | [Système CT (Charge Time)](./054-ct-system.md) | done | 2026-04-15 |
-| 055 | [Bug gatling](./055-bug-gatling.md) | done | 2026-04-15 |
-| 056 | [Pipeline données Champions](./056-champions-data-pipeline.md) | done | 2026-04-16 |
-| 057 | [Statuts Champions dans le runtime core](./057-champions-status-rules.md) | done | 2026-04-16 |
-| 058 | [Preview CT Timeline au confirm attack](./058-ct-timeline-preview.md) | done | 2026-04-16 |
-| 059 | [CT Timeline : séquence prédictive scrollable](./059-ct-timeline-preview.md) | done | 2026-04-16 |
-| 060 | [Silhouette d'occlusion iso + curseur FFTA](./060-occlusion-silhouette-cursor-ffta.md) | partial done | 2026-04-17 |
-| 061 | Silhouette d'occlusion (Tactics Ogre, from scratch) — archivé sur branche `plan-061-occlusion-before-3d-pivot` | abandoned | 2026-04-17 |
-| 062 | [Spike renderer 2D-HD Three.js (3D géométrie + sprites billboards)](./062-3d-renderer-spike.md) | done (4/4) | 2026-04-17 |
-| 063 | [Spike renderer 2D-HD Babylon.js (comparatif vs Three.js)](./063-babylon-spike.md) | draft | 2026-04-18 |
-| 064 | [Décorations et obstacles Tiled (herbe haute, rochers, arbre, marquages arène)](./064-decorations-obstacles.md) | done | 2026-04-18 |
-| 065 | [Fix depth unifié + picking modifier + occlusion dynamique](./065-occlusion-fade-depth-fix.md) | done | 2026-04-20 |
-| 066 | [Roster de maps multi-format + générateur IA](./066-maps-multi-format-roster.md) | done | 2026-04-23 |
-| 067 | [Écran de sélection de carte](./067-map-select-screen.md) | done | 2026-04-23 |
-| 068 | [Fix IA terrain + pathfinding](./068-ai-fix-terrain-ct-pathfinding.md) | done | 2026-04-25 |
-| 069 | [Système de talents/abilities](./069-talents-abilities.md) | done | 2026-04-27 |
-| 070 | [Polish des talents](./070-talents-polish.md) | done | 2026-04-29 |
-| 071 | [Genres des Pokemon](./071-pokemon-gender.md) | done | 2026-04-29 |
-| 072 | [Natures / Stat Alignment](./072-natures-stat-alignment.md) | done | 2026-04-29 |
-| 073 | [Objets Tenus](./073-held-items.md) | done | 2026-04-30 |
-| 074 | [Stat Points System](./074-stat-points.md) | done | 2026-05-03 |
-| 075 | [Roster Batch A (12 Pokemon finaux)](./075-roster-batch-a.md) | done | 2026-05-05 |
-| 076 | [Roster Batch B (19 Pokemon)](./076-roster-batch-b.md) | done | 2026-05-05 |
-| 077 | [Roster Batch C (17 Pokemon)](./077-roster-batch-c.md) | done | 2026-05-07 |
-| 078 | [Roster Batch D (16 Pokemon)](./078-roster-batch-d.md) | done | 2026-05-11 |
-| 079 | [Roster Batch E (14 Pokemon — final Gen 1)](./079-roster-batch-e.md) | done | 2026-05-12 |
-| 080 | [Token optimization setup](./080-token-optimization.md) | abandoned | 2026-05-12 |
-| 081 | [Team data model + validator + storage + Showdown io](./081-team-data-model-validator.md) | done | 2026-05-12 |
-| 082 | [OP sets curation + gap analysis](./082-op-sets-curation-gap-analysis.md) | done | 2026-05-12 |
-| 083 | [Content Batch F (gap-fill plan 082)](./083-content-batch-f-gap-fill.md) | done | 2026-05-12 |
-| 084 | [Système Météo](./084-weather-system.md) | done | 2026-05-12 |
-| 085 | [Team Builder UI (MyTeamsScene + TeamEditScene)](./085-team-edit-scene.md) | done | 2026-05-17 |
-| 086 | [Refonte TeamSelectScene (équipes saved + sous-pick format)](./086-team-select-refonte.md) | done | 2026-05-18 |
-| 087 | [Refactor roster-poc → playable-pokemon](./087-playable-pokemon-refactor.md) | done | 2026-05-19 |
-| 088 | [TP moves (`TargetingKind.Teleport`)](./088-teleport-targeting.md) | done | 2026-05-21 |
-| 089 | [Normalisation IDs Showdown → kebab build-time](./089-id-normalization-kebab.md) | done | 2026-05-21 |
-| 090 | [Sandbox refonte (Studio + dummy player)](./090-sandbox-refonte.md) | done | 2026-05-21 |
-| 091 | [Sandbox design system migration](./091-sandbox-design-system-migration.md) | done | 2026-05-21 |
-| 092 | [HitAndRun (u-turn / volt-switch / flip-turn)](./092-hit-and-run.md) | done | 2026-05-21 |
-| 093 | [Baton Pass (transfert stat stages allié r1)](./093-baton-pass.md) | done | 2026-05-22 |
-| 094 | [Charge moves visibles (skull-bash / sky-attack / razor-wind)](./094-charge-moves-visible.md) | done | 2026-05-22 |
-| 095 | [Barrières aura mobile (reflect / light-screen)](./095-barriers-aura.md) | done | 2026-05-23 |
-| 096 | [Visibilité passive itch.io + GitHub topics](./096-itch-io-visibility.md) | done | 2026-05-23 |
-| 097 | [Loading screens + FOUC fixes](./097-loading-fouc-fixes.md) | done | 2026-05-24 |
-| 098 | [Team Protections aura (Mist / Safeguard)](./098-team-protections-aura.md) | done | 2026-05-24 |
-| 099 | [Substitute](./099-substitute.md) | done | 2026-05-25 |
-| 100 | [Taunt (Provoc)](./100-taunt.md) | done | 2026-05-28 |
-| 101 | [Encore + Disable (Encore / Entrave)](./101-encore-disable.md) | done | 2026-05-30 |
-| 102 | [Content Batch G1 (40 moves dmg physique)](./102-content-batch-g1.md) | done | 2026-05-31 |
-| 103 | [Content Batch G2 (23 moves dmg spécial + multi-hit)](./103-content-batch-g2.md) | done | 2026-06-01 |
-| 104 | [Content Batch G3 (24 moves dégâts + secondaire statut/flinch/confusion)](./104-content-batch-g3.md) | done | 2026-06-02 |
-| 105 | [Content Batch G4 (36 moves dégâts + stat-drop / high-crit / recoil / drain)](./105-content-batch-g4.md) | done | 2026-06-02 |
-| 106 | [Content Batch G5 (23 moves statut + stat-baisses pures)](./106-content-batch-g5.md) | done | 2026-06-02 |
-| 107 | [Content Batch G6 (11 moves simples ratés G1–G5)](./107-content-batch-g6.md) | done | 2026-06-02 |
-| 108 | [Couverture tests par move (rattrapage 210 + garde-fou CI)](./108-move-test-coverage.md) | done | 2026-06-02 |
-| 109 | [Power conditionnel (moteur dynamicPower + 12 moves state-only)](./109-power-conditionnel.md) | done | 2026-06-03 |
-| 110 | [Moves stat-source (Bodypress + Tricherie)](./110-stat-source-moves.md) | done | 2026-06-04 |
-| 111 | [Moves liés au poids (Balayage / Nœud Herbe / Tacle Lourd / Tacle Feu)](./111-weight-based-moves.md) | done | 2026-06-05 |
-| 112 | [Roadmap maître moves restants par système moteur](./112-moves-mechanics-roadmap.md) | done | 2026-06-05 |
-| 113 | [B1 « Quasi-prêt » (6 moves quick-win)](./113-b1-quasi-ready-moves.md) | done | 2026-06-05 |
-| 114 | [Analytics funnel events (GoatCounter beacon)](./114-analytics-events.md) | done | 2026-06-05 |
-| 115 | [B3 « Dégâts conditionnels » (17 moves + horloge d'actions)](./115-b3-conditional-damage.md) | done | 2026-06-06 |
-| 116 | [B2 « Soin » (11 moves)](./116-b2-healing.md) | done | 2026-06-07 |
-| 117 | [B4 « Terrains » (moteur Champs zonés + 4 poseurs + Champ'Duit)](./117-b4-field-terrain.md) | done | 2026-06-08 |
-| 119 | [Phase 5 — Migration renderer Babylon.js 2D-HD (plan-maître)](./119-phase5-babylon-master.md) | in-progress | 2026-06-08 |
-| 131 | [Entry Hazards (Pièges au sol)](./131-entry-hazards.md) | done | 2026-06-18 |
-| 132 | [Contrôle (Possessif / Dissonance Psy / Dépit)](./132-controle.md) | done | 2026-06-19 |
-| 133 | [Delayed / countdown (Prescience / Requiem / Balance / Effort / Coup d'Main)](./133-delayed-countdown.md) | done | 2026-06-19 |
-| 134 | [Power conditionnel : familles restantes (Hommage Posthume / Branchicrok / Prise de Bec)](./134-power-conditional-rest.md) | done | 2026-06-19 |
-| 135 | [Sprite bundle packing (3 fichiers) + roster Gen 1 complet (+70 pré-évos)](./135-sprite-bundle-packing.md) | done | 2026-06-20 |
-| 143 | [Famille Type manip (mutation runtime du type — 429 → 434)](./143-type-manip.md) | done | 2026-06-28 |
-| 144 | [Famille Move-copy (réentrance moteur — 434 → 440)](./144-move-copy.md) | done | 2026-06-29 |
-| 145 | [Famille Field global (zones r3 + vent global — 440 → 444)](./145-field-global.md) | done | 2026-07-02 |
-| 146 | [Famille Stat/state manip (reset/copie/inversion/échange crans — 444 → 452)](./146-stat-state-manip.md) | done | 2026-07-02 |
-| 147 | [Famille Sacrifice/Self-KO (self-KO généralisé + revive + KO-trigger — 454 → 460)](./147-sacrifice-self-ko.md) | done | 2026-07-03 |
-| 148 | [Famille OHKO (K.O. en un coup — 460 → 464)](./148-ohko.md) | done | 2026-07-04 |
-| 149 | [Famille Lock-in multi-turn (verrou 2-3 tours forcé — 464 → 469)](./149-lock-in-multi-turn.md) | done | 2026-07-04 |
-| 150 | [Famille Priorité / timing conditionnel (1er-tour + charge-interrupt — 469 → 475)](./150-priority-timing-conditional.md) | done | 2026-07-05 |
-| 151 | [Misc Batch A — manipulation de coups critiques (475 → 480)](./151-misc-crit.md) | done | 2026-07-05 |
-| 152 | [Misc Batch B — dégâts utilitaires (480 → 486)](./152-misc-utility-damage.md) | done | 2026-07-07 |
-| 153 | [Misc Batch C — manipulation de talent (486 → 490)](./153-manip-talent.md) | done | 2026-07-10 |
-| 154 | [Misc Batch D — buff/statut (490 → 496)](./154-misc-buff-status.md) | done | 2026-07-10 |
-| 155 | [Misc Batch E — grille-problématiques (496 → 500)](./155-misc-grid-targeting.md) | done | 2026-07-11 |
-| 156 | [Buff de stat multi-allié (500 → 502)](./156-buff-stat-multi-allie.md) | done | 2026-07-11 |
-| 157 | [Batch B-META — Morphing / Imposteur / Métamorph (502 → 503)](./157-transform-morphing.md) | done | 2026-07-12 |
-| 158 | [Content-fill — objets légers + talents ability1 (106→117 objets, 105→107 talents)](./158-content-fill-objets-talents.md) | ready | 2026-07-13 |
-| 159 | [IA compétente sur « Le Mur » (ring-out par recul) + passe heuristiques haut-impact + carte dispo](./159-ai-grouped-pass-and-le-mur.md) | done | 2026-07-14 |
-| 160 | [Passe IA groupée Phase 2 (toutes les familles restantes)](./160-ai-grouped-pass-phase-2.md) | done | 2026-07-14 |
-| 161 | [Passe IA Phase 3 (dernières familles différées)](./161-ai-phase-3.md) | done | 2026-07-14 |
-| 162 | [Content-fill : derniers moves apprenables Gen 1](./162-content-fill-derniers-moves-gen1.md) | done | 2026-07-18 |
-| 163 | [Content-fill : 7 derniers talents Gen 1](./163-content-fill-derniers-talents-gen1.md) | done | 2026-07-18 |
-| 164 | [Centralisation des design tokens (DOM ↔ 3D)](./164-design-tokens-centralization.md) | abandoned | 2026-07-19 |
-| 165 | [IA CT-aware, heuristique KO-protégé](./165-ai-ct-aware-scoring.md) | done | 2026-07-21 |
-| 166 | [Liquides — transparence, cuvette, immersion](./166-liquides-transparence-cuvette.md) | done | 2026-07-21 |
-| 167 | [Studio sandbox multi-Pokémon par équipe + harness e2e IA « scoré »](./167-sandbox-teams-scored-ai-harness.md) | done | 2026-07-22 |
-| 168 | [Icônes officielles d'objets tenus dans l'InfoPanel](./168-item-icons-info-panel.md) | done | 2026-07-22 |
-| 169 | [Purge des demi-blocs de liquide](./169-purge-demi-blocs-liquide.md) | done | 2026-07-23 |
-| 170 | [Niveaux de test e2e + sélection « affected » du diff](./170-e2e-tiers-affected.md) | done | 2026-07-23 |
-| 171 | [Zone Magique canonique complète](./171-zone-magique-canonique-complete.md) | done | 2026-07-24 |
-| 172 | [IA — positionnement pour le ring-out (Phase 2 du plan 159)](./172-ai-ring-out-positioning.md) | done | 2026-07-24 |
-| 173 | [Phase « Client jouable : contrôles & UI » (consolidation)](./173-phase-client-jouable-ui-controles.md) | done | 2026-07-24 |
-| 174 | [InfoPanel enrichi « tes Pokemon »](./174-infopanel-tes-pokemon.md) | done | 2026-07-24 |
-| 175 | [Combat preview (prévision de dégâts détaillée)](./175-combat-preview.md) | done | 2026-07-26 |
-| 176 | [Fog ennemi (rétention d'information sur les Pokemon adverses)](./176-fog-ennemi.md) | done | 2026-08-05 |
-| 177 | [Panneau d'info de case (terrain & modificateurs)](./177-tile-info-panel.md) | done | 2026-07-24 |
-| 178 | [Tooltip d'attaque enrichi + harmonisation de l'affichage des types](./178-move-tooltip-et-types.md) | done | 2026-08-03 |
-| 179 | [Responsive + dette mobile](./179-responsive-dette-mobile.md) | done | 2026-08-06 |
-| 180 | [Comportement plateforme mobile (plein écran, orientation, survie au rechargement)](./180-comportement-plateforme-mobile.md) | done | 2026-08-14 |
-| 181 | [Reprise d'un combat en cours (lot 180-c)](./181-reprise-combat-en-cours.md) | done | 2026-08-14 |
-| 182 | [Anneaux d'aura au sol (contour de zone permanent)](./182-anneaux-aura-au-sol.md) | done | 2026-08-19 |
-| 183 | [Contrôles tactiles (Lot 1)](./183-controles-tactiles.md) | done | 2026-08-20 |
-| 184 | [Contrôles clavier & manette (Lot 2)](./184-controles-clavier-manette.md) | done | 2026-08-21 |
-| 185 | [Légende de contrôles près de la boussole](./185-legende-controles.md) | done | 2026-08-24 |
-| 186 | [Écran de remapping (clavier & manette)](./186-ecran-remapping.md) | done | 2026-08-25 |
-| 187 | [Menu de combat](./187-menu-de-combat.md) | done | 2026-08-25 |
-| 188 | [Refonte de l'écran de sélection d'équipe + passe manette (Team Builder & modales)](./188-refonte-selection-equipe-passe-manette.md) | done | 2026-08-25 |
-| 189 | [Panoramique clavier, menu de combat au placement, découvrabilité du défilement](./189-panoramique-clavier-menu-placement-decouvrabilite.md) | done | 2026-08-26 |
-| 190 | [Migration i18n du journal de combat](./190-i18n-journal-de-combat.md) | done | 2026-08-27 |
-| 191 | [Match nul sur K.O. simultanés d'une même résolution](./191-match-nul-ko-simultane.md) | done | 2026-08-27 |
-| 192 | [Infobulle d'attaque : modificateurs contextuels](./192-infobulle-modificateurs-contextuels.md) | done | 2026-08-27 |
-| 193 | [Verrouiller le typecheck des fichiers de test](./193-typecheck-des-tests.md) | done | 2026-08-27 |
-| 194 | [Séquence d'intro : bande-annonce et captures](./194-sequence-intro-captures.md) | done | 2026-08-28 |
-| 195 | [Phase 7 « Multijoueur & télémétrie » (plan-cadre)](./195-phase7-multijoueur-telemetrie.md) | in-progress | 2026-08-31 |
-| 196 | [Télémétrie de jeu (Cloudflare Workers + D1)](./196-telemetrie-cloudflare-workers.md) | done | 2026-08-31 |
-| 197 | [Écran de victoire enrichi](./197-ecran-victoire-enrichi.md) | done | 2026-09-03 |
-| 198 | [Prévisualisation de dégâts en paramètre de partie](./198-previsualisation-degats-parametre-partie.md) | done | 2026-09-04 |
-| 199 | [Lot B1 : transport et salon en ligne](./199-lot-b1-transport-lobby.md) | done | 2026-09-04 |
+Les seuls sur lesquels on travaille.
+
+| # | Plan | Statut |
+|---|------|--------|
+| 195 | [Plan 195 — Phase 7 « Multijoueur & télémétrie » (plan-cadre)](./195-phase7-multijoueur-telemetrie.md) | in-progress |
+| 200 | [Plan 200 — Étape 0 : batterie de restitution (ligne de base)](./200-etape0-restitution.md) | done |
+| 200 | [Plan 200 — Méthode de travail et système de mémoire](./200-methode-et-memoire.md) | done |

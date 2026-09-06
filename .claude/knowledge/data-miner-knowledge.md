@@ -15,7 +15,7 @@
 - Base : `https://raw.githubusercontent.com/smogon/pokemon-showdown/master/data/mods/champions/`
 - Fichiers : `moves.ts`, `abilities.ts`, `items.ts`, `learnsets.ts`, `formats-data.ts`, `conditions.ts`
 - Format : `{ id: { inherit: true, ...champsModifies } }` - IDs Showdown lowercase-concat
-- Appliqué automatiquement par `pnpm data:update` (voir `docs/process-data-update.md`)
+- Appliqué automatiquement par `pnpm data:update` (voir le graphe de mémoire (entités `maj-donnees`))
 - Statuts transcrits à la main dans `packages/data/scripts/fetch-champions.ts` -> `CHAMPIONS_STATUS_MANUAL`
 
 ### PokeAPI v2
@@ -46,7 +46,7 @@
 ## Pokemon deja dans packages/data/
 
 Limite du roster : 151 premiers Pokemon (Gen 1) — decision #92.
-20 Pokemon jouables actuellement. Voir `docs/roster-poc.md` pour la liste.
+150 Pokemon jouables (Gen 1 complète) actuellement. Voir `packages/data` (source de vérité des Pokemon, movesets et talents) pour la liste.
 
 ## Smogon competitive sets (pkmn.github.io)
 
@@ -60,7 +60,7 @@ Limite du roster : 151 premiers Pokemon (Gen 1) — decision #92.
   - Ubers: mewtwo
   - Gen 1 OU has sets for most Gen 1 roster members (no items/natures, moves only)
 - EV→SP: floor(ev/8). Common 252/252/4 → 31/31/0. Total ≤66, max 32/stat.
-- Op-sets draft: `packages/data/op-sets/op-sets-draft.json` (160 sets for 80 Pokemon)
+- Op-sets draft: `packages/data/op-sets/op-sets.json` (160 sets for 80 Pokemon)
 
 ## Vérification légalité learnset pour op-sets
 

@@ -5,6 +5,24 @@ tools: Read, Grep, Glob
 model: sonnet
 ---
 
+## Lire la mémoire du projet
+
+Décisions, plans terminés, historique et dette vivent dans un **graphe**, plus dans des
+fichiers (plan 200). Aucune variable d'environnement n'est requise.
+
+```bash
+node scripts/memory/query.mjs "2 à 4 mots-clés distinctifs"   # jamais une phrase entière
+node scripts/memory/query.mjs --open <nom-entité>             # détail complet + relations
+node scripts/memory/query.mjs --stats                         # types d'entités disponibles
+```
+
+Types utiles : `decision` (~930, numérotées), `plan` (198 plans clos, reliés par `cite` aux
+décisions), `agenda`, `historique`, `backlog`, `recette`, `feedback`.
+
+🔴 **Le mode recherche tronque les observations.** Dès qu'une entrée compte, relis-la avec
+`--open`, sinon tu perds la fin — c'est comme ça qu'on rate un chiffre.
+
+
 ## 🔴 RÈGLE DURE — Noms FR officiels
 
 Tout move/talent/Pokemon présenté à l'humain (analyses, tableaux, listes) utilise son **nom FR officiel** (ex: `Lame de Roche`, `Provoc`, `Florizarre`). **JAMAIS l'ID EN seul.** ID kebab EN entre parenthèses pour la seule référence technique. L'humain ne connaît PAS les noms EN. Source : `packages/data/reference/moves.json` champ `names.fr`. Récidive = grosse friction (rappelé >10×).
@@ -38,8 +56,8 @@ Vérifier que les mécaniques de jeu sont **cohérentes, équilibrées et fun**.
 ## Sources de vérité (lire dans cet ordre)
 
 1. `docs/game-design.md` — mécaniques et règles (toujours lire en premier)
-2. `docs/roster-poc.md` — movesets et rôles
-3. `docs/decisions.md` — décisions prises et leur contexte
+2. `packages/data` (source de vérité des Pokemon, movesets et talents) — movesets et rôles
+3. le graphe de mémoire (entités `decision`) — décisions prises et leur contexte
 4. `packages/data/` — données effectives dans le code (lire si des données sont impliquées)
 
 ## Escalade
@@ -47,7 +65,7 @@ Vérifier que les mécaniques de jeu sont **cohérentes, équilibrées et fun**.
 Arrête-toi et signale à l'humain dans ces cas :
 - **Spec absente** — une mécanique n'a pas de spécification dans `game-design.md`. Ne l'invente pas, signale le manque.
 - **Contradiction** — les données dans `packages/data/` contredisent `game-design.md`. Signale les deux versions sans trancher.
-- **Choix de design** — une question d'équilibre a plusieurs réponses valides et aucune décision documentée dans `decisions.md`. Présente les options avec leurs trade-offs.
+- **Choix de design** — une question d'équilibre a plusieurs réponses valides et aucune décision consignée dans le graphe (entités `decision`). Présente les options avec leurs trade-offs.
 
 ## Rapport
 

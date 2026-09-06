@@ -10,7 +10,7 @@ import type { EffectContext } from "../effect-handler-registry";
  * not connect → the caster survives, CT paid), and resistances/weaknesses scale the fixed amount
  * (parity with Showdown's Final Gambit, which routes fixed damage through the type chart).
  *
- * Divergence with Effort (`handle-endeavor`) is intentional (see docs/decisions.md): Effort is a pure
+ * Divergence with Effort (`handle-endeavor`) is intentional (see the project memory graph): Effort is a pure
  * set-HP with no multipliers, while Tout ou Rien is a typed strike.
  */
 export function handleFinalGambit(context: EffectContext): BattleEvent[] {

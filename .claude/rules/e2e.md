@@ -4,7 +4,7 @@ paths: e2e/**
 
 # Règles e2e — Playwright (recette visuelle automatisée)
 
-Spec testée = `docs/test-plan.md`. Principe (plan 127) : automatiser le **sens**, pas les
+Spec testée = le cahier de recette (graphe de mémoire, entités `recette`). Principe (plan 127) : automatiser le **sens**, pas les
 **pixels**. Du moins cher au plus coûteux : unit `view-core` → DOM → scene-graph → golden.
 
 ## Déterminisme (RÈGLE DURE)
@@ -195,13 +195,13 @@ les autres projets utilisent. Une mise à jour de Playwright peut la laisser abs
 - **Rasteriseur : `PT_GL` arbitre** (`playwright.config.ts`, fonction `rasterizerArgs`). 🔴 **Une
   liste d'arguments vide ne donne PAS le GPU** — Chromium headless retombe silencieusement sur
   SwiftShader. C'est ce que faisait ce projet : la suite locale tournait en rendu LOGICIEL sur une
-  machine équipée d'une Radeon RX 7900 XT inutilisée. Sondé le 2026-09-05 avec
+  machine équipée d'un GPU AMD dédié inutilisé. Sondé le 2026-09-05 avec
   `scripts/webgl-probe.ts`, qui lit `WEBGL_debug_renderer_info` et dit quel rasteriseur a
   réellement été pris :
 
   | `PT_GL` | arguments | rasteriseur obtenu ici |
   |---|---|---|
-  | `system` (défaut local) | `--use-gl=angle --use-angle=gl` | ANGLE (AMD, Radeon RX 7900 XT, OpenGL 4.6) |
+  | `system` (défaut local) | `--use-gl=angle --use-angle=gl` | ANGLE (AMD, GPU dédié, OpenGL 4.6) |
   | `swiftshader` (défaut CI) | `--use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader` | ANGLE (Google, SwiftShader) |
 
   `--use-angle=gl` demande le pilote OpenGL **du système** : Mesa sert le GPU s'il y en a un, et

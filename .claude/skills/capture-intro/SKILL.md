@@ -7,8 +7,9 @@ context: fork
 agent: general-purpose
 ---
 
-Tu produis la bande-annonce et les captures du jeu. Doc de référence : **`docs/capture-sequence.md`**
-— lis-la avant d'agir, elle porte les pièges de navigation déjà payés.
+Tu produis la bande-annonce et les captures du jeu. Référence : **les entités `captures` du graphe de
+mémoire** (`node scripts/memory/query.mjs "captures bande-annonce"`) — lis-les avant d'agir, elles
+portent les pièges de navigation déjà payés.
 
 ## Étape
 
@@ -21,7 +22,7 @@ Argument (défaut `tout`) :
 | `livrables` | `pnpm capture:release` — GIF du combat + les 3 captures de publication |
 | `tout` | les trois, dans cet ordre |
 
-**Les livrables et leur destination** : `docs/capture-sequence.md` § « Refaire tous les livrables ».
+**Les livrables et leur destination** : entités `captures` du graphe, section « Refaire tous les livrables ».
 La vidéo va sur YouTube (non répertorié), le GIF et les captures sur itch.io / le wiki / les README.
 ⚠️ **3 Mo par image sur itch.io, GIF compris** — `capture:release` cherche le réglage qui tient et
 annonce ce qu'il a sacrifié.

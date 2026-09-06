@@ -15,20 +15,61 @@
 
 ## 2. Organisation de la documentation
 
-```
-docs/
-├── game-design.md      # Vision, règles, mécaniques de jeu
-├── architecture.md     # Stack technique, structure, principes
-├── decisions.md        # Log des décisions + questions ouvertes
-├── roster-poc.md       # Pokemon et movesets du prototype
-├── roadmap.md          # Phases de développement, todolist
-├── references.md       # Projets d'inspiration et ressources
-└── methodology.md      # Ce document — comment on travaille
+La mémoire du projet est **coupée en deux** depuis le plan 200 : ce qui décrit le projet **tel qu'il
+est** reste un fichier ; ce qui raconte **comment on y est arrivé** vit dans un graphe.
+
+### Les documents (fichiers markdown, versionnés)
+
+Ils décrivent l'état courant. On les lit en entier, on les corrige quand la réalité change.
+
+| Document | Contenu |
+|---|---|
+| `docs/game-design.md` | Vision, règles, mécaniques de jeu |
+| `docs/architecture.md` | Stack technique, structure, patterns |
+| `docs/roadmap.md` | Phases de développement — **la vitrine**, lisible par un visiteur du dépôt |
+| `docs/design-system.md` | Couleurs, échelles, constantes visuelles |
+| `docs/multiplayer.md` | Architecture réseau P2P |
+| `docs/ai-system.md`, `docs/abilities-system.md` | Systèmes IA et talents |
+| `docs/isometric-height-rendering.md`, `docs/tileset-mapping.md`, `docs/babylon/*`, `docs/references/*` | Rendu, tilesets, notes techniques de référence |
+| `docs/references.md` | Projets d'inspiration et ressources |
+| `docs/glossary.md` | Vocabulaire du projet |
+| `docs/methodology.md` | Ce document — comment on travaille |
+| `docs/plans/` | **Uniquement les plans en cours.** Un plan terminé part au graphe et son fichier est supprimé (cf. `docs/plans/README.md`) |
+| `CLAUDE.md` (racine) | Instructions permanentes pour Claude Code |
+| `README.md`, `CREDITS.md` (racine) | Présentation du projet et sources, pour un nouveau venu |
+| `.claude/rules/`, `.claude/agents/`, `.claude/skills/` | Règles par package, contrats d'agents, commandes |
+
+### Le graphe de mémoire (SQLite, interrogeable)
+
+Il porte l'**historique** : décisions et leur pourquoi, agenda, dette, retours de playtest, plans
+clos, cahier de recette. On l'**interroge**, on ne le lit pas en entier.
+
+```bash
+node scripts/memory/query.mjs "2 à 4 mots-clés distinctifs"   # jamais une phrase
+node scripts/memory/query.mjs --open <nom-entité>             # détail complet
+node scripts/memory/query.mjs --stats                         # inventaire
 ```
 
-- **CLAUDE.md** (racine) : instructions permanentes pour Claude Code
-- **README.md** (racine) : présentation du projet pour un nouveau venu
-- La doc est en **français**, le code en **anglais**
+Types d'entités : `decision`, `agenda`, `historique`, `backlog`, `backlog-résolu`, `feedback`,
+`question-ouverte`, `révision`, `implémentation`, `idée`. Un plan clos est une entité nommée
+`plan-<numéro>` ; le cahier de recette vit dans les entités `recette`.
+
+Conventions d'écriture : une décision = une entité `decision-<n>` avec ses observations `Date :`,
+`Question :`, `Décision :`, `Contexte :` — **le contexte porte le POURQUOI**, c'est ce qui a de la
+valeur. Une décision qui en révise une autre s'y **relie**, elle ne la réécrit pas. Un bug résolu
+change de type (`backlog` → `backlog-résolu`) ; on ne supprime rien.
+
+🔴 Aucune dette n'est enregistrée comme « acceptée » sans accord explicite de l'humain.
+
+🔴 `STATUS.md`, `docs/decisions.md`, `docs/next.md`, `docs/backlog.md`, `docs/backlog-archive.md`,
+`docs/implementations.md`, `docs/test-plan.md` et 198 plans **n'existent plus** — leur contenu est
+dans le graphe. **Les recréer annulerait la migration en silence.**
+
+**Pourquoi** : ces fichiers grossissaient sans borne (`decisions.md` : 528 Ko, `STATUS.md` : 298 Ko),
+étaient devenus illisibles d'un bloc, et l'instruction « lis-les si tu hésites » n'était plus
+exécutable. Un graphe se lit par tranche pertinente, à coût constant.
+
+Dans les deux cas : la doc est en **français**, le code en **anglais**.
 
 ---
 
@@ -85,7 +126,7 @@ Un test d'intégration est utile quand il vérifie un **contrat entre composants
 
 ### Règle dure — un test positionnel par move
 
-**Tout move implémenté DOIT avoir son fichier `packages/core/src/battle/moves/<id>.test.ts`** (scénario positionnel bout en bout : touche/touche pas selon la position, effet appliqué). Conventions détaillées : `docs/plans/108-move-test-coverage.md`.
+**Tout move implémenté DOIT avoir son fichier `packages/core/src/battle/moves/<id>.test.ts`** (scénario positionnel bout en bout : touche/touche pas selon la position, effet appliqué). Conventions détaillées : entité `plan-108` du graphe de mémoire.
 
 Garde-fou : `move-test-coverage.test.ts` énumère `loadData().moves` et **échoue la CI** si un move n'a pas de test. **Sans allowlist de couverture.** Donc tout plan qui ajoute des moves (batch contenu compris) inclut les tests par move dans le même plan — sinon la CI est rouge.
 
@@ -116,7 +157,7 @@ Pour développer plusieurs features simultanément (N sessions Claude en parall�
 
 Chaque worktree est isolé : sa propre branche, ses propres `node_modules` (reflink-copy si lockfile identique, sinon `pnpm install`), son propre port Vite (5174+).
 
-**Merge vers main** : Claude peut faire `git merge --ff-only <branche>` si la branche est en avance linéaire. Sinon, l'humain merge via GUI (GitKraken).
+**Merge vers main** : Claude peut faire `git merge --ff-only <branche>` si la branche est en avance linéaire. Sinon, l'humain merge via GUI.
 
 Détails techniques : `docs/architecture.md` section 10b.
 
@@ -179,6 +220,6 @@ pnpm exec vitest --watch --project unit 2>&1 \
 
 ## 8. Comment gérer les décisions
 
-- Toute décision importante va dans `docs/decisions.md`
+- Toute décision importante va dans le graphe de mémoire (entités `decision`)
 - Les questions ouvertes y sont listées avec leur priorité
 - On tranche au fil des conversations, pas besoin de tout décider d'avance

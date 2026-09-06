@@ -8,7 +8,7 @@ Base de données d'équipes/sets compétitifs pour les 81 Pokemon du roster Gen 
 
 ## Schema
 
-Voir `docs/plans/082-op-sets-curation-gap-analysis.md` — `OpSetEntry`.
+Voir le plan 82 (graphe de mémoire, entité `plan-082`) — `OpSetEntry`.
 
 Champs :
 - `id` (kebab-case, unique, convention `{pokemonId}-{role}`)

@@ -127,8 +127,8 @@
 
 ## Notes internes
 
-- [`docs/references/babylon-gotchas.md`](references/babylon-gotchas.md) — Pièges Babylon.js rencontrés pendant le spike 063 (GridMaterial local-space, invertY/UV, renderingGroupId, alphaCutOff, hardwareScaling, skipLibCheck Inspector, deep imports). À lire avant plan 064.
-- [`docs/references/babylon-mcp-ecosystem.md`](references/babylon-mcp-ecosystem.md) — État de l'écosystème MCP Babylon.js en avril 2026 (officiel à venir, 3 communautaires, sources forum + PRs mergés).
+- [`docs/babylon/`](references/babylon-gotchas.md) — Pièges Babylon.js rencontrés pendant le spike 063 (GridMaterial local-space, invertY/UV, renderingGroupId, alphaCutOff, hardwareScaling, skipLibCheck Inspector, deep imports). À lire avant plan 064.
+- [`docs/babylon/`](references/babylon-mcp-ecosystem.md) — État de l'écosystème MCP Babylon.js en avril 2026 (officiel à venir, 3 communautaires, sources forum + PRs mergés).
 
 ---
 

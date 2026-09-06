@@ -1,6 +1,7 @@
 # Game Design — Pokemon Tactics
 
-> Vision et règles du jeu. Architecture : [architecture.md](architecture.md). Décisions : [decisions.md](decisions.md).
+> Vision et règles du jeu. Architecture : [architecture.md](architecture.md).
+> Décisions et leur contexte : graphe de mémoire — `node scripts/memory/query.mjs "mots clés"`.
 
 ---
 
@@ -207,7 +208,7 @@ Dégâts = ((2 × Level / 5 + 2) × Power × (Atk / Def) / 50 + 2)
 - Alerte tir allié si la cible en focus est un allié
 - Gaté par le réglage **Prévisualisation dégâts** (comme les labels in-world existants)
 
-**Sous fog (plan 176, 2026-08-05)** : les dégâts sont exprimés en `%` des PV max plutôt qu'en PV absolus (afficher les deux à côté aurait permis de déduire les PV max par soustraction) ; le garde-fou « sauf Ceinture Force / Fermeté » ne nomme ces objets/talents que s'ils sont déjà connus du joueur (Ténacité reste toujours nommée — le joueur a vu l'action). Type de la cible et son efficacité restent visibles (les types sont publics, décision plan 174). Fog **OFF** (sandbox uniquement) : panneau en PV absolus, comme avant le plan 176. Détail : `docs/plans/175-combat-preview.md`, `docs/plans/176-fog-ennemi.md`.
+**Sous fog (plan 176, 2026-08-05)** : les dégâts sont exprimés en `%` des PV max plutôt qu'en PV absolus (afficher les deux à côté aurait permis de déduire les PV max par soustraction) ; le garde-fou « sauf Ceinture Force / Fermeté » ne nomme ces objets/talents que s'ils sont déjà connus du joueur (Ténacité reste toujours nommée — le joueur a vu l'action). Type de la cible et son efficacité restent visibles (les types sont publics, décision plan 174). Fog **OFF** (sandbox uniquement) : panneau en PV absolus, comme avant le plan 176. Détail dans le graphe, entités `plan-175` et `plan-176`.
 
 ---
 

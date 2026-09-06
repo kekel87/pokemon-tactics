@@ -5,7 +5,7 @@
 - **Jamais désactiver règle Biome sans accord humain.** Présenter options (désactiver vs corriger) avant d'agir.
 - Règle `nursery` = API instable, pas mauvaise. Évaluer utilité avant d'écarter.
 - Gate CI: `biome ci packages/` — warnings = erreurs. Zéro warning autorisé.
-- Toute règle activée/désactivée → documenter dans `docs/decisions.md`.
+- Toute règle activée/désactivée → consigner une décision dans le graphe de mémoire.
 
 ## Conventions de nommage
 

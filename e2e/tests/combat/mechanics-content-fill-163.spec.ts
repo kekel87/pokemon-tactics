@@ -17,7 +17,7 @@ import { badgeCountOnHover, hoverCard } from "../../pages/combat-queries";
 // assert le SENS lisible : la ligne de journal FR (`BattleLogFormatter`), le badge volatile de
 // l'InfoPanel au survol (`battle-views`) ou l'état désactivé du bouton d'action — jamais le pixel.
 // Déterministe : seed moteur, aucun override `Math.random` (règle dure e2e). Délestage (unburden) est
-// reporté (`docs/next.md`) : sa Vitesse ×2 n'est pas observable proprement en 1v1 → unit core.
+// reporté (graphe, entités `agenda`) : sa Vitesse ×2 n'est pas observable proprement en 1v1 → unit core.
 const log = (page: Page, re: RegExp) =>
   page.getByTestId("battle-log-entry").filter({ hasText: re });
 

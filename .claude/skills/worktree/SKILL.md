@@ -41,7 +41,7 @@ Le checkout principal garde `main` ; chaque worktree porte une branche feature. 
    git -C <repo-root> merge --ff-only <branch>
    ```
    - ff-only = non destructeur : refuse proprement si `main` a divergé (pas de merge-commit, pas de force).
-   - **Divergence** (main a avancé pendant le travail //) → ff-only échoue. **`git rebase` est autorisé** (l'humain préfère rebase aux merges) : Claude rebase la branche sur `main` **dans son worktree**, puis re-ff depuis le checkout principal. Conflit de rebase insoluble → stop, l'humain résout dans son GUI (GitKraken). Merge non-ff reste interdit (hook).
+   - **Divergence** (main a avancé pendant le travail //) → ff-only échoue. **`git rebase` est autorisé** (l'humain préfère rebase aux merges) : Claude rebase la branche sur `main` **dans son worktree**, puis re-ff depuis le checkout principal. Conflit de rebase insoluble → stop, l'humain résout dans son GUI. Merge non-ff reste interdit (hook).
 2. `bash .claude/scripts/worktree.sh rm <branch>` — retire le worktree (branche conservée).
 3. Suppression de branche = humain (deny-list bloque `branch -d`).
 
@@ -60,7 +60,7 @@ Le checkout principal garde `main` ; chaque worktree porte une branche feature. 
 
 ## Notes
 
-- 🔴 **Subagents = CWD du checkout principal, pas du worktree.** Tout subagent lancé pendant une session worktree doit recevoir `cd <chemin absolu worktree>` en 1re instruction + chemins absolus, sinon il lit l'état de `main` (branche/travail parallèle) et conclut faux. Détail + incident plan 137 : `docs/agent-orchestration.md` § « Subagents en session worktree ».
+- 🔴 **Subagents = CWD du checkout principal, pas du worktree.** Tout subagent lancé pendant une session worktree doit recevoir `cd <chemin absolu worktree>` en 1re instruction + chemins absolus, sinon il lit l'état de `main` (branche/travail parallèle) et conclut faux. Détail + incident plan 137 : graphe de mémoire, entités `orchestration` (chercher « subagents worktree »).
 - Vitest / build n'ont pas de port → tournent en // sans réglage. Caches `.vite/` worktree-local.
 - Un worktree dont la branche a besoin d'autres deps fait son propre `pnpm install` automatiquement — n'affecte pas les autres.
 - `status` utilise `gh` pour l'état PR (optionnel — `NONE` si pas trouvé).

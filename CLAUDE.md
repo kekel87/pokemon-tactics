@@ -7,20 +7,25 @@ Pokemon Tactics : combat tactique (Pokemon × FFTA), TypeScript + Babylon.js 9, 
 ## Humain
 
 **Pas code**. Directeur créatif, architecte, reviewer. Dev web Angular/TS expérimenté, clean code, Godot+Phaser, temps limité.
-Continuité : peut revenir après 1 mois → maintenir STATUS.md, `docs/plans/`, mémoire à jour.
+Continuité : peut revenir après 1 mois → maintenir le graphe de mémoire et `docs/plans/` à jour.
 
 Claude = dev principal, autonome implémentation, valide design avec humain.
 
 ## Docs — quoi lire quand
 
-| Fichier | Trigger |
+🔴 **La mémoire du projet est un graphe, plus des fichiers** (plan 200). `STATUS.md`, `docs/decisions.md`,
+`docs/next.md`, `docs/backlog.md`, `docs/backlog-archive.md`, `docs/implementations.md`,
+`docs/test-plan.md` et 198 plans **n'existent plus** : leur contenu vit dans le graphe. **Ne jamais les
+recréer.** Les lignes « Graphe » ci-dessous s'interrogent ; les lignes en `chemin/` sont des documents
+maintenus normalement.
+
+| Où lire | Trigger |
 |---------|---------|
-| `STATUS.md` | **Reprise** ("on en était où ?") |
+| **Graphe de mémoire** — `node scripts/memory/query.mjs "mots clés"` | **Reprise** ("on en était où ?"), décisions passées, dette, agenda, historique, retours de l'humain, plans clos, cahier de recette. 2-4 mots-clés distinctifs, jamais une phrase ; `--open <nom-entité>` pour le détail complet ; `--stats` pour l'inventaire |
 | `docs/game-design.md` | Avant mécanique jeu |
 | `docs/architecture.md` | Avant créer fichier/package, changer structure |
-| `docs/decisions.md` | Hésitation sur choix |
-| `docs/roster-poc.md` | Pokemon + movesets prototype |
-| `docs/reflexion-patterns-attaques.md` | Avant pattern attaque |
+| `packages/data` (source de vérité) | Roster, movesets, moves, talents — jamais un inventaire recopié à la main |
+| Graphe, entités `réflexion` | Avant pattern attaque |
 | `docs/roadmap.md` | Quoi faire ensuite |
 | `docs/references.md` | Comment résolu ailleurs |
 | `docs/methodology.md` | Workflow |
@@ -29,17 +34,11 @@ Claude = dev principal, autonome implémentation, valide design avec humain.
 | `docs/design-system.md` | Avant couleurs/depths/constantes visuelles |
 | `docs/isometric-height-rendering.md` | Avant rendu iso hauteur/picking/layers multi-niveaux |
 | `docs/tileset-mapping.md` | Tileset ICON, propriétés tiles |
-| `docs/references/babylon-gotchas.md` | Avant renderer Babylon |
-| `docs/references/voxel-tile-placement.md` | Avant poser un asset voxel `.glb` sur une tuile (déco, effet, hazard) |
-| `docs/references/babylon-mcp-ecosystem.md` | État MCP Babylon |
-| `docs/backlog.md` | Bugs + feedback playtest non traités (actifs uniquement) |
-| `docs/backlog-archive.md` | Items backlog résolus (rare ; audit régression ou contexte fix passé) |
-| `docs/implementations.md` | Liste Pokemon/Moves/Abilities/Items implémentés |
+| `docs/babylon/` | Avant de toucher au renderer Babylon — densité pixel & ancrage sol, cycle de vie des assets, pipeline pixel-art |
 | `docs/plans/` | Plan en cours avant coder |
-| `docs/next.md` | Agenda persistant (`/next`) |
-| `docs/plans/196-telemetrie-cloudflare-workers.md` | Avant toucher à la télémétrie, au Worker Cloudflare ou à `pnpm stats` |
+| Graphe, entité `plan-196` | Avant toucher à la télémétrie, au Worker Cloudflare ou à `pnpm stats` |
 | `docs/multiplayer.md` | **Avant tout code réseau/multijoueur** — architecture P2P, protocole, adressage, `NETWORK_VERSION`, déterminisme. Manquait à cette table jusqu'au 2026-09-04 |
-| `docs/test-plan.md` | Cahier de recette visuelle — avant valider un changement de rendu, avant release |
+| Graphe, entités `recette` | Cahier de recette visuelle — avant valider un changement de rendu, avant release |
 | `.claude/rules/e2e.md` | Conventions harness Playwright e2e (fixtures, POMs, seed, hook scène) |
 | `.claude/rules/multi-input.md` | **Avant d'ajouter/déplacer un contrôle d'interface** — les 4 axes obligatoires (clavier, manette, tactile, responsive) + recette de mesure |
 
@@ -55,7 +54,7 @@ Pas tout charger. Lire fichier pertinent moment pertinent.
 
 ## Conventions
 
-- **Commits** : conventional commits (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`) — **titre seul, jamais corps**, version courte/concise. Détails → STATUS.md ou plan
+- **Commits** : conventional commits (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`) — **titre seul, jamais corps**, version courte/concise. Détails → graphe de mémoire ou plan en cours
   - **Scope** : 1 seul scope max (`feat(data): ...`). Si plusieurs scopes → **pas de scope du tout** (`feat: ...`), jamais `feat(scope1, scope2): ...`
 - **Langue** : code anglais, doc français
 - **🔴 Noms FR officiels — RÈGLE DURE** : toute communication à l'humain (texte, tableaux, menus `AskUserQuestion`, listes) utilise les **noms FR officiels** des moves/talents/Pokemon (ex: `Lame de Roche`, `Provoc`, `Florizarre`). **JAMAIS l'ID anglais seul.** ID EN entre parenthèses uniquement si précision technique requise. L'humain ne connaît PAS les noms EN. Source : `packages/data/reference/moves.json` (`names.fr`) ou `packages/data/src/i18n/*.fr.json`. Récidive = grosse friction (rappelé >10×)
@@ -89,7 +88,7 @@ TypeScript strict ESM · Babylon.js 9 · Vitest · Playwright (`visual-tester` +
 
 **Auto sans demander** : majorité. **Proposer avant** : `visual-tester` (Playwright ≥2 min), `debugger` (opus), `best-practices` (Web*), `balancer`, `performance-profiler`, `publisher`, `wiki-keeper`.
 
-Détails : `docs/agent-orchestration.md`.
+Détails : graphe de mémoire, entités `orchestration`.
 
 ### Après impl — règle OBLIGATOIRE
 
@@ -111,7 +110,7 @@ Détails : `docs/agent-orchestration.md`.
 
 | Option | Pré-coché si |
 |--------|--------------|
-| `e2e (test-writer)` | changement **observable automatisable** (DOM/écran, ou mécanique pilotable via journal/scène) → l'agent `test-writer` ajoute/MAJ le scénario e2e **et** le cahier `docs/test-plan.md` (case 🤖/👁 + §11). Décoché si purement pixel/anim |
+| `e2e (test-writer)` | changement **observable automatisable** (DOM/écran, ou mécanique pilotable via journal/scène) → l'agent `test-writer` ajoute/MAJ le scénario e2e **et** le cahier de recette (graphe, entités `recette`). Décoché si purement pixel/anim |
 | `human-testing` | changement observable (move/ability/mécanique/UI/rendu/IA) — **mode interactif**, voir § dédié. Inclut la **passe multi-entrée mesurée** (clavier/manette/tactile/responsive) quand le diff touche un contrôle d'interface |
 | `visual-tester` | **JAMAIS auto-coché** (≥2 min Playwright, je pilote) |
 
@@ -121,7 +120,7 @@ Détails : `docs/agent-orchestration.md`.
 |--------|--------------|
 | `core-guardian` | `git diff --name-only HEAD` matche `packages/core/` |
 | `code-reviewer` | >50 lignes changées OU nouveau fichier source |
-| `doc-keeper` | STATUS/docs/decisions impactés, nouvelle mécanique, nouveau Pokemon/move/ability |
+| `doc-keeper` | documents `docs/` impactés ou fait à consigner au graphe, nouvelle mécanique, nouveau Pokemon/move/ability |
 
 **Q3 — `"Finalisation ?"`** (multiSelect)
 
@@ -173,7 +172,7 @@ Stop sur fail bloquant (`core-guardian` UI-dep, `code-reviewer` Critical, `/ci-g
 - Jamais > 1 agent long en foreground/turn — longs en background
 - **Gate local** : `/ci-gate fast` (~43 s) = boucle d'itération, **tour des 10 écrans compris** ; `/ci-gate full` (~80 s sur un diff normal) = **BLOQUANT avant commit**, avec l'e2e ciblé par `scripts/e2e-affected.ts`. `slow` = filet exhaustif local (recours hors ligne)
 - **Suite e2e complète = sur GitHub, asynchrone** (`.github/workflows/e2e.yml`, 531 tests en 8 tranches, **~5 min**, sur `push` vers `main` + chaque nuit). Elle **ne bloque jamais**. Verdict : `pnpm e2e:status` / skill `/e2e-status`, lu en tête de `/next`. 🔴 **On ne l'attend JAMAIS** (ni `gh run watch`, ni boucle de sondage) — décision #925. 🔴 **Pas de `/publish` sur un rouge** — décision #924
-- Reporté → `docs/next.md`
+- Reporté → graphe de mémoire, entités `agenda`
 
 ## Skills
 

@@ -1,7 +1,7 @@
 import { expect, test } from "../../fixtures";
 import { DUEL } from "../../fixtures/sandbox-configs";
 
-// Contrôles clavier (plan 184, Lot 2). Cahier de recette : docs/test-plan.md §4.19.
+// Contrôles clavier (plan 184, Lot 2). Cahier de recette : graphe de mémoire, entités `recette`.
 //
 // ⚠️ Les bindings sont des POSITIONS de touche (`KeyboardEvent.code`), pas des caractères : presser
 // `KeyW` désigne la touche physique (Z en AZERTY, W en QWERTY), donc la disposition de la machine de

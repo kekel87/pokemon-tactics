@@ -9,6 +9,17 @@ agent: general-purpose
 
 Tu exécutes le gate CI local du projet (sortie verbeuse confinée ici — seul ton rapport final remonte dans la conversation).
 
+## Pourquoi `audit:flow` est en tête
+
+Il vérifie que la configuration du flux (agents, skills, règles) est cohérente avec la réalité du
+dépôt : aucun ordre d'écrire dans un fichier versé au graphe, aucun renvoi vers un chemin
+inexistant, aucun hook déclaré mais absent, tout agent qui parle du graphe sachant l'interroger.
+
+Il coûte **une seconde** et il a été écrit après coup : la revue manuelle du flux du 2026-09-06
+avait laissé passer quatre trous, dont deux qui auraient annulé la migration en silence — et trois
+renvois de `CLAUDE.md` vers des fichiers **qui n'ont jamais existé**. Une inspection au jugé rate ce
+à quoi elle ne pense pas.
+
 ## Exécution
 
 Lance (tier passé en argument, défaut `full`) :
@@ -21,7 +32,7 @@ Tiers :
 
 | Tier | Contenu | Budget |
 |---|---|---|
-| `fast` | lint:fix → typecheck → test → test:integration, **avec le tour des écrans lancé en parallèle** (`e2e/tests/smoke`) | **boucle d'itération** |
+| `fast` | **audit:flow** → lint:fix → typecheck → test → test:integration, **avec le tour des écrans lancé en parallèle** (`e2e/tests/smoke`) | **boucle d'itération** |
 | `full` | + build + test:scenario + **e2e `affected`** (niveau choisi d'après le diff : L1 smoke / L2 affected / L3 full) | point de contrôle |
 | `slow` | + test:all (scenario) + **e2e complet** (les 531) | filet pré-release |
 

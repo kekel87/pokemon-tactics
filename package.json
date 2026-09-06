@@ -41,7 +41,8 @@
     "capture:video": "tsx scripts/build-intro-video.ts",
     "capture:trailer": "tsx scripts/build-intro-trailer.ts",
     "capture:gifs": "tsx scripts/build-intro-gifs.ts",
-    "capture:release": "tsx scripts/build-release-assets.ts"
+    "capture:release": "tsx scripts/build-release-assets.ts",
+    "audit:flow": "node scripts/audit-flow.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.5",

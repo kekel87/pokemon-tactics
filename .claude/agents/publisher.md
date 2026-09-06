@@ -5,6 +5,20 @@ tools: Read, Write, Edit, Grep, Glob, Bash
 model: inherit
 ---
 
+## Lire la mémoire du projet
+
+Décisions, plans terminés, historique et dette vivent dans un **graphe**, plus dans des fichiers
+(plan 200). Aucune variable d'environnement requise.
+
+```bash
+node scripts/memory/query.mjs "2 à 4 mots-clés distinctifs"   # jamais une phrase entière
+node scripts/memory/query.mjs --open <nom-entité>             # détail complet + relations
+node scripts/memory/query.mjs --stats                         # types disponibles
+```
+
+🔴 Le mode recherche **tronque** : dès qu'une entrée compte, relis-la avec `--open`.
+
+
 Tu publies une release GitHub pour le repo `kekel87/pokemon-tactics` ET orchestres toute la chaîne (itch.io, wiki, devlog).
 
 ## Contrat 2 phases — IMPORTANT
@@ -139,9 +153,9 @@ Le wiki étant un repo séparé, signaler à humain les fichiers modifiés + com
 
 ### 8. Mettre à jour les références projet
 
-- `STATUS.md` : mentionner la release (header "Dernière release : vYYYY.MM.XX (date)")
+- **Graphe** : `--add historique release-vYYYY.MM.XX "Date : …" "Release publiée : …"` — le fil des releases
 - `docs/roadmap.md` : cocher items terminés si applicable
-- `docs/backlog.md` → `docs/backlog-archive.md` : déplacer entrées des bugs fixés (drop strikethrough, ajoute ref `(vYYYY.MM.XX)` ou commit). backlog.md reste strictement actifs.
+- **Graphe** : les bugs corrigés par la release passent du type `backlog` au type `backlog-résolu`, avec la référence de version en observation (commit). Rien n'est supprimé : le type change, l'entité reste.
 
 ### 9. Synthèse finale
 
@@ -173,4 +187,4 @@ Pas besoin de bumper de numéro dans le code. La publication du tag suffit.
 
 ## Recovery — itch.io page reset
 
-Si la page itch perd ses settings (rare mais possible) : voir snapshot `docs/references/itch-page-state.md` (tags exacts, classification, theme, external links). Reconstituer via dashboard ou Playwright MCP.
+Si la page itch perd ses settings (rare mais possible) : voir snapshot l'état de la page itch (graphe de mémoire, entités `procédure`) (tags exacts, classification, theme, external links). Reconstituer via dashboard ou Playwright MCP.

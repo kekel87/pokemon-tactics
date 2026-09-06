@@ -9,7 +9,7 @@ import { InfoPanel, WeatherHud } from "../../pages/combatHud";
 // assert le SENS lisible : la ligne de journal FR (`BattleLogFormatter`), le badge volatile de
 // l'InfoPanel (`battle-views`) ou le HUD météo — jamais le pixel. Déterministe : seed moteur, aucun
 // override `Math.random` (règle dure e2e). Observables réservés à unit/multi-tours : voir bas de
-// fichier + `docs/next.md`.
+// fichier + graphe de mémoire, entités `agenda`.
 const log = (page: Page, re: RegExp) =>
   page.getByTestId("battle-log-entry").filter({ hasText: re });
 

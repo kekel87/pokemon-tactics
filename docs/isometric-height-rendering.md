@@ -171,7 +171,7 @@ ces animations dans l'ordre et utilise la première qui existe dans son atlas ;
 sinon fallback sur `Hop` via `selectMovementAnimation`. **Aucun sprite du
 roster actuel n'a ces animations de vol** — le fallback `Hop` s'applique
 toujours. Quand les assets seront intégrés, ajuster la trajectoire 2-phase
-pour les volants (voir `docs/backlog.md` > "Animations de vol").
+pour les volants (entrée « Animations de vol » du graphe, entités `backlog`).
 
 ### Trajectoire : single diagonal tween avec easing Y asymétrique
 

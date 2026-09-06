@@ -63,7 +63,7 @@ packages/
   ui-dom/          Reusable HTML/CSS battle chrome
   app/             App shell (boot, i18n, settings, team UI, DI wiring)
   network/         P2P multiplayer transport (protocol, room code, WebRTC via PeerJS)
-docs/              Game design, architecture, decisions, roadmap
+docs/              Game design, architecture, roadmap, technical references
 ```
 
 ## Feedback

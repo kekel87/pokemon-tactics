@@ -40,7 +40,7 @@ Un subagent ne peut ni poser de question à l'humain ni lancer d'autres agents. 
 4. **Publish** via `gh release create vYYYY.MM.XX --notes-file ...` (trigger workflow `itch-deploy`)
 5. **Watch** workflow `itch-deploy` (`gh run watch`) — report ✅/❌
 6. **Génère devlog itch** (markdown ready-to-paste pour dashboard itch.io)
-7. **Update refs projet** : `STATUS.md`, `docs/roadmap.md`, `docs/backlog.md`
+7. **Update refs projet** : le graphe de mémoire (entités `historique`, `backlog` → `backlog-résolu`) et `docs/roadmap.md`
 8. **Synthèse finale** : URLs + commit msgs prêts (humain colle) + brief wiki
 
 **Post-publish (main loop)** :

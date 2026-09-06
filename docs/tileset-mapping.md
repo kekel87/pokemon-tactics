@@ -8,7 +8,7 @@ Les IDs sont 0-indexés. En Tiled, GID = tile_id + firstgid (firstgid=1).
 
 Le tileset est **généré** automatiquement par les scripts Python de `scripts/`
 à partir de textures 2D extraites des tilesets PMD (Pokemon Mystery Dungeon).
-Voir `scripts/README.md` pour la pipeline complète et `docs/plans/050-custom-tileset.md`
+Voir `scripts/README.md` pour la pipeline complète, et l'entité `plan-050` du graphe de mémoire
 pour le contexte du remplacement de JAO.
 
 ## Provenance des textures (spriters-resource.com)
@@ -24,7 +24,7 @@ contre les fichiers locaux, 2026-07-23).
 > le contributeur **`SilverDeoxys563`** (sections « Dungeon Tiles »). Mention sur
 > les sheets : *« No credit is necessary, but it's always appreciated! »*. Assets
 > de fan-rip de jeux Nintendo/The Pokémon Company — usage de **référence de
-> développement uniquement**, non redistribuables tels quels (cf. `docs/decisions.md`
+> développement uniquement**, non redistribuables tels quels (cf. le graphe, entités `decision`)
 > sur les assets libres de droits).
 
 | Sheet (fichier local) | Donjon | Jeu | asset-id | URL | Sert (terrains) |
@@ -170,9 +170,8 @@ python3 scripts/build-terrain.py --name <terrain> --type solid \
 
 # Pour un liquide : --type liquid (produit 1 tile au lieu de 5)
 
-# 3. Assembler les colonnes + séparateurs → tileset final (cf. historique dans
-#    docs/plans/050-custom-tileset.md, à factoriser dans un script dédié si on
-#    répète l'opération).
+# 3. Assembler les colonnes + séparateurs → tileset final (historique : entité plan-050
+#    du graphe de mémoire ; à factoriser dans un script dédié si on répète l'opération).
 ```
 
 **Convention des coordonnées** : `(section, col_local, row_global)` où :

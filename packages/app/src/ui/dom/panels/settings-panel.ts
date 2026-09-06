@@ -69,7 +69,7 @@ export function createSettingsPanel(options: SettingsPanelOptions): Panel {
      * fois, et surtout les lignes DÉJÀ ÉCRITES du journal sont du texte DOM figé. Basculer en pleine
      * partie donnerait donc un journal mi-français mi-anglais — et rendre la résolution « vivante »
      * ne suffirait pas, il faudrait re-render tout l'historique. C'est précisément le chantier
-     * « migration i18n du journal de combat » déjà en attente (`docs/next.md`) : jusque-là, mieux vaut
+     * « migration i18n du journal de combat » déjà en attente (graphe, entités `agenda`) : jusque-là, mieux vaut
      * ne pas offrir le bouton que livrer deux langues à l'écran. La langue se règle depuis le menu
      * principal, où aucun combat ne tourne.
      */

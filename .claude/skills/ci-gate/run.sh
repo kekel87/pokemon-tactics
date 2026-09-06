@@ -17,7 +17,9 @@ step() {
     echo ""
     echo "✗ FAIL: $name"
     case "$name" in
-      lint:fix) echo "  fix: lance \`pnpm lint:fix\` puis examine les erreurs restantes (Biome)";;
+      audit:flow) echo "  fix: \`pnpm audit:flow\` détaille les écarts. Un agent/skill qui ordonne";
+                echo "       d'écrire dans un fichier versé au graphe le RECRÉERAIT — c'est bloquant.";;
+    lint:fix) echo "  fix: lance \`pnpm lint:fix\` puis examine les erreurs restantes (Biome)";;
       build)    echo "  fix: lis l'erreur tsc/vite, souvent typecheck cascade";;
       typecheck) echo "  fix: lis l'erreur tsc, vérifie packages/*/tsconfig.json";;
       test)     echo "  fix: \`pnpm test\` localement, isole le test cassé avec --reporter=verbose";;
@@ -98,6 +100,7 @@ case "$MODE" in
     # Le tour démarre APRÈS `lint:fix` : `biome check --write` réécrit les sources que le build du
     # serveur de test est en train de lire. Le recouvrement utile (typecheck + vitest, la partie
     # longue) est conservé.
+    step "audit:flow"      pnpm audit:flow
     step "lint:fix"        pnpm lint:fix
     start_screen_tour
     step "typecheck"       pnpm typecheck
@@ -106,6 +109,7 @@ case "$MODE" in
     await_screen_tour
     ;;
   full|"")
+    step "audit:flow"      pnpm audit:flow
     step "lint:fix"        pnpm lint:fix
     step "typecheck"       pnpm typecheck
     step "build"           pnpm build
@@ -115,6 +119,7 @@ case "$MODE" in
     step "e2e"             pnpm test:e2e:affected
     ;;
   slow)
+    step "audit:flow"      pnpm audit:flow
     step "lint:fix"        pnpm lint:fix
     step "typecheck"       pnpm typecheck
     step "build"           pnpm build

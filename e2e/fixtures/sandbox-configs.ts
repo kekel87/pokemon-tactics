@@ -1166,7 +1166,7 @@ export const UPPER_HAND_FIZZLE = {
 // Content-fill — 7 derniers talents Gen 1 (plan 163). Pilotables via l'UI sandbox : le joueur contrôle
 // son mon, `playerAbility`/`dummyAbility` sont overridables. Observables déterministes (aucun override
 // `Math.random`, règle dure) : journal FR, badges volatiles de l'InfoPanel (au survol), état désactivé
-// d'un bouton d'action. Délestage (unburden) est le SEUL reporté (cf. docs/next.md) : sa Vitesse ×2 ne
+// d'un bouton d'action. Délestage (unburden) est le SEUL reporté (graphe, entités `agenda`) : sa Vitesse ×2 ne
 // se manifeste que par la portée de mouvement / l'ordre CT après une perte d'objet live, non observable
 // proprement dans le 1v1 sandbox → couvert unit/integration core (`effective-base-speed.test.ts`).
 

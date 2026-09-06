@@ -106,3 +106,13 @@ assets-src/voxel/*.gltf
 .wrangler/
 .dev.vars
 .dev.vars.*
+
+# État runtime des hooks (marqueurs de session, dédup mémoire) — jamais versionné
+.claude/.state/
+
+# Rapports générés par les scripts d'analyse — jamais versionnés
+.reports/
+
+# Bytecode Python des hooks
+__pycache__/
+*.pyc

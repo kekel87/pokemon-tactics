@@ -1,7 +1,7 @@
 import { expect, test } from "../../fixtures";
 import { DUEL, DUEL_DIRECTIONAL, DUEL_SELF_TARGET } from "../../fixtures/sandbox-configs";
 
-// Contrôles tactiles (plan 183, Lot 1). Cahier de recette : docs/test-plan.md §4.18.
+// Contrôles tactiles (plan 183, Lot 1). Cahier de recette : graphe de mémoire, entités `recette`.
 //
 // ⚠️ `clickTile` / `hoverTile` du hook e2e COURT-CIRCUITENT la couche d'entrée (ils appellent
 // l'orchestrateur en direct, et ~419 tests en dépendent). Seul `tapTile` synthétise un vrai

@@ -21,7 +21,7 @@ Pop le menu post-implémentation **maintenant**, sans attendre la fin d'une impl
 
    | Option | Pré-coché si |
    |--------|--------------|
-   | `e2e (test-writer)` | changement **observable automatisable** (DOM/écran, ou mécanique pilotable via journal/scène) → `test-writer` ajoute/MAJ le scénario e2e **et** le cahier `docs/test-plan.md`. Décoché si purement pixel/anim |
+   | `e2e (test-writer)` | changement **observable automatisable** (DOM/écran, ou mécanique pilotable via journal/scène) → `test-writer` ajoute/MAJ le scénario e2e **et** le cahier de recette (graphe, entités `recette`). Décoché si purement pixel/anim |
    | `human-testing` | changement observable (move/ability/mécanique/UI/rendu/IA) — **mode interactif**, voir § dédié. Inclut la **passe multi-entrée mesurée** si le diff touche un contrôle d'interface |
    | `visual-tester` | **JAMAIS auto-coché** (≥2 min Playwright, je pilote) |
 

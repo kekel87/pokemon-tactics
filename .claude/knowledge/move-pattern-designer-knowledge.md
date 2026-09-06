@@ -5,8 +5,8 @@
 
 ## Decisions tranchees (ne pas re-debattre)
 
-Voir `docs/reflexion-patterns-attaques.md` pour le tableau complet et les justifications.
-Voir `docs/decisions.md` decisions #108-112 pour les patterns slash/blast et les mecaniques speciales.
+Voir le graphe de mémoire (entités `réflexion`) pour le tableau complet et les justifications.
+Voir le graphe de mémoire (entités `decision`) decisions #108-112 pour les patterns slash/blast et les mecaniques speciales.
 
 ## Patterns disponibles dans le code
 
@@ -37,4 +37,4 @@ Voir `docs/decisions.md` decisions #108-112 pour les patterns slash/blast et les
 
 ## Roster actuel et mix de patterns
 
-20 Pokemon jouables + 1 Dummy, 72 moves. Voir `docs/roster-poc.md` pour la liste complete.
+150 Pokemon jouables (Gen 1 complète) + 1 Dummy, 72 moves. Voir `packages/data` (source de vérité des Pokemon, movesets et talents) pour la liste complete.

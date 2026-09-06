@@ -1,36 +1,52 @@
 ---
 name: next
-description: Lit docs/next.md (agenda persistant), STATUS, roadmap et plan en cours. Propose la prochaine étape.
-user-invocable: true
+description: Reconstitue l'état du projet depuis le graphe de mémoire et propose la prochaine étape.
 ---
 
 **D'abord** : `pnpm e2e:status` — la suite e2e complète tourne en asynchrone sur GitHub et ne
 bloque plus rien, donc personne ne voit son verdict si on ne le lit pas. Rouge → tu le dis en
 premier, avant l'agenda. Détail dans le skill `/e2e-status`.
 
-Lis ensuite dans cet ordre :
+**Ensuite** : `git fetch origin`, puis compare `main`, `origin/main` et les branches locales.
+Origine de cette règle : une session est repartie sur un `main` en retard de 2 commits, a relu des
+docs périmées et a commencé à réimplémenter un plan déjà livré.
 
-1. **`docs/next.md`** — agenda persistant (à faire / reporté / fait récemment)
-2. `STATUS.md` — état actuel du projet
-3. `docs/roadmap.md` — phases et tâches
-4. `docs/backlog.md` — bugs connus et feedback non traités
-5. `docs/plans/README.md` — index des plans
-6. Le plan en cours s'il y en a un (statut `in-progress` ou `ready`)
+## L'état vient du graphe de mémoire, plus de fichiers
 
-Présente :
+`STATUS.md` et `docs/next.md` n'existent plus : leur contenu est dans le graphe (plan 200).
+Interroge-le — 2 à 4 mots-clés distinctifs, jamais une phrase :
 
-**1. À faire maintenant** — item principal de `docs/next.md`, croisé avec roadmap et plan en cours. Recommande l'action prioritaire.
+```bash
+node scripts/memory/query.mjs --stats
+node scripts/memory/query.mjs "à faire maintenant prochaine action"
+node scripts/memory/query.mjs "reporté backlog technique"
+node scripts/memory/query.mjs --open <nom-d-entité>
+```
 
-**2. Reporté / à refaire** — section éponyme de `docs/next.md`. Si vide, le dire.
+Types d'entités utiles ici : `agenda` (l'agenda persistant), `historique` (le journal de session),
+`backlog` (dette ouverte), `decision` (les ~930 décisions numérotées), `feedback` (les règles de
+travail données par l'humain).
 
-**3. Fait récemment** — 3-5 derniers items. Croiser avec `git log -5` pour repérer les incohérences.
+🔴 **Le mode recherche tronque les observations.** Dès qu'une entrée compte, relis-la avec `--open`,
+sinon tu perds la fin — c'est comme ça qu'on rate un chiffre.
+
+Lis ensuite, seulement si le sujet l'exige : `docs/roadmap.md` (phases), `docs/plans/README.md`
+(index des plans), et le plan en cours s'il y en a un (`in-progress` ou `ready`).
+
+## Présente
+
+**1. À faire maintenant** — l'item principal de l'agenda, croisé avec la roadmap et le plan en cours.
+Recommande l'action prioritaire.
+
+**2. Reporté / à refaire** — les entités `agenda` et `backlog` encore ouvertes. Si rien, le dire.
+
+**3. Fait récemment** — 3 à 5 items. Croiser avec `git log -5` pour repérer les incohérences.
 
 **4. Bloquants** — questions à trancher avant de démarrer, si applicable.
 
-Concis : 10-15 lignes max au total.
-
-Si `docs/next.md` est vide ou obsolète (fait récent ne correspond pas aux commits), propose une MAJ.
+Concis : 10-15 lignes au total.
 
 ---
 
-**Note** : menu post-impl multi-select déclenché par règle CLAUDE.md `## Après impl`, pas par cette skill. Tu n'as pas à retaper `/next` après code.
+**Note** : le menu post-impl multi-select est déclenché par la règle `## Après impl` de `CLAUDE.md`,
+pas par ce skill. Pas besoin de retaper `/next` après du code.

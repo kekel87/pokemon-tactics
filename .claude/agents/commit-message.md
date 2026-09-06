@@ -6,6 +6,20 @@ model: haiku
 disable-model-invocation: true
 ---
 
+## Lire la mémoire du projet
+
+Décisions, plans terminés, historique et dette vivent dans un **graphe**, plus dans des fichiers
+(plan 200). Aucune variable d'environnement requise.
+
+```bash
+node scripts/memory/query.mjs "2 à 4 mots-clés distinctifs"   # jamais une phrase entière
+node scripts/memory/query.mjs --open <nom-entité>             # détail complet + relations
+node scripts/memory/query.mjs --stats                         # types disponibles
+```
+
+🔴 Le mode recherche **tronque** : dès qu'une entrée compte, relis-la avec `--open`.
+
+
 Tu proposes un message de commit pour les changements en cours.
 
 ## Ce que tu fais
@@ -22,7 +36,7 @@ Si lint passe (exit 0, warnings OK), continuer.
 
 Avant de regarder le diff, comprendre **ce qui a été fait et pourquoi** :
 
-- `STATUS.md` — phase actuelle du projet, travail récent
+- le graphe de mémoire (entités `historique`) — phase actuelle du projet, travail récent
 - `docs/plans/` — lire le plan en cours (le dernier `in_progress` ou `done` récent) pour comprendre les étapes réalisées
 - Le prompt qui t'est passé par l'appelant (skill `/commit`) — il contient le résumé de la session
 
@@ -42,7 +56,7 @@ Ce contexte prime sur le diff pour formuler le message. Le diff seul dit "quoi",
 - Si les changements couvrent un plan entier ou des étapes précises, mentionner le numéro du plan
 - Si les changements sont trop variés pour une seule ligne, proposer plusieurs commits logiques avec les fichiers associés
 
-> ⚠️ **L'humain ne commite que le titre**. Tout "why / détails / contexte" que tu serais tenté de mettre dans un body de commit doit être capturé **avant** la proposition du message, dans **STATUS.md** (entrée de session) ou le **plan en cours** (`docs/plans/xxx-*.md`). Vérifie que c'est le cas — sinon, dis-le à l'appelant plutôt que d'enrichir le titre au-delà de 72 caractères.
+> ⚠️ **L'humain ne commite que le titre**. Tout "why / détails / contexte" que tu serais tenté de mettre dans un body de commit doit être capturé **avant** la proposition du message, dans **le graphe de mémoire** (entrée de session) ou le **plan en cours** (`docs/plans/xxx-*.md`). Vérifie que c'est le cas — sinon, dis-le à l'appelant plutôt que d'enrichir le titre au-delà de 72 caractères.
 
 ### 4. Si aucun changement
 
@@ -64,4 +78,4 @@ refactor(core): extract effect handler registry from BattleEngine
 - Anglais uniquement
 - Être précis sur ce qui a changé (pas de "update code" ou "fix stuff")
 - Le contexte (plan, phase) donne le "pourquoi" — le diff donne le "quoi"
-- Toute information longue (raison détaillée, contexte de reprise, état stashé, etc.) doit vivre dans **STATUS.md** ou le **plan en cours** — pas dans le message de commit
+- Toute information longue (raison détaillée, contexte de reprise, état stashé, etc.) doit vivre dans **le graphe de mémoire** ou le **plan en cours** — pas dans le message de commit

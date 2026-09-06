@@ -3,286 +3,32 @@
 > Phases de développement du POC au jeu complet.
 > Roster limité : 151 premiers Pokemon (Gen 1) — décision #92.
 
----
+## Ce qui est fait
 
-## Phase 0 — Prototype technique (POC) ✅ *Terminé*
+Le détail de chaque phase close (tâches, arbitrages, dates) vit dans le graphe de mémoire du projet.
+Pour l'ouvrir : `node scripts/memory/query.mjs --open <entité>`. Ci-dessous l'essentiel.
 
-> But : valider la stack, avoir un combat jouable minimaliste
+| Phase | Ce qu'elle a apporté | Entité du graphe |
+|---|---|---|
+| **Phase 0 — Prototype technique (POC)** | valider la stack, avoir un combat jouable minimaliste | `roadmap-phase-0-prototype-technique-poc-terminé` |
+| **Phase 1 — Combat fonctionnel** | combat complet et varié, jouable en hot-seat, avec assez de Pokemon pour tester toutes les mécaniques | `roadmap-phase-1-combat-fonctionnel-terminé` |
+| **Phase 2 — Démo jouable** | lien partageable, quelqu'un joue seul contre l'IA et s'amuse | `roadmap-phase-2-démo-jouable-terminé` |
+| **Phase 3 — Terrain & Tactics** | la vraie profondeur tactique — le terrain change le jeu | `roadmap-phase-3-terrain-tactics-terminé` |
+| **Phase 4 — Gameplay Pokemon complet** | couvrir toutes les mécaniques Pokemon, ajouter profondeur stratégique | `roadmap-phase-4-gameplay-pokemon-complet-terminée-cont` |
+| **Phase 5 — Migration renderer 2D-HD (Babylon.js)** | le rendu actuel : terrain 3D + sprites 2D billboardés, moteur Babylon.js | `roadmap-phase-5-migration-renderer-2d-hd-babylonjs-ter` |
+| **Phase 6.5 — Client jouable : contrôles & UI** | un client jouable au doigt, au clavier et à la manette (manette sur téléphone comprise) — le seul retour de vrais joueurs était « injouable sur mobile » | `roadmap-phase-65-client-jouable-contrôles-ui-terminée` |
 
-### Core
-- [x] Setup monorepo (pnpm workspaces, tsconfig, Vite, Vitest, Biome)
-- [x] Modèles de base (Pokemon, Move, Grid, BattleState)
-- [x] Grille plate, placement 2 Pokemon
-- [x] Système de tour simple (round-robin par Vitesse)
-- [x] Déplacement (pathfinding BFS)
-- [x] Attaque single target + calcul dégâts (formule Gen 5+, STAB, types)
-- [x] Condition de victoire (dernière équipe debout)
-- [x] Move+Act par tour (FFTA-like)
-- [x] 5 statuts majeurs (brûlure, poison, paralysie, gel, sommeil)
-- [x] 9 targeting patterns (single, self, cone, cross, line, dash, zone, slash, blast)
-- [x] Friendly fire actif
-- [x] Type chart 18x18
-- [x] Tests unitaires pour chaque mécanique (664 tests, 100% coverage — 73 fichiers moves + 14 mécaniques transversales)
+## Ce qui vient
 
-### Renderer
-- [x] Grille isométrique 2D avec Phaser 4
-- [x] Sprites Pokemon animés (PMDCollab : Idle/Walk/Attack/Hurt/Faint, portraits)
-- [x] Sélection + déplacement visuel + animation
-- [x] UI FFT-like (menu d'action, sous-menu attaque, panel info, timeline, curseur)
-- [x] State machine 6 états + overlay scene séparée
-- [x] Écran de victoire
-- [x] Hot-seat 2 joueurs basique
+> **Où on en est** : la **Phase 7 — Multijoueur** est la phase en cours (télémétrie livrée, transport
+> et salon réseau livrés ; échange des actions, robustesse et détection de désync restants). Les
+> autres sections ci-dessous sont ouvertes, dans un ordre qui n'est pas figé.
 
-### AI
-- [x] IA random headless (validation API core, 58 rounds, victoire détectée)
+### Post-Babylon — petits chantiers de rendu
 
----
-
-## Phase 1 — Combat fonctionnel ✅ *Terminé*
-
-> But : combat complet et varié, jouable en hot-seat, avec assez de Pokemon pour tester toutes les mécaniques
-
-### Fondations (Phase 0)
-Formule dégâts, type chart, 9 targeting patterns, 5 statuts majeurs, friendly fire, Move+Act, stat stages (-6/+6), hot-seat, 12 Pokemon + 48 moves, format 6v6, placement interactif.
-
-### Core
-- [x] KO définitif : corps reste sur tile, traversable mais non-stoppable (plan 011)
-- [x] Placement initial configurable : `MapDefinition`, `PlacementPhase`, alternance serpent, mode random (plan 013)
-- [x] Direction de fin de tour (orientation choisie avant EndTurn)
-- [x] Nouveaux patterns : `slash` (arc frontal 3 cases) et `blast` (projectile + explosion circulaire) — décisions #108-109
-- [x] `tactical.ts` : 7 changements de pattern (décision #110)
-- [x] **Mode Sandbox** : 1 Pokemon joueur vs 1 Dummy configurable, 2 panels (Joueur/Dummy), toolbar Réinitialiser + Exporter JSON, `pnpm dev:sandbox [config.json|json]`, Dummy preset ou custom stats (décisions #138-139) — plan 023 + plan 035
-- [x] 8 moves défensifs : Abri, Détection, Garde Large, Prévention, Riposte, Voile Miroir, Fulmifer, Ténacité (décisions #141-146) + tests intégration Gherkin — plan 023
-- [x] Moves stat changes : Épée Danse (+2 Atk), Mur de Fer (+2 Def), Rugissement (-1 Atk cone), Hurlement (-1 Atk cone), Flash (-1 Accuracy zone r2) — plan 026
-- [x] Moves AoE variés : Séisme (zone r2), Acide (cone + SpDef debuff), Tranche (slash), Draco-Queue (slash + knockback) — plan 026
-- [x] Moves portées variées : Ultimapoing (mêlée), Dard-Venin (mêlée + poison), Ultralaser (ligne 5 + recharge), Double Pied (multi-hit x2), Combo-Griffe (multi-hit 2-5) — plan 026
-- [x] Statuts volatils : confusion tactique (redirection allié, direction aléatoire, tour perdu si pas d'allié) — plan 026
-- [x] Poison grave : dégâts croissants via toxicCounter (1/16 à 15/16 HP) — plan 026
-- [x] Format 6v6 (plan 013)
-- [x] Tests d'intégration par move : 73 fichiers moves + 14 fichiers mécaniques, helper `buildMoveTestEngine`, **595 tests** (plans 025+026)
-- [x] Roster élargi (~20 Pokemon) — 20 Pokemon jouables (+1 Dummy), 72 moves, sprites PMDCollab (plan 027)
-- [x] Stats niveau 50 : `computeStatAtLevel` (plan 015)
-- [x] Système de replay (log d'actions déterministe, seed + rejeu)
-
-### Renderer
-- [x] Placement initial visuel : phase interactive, panel roster, zones spawn highlight (plan 013)
-- [x] Choix direction fin de tour
-- [x] Corps KO visible (sprite Faint persistant, alpha réduit)
-- [x] Stat change indicators (flèches ↑↓ colorées) dans InfoPanel
-- [x] Status icons (pastilles colorées) dans turn timeline
-- [x] Niveau affiché dans UI (`Lv.50` dans InfoPanel)
-- [x] Info détaillées attaques : catégorie icon SV + nom + PP courants/max + tooltip hover — plan 016
-- [x] Refonte panel info stats : badges colorés Showdown (bleu buff / rouge debuff) — plan 018
-- [x] Feedback visuel statuts sur sprites (icônes ZA, miniature ZA InfoPanel, animation Sleep PMD) — plan 018
-- [x] Prévisualisation AoE : preview hover, flow 2 étapes FFTA (verrouillage + clignotement + confirmation), `confirmAttack` configurable, couleurs rouge/bleu, outline périmétrique portée — plan 017
-- [x] Preview dégâts estimés : random roll x0.85–1.00, `estimateDamage()` core, zone dégradée HP bar + texte flottant min–max, "Immune" pour immunités, AoE multi-cibles — plan 019
-- [x] Canvas responsive FIT (Phaser.Scale.FIT, CSS 100vw/100vh) — plan 020
-- [x] Zoom 3 niveaux (close-up 2.0x / medium 1.3x / overview 0.85x), molette + touches +/- — plan 020
-- [x] Pan caméra aux bords (50px threshold, 6px/frame) + suivi Pokemon actif (camera.pan fluide) — plan 020
-- [x] Sprite offsets corrects via Shadow.png PMDCollab + ombres ellipse — plan 021
-- [x] Refonte turn order (timeline) — plan 022
-
----
-
-## Phase 2 — Démo jouable ✅ *Terminé*
-
-> But : lien partageable, quelqu'un joue seul contre l'IA et s'amuse
-
-- [x] i18n FR/EN (détection auto navigateur, persistance localStorage, bouton bascule) — plan 030
-- [x] Menu principal + Settings (langue, damage preview on/off) — plan 036 (MainMenuScene, BattleModeScene, SettingsScene, CreditsScene, GameSettings localStorage, i18n ~20 clés)
-- [x] Feedbacks visuels mécaniques (confusion, vampigraine, bind, knockback, etc.) — plan 031 (BattleText, knockback slide, confusion wobble, icônes Seeded/Trapped)
-- [x] Refactor core : Vampigraine et Piège en statuts volatils (remplace ActiveLink) — plan 031
-- [x] Indicateur visuel miss — texte flottant "Miss" via BattleText (plan 031)
-- [x] Animations fluides (attaque par catégorie Contact/Shoot/Charge, direction dynamique, pipeline sprites Shoot/Charge/Hop) — plan 039
-- [x] IA jouable avec personnalité (plan 029 — AiDifficulty easy/medium/hard, action-scorer, scored-ai, AiTeamController, smoke test 6v6)
-- [x] IA améliorée : lookahead move+attack (évaluer attaques possibles après déplacement)
-- [x] Battle log — panel haut droite, i18n FR/EN, couleurs par type message, noms cliquables, pliable, scroll auto — plan 037
-- [x] Portée déplacement ennemis au hover (overlay orange, layer `enemyRangeGraphics`) — plan 038
-- [x] Algo portée déplacement revu — plan 032
-- [x] Sélection d'équipe (grille portraits 82px colorés, bouton Auto re-randomize/Vider, toggle Humain/IA, toggle placement auto/manuel, validation `validateTeamSelection()`, support IA vs IA, bypass sandbox, noms i18n, bouton Retour) — plan 033
-- [x] Hot-seat 1v1 + multi-équipes (2 à 12 joueurs, IA ou humain, carte 12x20, 12 couleurs) — plan 040
-- [x] Repo public (README EN, LICENSE MIT, issue templates, wiki joueur, CI GitHub Actions)
-- [x] Publication (GitHub Pages, release v2026.4.1, CalVer)
-
----
-
-## Phase 3 — Terrain & Tactics ✅ *Terminé*
-
-> But : la vraie profondeur tactique — le terrain change le jeu
-
-- [x] Tileset isométrique (plan 043 : ICON Isometric Pack — remplacé plan 050 par tileset custom généré des textures PMDCollab — tiles 32×32 ×2, filtre NEAREST, marquages arène overlay)
-- [x] Supprimer POKEMON_SPRITE_SCALE=2 + TILE_SPRITE_SCALE=2, rattraper offsets, ajuster zoom — plan 044
-- [x] Mode pixel art Phaser (roundPixels:true, NEAREST manuel par texture, police adaptée) — plan 044
-- [x] Format de carte compatible Tiled + pipeline chargement (parseTiledMap, validateTiledMap, loadTiledMap, MapPreviewScene — plan 045)
-- [x] Dénivelés (hauteur tiles) + dégâts de chute (plan 046 — canTraverse, getHeightModifier, isMeleeBlockedByHeight, calculateFallDamage, renderer surélevé, highlands.tmj, 45 tests)
-- [x] Tileset custom PMD-based (remplace tiles JAO) — plan 050 (11 solides + 4 liquides, pipeline Python, 24 maps migrées vers tileset.tsj)
-- [x] Obstacles + line of sight — plan 047
-- [x] Types de terrain (lave, eau, herbe) + modificateurs — plan 051 (core + tests + maps sandbox + renderer tint)
-- [x] Orientation tactique (dos/face FFTA) — plan 052 (face -15%, flanc neutre, dos +15% dégâts, preview "(+15%)" / "(-15%)", 28 tests)
-- [x] Système CT (remplacement round-robin) — plan 054 (interface `TurnSystem`, `ChargeTimeTurnSystem`, `ct-costs`, dual-mode BattleEngine, TurnTimeline CT, ActionMenu CT, toggle TeamSelectScene, i18n, 999 tests. Décisions #254-256)
-- [x] **[UX CT]** Timeline CT prédictive scrollable style FFX — 24 slots simulés par core, slot 0 ancré, 11 slots scrollables molette, bordure teal-vert Pokemon actif, entrée tail "..." — plan 058 + plan 059
-- [x] Undo déplacement (annulable avant attaque) — plan 053 (action `undo_move`, bouton "Annuler déplacement", annulation brûlure magma, 8 tests)
-- [x] Curseur FFTA — variantes curseur (settings + touche H), depth bugfix curseur (500 global) — plan 060 Section A
-- [x] **Silhouette X-ray occlusion** — Livré en Phase 5 Jalon 3a (Babylon) : 2e plane couleur d'équipe, `depthFunction=GREATER`, `renderingGroupId 1`, préserve la lisibilité des Pokémon occultés par le relief. Décision #474.
-- [x] Système décorations Tiled — `decorations.tsj`, Ghost traverse obstacles, parser objectgroup, sprites décorations, `DecorationsLayer` renderer — plan 064. Bonus différé : marquages arène + pokéball centrale.
-- [x] **Occlusion dynamique par sprite** — fix depth tiles surélevées (`DEPTH_RAISED_TILE_BASE`), Alt-click picking multi-niveaux (`COLOR_CURSOR_ALT`), module `OcclusionFader` (fade alpha 0.4, AABB screen-space). **Phase 3.5 rewrite Babylon repoussée après Phase 7** (décision #272). — plan 065
-- [x] Roster de maps variées — 7 maps thématiques : forest (14×14), cramped-cave (12×12), le-mur (16×16), volcano (14×14), swamp (14×14), desert (14×14), naval-arena (14×14). Toutes multi-format (5 objectgroups). Plan 066 terminé 2026-04-23.
-- [x] Génération maps par IA (prompt → `MapDefinition` ou .tmj valide) — agent `level-designer` utilisé pour 7 maps du plan 066.
-- [x] Choix maps depuis UI (écran sélection, preview, metadata) — plan 067 terminé 2026-04-23.
-- [x] Remplacer `le-mur` par toundra plate — `tundra.tmj` livrée 2026-04-24 (neige/glace, corridor central, 5 formats).
-- [x] **« Le Mur » réintroduite — plan 159 terminé 2026-07-14.** Nouvelle carte distincte de l'ancienne (16×16, mur pyramidal central h≈4.5, rampes latérales seules praticables, glace partout ailleurs) — conçue spécifiquement pour la mécanique de ring-out (recul → glissade sur glace → chute mortelle). L'IA maîtrise désormais cette mécanique (voir Phase 4 ci-dessous et `docs/ai-system.md`).
-
-### Décisions format de carte (plan 045)
-
-- **Tiled comme éditeur principal**. Core ne connaît pas Tiled — voit uniquement `MapDefinition`.
-- **Parser dans `packages/data`** (`packages/data/src/tiled/`) : convertit .tmj → `MapDefinition` au runtime. Zéro dépendance Phaser.
-- **Layers** : `terrain` (tilelayer, GID→TileState via propriétés custom), `decorations` (ignoré core), 5 objectgroups spawns `spawns_1v1/3p/4p/6p/12p`. Layer legacy `spawns` avec `formatTeamCount` conservé pour compat `dev/*.tmj` uniquement.
-- **Propriétés custom** par tile : `terrain` (string → TerrainType), `height` (int). `isPassable` supprimé.
-- **Chargement dynamique** : `loadTiledMap(url)` fait fetch runtime + parse + validate. Pas de conversion build-time.
-- **Tilesets externes .tsj supportés**.
-
----
-
-> **Note — Phase 3.5 et Phase 3.6 déplacées après Phase 7** (2026-04-20). Noms conservés pour les refs historiques.
-
----
-
-## Phase 4 — Gameplay Pokemon complet ✅ *Terminée — content-fill Gen 1 clos 2026-07-18*
-
-> But : couvrir toutes les mécaniques Pokemon, ajouter profondeur stratégique
->
-> **Clôture (2026-07-18)** : roster + pool Gen 1 complets — **512 moves**, **114/114 talents**, **117/117 objets tenus**, **151/151 Pokemon jouables**, **203 OP sets**. Chantier IA (plans 159→160→161) et content-fill (162 moves, 163 talents) clos. Détail : `docs/implementations.md`. Suite : Phase 6/7/8 ou polish, voir `docs/next.md`.
-
-- [x] Talents (capacités passives) — plans 069 + 070 terminés. 20 abilities, `AbilityHandlerRegistry`, 9 hooks, 26+ tests intégration. Pattern Showdown : hooks blocants retournent `BlockResult { blocked, events }`, modifieur de durée retourne `DurationModifyResult`. Buffer startup events, Lévitation terrain corrigée, Tempo Perso bloque Intimidation, anti-spam seuil 1/3 HP. Voir `docs/abilities-system.md`.
-- [x] Genres des Pokemon (mâle/femelle/asexué selon ratio officiel) — plan 071 terminé. `PokemonGender` enum, `genderRatio` exposé via loaders, roll déterministe via `genderRng` (replay), `genderOverride` prêt pour Team Builder. Cute Charm vérifie genre opposé non-genderless. Symboles ♂/♀ Unicode dans InfoPanel.
-- [x] Natures / Stat Alignment — plan 072 terminé (mécanique core), `Nature` enum (25), table boost/lowered en dur dans le core, `applyNatureModifier(stats, nature)` + `computeCombatStats(baseStats, level, nature?)`. Roll uniforme via `rollNature(rng)`, déterministe via `creationRng` partagé avec gender. `natureOverrides` prêt pour Team Builder. HP toujours exclu. **Affichage InfoPanel** livré plan 174 (2026-07-24) — effet boost/baisse via labels de stat colorés, nom de nature non affiché en toutes lettres.
-- [x] Objets tenus — plan 073 terminé. `HeldItemId` (12 items), `HeldItemHandler` (8 hooks dont `onMoveLock` pour verrou Choice piloté par hook), `HeldItemHandlerRegistry`, mini-système critiques, verrou Choice, validateur `DuplicateItem`, 4 nouveaux `BattleEventType`, fix `HpRestored` HP bar renderer, i18n `battle.itemConsumed`, 12 tests intégration. Décisions #288-295.
-- [x] EV / IV — plan 074 terminé. IV fixes à 31 pour tous les Pokemon. EV → Stat Points (SP) : 66 max, 32 max par stat, 1 SP = +1 stat. `applyStatPoints(stats, sp)`, `rollStatPoints(rng)`, `statPointsOverrides` prêt pour Team Builder. Formule dégâts alignée IV=31.
-- [x] Roster Gen 1 mini — 81 Pokemon jouables (hors Ditto + Méga). Formes non-finales retirées du roster, conservées en reference pour Team Builder futur.
-  - [x] **Batch A (12)** — Starters finaux + Éévolutions + iconiques — plan 075 terminé 2026-05-04. 29 moves ajoutés. 8 abilities ajoutées. Formes non-finales retirées du roster mini. 4-move limit en combat (décision #300, 2026-05-05).
-  - [x] **Batch B (19)** — Coverage types variés — plan 076 terminé 2026-05-06. 10 moves ajoutés. 8 abilities ajoutées. Hooks `blocksRecoil`, `preventsCrit`, `onEndTurn`.
-  - [x] **Batch C (17)** — Secondaires + spéciaux — plan 077 terminé 2026-05-07, Haunter retiré post-playtest (roster 52→51). 15 moves ajoutés. 8 abilities ajoutées. `StatusType.LockedOn` + accuracy-check hook.
-  - [x] **Batch D (16)** — plan 078 terminé 2026-05-11. arbok, clefable, parasect, dugtrio, persian, victreebel, rapidash, dodrio, muk, onix, weezing, chansey, tangela, seadra, mr-mime, tauros. 8 moves. 2 abilities (poison-touch, filter). Hook `onAfterDamageDealt`.
-  - [x] **Batch E (14)** — plan 079 terminé 2026-05-12. butterfree, beedrill, pidgeot, raticate, fearow, golbat, venomoth, farfetch-d, seaking, articuno, zapdos, moltres, mewtwo, mew. 8 moves. 6 abilities (compound-eyes, swarm, water-veil, pressure, shield-dust, inner-focus). Mécanismes `EffectKind.Drain`, `accuracyMultiplier`, `targetedCtBonus`, `bypassAccuracy`, `onSecondaryEffectBlocked`.
-  - Ditto et Méga-évolutions reportés Phase 9.
-- [x] **OP Sets curation + gap analysis — plan 082 terminé 2026-05-12.** `packages/data/op-sets/op-sets.json` (160 sets Smogon+custom). Script `pnpm op-sets:analyze` → `docs/op-sets-gap-analysis.md`.
-- [x] **Content Batch F + hook onStatLowered — plan 083 terminé 2026-05-12.** 2 moves (giga-drain, focus-blast), 9 items, hook `onStatLowered`.
-- [x] **Système Météo — plans 084 + 084b terminés 2026-05-13.** Sun/Rain/Sand/Snow, weather war, BP/accuracy/defense modifiers, Synthesis, Solar-Beam 2-turn, weather-ball, 4 abilities, heat-rock, WeatherHud, i18n, sandbox selector. **op-sets 160/160 full (100%)**.
-- [x] Team Builder (import/export Showdown)
-  - [x] **085 — Team Builder UI terminé 2026-05-17 + polish CSS/a11y 2026-05-18.** `MyTeamsScene` (list + delete + new + generate random + export) + `TeamEditScene` (6 slots, édition slot actif, 2 colonnes pickers gauche / stats+SP+presets droite, modals Pokemon/Move/Item, nature dropdown 25 entrées ordre Champteams, 4 presets SP, Set OP par slot avec 1-3 sets, Showdown io import/export avec clipboard, auto-save débounce 300 ms). Items non-implémentés grisés. i18n FR/EN ~100 clés + noms FR Pokemon. Menu MainMenu : entry "Constructeur d'équipe". CSS : 12 modules `packages/renderer/src/styles/` (@layer, tokens, `<dialog>` natif, HTML sémantique, bugfix padding global). Décisions #321-325.
-  - [x] **086 — Refonte `TeamSelectScene` terminé 2026-05-19.** Équipes sauvegardées (plan 085) + ligne « Aléatoire » ; chaque joueur hot-seat assigne une équipe complète (6) ; sous-pick N mons délégué à la phase placement étendue. Cohérence Team Builder ↔ combat rétablie. Sandbox inchangé. Plan `086-team-select-refonte.md`.
-- [x] **Mécaniques avancées — lot livré (post-Team Builder).** Plans 088–101. Mécaniques restantes regroupées plus bas (« Mécaniques restantes — moves complexes »).
-  - [x] **Barrières aura mobile — plan 095 (2026-05-23).** Reflect / Light Screen, aura mobile r3 Manhattan suit caster. Casse-Brique interaction. Aurora Veil reporté (0 learner Gen 1).
-  - [x] **TP moves (`TargetingKind.Teleport`) — plan 088 (2026-05-21).** 7 moves (teleport, fly, dig, bounce, phantom-force, shadow-force, dive), LoS/terrain/hauteur bypassés, états semi-invul Flying/Burrowing/Diving/Vanished.
-  - [x] **TP inversé (`TargetingKind.HitAndRun`) — plan 092 (2026-05-21).** u-turn / volt-switch / flip-turn, frappe Single puis retraite Chebyshev, miss/Protect bloque retraite.
-  - [x] **MoveCharging visible — plan 094 (2026-05-22).** skull-bash / sky-attack / razor-wind, indicateur ⚡, Flinch volatile, `MoveDefinition.chargeEffects`.
-  - [x] **Baton Pass — plan 093 (2026-05-22).** `EffectKind.TransferStatStages`, allié r1, reset caster. Volatils non transférés.
-  - [x] **Substitute — plan 099 (2026-05-28).** `substituteHp`, `PostSubstitute`, absorption dégâts/statuts/baisses-stats, flags sound/bypasssub.
-  - [x] **Provoc (Taunt) — plan 100 (2026-05-28).** `StatusType.Taunted` volatile 3 tours, filtre `getLegalActions`, Sub bloque / Safeguard-Mist non.
-  - [x] **Encore + Entrave (Disable) — plan 101 (2026-05-30).** Move-locking, `lastUsedMoveId`, `timed-volatile-tick-handler` généralisé (Taunted+Disabled+Encored).
-- [ ] **Content Batches G — moves « simples » (shape + effet déjà supporté)** — moves Gen 1 learnable par le roster, sans nouvelle mécanique (cf. analyse 2026-05-31, audit complet 2026-06-02). Découpés en batches faits 1 par 1. Chaque move = entrée `tactical.ts` (targeting + effects) + i18n FR/EN + pattern (`move-pattern-designer`, à décider au lancement de chaque batch). Pas de sprite, OP sets optionnels.
-  - [x] **G1 — Damage pur physique (40)** — done 2026-05-31 — 213 moves total. Riders complexes différés (throat-chop sound-lock, lash-out/temper-flare/fury-cutter power conditionnel, ice-spinner/steel-roller terrain, supercell-slam crash, fell-stinger KO-boost, psychic-fangs/raging-bull screen-break, poltergeist item-check). Plan 102.
-  - [x] **G2 — Damage pur spécial + multi-hit (23)** — done 2026-06-01 — **236 moves total**. Spéciaux : `swift, dragon-pulse, dazzling-gleam, hyper-voice, overheat, vacuum-wave, leaf-storm, aura-sphere, magical-leaf, power-gem, disarming-voice, draco-meteor, shock-wave` ; multi-hit : `dual-wingbeat, rock-blast, scale-shot, bullet-seed, double-hit, pin-missile, fury-attack, bone-rush, icicle-crash, tail-slap`. 5 moves sortis du batch vers plans dédiés : `psyshock`/`psystrike` (dégâts spé sur Déf physique), `alluring-voice`/`burning-jealousy` (secondaire conditionnel si cible boostée), `triple-axel` (escalade multi-hit). Plan 103.
-  - [x] **G3 — Damage + statut/flinch/confusion secondaire (24)** — done 2026-06-02 — **260 moves total**. Spéciaux : Vibraqua (water-pulse), Canicule (heat-wave), Sable Ardent (scorching-sands), Vibrobscur (dark-pulse), Vent Violent (hurricane), Ébullition (scald), Éclair (thunder-shock), Élecanon (zap-cannon), Feu d'Enfer (inferno), Poudreuse (powder-snow), Détritus (sludge), Purédpois (gunk-shot), Extrasenseur (extrasensory), Ouragan (twister) ; physiques : Psykoud'Boul (zen-headbutt), Direct Toxik (poison-jab), Tête de Fer (iron-head), Détricanon (dragon-rush), Poison Croix (cross-poison), Draco-Charge (dragon-rush variant, +knockback 1), Étincelle (spark), Étonnement (astonish), Frotte-Frimousse (nuzzle), Queue-Poison (poison-tail). 3 moves sortis vers plans dédiés : Lyophilisation/freeze-dry (super-efficace vs Eau, override type-chart), Ronflement/snore (gate sommeil), Talon-Marteau/axe-kick (crash on miss). Plan 104.
-  - [x] **G4 — Damage + stat-drop / high-crit / recoil / drain (36)** — done 2026-06-02 — **296 moves total**. Recoil rammers en Dash 3 (Bélier/take-down, Éclair Fou/wild-charge, Rapace/brave-bird, Aquatacle/wave-crash) ; Martobois/wood-hammer Single (coup de masse). Drain : Vampi-Poing/drain-punch, Vole-Vie/absorb, Vampibaiser/draining-kiss. High-crit (critRatio reference, Damage seul) : Lame de Roc/stone-edge, Tunnelier/drill-run (Line 2), Griffe Ombre/shadow-claw, Tranch'Air/air-cutter, Coupe Psycho/psycho-cut, Tranche-Nuit/night-slash. Stat-drop secondaire (22) : Piétisol/bulldoze, Tomberoche/rock-tomb, Balayette/low-sweep, Bond/pounce, Tir de Boue/mud-shot, Toile Élek/electroweb, Furie-Bond/lunge, Abattage/breaking-swipe, Douche Froide/chilling-water, Câlinerie/play-rough, Aqua-Brèche/liquidation, Coqui-Lame/razor-shell, Éclate Griffe/crush-claw, Telluriforce/earth-power, Bourdon/bug-buzz, Bombe Acide/acid-spray, Ravage Rampant/skitter-smack, Aboiement/snarl, Feu Ensorcelé/mystical-fire, Survinsecte/struggle-bug, Coud'Boue/mud-slap, Ocroupi/muddy-water. AoE → Zone/Cone/Slash. Bugfix hors-plan : flake focus-blast.test.ts seedé (createPrng(1)). Plan 105.
-  - [x] **G5 — Pure stat + pure statut (23)** — done 2026-06-02 — **319 moves total**. Debuffs ennemi : Grimace/scary-face, Charme/charm, Croco Larme/fake-tears, Ondes Étranges/eerie-impulse, Strido-Son/metal-sound, Regard Touchant/baby-doll-eyes, Confidence/confide, Chatouille/tickle (Atq+Déf), Gros'Yeux/leer (Cone), Mimi-Queue/tail-whip (Cone), Doux Parfum/sweet-scent (Cone, Esquive), Sécrétion/string-shot (Cone). Buffs : Armure/harden (self Déf+1), Rengorgement/work-up (self Atq+AtqSpé), Poliroche/rock-polish (self Vit+2), Coaching/coaching (allié Atq+Déf via `targetsAlly` — 1er buff-stat-allié générique). Statut : Poudre Toxik/poison-powder + Para-Spore/stun-spore + Danse Folle/teeter-dance (Zone r1), Gaz Toxik/poison-gas (Cone), Doux Baiser/sweet-kiss (Single), Vantardise/swagger (Atq+2 + Confusion), Flatterie/flatter (AtqSpé+1 + Confusion). **4 deferred** (mécanique core absente → mini-plans dédiés) : Dépit/spite (PP-reduction), Venimprégne/venom-drench (conditionnel cible empoisonnée), Influx Magnétik/magnetic-flux (gate Plus/Minus + multi-allié), Grondement/howl (buff multi-allié Gen8+). Plan 106.
-  - [x] **G6 — Simples oubliés des batches G1-G5 (11)** — done 2026-06-02 — **330 moves total**. Force/strength (Single 1-1), Écrasement/stomp (Single 1-1, Flinch 30%), Double Baffe/dual-chop (Single 1-1, hits:2), Camaraderie/play-nice (Single 1-3, Atq -1 + bypassAccuracy), Rafale Feu/blast-burn + Végé-Attaque/frenzy-plant + Hydroblast/hydro-cannon (Line 5, recharge), Giga Impact/giga-impact (Dash 3, recharge), Lame Solaire/solar-blade (Single 1-1, twoTurnCharge+sunSkipsCharge), Laser Météore/meteor-beam (Line 5, twoTurnCharge+chargeEffects AtqSpé+1 self), Trempette/splash (Self, no-op). 2 changements core : `validate.ts` exempte `TargetingKind.Self` (décision #410) ; golden-replay figé `GOLDEN_MOVESETS` (décision #411). Plan 107.
-- [x] **Couverture tests 100% moves + garde-fou CI** — done 2026-06-02 — plan 108. 210 fichiers `<id>.test.ts` créés (scénarios positionnels bout en bout). Meta-test `move-test-coverage.test.ts` bloque la CI si un move n'a pas de test. Règle dure ajoutée `docs/methodology.md`. Décisions #412-413. Suite CI : **2288 unit + 269 intégration**.
-
-- [x] **Power conditionnel — moteur dynamicPower + 12 moves état-seul — done 2026-06-03 — plan 109.** Moteur générique `dynamic-power-system.ts` (`resolveDynamicPower`, `getEffectivePowerFloor`, `DynamicPowerKind`, `DynamicPowerSpec`). Champs `MoveDefinition.dynamicPower` + `ignoresBurnAttackDrop`. Branché dans `handle-damage` + `estimateDamage`. `getEffectivePowerFloor` corrige le scoring IA (power null=0 ne sont plus exclus). **12 moves livrés (330 → 342)** : Façade/`facade` (×2 si statut self + exemption baisse Atk brûlure via `ignoresBurnAttackDrop`), Châtiment/`hex` (×2 si cible a un statut), Choc Venin/`venoshock` (×2 si cible empoisonnée), Acrobatie/`acrobatics` (×2 sans objet tenu), Force Ajoutée/`stored-power` (20 +20/cran positif), Boule Élek/`electro-ball` (ratio vitesse), Gyroballe/`gyro-ball` (ratio vitesse inverse +1, formule `min(150, floor(25 × spdCible/spdSoi + 1))`), Gigotage/`flail` + Contre/`reversal` (HP% bas), Saumure/`brine` (×2 si cible ≤50% HP), Pression Extrême/`hard-press` (BP selon HP% cible), Giclédo/`water-spout` (150×HP% soi). Tag renderer MoveTooltip « Puissance variable » + i18n FR/EN. Gate CI : **2361 unit + 269 intégration**. Décisions #414-416.
-
-- [x] **Mécaniques restantes — moves « complexes » (nouvelle méca par type) — TOUTES LES FAMILLES CLOSES.** Chaque famille listée ci-dessous a été attaquée 1 par 1 jusqu'à épuisement du pool Gen 1 (plans 162-163, 2026-07-18) — voir `docs/implementations.md` pour le récapitulatif final (512 moves).
-  - [x] **Champs / Terrains (2026-06-08 — plans 117 + 118 DONE — B4 clos 10/10)** : système `FieldTerrain` zones diamant Manhattan r3, multi-zones coexistantes. 4 poseurs (Champ Herbu/Électrifié/Brumeux/Psychique) + Champ'Duit (5→8 tours) + 7 moves dépendants (Gliss'Herbe/Monte-Tension/Vaste Pouvoir/Explo-Brume/Champlification/Force Nature + Boue-Bombe). Gate CI : **2630 unit + 269 intégration**. Décisions #427–#448.
-  - [x] **Distorsion (`trick-room`) (2026-06-18 — plan 130 DONE)** : zone statique diamant Manhattan r3 (pose façon Champs : re-cast même case = remplace, ailleurs = coexiste, pas de toggle), inversion CT par vitesse en entrée (`speedInZone = max(1, 160 − baseSpeed)`), 5 tours du lanceur + horloge fantôme. 2 OP sets ajoutés (Noadkoko, Flagadoss). 394 moves. Décisions #522–#524.
-  - [x] **Contrôle moves restants (2026-06-19 — plan 132 DONE)** : Possessif/`imprison` (volatil persistant lanceur, filtre inverse `getLegalActions` ennemis, meurt avec le lanceur), Dissonance Psy/`psychic-noise` (Psy Spé 75 BP, Cône 1-3, sonore → perce le Substitut, secondaire Anti-Soin 2t garanti), Dépit/`spite` (taxe CT one-shot `SPITE_CT_PENALTY = 350`, retarde le tempo, bloqué par Sub). `StatusType.Imprisoning` + `StatusType.HealBlocked` + `PokemonInstance.pendingCtPenalty?`. 3 OP sets ajoutés (Ectoplasma Possessif/Dépit, Mewtwo Possessif/Dissonance Psy, Alakazam Possessif/Désactivation). **400 → 403 moves. 183 → 186 OP sets.** Hors-pool (Torment/Magic Coat) non couverts. Décisions #529–534.
-  - [x] **Delayed / countdown (2026-06-19 — plan 133 DONE)** : Prescience/`future-sight` (case fixe AoE r1 délayée 2t, dégâts calculés au cast — `future-sight-system.ts`), Requiem/`perish-song` (REDESIGN aura de mort mobile r2 façon barrières, countdown, badge 🎵), Balance/`pain-split` (moyenne HP lanceur+cible), Effort/`endeavor` (cible HP = lanceur HP si supérieur), Coup d'Main/`helping-hand` (×1.5 prochain move allié r1). Match nul (double K.O.) géré (`BattleEnded { winnerId: null }`). Wish/Vœu déjà livré (plan 116 B2). 403 → 408 moves.
-  - [x] **Hazards (2026-06-19 — plan 131 DONE)** : 4 setters (Picots/`spikes`, Pièges de Roc/`stealth-rock`, Pics Toxik/`toxic-spikes`, Toile Gluante/`sticky-web`) + 2 removers (Tour Rapide/`rapid-spin`, Anti-Brume/`defog`). `TargetingKind.GroundTarget` portée ≤ 4 Manhattan. Déclenchement à l'entrée, permanent, team-agnostic. Stacking : Picots ×3, Pics Toxik ×2. Vol immunisé sauf Pièges de Roc. Rendu voxel GLB. 4 OP sets data-miner. **394 → 400 moves. 179 → 183 OP sets.** Décisions #525–528.
-  - [x] **Stat-source (2026-06-04) — plan 110 DONE** : `AttackStatSource` enum + champ `MoveDefinition.attackStatSource`, helper `resolveAttackStat(move, attacker, defender, isPhysical)` dans `calculateDamageWithCrit`. **Bodypress** (`body-press`) utilise la Défense du lanceur ; **Tricherie** (`foul-play`) utilise l'Attaque de la cible. Bagarre (`guts`) corrigé (ne booste pas les moves à `attackStatSource`).
-  - [x] **Poids (2026-06-05) — plan 111 DONE** : `PokemonInstance.weight` (kg, dérivé `PokemonDefinition.weight`). 2 nouveaux `DynamicPowerKind` : `TargetWeight` (6 paliers) + `WeightRatio` (7 cas, palier ×3 inclusif → 80). **Balayage** (`low-kick`) + **Nœud Herbe** (`grass-knot`) + **Tacle Lourd** (`heavy-slam`) + **Tacle Feu** (`heat-crash`). Total 344 → **348 moves**.
-  - [x] **Power conditionnel — familles restantes (2026-06-19 — plan 134 DONE)** — ~~Poids (plan 111)~~ ✅ · ~~Timing/Compteurs/Terrain B3 (plan 115)~~ ✅ · Divers (hors-pool signatures) : Hommage Posthume/`last-respects` (`AllyFaintCountScaled` = `50 × (1 + alliés KO)`), Branchicrok/`fishious-rend` + Prise de Bec/`bolt-beak` (`TargetIdleSinceLastAction` = ×2 si la cible n'a pas agi depuis la dernière action du lanceur — adaptation CT du « frappe en premier »). 408 → 411 moves. Famille Power conditionnel close.
-  - [x] **Soin / Cure (2026-06-07 — plan 116 B2 DONE)** : 11 moves livrés. Systèmes `HealTarget`, `CureTeamStatus`, `HealByTargetStat`, `PostHealOverTime`, `PostWish`. Volatils HoT : Racines (1/8 PV/tour, ancrage) + Anneau Hydro (1/16). Vœu différé model-agnostic. 46 tests. Gate CI : **2546 unit + 269 intégration**. Moves non-livrés B2 (différés batches ultérieurs) : Partage Douleur, Force-Sap, Vœu Ultime/Danse Lunaire, Avale.
-  - [x] **Item interaction (~12) — plan 142 DONE (2026-06-27)** : infra core (champs `consumedItemId`/`ateBerryThisBattle`/`critStageBoost`, helpers `held-item-transfer.ts`, refacto 4 sites consommation, `critStageBoost` dans `damage-calculator`) + 7 `EffectKind` + tables `FLING_POWER`/`FLING_EFFECT` + 12 moves (Sabotage/`knock-off`, Larcin/`thief`, Implore/`covet`, Tour de Magie/`trick`, Passe-Passe/`switcheroo`, Dégommage/`fling`, Picore/`pluck`, Piqûre/`bug-bite`, Calcination/`incinerate`, Gaz Corrosif/`corrosive-gas`, Recyclage/`recycle`, Éructation/`belch`) + 2 baies (Baie Lansat/`lansat-berry`, Baie Frista/`starf-berry`) + 1 talent (Glu/`sticky-hold`). **411 → 423 moves. 103 → 104 talents. 101 → 103 objets.** Décisions #563–#574.
-  - [x] **Puissance Cachée / Hidden Power — TRANCHÉ : EXCLU (2026-07-11).** Sans IV (Champions standardise à 31), le move perd sa variabilité de type — sa seule raison d'être. **Vérification data fraîche (refetch Champions 2026-07-11)** : `hidden-power` a **0 learner dans les learnsets Champions** (`packages/data/.cache/champions/learnsets.ts`) → Champions l'a retiré du jeu. On suit le canon Champions : **non implémenté, exclu du movepool.** (La source Showdown Gen 1 généraliste liste des learners — Roucool/Rattata/Piafabec/Paras + évos — mais c'est le pool Gen 1 canon, pas Champions.) Alternative « Ténèbres 60 BP fixe » abandonnée. Sources : [genpkm](https://genpkm.com/blog/pokemon-champions-no-ivs-stat-points-competitive-guide-2026), [Game8](https://game8.co/games/Pokemon-Champions/archives/593716).
-  - [x] **Trapping (~6) — 2026-06-28** : 4 pièges partiels (clone Ligotage : dégâts + Trapped 4-5t + 1/8 PV/tour) : **Étreinte** (`bind`, Contact 1-1), **Danse Flammes** (`fire-spin`, 1-2), **Siphon** (`whirlpool`, 1-2), **Tourbi-Sable** (`sand-tomb`, 1-2) ; 2 pièges purs position-linked (lock tant que le lanceur reste à distance Chebyshev ≤ 1) : **Barrage** (`block`), **Regard Noir** (`mean-look`). Nouveau champ `positionLinked?: boolean` sur `Status` ; `position-linked-statuses.ts` gère libération. Réutilise mécanique Magnépik. Périmètre in-pool (hors-pool : Claquoir/Harcèlement/Vortex Magma/Voltageôle/Troquenard ignorés). **423 → 429 moves.** Décisions #578–#580.
-  - [x] **Type manip (~5) — plan 143 DONE (2026-06-28)** — Conversion/`conversion`, Conversion 2/`conversion-2`, Copie-Type/`reflect-type`, Détrempage/`soak` (change type cible), Flamme Ultime/`burn-up`. Téra Explosion hors-scope (décision #581). Infra : `PokemonInstance.typeOverride`, `resolveBaseTypes`, `BattleEngine.effectiveTypesOf`, 5 `EffectKind` + handlers `type-change/`, event `TypeChanged`. **429 → 434 moves.** Décisions #581–#586.
-  - [x] **Morphing / Transform — batch B-META — plan 157 DONE (2026-07-12)** — **Morphing** (`transform`, Normal Statut, cible `normal`, Single **r3**) copie stats de combat/crans de stats/types/4 moves/talent/poids/genre/sprite de la cible ; PV/niveau du lanceur inchangés ; échoue sur Clone/déjà-transformé/cible Imposteur. Learner : **Mew**. **Imposteur** (`imposter`, talent) déclenche Morphing à l'entrée sur l'ennemi le plus proche. **Métamorph** (Ditto, dex 132, dernier Gen 1 manquant) intégré au roster (`custom`, movepool `[transform]`, stats 48 partout) — **roster Gen 1 complet, 151/151**. Infra : champ unique `PokemonInstance.transformState` (snapshot, reset au KO) + helpers `effectiveCombatStats`/`effectiveMoveIds`/`effectiveWeight`/`effectiveGender` + extension `effectiveAbilityId`/`resolveBaseTypes`/`effectiveBaseSpeed` — priorité « manip écrase » override spécifique > transformState > espèce. IA : garde-fou `scoreTransformApplication`. **502 → 503 moves. 104 → 105 talents. 150 → 151 Pokemon jouables.** Décisions #647–#659.
-  - [x] **Move-copy (~6) — plan 144 DONE (2026-06-29)** — première vraie réentrance moteur. **Métronome** (`metronome`, random parmi tous les implémentés − exclusions), **Blabla Dodo** (`sleep-talk`, random du moveset propre, gate sommeil `requiresAsleep`), **Mimique** (`mirror-move`, dernier move de la cible), **Photocopie** (`copycat`, dernier move global), **Copie** (`mimic`) + **Gribouille** (`sketch`, `EffectKind.CopyMoveToSlot`, remplacent leur slot). Réentrance = `prepareCalledMove` (query roll/résout, pose `pendingCalledMove`, verrou anti-reroll, sans avancer le tour) + swap dans `resolveEffectiveMove` ; UI 2-temps masquée (`???`) pour les aléatoires (réutilise `select_attack_target` via pending swap). `nature-power` déjà fait (plan 118). **434 → 440 moves.** Décisions #587–#590.
-  - [x] **Field global (~4) — plan 145 DONE (2026-07-02)** — 4 moves relocalisés (pleine arène canon → zone/champ positionnel, cohérence projet). **Gravité** (`gravity`, zone diamant r3 miroir Distorsion : Volants cloués au sol dans la zone + précision ×5/3 vs défenseur en zone + bloque Vol/Rebond/Pied Voltige du lanceur en zone — Tunnel/Plongée restent légaux). **Zone Étrange** (`wonder-room`, zone diamant r3, échange Déf↔DéfSpé du défenseur, crans restent sur leur slot). **Zone Magique** (`magic-room`, zone diamant r3, neutralise les effets d'objet tenu d'un porteur en zone, objet non consommé). **Vent Arrière** (`tailwind`, champ global directionnel unique N/S/E/O — ctGain ×1.5 pour tout Pokemon des 2 camps orienté dans le sens du vent, décompte round-global). Infra : `FieldGlobalZone` générique paramétrée par `kind` (mirror `DistortionZone`), `getActiveHeldItem` helper unique (Zone Magique), `isGroundedByGravity` (3 sites). Boussole 3D always-on + HUD flèche Vent Arrière. **440 → 444 moves.** Décisions #591–#594.
-  - [x] **Stat/state manip (~8) — plan 146 DONE (2026-07-02)** — première manipulation partagée des crans de stats. **Buée Noire** (`haze`, reset zone diamant r3 auto-centrée, team-agnostic, ignore Clone/Brume), **Boost** (`psych-up`, copie les crans cible), **Bain de Smog** (`clear-smog`, Poison Spé 50 + reset cible), **Renversement** (`topsy-turvy`, inverse les crans), **Permugarde/Permuforce** (échange Déf-DéfSpé / Atq-AtqSpé), **Permuvitesse** (`speed-swap`, échange Vitesse brute canon), **Permucœur** (échange les 7 crans). Infra : `speedStatOverride?` (override Vitesse brute par-instance) + `effectiveBaseSpeed`, 5 `EffectKind` + handlers `stat-manip/`, `EffectContext.pokemonInRadius`. **444 → 452 moves.** Décisions #595–#599.
-  - [x] **Phazing / forçage (~3) — DONE (2026-07-03)** — réinterprétation du switch-out canon sur la grille (pas de banc) → éjection vers la zone de spawn. **Cyclone** (`whirlwind`, Zone r1 auto-centrée, 0 dmg), **Hurlement** (`roar`, Cône 1-3 sonore, 0 dmg — converti depuis un ancien −1 Atk stopgap), **Projection** (`circle-throw`, Combat Phys Single 1-1 contact, dégâts puis éjection). Infra : `EffectKind.PhazeToSpawn` + handler `handle-phaze.ts` réutilisant `ejectToSpawn` (famille forced-teleport, décisions #564–565). Éjection seule (pas de reset stats/volatiles). **452 → 454 moves.** Décisions #600–#602.
-  - [x] **Sacrifice / Self-KO (~7) — plan 147 DONE (2026-07-03)** — généralisation du self-KO (nouveau flag `MoveDefinition.selfKo`, non bloqué par Moiteur, distinct de `isExplosion`) + 2 mécaniques neuves (trigger au KO du lanceur, revive). **Explosion** (`explosion`, self-KO + AoE zone r2, mirror Destruction, bloqué par Moiteur). **Souvenir** (`memento`, self-KO + cible Atq/Atq.Spé −2, portée r3, non bloqué par Moiteur). **Tout ou Rien** (`final-gambit`, dégâts fixes = PV actuels du lanceur, typés Combat/typechart complet, portée contact 1, self-KO conditionnel au hit). **Vœu Soin** (`healing-wish`, RÉINVENTÉ « Second Souffle » — self-KO + revive un allié KO à 50% PV / soigne un vivant à 100% + nettoie les statuts, ciblage tuile r3 — premier move de revive du jeu). **Lien du Destin** (`destiny-bond`, volatile self : si le lanceur est KO avant son prochain tour, son tueur tombe aussi). **Rancune** (`grudge`, RÉINVENTÉ — volatile self : si le lanceur est KO par un move, ce move est verrouillé chez l'attaquant jusqu'à la fin du combat). Infra : `PokemonInstance.lastHitBy {attackerId, moveId}`, `StatusType.DestinyBond`/`Grudge` (expirés au tour du lanceur), `grudgeLockedMoveIds`, `ChargeTimeTurnSystem.onPokemonRevived`, event `PokemonRevived` étendu. **454 → 460 moves.** Décisions #603–#606.
-  - [x] **OHKO (~4) — plan 148 DONE (2026-07-04)** — première mécanique de KO instantané. **Abîme** (`fissure`, Sol, Ligne 3), **Guillotine** (`guillotine`, Normal, contact, Single 1-1), **Empal'Korne** (`horn-drill`, Normal, contact, Ligne 2), **Glaciation** (`sheer-cold`, Glace, Cône 1-2, cible Glace immunisée). Précision plate niveau-collapsée (30 %, 20 % Glaciation non-Glace), ignore crans/talents/objets/Gravité. Dégâts routés via `handle-damage` (Protection/Ténacité/Baie Ceinture/Clone/immunité de type gratuits) ; Fermeté = immunité totale (bypass Brise Moule). Multi-cible = jet indépendant par cible. **460 → 464 moves. 186 → 189 OP sets.** Décisions #607–#610.
-  - [x] **Priorité / timing conditionnel (~6) — plan 150 DONE (2026-07-05)** — priorité canon abandonnée (le CT ordonnance seul). **Bluff** (`fake-out`, Normal Phys 40, Single 1-1 contact, `firstActionOnly` + Flinch 100%). **Escarmouche** (`first-impression`, Insecte Phys 100, Single 1-1 contact, `firstActionOnly`) : « 1er tour » canon → 1ʳᵉ action du combat du lanceur. **Coup Bas** (`sucker-punch`, Ténèbres Phys 70, Single 1-1 contact) : fizzle (CT payé) sauf si la **dernière** action de la cible était offensive (fraîcheur, anti-collant `lastUsedMoveId`). **Mitra-Poing** (`focus-punch`, Combat Phys 150, Single 1-1 contact) : charge 2-tours, échec T2 si dégât direct reçu (indirect = météo/poison/recul ne casse pas). **Bec-Canon** (`beak-blast`, Vol Phys 120, Single 1-1 contact) : charge 2-tours, brûle l'attaquant au contact pendant la charge, frappe T2 quand même. **Carapiège** (`shell-trap`, Feu Spé 150, Zone r1 centré lanceur friendly-fire inclus) : charge 2-tours, armé seulement si frappé par un move physique. Bec-Canon/Carapiège = **0 learner Gen 1** (codés par complétude, injouables pour l'instant). Infra : `MoveDefinition.firstActionOnly`/`failsUnlessTargetAggressive`/`chargeReaction`, `PokemonInstance.lastOffensiveActionAtAction`/`focusInterrupted`/`shellTrapArmed`, module `battle/charge-reaction.ts` (hook réactif dans `handle-damage`). **469 → 475 moves.** Décisions #617–620.
-  - [x] **Lock-in multi-turn (~6) — plan 149 DONE (2026-07-04)** — verrou multi-tour forcé (déplacement libre, seul le choix du move est verrouillé). **Mania** (`thrash`, Normal Phys 120, Single 1-1), **Danse Fleurs** (`petal-dance`, Plante Spé 120, Single 1-2), **Colère** (`outrage`, Dragon Phys 120, Single 1-1, REDESIGN — l'ancien stopgap appliquait la Confusion immédiate à chaque cast), **Grand Courroux** (`raging-fury`, Feu Phys 120, Single 1-1) : verrou 2-3 tours puis Confusion self. **Brouhaha** (`uproar`, Normal Spé 90, Single 1-3 sonore) : verrou 3 tours SANS confusion + aura mobile anti-sommeil rayon 3 Manhattan autour du lanceur (bloque le sommeil + réveille les dormeurs dans le rayon). **Ball'Glace** (`ice-ball`, Glace Phys 30, Dash 2) : clone Glace de Roulade (snowball volontaire `DynamicPowerKind.RolloutStreak`), pas un verrou. Infra : `PokemonInstance.lockInMoveId`/`lockInTurnsRemaining` (champ dédié, distinct de `lockedMoveId`), `MoveDefinition.lockIn`/`uproarAura`, modules `battle/lock-in.ts` + `battle/uproar-aura.ts`, `BattleEventType.LockInStarted`, `ProtectionReason.UproarNoise`. **5 moves nouveaux + 1 redesign (Colère/`outrage` existait déjà). 464 → 469 moves.** Décisions #611–616.
-  - [x] **Escalade multi-hit (2026-06-05 — plan 113 B1 DONE)** : Triple Axel/`triple-axel` (3 coups BP 20/40/60, précision re-roll par coup) via `escalatingHitPower` + `perHitAccuracy`.
-  - [x] **Type-chart override (2026-06-05 — plan 113 B1 DONE)** : Lyophilisation/`freeze-dry` (Glace, ×2 vs Eau quel que soit le type-chart normal) via `typeEffectivenessOverride { against, multiplier }`.
-  - [x] **Dégâts spé calculés sur Déf physique (2026-06-05 — plan 113 B1 DONE)** : Choc Psy/`psyshock` (80 BP) + Frappe Psy/`psystrike` (100 BP, signature Mewtwo) via `MoveDefinition.hitsPhysicalDefense`.
-  - [x] **Effet conditionnel selon état cible (2026-06-06 — plan 115 B3 DONE)** : Voix Envoûtante/`alluring-voice` (Confusion si boost cible) + Feu Envieux/`burning-jealousy` (Brûlure si boost cible) via `ConditionKind.TargetBoostedRecently`. Venimprégne différé batch ultérieur.
-  - [x] **Crash on miss (2026-06-05 — plan 113 B1 DONE)** : Pied Voltige/`high-jump-kick` (130 BP) + Talon-Marteau/`axe-kick` (120 BP, confusion 30%) via `crashOnMiss { fraction }`. Scan events `DamageDealt`.
-  - [x] **Buff de stat multi-allié (~2) — plan 156 DONE (2026-07-11)** — étend le pattern `targetsAlly` (Coaching, single-allié) à un AoE auto-centré sur le lanceur. **Grondement** (`howl`, Normal Statut, Attaque +1 lanceur + alliés en zone diamant Manhattan **r2 auto-centrée** — réinterprétation grille du « adjacent allies » canon, learnable Gen 1 : Arcanin, Feunard, Caninos). **Magné-Contrôle** (`magnetic-flux`, Électrik Statut, Défense + Défense Spéciale +1 lanceur + alliés en r2 **ayant le talent Plus ou Minus** — gate fidèle au canon conservé, **no-op actuel** dans le roster Gen 1 (0 porteur Plus/Minus, talents Gen 3), codé par complétude, learnable Gen 1 : Électrode, Zapdos). Infra : réutilise `StatChange` (0 nouveau `EffectKind`) — champs `radius?`/`abilityGate?` (mirror `HealTarget.radius` de life-dew), helper core `resolveRadiusAllies`. **500 → 502 moves.** Décisions #644–#646. **Ferme cet item + une bonne part des résidus Phase 4.**
-  - [x] **Misc volatile / utility (~26, découpé en batches A→E, validé humain 2026-07-05) — CHANTIER CLOS (2026-07-11, 5/5 batches)**
-    - [x] **Batch A — manipulation de coups critiques (5) — plan 151 DONE (2026-07-05)** : **Puissance** (`focus-energy`, crans crit +2 persistants, in-pool), **Affilage** (`laser-focus`, crit garanti one-shot, hors-pool), **Cri Draconique** (`dragon-cheer`, crit allié +1/+2 si Dragon, hors-pool), **Yama Arashi** (`storm-throw`, crit garanti `alwaysCrit`, hors-pool), **Dark Lariat** (`darkest-lariat`, ignore crans défensifs cible `ignoresDefensiveStages`, hors-pool). Infra : 2 `EffectKind` (`RaiseCritStage`/`ArmGuaranteedCrit`), volatile one-shot `guaranteedCritArmed`. **475 → 480 moves.** Décisions #621–#624.
-    - [x] **Batch B — dégâts utilitaires (6) — plan 152 DONE (2026-07-07)** : **Faux-Chage** (`false-swipe`, `cannotKo` — plancher 1 PV, jamais de KO direct), **Croc Fatal** (`super-fang`, dégâts fixes ⌊PV cible/2⌋), **Ruse** (`feint`, `bypassProtect` — ignore Protection/Détection), **Anti-Air** (`smack-down`, volatile `smackedDown` — cloue les Volants au sol, lève l'immunité Sol/hazards), **Poursuite** (`pursuit`, `pursuitBackstab` — ×2 si le coup atteint la zone Back de la cible, stacke avec le bonus de dos universel ×1.15 → ×2.3 effectif de dos), **Corps Perdu** (`vital-throw`, `bypassAccuracy` — never-miss, priorité -1 canon abandonnée, coût CT 900 assumé). Baston (`beat-up`) déjà préexistant (hors compte du batch). Infra : 2 `EffectKind` (`HalveTargetHp`/`SmackDown`), helper commun `isEffectivelyGrounded` (= Gravité OU `smackedDown`). **480 → 486 moves.** Décisions #625–#627.
-    - [x] **Batch C — manipulation de talent (4) — plan 153 DONE (2026-07-10)** : **Soucigraine** (`worry-seed`, remplace le talent cible par Insomnie + réveille), **Suc Digestif** (`gastro-acid`, supprime le talent cible reste du combat), **Imitation** (`role-play`, le lanceur copie le talent effectif de la cible), **Échange** (`skill-swap`, échange les talents lanceur↔cible). Tous Statut Single r1 ennemi. Première mutation runtime du talent : `abilityIdOverride`/`abilitySuppressed` + helper `effectiveAbilityId` + chokepoint `AbilityHandlerRegistry.getForPokemon`. Interactions : aura Intimidation retirée si la source perd son talent, grounding immédiat sur dé-lévitation (miroir Anti-Air). **486 → 490 moves.** Décisions #628–#631.
-    - [x] **Batch D — buff/statut (6) — plan 154 DONE (2026-07-10)** : **Malédiction** (`curse`, ciblage conditionnel par type du lanceur — Spectre : Single r3 ennemi, sacrifie 50% PV lanceur + DoT 25%/tour illimité sans rupture `StatusType.Cursed` ; non-Spectre : Self Vit −1/Atq +1/Déf +1), **Bâillement** (`yawn`, Single r1, sommeil différé avec fenêtre de répit d'un tour), **Cognobidon** (`belly-drum`, Self, −50% PV max → Attaque +6, fidèle au canon sans levier grille), **Acupression** (`acupressure`, Single r1 self/allié, +2 stat aléatoire parmi les 5 stats de combat, exclut Précision/Esquive), **Attraction** (`attract`, Single r1, infatuation sexe-opposé), **Vol Magnétik** (`magnet-rise`, Self, lévitation complète temporaire 5 tours — immunité Sol + survole lave/eau/pièges, annulé par Gravité/Anti-Air, grounding-terrain immédiat à l'expiration, miroir Anti-Air/Suc Digestif #627/#630). Infra : 6 `EffectKind` + handlers dédiés, 2 champs `PokemonInstance` (`drowsyTurns`/`magnetRiseTurns`), volatile `StatusType.Cursed`, ciblage conditionnel par type via `resolveEffectiveTargeting` + nouveau flag `targetingByCasterType`. **490 → 496 moves.** Décisions #632–#638.
-    - [x] **Batch E — grille-problématiques (4) — plan 155 DONE (2026-07-11)** : **Par Ici** (`follow-me`) + **Poudre Fureur** (`rage-powder`, poudre) — zone diamant r4 auto-centrée, réinterprétation « centre de l'attention » canon en manip d'orientation one-shot (les ennemis en zone pivotent pour faire face au lanceur, exploite le back-attack ×1.15) ; Poudre Fureur ajoute l'immunité poudre (`isImmuneToPowderMove` = Plante OU Envelocape OU Lunettes Filtre). **Après Vous** (`after-you`, allié r3) : promotion CT non-destructive `ChargeTimeTurnSystem.promoteToImmediateNext`. **Interversion** (`ally-switch`, allié r3) : échange de positions lanceur↔allié + terrain re-déclenché aux 2 cases d'arrivée. 4 moves hors-pool Gen 1 (0 learner, codés par complétude). Infra : 3 `EffectKind` (`DrawAttention`/`ActAfterUser`/`SwapAllyPositions`). **496 → 500 moves.** Décisions #639–#643. **Famille Misc volatile/utility close (5/5 batches).**
-
-- [x] **IA — ring-out par recul + heuristiques haut-impact — plan 159 DONE (2026-07-14)** : premier lot de la « passe IA groupée » (rattrapage heuristiques fines, cf. items différés ci-dessus). **Ring-out** : module pur `battle/knockback-prediction.ts` (extrait de `handle-knockback.ts`, source unique) + `scoreKnockbackRingOut` (`action-scorer.ts`) valorise Draco-Queue/Coud'Krâne/Draco-Charge quand le recul éjecte un ennemi vers une chute ou un terrain létal. **Lookahead relief corrigé** : `estimateDamage` accepte `attackerPosition?` (hauteur/terrain/facing depuis la case candidate, bug corrigé) + garde ligne de vue (`hasLineOfSightFrom`) — l'IA grimpe désormais un plateau pour tirer en surplomb. **5 heuristiques haut-impact** via primitives partagées `ai/threat-detection.ts` (`highestThreatEnemy`/`wouldKoUs`/`isHealthyTarget`) : OHKO (déni de menace), Malédiction (DoT valorisé sur cible en forme), Transform (préfère copier le sweeper adverse), crit-manip (conditionné à un move offensif), item-interaction (objet effectif de la cible). Décisions #660–#665. **Reporté Phase 2** : positionnement offensif/défensif pour préparer le ring-out (A3/A4), heuristiques fines des 10 familles restantes + objets plan 158.
-- [x] **IA — passe groupée Phase 2 (toutes les familles restantes) — plan 160 DONE (2026-07-14)** : suite du plan 159, traite en un seul plan (décision humaine « fait toute l'IA ») les familles jusque-là scorées ~0/−1 (donc jamais jouées). Nouveau module `ai/move-reach.ts` + **8 primitives** `threat-detection.ts` (`anyEnemyCanStrike`, `anyEnemyPhysicalStriker`, `abilityNeutralizeValue`, `abilityCopyValue`, `bestGroundThreatFraction`, `survivesLethalHit`, `isImmuneToMoveType`, `occupantAt`). Familles valorisées : faux-KO/immunité transverse (Ceinture Force/Bandeau/Baie Sitrus/Fermeté, Lévitation/Ballon vs Sol), Sacrifice/Self-KO (147), Lock-in (149), Priorité/timing (150), Dégâts-util (152), Manip-talent (153), Buff/statut partiel (154 — Bâillement/Acupression/Vol Magnétik), Grille (155), Field global (145), Phazing, Move-copy (144), Type-manip minimal (143). Archi commune à tous les niveaux de difficulté (héritée #663). Gate : typecheck vert, **3435 tests core verts (+20)**. **Reporté** : Stat/state manip (146), item-interaction utilitaires (142), pièges purs (Barrage/Regard Noir), crit-manip Batch A (151), Cognobidon/Attraction (154), objets légers (158), e2e Playwright.
-- [x] **IA — positionnement pour le ring-out (Phase 2 du plan 159) — plan 172 DONE (2026-07-24)** : reprend le reliquat « positionnement offensif/défensif » différé au plan 159. **A3 offensif** (`evaluateAttacksFromPosition`) : l'IA se déplace exprès pour aligner une éjection fatale par recul (Draco-Queue/Coud'Krâne/Draco-Charge) — prédiction via `BattleEngine.predictKnockback(..., attackerPosition?)` depuis chaque case candidate, lethal-only. **A4 défensif** (`evaluateKnockbackVulnerability`, dans `scoreMove`) : évite une case d'où un ennemi porteur d'un move à recul l'éjecterait à mort, pénalité `−killPotential` lethal-only. Heuristiques communes à tous les niveaux (cohérent plan 159). Voir `docs/ai-system.md` § Positionnement ring-out (A3/A4).
-- [x] **Content-fill — 9 derniers moves apprenables Gen 1 — plan 162 DONE (2026-07-18)** : recompté sur source (503 impl, 14 apprenables non-impl dont 5 écartés canon Représailles/Frustration/Retour/Puissance Cachée/Téra-Explosion → 9 réellement faisables). **Relâche** (`spit-up`, Normal Spé, Single r3, dégâts = 100 × paliers Stockage, consomme), **Avale** (`swallow`, Normal Statut Self, soin 25/50/100 % selon paliers, consomme) — débloquent l'upgrade **Stockage** (`stockpile`) en vrai compteur de paliers 1-3 (`PokemonInstance.stockpileCount`) + tracking du boost réel appliqué pour un undo exact. **Prio-Parade** (`upper-hand`, Combat Phys, Single r1, fraîcheur d'action `failsUnlessTargetAggressive` + flinch 100 %). **Piège de Venin** (`venom-drench`, Poison Statut, Single r3, baisse Atq/Atq.Spé/Vit si cible empoisonnée). **Rayon Lune** (`moonlight`) / **Aurore** (`morning-sun`, soin météo-dépendant, core déjà câblé). **Partage Garde** (`guard-split`, Psy Statut, Single r3, moyenne Déf+Déf.Spé lanceur↔cible via override de stat brute). **Métalaser** (`steel-beam`, Acier Spé 140, Ligne 3, dégâts + recul 50 % PV max via `Recoil.ofMaxHp`). **Grêle** (`hail`, Glace Statut Self, pose Neige 5 tours — premier setter jouable Gen 1). **503 → 512 moves.** Décisions #666–#672. **Le pool apprenable Gen 1 des moves est essentiellement complet** — les talents portés résiduels ont été livrés au plan 163 (ci-dessous).
-- [x] **Content-fill — 7 derniers talents Gen 1 — plan 163 DONE (2026-07-18) — POOL COMPLET** : recompté sur la vraie source (`abilityHandlers`, pas un regex qui rate les talents factory/const) — 107/114 impl, 7 restaient (les 6 crus manquants Engrais/Brasier/Torrent/Essaim/Cuvette/Corps Gel étaient déjà implémentés). **Récolte** (`harvest`, fin de tour recrée la baie consommée 100 % Soleil / 50 % sinon — Noeunoeuf, Noadkoko). **Délestage** (`unburden`, Vitesse ×2 mouvement+CT tant que l'objet est perdu/consommé — Kicklee). **Piège Sable** (`arena-trap`, bloque le déplacement des ennemis au sol adjacents Chebyshev r1, exemptions canon Vol/Spectre/Lévitation/Fuite/Gaz Inhibiteur/Carapace Mue — Taupiqueur/Triopikeur ; Fuite gagne enfin un effet réel). **Gaz Inhibiteur** (`neutralizing-gas`, neutralise les talents en rayon Manhattan r2 sauf lui-même — Smogo/Smogogo). **Fouille**/**Prédiction**/**Anticipation** (révélations d'info ennemie via badges InfoPanel, scaffolding d'information cachée multijoueur, Anticipation non-canon — Grodoudou/lignées Soporifik+Lippoutou/Évoli). **107 → 114 talents — pool des talents portés par le roster Gen 1 couvert à 100 %.** Objets tenus vérifiés 117/117 déjà complets. Décisions #673–#676.
-- [x] **Talents & items de finition — pool Gen 1 complet (2026-07-18)** : talents **114/114** (plans 136-141, 157-158, 163), objets tenus **117/117** (item universel, pas « apprenable »). OP sets déjà à 100 % Gen 1. Reste hors-scope : méga-pierres (Phase 9, 21 formes) et objets Pokemon-spécifiques Gen 2-9 (~14, orbes légendaires/drives/nectars) — voir `docs/implementations.md#récapitulatif`.
-
----
-
-## Phase 5 — Migration renderer 2D-HD (Babylon.js) ✅ *TERMINÉE — livrée en v2026.6.3 (2026-06-16)*
-
-> ~~Repriorisée — EN COURS~~ Terminée et fusionnée sur main. Worktree `phase5-babylon` clos. Ancienne position "après Phase 7" annulée (décision humaine 2026-06-08).
->
-> But : porter le rendu vers Babylon.js 2D-HD (sprites billboards sur terrain 3D extrudé, style Tactics Ogre PSP / Triangle Strategy / FFTIC).
->
-> Plan-maître : **plan 119** (`docs/plans/119-phase5-babylon-master.md`). Parité visuelle : **307 items** (`docs/plans/119-parity-checklist.md`).
-
-### Contexte
-
-Pivot décidé 2026-04-17 (décisions #263-266). Spike plan 062 (Three.js) validé 4/4. Spike plan 063 (Babylon.js) terminé 2026-04-18 → **Babylon.js retenu** (décision #269). Phase 5 repriorisée avant Phase 7 — décision humaine 2026-06-08. Worktree long-lived `phase5-babylon` — pas de merge partiel sur main (décisions #449-450).
-
-### Décisions verrouillées (2026-06-08)
-
-- **Babylon.js 8.x** — pas de re-spike (décision #269 + #449).
-- **Tiled conservé** — format 3D custom = Phase 6 (décision #451).
-- **UI = HTML/CSS overlay** — pas `@babylonjs/gui` (compat navigateur/mobile) (décision #452).
-- **Résolution design de référence : 1920×1080** (décision #454).
-- **Map de référence parité : volcano** (décision #454).
-- **Échelle sprite = 24px/u (= densité tile, 1:1)** (décision #455). Doc : `docs/babylon/babylon-2d-overlay-scaling.md`.
-- **Hauteurs 2:1** : full = 1, half = 0.5 (décision #456).
-- **Orientation grille→monde transposée** : gridX→worldZ, gridY→worldX (décision #457).
-- **Terrain visuel ≠ terrain gameplay** : `VisualTerrainGroup` via GID/rangée tileset (décision #458).
-- **Ombres par `shadowSize` PMD** (décision #459).
-- **Sprites `renderingGroupId 0`** — partagé avec terrain, occlusion native depth-buffer (décision #473 révise #460).
-- **Jalon 3.5 pixel-art dédié** — RTT + integer scaling (décision #461). Doc : `docs/babylon/babylon-pixel-art-pipeline.md`.
-
-### Jalons
-
-- [x] **Jalon 1** — Spike → production : terrain + 1 billboard + caméra (2026-06-08). Terrain volcano rendu, 15 textures PMD, ombres, orientation, hauteurs, `VisualTerrainGroup`, `renderingGroupId 0`. Docs `babylon-2d-overlay-scaling.md`, `babylon-asset-lifecycle.md`. Plan parité 307 items.
-- [x] **Jalon 2** — Contrat overlay UI + harmonisation design-system (2026-06-08). `game-stage` / `game-overlay` / `ResizeObserver` / `--ui-scale`. Helper projection monde→écran (world-projection.ts). InfoPanel DOM container-query (info-panel.css). Team Builder rapatrié. Canvas plein viewport (décision #472). Validé desktop + mobile + 60fps.
-- [x] **Jalon 3** — Port core renderer (parité scène combat). 3a→3f tous DONE : caméra rotative, occlusion native depth-buffer, silhouette X-ray, extrusion multi-niveaux, picking multi-niveaux, curseur FFTA, animations directionnelles, décorations+terrain complet, tests parité + gate 60fps PASS.
-- [x] **Jalon 3.5** — Pipeline pixel-art ABANDONNÉ (décision #486, 2026-06-10) : 4 approches testées et rejetées — rendu full-res conservé, zéro code conservé. Verdict humain « ça rend déjà super bien ». Doc : `docs/babylon/babylon-pixel-art-pipeline.md`.
-- [x] **Jalon 4** — Port chrome combat + interactions. Jalons 4a→4d TERMINÉS : FSM 9 états, placement interactif, boucle combat complète, Timeline CT, ActionMenu, InfoPanel, BattleLog DOM, Sandbox Studio, animations combat, parité Babylon ↔ Phaser atteinte.
-- [x] **Jalon 5** — Nettoyage Phaser + parité finale + merge `--ff-only` sur main. `grep -ri phaser packages/` = 0 (seules mentions légitimes : ban-list core-guardian + `core.md` + `review-local`). Bundle livré. Commit `b039c3d`.
-
-### Gates
-
-- Worktree long-lived `phase5-babylon` — aucun jalon ne merge sur main seul.
-- Merge `--ff-only` sur main seulement à DoD complète (plan 119 §2) + validation visuelle humaine.
-- `core-guardian` vert à chaque jalon (zéro dep rendu dans core).
-
----
-
-## Post-Babylon — à faire de suite (après merge Babylon)
-
-> Petits chantiers prioritaires à enchaîner juste après l'intégration de Babylon, avant de repartir sur les grosses phases.
+> Lot enchaîné juste après l'intégration de Babylon (Phase 5). **Presque entièrement livré** : ne
+> restent ouverts que les points non cochés (ombres dynamiques, textures de terrain). Les lignes
+> cochées sont conservées pour le contexte des choix de rendu.
 
 - [x] **Fixer `doc-keeper` qui ne respecte pas les worktrees** — règle dure « chemins relatifs uniquement, jamais absolu » ajoutée en tête du prompt (l'agent n'a pas Bash → ne peut résoudre la racine ; chemin absolu codé en dur = fuite vers repo principal).
 - [x] **Optimiser Vitest** (2026-06-17) — suite unit **~50-75s → ~4,5s (≈10-15×)**. Projet `unit` : `isolate: false` (gros levier, core pur sans mocks/état global), `pool: "threads"`, `experimental: { fsModuleCache: true }` (+ cache `actions/cache` en CI). Couverture inchangée (seuil core 100% tient). `viteModuleRunner: false` testé mais **incompatible** (Node natif ne résout pas nos imports TS sans extension) → écarté.
@@ -291,17 +37,17 @@ Pivot décidé 2026-04-17 (décisions #263-266). Spike plan 062 (Three.js) valid
 - [x] **Drop le mode tour par tour (round-robin)** — ne garder que le Charge Time ; retirer le toggle + le code RR. *(plan 128, 2026-06-17)*
 - [x] **Aligner les couleurs des previews de pattern d'attaque** (2026-06-17) — cohérence tooltip ↔ zones au sol (rouge attaque, vert soin, jaune dash) via helpers partagés `moveIntent`/`selfPreviewRadius`.
 - [x] **Dash — direction seule, portée auto** (2026-06-18) — confirmation par direction survolée, portée auto (le moteur s'arrête au premier obstacle), rebalance des portées + Roulade snowball.
-- [x] **POC Cobblemon — CLÔTURÉ (2026-06-18)** — chaîne 3D (terrain voxel + modèles Cobblemon GLB) explorée bout-en-bout sur la branche `poc-cobblemon` (jamais mergée). **Rejet esthétique → on reste en 2D-HD sprites.** Archive : branche `poc-cobblemon` + `docs/plans/129`.
-- [ ] **Ombres / lumière dynamiques (voxel + Pokemon)** — chantier rendu lié au **2D-HD**. Aujourd'hui tout est flat unlit (StandardMaterial sans lumière) + ombres bakées (`Shadow.png` PMD pour les sprites, rien pour les props voxel comme Pièges de Roc / futures décos). À décider : (a) **ombres blob/decal** stylisées sous chaque voxel (cohérent FFTA, coût ~0, voie recommandée) **vs** (b) **`ShadowGenerator` réel** (1 `DirectionalLight`, casters voxel, terrain receiver — vrai dynamique mais perf + clash avec le flat + sprites ALPHATEST capricieux comme casters). **Regarder comment font les refs 2D-HD** (Octopath, Triangle Strategy, FFTA…) au moment d'attaquer ce point. `best-practices` d'abord. Voir `docs/references/voxel-tile-placement.md`.
+- [x] **POC Cobblemon — CLÔTURÉ (2026-06-18)** — chaîne 3D (terrain voxel + modèles Cobblemon GLB) explorée bout-en-bout sur la branche `poc-cobblemon` (jamais mergée). **Rejet esthétique → on reste en 2D-HD sprites.** Archive : branche `poc-cobblemon` + graphe, entité `plan-129`.
+- [ ] **Ombres / lumière dynamiques (voxel + Pokemon)** — chantier rendu lié au **2D-HD**. Aujourd'hui tout est flat unlit (StandardMaterial sans lumière) + ombres bakées (`Shadow.png` PMD pour les sprites, rien pour les props voxel comme Pièges de Roc / futures décos). À décider : (a) **ombres blob/decal** stylisées sous chaque voxel (cohérent FFTA, coût ~0, voie recommandée) **vs** (b) **`ShadowGenerator` réel** (1 `DirectionalLight`, casters voxel, terrain receiver — vrai dynamique mais perf + clash avec le flat + sprites ALPHATEST capricieux comme casters). **Regarder comment font les refs 2D-HD** (Octopath, Triangle Strategy, FFTA…) au moment d'attaquer ce point. `best-practices` d'abord. Voir `docs/babylon/`.
 
-### Polish visuel 2D-HD — idées en vrac (2026-06-19)
+#### Polish visuel 2D-HD — idées en vrac (2026-06-19)
 
 > Lot d'idées rendu notées d'un coup. Voxelisation des props + retravail textures/eau/auras. Pas priorisé, à attaquer 1 par 1. `best-practices` + refs 2D-HD avant chaque chantier non trivial.
 
 - [x] **Herbe haute en voxel** (2026-07-21) — déco herbe haute désormais un mesh voxel `.glb` (`tall_grass.glb`), rendu via `babylon-decorations.ts`. Décision #690.
 - [x] **Rochers en voxel** (2026-07-21) — rochers 1×1 et 2×2 passés en props voxel (`rock-1x1x1.glb`, `rock-2x2x2.glb`). Décision #690.
 - [x] **Arbres en voxel** (2026-07-21) — arbre passé en prop voxel (`tree.glb`). Décision #690.
-- [x] **Mouvement herbe haute + arbres** (2026-07-21) — vent procédural via `decoration-wind-plugin.ts` (déplacement de sommets pondéré par la hauteur, base figée). Cf. `docs/references/voxel-tile-placement.md`.
+- [x] **Mouvement herbe haute + arbres** (2026-07-21) — vent procédural via `decoration-wind-plugin.ts` (déplacement de sommets pondéré par la hauteur, base figée). Cf. `docs/babylon/`.
 - [x] **Auras — un « rond » par aura qui se stack** (2026-08-19) — anneaux voxel permanents (contour de zone en escalier, section 1 voxel, empilés en Y au pas de 2 voxels, une teinte par aura) remplacent les émoji au survol. Requiem et Brouhaha intégrées, Brouhaha gagne son premier rendu. Plan 182, décisions #753–#757.
 - [x] **Eau & liquides** (2026-07-21) — transparence + cuvette + immersion des sprites + écume de flottaison + tuiles standardisées demi-bloc. Plan 166, décisions #691–#697. Voir `docs/design-system.md` §Liquides.
 - [ ] **Textures terrain — retravail** :
@@ -311,52 +57,7 @@ Pivot décidé 2026-04-17 (décisions #263-266). Spike plan 062 (Three.js) valid
 
 ---
 
-## Phase 6.5 — Client jouable : contrôles & UI ✅ *TERMINÉE — 3 lots livrés et validés à la main (2026-08-21), **publiée en v2026.8.2** (2026-08-29)*
-
-> **Était prioritaire, avant la Phase 7 (Multijoueur) — justification LEVÉE (2026-08-21).** Seul retour de vrais utilisateurs : **injouable sur mobile → contrôles tactiles**. Un multi n'a de valeur que sur un client jouable ; le client est désormais jouable au doigt, au clavier et à la manette (y compris manette sur téléphone), donc **la Phase 7 n'est plus bloquée par ce retour**.
-> Plan-cadre consolidé : `docs/plans/173-phase-client-jouable-ui-controles.md` (consolide « Support manette » ex-Phase 7, « UI revamps »/« Tooltips type chart » ~~/a11y~~ ex-Phase 9, + backlog UI/UX de `next.md`). L'a11y (support lecteur d'écran) rapatriée ici a été **abandonnée, pas reportée** (2026-08-19, décision #752) — voir plan 173 § Hors périmètre.
-> Assets **Kenney CC0** : `input-prompts-pixel-1-bit` **déjà intégré** (chantier séparé « aide visuelle des gestes attendus », en fin de Lot 1, 2026-08-20) — choix humain **contre** la reco initiale `input-prompts` 64×64 couleur, tranché hors du Lot 2. `cursor-pixel-pack` (loupes de zoom, mains de pinch/tap) **intégré en variante masque** par la légende de contrôles (plan 185, 2026-08-24, décision #800). Voir `docs/next.md` et `docs/references/kenney-input-prompts-tileset.md`.
-
-- [x] **InfoPanel enrichi allié** (2026-07-24) — types, stats (base→crans→valeur effective incluant statuts), talent, nature (effet via labels colorés) dans le panneau de combat côté joueur. Ennemi reste minimal sous information cachée (plan 176, livré). Plan 174, décisions #717–#718.
-- [x] **Panneau d'info de case (terrain/modificateurs)** (2026-07-25) — 2ᵉ panneau DOM icône-first à droite de l'InfoPanel Pokemon : franchissabilité, malus déplacement, statut à l'arrêt/passage + DoT, bonus de type/immunités, hazards, champ, zones. Plan 177, décision #719.
-- [x] **Preview de combat** (2026-07-26) — panneau détaillé à la confirmation d'attaque : dégâts min–max + %, verdict K.O. (avec garde-fou survie à 1 PV si connu), précision/critique effectifs, puces de modificateurs, cycle multi-cibles + alerte tir allié. `estimateDamage` intègre désormais météo/écrans/Brise Barrière. Plan 175, décisions #721–#722.
-- [x] **Tooltip d'attaque enrichi + noms de type unifiés** (2026-08-03) — contrecoup/drain/auto-K.O., coût CT chiffré, chip de type, probabilité d'effet secondaire ; source unique `getTypeName` remplace `TYPE_LABEL` et les clés i18n `pokemonType.*`. Table de types 18×18 et efficacité contextuelle par move abandonnées. Plan 178, décisions #724–#727.
-- [x] **Panneau ennemi + information cachée** (2026-08-05) — PV en %, objet tenu et talent en placeholders `???` jusqu'à révélation à l'usage (core `reveal-tracking.ts`, définitive, reset au K.O.), dégâts de preview + overlay en % sous information cachée. Masquage **ON en dur** en partie réelle, désactivable en sandbox (`SandboxConfig.fogOfWar`, défaut OFF ⇒ lecture complète). Plan 176, décisions #728–#732.
-- [x] **Responsive + dette mobile** (2026-08-06) — second référentiel de design mobile (1280×720 sous `height < 500px` ou `width < 900px`), chrome de combat + tous les écrans de menu redensifiés pour petit écran, overlay d'orientation (obstruction, pas verrouillage), clavier virtuel, type unifié (`createTypeChip` exporté par `ui-dom`). Validé sur téléphone réel (combat, Team Builder, sélecteurs, orientation) ; dialog de victoire et rendu 4K non vus. Plan 179, décisions #733–#737.
-- [x] **Lot 3 — TERMINÉ** (2026-08-19, publié **v2026.8.1**) — dernier item livré : **auras en anneaux au sol** (plan 182, décisions #753–#757). ~~a11y~~ **abandonné, pas reporté** (décision #752) — gestion du focus rapatriée au Lot 2, voir plus bas. Tous les items cochés ci-dessus (plans 174–182) sont publiés dans **v2026.8.1**, avec le comportement plateforme mobile (plans 179/180) et la reprise de combat (plan 181).
-- [x] **Lot 1 — Contrôles tactiles** (2026-08-20/20, validé sur téléphone réel) — un tap agit du premier coup (survol + clic dans le même geste, alimente enfin le Lot 3 au doigt) ; pinch à 2 doigts → crans de zoom existants + pan par centroïde ; **boussole tapable** (rotation sens unique) au lieu de boutons on-screen, ancrage/taille repris de la timeline ; visée d'un pattern directionnel par comparaison de **direction** (« Choisis la direction », pas « Sélectionne la cible ») ; motifs statiques sautent la phase de ciblage ; **annulation atteignable au doigt sur les 6 phases annulables** (5/6 étaient sans issue). Cibles ≥30px `@media (pointer:coarse)` déjà livrées au plan 179. Dette assumée : tactile codé en direct dans `combat-scene.ts`, à rapatrier derrière la couche d'actions logiques au Lot 2. Plan 183, décisions #763–#767.
-- [x] **Aide visuelle des gestes attendus** (2026-08-20, chantier séparé en fin de Lot 1, commit WIP `6891639`) — la ligne d'instruction du combat disait *quoi* faire mais pas *comment* : ajout d'un **glyphe de geste** (souris/main-curseur selon `@media (pointer:coarse)`, suffixe « ×2 » tactile sur les phases directionnelles), masque CSS sur la feuille Kenney `input-prompts-pixel-1-bit` (16×16, 1-bit) — retenue **contre** la reco du plan-cadre (`input-prompts` 64×64 couleur). **Glyphe de rotation à droite de la boussole** (billboard Babylon, proxy de picking étendu vers la droite). `cursor-pixel-pack` non intégré. Décisions #770–#775.
-- [x] **Lot 2 — Config clavier + manette** (2026-08-21, **validé à la main** : clavier AZERTY/Firefox, caméra, menus, choix d'orientation, placement, **manette Switch Pro** filaire, **téléphone réel** — revalidation du tactile déplacé — et **téléphone + manette**, le cas « first-class » du plan-cadre, qui marche sans code spécifique) — couche d'actions logiques device-agnostique dans `packages/app/src/input/` (7 modules : un seul écouteur clavier, un routeur par contexte `menu`/`board`/`screen`/`locked` dérivé des 9 phases via `inputContext()`, tracker de source *last-input-wins* en `data-input-source`) ; les **5 `keydown` dispersés supprimés**, arbitrage couvert par un test d'invariant ; **curseur de plateau au clavier/manette** (conversion écran→grille qui projette les 4 voisins et garde le meilleur, vecteurs de référence = diagonales écran) ; bindings par **position** (`KeyboardEvent.code`) ; **Gamepad API** par polling rAF, fronts sur valeurs primitives, deadzone circulaire, **manette sur mobile** OK ; **gestion du focus** (rapatriée du Lot 3, décision #752) : règle `:focus-visible` globale, reprise du focus après `replaceChildren` seulement si la source est clavier/manette, `settings-screen` qui mute son libellé au lieu de se reconstruire ; **dette du plan 183 résorbée** (gestes tactiles rapatriés depuis `combat-scene.ts`, déplacés sans être réécrits). Plan 184, décisions #776–#796.
-  - **Écran de remapping : volontairement NON livré ici** — décision humaine : bindings **fixes** au Lot 2, l'écran de remapping part dans un **plan dédié après**. Devait initialement se faire **avec** la « légende de contrôles près de la boussole » (même question : le joueur sait-il ce qu'il peut faire ?) ; ce lien est **levé** (décision humaine 2026-08-24) — la légende est livrée (plan 185, ci-dessous), l'écran de remapping reste **seul** ouvert. Voir `docs/next.md` § Reporté.
-  - **Retour de la session de validation, hors périmètre** : l'écran de **sélection d'équipe** demandait une **refonte de conception** (aplatir les formats, clarifier Humain/IA, lisibilité du joueur actif) — chantier dédié, pas un rafistolage d'entrée. **Livré par le plan 188** (ci-dessous).
-- [x] **Légende de contrôles près de la boussole** (2026-08-24, plan 185, validée **desktop et téléphone réel**) — élément DOM permanent (`packages/ui-dom/src/control-legend.ts`), ancré sur la même mesure que le renderer (`chrome-insets.ts`, gagne un `subscribe` — une mesure, un propriétaire) : glyphe « ça se clique » (souris/doigt) à droite de la boussole, lignes **rotation** et **zoom** en dessous (`[dessin][touche]`), qui suivent la source d'entrée (clavier `A`/`E`/`R`/`F`, manette `LB`/`RB`/`RT`/`LT`, tactile = ligne rotation masquée + mains pinch/spread). Étiquette de touche selon la disposition clavier (`navigator.keyboard.getLayoutMap()` + repli par langue, `packages/app/src/input/key-legend.ts`). Pack de curseurs Kenney intégré en variante masque pour les loupes/mains de geste. **Mesh de glyphe de rotation supprimé** de `babylon-compass.ts` : le proxy de picking de la boussole redevient un simple carré (plancher 44 px). Bug non lié corrigé au passage : `tabindex="1"` que Babylon pose lui-même sur le canvas. Plan 185, décisions #797–#802.
-
-- [x] **Écran de remapping clavier & manette** (2026-08-25, plan 186, **validé à la main**) — la promesse du Lot 2 (« bindings fixes ici, l'écran part dans un plan dédié après ») est tenue. Les bindings quittent les sources d'entrée pour un **magasin unique** (`packages/app/src/input/bindings-store.ts`) transposé par action, aux tables de recherche dérivées et mises en cache ; source clavier, source manette et légende du plan 185 le relisent — une touche réassignée est donc dessinée par la légende sans câblage. Écran `controls` depuis Réglages : **une seule table à 3 colonnes** (Principal / Secondaire / Manette), 5 sections, capture par `InputSystem.beginCapture` (pas un écouteur de plus), **échange automatique** avec message, et deux états de case distincts (*vide de naissance* neutre vs *vidé par un échange* en rouge). Apports de jeu : **`J` ouvre/ferme le journal de combat**, `Page ↑/↓` → barre d'ordre de jeu et journal sous `Maj`, bascule « Inverser le stick droit ». **Trois bugs de manette corrigés par la validation** : pad muet sous Firefox (`mapping` vide → on route désormais avec les indices standard), anneau de focus invisible à la manette (`:focus-visible` ignore le pad), poller qui s'éteignait à la première frame vide. Décisions #803–#816.
-
-- [x] **Menu de combat** (2026-08-25, plan 187, **validé à la main**) — surcouche d'interface qui **n'est pas une pause** (décision #819) : rien n'est suspendu, l'IA joue et les animations se déroulent derrière. `<dialog>` à quatre niveaux (menu → Paramètres → Contrôles → confirmation) qui **empile sa propre registration** sur la pile de l'`InputSystem` sans toucher aux consommateurs du combat, et neutralise le `cancel` natif du `<dialog>` pour éviter le double traitement d'`Échap`. `BattleOrchestrator.onEscape()` renvoie désormais un booléen : les deux `cancel` du combat n'ouvrent le menu que quand rien n'a été annulé. Deux sorties distinctes (`Abandonner` purge la sauvegarde derrière confirmation, `Quitter` la garde). Panneaux Réglages/Contrôles **extraits** dans `ui/dom/panels/` — `ScreenManager` faisant *dispose puis mount*, y naviguer par l'écran normal aurait tué la partie. Décisions #817–#829.
-
-- [x] **Refonte de l'écran de sélection d'équipe + Team Builder à la manette** (2026-08-26, plan 188, **validé à la main, 5 scénarios sur 5**, clavier et manette Switch Pro) — deux volets réunis par une même cause : *l'entrée clavier/manette avait été câblée par-dessus des écrans conçus à la souris*.
-  - **Volet 1 — l'écran de sélection d'équipe.** Le format passe d'un `<select>` replié à une rangée de segments toujours lue, libellés `2J × 6` sous « Joueurs × Pokemon » (l'ancien `2v6` se lisait « deux contre six ») ; Humain/IA devient un segment à **deux états visibles en permanence** — donc une *pose* et non une bascule, l'ancien bouton unique donnant le camp à l'IA quand on pressait « Humain » ; **la notion de « joueur actif » disparaît** (elle formait un second curseur qui pouvait contredire le focus DOM du plan 184), chaque carte ouvrant une modale de choix d'équipe, le focus avançant ensuite au camp suivant non pourvu. Portraits d'équipe sur les cartes, deux colonnes au-delà de 6 camps, « Remplir IA » supprimé.
-  - **Volet 2 — le Team Builder à la manette**, jamais éprouvé : c'était une **impasse**, pas une gêne. Chips de filtre et lignes de résultat des trois sélecteurs étaient des `<div>` invisibles au focus, aucune sortie de modale au pad (pas d'`Échap`), aucun arbitrage du contrôle focalisé côté manette. Tout converti en `<button>` avec `disabled` porté par l'attribut, `B` referme, curseurs de PS réglables, Nature devenue une **liste maison** partagée avec le sandbox, champs texte **sautés** au pad (décision : pas de saisie de texte à la manette).
-  - **Deux bugs de fond trouvés en cours de recette**, tous deux hors cadrage : le focus était détruit à **chaque** re-rendu dans tout le Team Builder → helper partagé `renderPreservingFocus` ; et une exception d'un consommateur **tuait la boucle du poller manette jusqu'au rechargement** (`stepUp` appelé détaché → `Illegal invocation`) → corrigé à la source **et** par un filet `try/finally`, le second valant plus que le premier.
-  - **Infra** : `scripts/with-cpu-cap.sh` plafonne l'e2e au niveau du noyau (4 cœurs sur 16, 8 Go, priorité basse, `PT_FULL_SPEED=1` pour débrider) — l'humain travaille et joue sur la machine pendant les runs. Règle dure dans `.claude/rules/e2e.md`.
-  - Décisions #830–#842. Points laissés ouverts : revalidation sur pad réel depuis les correctifs de revue (**faite le même jour**, 2026-08-26), et le filet du poller non couvert par un test.
-
-- [x] **Panoramique clavier, menu de combat au placement, découvrabilité du défilement** (2026-08-26, plan 189, **validé à la main scénario par scénario, six défauts trouvés et corrigés pendant la recette**) — solde les trois derniers trous de `docs/next.md` § Reporté. **Panoramique caméra au clavier** : premier modèle d'entrée **continu** côté clavier (`keyboard-hold-source.ts`, maintien de touche + `requestAnimationFrame`, purge au `blur`/`visibilitychange`) ; le panoramique redevient **remappable** (`Numpad8/2/4/6`), jeu de secours fixe `Maj`+flèches pour les claviers sans pavé, revient dans l'écran de contrôles — révise les décisions #807/#811. **Menu de combat pendant le placement** : seconde instance du menu (Reprendre / Paramètres / Recommencer / Quitter, pas d'« Abandonner », « Quitter » confirme), détruite quand le combat prend la main. **Découvrabilité du défilement** : règle générale — chaque bouton du chrome porte le glyphe de sa touche sous lui ; bloc de glyphes permanent pour la timeline CT, conditionnel (au débordement) pour le journal ; capuchons de touche **larges** enfin supportés (`--cl-cap-span`), révise la décision #791. **Point resté ouvert** : la légende de contrôles caméra suit désormais la timeline (déménagée dans la colonne de l'ordre de jeu), ce que la décision #798 excluait — test e2e volontairement rouge en attendant arbitrage. Décisions #843–#848.
-
-- [x] **Trois reliquats soldés avant release** (2026-08-27, plan 190) — clôt les derniers points laissés ouverts par les plans 173/178/179. **Migration i18n complète du journal de combat** : `packages/ui-dom/src/BattleLogFormatter.ts` ne porte plus aucune traduction en dur (0 occurrence de `=== "fr"`, contre 157 ternaires + 10 tables mesurés, soit 234 chaînes) — il émet désormais des clés `battleLog.*` traduites par un `translate` injecté, comme le reste de l'app (699 → 933 clés). **4K de l'interface de combat** : les 2 points laissés en attente de décision humaine par le plan 179 (pastille d'instruction, dialog de victoire) réglés par une famille de tokens locale `--bc-pad-*`/`--bc-radius-*`. **Team Builder** : décision humaine de purger l'échelle morte `--tb-px` plutôt que la ressusciter (`team-builder-overlay.css` 216 → 78 lignes). Décisions #849–#855. Détail complet : `docs/plans/190-i18n-journal-de-combat.md`.
-
-- [x] **Match nul sur K.O. simultanés d'une même résolution** (2026-08-27, plan 191) — `winnerId: null` n'avait **aucun** chemin d'exécution : `checkVictory` scellait *et* émettait le verdict au premier K.O. individuel, donc une Destruction qui emporte le dernier adversaire donnait la victoire à l'attaquant. Le verdict devient **révisable** jusqu'à la frontière de résolution (`submitAction`), un drapeau `selfKoPending` assouplit les 5 court-circuits concernés pour les seuls moves à auto-K.O., et `BattleEnded` est émis une fois et une seule. Trouvé par `test-writer` pendant la couverture du plan 190. 3 tests de scénario + e2e `DUEL_MUTUAL_KO`.
-
-- [x] **Modificateurs contextuels dans l'infobulle d'attaque** (2026-08-27, plan 192) — dernier item « Feedback visuel » du backlog (2026-05-13). La question de l'humain (« on affiche déjà la puissance avec les malus ? » — non) a redéfini le clivage : ce qui est **indépendant de la cible** est affichable au survol (météo, champ sous le lanceur, Chargeur, Coup d'Main, brûlure, morphe de Ball'Météo / Champlification), le reste garde sa place dans la prévision. Une **source unique** (`resolveCasterMoveContext`, consommée par `resolveDamageContext`) plutôt qu'un troisième calcul parallèle. La brûlure est une mention distincte, jamais pliée dans la puissance : elle divise l'Attaque, pas la puissance du move.
-
-- [x] **Typecheck des tests verrouillé sur les 8 paquets** (2026-08-27, plan 193) — plus aucun `tsconfig` n'exclut les `*.test.ts` : une erreur de type dans un test casse désormais le gate. Le verrou a trouvé **12 champs fantômes** (`currentPp` seul pesait 1662 erreurs sur 507 fichiers), des signatures qui avaient bougé sans que les tests suivent, et des mocks désynchronisés de leur interface — dont celui que le plan 192 a fait tomber le même jour.
-
-- [x] **Séquence d'intro : bande-annonce et captures reproductibles** (2026-08-28, plan 194, **validé à l'œil par l'humain**, volet menus le 2026-08-27 et volet combat le 2026-08-28) — dernier item actionnable du backlog (« scénario JcJ piloté »), élargi par l'humain en **séquence d'intro du jeu**. `pnpm capture:intro` rejoue menu → Team Builder → carte → équipes → placement → un tour de combat 6v6 **entièrement à la manette**, reproductible (seed forcé, garde `DEV`/`VITE_E2E` vérifiée nulle sur le bundle publié). Livrables : `pnpm capture:trailer` (bande-annonce ~1 min 40, sans son) et `pnpm capture:release` (GIF de combat + 3 captures de publication pour itch.io / wiki / README). Pas le bac à sable — tout passe par le parcours normal. Doc `docs/capture-sequence.md`, skill `/capture-intro`.
-
----
-
-## Phase 6 — Maps & Éditeur (3D)
+### Phase 6 — Maps & Éditeur (3D)
 
 > **Position actuelle : après Phase 3.5** (reordonnée 2026-04-20, donc post-Phase 7).
 >
@@ -366,19 +67,19 @@ Tie à Babylon : éditeur et props terrain repensés pour renderer 3D.
 
 > **Note 2026-04-20** : *Choix maps UI*, *Roster maps variées* et *génération IA* remontés en Phase 3 — ne dépendent pas de Babylon. Seul l'éditeur in-game reste ici.
 
-### Vision éditeur — voxel « Minecraft créatif » (validée 2026-07-20)
+#### Vision éditeur — voxel « Minecraft créatif » (validée 2026-07-20)
 
 La carte au centre, une palette de blocs + décorations sur le côté ; on pose / enlève à la souris.
 
 - **Bloc = unité de base** : cube **24×24×24 px** (= taille des textures PMD), 1 bloc = 1 unité de hauteur monde.
 - **Relief par empilement** de cubes unitaires (façon Minecraft), **pas** d'étirement d'un cube. Rupture avec le `tile.height` flottant actuel.
 - **Chaque variation de texture / prop = un nouveau bloc** dans la palette (pas de paramètre réglable sur un bloc existant).
-- **Décorations** = entités posables séparées, réutilisent le pipeline voxel `.glb` existant (herbe haute, rochers, arbres, hazards — cf. `docs/references/voxel-tile-placement.md`).
+- **Décorations** = entités posables séparées, réutilisent le pipeline voxel `.glb` existant (herbe haute, rochers, arbres, hazards — cf. `docs/babylon/`).
 
-#### Conséquences techniques (à trancher au démarrage de la phase)
+##### Conséquences techniques (à trancher au démarrage de la phase)
 
 - **Modèle données terrain** : `tile.height` (hauteur flottante extrudée) → **pile de blocs unitaires** par case (colonne, voire grille 3D). Le core continue de ne voir qu'un `MapDefinition` (hauteur dérivée du nombre de blocs empilés).
-- **Rendu = instances** (thin instances Babylon) : 1 cube modèle par type de bloc, une instance par bloc posé. Poser / enlever = ajouter / retirer une instance. Résout **gratuitement** la dette « ~1500 draw calls terrain » (blocs uniformes → plus de piège d'UV de flanc, ~10 draws). Voir dette rendu dans `docs/next.md`.
+- **Rendu = instances** (thin instances Babylon) : 1 cube modèle par type de bloc, une instance par bloc posé. Poser / enlever = ajouter / retirer une instance. Résout **gratuitement** la dette « ~1500 draw calls terrain » (blocs uniformes → plus de piège d'UV de flanc, ~10 draws). Cette dette est consignée dans le graphe, entités `agenda`.
 - **Picking** : `thinInstanceIndex → (x, y, z)` — nécessaire pour l'éditeur (poser / enlever) **et** le gameplay (sélection de tuile). Remplace le `mesh.metadata {x,y}` par box actuel.
 - `packages/render-babylon/src/terrain-extruder.ts` actuel (cube étiré + `MultiMaterial` 6 submeshes / tuile) sera **remplacé**, pas optimisé.
 - **Recherche avant de coder** : regarder les éditeurs voxel / loaders type Minecraft/Cobblemon existants (réf. mémoire « research avant réinventer ») + `best-practices` sur le rendu instancié Babylon.
@@ -387,7 +88,7 @@ La carte au centre, une palette de blocs + décorations sur le côté ; on pose 
 
 ---
 
-## Phase 8 — Équilibrage
+### Phase 8 — Équilibrage
 
 > But : outils pour tester et équilibrer avant d'ouvrir le multi
 
@@ -398,7 +99,7 @@ La carte au centre, une palette de blocs + décorations sur le côté ; on pose 
 
 ---
 
-## Phase 7 — Multijoueur
+### Phase 7 — Multijoueur (en cours)
 
 > But : jouer contre de vrais adversaires
 >
@@ -432,8 +133,8 @@ existe déjà.
       Worker en ligne (collecte `POST /e` vérifiée en production itch.io + GitHub Pages), relevé live
       protégé par mot de passe (`GET /tableau`), `pnpm stats` pour l'équilibrage Phase 8, Goatcounter
       retiré du bundle (compte pas encore fermé). Étape 6 (vérification en production) **partielle** :
-      aucune partie menée jusqu'au bout, l'événement `battle_ended` reste non éprouvé — détail :
-      `docs/next.md`, `docs/plans/196-telemetrie-cloudflare-workers.md`
+      aucune partie menée jusqu'au bout, l'événement `battle_ended` reste non éprouvé — détail dans
+      le graphe, entités `agenda` et `plan-196`
 - [ ] **Multijoueur réseau P2P** — lobby (`ScreenId` neuf), protocole d'actions, validation,
       détection de désync (sérialisation canonique à écrire), chronomètre local auto-déclarant
       (#864, #865), reconnexion par le chemin du plan 181. **Viser le 1v1**, retester le FFA à 12
@@ -455,7 +156,7 @@ existe déjà.
 
 ---
 
-## Phase 9 — Polish
+### Phase 9 — Polish
 
 > But : confort et qualité visuelle
 
@@ -474,7 +175,7 @@ existe déjà.
 
 ---
 
-## Phase X — Social & Partage
+### Phase X — Social & Partage
 
 > But : features qui donnent envie de partager et revenir
 
@@ -484,13 +185,13 @@ existe déjà.
 
 ---
 
-## Phase X — Futur / À voir
+### Phase X — Futur / À voir
 
 - [x] **🔧 Retrait du mode de tours round-based + système de PP** — livré plan 128 (2026-06-17). CT seul (`TurnSystemKind`/`TurnManager` supprimés, `activePokemonId` remplace `turnOrder[]`+`currentTurnIndex`). `roundNumber` supprimé (event + HUD + dédups `weatherLastTickRound`/…). PP usage retiré (`currentPp`, `NoPpLeft`, décrément) — `MoveDefinition.pp` conservé pour le coût CT. Modèle de durée « tours du lanceur » + horloge fantôme. Décision #517.
 
 - [x] **Roster Gen 1 complet — plan 135 terminé 2026-06-20.** +70 pré-évolutions → **150 Pokemon jouables** (tous Gen 1 sauf Métamorph/Ditto). Movepool dérivé auto (learnset ∩ moves implémentés). Pipeline sprites refondu : bundle 3 fichiers (`sprites.bin` + `sprites-manifest.json` + `portraits.png`), mur itch.io résolu, dist ≈ 120 fichiers. Décisions #539–#543.
 - [ ] **Générations 2-9** — ajout des 874 Pokemon restants (Gen 2 : 100, Gen 3 : 135, Gen 4 : 107, Gen 5 : 156, Gen 6 : 72, Gen 7 : 88, Gen 8 : 96, Gen 9 : 120). Sprites PMDCollab disponibles pour la majorité. Nécessite pipeline `sprite-config.json` étendu + movesets tactiques par Pokemon.
-- [ ] **Méga-Évolutions** — 21 formes Méga Gen 1 (16 officielles + 5 exclusives Pokémon Champions). Sprites PMDCollab : 6 formes ont des fichiers partiels (pending review), aucune complète en mai 2026. À replanifier quand PMDCollab coverage s'améliore. Voir `docs/implementations.md#méga-évolutions-gen-1`.
+- [ ] **Méga-Évolutions** — 21 formes Méga Gen 1 (16 officielles + 5 exclusives Pokémon Champions). Sprites PMDCollab : 6 formes ont des fichiers partiels (pending review), aucune complète en mai 2026. À replanifier quand PMDCollab coverage s'améliore. Détail dans le graphe, entité `méga-évolutions-gen-1`.
 - [ ] **Mode aventure / overworld FFTA (vision — idée 2026-06-19)** — carte d'exploration façon Final Fantasy Tactics / FFTA, distincte du combat tactique. Garde-fou : pas d'écriture d'un scénario complet ni d'un monde sur-mesure (temps/énergie limités) — on s'appuie sur l'univers Pokemon existant.
   - **Déplacement overworld** : on déplace son perso sur la carte exactement comme FFT/FFTA (sprites Pokemon en mouvement overworld FFTA, pas le rendu combat).
   - **Rivals** : les rivaux se baladent sur la carte (entités mobiles overworld).

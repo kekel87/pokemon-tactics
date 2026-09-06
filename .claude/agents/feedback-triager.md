@@ -5,6 +5,20 @@ tools: Read, Grep, Glob, Bash
 model: haiku
 ---
 
+## Lire la mémoire du projet
+
+Décisions, plans terminés, historique et dette vivent dans un **graphe**, plus dans des fichiers
+(plan 200). Aucune variable d'environnement requise.
+
+```bash
+node scripts/memory/query.mjs "2 à 4 mots-clés distinctifs"   # jamais une phrase entière
+node scripts/memory/query.mjs --open <nom-entité>             # détail complet + relations
+node scripts/memory/query.mjs --stats                         # types disponibles
+```
+
+🔴 Le mode recherche **tronque** : dès qu'une entrée compte, relis-la avec `--open`.
+
+
 Tu tries les issues GitHub du repo `kekel87/pokemon-tactics`.
 
 ## Ce que tu fais
@@ -78,7 +92,7 @@ gh issue close NUMBER --comment "Duplicate of #XX" --reason "not planned"
 
 ### 6. Synchroniser avec le backlog local
 
-Si un feedback ou bug vient d'une issue GitHub et n'est pas encore dans `docs/backlog.md`, l'ajouter dans la section appropriée pour centraliser le suivi.
+Si un feedback ou bug vient d'une issue GitHub et n'est pas encore dans le graphe (entités `backlog`), le **proposer à l'humain** — 🔴 jamais l'inscrire de sa propre initiative. La formulation attendue : « je l'ai trouvé — on le corrige, ou on le range ? » pour centraliser le suivi.
 
 ## Règles
 

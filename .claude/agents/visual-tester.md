@@ -158,4 +158,4 @@ Si tu sens que tu vas dépasser :
 
 ## Shortcut — sandbox JSON direct
 
-Pour tester un état de combat précis (post-attaque, avec terrain spécifique, etc.), utilise `pnpm dev:sandbox '<JSON>'` au lieu de naviguer dans les menus. Voir `SandboxConfig` dans `packages/renderer/src/types/SandboxConfig.ts` et l'agent `sandbox-json` pour générer le JSON à partir d'une description.
+Pour tester un état de combat précis (post-attaque, avec terrain spécifique, etc.), utilise `pnpm dev:sandbox '<JSON>'` au lieu de naviguer dans les menus. Voir `SandboxConfig` dans `packages/view-core/src/sandbox/` (déplacé au refactor des paquets, plans 125-126) et l'agent `sandbox-json` pour générer le JSON à partir d'une description.

@@ -11,7 +11,7 @@ Base de connaissance Pokemon exhaustive (Gen 1-9, 1025 especes + 308 formes),
 - Pokemon Showdown mod `champions` (override : moves, learnsets, abilities)
 - PokeAPI v2 (noms FR, flavor text, metadata)
 
-Voir `docs/process-data-update.md` pour le processus de MAJ.
+Voir le graphe de mémoire (entités `maj-donnees`) pour le processus de MAJ.
 
 ## Contenu
 
@@ -76,10 +76,10 @@ Variantes :
 - `pnpm data:update:fetch-only` : telecharger les sources sans transformer
 - `pnpm data:update:skip-fetch` : utiliser le cache existant (rapide, ~3s)
 
-Voir `docs/process-data-update.md` pour le processus complet.
+Voir le graphe de mémoire (entités `maj-donnees`) pour le processus complet.
 
 Le cache est dans `packages/data/.cache/` (gitignored). Premiere execution : ~5 min (fetches PokeAPI). Executions suivantes avec cache : ~3s.
 
 ## Schema des entites
 
-Voir les exemples dans `docs/plans/048-pokedex-reference-knowledge-base.md`.
+Voir les exemples dans le plan 48 (graphe de mémoire, entité `plan-048`).

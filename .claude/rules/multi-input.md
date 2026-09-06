@@ -61,7 +61,7 @@ faire tester un écran injoignable au pad. Voir `CLAUDE.md` § « Après impl »
   téléphone réel au plan 179. La hit-area, pas le rendu : un `<label>` qui enveloppe une case et son
   texte est tapable en entier, donc c'est **le label** qu'on mesure, pas la case.
 - ⚠️ **Une case à cocher native fait 13 px** et son label une vingtaine — sous le plancher. C'est un
-  écart connu et non résolu du pied de l'écran de sélection d'équipe (voir `docs/backlog.md`) : ne pas
+  écart connu et non résolu du pied de l'écran de sélection d'équipe (graphe, entités `backlog`) : ne pas
   en ajouter d'autres sans le poser à l'humain.
 - Vérifier qu'un geste ne demande pas de survol : il n'y a pas de `:hover` au doigt.
 
@@ -128,4 +128,5 @@ loin. C'est le **rôle** qu'on grep, pas le nom.
 - **e2e** : atteignabilité au clavier et au pad (manette synthétique, `pages/gamepad.ts`), seuils
   responsive (`dom/responsive-screens.spec.ts`), état persisté après bascule.
 - **Œil / téléphone réel** : confort de la hit-area, lisibilité en 4K, gestes tactiles multi-doigts.
-  Le harnais ne les remplace pas — voir `docs/test-plan.md` §6.11 et §6.14.
+  Le harnais ne les remplace pas — voir le cahier de recette (graphe, entités `recette`), scénarios
+  tactile et 4K.

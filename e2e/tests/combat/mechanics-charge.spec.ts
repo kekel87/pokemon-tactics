@@ -34,7 +34,7 @@ const selectFirstMove = async (page: import("@playwright/test").Page) => {
   await page.getByRole("button", { name: "Attaque", exact: true }).click();
   await page.getByTestId("move-item").first().click();
   // Lance-Soleil est un motif Ligne, donc l'instruction parle de DIRECTION depuis le plan 183 :
-  // on y vise une direction, pas une case (cf. `docs/test-plan.md` §4.18).
+  // on y vise une direction, pas une case (cf. cahier de recette, entités `recette` du graphe).
   await expect(page.getByTestId("combat-instruction")).toHaveText("Choisis la direction");
 };
 

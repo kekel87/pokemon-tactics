@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { HeldItemId } from "@pokemon-tactic/core";
@@ -15,7 +15,14 @@ import {
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const OP_SETS_PATH = resolve(SCRIPT_DIR, "../op-sets/op-sets.json");
-const GAP_DOC_PATH = resolve(SCRIPT_DIR, "../../../docs/op-sets-gap-analysis.md");
+// L'analyse écrivait `docs/op-sets-gap-analysis.md`, un document versionné — donc
+// un rapport regénéré à la main, qui dérivait du code entre deux exécutions. Ce
+// fichier a été versé au graphe de mémoire (plan 200) et supprimé ; le réécrire ici
+// annulerait la migration à la première exécution du script.
+// La sortie va donc dans un répertoire de travail ignoré par git : c'est un rapport,
+// pas une source de vérité. Ce qui mérite d'être retenu se range dans le graphe
+// (`node scripts/memory/query.mjs --add analyse <nom> "…"`).
+const GAP_DOC_PATH = resolve(SCRIPT_DIR, "../../../.reports/op-sets-gap-analysis.md");
 
 const ALLOWED_ROLES = new Set([
   "physical-sweeper",
@@ -374,6 +381,7 @@ function main(): void {
 
   const analysis = analyze(data);
   const markdown = renderMarkdown(analysis, data);
+  mkdirSync(dirname(GAP_DOC_PATH), { recursive: true });
   writeFileSync(GAP_DOC_PATH, markdown);
 
   console.log(`Analyzed ${analysis.total} sets:`);

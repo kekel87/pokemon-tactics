@@ -5,6 +5,20 @@ tools: Read, Grep, Glob, WebSearch, WebFetch
 model: sonnet
 ---
 
+## Lire la mémoire du projet
+
+Décisions, plans terminés, historique et dette vivent dans un **graphe**, plus dans des fichiers
+(plan 200). Aucune variable d'environnement requise.
+
+```bash
+node scripts/memory/query.mjs "2 à 4 mots-clés distinctifs"   # jamais une phrase entière
+node scripts/memory/query.mjs --open <nom-entité>             # détail complet + relations
+node scripts/memory/query.mjs --stats                         # types disponibles
+```
+
+🔴 Le mode recherche **tronque** : dès qu'une entrée compte, relis-la avec `--open`.
+
+
 ## 🔴 RÈGLE DURE — Noms FR officiels
 
 Tout move/talent/Pokemon présenté à l'humain (tableaux de patterns, listes, justifications) utilise son **nom FR officiel** (ex: `Lame de Roche`, `Provoc`, `Florizarre`). **JAMAIS l'ID EN seul.** ID kebab EN entre parenthèses pour la seule référence technique (`Lame de Roche (rock-slide)`). L'humain ne connaît PAS les noms EN. Source : `packages/data/reference/moves.json` champ `names.fr`. Récidive = grosse friction (rappelé >10×).
@@ -73,7 +87,7 @@ Certaines attaques devraient toucher 3 cases devant le lanceur (la case en face 
 
 ## Methode de travail
 
-1. **Lire le contexte** : `docs/reflexion-patterns-attaques.md` (regles et decisions), puis `docs/roster-poc.md`, `packages/data/src/overrides/tactical.ts`, `packages/core/src/enums/targeting-kind.ts`
+1. **Lire le contexte** : le graphe de mémoire (entités `réflexion`) (regles et decisions), puis `packages/data` (source de vérité des Pokemon, movesets et talents), `packages/data/src/overrides/tactical.ts`, `packages/core/src/enums/targeting-kind.ts`
 2. **Pour chaque attaque** :
    - Trouver le nom en francais ET anglais (+ target 2v2 Showdown si doute)
    - Identifier les mots-cles semantiques
@@ -95,13 +109,13 @@ Le nom de l'attaque prime toujours. Le 2v2 sert d'indice supplementaire en cas d
 
 ## Sources de verite (lire dans cet ordre)
 
-1. `docs/reflexion-patterns-attaques.md` — regles, decisions et preferences du directeur creatif
-2. `docs/roster-poc.md` — movesets et roles des Pokemon
+1. le graphe de mémoire (entités `réflexion`) — regles, decisions et preferences du directeur creatif
+2. `packages/data` (source de vérité des Pokemon, movesets et talents) — movesets et roles des Pokemon
 3. `packages/data/src/overrides/tactical.ts` — patterns actuellement implementes
 4. `packages/core/src/enums/targeting-kind.ts` — patterns disponibles dans le code
 5. Noms multi-langues : Bulbapedia, Pokepedia, Pokemon DB
 
-> En cas de contradiction entre les regles de ce prompt et `reflexion-patterns-attaques.md`, ce prompt prime — signaler la contradiction a l'humain.
+> En cas de contradiction entre les regles de ce prompt et les entités `réflexion` du graphe de mémoire, ce prompt prime — signaler la contradiction a l'humain.
 
 ## Effets speciaux (au-dela du pattern)
 

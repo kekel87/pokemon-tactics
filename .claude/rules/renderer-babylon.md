@@ -7,7 +7,7 @@ paths:
 
 Plan 064 (rewrite renderer). Applique à `packages/render-babylon/`.
 
-**Lire `docs/references/babylon-gotchas.md` avant de toucher au rendu 3D.**
+**Lire `docs/babylon/` avant de toucher au rendu 3D.**
 
 ## Imports
 
@@ -48,4 +48,4 @@ vOffset = 1 - (y + h) / atlasHeight
 ## MCP
 
 - `babylon-mcp` (immersiveidea) dans `.mcp.json` pour `search_babylon_source` / `search_babylon_docs` — utile quand shader/matériau se comporte bizarrement
-- Voir `docs/references/babylon-mcp-ecosystem.md` pour écosystème MCP Babylon
+- Voir `docs/babylon/` pour écosystème MCP Babylon

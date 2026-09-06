@@ -1,6 +1,7 @@
 # Architecture technique — Pokemon Tactics
 
-> Game design : [game-design.md](game-design.md). Décisions : [decisions.md](decisions.md).
+> Game design : [game-design.md](game-design.md).
+> Décisions et leur contexte : graphe de mémoire — `node scripts/memory/query.mjs "mots clés"`.
 
 ---
 
@@ -342,7 +343,6 @@ pokemon-tactics/
 │   ├── plans/                   # Plans d'exécution numérotés (70 plans)
 │   ├── architecture.md
 │   ├── game-design.md
-│   ├── decisions.md
 │   ├── roadmap.md
 │   ├── references.md
 │   ├── abilities-system.md      # Référence système talents : hooks, patterns, anti-spam, call sites
@@ -359,7 +359,6 @@ pokemon-tactics/
 ├── CREDITS.md                   # Attribution CC BY-NC 4.0 PMDCollab
 ├── LICENSE                      # MIT (code) + note CC BY-NC 4.0 (sprites)
 ├── README.md
-├── STATUS.md
 └── .worktree-port               # (gitignored) Port Vite déterministe du worktree courant (absent sur main)
 ```
 
@@ -594,7 +593,7 @@ interface SandboxConfig {
 | Moyen | `scored` | `medium` | `AiTeamController`, `MEDIUM_PROFILE` |
 | Difficile | `scored` | `hard` | `AiTeamController`, `HARD_PROFILE` |
 
-`scored` câble le **vrai scorer IA** (`pickScoredAction`/`scoreAction`, plans 159/160/161) — auparavant inatteignable en sandbox (le `dummyControl:"ai"` legacy ne câblait que `DummyAiController` scripté). `AiTeamController` est seedé via `createPrng(config.seed ?? 0)` (plus de `Date.now()`) : les 3 profils sont déterministes/replayables en e2e. Débloque l'e2e des heuristiques IA — voir `docs/decisions.md` #699.
+`scored` câble le **vrai scorer IA** (`pickScoredAction`/`scoreAction`, plans 159/160/161) — auparavant inatteignable en sandbox (le `dummyControl:"ai"` legacy ne câblait que `DummyAiController` scripté). `AiTeamController` est seedé via `createPrng(config.seed ?? 0)` (plus de `Date.now()`) : les 3 profils sont déterministes/replayables en e2e. Débloque l'e2e des heuristiques IA — décision #699 (graphe, entités `decision`).
 
 ### Architecture sandbox
 
@@ -621,7 +620,7 @@ interface SandboxConfig {
 - **`getNatureEffect(nature)`** (core, exporté) : donne l'effet boost/lower d'une nature sur une stat donnée, consommé par l'adaptateur pour `natureEffect`.
 - **Adaptateur** : `buildInfoPanelView` (`packages/view-core/src/battle-views.ts`) construit `types`/`ability`/`nature`/`stats` si `isAlly || !fogged` (`fogged = !isAlly && context.isEnemyInfoHidden()`, § 5h), décidé par l'appelant (`battle-orchestrator.ts`, qui connaît l'équipe du mon inspecté vs le joueur actif) — pas de dépendance à `getGameState` (full-info).
 - **Vue** (`packages/ui-dom/src/info-panel.ts`) : chips de types (`createTypeChip`, `.type-chip`, extrait en composant partagé au plan 178 — voir § 5g), grille stats 5 colonnes (label/valeur/crans/flèche/valeur modifiée), flèches `.ip-stat-buff`/`.ip-stat-debuff`. Largeur du panneau 330→300px, ombre de texte ajoutée (lisibilité sur toute couleur d'équipe).
-- **Décisions retenues** (voir `docs/decisions.md`) : nom de la nature non affiché (l'effet suffit, via labels colorés) ; responsive/mobile **livré** (plan 179, Lot 3, 2026-08-06 — voir § 5i) ; badges de crans doublons de l'ancien affichage retirés côté allié (remplacés par la grille stats).
+- **Décisions retenues** (graphe, entités `decision`) : nom de la nature non affiché (l'effet suffit, via labels colorés) ; responsive/mobile **livré** (plan 179, Lot 3, 2026-08-06 — voir § 5i) ; badges de crans doublons de l'ancien affichage retirés côté allié (remplacés par la grille stats).
 
 ---
 
@@ -666,7 +665,7 @@ packages/data/src/i18n/
 - Pliable/dépliable via header toggle
 - Scroll interne (molette) avec auto-scroll bas
 
-`packages/ui-dom/src/battle-log.ts` (BattleLogFormatter) — traduit `BattleEvent` en messages i18n. Logique pure, agnostique moteur. **Depuis le plan 190 (2026-08-27)** : le formateur ne porte plus aucune chaîne de langue naturelle en dur — il reçoit un `translate` injecté dans `BattleLogContext` (même signature que `I18nContext.translate`) et n'émet que des clés `battleLog.*` (231, dans `packages/app/src/i18n/{types.ts, locales/fr.ts, locales/en.ts}`) ; `language` reste dans le contexte, mais seulement pour les recherches de noms de **données** (`getTypeName`). Test dédoublé par responsabilité : `BattleLogFormatter.test.ts` (`ui-dom`) vérifie la clé + les paramètres émis, `packages/app/src/i18n/battle-log-formatter.test.ts` reprend les mêmes assertions de phrase FR/EN rendues par les vraies locales. Détail complet : `docs/plans/190-i18n-journal-de-combat.md`.
+`packages/ui-dom/src/battle-log.ts` (BattleLogFormatter) — traduit `BattleEvent` en messages i18n. Logique pure, agnostique moteur. **Depuis le plan 190 (2026-08-27)** : le formateur ne porte plus aucune chaîne de langue naturelle en dur — il reçoit un `translate` injecté dans `BattleLogContext` (même signature que `I18nContext.translate`) et n'émet que des clés `battleLog.*` (231, dans `packages/app/src/i18n/{types.ts, locales/fr.ts, locales/en.ts}`) ; `language` reste dans le contexte, mais seulement pour les recherches de noms de **données** (`getTypeName`). Test dédoublé par responsabilité : `BattleLogFormatter.test.ts` (`ui-dom`) vérifie la clé + les paramètres émis, `packages/app/src/i18n/battle-log-formatter.test.ts` reprend les mêmes assertions de phrase FR/EN rendues par les vraies locales. Détail complet : entité `plan-190` du graphe.
 
 ---
 
@@ -680,7 +679,7 @@ packages/data/src/i18n/
 - **Vue** : `packages/ui-dom/src/tile-info-panel.ts` (`createTileInfoPanel()`, dumb) + `packages/ui-dom/src/styles/tile-info-panel.css`. Chrome restructuré : `.bc-left-col` → rangée `infoPanelRow` `[infoPanel, tileInfoPanel]` sous la timeline (`battle-chrome.ts`).
 - **Design « zéro texte »** (v1 textuel rejeté en human-testing) : icônes + chiffres courts. Sprites réutilisés `assets/ui/types/*` (bonus de type + immunités) et `assets/ui/statuses/icon-*` (statut) ; émoji `⛰ 👣 🛑 🥾 ⛔💀 🆓` en **placeholders** (pack cohérent différé, § chantiers séparés). Trigger de statut affiché explicitement : `👣` (déclenche au passage — ex. Brûlure au Magma, boucle par pas moteur) vs `🛑` (déclenche à l'arrêt — ex. Poison au Marécage, fin de tour) ; DoT par tour = glyphe « en continu ». Purement affichage, aucune modification core.
 - **Seed test-only** `SandboxConfig.debugTiles` (hazards/champ/zones/distortion posables sur une case) — sert la démo et l'e2e du panneau, pas une fonctionnalité gameplay.
-- **Chantiers séparés notés hors périmètre** (voir `docs/next.md`) : pack d'icônes (game-icons.net), Évasion Herbe Haute (core, jamais implémentée), hazards interdits sur liquide sauf Piège de Roc (core), rendu in-world des effets sur tuiles (plan à part).
+- **Chantiers séparés notés hors périmètre** (graphe, entités `agenda`) : pack d'icônes (game-icons.net), Évasion Herbe Haute (core, jamais implémentée), hazards interdits sur liquide sauf Piège de Roc (core), rendu in-world des effets sur tuiles (plan à part).
 
 ---
 
@@ -694,7 +693,7 @@ packages/data/src/i18n/
 - **Extensions core pures** (aucune dépendance UI) : `computeEffectiveAccuracy` (extrait de `checkAccuracy`, `accuracy-check.ts` — `checkAccuracy` reste iso-comportement, `consumeLockedOn` non déplacé) ; `effectiveCritChance` (nouveau `packages/core/src/battle/crit-chance.ts`, extrait du cumul de crans de `calculateDamage`) ; `DamageEstimate` enrichi de `heightModifier`, `terrainModifier`, `weatherModifier`, `screenModifier`, `resolvedMoveType`, `resolvedPower` (champs **ajoutés**, aucun retiré — les appelants IA existants ne bougent pas) ; `BattleEngine.previewMove(attackerId, moveId, defenderId, targetPosition?)` agrège `DamageEstimate` + accuracy + crit + `survivalGuard: SurvivalGuardKind | null` en un seul `MovePreview` (`packages/core/src/types/move-preview.ts`).
 - **Orchestrateur** : `battle-orchestrator.ts` construit la liste des cibles (`previewOccupantIds()`) à l'entrée en `confirm_attack`, pose `focusIndex = 0`, pousse le view-model via le port `BattleChrome.updateCursorPanel(view: InfoPanelData | null)` (nouveau, à côté de `updateInfoPanel`/`updateTileInfo`). Cycle (`cycleCombatPreviewTarget(delta)`) recalcule et republie sans rejouer `tryPickTarget`. Chrome (`battle-chrome.ts`) : `cursorPanel = createInfoPanel("cursor-panel")`, 3ᵉ élément de `.bc-infopanel-row` `[infoPanel, tileInfoPanel, cursorPanel]` — le `TileInfoPanel` central n'est pas swappé (contrairement au draft initial du plan), les trois cohabitent.
 - **Règles de jeu corrigées à cette occasion** (pas seulement de l'UI, décisions #721–#722) : `estimateDamage` intègre désormais météo/écrans (Protection/Mur Lumière)/Brise Barrière (`weatherModifier`/`screenModifier`, auparavant figés à `1.0`) ; `getTerrainTypeBonusFactor` (`terrain-effects.ts`) n'exclut plus le type natif/immunisé au terrain du bonus ×1.15, seul un attaquant aéroporté en est exclu.
-- **Fog appliqué (plan 176)** : sous fog, les dégâts de ce panneau sont convertis en `%` de PV max (`hpPercent(min, maxHp)`) — voir § 5h. Détail complet : `docs/plans/175-combat-preview.md`.
+- **Fog appliqué (plan 176)** : sous fog, les dégâts de ce panneau sont convertis en `%` de PV max (`hpPercent(min, maxHp)`) — voir § 5h. Détail complet : entité `plan-175` du graphe.
 
 ---
 
@@ -705,7 +704,7 @@ packages/data/src/i18n/
 - **Effet secondaire partagé** : `buildSecondaryEffectChip` (`packages/view-core/src/secondary-effect-chip.ts`), extrait de la preview de combat privée (plan 175) — dérivé de la seule `MoveDefinition`, sans état de combat, donc appelable par le tooltip (survol, aucune cible choisie) et par la preview de confirmation.
 - **Coût CT** : `BattleEngine.previewMoveCtCost(moveId, targetIds?)` (nouvelle API core, § voir aussi 5f) — sans `targetIds`, coût de base seul (cas du tooltip) ; avec, `pressureBonus` inclus (cas de la preview). `computeCurrentMoveCost` (rétrospectif, tour courant) délègue désormais à cette méthode — un seul calcul.
 - **Tags factuels du tooltip** (`move-tooltip.ts`) : contrecoup (`EffectKind.Recoil`, forme `ofMaxHp` ou fraction des dégâts), drain (`EffectKind.Drain`), auto-K.O. (`isExplosion`/`selfKo`/`selfKoOnConnect`) — remplace un tag mort (`fraction >= 999`, aucun move ne le satisfaisait).
-- **Abandonné** (décision humaine 2026-08-03) : table de types 18×18 et efficacité contextuelle par move dans le sous-menu — voir `docs/decisions.md` #724.
+- **Abandonné** (décision humaine 2026-08-03) : table de types 18×18 et efficacité contextuelle par move dans le sous-menu — décision #724 (graphe, entités `decision`).
 
 ---
 
@@ -721,7 +720,7 @@ Rétention d'information sur les Pokemon **adverses**, appliquée côté vue (`p
 - **Révélation à l'usage (core)** : nouveau module pur `packages/core/src/battle/reveal-tracking.ts` (`applyRevealsFromEvents(state, events)`) — tout event nommant un objet (`HeldItemActivated`, `HeldItemConsumed`, `ItemBurned`, `ItemFlung`, `ItemRecycled`, `ItemKnockedOff`, `BerryEaten`, `ItemStolen`, `ItemsSwapped`) ou un talent (`AbilityActivated`) pose `revealedItem`/`revealedAbility` **définitivement** (reset au K.O. seulement). Deux points de branchement seulement, pour ne pas semer le marquage sur les 17 sorties `success: true` du chemin de résolution : `BattleEngine.submitAction` devient un **wrapper mince** autour d'un `applyAction` privé, et `consumeStartupEvents` (talents d'entrée) appelle le même helper.
 - **Correction de perspective connexe** : `BattleOrchestratorConfig.humanPlayerIds` (nouveau) + `viewerPlayerId()` — le panneau gauche passait `isAlly: true` **en dur**, donc affichait l'ennemi en clair à chaque tour d'IA (bug pré-existant révélé par le chantier fog, pas introduit par lui).
 - **Sandbox** : `SandboxConfig.fogOfWar?: boolean` (absent → `false`, `packages/view-core/src/sandbox-config.ts`, propagé par `normalizeSandboxConfig` v2 et legacy) ; case à cocher « Fog ennemi » dans `SandboxPanel.ts` (bande de combat, à côté des contrôles RNG). **Fog OFF ⇒ lecture complète** de l'ennemi (§ 5c) — assouplit « ennemi minimal » (plan 174), qui ne vaut plus que sous fog.
-- **Limites connues assumées** (voir `docs/decisions.md` #731–#732) : les multiplicateurs silencieux (Bandeau, Éviolite, Technicien…) ne se révèlent jamais faute d'event ; l'IA n'est pas soumise au fog (lit `getGameState` plein-info), asymétrie structurelle reportée Phase 7 — **report clos par un « non » le 2026-08-29, décision #863** : il n'y aura pas de serveur autoritaire (#862), donc `getGameState` reste un passthrough et le fog reste cosmétique en ligne. Détail complet : `docs/plans/176-fog-ennemi.md`.
+- **Limites connues assumées** (décisions #731–#732 dans le graphe) : les multiplicateurs silencieux (Bandeau, Éviolite, Technicien…) ne se révèlent jamais faute d'event ; l'IA n'est pas soumise au fog (lit `getGameState` plein-info), asymétrie structurelle reportée Phase 7 — **report clos par un « non » le 2026-08-29, décision #863** : il n'y aura pas de serveur autoritaire (#862), donc `getGameState` reste un passthrough et le fog reste cosmétique en ligne. Détail complet : entité `plan-176` du graphe.
 
 ---
 
@@ -736,7 +735,7 @@ Rétention d'information sur les Pokemon **adverses**, appliquée côté vue (`p
 - **Clavier virtuel** : `interactive-widget=resizes-content` + `viewport-fit=cover` au meta viewport (`packages/app/index.html`), modales plafonnées en `dvh`, plus de focus automatique du champ de recherche sur pointeur grossier (`packages/app/src/ui/team/picker-focus.ts`) — le clavier surgissait et masquait la modale, croix de fermeture incluse.
 - **Type unifié partout** : `createTypeChip` (plan 178, § 5g) est désormais **exporté** par `ui-dom` (il ne l'était pas — cause de la non-adoption au plan 178, pas un choix). Le Team Builder migre dessus (`SlotCardsRow`, `EditLeftPanel`) ; son ancien `.tb-type-badge` est supprimé. Deux calibrations de `--type-chip-px` assumées pour un seul composant : `--ip-px` côté chrome de combat (container-query), `calc(var(--font-size-sm) / 21)` côté Team Builder (`team-builder-overlay.css`, calibré à l'œil sur téléphone réel) — toujours redéfini **sur la chip elle-même**, jamais sur un ancêtre (une déclaration sur l'élément bat l'héritage). Fix connexe : repli `var(--ui-scale, 1)` sur `--type-chip-px`, sinon `calc()` invalide hors `#game-stage` (Team Builder monté sur `#game-root`) et l'icône retombe à sa taille native (décision #737).
 - **Divers** : icônes officielles d'objet (plan 168) dans `ItemPickerModal` et le champ « objet tenu » ; noms de type **FR** (`getTypeName`, plan 178) dans les puces de filtre des sélecteurs, qui affichaient l'id anglais brut ; `allowedHosts` derrière `PT_TUNNEL=1` (`packages/app/vite.config.ts`) pour un tunnel de dev, jamais ouvert par défaut.
-- **Validation humaine partielle** : combat, Team Builder, sélecteurs et orientation validés sur téléphone réel. **Dialog de victoire et rendu 4K jamais vus** à la clôture du plan 179. **Les 2 points 4K (pastille d'instruction, dialog de victoire) et le code mort `--tb-px` Team Builder sont réglés (2026-08-27, plan 190)** : voir § 5n. Décisions #733–#737. Détail complet : `docs/plans/179-responsive-dette-mobile.md`.
+- **Validation humaine partielle** : combat, Team Builder, sélecteurs et orientation validés sur téléphone réel. **Dialog de victoire et rendu 4K jamais vus** à la clôture du plan 179. **Les 2 points 4K (pastille d'instruction, dialog de victoire) et le code mort `--tb-px` Team Builder sont réglés (2026-08-27, plan 190)** : voir § 5n. Décisions #733–#737. Détail complet : entité `plan-179` du graphe.
 
 ---
 
@@ -750,7 +749,7 @@ Nouvelle famille de modules `packages/app/src/platform/` : encapsule les API nav
 - **`app/screen-persistence.ts`** : `saveCurrentScreen`/`loadPersistedScreen`, clé `pt-last-screen`. Seuls les écrans **sans paramètre** sont restaurables — `ParamlessScreenId` est un mapped type dérivé de `ScreenParamsById` (`app/screens.ts`), pas une liste maintenue à la main : un écran qui gagne des paramètres casse la compilation au lieu de laisser une reprise silencieusement invalide. Péremption 1h. Branché en un point unique (`screen-manager.ts`, après un montage réussi), lu au boot du menu — **pas** sur les routes sandbox/`?combat=` (entrées de dev déterministes).
 - **Manifeste PWA** (`packages/app/public/manifest.json` + icônes `icon-192.png`/`icon-512.png`/`apple-touch-icon.png`) : icônes obtenues par agrandissement nearest-neighbor du favicon 28×28 (décision #738, aucun autre artwork dans le dépôt). **URLs relatives dans le manifeste** — un fichier de `public/` est copié verbatim par Vite, contrairement au `<link>` d'`index.html` que Vite réécrit ; le jeu est servi sous 3 bases différentes (`/`, `/pokemon-tactics/`, `./`) et des chemins absolus cassaient l'installabilité en silence sur les deux déploiements réels (décision #739).
 - **Diagnostic WebGL** : `engine.onContextLostObservable`/`onContextRestoredObservable` dans `combat-scene.ts` posent un `console.warn` de diagnostic — aucune logique de récupération, Babylon reconstruit déjà seul ses ressources (créé sans `doNotHandleContextLost`).
-- **Ce que ces deux lots ne résolvent pas** : un combat en cours reste perdu au rechargement (lot 180-c → traité au plan 181, § 5k) ; le Wake Lock n'empêche ni la décharge d'onglet sous pression mémoire ni la veille après verrouillage manuel de l'écran ; sur iPhone, aucun verrouillage d'orientation n'est possible par aucune voie (API absente, champ `orientation` du manifeste ignoré par WebKit même en PWA installée). Détail complet : `docs/plans/180-comportement-plateforme-mobile.md`, décisions #738–#743.
+- **Ce que ces deux lots ne résolvent pas** : un combat en cours reste perdu au rechargement (lot 180-c → traité au plan 181, § 5k) ; le Wake Lock n'empêche ni la décharge d'onglet sous pression mémoire ni la veille après verrouillage manuel de l'écran ; sur iPhone, aucun verrouillage d'orientation n'est possible par aucune voie (API absente, champ `orientation` du manifeste ignoré par WebKit même en PWA installée). Détail complet : le plan 180 (graphe de mémoire, entité `plan-180`), décisions #738–#743.
 
 ---
 
@@ -763,7 +762,7 @@ Toute entrée — clavier, manette, pointeur, doigt — produit une **`LogicalAc
 - **`input/input-router.ts`** : route chaque action vers **exactement un** consommateur, choisi par le contexte courant (`menu` / `board` / `screen` / `locked`). L'invariant « une action, un consommateur » est couvert par un test.
 - **`input/bindings-store.ts`** (plan 186) : source unique de « quelle entrée déclenche quelle action ». Les défauts sont rangés **par action** — l'axe que l'écran de remapping manipule — et les tables de recherche (`code → action`, `bouton → action`) en sont **dérivées** puis mises en cache : le chemin chaud (chaque frappe, chaque frame de poll) ne balaie jamais un `Record` d'actions. Persistance dans `pt-bindings`, qui ne stocke que les **écarts** au défaut, pour qu'un défaut révisé atteigne un joueur qui n'avait rien personnalisé.
 - **`input/keyboard-source.ts`** : lecture d'un événement, sans plus aucune table — positions physiques (`KeyboardEvent.code`, un seul jeu pour AZERTY et QWERTY), refus de `Ctrl`/`Alt`/`Meta` (ils appartiennent au navigateur et à l'OS), et arbitrage avec le contrôle qui a le focus (un champ texte garde tout, un `<select>` garde l'axe vertical, une case à cocher ne garde rien).
-- **`input/keyboard-hold-source.ts`** (plan 189) : premier modèle d'entrée **continu** côté clavier — jusque-là le seul comportement continu du jeu était côté manette (`gamepad-source.ts`, boucle `rAF`). `input-system.ts` reste l'unique propriétaire des écouteurs (il alimente la source depuis son `onKeyDown` et enregistre `keyup`/`blur`/`visibilitychange`) ; ce module ne porte que l'état (jeu de codes tenus) et la boucle `rAF` qui réémet l'action tant qu'une touche reste enfoncée. `blur`/`visibilitychange` **purgent** le jeu — sinon `Alt+Tab` pendant un appui laisse une touche « collée », le `keyup` partant à l'autre fenêtre. Sert le panoramique caméra au clavier, remappable depuis ce plan (révise les décisions #807/#811, `docs/decisions.md`).
+- **`input/keyboard-hold-source.ts`** (plan 189) : premier modèle d'entrée **continu** côté clavier — jusque-là le seul comportement continu du jeu était côté manette (`gamepad-source.ts`, boucle `rAF`). `input-system.ts` reste l'unique propriétaire des écouteurs (il alimente la source depuis son `onKeyDown` et enregistre `keyup`/`blur`/`visibilitychange`) ; ce module ne porte que l'état (jeu de codes tenus) et la boucle `rAF` qui réémet l'action tant qu'une touche reste enfoncée. `blur`/`visibilitychange` **purgent** le jeu — sinon `Alt+Tab` pendant un appui laisse une touche « collée », le `keyup` partant à l'autre fenêtre. Sert le panoramique caméra au clavier, remappable depuis ce plan (révise les décisions #807/#811, le graphe de mémoire (entités `decision`)).
 - **`input/gamepad-source.ts`** : l'API Gamepad n'a **aucun événement de bouton**, et Chrome **mute ses objets en place** — l'état est donc scruté en `requestAnimationFrame` et les fronts calculés sur des **primitives** (un `Set` d'indices, jamais une référence du navigateur). Échange bas↔droite sur une manette Nintendo, déduit de l'identifiant : c'est un fait matériel, pas une préférence.
 - **`input/focus-navigation.ts`** : navigation **spatiale** du focus DOM (le voisin le plus proche dans la direction pressée), pas l'ordre DOM — qui zigzague dans une mise en page à deux dimensions. `data-nav-skip` retire un contrôle de la navigation **pour une source d'entrée donnée**.
 - **`input/key-legend.ts`** : quel *caractère* dessiner pour une position, via `navigator.keyboard.getLayoutMap()` (Chromium uniquement) avec repli sur la langue du jeu. Lit le magasin, donc la légende de combat (plan 185) suit un remapping sans câblage.
@@ -782,7 +781,7 @@ Un combat en cours survit au rechargement (décharge d'onglet mobile, fermeture 
 - **Point d'accroche core** : `BattleOrchestratorConfig.onActionCommitted?: () => void`, appelé après chaque action validée (humaine et IA) et une première fois au démarrage — l'app y branche `saveBattleProgress(...engine.exportReplay())` (décision #747, écriture synchrone assumée). L'orchestrateur ne connaît ni `localStorage` ni le format de sauvegarde.
 - **UI** : entrée « Reprendre le combat — <carte> » en tête du menu principal, visible seulement si `loadBattleProgress()` renvoie une sauvegarde valide (décision #745 — pas de reprise silencieuse en combat, pas de modale au boot). Effacement sur un event `BattleEventType.BattleEnded`, retour au menu, ou remontage « Rejouer ».
 - **`packages/core/src/battle/replay-runner.ts`** : `runReplay` gagne un `ReplayActionObserver` optionnel (§ 9) — seul changement core du plan.
-- **Ce que ce plan prépare pour la Phase 7 (multijoueur)**, sans le résoudre : le port `load`/`save`/`clear` permet à un pair distant de détenir `seed` + journal à la place de `localStorage`, un client qui revient rejouant par le même chemin. **Révisé le 2026-08-29** : « autorité serveur sur chaque action » et « fog côté serveur » sont **retirés de cette liste** (décisions #862, #863 — pas de backend, le pair distant remplace le magasin serveur imaginé par #751). **Révisé le 2026-09-04 par le Lot B1** (plan 199) : trois des quatre inconnues restantes sont réglées, comme effet de bord du salon — identifiant stable de carte (`MAPS_REGISTRY`, plus de `mapUrl`), version de protocole (`NETWORK_VERSION`, pas `buildVersion`, #900), seed d'IA dérivé **par place** dans le setup diffusé (#901 — l'IA est pure, aucun `Math.random`/`Date.now` dans `packages/core/src/ai/`, donc pas de « pair émetteur » à désigner). Seule reste **la politique de reconnexion en combat** (délai, qui attend, ce que voit l'autre) — Lot B3. Détail : `docs/plans/181-reprise-combat-en-cours.md` § Préparation Phase 7, `docs/multiplayer.md` § Reconnexion.
+- **Ce que ce plan prépare pour la Phase 7 (multijoueur)**, sans le résoudre : le port `load`/`save`/`clear` permet à un pair distant de détenir `seed` + journal à la place de `localStorage`, un client qui revient rejouant par le même chemin. **Révisé le 2026-08-29** : « autorité serveur sur chaque action » et « fog côté serveur » sont **retirés de cette liste** (décisions #862, #863 — pas de backend, le pair distant remplace le magasin serveur imaginé par #751). **Révisé le 2026-09-04 par le Lot B1** (plan 199) : trois des quatre inconnues restantes sont réglées, comme effet de bord du salon — identifiant stable de carte (`MAPS_REGISTRY`, plus de `mapUrl`), version de protocole (`NETWORK_VERSION`, pas `buildVersion`, #900), seed d'IA dérivé **par place** dans le setup diffusé (#901 — l'IA est pure, aucun `Math.random`/`Date.now` dans `packages/core/src/ai/`, donc pas de « pair émetteur » à désigner). Seule reste **la politique de reconnexion en combat** (délai, qui attend, ce que voit l'autre) — Lot B3. Détail : le plan 181 (graphe de mémoire, entité `plan-181`) § Préparation Phase 7, `docs/multiplayer.md` § Reconnexion.
 
 ---
 
@@ -798,7 +797,7 @@ Surcouche d'interface sur un combat qui **continue de tourner derrière** — pa
 - **Action logique** `OpenCombatMenu` (`logical-action.ts`), défaut `gamepad: [9, null]` (`Start`), aucun défaut clavier — `Échap` fait déjà le travail via la retombée d'`onEscape()`. Route dans `input-router.ts` comme le reste, donc bloquée par `locked`.
 - **Icônes** : le burger `☰` passe au menu de combat, le journal prend `▤` (décision #825).
 - **La victoire referme le menu** en décorant `showVictory` au seul point où le chrome est remis à l'orchestrateur — le menu n'écoute aucun événement du combat, `view-core` n'apprend pas son existence.
-- **Ce que ce plan ne fait pas** : pas de sauvegardes multiples/créneaux nommés, pas de refonte des Paramètres/Contrôles, pas de drapeau multijoueur pour `Recommencer`. Détail complet : `docs/plans/187-menu-de-combat.md`, décisions #819–#826.
+- **Ce que ce plan ne fait pas** : pas de sauvegardes multiples/créneaux nommés, pas de refonte des Paramètres/Contrôles, pas de drapeau multijoueur pour `Recommencer`. Détail complet : entité `plan-187` du graphe, décisions #819–#826.
 - **Menu pendant la phase de placement** (plan 189) : le trou ci-dessus est comblé par une **seconde instance** de `createCombatMenu`, montée par `mountContent` pour la durée du placement et détruite quand `runBattle` prend la main — jamais deux vivantes à la fois. Entrées **Reprendre / Paramètres / Recommencer / Quitter** (pas d'« Abandonner » : aucune sauvegarde n'existe encore à ce stade) ; « Quitter » demande confirmation (placements perdus). `Échap` ouvre le menu seulement quand `undoLastPlacement` n'a rien à défaire — même règle que `onEscape()` en combat. Décisions #843–#848.
 
 ---
@@ -807,11 +806,11 @@ Surcouche d'interface sur un combat qui **continue de tourner derrière** — pa
 
 Trois reliquats issus des plans 179/173 et 178, traités ensemble parce qu'ils partageaient une décision humaine de clôture avant release. Migration i18n du journal détaillée en § 5d ; ce qui suit couvre les deux autres.
 
-- **4K de l'interface de combat** : les 2 points laissés ouverts par le plan 179 (pastille d'instruction, dialog de victoire — texte mis à l'échelle sans sa garniture) sont réglés en scalant les paddings plutôt qu'en figeant la police (décision #849, cohérent avec le choix « tout scaler sans plancher » du 2026-07-23). Convention CSS complète (jetons `--bc-pad-*`/`--bc-radius-*`) : `docs/design-system.md` § Garniture et arrondis mis à l'échelle de l'interface de combat. Restent fixes sciemment (décision humaine) : `.tb-btn` (`components/button.css`, partagé avec le Team Builder) et `turn-timeline.css` — consignés dans `docs/backlog.md`.
+- **4K de l'interface de combat** : les 2 points laissés ouverts par le plan 179 (pastille d'instruction, dialog de victoire — texte mis à l'échelle sans sa garniture) sont réglés en scalant les paddings plutôt qu'en figeant la police (décision #849, cohérent avec le choix « tout scaler sans plancher » du 2026-07-23). Convention CSS complète (jetons `--bc-pad-*`/`--bc-radius-*`) : `docs/design-system.md` § Garniture et arrondis mis à l'échelle de l'interface de combat. Restent fixes sciemment (décision humaine) : `.tb-btn` (`components/button.css`, partagé avec le Team Builder) et `turn-timeline.css` — consignés dans le graphe de mémoire (entités `backlog`).
 - **Team Builder — purge de l'échelle morte `--tb-px`** : le système `@container stage` de `team-builder-overlay.css` (adaptateur cqw pensé pour un montage sous `#game-stage` qui n'a jamais eu lieu depuis la suppression de `team-edit-harness.ts`, 2026-07-20) est **retiré** plutôt que ressuscité (décision #850) — 216 → 78 lignes, plus les 7 indirections `var(--tb-*, Npx)` sans déclarant dans `stat-bar.css`/`set-op.css`/`edit-panels.css`. Le retour « l'app est trop petite en 4K » reste **non traité pour cet écran**, faute de décision de rescale visuel dédiée. Le correctif étroit du plan 179 (`.tb-root` sous `@media (height < 500px), (width < 900px)`) n'est pas affecté.
-- **Deux dettes consignées, pas traitées ici** (`docs/backlog.md` § Dette technique) : le match nul de combat n'a aucun chemin d'exécution (`checkVictory` appelé à chaque K.O. individuel, `packages/core/src/battle/BattleEngine.ts:3816` — le second K.O. d'une même résolution arrive toujours trop tard, donc `battle.draw` et ses clés associées sont du code mort de fait) ; `t()` retombe d'abord sur l'**anglais**, pas sur la clé brute — un balayage « aucune clé brute » ne détecte donc pas une clé absente d'une seule locale sur les **familles composées** (clé construite à l'exécution, ex. `battleLog.status.${status}.applied`), comblé pour le journal par `packages/app/src/i18n/battle-log-keys.test.ts`.
+- **Deux dettes consignées, pas traitées ici** (graphe, entités `backlog`) : le match nul de combat n'a aucun chemin d'exécution (`checkVictory` appelé à chaque K.O. individuel, `packages/core/src/battle/BattleEngine.ts:3816` — le second K.O. d'une même résolution arrive toujours trop tard, donc `battle.draw` et ses clés associées sont du code mort de fait) ; `t()` retombe d'abord sur l'**anglais**, pas sur la clé brute — un balayage « aucune clé brute » ne détecte donc pas une clé absente d'une seule locale sur les **familles composées** (clé construite à l'exécution, ex. `battleLog.status.${status}.applied`), comblé pour le journal par `packages/app/src/i18n/battle-log-keys.test.ts`.
 
-Détail complet : `docs/plans/190-i18n-journal-de-combat.md`. Décisions #849–#855.
+Détail complet : entité `plan-190` du graphe. Décisions #849–#855.
 
 ---
 
@@ -1021,7 +1020,7 @@ Déclenché via le skill `/worktree` (alias dans CLAUDE.md).
 ### Merge de worktree vers main
 
 - Claude peut faire `git merge --ff-only <branche>` (non destructif — échoue si divergent).
-- Merges divergents (nécessitant un merge commit ou rebase) = humain via GUI (GitKraken).
+- Merges divergents (nécessitant un merge commit ou rebase) = humain via GUI.
 - Détection de merge déjà effectué : `git merge-base --is-ancestor <branche> HEAD` (local).
 - `/worktree clean` nettoie les worktrees dont la branche est ancêtre de main.
 
@@ -1047,7 +1046,7 @@ Core ne change jamais — seul le renderer est remplacé. **Babylon.js est le se
 
 Agents custom dans `.claude/agents/` et skills dans `.claude/skills/`.
 
-26 agents + 4 knowledge files. Détails dans `docs/agent-orchestration.md`.
+26 agents + 4 knowledge files. Détails dans le graphe, entités `orchestration`.
 
 | Agent | Modèle | Rôle |
 |-------|--------|------|
@@ -1071,7 +1070,7 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/`.
 | `plan-reviewer` | haiku | Crée, review et maintient les plans |
 | `publisher` | sonnet | Orchestre release complète : compile changelog, publie, watch itch-deploy, devlog itch, wiki |
 | `sandbox-json` | haiku | Génère configs sandbox JSON depuis description langage naturel |
-| `session-closer` | sonnet | Met à jour STATUS.md fin de session, chaîne vers `commit-message` |
+| `session-closer` | sonnet | Met à jour le graphe de mémoire fin de session, chaîne vers `commit-message` |
 | `test-writer` | sonnet | Tests Vitest, approche test-first |
 | `visual-analyst` | sonnet | Analyse visuels + web search pour inspiration |
 | `visual-tester` | sonnet | Vérification visuelle via Playwright MCP |
@@ -1096,6 +1095,6 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/`.
 
 | Commande | Action |
 |----------|--------|
-| `/next` | Lit `docs/next.md` + STATUS + roadmap + plan, propose suite et affiche reporté/fait récemment |
+| `/next` | Reconstitue l'état depuis le graphe (entités `historique`, `agenda`) + `docs/roadmap.md` + plan en cours, propose la suite et affiche reporté/fait récemment |
 | `/review-local` | Lance `code-reviewer` sur changements locaux (`git diff`) |
 | `/worktree` | Crée/liste/supprime un git worktree (`.worktrees/<branche>/`) pour sessions parallèles |
