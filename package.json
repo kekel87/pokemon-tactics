@@ -49,14 +49,14 @@
     "@cloudflare/workers-types": "^5.20260906.1",
     "@playwright/test": "^1.63.0",
     "@types/node": "^26.4.1",
-    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/coverage-v8": "^5.0.0",
     "fast-xml-parser": "^5.11.1",
     "peer": "^1.0.2",
     "sharp": "^0.35.4",
     "tsx": "^4.23.13",
     "typescript": "^7.0.2",
     "vite": "^8.2.2",
-    "vitest": "^4.1.10",
+    "vitest": "^5.0.0",
     "wrangler": "^4.129.0"
   }
 }
