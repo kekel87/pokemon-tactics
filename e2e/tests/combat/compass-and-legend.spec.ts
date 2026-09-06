@@ -115,17 +115,41 @@ const glyphTile = async (page: Page, testId: string): Promise<string> =>
 /** Position monde épinglée une fois la caméra au repos. La rotation est amortie sur plusieurs
  *  frames : deux lectures consécutives identiques signifient qu'aucun easing n'est en vol, donc
  *  qu'on compare deux états stables et non un instantané pris au milieu d'un mouvement. */
-const settledPinnedPosition = async (scene: CombatScene): Promise<WorldPosition> => {
+/**
+ * Attend que la caméra soit RÉELLEMENT au repos avant de mesurer.
+ *
+ * 🔴 Deux mesures consécutives suffisaient — et c'était faux : rien ne garantissait qu'une frame ait
+ * été rendue entre les deux, si bien que deux lectures tombées dans la même frame déclaraient la
+ * caméra stable alors que son animation d'entrée courait encore. Le clic partait alors pendant
+ * l'animation, la rotation n'avait pas lieu, et le test échouait. Invisible sous Chromium 1228,
+ * révélé à 20 % sous Chromium 1243 (Playwright 1.63) : un test fragile que le nouveau navigateur a
+ * mis au jour, pas une régression de rendu.
+ *
+ * On intercale donc l'attente d'une vraie frame entre les mesures, comme `waitForPadPoll` le fait
+ * pour le poller de manette. Pas de `waitForTimeout` : c'est le signal de la boucle de rendu.
+ */
+const settledPinnedPosition = async (page: Page, scene: CombatScene): Promise<WorldPosition> => {
   let previous: WorldPosition | null = null;
   await expect
     .poll(async () => {
       const current = await pinnedPosition(scene);
       const settled = previous !== null && distance(previous, current) === 0;
       previous = current;
+      await waitForRenderedFrame(page);
       return settled;
     })
     .toBe(true);
   return pinnedPosition(scene);
+};
+
+/** Laisse passer deux tours de `requestAnimationFrame` : la frame du changement, puis son effet. */
+const waitForRenderedFrame = async (page: Page): Promise<void> => {
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      }),
+  );
 };
 
 /** Attend que la boussole soit chargée ET épinglée au moins une fois : avant l'épinglage, le proxy
@@ -165,7 +189,7 @@ test("§4.18 cliquer la boussole fait tourner la vue", async ({ page, bootSandbo
   const scene = await bootSandbox(DUEL);
   await waitPinned(page, scene);
 
-  const before = await settledPinnedPosition(scene);
+  const before = await settledPinnedPosition(page, scene);
   const area = await screenBox(scene, TAP_AREA);
 
   await scene.clickViewportPoint((area.left + area.right) / 2, (area.top + area.bottom) / 2);
@@ -181,13 +205,15 @@ test("§4.18 cliquer sous la boussole ne fait pas tourner la vue", async ({ page
   const scene = await bootSandbox(DUEL);
   await waitPinned(page, scene);
 
-  const before = await settledPinnedPosition(scene);
+  const before = await settledPinnedPosition(page, scene);
   const area = await screenBox(scene, TAP_AREA);
 
   // Juste sous la zone tapable : c'est du plateau, et une pression là doit rester au plateau — la
   // légende qui vit désormais à cet endroit est explicitement inerte (`pointer-events: none`).
   await scene.clickViewportPoint((area.left + area.right) / 2, area.bottom + 8);
-  expect(distance(before, await settledPinnedPosition(scene))).toBeLessThan(ROTATION_WORLD_EPSILON);
+  expect(distance(before, await settledPinnedPosition(page, scene))).toBeLessThan(
+    ROTATION_WORLD_EPSILON,
+  );
 
   // Contre-épreuve dans le MÊME test : la pression sur la boussole, elle, tourne. Sans elle,
   // l'absence de rotation ci-dessus pourrait n'être qu'une pression perdue en route.

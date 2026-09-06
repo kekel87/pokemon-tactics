@@ -27,6 +27,6 @@
     "@babylonjs/materials": "^9.17.1",
     "@babylonjs/serializers": "^9.17.1",
     "babylonjs-gltf2interface": "^9.17.1",
-    "rollup-plugin-visualizer": "^7.0.1"
+    "rollup-plugin-visualizer": "^7.1.1"
   }
 }
