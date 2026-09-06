@@ -37,6 +37,20 @@ const DISPARUS = [
 const VERBES_ECRITURE =
   /(met[s]? à jour|mettre à jour|ajoute[rz]?|inscri|écri[st]|complète|coche[rz]?|déplace|maintien)/i;
 
+// 🔴 PLAFONDS. C'est la CAUSE RACINE du plan 200 : les documents ont grossi ×113 en
+// six mois (decisions.md 4,6 → 528 Ko) sans que rien ne le signale, jusqu'à ce que la
+// table « quoi lire quand » de CLAUDE.md devienne inexécutable. Rien n'empêchait la
+// dérive de recommencer tant qu'aucune machine ne mesurait.
+//
+// Deux dimensions, parce que la taille seule ne dit pas tout : `test-plan.md` faisait
+// 349 Ko en restant navigable (97 o/ligne, 128 titres), alors que `decisions.md` à
+// 528 Ko était hostile (499 o/ligne, 7 titres). Un fichier dense en prose est
+// illisible bien avant d'être gros.
+const PLAFOND_KO = 150; // au-delà : bloquant
+const ALERTE_KO = 110; // au-delà : à surveiller
+const DENSITE_MAX = 250; // octets par ligne — au-delà, des méga-paragraphes
+const DENSITE_MIN_KO = 20; // en dessous, la densité n'a pas de sens
+
 const problemes = [];
 const ajoute = (gravite, fichier, ligne, message) =>
   problemes.push({ gravite, fichier, ligne, message });
@@ -93,7 +107,11 @@ for (const f of config) {
 }
 
 // 4. un script qui écrit un fichier supprimé le recréerait
-for (const f of suivis.filter((x) => /\.(ts|mjs|js|py|sh)$/.test(x) && fs.existsSync(x))) {
+for (const f of suivis.filter(
+  // Ce script LISTE les fichiers supprimés, c'est son travail : s'auditer lui-même
+  // sur cette règle n'a pas de sens.
+  (x) => /\.(ts|mjs|js|py|sh)$/.test(x) && fs.existsSync(x) && x !== "scripts/audit-flow.mjs",
+)) {
   const texte = fs.readFileSync(f, "utf8");
   for (const mort of DISPARUS) {
     const nom = mort; // chemin complet : « docs/x.md », pas « x.md »
@@ -105,6 +123,41 @@ for (const f of suivis.filter((x) => /\.(ts|mjs|js|py|sh)$/.test(x) && fs.exists
       .join("\n");
     if (actif.includes(nom) && /writeFileSync|open\([^)]*["']w|>\s*['"]?docs\//.test(actif)) {
       ajoute("CRITIQUE", f, 0, `écrit « ${nom} », supprimé — le script le recréerait`);
+    }
+  }
+}
+
+// 4b. plafonds de taille et de densité sur les documents
+for (const f of suivis.filter((x) => x.endsWith(".md") && fs.existsSync(x))) {
+  const octets = fs.statSync(f).size;
+  const ko = Math.round(octets / 1024);
+  if (ko > PLAFOND_KO) {
+    ajoute(
+      "CRITIQUE",
+      f,
+      0,
+      `${ko} Ko — dépasse le plafond de ${PLAFOND_KO} Ko. Verse l'historique au graphe ` +
+        "(node scripts/memory/query.mjs --add …) et garde le document court.",
+    );
+  } else if (ko > ALERTE_KO) {
+    ajoute(
+      "IMPORTANT",
+      f,
+      0,
+      `${ko} Ko — approche le plafond de ${PLAFOND_KO} Ko. À dégonfler avant qu'il ne bloque.`,
+    );
+  }
+  if (ko >= DENSITE_MIN_KO) {
+    const lignes = fs.readFileSync(f, "utf8").split("\n").length;
+    const densite = Math.round(octets / lignes);
+    if (densite > DENSITE_MAX) {
+      ajoute(
+        "IMPORTANT",
+        f,
+        0,
+        `${densite} octets par ligne — des méga-paragraphes. Un grep y rend un mur de texte ` +
+          "et le fichier n'a pas d'ancre où pointer. Découpe en sous-titres.",
+      );
     }
   }
 }

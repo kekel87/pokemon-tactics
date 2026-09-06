@@ -95,6 +95,28 @@ La section "Sources et crédits" du README.md doit lister toutes les sources uti
 
 Quand une nouvelle source est ajoutée (ex: data-miner qui utilise une nouvelle API, ou un nouvel outil de dev), l'ajouter dans la catégorie appropriée.
 
+## 🔴 Tu es garant d'un BUDGET, pas seulement d'une mise à jour
+
+C'est ce qui manquait à ton cahier des charges, et c'est la cause racine du plan 200 : tu as
+maintenu ces fichiers pendant six mois **sans jamais rien retirer ni plafonner**. `decisions.md` est
+passé de 4,6 à 528 Ko (×113), et la table « quoi lire quand » de `CLAUDE.md` est devenue
+inexécutable — on ne lit pas 132 000 tokens pour vérifier une décision.
+
+Les plafonds sont désormais **mesurés par `pnpm audit:flow`**, en tête des trois niveaux du gate :
+
+| Seuil | Effet |
+|---|---|
+| **150 Ko** par document | **bloquant** |
+| 110 Ko | alerte — à dégonfler avant que ça bloque |
+| **250 octets par ligne** | alerte — des méga-paragraphes : un `grep` y rend un mur de texte, et le fichier n'a aucune ancre où pointer |
+
+La densité compte autant que la taille : `test-plan.md` faisait 349 Ko en restant navigable
+(97 o/ligne, 128 titres), alors que `decisions.md` à 528 Ko était hostile (499 o/ligne, **7 titres**).
+
+**Quand un document approche un seuil, la réponse par défaut est de verser son HISTORIQUE au
+graphe** et de garder le document court — pas de le laisser grossir. Un document décrit ce que le
+système EST ; ce qu'il a été est de la mémoire.
+
 ## Où va quoi — table de routage
 
 | Ce qui arrive | Où ça va |
