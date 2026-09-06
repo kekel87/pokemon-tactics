@@ -33,7 +33,7 @@ Tiers :
 | Tier | Contenu | Budget |
 |---|---|---|
 | `fast` | **audit:flow** → lint:fix → typecheck → test → test:integration, **avec le tour des écrans lancé en parallèle** (`e2e/tests/smoke`) | **boucle d'itération** |
-| `full` | + build + test:scenario + **e2e `affected`** (niveau choisi d'après le diff : L1 smoke / L2 affected / L3 full) | point de contrôle |
+| `full` | + build + test:scenario + **e2e `affected`** (niveau choisi d'après le diff : L1 smoke / L2 affected / L3 full). L'étape `test` y devient **`test:coverage`** : mêmes tests unitaires, plus le seuil de non-recul du core (+2 s) | point de contrôle |
 | `slow` | + test:all (scenario) + **e2e complet** (les 531) | filet pré-release |
 
 `fast` superpose le tour des écrans aux vérifications statiques : le tour attend un navigateur

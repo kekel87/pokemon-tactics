@@ -23,6 +23,7 @@ step() {
       build)    echo "  fix: lis l'erreur tsc/vite, souvent typecheck cascade";;
       typecheck) echo "  fix: lis l'erreur tsc, vérifie packages/*/tsconfig.json";;
       test)     echo "  fix: \`pnpm test\` localement, isole le test cassé avec --reporter=verbose";;
+      test:coverage) echo "  fix: \`pnpm test:coverage\` localement. Si des tests passent mais que le SEUIL tombe, la couverture du core a recule : couvrir le code ajoute, jamais baisser le seuil de \`vitest.config.ts\`";;
       test:integration) echo "  fix: \`pnpm test:integration\` localement";;
       test:scenario) echo "  fix: \`pnpm test:scenario\` localement ; alias @pokemon-tactic/* resolus via tsconfigPaths — l'include du tsconfig racine doit couvrir scenarios/";;
       e2e)      echo "  fix: \`pnpm test:e2e\` localement ; harness Playwright (DOM + scène Babylon). Pas en CI (WebGL headless instable)";;
@@ -113,7 +114,10 @@ case "$MODE" in
     step "lint:fix"        pnpm lint:fix
     step "typecheck"       pnpm typecheck
     step "build"           pnpm build
-    step "test"            pnpm test
+    # `test:coverage` joue les MEMES tests unitaires que `pnpm test`, plus l'instrumentation et le
+    # seuil de non-recul du core : mesure du 2026-09-06, 6,96 s contre 5,0 s. Deux secondes pour un
+    # filet, et surtout pas une etape de plus a cote de `test` — ce serait le meme travail deux fois.
+    step "test:coverage"   pnpm test:coverage
     step "test:integration" pnpm test:integration
     step "test:scenario"   pnpm test:scenario
     step "e2e"             pnpm test:e2e:affected
