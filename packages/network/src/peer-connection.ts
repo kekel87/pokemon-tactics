@@ -286,7 +286,29 @@ class PeerJsChannel implements NetworkChannel {
     if (this.closed) {
       return;
     }
-    this.connection.send(message);
+    // Garde de frontière, et rien de plus : `DataConnection.send` rend `void | Promise<void>`, mais
+    // pour NOS charges utiles elle rend toujours `void`. `pack()` ne devient asynchrone que sur un
+    // `Blob` (`peerjs-js-binarypack`), et les huit variantes de `NetworkMessage` sont des objets
+    // plats de scalaires. La branche ci-dessous n'est donc pas prise aujourd'hui.
+    //
+    // Elle est là parce que la frontière d'une bibliothèque tierce est le mauvais endroit pour
+    // parier sur une valeur de retour : le Lot B4 doit faire voyager une somme de contrôle d'état, et
+    // le jour où une charge utile part en binaire, un rejet non rattrapé serait un message évaporé
+    // sans trace — un rejet de promesse n'émet pas d'`error` sur la connexion.
+    //
+    // ⚠️ La vraie mort d'un canal ne passe PAS par ici : peerjs l'attrape en synchrone
+    // (`_trySend` → `close()`) et elle nous revient par le `connection.on("close")` du constructeur.
+    // Le seul rejet possible ici est un échec d'empaquetage, donc une faute de charge utile sur un
+    // canal encore vivant. On ferme quand même, faute de pouvoir distinguer mieux : un canal dont on
+    // ne sait plus ce qui est parti est inutilisable pour un protocole qui compte sur l'ordre.
+    //
+    // `close()` et non `handleClose()` : il faut aussi fermer la connexion sous-jacente, sinon le
+    // pair distant continue de nous croire connecté. Les deux sont idempotents, donc un rejet suivi
+    // d'un vrai `close` ne compte qu'une fois.
+    const sent = this.connection.send(message);
+    if (sent instanceof Promise) {
+      sent.catch(() => this.close());
+    }
   }
 
   onMessage(listener: (message: NetworkMessage) => void): () => void {
