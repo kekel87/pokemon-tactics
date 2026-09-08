@@ -1,4 +1,4 @@
-import { NetworkErrorCode, type NetworkMessage } from "../protocol.js";
+import { isNetworkMessage, NetworkErrorCode, type NetworkMessage } from "../protocol.js";
 import { type NetworkChannel, type NetworkTransport, NetworkTransportError } from "../transport.js";
 
 /**
@@ -223,6 +223,13 @@ class FakeChannel implements NetworkChannel {
 
   private deliver(message: NetworkMessage): void {
     if (this.closed) {
+      return;
+    }
+    // 🔴 Le garde de forme, comme le vrai transport (`PeerJsConnection.deliver`), et pour la même
+    // raison que l'aller-retour JSON ci-dessus : un double plus permissif que la production fait
+    // passer en test ce qui casse en vrai. Sans lui, aucun test d'intégration ne pouvait atteindre
+    // le message tronqué qui tuait le salon de l'invité — le trou n'était visible qu'en unitaire.
+    if (!isNetworkMessage(message)) {
       return;
     }
     for (const listener of [...this.messageListeners]) {

@@ -1,8 +1,11 @@
-import { PlayerController } from "@pokemon-tactic/core";
+import { type Action, PlayerController } from "@pokemon-tactic/core";
 import {
+  type ActionMessage,
+  type ForfeitMessage,
   isCompatibleVersion,
   NETWORK_VERSION,
   NetworkErrorCode,
+  type NetworkForfeitReason,
   type NetworkMessage,
   type NetworkRoomOptions,
   NetworkSeatOccupancy,
@@ -117,6 +120,22 @@ export class Room {
   private readonly errorListeners = new Set<(code: NetworkErrorCode) => void>();
   private readonly startListeners = new Set<(start: StartMessage) => void>();
   private readonly launchCancelledListeners = new Set<() => void>();
+  private readonly actionListeners = new Set<(action: ActionMessage) => void>();
+  /**
+   * Actions reçues avant que quiconque n'écoute, gardées pour le premier abonné (plan 201).
+   *
+   * 🔴 **Sans ce tampon, elles étaient jetées sans trace, et c'est l'honnête qui payait.** Les deux
+   * pairs n'entrent pas en combat au même instant — l'écran charge sa carte et ses atlas, plusieurs
+   * secondes d'écart entre un cache chaud et un cache froid — alors que le salon, lui, est déjà là et
+   * reçoit. Le pair rapide jouait, le lent n'avait pas encore branché son écouteur, l'action
+   * disparaissait ; puis son index restait en retard d'un cran à chaque action suivante, donc trois
+   * refus `desynced_index` et il **éliminait un joueur qui n'avait rien fait**.
+   *
+   * Même famille que le tampon jeté du Lot B1 (voir l'en-tête de `app/network/online-room.ts`) :
+   * ce qui a été envoyé avant qu'on soit prêt doit arriver quand on l'est.
+   */
+  private readonly bufferedActions: ActionMessage[] = [];
+  private readonly forfeitListeners = new Set<(forfeit: ForfeitMessage) => void>();
 
   private roomOptions: NetworkRoomOptions;
   private locked = false;
@@ -234,6 +253,58 @@ export class Room {
   onLaunchCancelled(listener: () => void): () => void {
     this.launchCancelledListeners.add(listener);
     return () => this.launchCancelledListeners.delete(listener);
+  }
+
+  /**
+   * Une action de combat d'un autre camp (plan 201, Lot B2).
+   *
+   * Le salon ne la juge pas — il n'a pas de moteur. Il garantit seulement qu'elle vient bien de la
+   * place qu'elle annonce (`isSpokenFor`) et qu'elle a la bonne forme (`isNetworkMessage`). Sa
+   * **légalité** est l'affaire de l'orchestrateur, seul à tenir un `getLegalActions()`.
+   */
+  onAction(listener: (action: ActionMessage) => void): () => void {
+    this.actionListeners.add(listener);
+    // Ce qui est arrivé avant qu'on écoute part maintenant, dans l'ordre de réception.
+    if (this.bufferedActions.length > 0) {
+      const kept = [...this.bufferedActions];
+      this.bufferedActions.length = 0;
+      for (const message of kept) {
+        listener(message);
+      }
+    }
+    return () => this.actionListeners.delete(listener);
+  }
+
+  /** Un camp abandonne : barème épuisé (B2), volontaire ou chien de garde (B3). */
+  onForfeit(listener: (forfeit: ForfeitMessage) => void): () => void {
+    this.forfeitListeners.add(listener);
+    return () => this.forfeitListeners.delete(listener);
+  }
+
+  /**
+   * Diffuse une action que **notre** moteur a déjà acceptée.
+   *
+   * `actionIndex` est le nombre d'actions enregistrées chez nous avant celle-ci : c'est ce qui
+   * permet au destinataire de dire « je ne suis pas au même point » au lieu d'appliquer l'action au
+   * mauvais acteur (décision D3).
+   *
+   * Diffusé au maillage entier, pas au seul adversaire : en 1v1 c'est indiscernable, et à trois
+   * camps tout le monde doit voir chaque action pour tenir la même partie.
+   */
+  sendAction(actionIndex: number, action: Action): void {
+    this.broadcast({ type: "action", seat: this.seat, actionIndex, action });
+  }
+
+  /**
+   * Annonce qu'un camp est éliminé — le nôtre (abandon volontaire, Lot B3) ou un autre dont les
+   * actions ne concordent plus avec notre moteur (Lot B2).
+   *
+   * Diffusé à tout le maillage, y compris à l'intéressé : les autres joueurs doivent savoir pourquoi
+   * un camp disparaît, et l'intéressé doit savoir qu'il est éliminé. Sans ce message, un pair dont
+   * les actions sont refusées continuerait de jouer seul dans le vide jusqu'au chien de garde.
+   */
+  sendForfeit(forfeitedSeat: number, reason: NetworkForfeitReason): void {
+    this.broadcast({ type: "forfeit", seat: this.seat, forfeitedSeat, reason });
   }
 
   /**
@@ -408,6 +479,7 @@ export class Room {
     }
     this.left = true;
     this.broadcast({ type: "bye", seat: this.seat });
+    this.bufferedActions.length = 0;
     for (const timer of this.graceTimers.values()) {
       this.timers.clearTimeout(timer.handle);
     }
@@ -632,10 +704,18 @@ export class Room {
   private isSpokenFor(remoteSeat: number, message: NetworkMessage): boolean {
     switch (message.type) {
       // Ces messages parlent d'une place : ce doit être celle de leur expéditeur.
+      //
+      // 🔴 `action` est ici pour la même raison que `team_select`, et l'enjeu est plus gros : sans
+      // cette ligne, un pair jouerait le tour d'un autre camp.
+      //
+      // Pour `forfeit`, ce contrôle n'établit que **qui parle**, pas de qui il parle : la place
+      // éliminée (`forfeitedSeat`) reste inauthentifiable, et c'est assumé (voir `ForfeitMessage`).
       case "team_select":
       case "ready":
       case "start_ack":
       case "bye":
+      case "action":
+      case "forfeit":
         return message.seat === remoteSeat;
       // Ceux-là font autorité sur le salon entier : l'hôte seul les émet.
       case "room_state":
@@ -677,6 +757,22 @@ export class Room {
         // Noté, pas agi : la fermeture du canal suit, et c'est elle qui déclenche le délai. Un `bye`
         // sans fermeture est un pair qui s'annonce partant puis change d'avis.
         this.announcedBye.add(message.seat);
+        return;
+      case "action":
+        // Rien à noter côté salon : le combat vit dans l'orchestrateur, pas ici. Mais s'il n'est pas
+        // encore branché, on GARDE — voir `bufferedActions`.
+        if (this.actionListeners.size === 0) {
+          this.bufferedActions.push(message);
+          return;
+        }
+        for (const listener of this.actionListeners) {
+          listener(message);
+        }
+        return;
+      case "forfeit":
+        for (const listener of this.forfeitListeners) {
+          listener(message);
+        }
         return;
       case "welcome":
         // Traité par `waitForWelcome`, qui est le seul moment où il a un sens.

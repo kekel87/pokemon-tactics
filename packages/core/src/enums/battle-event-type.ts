@@ -11,6 +11,8 @@ export const BattleEventType = {
   StatChanged: "stat_changed",
   PokemonKo: "pokemon_ko",
   PokemonEliminated: "pokemon_eliminated",
+  /** Un camp abandonne, ou est éliminé faute de concordance (plan 201, Lot B2). */
+  PlayerForfeited: "player_forfeited",
   PokemonRevived: "pokemon_revived",
   MoveMissed: "move_missed",
   DefenseActivated: "defense_activated",

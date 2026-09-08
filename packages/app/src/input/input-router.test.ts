@@ -228,3 +228,52 @@ describe("createInputRouter", () => {
     expect(board.calls).toEqual(["moveCursor:up"]);
   });
 });
+
+describe("createInputRouter — contexte `watching`", () => {
+  it("laisse tourner et déplacer la caméra pendant le tour d'un autre joueur", () => {
+    const { router, board } = setup("watching");
+
+    expect(router.handle(LogicalAction.RotateCameraLeft)).toBe(true);
+    expect(router.handle(LogicalAction.PanCameraUp)).toBe(true);
+    expect(router.handle(LogicalAction.ZoomIn)).toBe(true);
+
+    expect(board.calls).toEqual(["rotateCamera:-1", "panCamera:0,8", "zoomCamera:1"]);
+  });
+
+  it("laisse lire le journal et la timeline", () => {
+    const { router, board } = setup("watching");
+
+    expect(router.handle(LogicalAction.ScrollLogDown)).toBe(true);
+    expect(router.handle(LogicalAction.ScrollTimelineUp)).toBe(true);
+    expect(router.handle(LogicalAction.ToggleBattleLog)).toBe(true);
+
+    expect(board.calls).toEqual(["scrollLog:1", "scrollTimeline:-1", "toggleLog"]);
+  });
+
+  it("laisse ouvrir le menu de combat — l'attente peut être longue", () => {
+    const { router, board } = setup("watching");
+
+    expect(router.handle(LogicalAction.OpenCombatMenu)).toBe(true);
+    expect(board.calls).toEqual(["openCombatMenu"]);
+  });
+
+  it("ne laisse toucher ni au curseur, ni au menu, ni à la confirmation", () => {
+    const { router, board, menu } = setup("watching");
+
+    expect(router.handle(LogicalAction.CursorUp)).toBe(false);
+    expect(router.handle(LogicalAction.Confirm)).toBe(false);
+    expect(router.handle(LogicalAction.Cancel)).toBe(false);
+
+    expect(board.calls).toEqual([]);
+    expect(menu.calls).toEqual([]);
+  });
+
+  it("`locked` continue de tout couper, caméra comprise", () => {
+    const { router, board } = setup("locked");
+
+    expect(router.handle(LogicalAction.RotateCameraLeft)).toBe(false);
+    expect(router.handle(LogicalAction.PanCameraUp)).toBe(false);
+
+    expect(board.calls).toEqual([]);
+  });
+});

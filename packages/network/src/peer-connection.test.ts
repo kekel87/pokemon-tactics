@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PeerJsTransport } from "./peer-connection.js";
-import type { NetworkMessage } from "./protocol.js";
+import { NetworkErrorCode, type NetworkMessage } from "./protocol.js";
 import type { FakeDataConnection } from "./testing/fake-peerjs.js";
 import { fakePeerjs } from "./testing/fake-peerjs.js";
 import type { NetworkChannel } from "./transport.js";
@@ -170,5 +170,65 @@ describe("PeerJsTransport", () => {
     expect(peer.destroyed).toBe(false);
     vi.runAllTimers();
     expect(peer.destroyed).toBe(true);
+  });
+});
+
+describe("PeerJsTransport — options d'annuaire", () => {
+  beforeEach(() => {
+    fakePeerjs.reset();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("ne passe AUCUNE option quand aucune n'est renseignée", async () => {
+    const transport = new PeerJsTransport();
+
+    await transport.claim("pkmntac-A7K2M-1");
+
+    expect(fakePeerjs.lastPeer().options).toEqual({});
+  });
+
+  it("ne pose pas une clé à `undefined` pour une option non renseignée", async () => {
+    const transport = new PeerJsTransport({ port: 9000 });
+
+    await transport.claim("pkmntac-A7K2M-1");
+
+    const options = fakePeerjs.lastPeer().options;
+    expect(options).toEqual({ port: 9000 });
+    expect("host" in options).toBe(false);
+    expect("path" in options).toBe(false);
+    expect("secure" in options).toBe(false);
+  });
+
+  it("passe l'annuaire complet quand il est renseigné", async () => {
+    const transport = new PeerJsTransport({
+      host: "localhost",
+      port: 9000,
+      path: "/",
+      secure: false,
+    });
+
+    await transport.claim("pkmntac-A7K2M-1");
+
+    expect(fakePeerjs.lastPeer().options).toEqual({
+      host: "localhost",
+      port: 9000,
+      path: "/",
+      secure: false,
+    });
+  });
+
+  it("traduit un constructeur qui jette en « connexion impossible »", async () => {
+    const transport = new PeerJsTransport();
+    const peerjs = await import("peerjs");
+    vi.spyOn(peerjs, "default").mockImplementation(() => {
+      throw new DOMException("URL invalide", "SyntaxError");
+    });
+
+    await expect(transport.claim("pkmntac-A7K2M-1")).rejects.toMatchObject({
+      code: NetworkErrorCode.ConnexionImpossible,
+    });
   });
 });

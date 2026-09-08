@@ -35,6 +35,7 @@ import {
   AiTeamController,
   type BattleFeedback,
   BattleOrchestrator,
+  type BattleOrchestratorConfig,
   type BattleSetupResult,
   createFloatingTextSpawner,
   createSandboxBattle,
@@ -71,6 +72,8 @@ import { getInputSystem } from "../input/input-system.js";
 import { cameraKeyLabels, combatMenuKeyHint, keyHintOf } from "../input/key-legend.js";
 import { LogicalAction } from "../input/logical-action.js";
 import { attachPointerSource, type PointerSource } from "../input/pointer-source.js";
+import { wireOnlineBattle } from "../network/online-battle.js";
+import { releaseOnlineRoom } from "../network/online-room.js";
 import {
   isFullscreen,
   isFullscreenSupported,
@@ -290,6 +293,7 @@ async function mountPlacement(
       damagePreview: setup.damagePreview,
       telemetryTeams: setup.telemetryTeams,
       teams: setup.teams,
+      ...(setup.localSeat === undefined ? {} : { localSeat: setup.localSeat }),
     });
   }
   return startPlacementFlow({
@@ -355,6 +359,16 @@ function runBattle(options: {
   /** Players a human drives — the fog reads through their eyes, never the acting AI's (plan 176). */
   humanPlayerIds: readonly string[];
   /**
+   * Places que CETTE machine pilote (plan 201). Absente en local, où elle vaut `humanPlayerIds` :
+   * en ligne elle est ce qui distingue mon camp de celui du pair, que le setup rabat tous deux sur
+   * `human`.
+   */
+  localPlayerIds?: readonly string[];
+  /** Une action du joueur local, à diffuser aux pairs (plan 201). */
+  onLocalAction?: BattleOrchestratorConfig["onLocalAction"];
+  /** Une action distante refusée, avec son rang dans le barème (plan 201, décision D1). */
+  onRemoteActionRejected?: BattleOrchestratorConfig["onRemoteActionRejected"];
+  /**
    * Events of a battle rebuilt from its saved action log (plan 181). Pushed into the log ONLY, so a
    * resumed battle comes back with its history — never through `feedback`, which would re-spawn every
    * damage number of the whole battle over the sprites.
@@ -381,6 +395,9 @@ function runBattle(options: {
     enemyInfoHidden,
     damagePreview,
     humanPlayerIds,
+    localPlayerIds,
+    onLocalAction,
+    onRemoteActionRejected,
     initialLogEvents,
     onActionCommitted,
     onBattleClosed,
@@ -416,6 +433,9 @@ function runBattle(options: {
       onBattleClosed?.();
       onReplay();
     },
+    // Jamais en ligne : le salon est libéré à la fin de la partie, donc remonter le même setup
+    // rendrait la main sur les deux camps (plan 201, revue de code). La revanche est hors V1.
+    canReplay: localPlayerIds === undefined,
     config: uiConfig,
     /*
      * Capuchons de défilement de l'ordre de jeu (plan 189), un à chaque extrémité de la liste : c'est
@@ -643,7 +663,15 @@ function runBattle(options: {
     board,
     chromeWithMenuAwareVictory,
     feedback,
-    { confirmAttack: BATTLE_CONFIRM_ATTACK, humanPlayerIds, onActionCommitted, getElapsedMs },
+    {
+      confirmAttack: BATTLE_CONFIRM_ATTACK,
+      humanPlayerIds,
+      ...(localPlayerIds === undefined ? {} : { localPlayerIds }),
+      ...(onLocalAction === undefined ? {} : { onLocalAction }),
+      ...(onRemoteActionRejected === undefined ? {} : { onRemoteActionRejected }),
+      onActionCommitted,
+      getElapsedMs,
+    },
     presentationContext,
   );
   orchestrator.onTurnReady = wireTurnReady(battle);
@@ -663,10 +691,12 @@ function runBattle(options: {
     if (inputSystem?.tracker.isFocusDriven() !== true) {
       return;
     }
-    // Tour de l'IA / résolution d'une action : plus rien n'est pointable, donc le curseur s'efface —
-    // le laisser sur le Pokemon du tour précédent affichait en plus sa fiche en prévision, comme si
-    // on visait encore quelque chose (retour humain 2026-08-21).
-    if (context === "locked") {
+    // Tour de l'IA, tour d'un joueur distant, ou résolution d'une action : plus rien n'est pointable,
+    // donc le curseur s'efface — le laisser sur le Pokemon du tour précédent affichait en plus sa
+    // fiche en prévision, comme si on visait encore quelque chose (retour humain 2026-08-21).
+    //
+    // `watching` s'y joint (plan 201) : la caméra y bouge, mais le curseur n'y vise rien.
+    if (context === "locked" || context === "watching") {
       combat.pinCursor(null);
       chrome.updateCursorPanel(null);
       chrome.updateTileInfo(null);
@@ -985,7 +1015,28 @@ function runResolvedBattle(options: {
   const aiPlayerIds = inputs.placementTeams
     .filter((team) => team.controller === PlayerController.Ai)
     .map((team) => team.playerId);
-  return runBattle({
+  const humanPlayerIds = inputs.placementTeams
+    .filter((team) => team.controller === PlayerController.Human)
+    .map((team) => team.playerId);
+  const allPlayerIds = inputs.placementTeams.map((team) => team.playerId);
+  /*
+   * 🔴 « Qui suis-je » ne dépend PAS du salon, et c'est une correction de revue.
+   *
+   * `localSeat` vient du setup : il dit qui est cette machine, que le salon soit vivant ou non.
+   * Le faire dériver du câblage réseau confondait deux choses différentes — « partie locale » et
+   * « partie en ligne dont le salon est parti » — et la seconde retombait silencieusement en
+   * hot-seat sur les deux camps.
+   */
+  const localPlayerIds =
+    inputs.setup.localSeat === undefined
+      ? undefined
+      : allPlayerIds.slice(inputs.setup.localSeat - 1, inputs.setup.localSeat);
+  const online = wireOnlineBattle({
+    localSeat: inputs.setup.localSeat,
+    allPlayerIds,
+    humanPlayerIds,
+  });
+  const orchestrator = runBattle({
     backend,
     combat,
     stage,
@@ -996,25 +1047,53 @@ function runResolvedBattle(options: {
     onReplay,
     initialLogEvents: options.initialLogEvents,
     onExit: () => navigate("main-menu", undefined),
-    wireTurnReady: (built) =>
-      wireScoredAi(
-        built,
-        aiPlayerIds,
-        inputs.placementTeams.map((team) => team.playerId),
-        inputs.setup.seeds?.ai,
-      ),
+    wireTurnReady: (built) => {
+      const ai = wireScoredAi(built, aiPlayerIds, allPlayerIds, inputs.setup.seeds?.ai);
+      if (online === null) {
+        return ai;
+      }
+      /*
+       * Composition, et l'ordre compte : l'IA d'abord (elle tourne des DEUX côtés, décision #901,
+       * donc elle joue son tour localement sans qu'un message ne s'échange), le distant ensuite.
+       * Une place tenue par l'IA n'attend jamais le réseau ; une place distante n'est jamais jouée
+       * localement.
+       */
+      return (activePokemonId) => {
+        const played = ai?.(activePokemonId);
+        if (played !== undefined && played !== false) {
+          return played;
+        }
+        const actor = built.state.pokemon.get(activePokemonId);
+        if (actor && online.isRemotePlayer(actor.playerId)) {
+          return "pending";
+        }
+        return false;
+      };
+    },
     // A real battle always withholds enemy information (plan 176) — no player-facing opt-out.
     enemyInfoHidden: true,
     // Gelée pour toute la partie (plan 198) : la reprise repasse par ici avec le setup sauvegardé,
     // donc un combat repris retrouve le choix fait à la sélection d'équipe.
     damagePreview: inputs.setup.damagePreview,
-    humanPlayerIds: inputs.placementTeams
-      .filter((team) => team.controller === PlayerController.Human)
-      .map((team) => team.playerId),
+    humanPlayerIds,
+    ...(localPlayerIds === undefined ? {} : { localPlayerIds }),
+    ...(online === null
+      ? {}
+      : {
+          onLocalAction: (action, actionIndex) => online.sendAction(actionIndex, action),
+          onRemoteActionRejected: (rejection) => online.onRejection(rejection),
+        }),
     onActionCommitted: persist,
-    onBattleClosed: () => store.clear(),
+    onBattleClosed: () => {
+      store.clear();
+      // Tous les chemins de sortie passent par là : partie finie, ou joueur qui s'en va.
+      releaseOnlineRoom();
+    },
     getElapsedMs,
   });
+  online?.attach(orchestrator, signal);
+  signal.addEventListener("abort", () => releaseOnlineRoom(), { once: true });
+  return orchestrator;
 }
 
 /**

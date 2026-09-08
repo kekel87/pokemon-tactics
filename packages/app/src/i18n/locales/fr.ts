@@ -965,7 +965,12 @@ const fr: Translations = {
   "battleLog.terrainStatus.magma": "{name} est brûlé par le magma !",
   "battleLog.terrainStatus.swamp": "{name} est empoisonné par le marécage !",
   "battleLog.transformed": "{name} se transforme !",
+  "battle.turnOwner.you": "À vous",
+  "battle.turnOwner.player": "Joueur {player}",
+  "battle.turnOwner.ai": "IA",
   "battleLog.turnStarted": "Tour de {name}",
+  "battleLog.playerForfeited":
+    "Le joueur {player} quitte la partie — les parties ne concordent plus.",
   "battleLog.typeChanged.becomes": "{name} devient de type {typeLabel} !",
   "battleLog.typeChanged.burnUp": "{name} perd son type Feu !",
   "battleLog.typeChanged.typeSeparator": " / ",

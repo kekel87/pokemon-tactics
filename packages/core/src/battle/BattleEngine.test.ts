@@ -1687,3 +1687,56 @@ describe("BattleEngine KO body blocking", () => {
     });
   });
 });
+
+describe("BattleEngine.actionLogLength", () => {
+  const endTurn = (pokemonId: string) => ({
+    kind: ActionKind.EndTurn as typeof ActionKind.EndTurn,
+    pokemonId,
+    direction: Direction.South,
+  });
+
+  it("part de zéro sur un combat qui commence", () => {
+    const state = MockBattle.stateFrom([fresh(P1), fresh(P2)]);
+    const engine = new BattleEngine(state, new Map());
+
+    expect(engine.actionLogLength).toBe(0);
+  });
+
+  it("avance d'un cran par action acceptée", () => {
+    const state = MockBattle.stateFrom([fresh(P1), fresh(P2)]);
+    const engine = new BattleEngine(state, new Map());
+
+    engine.submitAction(PlayerId.Player1, endTurn("fast"));
+    expect(engine.actionLogLength).toBe(1);
+
+    engine.submitAction(PlayerId.Player2, endTurn("slow"));
+    expect(engine.actionLogLength).toBe(2);
+  });
+
+  it("ne bouge pas sur une action refusée", () => {
+    const state = MockBattle.stateFrom([fresh(P1), fresh(P2)]);
+    const engine = new BattleEngine(state, new Map());
+
+    const refused = engine.submitAction(PlayerId.Player2, endTurn("slow"));
+
+    expect(refused.success).toBe(false);
+    expect(engine.actionLogLength).toBe(0);
+  });
+
+  it("suit le journal que le replay exporte", () => {
+    const state = MockBattle.stateFrom([fresh(P1), fresh(P2)]);
+    const engine = new BattleEngine(state, new Map());
+    engine.submitAction(PlayerId.Player1, endTurn("fast"));
+
+    expect(engine.actionLogLength).toBe(engine.exportReplay().actions.length);
+  });
+
+  it("ignore un abandon, qui n'est pas une action", () => {
+    const state = MockBattle.stateFrom([fresh(P1), fresh(P2)]);
+    const engine = new BattleEngine(state, new Map());
+
+    engine.forfeit(PlayerId.Player2);
+
+    expect(engine.actionLogLength).toBe(0);
+  });
+});

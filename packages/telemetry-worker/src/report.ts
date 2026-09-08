@@ -86,6 +86,14 @@ export interface BattleEndedPayload {
   battleId: string;
   winnerSide: number | null;
   draw: boolean;
+  /**
+   * `"combat"` ou `"forfeit"` (plan 201). **Facultatif** : les lignes déjà en base n'en ont pas, et
+   * le schéma est « événement brut, agrégation à la lecture » — rien ne réécrit l'historique.
+   *
+   * Pas encore agrégé : la Phase 8 devra écarter les forfaits des statistiques de matchup, sans quoi
+   * elle comptera comme décisives des parties qui ne se sont pas jouées.
+   */
+  endReason?: string;
   durationMs: number;
   turns: number;
   outcomes: MemberOutcomePayload[];

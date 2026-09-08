@@ -9,7 +9,12 @@
  */
 
 import { type BattleEvent, BattleEventType } from "@pokemon-tactic/core";
-import { type BattleEndedPayload, KnockOutCause, type TelemetryMemberOutcome } from "./telemetry";
+import {
+  type BattleEndedPayload,
+  BattleEndReason,
+  KnockOutCause,
+  type TelemetryMemberOutcome,
+} from "./telemetry";
 
 /** `p1-pikachu` ou `p1-m0-pikachu` → `pikachu`. Même règle que le chrome et le placement. */
 function speciesOf(pokemonId: string): string {
@@ -63,6 +68,9 @@ export function createBattleTelemetryCollector(input: {
   let ended = false;
   let winnerSide: number | null = null;
   let draw = false;
+  let endReason: BattleEndReason = BattleEndReason.Combat;
+  /** Camps qui ont quitté la partie : leurs K.O. sont des abandons, pas des dégâts (plan 201). */
+  const forfeitedSides = new Set<number>();
 
   function isTracked(pokemonId: string): boolean {
     const side = sideOf(pokemonId);
@@ -73,7 +81,11 @@ export function createBattleTelemetryCollector(input: {
     if (!isTracked(pokemonId) || knockOuts.has(pokemonId)) {
       return;
     }
-    knockOuts.set(pokemonId, { turn: turns, cause });
+    // Le camp a quitté la partie : ses Pokemon ne sont pas tombés sous les coups, et les compter
+    // ainsi fausserait la lecture de l'équilibrage.
+    const side = sideOf(pokemonId);
+    const effective = side !== null && forfeitedSides.has(side) ? KnockOutCause.Forfeit : cause;
+    knockOuts.set(pokemonId, { turn: turns, cause: effective });
   }
 
   return {
@@ -124,6 +136,15 @@ export function createBattleTelemetryCollector(input: {
           recordKnockOut(event.pokemonId, KnockOutCause.RingOut);
           break;
 
+        case BattleEventType.PlayerForfeited: {
+          endReason = BattleEndReason.Forfeit;
+          const side = sideOfPlayer(event.playerId);
+          if (side !== null) {
+            forfeitedSides.add(side);
+          }
+          break;
+        }
+
         case BattleEventType.BattleEnded:
           ended = true;
           draw = event.winnerId === null;
@@ -154,6 +175,7 @@ export function createBattleTelemetryCollector(input: {
         battleId: input.battleId,
         winnerSide,
         draw,
+        endReason,
         durationMs: input.now() - input.startedAt,
         turns,
         outcomes,

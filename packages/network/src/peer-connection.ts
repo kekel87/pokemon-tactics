@@ -68,15 +68,46 @@ export class PeerJsTransport implements NetworkTransport {
       );
     }
 
-    const peer = new Peer(peerId, {
-      host: this.options.host,
-      port: this.options.port,
-      path: this.options.path,
-      secure: this.options.secure,
-      ...(this.options.iceServers === undefined
-        ? {}
-        : { config: { iceServers: [...this.options.iceServers] } }),
-    });
+    /*
+     * 🔴 **Chaque option n'est passée que si elle est RENSEIGNÉE**, et ce n'est pas une coquetterie.
+     *
+     * `peerjs` fusionne ses défauts par `{ ...defaults, ...options }` : une clé présente à
+     * `undefined` **écrase le défaut** au lieu de le laisser. Ce bloc s'écrivait
+     * `host: this.options.host, port: …, path: …, secure: …` — donc un salon SANS surcharge
+     * d'annuaire (le cas de tout joueur réel : `signallingOverride()` ne rend quelque chose que
+     * pour l'e2e) partait avec `host: undefined, port: undefined, path: undefined`. `peerjs`
+     * construisait alors `wss://undefined:undefined…`, et `new WebSocket` jetait un `SyntaxError`.
+     *
+     * Conséquence, trouvée à la recette du plan 201 : **le service public de PeerJS n'était pas
+     * joignable, donc le jeu en ligne ne marchait que sur l'annuaire local de l'e2e.** La recette du
+     * Lot B1 était passée par `?peerPort`, qui renseigne les quatre options — le chemin par défaut
+     * n'avait donc jamais été emprunté.
+     */
+    let peer: Peer;
+    try {
+      peer = new Peer(peerId, {
+        ...(this.options.host === undefined ? {} : { host: this.options.host }),
+        ...(this.options.port === undefined ? {} : { port: this.options.port }),
+        ...(this.options.path === undefined ? {} : { path: this.options.path }),
+        ...(this.options.secure === undefined ? {} : { secure: this.options.secure }),
+        ...(this.options.iceServers === undefined
+          ? {}
+          : { config: { iceServers: [...this.options.iceServers] } }),
+      });
+    } catch (error) {
+      /*
+       * `new Peer` peut jeter **en synchrone** : il ouvre sa socket dans le constructeur, donc une
+       * URL d'annuaire invalide sort ici, en `DOMException`, et non par l'événement `error`.
+       *
+       * Ce `try` manquait, et c'est ce qui a rendu le bug ci-dessus illisible : l'exception passait
+       * à travers la traduction vers l'énumération fermée et remontait brute jusqu'à l'écran, où son
+       * `code` numérique (12, `SYNTAX_ERR`) s'est affiché en clé de traduction — « room.error.12 ».
+       */
+      throw new NetworkTransportError(
+        NetworkErrorCode.ConnexionImpossible,
+        `annuaire injoignable : ${String(error)}`,
+      );
+    }
 
     try {
       await waitForPeerOpen(peer);

@@ -139,6 +139,19 @@ export interface BattleChromeOptions {
   onExit: () => void;
   /** Restart the same combat (victory "replay" — internal re-mount, not an FSM transition). */
   onReplay: () => void;
+  /**
+   * Le bouton « Rejouer » du dialogue de victoire est-il proposé ? Défaut : oui.
+   *
+   * 🔴 Faux en ligne, et pas par prudence : « Rejouer » remonte le combat avec **le même setup**, or
+   * le salon a été libéré à la fin de la partie. La partie repartait donc sans réseau mais en croyant
+   * les deux camps humains — les places distantes étant rabattues sur `human` — donc le joueur
+   * reprenait la main sur **les deux équipes**, sans un mot. C'est le piège que tout le Lot B2 existe
+   * pour fermer, ressuscité par un bouton (relevé en revue de code).
+   *
+   * La revanche en ligne est de toute façon hors V1 : elle demande de rouvrir un salon, pas de
+   * remonter un écran.
+   */
+  canReplay?: boolean;
   /** Host-injected i18n / asset-path deps (plan 125 Phase 4). */
   config: UiDomConfig;
   /**
@@ -339,7 +352,22 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
   return {
     updateTurnInfo: (info: TurnInfoView) => {
       const name = getPokemonName(definitionIdOf(info.activePokemonId), language);
-      banner.textContent = name;
+      /*
+       * Le nom du Pokemon ET à qui est le tour (plan 201, retour de recette). Le nom seul suffisait
+       * en solo ; en ligne, deux camps humains alternent et rien ne disait lequel jouait.
+       *
+       * Le numéro de camp se lit dans `playerId` (`player-2` → 2), la V1 n'ayant pas de noms de
+       * joueur (décision #906).
+       */
+      const owner =
+        info.owner === "you"
+          ? config.translate("battle.turnOwner.you")
+          : info.owner === "ai"
+            ? config.translate("battle.turnOwner.ai")
+            : config.translate("battle.turnOwner.player", {
+                player: /^player-(\d+)$/.exec(info.playerId)?.[1] ?? info.playerId,
+              });
+      banner.textContent = `${name} — ${owner}`;
     },
 
     showActionMenu: (view: ActionMenuView) => {
@@ -494,16 +522,19 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
       if (message) {
         message.textContent = config.translate("battle.drawMessage");
       }
-      const replay = button(config.translate("battle.restart"), () => {
-        dialog.close();
-        onReplay();
-      });
+      const replay =
+        options.canReplay === false
+          ? null
+          : button(config.translate("battle.restart"), () => {
+              dialog.close();
+              onReplay();
+            });
       const exit = button(config.translate("battle.backToMenu"), () => {
         dialog.close();
         onExit();
       });
       const actions = el("div", "bc-victory-actions");
-      actions.append(replay, exit);
+      actions.append(...(replay ? [replay] : []), exit);
       dialog.append(
         heading,
         ...(message ? [message] : []),

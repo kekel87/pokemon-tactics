@@ -4,7 +4,11 @@ import {
   TelemetryAction,
   TelemetryScreen,
 } from "../../../analytics/telemetry";
-import { type BattleResumeSave, battleResumeStore } from "../../../app/battle-persistence";
+import {
+  type BattleResumeSave,
+  battleResumeStore,
+  isOnlineSave,
+} from "../../../app/battle-persistence";
 import type { Navigate, Screen } from "../../../app/screen-manager";
 import { getLanguage, setLanguage, t } from "../../../i18n";
 import { Language } from "../../../i18n/types";
@@ -54,7 +58,9 @@ export function createMainMenuScreen(navigate: Navigate): Screen<"main-menu"> {
     // Read on every render (including the language toggle's re-render), so a battle abandoned from the
     // combat screen stops being offered without any cross-screen plumbing.
     const save = battleResumeStore().load();
-    if (save) {
+    // Une partie en ligne ne se reprend pas seul (plan 201, décision D4) : le journal reste en place
+    // pour la reconnexion du Lot B3, mais l'offre de reprise, elle, jouerait les deux camps.
+    if (save && !isOnlineSave(save)) {
       countAction(TelemetryAction.ResumeOffered);
       buttons.append(resumeEntry(save, navigate));
     }

@@ -148,6 +148,8 @@ pokemon-tactics/
 │   │   │   ├── sandbox-setup.ts         # SandboxSetup
 │   │   │   ├── ai/                      # AiTeamController, DummyAiController
 │   │   │   ├── sandbox-config.ts        # SandboxConfig + DEFAULT_SANDBOX_CONFIG
+│   │   │   ├── remote-action.ts         # Projection canonique d'une Action (retreatPosition exclu) pour
+│   │   │   │                            # comparer contre getLegalActions() — tour distant (plan 201, Lot B2)
 │   │   │   └── constants.ts             # couleurs Champs, symboles aura/charge, durées tween, cluster BATTLE_TEXT
 │   │   ├── tsconfig.json        # lib ["ES2022","WebWorker"] (timers sans DOM) ; dépend core/data/render-ports
 │   │   └── package.json
@@ -210,8 +212,11 @@ pokemon-tactics/
 │   │   │   ├── input/           # Couche d'entrée device-agnostique (plans 184/186) : actions logiques,
 │   │   │   │                    # routeur par contexte, sources clavier/manette/pointeur, magasin de
 │   │   │   │                    # bindings, navigation du focus DOM, étiquettes de touches
-│   │   │   ├── network/         # Câblage réseau côté app (plan 199, Phase 7 Lot B1) : signalling-override.ts
-│   │   │   │                    # (surcharge d'annuaire PeerJS verrouillée DEV/VITE_E2E, pour l'e2e uniquement)
+│   │   │   ├── network/         # Câblage réseau côté app (plan 199 Phase 7 Lot B1, étendu au combat
+│   │   │   │                    # par le plan 201 Lot B2) : signalling-override.ts (surcharge d'annuaire
+│   │   │   │                    # PeerJS verrouillée DEV/VITE_E2E, pour l'e2e uniquement), online-room.ts
+│   │   │   │                    # (salon survivant à la transition d'écran, hold/release/getOnlineRoom),
+│   │   │   │                    # online-battle.ts (traduction place ↔ joueur, barème de refus 1er/2e/3e)
 │   │   │   ├── i18n/            # Système i18n maison (t, setLanguage, detectLanguage, Language enum)
 │   │   │   │   └── locales/     # fr.ts, en.ts
 │   │   │   ├── settings/        # Paramètres persistants : GameSettings, getSettings(), updateSettings()
@@ -285,16 +290,19 @@ pokemon-tactics/
 │       ├── tsconfig.json
 │       └── package.json
 │   │
-│   ├── network/                 # Transport pair-à-pair du multijoueur (plan 199, Phase 7 Lot B1) —
-│   │   │                        # pur : aucune dépendance d'interface, et du moteur il ne connaît
-│   │   │                        # que des types
+│   ├── network/                 # Transport pair-à-pair du multijoueur (plan 199 Phase 7 Lot B1,
+│   │   │                        # étendu au combat par le plan 201 Lot B2) — pur : aucune dépendance
+│   │   │                        # d'interface, et du moteur il ne connaît que des types
 │   │   ├── src/
-│   │   │   ├── protocol.ts             # NetworkMessage, NETWORK_VERSION, causes de refus, graines (combat/placement/IA)
+│   │   │   ├── protocol.ts             # NetworkMessage, NETWORK_VERSION (2 depuis B2), causes de refus,
+│   │   │   │                          # graines (combat/placement/IA), messages action/forfeit (B2)
 │   │   │   ├── room-code.ts            # Alphabet du code (5 caractères), génération, adresses dérivées pkmntac-<CODE>-<place>
 │   │   │   ├── transport.ts            # Contrat commun de transport + prise d'identifiant à réessais
 │   │   │   ├── peer-connection.ts      # Mise en œuvre PeerJS (WebRTC)
 │   │   │   ├── fake-transport.ts       # Canal en mémoire — rend le salon testable sans réseau (plusieurs Room dans le même processus)
-│   │   │   ├── room.ts                 # État de salon : arrivées, départs, lancement accusé
+│   │   │   ├── room.ts                 # État de salon : arrivées, départs, lancement accusé ; sendAction/
+│   │   │   │                          # onAction, sendForfeit/onForfeit, tampon des messages reçus avant
+│   │   │   │                          # branchement de l'écran de combat (B2)
 │   │   │   └── index.ts                # Barrel export
 │   │   ├── tsconfig.json
 │   │   └── package.json         # dependencies: @pokemon-tactic/core (workspace, types uniquement), peerjs
@@ -938,6 +946,15 @@ interface BattleEngine {
 
   // Soumettre une action — synchrone, retourne le résultat + events
   submitAction(playerId: string, action: Action): ActionResult;
+
+  // Abandon d'un camp — patron de Lien du Destin (met les PV à 0, émet PokemonKo,
+  // passe par handleKo → checkVictory). Ne décide PAS la fin du combat : à 3+ camps,
+  // le combat continue tant qu'il reste plus d'un camp vivant (plan 201, Lot B2)
+  forfeit(playerId: string): ActionResult;
+
+  // Nombre d'actions déjà enregistrées — évite de recopier exportReplay().actions
+  // à chaque comparaison réseau (détecteur de désync du pauvre, plan 201)
+  readonly actionLogLength: number;
 
   // Souscrire aux événements (renderer, replay, debug)
   on(event: string, handler: (e: BattleEvent) => void): void;

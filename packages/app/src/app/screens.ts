@@ -71,6 +71,16 @@ export interface CombatSetup {
    * message ne s'échange (décision #901).
    */
   seeds?: NetworkSeeds;
+  /**
+   * La place que **cette machine** tient dans une partie en ligne (1 = l'hôte), plan 201, Lot B2.
+   *
+   * 🔴 C'est l'information qui manquait de bout en bout : `teams[].controller` dit qui est humain,
+   * **jamais qui c'est moi**. Une place distante est rabattue sur `human` à la composition du setup,
+   * donc sans elle l'écran de combat rend la main au joueur local au tour de son adversaire.
+   *
+   * Absente en local, où tous les humains sont devant le même écran.
+   */
+  localSeat?: number;
 }
 
 /** Params passed to each screen's mount(). Extended as plan 120 steps land. */

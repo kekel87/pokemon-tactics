@@ -23,10 +23,17 @@ import {
 let collector: BattleTelemetryCollector | null = null;
 
 /**
- * Modes de la V1. `online` et `story` viendront avec le Lot B et la Phase 9 ; les distinguer
- * demande une information que l'écran de sélection ne porte pas encore.
+ * Modes de la V1. `story` viendra avec la Phase 9.
+ *
+ * `online` se reconnaît à la présence d'une **place locale** (plan 201) et non au décompte
+ * d'humains : une partie en ligne à un humain et une IA en face porte `humans: 2` — la place
+ * distante est rabattue sur `human` dans le setup — donc le décompte seul l'aurait rangée en
+ * hot-seat, exactement l'inverse de ce qu'on veut mesurer.
  */
-function modeOf(humans: number): string {
+function modeOf(humans: number, localSeat: number | undefined): string {
+  if (localSeat !== undefined) {
+    return "online";
+  }
   return humans >= 2 ? "local-hotseat" : "local-vs-ai";
 }
 
@@ -47,13 +54,15 @@ export function beginBattleTelemetry(input: {
   damagePreview: boolean;
   telemetryTeams: readonly TelemetryTeam[];
   teams: readonly TeamSelection[];
+  /** Notre place en ligne. Sa seule présence fait le mode `online` (plan 201). */
+  localSeat?: number;
 }): void {
   const battleId = createBattleId();
   const { humans, ai } = countControllers(input.teams);
 
   trackBattleStarted({
     battleId,
-    mode: modeOf(humans),
+    mode: modeOf(humans, input.localSeat),
     map: mapIdFromUrl(input.mapUrl) ?? MAP_ID_UNKNOWN,
     format: input.formatKey,
     humans,

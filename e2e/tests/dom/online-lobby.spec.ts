@@ -1,5 +1,6 @@
 import { expect, localSignalling, test } from "../../fixtures";
 import { CombatScene } from "../../pages/CombatScene";
+import { readActivePokemon } from "../../pages/combat-queries";
 import { LobbyScreen, WaitingRoom } from "../../pages/lobby";
 import { MainMenu } from "../../pages/MainMenu";
 import { BattleModeScreen, MapSelectScreen, TeamSelectScreen } from "../../pages/screens";
@@ -45,8 +46,9 @@ test("§11.1 en ligne : créer, rejoindre, et entrer en combat à deux", async (
     await hostMode.online.click();
     await expect(hostLobby.title).toBeVisible();
 
-    // Le format se choisit AVANT la création (décision #896) : « 2 joueurs », le premier segment.
-    await hostLobby.formatSegments.first().click();
+    // Le format est ANNONCÉ, plus choisi : le réseau est 1v1 (plan 201), donc un sélecteur à une
+    // seule option aurait été un contrôle mort. Il reste dit, et gravé avant la création (#896).
+    await expect(hostLobby.formatLine).toContainText("2 joueurs");
     await hostLobby.create.click();
 
     // L'hôte passe par l'écran de terrain — l'invité, lui, n'en verra que le nom.
@@ -128,8 +130,75 @@ test("§11.1 en ligne : créer, rejoindre, et entrer en combat à deux", async (
      * l'élément existe dès le montage, alors que `isReady()` attend la carte et les atlas chargés.
      */
     await expect(hostTeams.title).toBeHidden({ timeout: 30_000 });
-    await new CombatScene(hostPage).waitReady(30_000);
-    await new CombatScene(guestPage).waitReady(30_000);
+    const hostScene = new CombatScene(hostPage);
+    const guestScene = new CombatScene(guestPage);
+    await hostScene.waitReady(30_000);
+    await guestScene.waitReady(30_000);
+
+    /*
+     * — Le combat en réseau (plan 201, Lot B2) ————————————————————————————————————————————————————
+     *
+     * Étendu ici plutôt qu'ajouté en second scénario : celui-ci paie DÉJÀ la négociation WebRTC et
+     * les deux boots Babylon, qui sont tout le coût. Le reste — barème, index d'action, traduction
+     * place ↔ joueur — se prend en intégration et en unitaire, où c'est gratuit.
+     *
+     * (a) Les deux plateaux désignent le MÊME Pokemon actif avant qu'on touche à rien. C'est ce qui
+     *     prouve le setup partagé : même carte, mêmes équipes, mêmes graines, donc même ordre de
+     *     Charge Time.
+     *
+     *     ⚠️ Le nom SEULEMENT, pas les PV, et la raison est le fog (plan 176) : le pair qui possède
+     *     ce Pokemon lit ses PV exacts, l'autre les lit en POURCENTAGE. Les deux panneaux diffèrent
+     *     donc légitimement — c'est même la preuve que chacun lit par ses propres yeux, ce que
+     *     `localPlayerIds` existe pour garantir. Écrit d'abord avec `toEqual` sur l'objet entier,
+     *     l'assertion a échoué sur `155/155` contre `100/100` : le test avait tort, pas le jeu.
+     */
+    const hostActive = await readActivePokemon(hostPage);
+    expect((await readActivePokemon(guestPage)).name).toBe(hostActive.name);
+
+    /*
+     * (b) Qui joue le premier dépend de la Vitesse des équipes TIRÉES, qu'on ne connaît pas d'avance
+     *     — donc on cherche le côté qui a la main au lieu de le supposer. L'autre est verrouillé :
+     *     c'est exactement le piège que `localPlayerIds` ferme, sans quoi les DEUX auraient le menu.
+     */
+    const hostWait = hostPage.getByRole("button", { name: "Attendre", exact: true });
+    const guestWait = guestPage.getByRole("button", { name: "Attendre", exact: true });
+    await expect
+      .poll(async () => (await hostWait.isVisible()) || (await guestWait.isVisible()), {
+        timeout: 30_000,
+      })
+      .toBe(true);
+    const hostHasHand = await hostWait.isVisible();
+    expect(hostHasHand ? await guestWait.isVisible() : await hostWait.isVisible()).toBe(false);
+
+    const actor = hostHasHand ? hostScene : guestScene;
+    const observerPage = hostHasHand ? guestPage : hostPage;
+    const entriesBefore = (await observerPage.getByTestId("battle-log-entry").allTextContents())
+      .length;
+
+    /*
+     * (c) Le côté qui a la main joue. Le journal de CELUI QUI REGARDE grandit : son moteur a reçu
+     *     l'action, l'a validée contre son propre `getLegalActions()` et l'a appliquée. C'est la
+     *     boucle entière du lot, vue de l'extérieur.
+     */
+    await actor.endTurn();
+    await expect
+      .poll(
+        async () => (await observerPage.getByTestId("battle-log-entry").allTextContents()).length,
+        { timeout: 30_000 },
+      )
+      .toBeGreaterThan(entriesBefore);
+
+    // (d) Et les deux journaux disent la même chose, mot pour mot.
+    const hostEntries = await hostPage.getByTestId("battle-log-entry").allTextContents();
+    await expect
+      .poll(
+        async () => (await guestPage.getByTestId("battle-log-entry").allTextContents()).length,
+        {
+          timeout: 10_000,
+        },
+      )
+      .toBe(hostEntries.length);
+    expect(await guestPage.getByTestId("battle-log-entry").allTextContents()).toEqual(hostEntries);
   } finally {
     await hostContext.close();
     await guestContext.close();
@@ -149,8 +218,9 @@ test("§11.2 en ligne : « Humain » sur une place libre laisse le salon jouable
    * Correctif à deux étages : `Room.setSeatOccupancy` refuse `Human`, et l'écran envoie `Waiting` —
    * « je rouvre cette place à un joueur » — quand l'hôte presse « Humain ».
    *
-   * Partie à QUATRE places : c'est le format qui donne trois lignes libres à basculer, là où le
-   * deux joueurs n'en offre qu'une.
+   * Partie à DEUX places, le seul format offert en ligne : sa seconde ligne est libre, et c'est tout
+   * ce que ce scénario demande. Il en réclamait quatre avant que le lot 201 ne restreigne le réseau
+   * au 1v1 ; basculer une place libre ne dépend pas de leur nombre.
    */
   const menu = new MainMenu(page);
   const mode = new BattleModeScreen(page);
@@ -162,7 +232,9 @@ test("§11.2 en ligne : « Humain » sur une place libre laisse le salon jouable
   await menu.goto(localSignalling);
   await menu.combat.click();
   await mode.online.click();
-  await lobby.formatSegment(4).click();
+  // Le 1v1 est le SEUL format en ligne (plan 201) : à trois camps et plus, `broadcast` écrit sur des
+  // canaux que rien n'ordonne entre eux, et une action en avance ferait éliminer un joueur honnête.
+  // Ce scénario n'en a pas besoin — il lui faut UNE place libre, et le 1v1 en a une.
   await lobby.create.click();
   await maps.confirm.click();
   await expect(room.panel).toBeVisible();

@@ -61,6 +61,7 @@ import {
 } from "./constants.js";
 import { buildMoveContextualView } from "./move-contextual-view.js";
 import { moveIntent, selfPreviewRadius } from "./move-intent.js";
+import { isLegalRemoteAction } from "./remote-action.js";
 import { buildSecondaryEffectChip } from "./secondary-effect-chip.js";
 
 /**
@@ -87,7 +88,10 @@ import type {
   BoardView,
   DirectionPickerHandle,
   PresentationContext,
+  RemoteActionEnvelope,
+  RemoteActionRejectionCause,
   SemiInvulnerableDisplay,
+  TurnOwner,
 } from "@pokemon-tactic/render-ports";
 import { buildOutcomeSummary } from "./battle-outcome-summary.js";
 
@@ -113,13 +117,26 @@ export type {
   BoardView,
   DirectionPickerCallbacks,
   DirectionPickerHandle,
+  RemoteActionEnvelope,
+  RemoteActionRejection,
+  RemoteActionRejectionCause,
   SelectedMoveView,
   SemiInvulnerableDisplay,
   TurnInfoView,
+  TurnOwner,
 } from "@pokemon-tactic/render-ports";
 
 /** Pacing between board-affecting events in the minimal loop (not a tween — a beat to follow the action). */
 const BATTLE_STEP_DELAY_MS = 180;
+
+/**
+ * Refus consécutifs au bout desquels une place distante est éliminée (plan 201, décision D1).
+ *
+ * Trois, et pas un : le premier refus peut être un bug de notre côté, et éliminer quelqu'un sur un
+ * hoquet serait pire que le laisser jouer un tour de trop. Un pair réellement divergent, lui, voit
+ * **tout** refusé — il atteint trois d'affilée en trois tours.
+ */
+const REMOTE_REJECTION_LIMIT = 3;
 
 /** Zone identity colour per field terrain ("Champs"). */
 const FIELD_TERRAIN_COLOR: Record<FieldTerrain, number> = {
@@ -148,6 +165,14 @@ type InputState =
   | { phase: "select_retreat_target"; moveId: string; action: Action; retreatTiles: Position[] }
   | { phase: "select_direction" }
   | { phase: "animating" }
+  /**
+   * Le tour d'un joueur distant : rien n'est jouable ici, on attend un message (plan 201).
+   *
+   * Une phase à part et non `animating` : les deux verrouillent l'entrée, mais elles ne veulent pas
+   * dire la même chose — l'une résout des événements en cours, l'autre attend le réseau. Les
+   * distinguer est ce qui permettra au Lot B3 d'y accrocher son chien de garde sans deviner.
+   */
+  | { phase: "waiting_remote"; playerId: string }
   | { phase: "battle_over"; winnerId: string | null };
 
 /**
@@ -158,7 +183,19 @@ type InputState =
  * - `board`: the arrows drive the tile cursor, Confirm validates the tile under it.
  * - `locked`: an animation is playing — no input is consumed (the board is mid-change).
  */
-export type InputContext = "menu" | "board" | "locked";
+/**
+ * Familles d'entrée. `watching` est né du plan 201, et d'un retour de recette.
+ *
+ * 🔴 `locked` bloque **tout**, actions de vue comprises (`input-router.ts`), et son commentaire le
+ * justifiait ainsi : « les verrous durent moins d'une seconde ». C'était vrai d'une animation. Ça a
+ * cessé de l'être avec le tour distant, qui dure le temps que l'autre joueur réfléchit — jusqu'à
+ * 45 s de délai de grâce. On ne peut pas immobiliser la caméra tout ce temps : regarder le plateau
+ * pendant que l'adversaire joue est le minimum.
+ *
+ * `watching` laisse donc passer ce qui ne touche pas à la partie — caméra, zoom, journal, timeline —
+ * et rien d'autre. `locked` garde son sens strict : une action se résout, on n'y touche pas.
+ */
+export type InputContext = "menu" | "board" | "locked" | "watching";
 
 const INPUT_CONTEXT_BY_PHASE: Readonly<Record<InputState["phase"], InputContext>> = {
   action_menu: "menu",
@@ -169,6 +206,7 @@ const INPUT_CONTEXT_BY_PHASE: Readonly<Record<InputState["phase"], InputContext>
   select_retreat_target: "board",
   select_direction: "board",
   animating: "locked",
+  waiting_remote: "watching",
   // Le dialogue de victoire EST un menu (Rejouer / Retour au menu) : le classer `locked` le rendait
   // inatteignable à la manette, qui n'a pas de `Tab` pour naviguer dans une modale (retour humain
   // 2026-08-21).
@@ -206,8 +244,17 @@ function semiInvulnerableDisplay(
 }
 
 export class BattleOrchestrator {
-  /** AI hook (set by the host). Returns the active Pokémon's queued events, or `false` for a human turn. */
-  onTurnReady: ((activePokemonId: string) => BattleEvent[] | false) | null = null;
+  /**
+   * Crochet de tour non humain, posé par l'hôte. Trois réponses :
+   *
+   * - un tableau d'événements — « j'ai joué, voilà le résultat » (l'IA a soumis elle-même) ;
+   * - `false` — « c'est un humain local, ouvre le menu » ;
+   * - `"pending"` — « c'est un joueur distant, attends un message » (plan 201).
+   *
+   * La troisième existe parce qu'un tour distant est **asynchrone** : il n'a ni événements à rendre
+   * tout de suite, ni joueur local à qui rendre la main. La suite arrive par `submitRemoteAction`.
+   */
+  onTurnReady: ((activePokemonId: string) => BattleEvent[] | false | "pending") | null = null;
 
   private readonly queue = new AnimationQueue();
   private inputState: InputState = { phase: "animating" };
@@ -237,6 +284,18 @@ export class BattleOrchestrator {
   /** Living occupants of the locked footprint, in cycle order (combat preview, plan 175). */
   private previewTargetIds: readonly string[] = [];
   private previewFocusIndex = 0;
+  /** Refus CONSÉCUTIFS par place distante (plan 201, décision D1). Un succès remet à zéro. */
+  private readonly remoteRejectionsBySeat = new Map<number, number>();
+  /**
+   * Actions distantes arrivées **hors de notre attente**, gardées jusqu'à ce que ce soit leur tour.
+   *
+   * 🔴 Pourquoi garder plutôt que refuser : les deux pairs ne montent pas le combat au même instant
+   * (chargement de carte et d'atlas), et un onglet en arrière-plan voit ses minuteurs plafonnés à
+   * 1 s — donc une action légitime peut arriver pendant notre animation, ou même pendant nos
+   * événements de démarrage. La refuser compterait un refus **contre un joueur honnête**, et trois
+   * suffisent à l'éliminer. Relevé en revue de code.
+   */
+  private readonly pendingRemoteActions: RemoteActionEnvelope[] = [];
   private disposed = false;
 
   constructor(
@@ -582,7 +641,11 @@ export class BattleOrchestrator {
    * the enemy now taking its turn is still rendered as an enemy — fog included.
    */
   private viewerPlayerId(): string | null {
-    const humans = this.config.humanPlayerIds ?? [];
+    // `localPlayerIds` et non `humanPlayerIds` (plan 201) : en ligne, la seconde contient
+    // l'adversaire distant, dont le tour ferait basculer le point de vue des panneaux chez lui. Sans
+    // suite propre — le fog en ligne est cosmétique et assumé (décision #863) — c'est juste la
+    // lecture juste, qui tombe gratuitement avec le champ. En local les deux listes sont la même.
+    const humans = this.config.localPlayerIds ?? this.config.humanPlayerIds ?? [];
     const actingPlayerId = this.activePokemon()?.playerId ?? null;
     if (humans.length === 0) {
       return actingPlayerId;
@@ -591,6 +654,25 @@ export class BattleOrchestrator {
       return actingPlayerId;
     }
     return humans[0] ?? actingPlayerId;
+  }
+
+  /**
+   * À qui appartient le tour, du point de vue de la personne devant l'écran (plan 201).
+   *
+   * « À vous » n'est dit que s'il n'y a **qu'une** place locale : en hot-seat les deux camps sont
+   * locaux, et l'annoncer des deux côtés ne dirait à personne de qui c'est le tour — or c'est
+   * précisément ce que le plan 188 demande de savoir en se passant l'écran.
+   */
+  private turnOwner(actingPlayerId: string): TurnOwner {
+    const humans = this.config.humanPlayerIds ?? [];
+    if (humans.length > 0 && !humans.includes(actingPlayerId)) {
+      return "ai";
+    }
+    const locals = this.config.localPlayerIds ?? humans;
+    if (locals.length === 1 && locals[0] === actingPlayerId) {
+      return "you";
+    }
+    return "player";
   }
 
   /** Push the hovered (or active) Pokémon to the info panel + the current weather. */
@@ -713,6 +795,7 @@ export class BattleOrchestrator {
     this.chrome.updateTurnInfo({
       activePokemonId: active.id,
       playerId: active.playerId,
+      owner: this.turnOwner(active.playerId),
     });
     this.syncBoard();
     this.refreshInfoPanel();
@@ -721,6 +804,22 @@ export class BattleOrchestrator {
     this.board.panCameraTo(active.position);
 
     const aiEvents = this.onTurnReady?.(active.id);
+    if (aiEvents === "pending") {
+      // Tour distant : le plateau se verrouille et on attend `submitRemoteAction`. Surtout pas
+      // `enterActionMenu()` — c'est le piège que `localPlayerIds` existe pour fermer : une place
+      // distante est rabattue sur `human` dans le setup, donc sans cette branche le menu d'actions
+      // s'ouvrirait ici et le joueur local jouerait le tour de son adversaire.
+      this.setInputState({ phase: "waiting_remote", playerId: active.playerId });
+      this.chrome.hideMenus();
+      this.board.clearHighlights();
+      // Une action gardée pendant qu'on animait attend peut-être ici. Une à la fois : celle-ci
+      // relancera la file, qui repassera par `refreshUI` pour la suivante.
+      const kept = this.pendingRemoteActions.shift();
+      if (kept !== undefined) {
+        this.submitRemoteAction(kept);
+      }
+      return;
+    }
     if (Array.isArray(aiEvents)) {
       // The AI submitted its actions itself inside the hook, so the engine's log has already grown.
       this.config.onActionCommitted?.();
@@ -1382,6 +1481,109 @@ export class BattleOrchestrator {
 
   // --- Action submission + event sequencing ---
 
+  /**
+   * Une action reçue d'un joueur distant (plan 201, Lot B2). **Seul point d'entrée du réseau dans la
+   * vue.**
+   *
+   * Quatre contrôles, dans cet ordre — du moins cher au plus cher, et du plus révélateur au plus
+   * banal :
+   *
+   * 1. **l'index** : sommes-nous au même point du journal ? (décision D3)
+   * 2. **la place** : l'acteur courant appartient-il bien au camp émetteur ?
+   * 3. **la légalité** : l'action est-elle dans `getLegalActions()`, retraite mise à part (piège 3) ;
+   * 4. **le moteur** : et s'il la refuse quand même, c'est un refus aussi.
+   *
+   * 🔴 Un refus n'est **pas** une correction. L'émetteur a soumis à son propre moteur *avant* de
+   * diffuser, donc quand on refuse, on est déjà divergents — on ne lui redemande rien (décision D1),
+   * on compte. Trois refus **consécutifs** d'une même place et l'hôte l'élimine ; un succès remet le
+   * compteur à zéro, parce qu'un hoquet isolé est un bug plausible et qu'un pair réellement divergent
+   * voit **tout** refusé, donc atteint trois d'affilée.
+   *
+   * @returns vrai si l'action a été appliquée.
+   */
+  submitRemoteAction(envelope: RemoteActionEnvelope): boolean {
+    if (this.disposed || this.inputState.phase === "battle_over") {
+      return false;
+    }
+    if (this.inputState.phase !== "waiting_remote") {
+      // Pas encore notre attente : on garde, on ne juge pas. Voir `pendingRemoteActions`.
+      this.pendingRemoteActions.push(envelope);
+      return false;
+    }
+    const expected = this.engine.actionLogLength;
+    if (envelope.actionIndex !== expected) {
+      return this.rejectRemoteAction(envelope.seat, {
+        kind: "desynced_index",
+        expected,
+        received: envelope.actionIndex,
+      });
+    }
+    const active = this.activePokemon();
+    if (!active || active.playerId !== envelope.playerId) {
+      return this.rejectRemoteAction(envelope.seat, { kind: "not_this_seat" });
+    }
+    if (!isLegalRemoteAction(this.engine.getLegalActions(active.playerId), envelope.action)) {
+      return this.rejectRemoteAction(envelope.seat, { kind: "not_legal" });
+    }
+    const submitted = this.engine.submitAction(active.playerId, envelope.action);
+    if (!submitted.success) {
+      // Le moteur peut refuser ce que `getLegalActions` ne dit pas : la case de retraite, exclue de
+      // la projection canonique à dessein, est validée ici et nulle part avant.
+      return this.rejectRemoteAction(envelope.seat, {
+        kind: "engine_refused",
+        error: submitted.error,
+      });
+    }
+    this.remoteRejectionsBySeat.delete(envelope.seat);
+    this.afterActionAccepted(submitted.events);
+    return true;
+  }
+
+  /**
+   * Un camp quitte la partie — abandon, ou parties qui ne concordent plus (plan 201).
+   *
+   * 🔴 **Seul point d'entrée du forfait dans la vue, et il doit l'être.** `engine.forfeit()` rend ses
+   * événements ; les appeler depuis l'application sans les remettre à la file d'animation les rendait
+   * **invisibles pour tout le monde** — rien n'écoute le moteur (`engine.on` n'a aucun appelant en
+   * production), tout passe par `feedback.report` depuis `applyEvents`. Conséquence trouvée en revue :
+   * l'équipe éliminée restait debout, la ligne de journal qui explique l'élimination ne s'affichait
+   * jamais, la télémétrie de fin ne partait pas, il n'y avait pas d'écran de victoire, et
+   * l'orchestrateur restait en attente **pour toujours**. Exactement la panne que ce lot existe pour
+   * empêcher.
+   *
+   * Par ce chemin, tout retombe en place sans un cas particulier : `afterActionAccepted` persiste,
+   * verrouille l'entrée, joue les événements — et le `BattleEnded` qu'ils portent déclenche
+   * `enterBattleOver`, donc l'écran de victoire et la fermeture du salon.
+   */
+  applyForfeit(playerId: string): boolean {
+    if (this.disposed || this.inputState.phase === "battle_over") {
+      return false;
+    }
+    const result = this.engine.forfeit(playerId);
+    if (!result.success) {
+      return false;
+    }
+    this.afterActionAccepted(result.events);
+    return true;
+  }
+
+  private rejectRemoteAction(seat: number, cause: RemoteActionRejectionCause): boolean {
+    const strike = (this.remoteRejectionsBySeat.get(seat) ?? 0) + 1;
+    this.remoteRejectionsBySeat.set(seat, strike);
+    this.config.onRemoteActionRejected?.({
+      seat,
+      strike,
+      limit: REMOTE_REJECTION_LIMIT,
+      cause,
+    });
+    return false;
+  }
+
+  /**
+   * Une action du joueur LOCAL. Elle part aux pairs en plus d'être appliquée — c'est le seul chemin
+   * qui diffuse : l'IA tourne des deux côtés (décision #901), donc diffuser la sienne la ferait
+   * jouer deux fois, et une action distante est déjà connue de tout le monde.
+   */
   private executeAction(action: Action): void {
     const active = this.activePokemon();
     if (!active) {
@@ -1389,18 +1591,30 @@ export class BattleOrchestrator {
     }
     this.picker?.dispose();
     this.picker = null;
+    // Relevé AVANT la soumission : c'est l'index que le pair confrontera au sien (décision D3).
+    const actionIndex = this.engine.actionLogLength;
     const result = this.engine.submitAction(active.playerId, action);
     if (!result.success) {
       this.enterActionMenu();
       return;
     }
+    this.config.onLocalAction?.(action, actionIndex);
+    this.afterActionAccepted(result.events);
+  }
+
+  /**
+   * Ce qui suit toute action acceptée, d'où qu'elle vienne : persistance, verrouillage de l'entrée,
+   * et la file d'animation. Partagé par le chemin local et le chemin réseau — sans quoi le second
+   * aurait son propre cycle de vie à maintenir en parallèle du premier.
+   */
+  private afterActionAccepted(events: readonly BattleEvent[]): void {
     // Persist before the animation, not after: the action is already committed to the engine, and a
     // tab discarded mid-animation must resume with it (plan 181).
     this.config.onActionCommitted?.();
     this.setInputState({ phase: "animating" });
     this.chrome.hideMenus();
     this.board.clearHighlights();
-    this.enqueueEvents(result.events, () => this.refreshUI());
+    this.enqueueEvents(events, () => this.refreshUI());
   }
 
   /** Queue a batch of events to apply to the board, then run `next` once drained. */

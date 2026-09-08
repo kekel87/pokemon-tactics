@@ -1,4 +1,6 @@
 import type {
+  Action,
+  ActionError,
   BattleEvent,
   Direction,
   MoveDefinition,
@@ -287,7 +289,23 @@ export interface SelectedMoveView {
 export interface TurnInfoView {
   activePokemonId: string;
   playerId: string;
+  /**
+   * À qui est ce tour, du point de vue de la personne devant l'écran (plan 201, retour de recette).
+   *
+   * 🔴 Le bandeau ne montrait que le **nom du Pokemon**. Suffisant en solo — c'est votre tour ou
+   * celui de l'ordinateur, et le second est verrouillé — mais aveugle en ligne, où deux camps
+   * humains alternent et où rien ne disait lequel jouait.
+   *
+   * - `you` : votre tour. **Uniquement quand une seule place est locale** : en hot-seat les deux
+   *   camps le sont, et « À vous » ne dirait alors à personne de qui c'est le tour.
+   * - `player` : un autre camp humain — distant en ligne, ou l'autre moitié d'un hot-seat. Le
+   *   numéro se lit dans `playerId`.
+   * - `ai` : une place tenue par l'ordinateur.
+   */
+  owner: TurnOwner;
 }
+
+export type TurnOwner = "you" | "player" | "ai";
 
 /**
  * Semantic instruction the chrome localises (keeps the FSM free of i18n key strings).
@@ -379,11 +397,43 @@ export interface BattleOrchestratorConfig {
    */
   humanPlayerIds?: readonly string[];
   /**
+   * Places que **cette machine** pilote (plan 201, Lot B2). Défaut : `humanPlayerIds`, donc le
+   * hot-seat local est inchangé au bit près.
+   *
+   * 🔴 Pourquoi ce champ existe : en ligne, `StartSeat.controller` ne connaît que `human` et `ai`, et
+   * une place distante est **rabattue sur `human`** à la composition du setup. `humanPlayerIds`
+   * contient donc l'adversaire, et sans distinction supplémentaire `refreshUI` ouvre le menu
+   * d'actions chez moi au tour de mon adversaire — je jouerais son tour. Rien dans le setup ne disait
+   * qui est *moi*.
+   *
+   * Un acteur humain **hors** de cette liste est un tour distant : l'orchestrateur attend un message
+   * au lieu de rendre la main au joueur.
+   */
+  localPlayerIds?: readonly string[];
+  /**
    * Fired whenever the engine's action log has grown — after a human action is accepted, and after the
    * AI hook returns (the AI submits its own actions). The host uses it to persist the battle so a
    * reload can resume it (plan 181); the orchestrator itself knows nothing of storage.
    */
   onActionCommitted?: () => void;
+  /**
+   * Une action que le jouever **local** vient de soumettre, à diffuser aux pairs (plan 201).
+   * `actionIndex` est le nombre d'actions enregistrées avant celle-ci.
+   *
+   * 🔴 Appelé depuis `executeAction` **seulement**, jamais depuis la branche IA de `refreshUI` :
+   * l'IA est déterministe et tourne des deux côtés (décision #901), diffuser ses actions les ferait
+   * jouer deux fois.
+   */
+  onLocalAction?: (action: Action, actionIndex: number) => void;
+  /**
+   * Une action distante refusée, avec son rang dans le barème (1, 2, 3…) et la cause exacte du
+   * refus (plan 201, décision D1).
+   *
+   * L'hôte décide quoi en faire : journal au premier, avertissement « 2/3 » au deuxième, constat de
+   * divergence au troisième. La cause précise voyage pour la recette — sans elle, un bug de
+   * déterminisme et une vraie divergence donnent le même symptôme opaque.
+   */
+  onRemoteActionRejected?: (rejection: RemoteActionRejection) => void;
   /**
    * Temps de jeu cumulé depuis le début de la partie, pour la durée du récapitulatif de victoire
    * (plan 197).
@@ -394,3 +444,48 @@ export interface BattleOrchestratorConfig {
    */
   getElapsedMs: () => number;
 }
+
+/**
+ * Le refus d'une action distante, tel que l'hôte doit l'entendre (plan 201, décision D1).
+ *
+ * Le barème est **par place** : trois refus d'un même camp l'éliminent, et les refus d'un autre camp
+ * comptent séparément. En 1v1 la distinction est académique, à trois elle ne l'est plus.
+ */
+/**
+ * Une action de combat reçue d'un pair, telle que la vue la reçoit (plan 201).
+ *
+ * `playerId` est ce dont l'orchestrateur se sert ; `seat` ne voyage que pour que l'hôte sache de qui
+ * il parle en signalant un refus — la vue ne fait rien d'autre avec.
+ */
+export interface RemoteActionEnvelope {
+  seat: number;
+  playerId: string;
+  /** Nombre d'actions enregistrées chez l'émetteur avant celle-ci (décision D3). */
+  actionIndex: number;
+  action: Action;
+}
+
+export interface RemoteActionRejection {
+  /** La place dont l'action est refusée. */
+  seat: number;
+  /** Rang dans le barème pour CETTE place : 1, 2, puis 3 qui élimine. */
+  strike: number;
+  /** Nombre de refus au bout duquel la place est éliminée, pour composer le « 2/3 » de l'avertissement. */
+  limit: number;
+  /**
+   * Pourquoi. `desynced_index` et `not_this_seat` sont propres au réseau ; les autres viennent du
+   * moteur, et les journaliser est ce qui distingue en recette un bug de déterminisme d'une vraie
+   * divergence.
+   */
+  cause: RemoteActionRejectionCause;
+}
+
+export type RemoteActionRejectionCause =
+  /** L'index d'action de l'émetteur ne correspond pas au nôtre (décision D3). */
+  | { kind: "desynced_index"; expected: number; received: number }
+  /** L'acteur courant n'appartient pas à la place émettrice. */
+  | { kind: "not_this_seat" }
+  /** L'action n'est pas dans `getLegalActions()` de notre moteur. */
+  | { kind: "not_legal" }
+  /** Le moteur l'a refusée à la soumission, avec sa propre cause. */
+  | { kind: "engine_refused"; error: ActionError | undefined };

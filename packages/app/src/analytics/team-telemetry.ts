@@ -12,7 +12,7 @@
  * composition dans le payload, juste sa provenance. Aucun filtre à oublier au moment de lire.
  */
 
-import { PlayerController, type TeamSet } from "@pokemon-tactic/core";
+import { PlayerController, type TeamSet, type TeamSlot } from "@pokemon-tactic/core";
 import { t } from "../i18n";
 import type { SlotState } from "../ui/team-select/slot-state";
 import { TeamSource, type TelemetryTeam, type TelemetryTeamMember } from "./telemetry";
@@ -59,6 +59,33 @@ export function buildTelemetryTeams(slots: readonly SlotState[]): TelemetryTeam[
       members: team.slots.map(memberOf),
     };
   });
+}
+
+/**
+ * La composition d'une partie EN LIGNE, telle que ce pair a le droit de la déclarer (plan 201).
+ *
+ * 🔴 **Notre camp, et lui seul.** Le message `start` porte pourtant la sélection de *chaque* place :
+ * le motif n'est donc pas un manque d'information, c'est le **double comptage**. Deux pairs qui
+ * déclarent la même partie compteraient chaque équipe deux fois, et les statistiques d'usage à la
+ * Showdown — la raison d'être du Lot A — s'en trouveraient fausses partout. Chacun déclare son camp :
+ * chaque équipe compte une fois, et le total est juste sans qu'aucun pair ne se coordonne.
+ *
+ * `generated` est absent, à dessein : il se lit du **nom** de l'équipe sauvegardée, qui ne voyage pas
+ * sur le réseau. Mieux vaut un drapeau manquant qu'un drapeau inventé.
+ *
+ * @param localSeat notre place (1 = l'hôte) ; `side` reste l'index 0-based des autres chemins.
+ */
+export function buildOnlineTelemetryTeams(
+  localSeat: number,
+  slots: readonly TeamSlot[] | undefined,
+): TelemetryTeam[] {
+  const side = localSeat - 1;
+  if (slots === undefined || slots.length === 0) {
+    // Équipe éphémère (tirée pour nous) : la provenance voyage, la composition non — même règle que
+    // `buildTelemetryTeams`, qui ne capture que le `human-built`.
+    return [{ side, source: TeamSource.HumanRandom }];
+  }
+  return [{ side, source: TeamSource.HumanBuilt, members: slots.map(memberOf) }];
 }
 
 /** Camps dont la composition a voyagé — les seuls que `battle_ended` détaillera. */

@@ -239,8 +239,19 @@ type NetworkMessage =
   | { type: "bye"; seat: number };
 ```
 
-**Ce qui reste à écrire** : `action` (Lot B2), `checksum` / `desync` (Lot B4), `forfeit` (B2),
-`rematch` et `chat` (hors V1). Le **nom de joueur a été écarté de la V1** (#906) : il revient avec le
+**Ce que le Lot B2 a ajouté** (plan 201) :
+
+```typescript
+  | { type: "action"; seat: number; actionIndex: number; action: Action }
+  | { type: "forfeit"; seat: number; forfeitedSeat: number; reason: NetworkForfeitReason }
+```
+
+`actionIndex` est le nombre d'actions enregistrées chez l'émetteur **avant** celle-ci : un détecteur
+de désync du pauvre (décision D3), qui dit « nous ne sommes pas au même point » au lieu d'appliquer
+une action au mauvais acteur. `forfeitedSeat` désigne la place éliminée, qui n'est pas celle de
+l'émetteur quand c'est un constat de divergence — et **`NETWORK_VERSION` est passée à 2**.
+
+**Ce qui reste à écrire** : `checksum` / `desync` (Lot B4), `rematch` et `chat` (hors V1). Le **nom de joueur a été écarté de la V1** (#906) : il revient avec le
 compte et le classement ; la salle d'attente affiche « Joueur 2 ».
 
 **Pas de message `timeout`** — c'est délibéré, voir § Chronomètre.
@@ -320,21 +331,46 @@ jouer avec lui. **À revisiter seulement si une communauté compétitive appara�
 
 ## Anti-triche
 
-### Validation des actions
+### Validation des actions — LIVRÉ (plan 201, Lot B2)
 
-Chaque action reçue est validée :
+Chaque action reçue est validée. **Quatre contrôles**, du moins cher au plus révélateur :
 
 ```
-action reçue → getLegalActions() contient cette action ?
-  Oui → submitAction(), on continue
-  Non → compteur de triche++
-    1er : rejeter, redemander (peut être un bug)
-    2e  : avertir "Action invalide"
-    3e  : forfait automatique
+action reçue → même index d'action que chez nous ?        non → refus (desynced_index)
+             → l'acteur courant est-il de ce camp ?        non → refus (not_this_seat)
+             → dans getLegalActions(), RETRAITE EXCLUE ?   non → refus (not_legal)
+             → submitAction() l'accepte ?                  non → refus (engine_refused)
+             → sinon appliquée, et le compteur retombe à 0
 ```
 
-C'est la seule triche que le modèle attrape — et, le fog mis à part (§ Fog), la seule qui change
-l'issue d'une partie.
+🔴 **Le « rejeter, redemander » de la version d'avril était impraticable** (décision D1) :
+`executeAction` soumet à son propre moteur **puis** diffuse, donc quand on refuse, l'émetteur a déjà
+avancé — renvoyer la même action ne répare rien, on est déjà divergents. Le barème devient :
+
+| Refus **consécutif** | Effet |
+|---|---|
+| 1er | journal seulement — un bug de notre côté est plausible |
+| 2e | avertissement visible, avec le compteur (« 2/3 ») |
+| 3e | le camp est éliminé (`engine.forfeit`) et le constat est diffusé |
+
+Un succès **remet le compteur à zéro** : un hoquet isolé n'élimine personne, et un pair réellement
+divergent voit **tout** refusé, donc atteint trois d'affilée en trois tours.
+
+⚠️ **La retraite est exclue de la comparaison** (`canonicalActionKey`) : `getLegalActions()` ne porte
+que la case visée, l'orchestrateur ajoute `retreatPosition` après coup et le moteur la valide seul.
+L'inclure refuserait **Demi-Tour, Change Éclair et Eau Revoir**, éliminant un joueur honnête en trois
+attaques.
+
+🔴 **Ce n'est pas une accusation de triche** (décision D5). En 1v1, personne ne peut dire qui s'est
+écarté — un client modifié peut *feindre* de constater une divergence. Le message porte donc la cause
+`diverged` et le joueur lit « les parties ne concordent plus », jamais « vous avez triché ». Même
+symétrie que le refus de version (#900).
+
+**Ce que le modèle n'attrape pas, et qu'il faut assumer** : côté émetteur, une action refusée ne
+coûte rien — son moteur local l'a acceptée. Le seul qui paie est le récepteur, en attente. Un pair
+qui refuse délibérément des actions **légitimes** élimine donc l'autre à coût nul, et `forfeitedSeat`
+n'étant pas authentifiable, il peut même le désigner directement. Sans effet dans le cadrage du jeu
+(§ Fog, #863) ; le recours serait du côté de la somme de contrôle du Lot B4.
 
 ### Détection de désync
 
@@ -520,6 +556,13 @@ doc PeerJS observe une dégradation au-delà d'une poignée de connexions simult
 **Position** : viser le **1v1** en V1, retester le FFA à 12 ensuite. Le relais de secours (§ Workers)
 offrirait au besoin une topologie étoile sans réintroduire un « host » joueur.
 
+🔴 **Le Lot B2 a rendu cette limite concrète, pas seulement prudente** (décision D6, plan 201) :
+`actionIndex` (§ Protocole) suppose un canal **ordonné**, vrai **par connexion** dans un maillage
+complet — mais à trois camps et plus, `broadcast()` écrit sur des canaux que rien n'ordonne **entre
+eux**. Une action en avance sur un canal serait refusée puis perdue, et trois refus élimineraient un
+joueur honnête. **Le réseau est donc restreint au 1v1** : l'écran `lobby` **annonce** le format au
+lieu de l'offrir (plus de sélecteur — il n'y a rien à choisir).
+
 ---
 
 ## WebRTC / PeerJS
@@ -632,11 +675,15 @@ Pas de matchmaking. Les joueurs se trouvent par leurs propres moyens (Discord, S
 partagent **un code**. Pas de lien d'invitation : il serait construit depuis l'origine courante,
 laquelle vaut `html-classic.itch.zone/…` dans l'iframe itch.io.
 
+⚠️ **Le format est annoncé, pas offert** (décision D6, plan 201) : le réseau est restreint au 1v1
+(§ 3+ joueurs), donc l'écran ne porte plus de sélecteur — un contrôle à une seule option serait un
+arrêt de focus mort pour rien.
+
 ```
 Écran `lobby` :
   ┌───────────────────────────────────────────────┐
   │  Créer une partie                             │
-  │    Joueurs : [2] 3  4  6  12    ← AVANT de créer
+  │    Format : 1 contre 1                        │
   │    « Créer une partie »                       │
   │                                               │
   │  Rejoindre une partie                         │

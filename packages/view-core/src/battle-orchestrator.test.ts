@@ -1,5 +1,6 @@
 import {
   type Action,
+  ActionError,
   ActionKind,
   type BattleEngine,
   type BattleState,
@@ -23,6 +24,8 @@ import {
   type DirectionPickerCallbacks,
   formatDamageRange,
   formatFacingSuffix,
+  type RemoteActionRejection,
+  type TurnInfoView,
 } from "./battle-orchestrator.js";
 
 const ACTIVE_ID = "p1-pikachu";
@@ -72,14 +75,34 @@ interface Harness {
   pickerCallbacks: DirectionPickerCallbacks | null;
   lastActionMenu: () => ActionMenuView;
   lastSubmenu: () => AttackSubmenuView;
+  localActions: { action: Action; actionIndex: number }[];
+  rejections: RemoteActionRejection[];
+  turnInfos: TurnInfoView[];
+  reportedEvents: { type: string }[];
+  forfeited: string[];
+  actionMenuShownCount: number;
 }
 
 function setup(
   legalActions: Action[],
   move?: MoveDefinition,
-  options?: { confirmAttack?: boolean },
+  options?: {
+    confirmAttack?: boolean;
+    humanPlayerIds?: readonly string[];
+    localPlayerIds?: readonly string[];
+    /** Refus du moteur à la soumission, pour couvrir le 4e contrôle de `submitRemoteAction`. */
+    engineRefuses?: boolean;
+    /** Refus du moteur au forfait — camp déjà éliminé, ou combat déjà terminé. */
+    forfeitRefused?: boolean;
+  },
 ): Harness {
   const submitted: Action[] = [];
+  const localActions: { action: Action; actionIndex: number }[] = [];
+  const rejections: RemoteActionRejection[] = [];
+  const turnInfos: TurnInfoView[] = [];
+  const reportedEvents: { type: string }[] = [];
+  const forfeited: string[] = [];
+  let actionMenuShownCount = 0;
   const highlights: { kind: BoardHighlight; tiles: readonly Position[] }[] = [];
   const outlines: (readonly Position[])[] = [];
   const previewFlash: string[][] = [];
@@ -92,8 +115,21 @@ function setup(
     consumeStartupEvents: () => [],
     getLegalActions: () => legalActions,
     submitAction: (_playerId: string, action: Action) => {
+      if (options?.engineRefuses === true) {
+        return { success: false, events: [], error: ActionError.InvalidAction };
+      }
       submitted.push(action);
       return { success: true, events: [] };
+    },
+    get actionLogLength() {
+      return submitted.length;
+    },
+    forfeit: (playerId: string) => {
+      if (options?.forfeitRefused === true) {
+        return { success: false, events: [] };
+      }
+      forfeited.push(playerId);
+      return { success: true, events: [{ type: "battle_ended", winnerId: "player-2" }] };
     },
     getEffectiveMove: () => move ?? null,
     getGrid: () => Grid.createFlat(9, 9),
@@ -149,6 +185,7 @@ function setup(
   const chrome: BattleChrome = {
     showActionMenu: (view) => {
       actionMenu = view;
+      actionMenuShownCount += 1;
     },
     showAttackSubmenu: (view) => {
       submenu = view;
@@ -157,7 +194,7 @@ function setup(
     updateInstruction: () => undefined,
     showCancellableInstruction: () => undefined,
     hideMenus: () => undefined,
-    updateTurnInfo: () => undefined,
+    updateTurnInfo: (info) => turnInfos.push(info),
     updateInfoPanel: () => undefined,
     updateTileInfo: () => undefined,
     updateCursorPanel: () => undefined,
@@ -178,8 +215,15 @@ function setup(
     new Map<string, MoveDefinition>(move ? [[move.id, move]] : []),
     board,
     chrome,
-    { report: () => undefined },
-    { confirmAttack: options?.confirmAttack ?? false, getElapsedMs: () => 0 },
+    { report: (event) => reportedEvents.push(event as { type: string }) },
+    {
+      confirmAttack: options?.confirmAttack ?? false,
+      getElapsedMs: () => 0,
+      ...(options?.humanPlayerIds === undefined ? {} : { humanPlayerIds: options.humanPlayerIds }),
+      ...(options?.localPlayerIds === undefined ? {} : { localPlayerIds: options.localPlayerIds }),
+      onLocalAction: (action, actionIndex) => localActions.push({ action, actionIndex }),
+      onRemoteActionRejected: (rejection) => rejections.push(rejection),
+    },
     {
       translate: (key) => key,
       getLanguage: () => "en",
@@ -202,6 +246,14 @@ function setup(
     highlights,
     outlines,
     previewFlash,
+    localActions,
+    rejections,
+    turnInfos,
+    reportedEvents,
+    forfeited,
+    get actionMenuShownCount() {
+      return actionMenuShownCount;
+    },
     get damageEstimateCalls() {
       return damageEstimateCalls;
     },
@@ -532,5 +584,328 @@ describe("inputContext (plan 184)", () => {
     harness.lastSubmenu().onSelect("tackle");
 
     expect(seen).toEqual(["menu", "board"]);
+  });
+});
+
+const REMOTE = { seat: 2, playerId: "player-1" };
+
+function endTurnAction(direction = Direction.South): Action {
+  return { kind: ActionKind.EndTurn, pokemonId: ACTIVE_ID, direction };
+}
+
+function remoteHarness(options?: { engineRefuses?: boolean; forfeitRefused?: boolean }): Harness {
+  const harness = setup([endTurnAction()], undefined, {
+    humanPlayerIds: ["player-1"],
+    localPlayerIds: ["player-2"],
+    ...(options?.engineRefuses === undefined ? {} : { engineRefuses: options.engineRefuses }),
+    ...(options?.forfeitRefused === undefined ? {} : { forfeitRefused: options.forfeitRefused }),
+  });
+  harness.orchestrator.onTurnReady = () => "pending";
+  harness.orchestrator.start();
+  return harness;
+}
+
+describe("BattleOrchestrator — tour distant", () => {
+  it("n'ouvre pas le menu d'actions au tour d'un joueur distant", () => {
+    const harness = remoteHarness();
+
+    expect(harness.actionMenuShownCount).toBe(0);
+    expect(harness.orchestrator.inputContext()).toBe("watching");
+  });
+
+  it("laisse regarder pendant le tour distant, au lieu de tout verrouiller", () => {
+    const harness = remoteHarness();
+
+    expect(harness.orchestrator.inputContext()).not.toBe("locked");
+  });
+
+  it("ouvre le menu quand le joueur actif est local", () => {
+    const harness = setup([endTurnAction()], undefined, {
+      humanPlayerIds: ["player-1"],
+      localPlayerIds: ["player-1"],
+    });
+    harness.orchestrator.onTurnReady = () => false;
+    harness.orchestrator.start();
+
+    expect(harness.actionMenuShownCount).toBeGreaterThan(0);
+  });
+
+  it("applique une action distante légale", () => {
+    const harness = remoteHarness();
+
+    const applied = harness.orchestrator.submitRemoteAction({
+      ...REMOTE,
+      actionIndex: 0,
+      action: endTurnAction(),
+    });
+
+    expect(applied).toBe(true);
+    expect(harness.submitted).toEqual([endTurnAction()]);
+    expect(harness.rejections).toEqual([]);
+  });
+
+  it("ne rediffuse jamais une action distante", () => {
+    const harness = remoteHarness();
+
+    harness.orchestrator.submitRemoteAction({
+      ...REMOTE,
+      actionIndex: 0,
+      action: endTurnAction(),
+    });
+
+    expect(harness.localActions).toEqual([]);
+  });
+
+  it("refuse un index d'action décalé, en disant lequel", () => {
+    const harness = remoteHarness();
+
+    const applied = harness.orchestrator.submitRemoteAction({
+      ...REMOTE,
+      actionIndex: 7,
+      action: endTurnAction(),
+    });
+
+    expect(applied).toBe(false);
+    expect(harness.submitted).toEqual([]);
+    expect(harness.rejections[0]?.cause).toEqual({
+      kind: "desynced_index",
+      expected: 0,
+      received: 7,
+    });
+  });
+
+  it("refuse une action pour un camp qui n'est pas celui qui joue", () => {
+    const harness = remoteHarness();
+
+    harness.orchestrator.submitRemoteAction({
+      seat: 3,
+      playerId: "player-9",
+      actionIndex: 0,
+      action: endTurnAction(),
+    });
+
+    expect(harness.rejections[0]?.cause).toEqual({ kind: "not_this_seat" });
+  });
+
+  it("refuse une action absente des actions légales", () => {
+    const harness = remoteHarness();
+
+    harness.orchestrator.submitRemoteAction({
+      ...REMOTE,
+      actionIndex: 0,
+      action: { kind: ActionKind.UndoMove, pokemonId: ACTIVE_ID },
+    });
+
+    expect(harness.rejections[0]?.cause).toEqual({ kind: "not_legal" });
+  });
+
+  it("refuse une action que le moteur rejette malgré tout, avec sa cause", () => {
+    const harness = remoteHarness({ engineRefuses: true });
+
+    harness.orchestrator.submitRemoteAction({
+      ...REMOTE,
+      actionIndex: 0,
+      action: endTurnAction(),
+    });
+
+    expect(harness.rejections[0]?.cause).toEqual({
+      kind: "engine_refused",
+      error: ActionError.InvalidAction,
+    });
+  });
+
+  it("compte les refus par place, jusqu'au troisième qui élimine", () => {
+    const harness = remoteHarness();
+
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      harness.orchestrator.submitRemoteAction({
+        ...REMOTE,
+        actionIndex: 42,
+        action: endTurnAction(),
+      });
+    }
+
+    expect(harness.rejections.map((rejection) => rejection.strike)).toEqual([1, 2, 3]);
+    expect(harness.rejections.map((rejection) => rejection.limit)).toEqual([3, 3, 3]);
+    expect(harness.rejections.map((rejection) => rejection.seat)).toEqual([2, 2, 2]);
+  });
+
+  it("compte séparément les refus de deux camps distincts", () => {
+    const harness = remoteHarness();
+
+    harness.orchestrator.submitRemoteAction({
+      ...REMOTE,
+      actionIndex: 42,
+      action: endTurnAction(),
+    });
+    harness.orchestrator.submitRemoteAction({
+      seat: 3,
+      playerId: "player-1",
+      actionIndex: 42,
+      action: endTurnAction(),
+    });
+
+    expect(harness.rejections.map((rejection) => rejection.strike)).toEqual([1, 1]);
+  });
+
+  it("remet le compteur à zéro dès qu'une action passe", async () => {
+    const harness = remoteHarness();
+    harness.orchestrator.submitRemoteAction({
+      ...REMOTE,
+      actionIndex: 42,
+      action: endTurnAction(),
+    });
+
+    harness.orchestrator.submitRemoteAction({
+      ...REMOTE,
+      actionIndex: 0,
+      action: endTurnAction(),
+    });
+    for (let hop = 0; hop < 20; hop += 1) {
+      await Promise.resolve();
+    }
+    harness.orchestrator.submitRemoteAction({
+      ...REMOTE,
+      actionIndex: 42,
+      action: endTurnAction(),
+    });
+
+    expect(harness.rejections.map((rejection) => rejection.strike)).toEqual([1, 1]);
+  });
+});
+
+describe("BattleOrchestrator — diffusion des actions locales", () => {
+  it("annonce l'action du joueur local avec son index", () => {
+    const destination = { x: 5, y: 4 };
+    const harness = setup([moveAction(destination)], undefined, {
+      humanPlayerIds: ["player-1"],
+      localPlayerIds: ["player-1"],
+    });
+    harness.orchestrator.start();
+    harness.lastActionMenu().onMove();
+
+    harness.orchestrator.onTileClick(destination);
+
+    expect(harness.localActions.map((entry) => entry.actionIndex)).toEqual([0]);
+    expect(harness.localActions[0]?.action.kind).toBe(ActionKind.Move);
+  });
+
+  it("n'annonce rien quand l'IA a joué elle-même", () => {
+    const harness = setup([endTurnAction()], undefined, {
+      humanPlayerIds: [],
+      localPlayerIds: [],
+    });
+    let aiTurns = 0;
+    harness.orchestrator.onTurnReady = () => {
+      aiTurns += 1;
+      return aiTurns === 1 ? [] : false;
+    };
+    harness.orchestrator.start();
+
+    expect(aiTurns).toBeGreaterThan(0);
+    expect(harness.localActions).toEqual([]);
+  });
+});
+
+describe("BattleOrchestrator — à qui est le tour", () => {
+  it("dit « à vous » quand une seule place est locale", () => {
+    const harness = setup([endTurnAction()], undefined, {
+      humanPlayerIds: ["player-1"],
+      localPlayerIds: ["player-1"],
+    });
+    harness.orchestrator.onTurnReady = () => false;
+    harness.orchestrator.start();
+
+    expect(harness.turnInfos.at(-1)?.owner).toBe("you");
+  });
+
+  it("nomme le camp en hot-seat, où les deux places sont locales", () => {
+    const harness = setup([endTurnAction()], undefined, {
+      humanPlayerIds: ["player-1", "player-2"],
+      localPlayerIds: ["player-1", "player-2"],
+    });
+    harness.orchestrator.onTurnReady = () => false;
+    harness.orchestrator.start();
+
+    expect(harness.turnInfos.at(-1)?.owner).toBe("player");
+  });
+
+  it("nomme le camp distant en ligne", () => {
+    const harness = remoteHarness();
+
+    expect(harness.turnInfos.at(-1)?.owner).toBe("player");
+  });
+
+  it("dit « IA » pour une place tenue par l'ordinateur", () => {
+    const harness = setup([endTurnAction()], undefined, {
+      humanPlayerIds: ["player-2"],
+      localPlayerIds: ["player-2"],
+    });
+    harness.orchestrator.onTurnReady = () => false;
+    harness.orchestrator.start();
+
+    expect(harness.turnInfos.at(-1)?.owner).toBe("ai");
+  });
+});
+
+describe("BattleOrchestrator — le forfait passe par la file d'animation", () => {
+  it("joue les événements du forfait, au lieu de les perdre", () => {
+    const harness = remoteHarness();
+
+    const applied = harness.orchestrator.applyForfeit("player-1");
+
+    expect(applied).toBe(true);
+    expect(harness.forfeited).toEqual(["player-1"]);
+    expect(harness.reportedEvents.some((event) => event.type === "battle_ended")).toBe(true);
+  });
+
+  it("reste sans effet quand le moteur refuse", () => {
+    const harness = remoteHarness({ forfeitRefused: true });
+
+    expect(harness.orchestrator.applyForfeit("player-1")).toBe(false);
+    expect(harness.reportedEvents).toEqual([]);
+  });
+});
+
+describe("BattleOrchestrator — une action distante hors de notre attente est gardée", () => {
+  it("ne la refuse pas, et ne compte aucun refus", () => {
+    const harness = setup([endTurnAction()], undefined, {
+      humanPlayerIds: ["player-1"],
+      localPlayerIds: ["player-1"],
+    });
+    harness.orchestrator.onTurnReady = () => false;
+    harness.orchestrator.start();
+
+    const applied = harness.orchestrator.submitRemoteAction({
+      ...REMOTE,
+      actionIndex: 0,
+      action: endTurnAction(),
+    });
+
+    expect(applied).toBe(false);
+    expect(harness.rejections).toEqual([]);
+    expect(harness.submitted).toEqual([]);
+  });
+
+  it("la joue dès que l'attente commence", () => {
+    let remote = false;
+    const harness = setup([endTurnAction()], undefined, {
+      humanPlayerIds: ["player-1"],
+      localPlayerIds: ["player-2"],
+    });
+    harness.orchestrator.onTurnReady = () => (remote ? "pending" : false);
+    harness.orchestrator.start();
+
+    harness.orchestrator.submitRemoteAction({
+      ...REMOTE,
+      actionIndex: 0,
+      action: endTurnAction(),
+    });
+    expect(harness.submitted).toEqual([]);
+
+    remote = true;
+    harness.orchestrator.onBoardConfirm(ACTIVE_POSITION);
+
+    expect(harness.rejections).toEqual([]);
   });
 });

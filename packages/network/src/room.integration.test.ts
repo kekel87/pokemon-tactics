@@ -1,7 +1,11 @@
+import { type Action, ActionKind, Direction } from "@pokemon-tactic/core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  type ActionMessage,
+  type ForfeitMessage,
   NETWORK_VERSION,
   NetworkErrorCode,
+  NetworkForfeitReason,
   type NetworkMessage,
   type NetworkRoomOptions,
   NetworkSeatOccupancy,
@@ -785,5 +789,227 @@ describe("Room — lancement annulé", () => {
     await launch;
 
     expect(cancelled).toEqual([true]);
+  });
+});
+
+describe("Room — les actions de combat (Lot B2)", () => {
+  let directory: FakeNetworkDirectory;
+
+  beforeEach(() => {
+    directory = new FakeNetworkDirectory();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const endTurn = (pokemonId: string): Action => ({
+    kind: ActionKind.EndTurn,
+    pokemonId,
+    direction: Direction.North,
+  });
+
+  it("porte l'action d'un camp jusqu'à l'autre, avec son index", async () => {
+    const host = await Room.create(depsFor(directory), options(2));
+    const guest = await Room.join(depsFor(directory), ROOM_CODE);
+    await flush();
+
+    const received: ActionMessage[] = [];
+    guest.onAction((message) => received.push(message));
+
+    host.sendAction(0, endTurn("p1-venusaur"));
+    await flush();
+
+    expect(received).toHaveLength(1);
+    expect(received[0]?.seat).toBe(HOST_SEAT);
+    expect(received[0]?.actionIndex).toBe(0);
+    expect(received[0]?.action).toEqual(endTurn("p1-venusaur"));
+  });
+
+  it("porte les actions dans les deux sens — personne n'arbitre le combat", async () => {
+    const host = await Room.create(depsFor(directory), options(2));
+    const guest = await Room.join(depsFor(directory), ROOM_CODE);
+    await flush();
+
+    const atHost: ActionMessage[] = [];
+    host.onAction((message) => atHost.push(message));
+
+    guest.sendAction(1, endTurn("p2-charizard"));
+    await flush();
+
+    expect(atHost).toHaveLength(1);
+    expect(atHost[0]?.seat).toBe(2);
+    expect(atHost[0]?.actionIndex).toBe(1);
+  });
+
+  // Même famille que l'équipe posée au nom d'un autre, avec un enjeu plus gros : sans la
+  // confrontation de `isSpokenFor`, un pair jouerait le tour d'un camp qui n'est pas le sien.
+  it("ignore une action posée au nom d'un autre camp", async () => {
+    const host = await Room.create(depsFor(directory), options(4));
+    await rawGuest(directory, 2);
+    const liar = await rawGuest(directory, 3);
+    await flush();
+
+    const atHost: ActionMessage[] = [];
+    host.onAction((message) => atHost.push(message));
+
+    liar.channel.send({
+      type: "action",
+      seat: 2,
+      actionIndex: 0,
+      action: endTurn("p2-charizard"),
+    });
+    await flush();
+
+    expect(atHost).toEqual([]);
+  });
+
+  // 🔴 Le message tronqué qui tuait le salon : `isNetworkMessage` ne validait que l'enveloppe, donc
+  // le contenu absent partait jusqu'au consommateur et l'exception remontait d'un rappel `onMessage`.
+  it("ignore un message d'action tronqué, sans tomber", async () => {
+    const host = await Room.create(depsFor(directory), options(2));
+    const liar = await rawGuest(directory, 2);
+    await flush();
+
+    const atHost: ActionMessage[] = [];
+    host.onAction((message) => atHost.push(message));
+
+    liar.channel.send({ type: "action" } as unknown as NetworkMessage);
+    liar.channel.send({ type: "action", seat: 2 } as unknown as NetworkMessage);
+    liar.channel.send({
+      type: "action",
+      seat: 2,
+      actionIndex: 0,
+      action: { kind: "use_move", pokemonId: "p2-charizard" },
+    } as unknown as NetworkMessage);
+    await flush();
+
+    expect(atHost).toEqual([]);
+    expect(host.view.seats).toHaveLength(2);
+  });
+
+  // L'intéressé doit savoir qu'il est éliminé, et pourquoi : sans ce message il jouerait seul dans
+  // le vide jusqu'au chien de garde du Lot B3.
+  it("dit au camp éliminé qu'il l'est, et pourquoi", async () => {
+    const host = await Room.create(depsFor(directory), options(2));
+    const guest = await Room.join(depsFor(directory), ROOM_CODE);
+    await flush();
+
+    const atGuest: ForfeitMessage[] = [];
+    guest.onForfeit((message) => atGuest.push(message));
+
+    host.sendForfeit(2, NetworkForfeitReason.EtatDivergent);
+    await flush();
+
+    expect(atGuest).toEqual([
+      {
+        type: "forfeit",
+        seat: HOST_SEAT,
+        forfeitedSeat: 2,
+        reason: NetworkForfeitReason.EtatDivergent,
+      },
+    ]);
+  });
+
+  // À plusieurs, les camps qui restent doivent savoir POURQUOI un joueur disparaît de la partie.
+  it("prévient aussi les camps tiers, pas seulement l'intéressé", async () => {
+    const host = await Room.create(depsFor(directory), options(4));
+    const second = await Room.join(depsFor(directory), ROOM_CODE);
+    const third = await Room.join(depsFor(directory), ROOM_CODE);
+    await flush();
+
+    const atThird: ForfeitMessage[] = [];
+    third.onForfeit((message) => atThird.push(message));
+
+    host.sendForfeit(second.seat, NetworkForfeitReason.EtatDivergent);
+    await flush();
+
+    expect(atThird).toHaveLength(1);
+    expect(atThird[0]?.forfeitedSeat).toBe(second.seat);
+    expect(atThird[0]?.reason).toBe(NetworkForfeitReason.EtatDivergent);
+  });
+
+  it("ignore un constat signé au nom d'un autre camp", async () => {
+    const host = await Room.create(depsFor(directory), options(4));
+    await rawGuest(directory, 2);
+    const liar = await rawGuest(directory, 3);
+    await flush();
+
+    const atHost: ForfeitMessage[] = [];
+    host.onForfeit((message) => atHost.push(message));
+
+    liar.channel.send({ type: "forfeit", seat: 2, forfeitedSeat: 1, reason: "diverged" });
+    await flush();
+
+    expect(atHost).toEqual([]);
+  });
+
+  /*
+   * 🔴 Le bug le plus vicieux du lot, et il ne demandait AUCUNE malveillance.
+   *
+   * Les deux pairs n'entrent pas en combat au même instant : l'écran charge sa carte et ses atlas.
+   * Le salon, lui, reçoit déjà. Une action arrivée avant que l'écran ne branche son écouteur était
+   * jetée en silence — puis l'index du pair lent restait en retard d'un cran à chaque action, donc
+   * trois refus `desynced_index` et il éliminait un joueur parfaitement honnête.
+   */
+  it("garde une action reçue avant que personne n'écoute, et la livre au premier abonné", async () => {
+    const host = await Room.create(depsFor(directory), options(2));
+    const guest = await Room.join(depsFor(directory), ROOM_CODE);
+    await flush();
+
+    host.sendAction(0, endTurn("p1-venusaur"));
+    host.sendAction(1, endTurn("p1-venusaur"));
+    await flush();
+
+    const received: ActionMessage[] = [];
+    guest.onAction((message) => received.push(message));
+
+    expect(received.map((message) => message.actionIndex)).toEqual([0, 1]);
+  });
+
+  it("ne livre les actions gardées qu'une fois", async () => {
+    const host = await Room.create(depsFor(directory), options(2));
+    const guest = await Room.join(depsFor(directory), ROOM_CODE);
+    await flush();
+
+    host.sendAction(0, endTurn("p1-venusaur"));
+    await flush();
+
+    const premier: ActionMessage[] = [];
+    const second: ActionMessage[] = [];
+    guest.onAction((message) => premier.push(message));
+    guest.onAction((message) => second.push(message));
+
+    expect(premier).toHaveLength(1);
+    expect(second).toEqual([]);
+  });
+
+  it("livre normalement dès qu'un écouteur existe, sans passer par le tampon", async () => {
+    const host = await Room.create(depsFor(directory), options(2));
+    const guest = await Room.join(depsFor(directory), ROOM_CODE);
+    await flush();
+
+    const received: ActionMessage[] = [];
+    guest.onAction((message) => received.push(message));
+    host.sendAction(0, endTurn("p1-venusaur"));
+    await flush();
+
+    expect(received).toHaveLength(1);
+  });
+
+  it("rend une fonction de désinscription, comme les autres écouteurs", async () => {
+    const host = await Room.create(depsFor(directory), options(2));
+    const guest = await Room.join(depsFor(directory), ROOM_CODE);
+    await flush();
+
+    const received: ActionMessage[] = [];
+    const unsubscribe = guest.onAction((message) => received.push(message));
+    unsubscribe();
+
+    host.sendAction(0, endTurn("p1-venusaur"));
+    await flush();
+
+    expect(received).toEqual([]);
   });
 });

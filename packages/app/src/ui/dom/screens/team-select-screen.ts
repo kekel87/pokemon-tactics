@@ -11,7 +11,7 @@ import {
   type RoomView,
   type StartMessage,
 } from "@pokemon-tactic/network";
-import { buildTelemetryTeams } from "../../../analytics/team-telemetry";
+import { buildOnlineTelemetryTeams, buildTelemetryTeams } from "../../../analytics/team-telemetry";
 import {
   countAction,
   countScreen,
@@ -219,6 +219,16 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
    * lot existe pour empêcher.
    */
   const enterNetworkBattle = (start: StartMessage): void => {
+    /*
+     * Fail-fast, comme les cinq autres fonctions de ce fichier. `room` est non nul quand cet
+     * écouteur tourne (il est désabonné avant `room = null`), mais l'optionnel transformait cette
+     * impossibilité en panne muette : sans notre place, l'écran de combat rendait la main sur les
+     * deux camps, et `?? 1` aurait déclaré l'équipe d'un autre camp en télémétrie. Relevé en revue.
+     */
+    if (room === null) {
+      return;
+    }
+    const localSeat = room.seat;
     const url = mapUrlFromId(start.options.mapId);
     if (url === undefined) {
       // Un pair qui connaît une carte que nous n'avons pas. `NETWORK_VERSION` est là pour l'éviter ;
@@ -250,9 +260,19 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
         autoPlacement: start.options.autoPlacement,
         damagePreview: start.options.damagePreview,
         seeds: start.seeds,
-        // Pas de `telemetryTeams` : la composition des autres camps n'est pas de l'information
-        // locale, et `battle_started` n'a pas encore de mode `online`. Les compteurs du jeu en ligne
-        // sont l'étape 7 de ce plan.
+        // La place que NOUS tenons (plan 201) : rien d'autre dans le setup ne dit qui est « moi »,
+        // les places distantes étant rabattues sur `human`. Sans elle, l'écran de combat rendrait la
+        // main au joueur local au tour de son adversaire.
+        localSeat,
+        // 🔴 `telemetryTeams` ne porte que NOTRE camp (plan 201, étape 7), et le motif n'est pas
+        // « la composition des autres n'est pas locale » — le `start` la porte pourtant. C'est le
+        // DOUBLE COMPTAGE : deux pairs qui déclarent la même partie compteraient chaque équipe deux
+        // fois, et les statistiques d'usage à la Showdown sont précisément ce que le Lot A produit.
+        // Chacun déclare son camp, chaque équipe compte une fois, le total est juste.
+        telemetryTeams: buildOnlineTelemetryTeams(
+          localSeat,
+          start.seats.find((seat) => seat.seat === localSeat)?.selection.slots,
+        ),
       },
     });
   };
@@ -926,10 +946,29 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     return Math.max(...REQUIRED_TEAM_COUNTS);
   }
 
+  /**
+   * Ramène n'importe quelle erreur à l'énumération **fermée** des causes de refus.
+   *
+   * 🔴 Ce garde-fou manquait : la version d'avant faisait confiance à tout objet portant un `code` et
+   * le transtypait de force. Or un `DOMException` en porte un **numérique** — et c'est ainsi qu'un
+   * `SyntaxError` (`code === 12`) s'est retrouvé composé dans une clé de traduction, affichant
+   * « room.error.12 » au joueur au lieu d'un message. L'énumération est fermée précisément pour que
+   * ça n'arrive pas ; encore faut-il le vérifier au lieu de l'affirmer par un `as`.
+   *
+   * Une cause inconnue devient « connexion impossible » : c'est ce que le joueur peut comprendre, et
+   * il n'y a de toute façon rien qu'il puisse faire de différent selon le cas.
+   */
   function codeOfError(error: unknown): NetworkErrorCode {
-    if (typeof error === "object" && error !== null && "code" in error) {
-      return (error as { code: NetworkErrorCode }).code;
+    const code =
+      typeof error === "object" && error !== null && "code" in error
+        ? (error as { code: unknown }).code
+        : undefined;
+    const known = Object.values(NetworkErrorCode).find((candidate) => candidate === code);
+    if (known !== undefined) {
+      return known;
     }
+    // biome-ignore lint/suspicious/noConsole: diagnostic uniquement — le joueur voit un message générique quoi qu'il arrive, et c'est la seule trace d'une cause de refus que l'énumération fermée ne connaît pas. Son absence est exactement ce qui a caché le bug d'annuaire du plan 201, où la seule chose visible était « room.error.12 » à l'écran.
+    console.warn("[réseau] cause de refus imprévue, ramenée à « connexion impossible »", error);
     return NetworkErrorCode.ConnexionImpossible;
   }
 }

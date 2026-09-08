@@ -11,8 +11,6 @@ import {
 import { InputSource } from "../../../input/input-source";
 import { getInputSystem } from "../../../input/input-system";
 import { type CodeWheel, createCodeWheel } from "../../lobby/code-wheel";
-import { createFormatPickerElement } from "../../team-select/FormatPicker";
-import { renderPreservingFocus } from "../preserve-focus";
 import { el, menuButton } from "./elements";
 
 /**
@@ -30,6 +28,24 @@ import { el, menuButton } from "./elements";
  * ⚠️ Rien n'est créé ici : le code naît à l'entrée sur l'écran de sélection d'équipe, là où l'hôte
  * attend, donc là où il le partage.
  */
+/**
+ * Formats offerts **en ligne** : le 1v1 seulement.
+ *
+ * 🔴 Le combat en réseau n'est correct qu'à deux pairs, et c'est structurel, pas un manque de
+ * finition. Le garde-fou d'index (décision D3) suppose un canal fiable et ordonné : vrai **par
+ * connexion**, donc exact à deux. À trois camps, `Room.broadcast` écrit sur deux canaux distincts et
+ * rien n'ordonne l'un par rapport à l'autre — une action arrivée en avance serait refusée comme un
+ * décalage, sur un joueur parfaitement honnête, puis **perdue** faute de renvoi. Trois refus
+ * l'éliminent (relevé en revue de code du Lot B2).
+ *
+ * Le FFA en réseau est hors V1 de toute façon (plan-cadre 195). Mieux vaut ne pas proposer un format
+ * que le proposer cassé — le mode **local**, lui, garde les cinq.
+ *
+ * Le jour où le maillage gardera les actions hors séquence, cette constante redevient
+ * `REQUIRED_TEAM_COUNTS`.
+ */
+const ONLINE_TEAM_COUNTS = REQUIRED_TEAM_COUNTS.filter((teamCount) => teamCount === 2);
+
 export function createLobbyScreen(navigate: Navigate): Screen<"lobby"> {
   let root: HTMLElement | null = null;
   let wheel: CodeWheel | null = null;
@@ -37,7 +53,7 @@ export function createLobbyScreen(navigate: Navigate): Screen<"lobby"> {
   // `REQUIRED_TEAM_COUNTS` est un tuple `as const`, donc son premier élément existe à la compilation :
   // le repli `?? 2` qui traînait ici était une branche inatteignable, et sa valeur en dur un second
   // endroit où le format par défaut était écrit.
-  let selectedTeamCount: number = REQUIRED_TEAM_COUNTS[0];
+  const selectedTeamCount: number = ONLINE_TEAM_COUNTS[0] ?? 2;
   let errorText: HTMLElement | null = null;
 
   const goBack = (): void => navigate("battle-mode", undefined);
@@ -101,56 +117,6 @@ export function createLobbyScreen(navigate: Navigate): Screen<"lobby"> {
     (direction === "left" ? controls[first - 1] : controls[last + 1])?.focus();
   };
 
-  /**
-   * La rangée de formats du `lobby` n'annonce que le **nombre de joueurs**, là où celle de l'écran
-   * d'équipe dit « 2J × 6 ».
-   *
-   * Ce n'est pas une simplification : le nombre de Pokemon par camp est
-   * `min(places de spawn de la carte, plafond de jeu / nombre de camps)`, donc il **dépend de la
-   * carte** — et à ce stade aucune carte n'est choisie. Annoncer un « × 6 » qui pourrait devenir
-   * « × 4 » au chargement du terrain serait un mensonge.
-   *
-   * La liste vient de `REQUIRED_TEAM_COUNTS`, la source de vérité existante (décision #907) : toute
-   * carte doit déclarer les cinq formats pour être valide, `validateTiledMap` levant une erreur
-   * sinon. D'où ni filtrage des cartes par format, ni revalidation du couple au lancement.
-   */
-  const buildFormatPicker = (): HTMLElement =>
-    createFormatPickerElement(
-      REQUIRED_TEAM_COUNTS.map((teamCount) => ({
-        key: String(teamCount),
-        label: t("lobby.format.option", { players: teamCount }),
-      })),
-      String(selectedTeamCount),
-      t("lobby.format.label"),
-      {
-        onChange: (key) => {
-          selectedTeamCount = Number(key);
-          refreshFormatPicker();
-        },
-      },
-    );
-
-  let formatPicker: HTMLElement | null = null;
-
-  /**
-   * 🔴 Passe par `renderPreservingFocus` : remplacer la rangée détruit le segment **focalisé**, donc
-   * changer de format au clavier ou à la manette éjectait le liseré vers `<body>`, d'où
-   * `focusInDirection` réentrait sur le premier contrôle de l'écran. C'est la régression du plan 194
-   * (#835), que `FormatPicker` documente et que `gamepad-menus.spec` couvre pour l'écran d'équipe —
-   * mais pas pour le `lobby`, qui est neuf.
-   */
-  const refreshFormatPicker = (): void => {
-    const host = formatPicker?.parentElement;
-    if (!formatPicker || host === null || host === undefined) {
-      return;
-    }
-    renderPreservingFocus(host, () => {
-      const replacement = buildFormatPicker();
-      formatPicker?.replaceWith(replacement);
-      formatPicker = replacement;
-    });
-  };
-
   return {
     mount(host) {
       countScreen(TelemetryScreen.Lobby);
@@ -162,8 +128,19 @@ export function createLobbyScreen(navigate: Navigate): Screen<"lobby"> {
       const createSection = el("section", "lb-section");
       const createHeading = el("h2", "lb-section-title");
       createHeading.textContent = t("lobby.createTitle");
-      formatPicker = buildFormatPicker();
-      createSection.append(createHeading, formatPicker, menuButton(t("lobby.create"), createRoom));
+      /*
+       * 🔴 Une LIGNE, pas un sélecteur, parce que le réseau est 1v1 (voir `ONLINE_TEAM_COUNTS`).
+       *
+       * La rangée segmentée est restée jusqu'à ce qu'un test de manette la prenne en défaut : à une
+       * seule option, un segment est un **contrôle mort** — toujours sélectionné, sans alternative,
+       * et il occupait pourtant un arrêt de focus au clavier comme au pad. Le format reste dit, il
+       * n'est simplement plus présenté comme un choix.
+       */
+      const formatLine = el("p", "lb-format");
+      formatLine.textContent = `${t("lobby.format.label")} ${t("lobby.format.option", {
+        players: selectedTeamCount,
+      })}`;
+      createSection.append(createHeading, formatLine, menuButton(t("lobby.create"), createRoom));
 
       const joinSection = el("section", "lb-section");
       const joinHeading = el("h2", "lb-section-title");
@@ -251,7 +228,6 @@ export function createLobbyScreen(navigate: Navigate): Screen<"lobby"> {
       unregisterInput = undefined;
       wheel?.dispose();
       wheel = null;
-      formatPicker = null;
       errorText = null;
       root?.remove();
       root = null;

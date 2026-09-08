@@ -1,9 +1,21 @@
-import type { PlayerController, TeamSlot } from "@pokemon-tactic/core";
+import {
+  type Action,
+  ActionKind,
+  Direction,
+  Nature,
+  PlayerController,
+  PokemonGender,
+  type Position,
+  type TeamSlot,
+} from "@pokemon-tactic/core";
 
 /**
- * Protocole du salon en ligne (plan 199, Lot B1). **Aucun message d'action de combat** : les actions
- * s'échangent au Lot B2, ce protocole s'arrête quand tous les pairs entrent en combat avec un état
- * identique.
+ * Protocole du salon en ligne (plan 199, Lot B1) **et du combat en réseau** (plan 201, Lot B2).
+ *
+ * Du moteur, ce fichier ne prenait que des types. Il en prend maintenant quelques **valeurs**
+ * (`ActionKind`, `Direction`, `Nature`, `PlayerController`, `PokemonGender`) : ce sont des
+ * énumérations fermées, et les valider au bord du réseau demande de connaître leurs valeurs. Même
+ * exception que `composeStartSeats`, pas une porte ouverte à une dépendance de logique.
  */
 
 /**
@@ -22,7 +34,7 @@ import type { PlayerController, TeamSlot } from "@pokemon-tactic/core";
  * Le filet du jour où on oubliera est la somme de contrôle d'état du Lot B4 : la divergence devient
  * une erreur lisible au lieu d'un combat qui part en silence.
  */
-export const NETWORK_VERSION = 1;
+export const NETWORK_VERSION = 2;
 
 /**
  * Causes de refus, en énumération **fermée**. Ce sont aussi les valeurs envoyées en télémétrie :
@@ -44,6 +56,25 @@ export const NetworkErrorCode = {
 } as const;
 
 export type NetworkErrorCode = (typeof NetworkErrorCode)[keyof typeof NetworkErrorCode];
+
+/**
+ * Pourquoi un camp est éliminé, en énumération **fermée** comme les causes de refus — et pour la
+ * même raison : ce sont aussi des valeurs de télémétrie.
+ */
+export const NetworkForfeitReason = {
+  /**
+   * Les parties ne concordent plus : trois actions refusées de suite (plan 201, décisions D1/D5).
+   *
+   * 🔴 **Une divergence, pas une accusation de triche**, et c'est délibéré : en 1v1 personne ne peut
+   * dire qui s'est écarté — un client modifié peut très bien *feindre* de constater une divergence.
+   * On ne prétend donc pas savoir, on constate que les deux parties ne racontent plus la même chose,
+   * exactement comme le refus de version reste symétrique (décision #900). Ce que le joueur lit dit
+   * « vos parties ne concordent plus », jamais « vous avez triché ».
+   */
+  EtatDivergent: "diverged",
+} as const;
+
+export type NetworkForfeitReason = (typeof NetworkForfeitReason)[keyof typeof NetworkForfeitReason];
 
 /** Les trois graines qui rendent la partie rejouable à l'identique sur chaque pair (décision #902). */
 export interface NetworkSeeds {
@@ -192,6 +223,52 @@ export interface ByeMessage {
   seat: number;
 }
 
+/**
+ * Une action de combat, telle que son auteur l'a **déjà soumise à son propre moteur** (plan 201).
+ *
+ * 🔴 C'est ce « déjà » qui gouverne tout le traitement à la réception. `executeAction` soumet puis
+ * diffuse : quand ce message arrive, l'émetteur a avancé. Refuser l'action ne le fait pas revenir en
+ * arrière — un refus n'est donc pas une correction, c'est le constat d'une divergence. D'où le
+ * barème (décision D1) plutôt que le « rejeter, redemander » que `docs/multiplayer.md` décrivait.
+ */
+export interface ActionMessage {
+  type: "action";
+  seat: number;
+  /**
+   * Nombre d'actions enregistrées chez l'émetteur **avant** celle-ci (décision D3).
+   *
+   * Détecteur de désync du pauvre : le canal est fiable et ordonné, donc un décalage ne vient pas du
+   * transport mais des moteurs. Le dire tout de suite vaut mieux qu'appliquer une action au mauvais
+   * acteur, et ça ne coûte pas d'attendre la somme de contrôle du Lot B4.
+   */
+  actionIndex: number;
+  action: Action;
+}
+
+/**
+ * Un camp est éliminé. Barème épuisé au Lot B2 ; abandon volontaire et chien de garde au Lot B3.
+ *
+ * Tout le monde le reçoit, et c'est le point : **les autres joueurs doivent savoir pourquoi** un camp
+ * disparaît de la partie, et **l'intéressé doit savoir qu'il est éliminé, et pourquoi**. Sans ce
+ * message, un pair dont les actions sont refusées continue de jouer seul dans le vide.
+ */
+export interface ForfeitMessage {
+  type: "forfeit";
+  /** Qui l'annonce. Confronté à l'adresse d'annuaire par `Room.isSpokenFor`, donc fiable. */
+  seat: number;
+  /**
+   * La place éliminée. Vaut `seat` pour un abandon volontaire (Lot B3), une **autre** place quand
+   * l'émetteur constate une divergence (Lot B2).
+   *
+   * ⚠️ **Ce champ n'est pas authentifiable** — c'est la contrepartie assumée d'un modèle sans
+   * arbitre : n'importe quel pair peut désigner n'importe qui. Sans effet dans le cadrage du jeu (on
+   * joue entre gens qui se sont échangé un code, décision #863) ; à revoir seulement si une
+   * communauté compétitive apparaît.
+   */
+  forfeitedSeat: number;
+  reason: NetworkForfeitReason;
+}
+
 export type NetworkMessage =
   | HelloMessage
   | WelcomeMessage
@@ -200,45 +277,227 @@ export type NetworkMessage =
   | ReadyMessage
   | StartMessage
   | StartAckMessage
-  | ByeMessage;
+  | ByeMessage
+  | ActionMessage
+  | ForfeitMessage;
 
 export type NetworkMessageType = NetworkMessage["type"];
 
+// --- Validation au bord du réseau -----------------------------------------------------------
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isArrayOf<T>(value: unknown, item: (entry: unknown) => entry is T): value is readonly T[] {
+  return Array.isArray(value) && value.every(item);
+}
+
+function isNonEmptyArrayOf<T>(
+  value: unknown,
+  item: (entry: unknown) => entry is T,
+): value is readonly T[] {
+  return isArrayOf(value, item) && value.length > 0;
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === "string" && value.length > 0;
+}
+
+/** Une place : 1 est l'hôte, il n'y a pas de place 0 ni de demi-place. */
+function isSeat(value: unknown): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value >= 1;
+}
+
 /**
- * Les types reconnus au bord du réseau.
- *
- * C'était un **tableau de huit littéraux recopiés à la main**, que rien ne synchronisait avec
- * l'union : un message ajouté au protocole restait rejeté par `isNetworkMessage`, en silence.
- *
- * `satisfies Record<NetworkMessageType, true>` le rend exhaustif **dans les deux sens** — une
- * variante de l'union sans entrée ici ne compile pas, une entrée qui ne correspond à aucune variante
- * non plus. Même idiome que le `satisfies Record<NetworkErrorCode, TelemetryAction>` de la
- * télémétrie, et un objet plutôt qu'un tableau parce que seule la forme d'objet peut porter cette
- * contrainte.
+ * Une version, **sans la comparer à la nôtre**, et c'est essentiel : `hello` et `welcome` venus d'un
+ * pair incompatible doivent se lire, sinon on ne peut pas savoir que c'est la version qui cloche.
+ * `isCompatibleVersion` est la politique ; ceci n'est que la forme.
  */
-const MESSAGE_TYPES = {
-  hello: true,
-  welcome: true,
-  room_state: true,
-  team_select: true,
-  ready: true,
-  start: true,
-  start_ack: true,
-  bye: true,
-} as const satisfies Record<NetworkMessageType, true>;
+function isVersion(value: unknown): value is number {
+  return Number.isInteger(value);
+}
+
+/** Le plateau est une grille : des entiers, jamais des flottants. */
+function isPosition(value: unknown): value is Position {
+  return isRecord(value) && Number.isInteger(value.x) && Number.isInteger(value.y);
+}
+
+function isMemberOf<T extends string>(
+  enumeration: Record<string, T>,
+): (value: unknown) => value is T {
+  const values = new Set<string>(Object.values(enumeration));
+  return (value): value is T => typeof value === "string" && values.has(value);
+}
+
+const isDirection = isMemberOf(Direction);
+const isNature = isMemberOf(Nature);
+const isPokemonGender = isMemberOf(PokemonGender);
+const isForfeitReason = isMemberOf(NetworkForfeitReason);
+const isSeatOccupancy = isMemberOf(NetworkSeatOccupancy);
+/** Une place de `start` : `human` ou `ai` seulement — `remote` est un état de salon. */
+const isStartController = isMemberOf(PlayerController);
+
+/**
+ * Une action de combat venue du réseau.
+ *
+ * ⚠️ `retreatPosition` est **facultative et jamais exigée** : elle n'apparaît pas dans
+ * `getLegalActions()`, l'orchestrateur l'ajoute après coup et le moteur la valide à l'exécution
+ * (`isValidHitAndRunRetreat`). L'exiger interdirait Demi-Tour, Change Éclair et Eau Revoir de
+ * traverser le réseau.
+ */
+function isAction(value: unknown): value is Action {
+  if (!isRecord(value) || !isNonEmptyString(value.pokemonId)) {
+    return false;
+  }
+  switch (value.kind) {
+    case ActionKind.Move:
+      return isNonEmptyArrayOf(value.path, isPosition);
+    case ActionKind.UseMove:
+      return (
+        isNonEmptyString(value.moveId) &&
+        isPosition(value.targetPosition) &&
+        (value.retreatPosition === undefined || isPosition(value.retreatPosition))
+      );
+    case ActionKind.EndTurn:
+      return isDirection(value.direction);
+    case ActionKind.UndoMove:
+      return true;
+    default:
+      return false;
+  }
+}
+
+/**
+ * Forme d'un emplacement d'équipe. **Forme seulement** : qu'un talent existe ou qu'une répartition
+ * de points soit légale n'est pas l'affaire du bord réseau, c'est celle du constructeur d'équipe —
+ * et le paquet réseau ne dépend pas de `packages/data`.
+ */
+function isTeamSlot(value: unknown): value is TeamSlot {
+  return (
+    isRecord(value) &&
+    isNonEmptyString(value.pokemonId) &&
+    isNonEmptyString(value.ability) &&
+    isNature(value.nature) &&
+    isArrayOf(value.moveIds, isNonEmptyString) &&
+    isRecord(value.statSpread) &&
+    Object.values(value.statSpread).every((points) => Number.isFinite(points)) &&
+    (value.heldItemId === undefined || isNonEmptyString(value.heldItemId)) &&
+    (value.gender === undefined || isPokemonGender(value.gender))
+  );
+}
+
+function isTeamSelection(value: unknown): value is NetworkTeamSelection {
+  return (
+    isRecord(value) &&
+    isArrayOf(value.pokemonDefinitionIds, isNonEmptyString) &&
+    (value.slots === undefined || isArrayOf(value.slots, isTeamSlot))
+  );
+}
+
+function isRoomOptions(value: unknown): value is NetworkRoomOptions {
+  return (
+    isRecord(value) &&
+    isNonEmptyString(value.mapId) &&
+    typeof value.teamCount === "number" &&
+    Number.isInteger(value.teamCount) &&
+    value.teamCount >= 1 &&
+    typeof value.autoPlacement === "boolean" &&
+    typeof value.damagePreview === "boolean"
+  );
+}
+
+function isSeatState(value: unknown): value is NetworkSeatState {
+  return (
+    isRecord(value) &&
+    isSeat(value.seat) &&
+    isSeatOccupancy(value.occupancy) &&
+    typeof value.ready === "boolean"
+  );
+}
+
+/** Trois graines, ou aucune partie : une seule manquante et les pairs divergent avant le tour 1. */
+function isSeeds(value: unknown): value is NetworkSeeds {
+  return (
+    isRecord(value) &&
+    Number.isFinite(value.battle) &&
+    Number.isFinite(value.placement) &&
+    Number.isFinite(value.ai)
+  );
+}
+
+function isStartSeat(value: unknown): value is StartSeat {
+  return (
+    isRecord(value) &&
+    isSeat(value.seat) &&
+    isStartController(value.controller) &&
+    isTeamSelection(value.selection)
+  );
+}
+
+/**
+ * Un valideur par variante du protocole.
+ *
+ * 🔴 **Ce fichier ne validait que le champ `type`** tout en promettant `value is NetworkMessage`, et
+ * `Room.handleMessage` faisait confiance à cette promesse : `{"type":"room_state"}` nu passait le
+ * garde, `applyRoomState(undefined, undefined, undefined)` jetait, et l'exception partait d'un
+ * rappel `onMessage` — **le salon de l'invité mourait**. Aucun pair malveillant n'était nécessaire,
+ * une version future suffisait.
+ *
+ * `satisfies Record<NetworkMessageType, …>` garde l'exhaustivité **dans les deux sens** : une
+ * variante de l'union sans entrée ici ne compile pas, une entrée sans variante non plus.
+ */
+const MESSAGE_VALIDATORS = {
+  hello: (message) => isVersion(message.networkVersion) && isSeat(message.seat),
+  welcome: (message) =>
+    isVersion(message.networkVersion) && isArrayOf(message.occupiedSeats, isSeat),
+  room_state: (message) =>
+    isRoomOptions(message.options) &&
+    isNonEmptyArrayOf(message.seats, isSeatState) &&
+    typeof message.locked === "boolean",
+  team_select: (message) => isSeat(message.seat) && isTeamSelection(message.selection),
+  ready: (message) => isSeat(message.seat) && typeof message.ready === "boolean",
+  start: (message) =>
+    isRoomOptions(message.options) &&
+    isSeeds(message.seeds) &&
+    isNonEmptyArrayOf(message.seats, isStartSeat) &&
+    // 🔴 Places 1..N, croissantes et sans trou. `composeStartSeats` le garantit déjà, mais rien ne le
+    // VÉRIFIAIT — et tout l'aval en dépend : l'écran de combat mappe `start.seats` par INDEX sur
+    // `PLAYER_IDS`, alors que la place locale est un NUMÉRO. L'égalité `index + 1 === seat` n'est
+    // vraie que sous cette forme, et son échec ne se voyait nulle part : un invité en place 3 sur
+    // deux places obtenait un joueur local introuvable, donc un combat rendu en hot-seat sur les
+    // deux camps, sans erreur. Relevé en revue de code.
+    message.seats.every((seat, index) => seat.seat === index + 1),
+  start_ack: (message) => isSeat(message.seat),
+  bye: (message) => isSeat(message.seat),
+  action: (message) =>
+    isSeat(message.seat) &&
+    typeof message.actionIndex === "number" &&
+    Number.isInteger(message.actionIndex) &&
+    message.actionIndex >= 0 &&
+    isAction(message.action),
+  forfeit: (message) =>
+    isSeat(message.seat) && isSeat(message.forfeitedSeat) && isForfeitReason(message.reason),
+} as const satisfies Record<NetworkMessageType, (message: Record<string, unknown>) => boolean>;
 
 /**
  * Reconnaît un message venu du réseau. Un pair peut envoyer n'importe quoi — un client modifié, une
  * autre application qui a pris une adresse voisine, une version future — donc rien n'est présumé
- * bien formé. Ce garde ne valide que la forme d'enveloppe ; le contenu est validé par le salon, qui
- * seul sait ce qui a du sens dans son état courant.
+ * bien formé, **enveloppe et contenu**.
+ *
+ * Ce garde répond de la **forme**. Ce qui a du sens dans l'état courant du salon reste l'affaire du
+ * salon, et la **légalité** d'une action reste celle du moteur (`getLegalActions`) : un message bien
+ * formé n'est pas un message légitime.
  */
 export function isNetworkMessage(value: unknown): value is NetworkMessage {
-  if (typeof value !== "object" || value === null) {
+  if (!isRecord(value)) {
     return false;
   }
-  const type = (value as { type?: unknown }).type;
-  return typeof type === "string" && Object.hasOwn(MESSAGE_TYPES, type);
+  const type = value.type;
+  if (typeof type !== "string" || !Object.hasOwn(MESSAGE_VALIDATORS, type)) {
+    return false;
+  }
+  return MESSAGE_VALIDATORS[type as NetworkMessageType](value);
 }
 
 /**

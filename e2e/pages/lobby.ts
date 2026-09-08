@@ -9,7 +9,8 @@ import type { Locator, Page } from "@playwright/test";
  */
 export class LobbyScreen {
   readonly title: Locator;
-  readonly formatSegments: Locator;
+  /** La ligne qui ANNONCE le format. Le réseau étant 1v1, ce n'est plus un sélecteur (plan 201). */
+  readonly formatLine: Locator;
   readonly create: Locator;
   readonly join: Locator;
   readonly back: Locator;
@@ -20,7 +21,7 @@ export class LobbyScreen {
 
   constructor(private readonly page: Page) {
     this.title = page.getByRole("heading", { level: 1, name: "Jouer en ligne" });
-    this.formatSegments = page.getByTestId("format-segment");
+    this.formatLine = page.locator(".lb-format");
     this.create = page.getByRole("button", { name: "Créer une partie", exact: true });
     this.join = page.getByRole("button", { name: "Rejoindre", exact: true });
     this.back = page.getByRole("button", { name: "Retour", exact: true });
@@ -35,10 +36,6 @@ export class LobbyScreen {
    * Visé par `data-format-key` — la valeur qu'écrit le code, indépendante de l'i18n et du
    * `text-transform` du libellé — et non par son texte « 4 joueurs ».
    */
-  formatSegment(teamCount: number): Locator {
-    return this.formatSegments.and(this.page.locator(`[data-format-key="${teamCount}"]`));
-  }
-
   /**
    * Saisit un code **au clavier**, dans la roue — le seul widget de saisie, pour les quatre entrées.
    * Passe par de vraies frappes plutôt que par un `fill()` : il n'y a pas de champ texte à remplir,

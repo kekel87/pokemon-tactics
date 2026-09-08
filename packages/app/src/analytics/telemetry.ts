@@ -120,6 +120,14 @@ export const KnockOutCause = {
   Fall: "fall",
   LethalTerrain: "lethal-terrain",
   RingOut: "ring-out",
+  /**
+   * Le camp a quitté la partie (plan 201) : abandon, ou élimination faute de concordance.
+   *
+   * Sans cette valeur, les Pokemon d'un camp éliminé remonteraient en `damage` — le repli du
+   * collecteur — c'est-à-dire un **mensonge factuel** dans les données que la Phase 8 lira pour
+   * juger l'équilibrage.
+   */
+  Forfeit: "forfeit",
 } as const;
 export type KnockOutCause = (typeof KnockOutCause)[keyof typeof KnockOutCause];
 
@@ -169,11 +177,29 @@ export interface TelemetryMemberOutcome {
   readonly knockedOutCause: KnockOutCause | null;
 }
 
+export const BattleEndReason = {
+  /** La partie s'est jouée jusqu'au bout. */
+  Combat: "combat",
+  /** Un camp a quitté la partie (plan 201). */
+  Forfeit: "forfeit",
+} as const;
+export type BattleEndReason = (typeof BattleEndReason)[keyof typeof BattleEndReason];
+
 export interface BattleEndedPayload {
   readonly battleId: string;
   /** Camp vainqueur, ou `null` en cas de match nul (plan 191). */
   readonly winnerSide: number | null;
   readonly draw: boolean;
+  /**
+   * Comment la partie s'est terminée (plan 201).
+   *
+   * 🔴 Pourquoi ce champ existe : l'abandon se mesurait par l'**ABSENCE** de `battle_ended` (voir
+   * `trackBattleEnded`), et un forfait qui en émet un **casse cet invariant** — il sortirait du
+   * signal d'abandon pour polluer celui des victoires décisives, qui est précisément ce que la
+   * Phase 8 lira pour juger les matchups. Le distinguer coûte un champ ; ne pas le distinguer coûte
+   * la confiance dans toute la mesure.
+   */
+  readonly endReason: BattleEndReason;
   readonly durationMs: number;
   readonly turns: number;
   /** Seulement pour les équipes `human-built`, les seules dont on ait la composition. */

@@ -20,8 +20,8 @@ Pour l'ouvrir : `node scripts/memory/query.mjs --open <entité>`. Ci-dessous l'e
 
 ## Ce qui vient
 
-> **Où on en est** : la **Phase 7 — Multijoueur** est la phase en cours (télémétrie livrée, transport
-> et salon réseau livrés ; échange des actions, robustesse et détection de désync restants). Les
+> **Où on en est** : la **Phase 7 — Multijoueur** est la phase en cours (télémétrie livrée, transport,
+> salon réseau et combat en réseau livrés ; robustesse et détection de désync restants). Les
 > autres sections ci-dessous sont ouvertes, dans un ordre qui n'est pas figé.
 
 ### Post-Babylon — petits chantiers de rendu
@@ -115,8 +115,10 @@ La carte au centre, une palette de blocs + décorations sur le côté ; on pose 
 > l'équilibrage, Goatcounter retiré du bundle. **Lot C (écran de victoire enrichi) livré et validé le
 > 2026-09-03** (plan 197). **Lot B1 (transport, salon, lancement accusé) livré le 2026-09-04** (plan
 > 199, décisions #895-912) : deux navigateurs se trouvent par un code et entrent en combat avec un
-> état identique. `docs/plans/195` reste `in-progress` : **B2 (combat en réseau), B3 (robustesse) et
-> B4 (détection de désync)** restent à faire.
+> état identique. **Lot B2 (combat en réseau) livré et validé à la main le 2026-09-08** (plan 201) :
+> un 1v1 complet se joue de bout en bout entre deux navigateurs, jusqu'à l'écran de victoire, sur le
+> service public de PeerJS. `docs/plans/195` reste `in-progress` : **B3 (robustesse) et B4 (détection
+> de désync)** restent à faire.
 
 **Ce qui est déjà prêt** : replay et déterminisme verrouillés (plan 181), port de persistance (#751),
 hot-seat N joueurs avec `humanPlayerIds` (plan 188) — le tour distant se greffe là où le tour hot-seat
@@ -140,8 +142,12 @@ existe déjà.
       (#864, #865), reconnexion par le chemin du plan 181. **Viser le 1v1**, retester le FFA à 12
       ensuite. **Lot B1 (transport et salon) LIVRÉ le 2026-09-04** (plan 199, paquet
       `packages/network/`, décisions #895-912) : code de partie, écran `lobby`, salle d'attente,
-      lancement accusé, trois graines partagées (combat/placement/IA). Restent **B2** (échange des
-      actions), **B3** (chronomètre, reconnexion, abandon) et **B4** (checksum de désync)
+      lancement accusé, trois graines partagées (combat/placement/IA). **Lot B2 (combat en réseau)
+      LIVRÉ et validé à la main le 2026-09-08** (plan 201) : tour distant greffé sur `humanPlayerIds`,
+      validation de chaque action reçue contre `getLegalActions()`, barème 1er/2e/3e refus (avertir
+      puis forfait), forfait dans le core (`BattleEngine.forfeit`). Réseau restreint au **1v1** — le
+      garde-fou d'index suppose un canal ordonné, vrai par connexion mais pas à trois camps et plus.
+      Restent **B3** (chronomètre, reconnexion, abandon) et **B4** (checksum de désync)
 - [x] **Écran de victoire enrichi** — sans dépendance réseau, garde sa place ici : même matière que
       l'événement `battle_ended` de la télémétrie (durée, tours, camp vainqueur). **LIVRÉ ET VALIDÉ
       (2026-09-03, plan 197)** : rangée de portraits de l'équipe du vainqueur (K.O. grisés) + « N tours ·

@@ -91,7 +91,17 @@ export class FakePeer extends FakeEventEmitter {
   readonly connections: FakeDataConnection[] = [];
   destroyed = false;
 
-  constructor(readonly id: string) {
+  /**
+   * Les options telles que `PeerJsTransport` les a passées, **littéralement**.
+   *
+   * Retenues pour qu'un test puisse affirmer qu'une option non renseignée est ABSENTE et non
+   * présente à `undefined` : `peerjs` fusionne ses défauts par étalement, donc une clé à `undefined`
+   * écrase le défaut. C'est ce qui rendait l'annuaire public injoignable (plan 201).
+   */
+  constructor(
+    readonly id: string,
+    readonly options: Record<string, unknown> = {},
+  ) {
     super();
     createdPeers.push(this);
     queueMicrotask(() => this.emit("open"));

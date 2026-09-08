@@ -100,6 +100,12 @@ export type BattleEvent =
   | { type: typeof BattleEventType.StatChanged; targetId: string; stat: StatName; stages: number }
   | { type: typeof BattleEventType.PokemonKo; pokemonId: string; countdownStart: number }
   | { type: typeof BattleEventType.PokemonEliminated; pokemonId: string }
+  /**
+   * Un camp quitte la partie d'un bloc (plan 201). Émis **avant** les K.O. qu'il entraîne, pour que
+   * ce qui les observe — journal, télémétrie — sache les qualifier au lieu de les prendre pour des
+   * dégâts.
+   */
+  | { type: typeof BattleEventType.PlayerForfeited; playerId: string }
   | {
       type: typeof BattleEventType.PokemonRevived;
       pokemonId: string;

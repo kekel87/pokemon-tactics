@@ -193,8 +193,10 @@ test("§6.10 la roue de code se pilote au pad, et on peut en sortir", async ({ p
   await expect(lobby.title).toBeVisible();
   await connectPad(page);
 
-  // On entre dans la roue par le bas depuis la rangée de formats.
-  await page.getByTestId("format-segment").first().focus();
+  // On entre dans la roue par le bas depuis « Créer une partie » — le premier contrôle de l'écran
+  // depuis que la rangée de formats a cédé la place à une simple ligne (plan 201 : le réseau est
+  // 1v1, donc un sélecteur à une seule option était un contrôle mort qui prenait un arrêt de focus).
+  await lobby.create.focus();
   await tapPadButton(page, PadButton.DpadDown);
   await expect.poll(() => focusedTestId(page)).toBe("code-slot");
 

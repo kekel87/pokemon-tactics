@@ -1237,6 +1237,87 @@ export class BattleEngine {
     return result;
   }
 
+  /**
+   * Nombre d'actions déjà enregistrées (plan 201, décision D3).
+   *
+   * C'est le compteur que deux pairs comparent : l'émetteur annonce le sien **avant** de soumettre,
+   * le destinataire le confronte au sien. Un décalage dit « nous ne sommes pas au même point » au lieu
+   * d'appliquer une action au mauvais acteur — détecteur de désync du pauvre, en attendant la somme
+   * de contrôle du Lot B4.
+   *
+   * Un accesseur plutôt que `exportReplay().actions.length` : ce dernier recopie tout le journal, et
+   * on le lirait à chaque action reçue.
+   */
+  get actionLogLength(): number {
+    return this.recordedActions.length;
+  }
+
+  /**
+   * Un camp abandonne : toute son équipe tombe d'un coup (plan 201, Lot B2).
+   *
+   * Le multijoueur en a besoin sur deux chemins — l'abandon volontaire et le camp dont les actions ne
+   * concordent plus avec notre moteur — et le core n'en avait aucun. Ce n'est **pas** une `Action` :
+   * un abandon n'attend pas son tour, donc il n'a ni acteur courant ni place dans `recordedActions`.
+   * Conséquence assumée : un abandon ne traverse pas le replay. Une partie abandonnée est finie, la
+   * reprise ne s'y applique pas.
+   *
+   * 🔴 **Ce que cette méthode ne fait PAS, et c'est le point** : elle ne décide pas de la fin du
+   * combat. Elle suit le patron de Lien du Destin (`handleKo`) et laisse `checkVictory` trancher, qui
+   * ne conclut que si `playersAlive.size <= 1`. À trois camps, l'abandon d'un seul ne termine rien et
+   * le combat continue entre les autres. Écrire un second chemin de résolution « abandon » ferait
+   * mentir l'API sur les formats jusqu'à `12v1`, et il ne serait couvert par aucun des tests de fin
+   * de partie existants.
+   */
+  forfeit(playerId: string): ActionResult {
+    if (this.battleOver) {
+      return { success: false, events: [], error: ActionError.BattleOver };
+    }
+    const standing = [...this.state.pokemon.values()].filter(
+      (pokemon) => pokemon.playerId === playerId && pokemon.currentHp > 0,
+    );
+    if (standing.length === 0) {
+      // Camp déjà éliminé, ou inconnu. Rien à abandonner, et surtout pas un verdict à reposer.
+      return { success: false, events: [], error: ActionError.InvalidAction };
+    }
+
+    const events: BattleEvent[] = [];
+    // En TÊTE, avant les K.O. qu'il entraîne : ce qui observe le flux doit pouvoir les qualifier
+    // d'abandon au lieu de les compter comme des dégâts (la télémétrie s'en sert exactement ainsi).
+    const forfeitEvent: BattleEvent = {
+      type: BattleEventType.PlayerForfeited,
+      playerId,
+    };
+    this.emit(forfeitEvent);
+    events.push(forfeitEvent);
+    for (const pokemon of standing) {
+      if (pokemon.currentHp <= 0) {
+        // Une cascade (Lien du Destin, Rancune) a pu l'emporter depuis le relevé.
+        continue;
+      }
+      pokemon.currentHp = 0;
+      const koEvent: BattleEvent = {
+        type: BattleEventType.PokemonKo,
+        pokemonId: pokemon.id,
+        countdownStart: 0,
+      };
+      this.emit(koEvent);
+      events.push(koEvent);
+      this.handleKo(pokemon.id, events);
+    }
+
+    // Même garde-fou que l'auto-K.O. d'une action : le joueur suivant ne doit jamais hériter d'un
+    // acteur mort. `handleKo` a déjà sorti les tombés de l'ordonnanceur.
+    const active = this.state.pokemon.get(this.state.activePokemonId);
+    if (!this.battleOver && active && active.currentHp <= 0) {
+      this.advanceTurn(events);
+    }
+
+    // Frontière de résolution (plan 191), comme `submitAction` : le verdict resté révisable pendant
+    // les cascades est émis ici, une fois.
+    this.finalizeBattleEnd(events);
+    return { success: true, events };
+  }
+
   private applyAction(playerId: string, action: Action): ActionResult {
     if (this.battleOver) {
       return { success: false, events: [], error: ActionError.BattleOver };

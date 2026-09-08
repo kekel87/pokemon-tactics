@@ -357,6 +357,7 @@ describe("événements de partie", () => {
       battleId: "abcd1234",
       winnerSide: 0,
       draw: false,
+      endReason: "combat",
       durationMs: 90_000,
       turns: 14,
       outcomes: [

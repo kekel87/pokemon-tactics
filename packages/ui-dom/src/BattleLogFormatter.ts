@@ -167,6 +167,20 @@ export function formatBattleEvent(
       return { message, color: BattleLogColors.turn, pokemonIds: [event.pokemonId] };
     }
 
+    /*
+     * Un camp quitte la partie (plan 201, Lot B2). Le journal est le seul endroit qui le DIT : sans
+     * cette ligne, une équipe entière tombe d'un coup sans qu'aucun joueur — l'éliminé compris —
+     * sache pourquoi, et l'écran de victoire arrive sans explication.
+     *
+     * Le numéro de camp plutôt qu'un nom : la V1 n'a pas de noms de joueur (décision #906), et
+     * `player-2` est déjà le seul identifiant que tout le monde partage.
+     */
+    case BattleEventType.PlayerForfeited: {
+      const player = /^player-(\d+)$/.exec(event.playerId)?.[1] ?? event.playerId;
+      const message = translate("battleLog.playerForfeited", { player });
+      return { message, color: BattleLogColors.ko, pokemonIds: [] };
+    }
+
     case BattleEventType.MoveStarted: {
       const name = context.getPokemonName(event.attackerId);
       const moveName = context.getMoveName(event.moveId);

@@ -32,6 +32,18 @@ export function holdOnlineRoom(room: Room): void {
 }
 
 /**
+ * Le salon de la session, ou `null` en partie locale (plan 201, Lot B2).
+ *
+ * Ce fichier n'avait que `hold` et `release` : **personne ne pouvait lire le salon depuis le
+ * combat**, alors que c'est exactement ce pour quoi il a été sorti des écrans. L'écran de combat s'en
+ * sert pour brancher l'échange d'actions, et rend `null` en local — donc le même code monte les deux
+ * sortes de partie sans se demander laquelle il monte.
+ */
+export function getOnlineRoom(): Room | null {
+  return current;
+}
+
+/**
  * Termine la session en ligne : `bye` puis fermeture. Sans effet s'il n'y a pas de salon, ce qui
  * permet de l'appeler depuis tout chemin de sortie sans avoir à savoir si on jouait en ligne.
  */

@@ -75,6 +75,9 @@ test("§6.11 reprise : le combat remonte à l'identique depuis le menu principal
   const logBefore = await page.getByTestId("battle-log-entry").allTextContents();
   expect(logBefore.length).toBeGreaterThan(0);
   const activeBefore = await readActivePokemon(page);
+  // La bannière en entier — nom ET propriétaire du tour (plan 201) : comparer les deux textes de part
+  // et d'autre du rechargement dit plus que comparer le nom seul.
+  const bannerBefore = ((await page.getByTestId("combat-turn").textContent()) ?? "").trim();
 
   // Le rechargement d'un onglet déchargé : le combat n'est pas un écran restaurable, donc on retombe
   // au menu principal — mais avec de quoi y retourner.
@@ -105,7 +108,8 @@ test("§6.11 reprise : le combat remonte à l'identique depuis le menu principal
   // Le moteur a bien été ré-avancé : la même main à jouer, avec les mêmes PV, et un journal d'actions
   // de même longueur (la reprise réenregistre son propre `exportReplay`, qui doit retomber sur le
   // compte quitté).
-  await expect(page.getByTestId("combat-turn")).toHaveText(activeBefore.name);
+  await expect(page.getByTestId("combat-turn")).toHaveText(bannerBefore);
+  expect(bannerBefore).toContain(activeBefore.name);
   expect(await readActivePokemon(page)).toEqual(activeBefore);
   await expect.poll(() => store.actionCount()).toBe(savedActions);
 });

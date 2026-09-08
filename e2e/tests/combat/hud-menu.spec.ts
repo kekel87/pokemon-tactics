@@ -8,10 +8,15 @@ const FOUR_MOVES = {
   moves: ["scratch", "vine-whip", "razor-leaf", "sleep-powder"],
 } as const;
 
-test("§4.1 bannière de tour : nom FR du Pokemon actif", async ({ page, bootSandbox }) => {
+test("§4.1 bannière de tour : nom FR du Pokemon actif ET à qui est le tour", async ({
+  page,
+  bootSandbox,
+}) => {
   await bootSandbox(DUEL);
-  // Charge Time seul : plus de notion de round → la bannière n'affiche que le nom FR officiel.
-  await expect(page.getByTestId("combat-turn")).toHaveText("Florizarre");
+  // Charge Time seul : plus de notion de round. Le nom FR officiel, puis à QUI est le tour (plan
+  // 201) — le nom seul suffisait en solo, mais en ligne deux camps humains alternent et rien ne
+  // disait lequel jouait. Une seule place est locale ici, donc « À vous ».
+  await expect(page.getByTestId("combat-turn")).toHaveText("Florizarre — À vous");
 });
 
 test("§4.2 timeline : entrée active surlignée, couleur d'équipe, portrait", async ({

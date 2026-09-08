@@ -959,7 +959,13 @@ export interface Translations {
   "battleLog.terrainStatus.magma": string;
   "battleLog.terrainStatus.swamp": string;
   "battleLog.transformed": string;
+  /** Bandeau de tour : à qui appartient ce tour (plan 201). */
+  "battle.turnOwner.you": string;
+  "battle.turnOwner.player": string;
+  "battle.turnOwner.ai": string;
   "battleLog.turnStarted": string;
+  /** Un camp quitte la partie (plan 201) : abandon, ou parties qui ne concordent plus. */
+  "battleLog.playerForfeited": string;
   "battleLog.typeChanged.becomes": string;
   "battleLog.typeChanged.burnUp": string;
   "battleLog.typeChanged.typeSeparator": string;

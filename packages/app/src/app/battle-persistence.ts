@@ -65,6 +65,21 @@ export interface BattleResumeSave {
  * menu, or when it can no longer be trusted (schema/build mismatch, replay failure) — never merely
  * because time passed.
  */
+/**
+ * La sauvegarde vient-elle d'une partie EN LIGNE ? (plan 201, décision D4)
+ *
+ * 🔴 Une telle sauvegarde **ne se reprend pas seul**, et il faut le dire quelque part : les places
+ * distantes sont rabattues sur `human` dans le setup, donc la reprise ordinaire rendrait la main sur
+ * **les deux camps** — un hot-seat déguisé où l'on jouerait aussi son adversaire.
+ *
+ * Elle est pourtant **conservée**, et ce n'est pas une hésitation : c'est le journal sur lequel le
+ * Lot B3 reconnectera, comme l'en-tête de ce fichier l'avait prévu. On refuse l'offre de reprise,
+ * pas la sauvegarde.
+ */
+export function isOnlineSave(save: BattleResumeSave): boolean {
+  return save.setup.localSeat !== undefined;
+}
+
 export interface BattleResumeStore {
   load(): BattleResumeSave | null;
   save(entry: Omit<BattleResumeSave, "version" | "buildVersion">): void;

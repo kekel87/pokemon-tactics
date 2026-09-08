@@ -166,6 +166,8 @@ export function createInputRouter(options: InputRouterOptions): InputRouter {
   return {
     handle(action) {
       const activeContext = context();
+      // `locked` coupe TOUT, actions de vue comprises : une action se résout, on n'y touche pas.
+      // Un tour distant, lui, passe par `watching` — voir plus bas.
       if (activeContext === "locked") {
         return false;
       }
@@ -173,6 +175,19 @@ export function createInputRouter(options: InputRouterOptions): InputRouter {
       const boardConsumer = board();
       if (boardConsumer && handleViewAction(action, boardConsumer)) {
         return true;
+      }
+
+      /*
+       * `watching` s'arrête ICI : le tour d'un autre joueur laisse regarder — caméra, zoom, journal,
+       * timeline, tout ce que `handleViewAction` vient de traiter — et rien de plus. Ni curseur, ni
+       * menu, ni `Confirmer` : la partie n'est pas à nous.
+       *
+       * Distinct de `locked`, qui coupe tout : un tour distant dure le temps que l'autre réfléchit,
+       * pas la seconde d'une animation, et immobiliser la caméra pendant ce temps rendait le combat
+       * en ligne pénible (retour de recette, plan 201).
+       */
+      if (activeContext === "watching") {
+        return false;
       }
 
       const direction = CURSOR_ACTION_DIRECTION[action as keyof typeof CURSOR_ACTION_DIRECTION];
