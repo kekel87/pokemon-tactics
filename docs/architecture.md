@@ -294,15 +294,24 @@ pokemon-tactics/
 │   │   │                        # étendu au combat par le plan 201 Lot B2) — pur : aucune dépendance
 │   │   │                        # d'interface, et du moteur il ne connaît que des types
 │   │   ├── src/
-│   │   │   ├── protocol.ts             # NetworkMessage, NETWORK_VERSION (2 depuis B2), causes de refus,
+│   │   │   ├── listeners.ts            # Listeners<Args> : un jeu d'abonnés (subscribe/emit/size/clear),
+│   │   │   │                          # emit itère toujours une COPIE — remplace 12 Set + 12 méthodes on*
+│   │   │   │                          # + 13 boucles d'émission qui étaient recopiées dans room.ts
+│   │   │   ├── peer-connection.ts      # Mise en œuvre PeerJS (WebRTC)
+│   │   │   ├── protocol.ts             # NetworkMessage, NETWORK_VERSION (3), causes de refus,
 │   │   │   │                          # graines (combat/placement/IA), messages action/forfeit (B2)
 │   │   │   ├── room-code.ts            # Alphabet du code (5 caractères), génération, adresses dérivées pkmntac-<CODE>-<place>
+│   │   │   ├── room-config.ts          # Les 7 délais du salon (grâce, redial hôte, accusés) + graceDelayFor,
+│   │   │   │                          # fonction pure qui choisit le régime depuis une GraceSituation
+│   │   │   ├── room-types.ts           # Vocabulaire du salon : RoomRole, RoomView, AwaitedSeat, RoomTimers, RoomDeps
+│   │   │   ├── room.ts                 # État de salon : arrivées, départs (absence/grâce), lancement accusé,
+│   │   │   │                          # routage des messages, sendAction/onAction, sendForfeit/onForfeit,
+│   │   │   │                          # tampon des messages reçus avant branchement de l'écran de combat
+│   │   │   │                          # (B2) — la machine à états ; réglages et vocabulaire sortis en
+│   │   │   │                          # modules dédiés
 │   │   │   ├── transport.ts            # Contrat commun de transport + prise d'identifiant à réessais
-│   │   │   ├── peer-connection.ts      # Mise en œuvre PeerJS (WebRTC)
-│   │   │   ├── fake-transport.ts       # Canal en mémoire — rend le salon testable sans réseau (plusieurs Room dans le même processus)
-│   │   │   ├── room.ts                 # État de salon : arrivées, départs, lancement accusé ; sendAction/
-│   │   │   │                          # onAction, sendForfeit/onForfeit, tampon des messages reçus avant
-│   │   │   │                          # branchement de l'écran de combat (B2)
+│   │   │   ├── testing/
+│   │   │   │   └── fake-transport.ts   # Canal en mémoire — rend le salon testable sans réseau (plusieurs Room dans le même processus)
 │   │   │   └── index.ts                # Barrel export
 │   │   ├── tsconfig.json
 │   │   └── package.json         # dependencies: @pokemon-tactic/core (workspace, types uniquement), peerjs

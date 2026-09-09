@@ -13,6 +13,8 @@ import {
   type ResyncMessage,
   type StartMessage,
 } from "./protocol.js";
+import { Room } from "./room.js";
+import { HOST_SEAT, hostPeerId, peerIdForSeat } from "./room-code.js";
 import {
   BATTLE_GRACE_AFTER_SILENCE_MS,
   BATTLE_GRACE_SHORT_MS,
@@ -20,11 +22,8 @@ import {
   GRACE_AFTER_SILENCE_MS,
   HOST_REDIAL_INTERVAL_MS,
   LAUNCH_ACK_TIMEOUT_MS,
-  Room,
-  type RoomDeps,
-  RoomRole,
-} from "./room.js";
-import { HOST_SEAT, hostPeerId, peerIdForSeat } from "./room-code.js";
+} from "./room-config.js";
+import { type RoomDeps, RoomRole } from "./room-types.js";
 import { FakeNetworkDirectory } from "./testing/fake-transport.js";
 import type { NetworkChannel, NetworkTransport } from "./transport.js";
 import {

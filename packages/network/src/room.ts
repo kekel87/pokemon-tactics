@@ -1,4 +1,5 @@
 import { type Action, PlayerController } from "@pokemon-tactic/core";
+import { Listeners } from "./listeners.js";
 import {
   type ActionMessage,
   type ForfeitMessage,
@@ -12,7 +13,6 @@ import {
   type NetworkSeatState,
   type NetworkSeeds,
   type NetworkTeamSelection,
-  ONLINE_TURN_DURATION_MS,
   type ResyncMessage,
   type ResyncRequestMessage,
   type StartMessage,
@@ -26,10 +26,17 @@ import {
   seatFromPeerId,
 } from "./room-code.js";
 import {
+  BATTLE_GRACE_SHORT_MS,
+  graceDelayFor,
+  HANDSHAKE_TIMEOUT_MS,
+  HOST_REDIAL_INTERVAL_MS,
+  LAUNCH_ACK_TIMEOUT_MS,
+} from "./room-config.js";
+import { type RoomDeps, RoomRole, type RoomTimers, type RoomView } from "./room-types.js";
+import {
   type ChannelHealth,
   claimOwnIdentity,
   type NetworkChannel,
-  type NetworkTransport,
   NetworkTransportError,
   REJOIN_RETRY_DELAYS_MS,
 } from "./transport.js";
@@ -46,113 +53,12 @@ import {
  * arrière-plan pour aller coller son code dans une messagerie — c'est dans le flux, pas un cas
  * limite. Un onglet en arrière-plan voit ses minuteurs fortement ralentis ; le chien de garde se
  * fonde donc sur les **messages reçus**, jamais sur une horloge locale fine.
+ *
+ * Quoi faire du silence est arrêté dans `room-config.ts` — les délais et `graceDelayFor`, la table
+ * de réglages qu'une recette rouvre. Le vocabulaire du salon est dans `room-types.ts`.
  */
 
-/** Après une fermeture propre — un `bye` est arrivé. Court : l'intention est connue, mais un rechargement de page passe par là. */
-export const GRACE_AFTER_CLEAN_CLOSE_MS = 10_000;
-
-/** Après un silence. Long : c'est le téléphone en arrière-plan, et il revient. */
-export const GRACE_AFTER_SILENCE_MS = 45_000;
-
-/**
- * Après un silence, **une fois la partie lancée** (plan 202, Lot B3, décision #950).
- *
- * 🔴 **Pas `GRACE_AFTER_SILENCE_MS`, et la ressemblance des valeurs est un piège.** 45 s de silence
- * en combat tomberait pile quand un chronomètre de tour honnête expire, donc faux positif sur chaque
- * tour joué à la dernière seconde — exactement ce contre quoi #865 met en garde. Cette valeur vaut
- * `ONLINE_TURN_DURATION_MS` **plus une marge de 15 s**, qui couvre l'animation d'une attaque de zone
- * à plusieurs cibles plus une latence honnête. Ancrage externe : le délai de reconnexion de Pokémon
- * Showdown est aussi de 60 s, et il a un serveur pour trancher.
- */
-export const BATTLE_GRACE_AFTER_SILENCE_MS = ONLINE_TURN_DURATION_MS + 15_000;
-
-/**
- * Le délai COURT du combat (plan 202, décision #950, révisée en recette le 2026-09-09).
- *
- * Il sert deux situations, et c'est délibérément **un seul chiffre** — l'humain a demandé à ne pas
- * en retenir deux :
- *
- * 1. **Une fermeture d'onglet** (`bye` reçu). Il valait 10 s, hérités du salon sans être réexaminés,
- *    et la recette a montré l'absurdité : fermer sa fenêtre poliment donnait **moins** de temps
- *    qu'arracher son câble réseau (10 s contre 75 s). Le motif de #905 — « l'intention est connue »
- *    — vaut dans une salle d'attente, où partir ne coûte rien ; en combat l'intention se déclare par
- *    le menu (« Abandonner », « Quitter »), jamais par la croix de la fenêtre. La croix, c'est
- *    l'accident, celui que la reprise existe pour absorber.
- * 2. **La deuxième chute de la même place.** Un pair déjà tombé une fois, revenu, puis retombé n'a
- *    plus droit à la présomption de lenteur : sans ce palier, une connexion qui clignote ferait
- *    attendre l'adversaire par tranches de 75 s indéfiniment.
- *
- * 30 s et non 75 : celui qui reste ne doit pas attendre une minute et quart pour gagner contre
- * quelqu'un qui est vraiment parti — et il peut toujours abandonner lui-même s'il ne veut pas
- * attendre.
- */
-export const BATTLE_GRACE_SHORT_MS = 30_000;
-
-/**
- * Entre deux tentatives de rappel de l'hôte, pendant son délai de grâce (plan 202, étape 5).
- *
- * 🔴 **Pourquoi ce rappel existe.** Qui appelle qui est asymétrique : l'invité compose l'adresse de
- * l'hôte, jamais l'inverse. Quand c'est **l'hôte** qui recharge, il reprend bien son adresse — le
- * code EST son adresse (#904) — et se met à écouter, mais **personne ne le rappelle** : l'invité
- * attendrait son délai en entier devant un hôte joignable, puis prononcerait un forfait. Le trou ne
- * se voit pas en testant la reconnexion de l'invité, qui, elle, compose.
- *
- * 2 s : assez lâche pour ne pas marteler l'annuaire, assez serré pour que le retour soit ressenti
- * comme immédiat dans une fenêtre de 75 s.
- */
-export const HOST_REDIAL_INTERVAL_MS = 2_000;
-
-/** Au-delà, un accusé de lancement manquant fait annuler le lancement. */
-export const LAUNCH_ACK_TIMEOUT_MS = 15_000;
-
-/** Au-delà, l'hôte n'a pas répondu à la présentation d'un arrivant. */
-export const HANDSHAKE_TIMEOUT_MS = 10_000;
-
-export const RoomRole = {
-  Host: "host",
-  Guest: "guest",
-} as const;
-
-export type RoomRole = (typeof RoomRole)[keyof typeof RoomRole];
-
-/** Ce que l'interface affiche. Un instantané, jamais une référence sur l'état interne. */
-export interface RoomView {
-  code: string;
-  role: RoomRole;
-  /** La place de ce joueur. 1 = l'hôte. */
-  seat: number;
-  options: NetworkRoomOptions;
-  seats: readonly NetworkSeatState[];
-  /** Vrai dès « Lancer » : plus aucune connexion acceptée. */
-  locked: boolean;
-  /** Les places dont on attend le retour, avec ce qu'il reste de leur délai de grâce. */
-  awaited: readonly AwaitedSeat[];
-}
-
-export interface AwaitedSeat {
-  seat: number;
-  /** Vrai si un `bye` a précédé la fermeture — le délai court s'applique alors. */
-  cleanClose: boolean;
-}
-
-export interface RoomTimers {
-  setTimeout(callback: () => void, delayMs: number): unknown;
-  clearTimeout(handle: unknown): void;
-}
-
-export interface RoomDeps {
-  transport: NetworkTransport;
-  /**
-   * Nombre maximal de places qu'un arrivant balaie. L'appelant le fournit
-   * (`Math.max(...REQUIRED_TEAM_COUNTS)`) : ce paquet ne dépend pas de `@pokemon-tactic/data`.
-   */
-  maxSeats: number;
-  timers?: RoomTimers;
-  sleep?: (delayMs: number) => Promise<void>;
-  /** Injecté par les tests pour affirmer un code exact. */
-  generateCode?: () => string;
-}
-
+/** Les minuteurs du navigateur, quand personne n'en injecte d'autres. */
 const defaultTimers: RoomTimers = {
   setTimeout: (callback, delayMs) => setTimeout(callback, delayMs),
   clearTimeout: (handle) => clearTimeout(handle as ReturnType<typeof setTimeout>),
@@ -169,11 +75,11 @@ export class Room {
   private readonly announcedBye = new Set<number>();
   private readonly startAcks = new Set<number>();
 
-  private readonly changeListeners = new Set<(view: RoomView) => void>();
-  private readonly errorListeners = new Set<(code: NetworkErrorCode) => void>();
-  private readonly startListeners = new Set<(start: StartMessage) => void>();
-  private readonly launchCancelledListeners = new Set<() => void>();
-  private readonly actionListeners = new Set<(action: ActionMessage) => void>();
+  private readonly changeListeners = new Listeners<[view: RoomView]>();
+  private readonly errorListeners = new Listeners<[code: NetworkErrorCode]>();
+  private readonly startListeners = new Listeners<[start: StartMessage]>();
+  private readonly launchCancelledListeners = new Listeners();
+  private readonly actionListeners = new Listeners<[action: ActionMessage]>();
   /**
    * Actions reçues avant que quiconque n'écoute, gardées pour le premier abonné (plan 201).
    *
@@ -188,7 +94,7 @@ export class Room {
    * ce qui a été envoyé avant qu'on soit prêt doit arriver quand on l'est.
    */
   private readonly bufferedActions: ActionMessage[] = [];
-  private readonly forfeitListeners = new Set<(forfeit: ForfeitMessage) => void>();
+  private readonly forfeitListeners = new Listeners<[forfeit: ForfeitMessage]>();
   /**
    * Places dont le silence est devenu un fait, **une fois la partie lancée** (plan 202, Lot B3).
    *
@@ -196,23 +102,23 @@ export class Room {
    * moteur, donc il ne peut pas prononcer un forfait. C'est `online-battle.ts`, qui tient à la fois
    * le salon et l'orchestrateur, qui traduit la place en joueur et applique.
    */
-  private readonly peerAbsentListeners = new Set<(seat: number) => void>();
+  private readonly peerAbsentListeners = new Listeners<[seat: number]>();
   /**
    * Santé du chemin ICE de chaque pair (plan 202, décision #956). Purement informatif : aucun
    * forfait n'en découle, il ne sert qu'à dire au joueur ce qui se passe cinq secondes après une
    * coupure au lieu de soixante-quinze.
    */
-  private readonly peerHealthListeners = new Set<(seat: number, health: ChannelHealth) => void>();
+  private readonly peerHealthListeners = new Listeners<[seat: number, health: ChannelHealth]>();
   /**
    * On commence à attendre le retour d'une place, partie lancée (plan 202). Porte le **budget
    * exact** que le salon vient de choisir — court après un `bye`, long après un silence, raccourci à
    * la deuxième chute — pour que l'interface puisse afficher un décompte qui ne mente pas.
    */
-  private readonly peerAwaitedListeners = new Set<(seat: number, graceMs: number) => void>();
+  private readonly peerAwaitedListeners = new Listeners<[seat: number, graceMs: number]>();
   /** Une place attendue vient de se rebrancher avant l'échéance (plan 202). */
-  private readonly peerReturnedListeners = new Set<(seat: number) => void>();
-  private readonly resyncRequestListeners = new Set<(message: ResyncRequestMessage) => void>();
-  private readonly resyncListeners = new Set<(message: ResyncMessage) => void>();
+  private readonly peerReturnedListeners = new Listeners<[seat: number]>();
+  private readonly resyncRequestListeners = new Listeners<[message: ResyncRequestMessage]>();
+  private readonly resyncListeners = new Listeners<[message: ResyncMessage]>();
   /**
    * Les rattrapages arrivés avant que le combat n'écoute, comme `bufferedActions` (plan 202).
    *
@@ -427,20 +333,17 @@ export class Room {
   }
 
   onChange(listener: (view: RoomView) => void): () => void {
-    this.changeListeners.add(listener);
-    return () => this.changeListeners.delete(listener);
+    return this.changeListeners.subscribe(listener);
   }
 
   /** Les causes de refus à afficher. Énumération fermée, ce sont aussi les valeurs de télémétrie. */
   onError(listener: (code: NetworkErrorCode) => void): () => void {
-    this.errorListeners.add(listener);
-    return () => this.errorListeners.delete(listener);
+    return this.errorListeners.subscribe(listener);
   }
 
   /** L'entrée en combat. Porte tout ce qu'il faut pour monter le même combat sans un mot de plus. */
   onStart(listener: (start: StartMessage) => void): () => void {
-    this.startListeners.add(listener);
-    return () => this.startListeners.delete(listener);
+    return this.startListeners.subscribe(listener);
   }
 
   /**
@@ -448,8 +351,7 @@ export class Room {
    * le `start` — voir `launch()` pour pourquoi ce cas existe.
    */
   onLaunchCancelled(listener: () => void): () => void {
-    this.launchCancelledListeners.add(listener);
-    return () => this.launchCancelledListeners.delete(listener);
+    return this.launchCancelledListeners.subscribe(listener);
   }
 
   /**
@@ -460,7 +362,7 @@ export class Room {
    * **légalité** est l'affaire de l'orchestrateur, seul à tenir un `getLegalActions()`.
    */
   onAction(listener: (action: ActionMessage) => void): () => void {
-    this.actionListeners.add(listener);
+    const unsubscribe = this.actionListeners.subscribe(listener);
     // Ce qui est arrivé avant qu'on écoute part maintenant, dans l'ordre de réception.
     if (this.bufferedActions.length > 0) {
       const kept = [...this.bufferedActions];
@@ -470,13 +372,12 @@ export class Room {
         listener(message);
       }
     }
-    return () => this.actionListeners.delete(listener);
+    return unsubscribe;
   }
 
   /** Un camp abandonne : barème épuisé (B2), volontaire ou chien de garde (B3). */
   onForfeit(listener: (forfeit: ForfeitMessage) => void): () => void {
-    this.forfeitListeners.add(listener);
-    return () => this.forfeitListeners.delete(listener);
+    return this.forfeitListeners.subscribe(listener);
   }
 
   /**
@@ -486,8 +387,7 @@ export class Room {
    * quoi en faire est l'affaire de l'appelant — voir décision #951 et `resolveDeparture`.
    */
   onPeerAbsent(listener: (seat: number) => void): () => void {
-    this.peerAbsentListeners.add(listener);
-    return () => this.peerAbsentListeners.delete(listener);
+    return this.peerAbsentListeners.subscribe(listener);
   }
 
   /**
@@ -497,8 +397,7 @@ export class Room {
    * chien de garde qui tranche ; ceci ne fait qu'alimenter le bandeau.
    */
   onPeerHealth(listener: (seat: number, health: ChannelHealth) => void): () => void {
-    this.peerHealthListeners.add(listener);
-    return () => this.peerHealthListeners.delete(listener);
+    return this.peerHealthListeners.subscribe(listener);
   }
 
   /**
@@ -506,8 +405,7 @@ export class Room {
    * (plan 202). `graceMs` est le budget réellement accordé, pas une constante à redeviner.
    */
   onPeerAwaited(listener: (seat: number, graceMs: number) => void): () => void {
-    this.peerAwaitedListeners.add(listener);
-    return () => this.peerAwaitedListeners.delete(listener);
+    return this.peerAwaitedListeners.subscribe(listener);
   }
 
   /**
@@ -518,19 +416,17 @@ export class Room {
    * le retour et le bandeau « en attente » resterait affiché sur une partie qui a repris.
    */
   onPeerReturned(listener: (seat: number) => void): () => void {
-    this.peerReturnedListeners.add(listener);
-    return () => this.peerReturnedListeners.delete(listener);
+    return this.peerReturnedListeners.subscribe(listener);
   }
 
   /** Un pair revenu réclame les actions jouées pendant son absence (plan 202, décision #955). */
   onResyncRequest(listener: (message: ResyncRequestMessage) => void): () => void {
-    this.resyncRequestListeners.add(listener);
-    return () => this.resyncRequestListeners.delete(listener);
+    return this.resyncRequestListeners.subscribe(listener);
   }
 
   /** La queue du journal nous parvient. Ce qui est arrivé avant qu'on écoute part maintenant. */
   onResync(listener: (message: ResyncMessage) => void): () => void {
-    this.resyncListeners.add(listener);
+    const unsubscribe = this.resyncListeners.subscribe(listener);
     if (this.bufferedResyncs.length > 0) {
       const kept = [...this.bufferedResyncs];
       this.bufferedResyncs.length = 0;
@@ -538,7 +434,7 @@ export class Room {
         listener(message);
       }
     }
-    return () => this.resyncListeners.delete(listener);
+    return unsubscribe;
   }
 
   /** « J'en suis là, donne-moi la suite. » */
@@ -830,17 +726,13 @@ export class Room {
     this.announcedBye.delete(remoteSeat);
     const wasAwaited = this.clearGrace(remoteSeat);
     if (wasAwaited && this.locked) {
-      for (const listener of [...this.peerReturnedListeners]) {
-        listener(remoteSeat);
-      }
+      this.peerReturnedListeners.emit(remoteSeat);
     }
 
     channel.onMessage((message) => this.handleMessage(remoteSeat, message));
     channel.onClose(() => this.handleChannelClosed(remoteSeat));
     channel.onHealthChange((health) => {
-      for (const listener of [...this.peerHealthListeners]) {
-        listener(remoteSeat, health);
-      }
+      this.peerHealthListeners.emit(remoteSeat, health);
     });
   }
 
@@ -1062,9 +954,7 @@ export class Room {
         this.announcedBye.add(message.seat);
         return;
       case "resync_request":
-        for (const listener of [...this.resyncRequestListeners]) {
-          listener(message);
-        }
+        this.resyncRequestListeners.emit(message);
         return;
       case "resync":
         // Gardé si le combat n'écoute pas encore, exactement comme une action : c'est le cas NORMAL
@@ -1073,9 +963,7 @@ export class Room {
           this.bufferedResyncs.push(message);
           return;
         }
-        for (const listener of [...this.resyncListeners]) {
-          listener(message);
-        }
+        this.resyncListeners.emit(message);
         return;
       case "action":
         // Rien à noter côté salon : le combat vit dans l'orchestrateur, pas ici. Mais s'il n'est pas
@@ -1084,14 +972,10 @@ export class Room {
           this.bufferedActions.push(message);
           return;
         }
-        for (const listener of this.actionListeners) {
-          listener(message);
-        }
+        this.actionListeners.emit(message);
         return;
       case "forfeit":
-        for (const listener of this.forfeitListeners) {
-          listener(message);
-        }
+        this.forfeitListeners.emit(message);
         return;
       case "welcome":
         // Traité par `waitForWelcome`, qui est le seul moment où il a un sens.
@@ -1199,9 +1083,7 @@ export class Room {
     // Un salon qui se déverrouille après avoir été verrouillé **est** le message d'annulation du
     // lancement : il n'y en a pas d'autre dans le protocole, et il ramène à la salle d'attente.
     if (wasLocked && !locked) {
-      for (const listener of [...this.launchCancelledListeners]) {
-        listener();
-      }
+      this.launchCancelledListeners.emit();
     }
     this.notifyChange();
   }
@@ -1242,7 +1124,11 @@ export class Room {
     this.abandonLaunchIfAwaiting(remoteSeat);
 
     const cleanClose = this.announcedBye.has(remoteSeat);
-    const delayMs = this.graceDelayFor(remoteSeat, cleanClose);
+    const delayMs = graceDelayFor({
+      locked: this.locked,
+      cleanClose,
+      absentOnce: this.seatsAbsentOnce.has(remoteSeat),
+    });
     /*
      * L'absence est établie **maintenant**, à la fermeture — pas à l'expiration du délai (plan 202,
      * décision #950).
@@ -1261,41 +1147,10 @@ export class Room {
       handle: this.timers.setTimeout(() => this.resolveDeparture(remoteSeat), delayMs),
     });
     if (this.locked) {
-      for (const listener of [...this.peerAwaitedListeners]) {
-        listener(remoteSeat, delayMs);
-      }
+      this.peerAwaitedListeners.emit(remoteSeat, delayMs);
       this.scheduleHostRedial(remoteSeat);
     }
     this.notifyChange();
-  }
-
-  /**
-   * Combien de temps on attend ce retour (plan 202, décision #950).
-   *
-   * Trois régimes, et le troisième est celui que le Lot B3 ajoute :
-   * - fermeture propre (un `bye` est arrivé) : court, l'intention est connue — mais un rechargement
-   *   de page passe aussi par là, d'où 10 s et non zéro ;
-   * - silence en **salon** : 45 s, le téléphone en arrière-plan qui revient ;
-   * - silence en **combat** : `chrono + 15 s`, parce que 45 s tomberait pile sur l'expiration d'un
-   *   chronomètre honnête. Et 10 s seulement si cette place a **déjà** disparu une fois.
-   */
-  private graceDelayFor(remoteSeat: number, cleanClose: boolean): number {
-    /*
-     * En SALON, une fermeture propre vaut le délai court : la place se libère, personne ne perd de
-     * partie, et l'intention annoncée par un `bye` est la seule information disponible (#905).
-     */
-    if (!this.locked) {
-      return cleanClose ? GRACE_AFTER_CLEAN_CLOSE_MS : GRACE_AFTER_SILENCE_MS;
-    }
-    /*
-     * En COMBAT, le `bye` ne raccourcit plus autant : fermer son onglet n'y est pas une déclaration
-     * d'abandon — le menu l'est — mais 30 s suffisent à revenir, et laisser 75 s ferait attendre
-     * pour rien celui qui est resté (révision de recette 2026-09-09).
-     */
-    if (cleanClose || this.seatsAbsentOnce.has(remoteSeat)) {
-      return BATTLE_GRACE_SHORT_MS;
-    }
-    return BATTLE_GRACE_AFTER_SILENCE_MS;
   }
 
   /** Le délai est écoulé sans retour. C'est seulement ici qu'un départ devient un fait. */
@@ -1315,9 +1170,7 @@ export class Room {
      * cours, dont le rattrapage du revenant a besoin.
      */
     if (this.locked) {
-      for (const listener of [...this.peerAbsentListeners]) {
-        listener(remoteSeat);
-      }
+      this.peerAbsentListeners.emit(remoteSeat);
       this.notifyChange();
       return;
     }
@@ -1408,9 +1261,7 @@ export class Room {
         BATTLE_GRACE_SHORT_MS,
       ),
     });
-    for (const listener of [...this.peerAwaitedListeners]) {
-      listener(remoteSeat, BATTLE_GRACE_SHORT_MS);
-    }
+    this.peerAwaitedListeners.emit(remoteSeat, BATTLE_GRACE_SHORT_MS);
   }
 
   /** @returns vrai si un délai courait vraiment — donc si cette place était attendue. */
@@ -1521,22 +1372,16 @@ export class Room {
   }
 
   private emitStart(start: StartMessage): void {
-    for (const listener of [...this.startListeners]) {
-      listener(start);
-    }
+    this.startListeners.emit(start);
   }
 
   private emitError(code: NetworkErrorCode): void {
-    for (const listener of [...this.errorListeners]) {
-      listener(code);
-    }
+    this.errorListeners.emit(code);
   }
 
   private notifyChange(): void {
     const view = this.view;
-    for (const listener of [...this.changeListeners]) {
-      listener(view);
-    }
+    this.changeListeners.emit(view);
   }
 
   // — Garde-fous —————————————————————————————————————————————————————————————————

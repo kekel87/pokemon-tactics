@@ -14,4 +14,6 @@ export * from "./peer-connection.js";
 export * from "./protocol.js";
 export * from "./room.js";
 export * from "./room-code.js";
+export * from "./room-config.js";
+export * from "./room-types.js";
 export * from "./transport.js";
