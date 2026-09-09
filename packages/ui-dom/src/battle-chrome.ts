@@ -7,16 +7,19 @@ import type {
   BattleChrome,
   BattleInstruction,
   BattleOutcomeSummary,
+  ConnectionNoticeView,
   InfoPanelData,
   SelectedMoveView,
   TailwindView,
   TileInfoData,
   TimelineView,
+  TurnClockView,
   TurnInfoView,
   WeatherView,
 } from "@pokemon-tactic/view-core";
 import type { ChromeInsetProbe } from "./chrome-insets.js";
 import type { UiDomConfig } from "./config.js";
+import { createConnectionNotice } from "./connection-notice.js";
 import { createControlLegend } from "./control-legend.js";
 import { el } from "./dom-helpers.js";
 import { createInfoPanel } from "./info-panel.js";
@@ -24,6 +27,7 @@ import { createInputPromptGlyph, INSTRUCTION_GLYPH } from "./input-prompt-glyph.
 import { createMoveTooltip } from "./move-tooltip.js";
 import { createTailwindHud } from "./tailwind-hud.js";
 import { createTileInfoPanel } from "./tile-info-panel.js";
+import { createTurnClockHud } from "./turn-clock-hud.js";
 import { createTurnTimeline, type TurnTimelineKeyHints } from "./turn-timeline.js";
 import { createWeatherHud } from "./weather-hud.js";
 
@@ -35,14 +39,6 @@ const INSTRUCTION_KEY: Readonly<Record<BattleInstruction, string>> = {
   selectMoveDestination: "move.selectDestination",
   selectDirection: "move.selectDirection",
 };
-
-/**
- * Battle instance id → definition id for name/portrait lookup. Handles both id shapes:
- * `p1-pikachu` (placement path) and `p1-m0-pikachu` (sandbox multi-member teams).
- */
-function definitionIdOf(pokemonId: string): string {
-  return pokemonId.replace(/^p\d+-(?:m\d+-)?/, "");
-}
 
 /** "player-2" → "battle.player2" label key. */
 function playerLabel(playerId: string, config: UiDomConfig): string {
@@ -190,10 +186,25 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
   // Top-centre stack: the turn banner with the weather HUD directly beneath it, so
   // the two never overlap (they were both top-centred and collided before).
   const top = el("div", "bc-top");
-  const banner = el("div", "bc-turn", "combat-turn");
+  /*
+   * La bannière de tour porte le compteur de chrono DANS SON CADRE (retour humain 2026-09-09).
+   *
+   * Deux boîtes séparées empilaient jusqu'à cinq cadres en haut de l'écran dès qu'un climat était
+   * actif — bannière, compteur, bandeau réseau, météo, Vent Arrière. Le nom du Pokemon actif est
+   * tombé au passage : il est déjà dans le panneau d'information de gauche, qui ne montre QUE
+   * l'actif, et le plateau le marque d'une pulsation. Ce qui reste ici est ce que rien d'autre ne
+   * dit : à qui est le tour, et combien de temps il lui reste.
+   */
+  const bannerBox = el("div", "bc-turn");
+  const bannerLine = el("div", "bc-turn-line");
+  const banner = el("span", "bc-turn-owner", "combat-turn");
+  const turnClockHud = createTurnClockHud();
+  bannerLine.append(banner, turnClockHud.value);
+  bannerBox.append(bannerLine, turnClockHud.bar);
+  const connectionNotice = createConnectionNotice(config);
   const weatherHud = createWeatherHud(config);
   const tailwindHud = createTailwindHud(config);
-  top.append(banner, weatherHud.element, tailwindHud.element);
+  top.append(bannerBox, connectionNotice.element, weatherHud.element, tailwindHud.element);
 
   const bottom = el("div", "bc-bottom");
   const tooltip = createMoveTooltip(config);
@@ -351,15 +362,18 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
 
   return {
     updateTurnInfo: (info: TurnInfoView) => {
-      const name = getPokemonName(definitionIdOf(info.activePokemonId), language);
       /*
-       * Le nom du Pokemon ET à qui est le tour (plan 201, retour de recette). Le nom seul suffisait
-       * en solo ; en ligne, deux camps humains alternent et rien ne disait lequel jouait.
+       * À QUI est le tour, et rien d'autre (retour humain 2026-09-09).
+       *
+       * Le nom du Pokemon actif y figurait depuis le plan 201, où l'ajout de l'appartenance avait
+       * gardé le nom par prudence. Il est redondant : le panneau d'information de gauche ne montre
+       * que l'actif, et le plateau le marque d'une pulsation. Le retirer est ce qui laisse la place
+       * au compteur de chrono dans le même cadre, au lieu d'un cinquième encadré empilé.
        *
        * Le numéro de camp se lit dans `playerId` (`player-2` → 2), la V1 n'ayant pas de noms de
        * joueur (décision #906).
        */
-      const owner =
+      banner.textContent =
         info.owner === "you"
           ? config.translate("battle.turnOwner.you")
           : info.owner === "ai"
@@ -367,7 +381,6 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
             : config.translate("battle.turnOwner.player", {
                 player: /^player-(\d+)$/.exec(info.playerId)?.[1] ?? info.playerId,
               });
-      banner.textContent = `${name} — ${owner}`;
     },
 
     showActionMenu: (view: ActionMenuView) => {
@@ -463,6 +476,8 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
       }
     },
 
+    updateTurnClock: (view: TurnClockView | null) => turnClockHud.update(view),
+    updateConnectionNotice: (view: ConnectionNoticeView | null) => connectionNotice.update(view),
     updateWeather: (view: WeatherView | null) => weatherHud.update(view),
     updateTailwind: (view: TailwindView | null) => tailwindHud.update(view),
     updateCameraAzimuth: (azimuth: number) => tailwindHud.setAzimuth(azimuth),

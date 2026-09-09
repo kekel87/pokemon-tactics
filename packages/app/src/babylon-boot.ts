@@ -15,6 +15,8 @@ import "@pokemon-tactic/ui-dom/styles/combat-menu-button.css";
 import "@pokemon-tactic/ui-dom/styles/move-tooltip.css";
 import "@pokemon-tactic/ui-dom/styles/turn-timeline.css";
 import "@pokemon-tactic/ui-dom/styles/control-legend.css";
+import "@pokemon-tactic/ui-dom/styles/connection-notice.css";
+import "@pokemon-tactic/ui-dom/styles/turn-clock-hud.css";
 import "@pokemon-tactic/ui-dom/styles/weather-hud.css";
 import "./styles/tokens.css";
 import "./styles/game-overlay.css";

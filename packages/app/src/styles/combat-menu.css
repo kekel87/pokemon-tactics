@@ -49,6 +49,52 @@
     gap: clamp(8px, 1.5vmin, 20px);
   }
 
+  /* « Le temps continue » (plan 202) : ce menu n'est pas une pause, et en ligne l'ouvrir coûte du
+     temps de tour. Un paragraphe et non un bouton — rien à activer, et il ne prend pas le focus.
+
+     Repris après recette (2026-09-09) : le texte rouge seul sur fond sombre ne se voyait pas, et
+     l'emoji collé dans la phrase pendait sous la ligne. C'est devenu un ENCADRÉ — fond teinté,
+     liseré, texte clair — et l'icône est un élément à part que `align-items: center` recale. */
+  .cm-clock-warning {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(6px, 1vmin, 12px);
+    margin: 0;
+    max-inline-size: min(80vw, 480px);
+    padding: clamp(10px, 1.8vmin, 24px) clamp(14px, 2.4vmin, 30px);
+    border: max(2px, 0.25vmin) solid var(--color-feedback-error-border);
+    border-radius: clamp(4px, 0.6vmin, 8px);
+    background: var(--color-feedback-error-bg);
+    color: var(--color-feedback-error-text);
+    /* Au niveau du texte de confirmation (`.cm-confirm-text`) et non un cran sous les entrées : elle
+       porte un avertissement qui coûte un tour, elle doit se lire avant qu'on clique (retour humain
+       2026-09-09, deuxième passe — le premier encadré était encore trop discret). Reste sous les
+       boutons, qui restent l'objet du menu. */
+    font-size: clamp(15px, 2.2vmin, 32px);
+    font-weight: 600;
+    line-height: var(--line-height-base);
+    text-align: start;
+  }
+
+  /* L'icône vient de la police système, pas de la police pixel : elle est cadrée dans un carré fixe
+     pour que ses métriques ne décalent pas la ligne, et centrée dedans. */
+  .cm-clock-glyph {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 1.3em;
+    block-size: 1.3em;
+    font-size: 1.3em;
+    line-height: 1;
+  }
+
+  .cm-clock-text {
+    /* Le texte peut passer à la ligne sur un téléphone ; l'icône reste alignée sur la première. */
+    align-self: center;
+  }
+
   .cm-confirm {
     display: flex;
     flex-direction: column;

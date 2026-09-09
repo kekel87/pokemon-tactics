@@ -18,6 +18,7 @@ export { EntryHazardKind } from "./entry-hazard-kind";
 export { FieldGlobalKind } from "./field-global-kind";
 export { FieldTerrain } from "./field-terrain";
 export { FieldTerrainBonusWho } from "./field-terrain-bonus-who";
+export { ForfeitReason } from "./forfeit-reason";
 export { HeldItemId } from "./held-item-id";
 export { HitAndRunRetreatFallbackReason } from "./hit-and-run-retreat-fallback-reason";
 export { MoveFailedReason } from "./move-failed-reason";

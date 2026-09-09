@@ -81,6 +81,16 @@ export interface CombatSetup {
    * Absente en local, où tous les humains sont devant le même écran.
    */
   localSeat?: number;
+  /**
+   * Le code du salon d'une partie en ligne (plan 202, étape 5).
+   *
+   * 🔴 Il entre dans le setup — donc dans la sauvegarde de reprise — parce que **le code EST
+   * l'adresse** (#904) : sans lui, un pair qui recharge sa page n'a rien à rappeler. `localSeat`
+   * disait déjà quelle place était la nôtre, mais pas dans quelle partie.
+   *
+   * Absent en local, comme `localSeat`.
+   */
+  roomCode?: string;
 }
 
 /** Params passed to each screen's mount(). Extended as plan 120 steps land. */

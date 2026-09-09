@@ -39,6 +39,18 @@
     font-size: clamp(18px, 2.6vmin, 40px);
   }
 
+  /* Échec d'une reprise en ligne (plan 202) : pourquoi la partie n'a pas pu être rejointe. Même
+     traitement que `.lb-error` du salon — c'est le même vocabulaire de causes fermées. Pas de
+     hauteur réservée ici : le message apparaît à la place du bouton de reprise, qui disparaît avec
+     la sauvegarde jetée, donc rien ne se décale sous le curseur. */
+  .mn-error {
+    margin: 0;
+    max-inline-size: clamp(240px, 28vmin, 460px);
+    font-size: clamp(12px, 1.6vmin, 22px);
+    color: var(--color-feedback-error-text);
+    text-align: center;
+  }
+
   .mn-version {
     position: absolute;
     inset-block-end: var(--spacing-xl);

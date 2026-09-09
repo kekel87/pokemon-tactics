@@ -34,7 +34,22 @@ import {
  * Le filet du jour où on oubliera est la somme de contrôle d'état du Lot B4 : la divergence devient
  * une erreur lisible au lieu d'un combat qui part en silence.
  */
-export const NETWORK_VERSION = 2;
+export const NETWORK_VERSION = 3;
+
+/**
+ * Durée d'un tour en ligne (plan 202, Lot B3, décision #946).
+ *
+ * Ici et pas dans la vue : c'est une valeur que les deux pairs doivent **partager**, au même titre
+ * que `NETWORK_VERSION`. Un pair qui compterait 45 s là où l'autre en compte 60 verrait des tours
+ * expirer sans raison chez lui seul.
+ *
+ * 60 s et non les 45 s du VGC : là-bas une décision est le choix d'une attaque, ici un tour est
+ * déplacement + sous-menu + choix d'attaque + visée + confirmation + orientation, sur une grille
+ * isométrique avec hauteurs, à la manette ou au doigt. Une **seule** fenêtre couvre tout ça
+ * (décision #946) — elle ne redémarre pas d'une étape à l'autre, sinon annuler en boucle gèlerait la
+ * partie pour toujours.
+ */
+export const ONLINE_TURN_DURATION_MS = 60_000;
 
 /**
  * Causes de refus, en énumération **fermée**. Ce sont aussi les valeurs envoyées en télémétrie :
@@ -72,6 +87,18 @@ export const NetworkForfeitReason = {
    * « vos parties ne concordent plus », jamais « vous avez triché ».
    */
   EtatDivergent: "diverged",
+  /**
+   * Le pair s'est tu (plan 202, Lot B3, décisions #950 et #952) : canal refermé sans retour pendant
+   * le délai de grâce, silence pendant son tour, ou trois tours manqués d'affilée.
+   *
+   * 🔴 **N'accuse personne**, comme `EtatDivergent` : un forfait pour absence n'est pas plus
+   * authentifiable que le reste (`backlog-forfait-sans-arbitre-non-authentifiable`), et de toute
+   * façon un téléphone qui perd sa connexion n'a rien fait de mal. Ce que le joueur lit dit
+   * « la connexion a été perdue », jamais « votre adversaire a fui ».
+   */
+  Absent: "absent",
+  /** Le joueur a choisi d'abandonner (plan 202, Lot B3). `forfeitedSeat` vaut alors `seat`. */
+  Abandon: "resigned",
 } as const;
 
 export type NetworkForfeitReason = (typeof NetworkForfeitReason)[keyof typeof NetworkForfeitReason];
@@ -243,6 +270,20 @@ export interface ActionMessage {
    */
   actionIndex: number;
   action: Action;
+  /**
+   * Posé par l'émetteur quand cette action vient de l'expiration de **son** chronomètre, et non
+   * d'un choix (plan 202, Lot B3, décision #952).
+   *
+   * 🔴 Il existe parce qu'un `end_turn` reçu est **indiscernable** d'un « Attendre » joué
+   * volontairement : sans ce drapeau, le compteur de tours manqués éliminerait quelqu'un qui finit
+   * trois tours de suite sans agir, ce qui est une façon légitime de jouer.
+   *
+   * ⚠️ **Auto-déclaré et non authentifiable**, comme `forfeitedSeat` : un client patché peut ne
+   * jamais le poser et échapper au compteur. C'est déjà la surface de triche assumée par #865 — « un
+   * client qui s'octroie plus de temps n'est puni par rien d'automatique » — pas une brèche neuve.
+   * Mentir dans l'autre sens ne fait que se nuire.
+   */
+  timedOut?: true;
 }
 
 /**
@@ -269,6 +310,35 @@ export interface ForfeitMessage {
   reason: NetworkForfeitReason;
 }
 
+/**
+ * « J'en suis là, donne-moi la suite » (plan 202, Lot B3, décision #955).
+ *
+ * Envoyé par un pair qui vient de **reprendre** sa partie : il a rejoué son propre journal
+ * sauvegardé, et il lui manque ce qui s'est joué pendant son absence.
+ */
+export interface ResyncRequestMessage {
+  type: "resync_request";
+  seat: number;
+  /** Nombre d'actions que l'émetteur a déjà appliquées. Il veut celles d'après. */
+  actionIndex: number;
+}
+
+/**
+ * La queue du journal, en réponse à un `resync_request` (plan 202, décision #955).
+ *
+ * ⚠️ Les actions voyagent **nues**, sans place d'auteur, et c'est délibéré : le revenant rejoue un
+ * état déterministe, donc **son moteur sait déjà** qui doit agir à chaque index. Conséquence à
+ * connaître — pendant un rattrapage, le contrôle « la place » de `submitRemoteAction` devient
+ * tautologique ; ce sont la **légalité** et le **moteur** qui attrapent une divergence.
+ */
+export interface ResyncMessage {
+  type: "resync";
+  seat: number;
+  /** Index de la première action de la liste, pour que le destinataire vérifie qu'il colle. */
+  fromIndex: number;
+  actions: readonly Action[];
+}
+
 export type NetworkMessage =
   | HelloMessage
   | WelcomeMessage
@@ -279,7 +349,9 @@ export type NetworkMessage =
   | StartAckMessage
   | ByeMessage
   | ActionMessage
-  | ForfeitMessage;
+  | ForfeitMessage
+  | ResyncRequestMessage
+  | ResyncMessage;
 
 export type NetworkMessageType = NetworkMessage["type"];
 
@@ -475,9 +547,24 @@ const MESSAGE_VALIDATORS = {
     typeof message.actionIndex === "number" &&
     Number.isInteger(message.actionIndex) &&
     message.actionIndex >= 0 &&
-    isAction(message.action),
+    isAction(message.action) &&
+    // `timedOut` est absent ou vaut exactement `true` — jamais `false`, qui voudrait dire la même
+    // chose que l'absence et donnerait deux façons d'écrire le même message (plan 202).
+    (message.timedOut === undefined || message.timedOut === true),
   forfeit: (message) =>
     isSeat(message.seat) && isSeat(message.forfeitedSeat) && isForfeitReason(message.reason),
+  resync_request: (message) =>
+    isSeat(message.seat) &&
+    typeof message.actionIndex === "number" &&
+    Number.isInteger(message.actionIndex) &&
+    message.actionIndex >= 0,
+  resync: (message) =>
+    isSeat(message.seat) &&
+    typeof message.fromIndex === "number" &&
+    Number.isInteger(message.fromIndex) &&
+    message.fromIndex >= 0 &&
+    // Une liste VIDE est valide et fréquente : le revenant n'a peut-être rien manqué.
+    isArrayOf(message.actions, isAction),
 } as const satisfies Record<NetworkMessageType, (message: Record<string, unknown>) => boolean>;
 
 /**

@@ -20,6 +20,31 @@ export class NetworkTransportError extends Error {
   }
 }
 
+/**
+ * Santé d'un canal, telle que **le navigateur** la juge (plan 202, Lot B3, décision #956).
+ *
+ * Énumération fermée, comme les causes de refus. Elle ne vient pas d'un battement de cœur qu'on
+ * aurait écrit : WebRTC en fait déjà un, gratuitement. ICE Consent Freshness (RFC 7675) émet une
+ * requête STUN toutes les 5 à 15 s sur le chemin établi, ce qui maintient au passage la
+ * correspondance NAT que les box réclament après 30 à 60 s de silence — une fenêtre dans laquelle un
+ * tour de 60 s sans un seul paquet applicatif tombe tout à fait.
+ *
+ * 🔴 **`Uncertain` ne prononce aucun forfait.** Une connexion `disconnected` se rétablit très
+ * souvent d'elle-même, et éliminer quelqu'un sur un rétablissable serait pire que d'attendre. Ce
+ * signal sert à *dire* au joueur que quelque chose se passe, cinq secondes après la coupure au lieu
+ * de soixante-quinze ; le verdict reste au chien de garde du salon.
+ */
+export const ChannelHealth = {
+  /** Le chemin répond. */
+  Healthy: "healthy",
+  /** Plus de réponse, mais ICE réessaie encore — souvent passager. */
+  Uncertain: "uncertain",
+  /** ICE a renoncé. Le canal ne reviendra pas de lui-même. */
+  Failed: "failed",
+} as const;
+
+export type ChannelHealth = (typeof ChannelHealth)[keyof typeof ChannelHealth];
+
 /** Un canal ouvert vers un pair. Bidirectionnel, ordonné, fiable. */
 export interface NetworkChannel {
   readonly remotePeerId: string;
@@ -28,6 +53,12 @@ export interface NetworkChannel {
   onMessage(listener: (message: NetworkMessage) => void): () => void;
   /** Fermeture, propre ou non. Le salon distingue les deux par le message `bye` qui précède. */
   onClose(listener: () => void): () => void;
+  /**
+   * L'état du chemin ICE a changé (plan 202). Purement informatif — voir `ChannelHealth`.
+   *
+   * @returns de quoi se désabonner.
+   */
+  onHealthChange(listener: (health: ChannelHealth) => void): () => void;
   close(): void;
 }
 
@@ -63,6 +94,41 @@ export interface NetworkTransport {
  */
 export const CLAIM_RETRY_DELAYS_MS = [400, 1_200, 3_000] as const;
 
+/**
+ * Réessais de la RECONNEXION, plus patients que ceux de la création (plan 202).
+ *
+ * 🔴 **Chiffres MESURÉS le 2026-09-09 contre le service public de PeerJS**, pas supposés — la
+ * mesure a fait tomber deux hypothèses fausses au passage (voir plus bas) :
+ *
+ * | Comment le pair est parti | Délai avant que son adresse soit libre |
+ * |---|---|
+ * | proprement (fermeture avec poignée de main) | **110 ms** |
+ * | brutalement (socket tuée sans un mot) | **99 s** |
+ *
+ * D'où ce barème d'environ **15 s** : il couvre confortablement le départ propre, y compris avec un
+ * réseau lent et un serveur qui traîne. Il ne couvre **pas** le départ brutal, et c'est un choix —
+ * pas un manque de patience. À 99 s, le pair d'en face aura de toute façon prononcé le forfait
+ * (75 s de silence au maximum) : insister plus longtemps ne ramènerait personne dans une partie qui
+ * n'existe plus, et ferait seulement patienter le joueur devant un bouton mort.
+ *
+ * **Conséquence assumée, documentée dans `docs/multiplayer.md`** : un HÔTE dont l'onglet est tué net
+ * — sans que son `bye` ne parte — ne peut pas revenir. Il doit récupérer une adresse **précise**, le
+ * code de salon étant son adresse (#904), là où le reste du jeu s'en accommode. Le cas ne touche que
+ * l'hôte, et seulement quand le navigateur ne laisse pas partir le message de départ.
+ *
+ * ⚠️ Deux hypothèses que la mesure a **infirmées**, à ne pas ressusciter : il n'y a **aucune
+ * limitation par IP** (25 prises d'adresse d'affilée sans un refus), donc jouer à deux depuis la
+ * même machine n'y est pour rien ; et un barème serré (13 essais en 53 s) rendait les choses
+ * **pires** — les sockets se gênaient entre elles côté client et le refus devenait « connexion
+ * impossible » au lieu de « place occupée ».
+ *
+ * Pourquoi ne pas simplement allonger `CLAIM_RETRY_DELAYS_MS` : la création d'un salon a besoin de
+ * refuser **vite** — « salon plein » y est une réponse plausible, et faire patienter avant de
+ * l'annoncer serait pire que le fantôme qu'on cherche à absorber. Sur une reconnexion au contraire,
+ * « occupé » ne peut être QUE nous-même.
+ */
+export const REJOIN_RETRY_DELAYS_MS = [500, 1_500, 3_000, 5_000, 5_000] as const;
+
 /** Au-delà, on considère que l'annuaire ou le pair ne répondra pas. */
 export const CONNECT_TIMEOUT_MS = 15_000;
 
@@ -84,6 +150,12 @@ export async function claimOwnIdentity(
   peerId: string,
   sleep: (delayMs: number) => Promise<void>,
   retryDelaysMs: readonly number[] = CLAIM_RETRY_DELAYS_MS,
+  /**
+   * Réessayer aussi les refus **transitoires** (annuaire injoignable, délai dépassé) et pas seulement
+   * la place occupée. Réservé à la RECONNEXION : un hoquet du service ne doit pas y coûter la partie,
+   * alors qu'à la création une seule tentative suffit — le joueur n'a rien à perdre, il recommence.
+   */
+  retryTransient = false,
 ): Promise<void> {
   let lastError: unknown;
 
@@ -96,9 +168,26 @@ export async function claimOwnIdentity(
       return;
     } catch (error) {
       lastError = error;
-      // Seule la place occupée vaut un réessai : elle peut être un fantôme. Un annuaire injoignable
-      // ne guérira pas en 400 ms, et insister ne ferait que retarder le message au joueur.
-      if (!(error instanceof NetworkTransportError && error.code === NetworkErrorCode.SalonPlein)) {
+      /*
+       * Ce qui vaut un réessai.
+       *
+       * « Place occupée » d'abord : elle peut être un fantôme de nous-même, et c'est le cas d'usage
+       * d'origine.
+       *
+       * Et, depuis la recette du 2026-09-09, les deux causes **transitoires** — mais seulement quand
+       * l'appelant a demandé un barème patient, c'est-à-dire sur une RECONNEXION. Motif : un service
+       * public sollicité plusieurs fois de suite répond parfois autre chose que « occupé » (socket
+       * refusée, limitation de débit), et abandonner là-dessus fait perdre une partie en cours pour
+       * un hoquet. À la création d'un salon, au contraire, une seule tentative suffit à dire au
+       * joueur que ça ne marche pas : il n'a rien à perdre, il peut recommencer.
+       */
+      const retryable =
+        error instanceof NetworkTransportError &&
+        (error.code === NetworkErrorCode.SalonPlein ||
+          (retryTransient &&
+            (error.code === NetworkErrorCode.ConnexionImpossible ||
+              error.code === NetworkErrorCode.DelaiDepasse)));
+      if (!retryable) {
         throw error;
       }
     }

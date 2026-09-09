@@ -16,7 +16,9 @@ test("§4.1 bannière de tour : nom FR du Pokemon actif ET à qui est le tour", 
   // Charge Time seul : plus de notion de round. Le nom FR officiel, puis à QUI est le tour (plan
   // 201) — le nom seul suffisait en solo, mais en ligne deux camps humains alternent et rien ne
   // disait lequel jouait. Une seule place est locale ici, donc « À vous ».
-  await expect(page.getByTestId("combat-turn")).toHaveText("Florizarre — À vous");
+  // Le nom du Pokemon actif a quitté la bannière (plan 202, retour humain) : il est déjà dans le
+  // panneau de gauche, et la place libérée porte le compteur de chrono en ligne.
+  await expect(page.getByTestId("combat-turn")).toHaveText("À vous");
 });
 
 test("§4.2 timeline : entrée active surlignée, couleur d'équipe, portrait", async ({

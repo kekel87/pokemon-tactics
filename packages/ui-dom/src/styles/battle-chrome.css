@@ -134,8 +134,13 @@
     gap: var(--bc-gap-sm);
   }
 
+  /* Une COLONNE depuis le plan 202 : la ligne « camp — temps », puis la barre du compteur. Le cadre
+     est partagé, ce qui évite un cinquième encadré empilé en haut de l'écran. */
   .bc-turn {
     pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    min-inline-size: calc(180px * var(--ui-scale));
     padding: var(--bc-gap-xs) calc(18px * var(--ui-scale));
     border-radius: var(--bc-radius-md);
     background: color-mix(in oklch, var(--color-bg-surface) 80%, transparent);

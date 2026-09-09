@@ -1,5 +1,10 @@
 import { isNetworkMessage, NetworkErrorCode, type NetworkMessage } from "../protocol.js";
-import { type NetworkChannel, type NetworkTransport, NetworkTransportError } from "../transport.js";
+import {
+  ChannelHealth,
+  type NetworkChannel,
+  type NetworkTransport,
+  NetworkTransportError,
+} from "../transport.js";
 
 /**
  * Transport en mémoire (plan 199, étape 2).
@@ -17,6 +22,8 @@ export class FakeNetworkDirectory {
   private readonly claimed = new Map<string, FakeTransport>();
   /** Adresses retenues après un départ, pour rejouer la rémanence de l'annuaire réel. */
   private readonly lingering = new Set<string>();
+  /** Combien de tentatives de prise restent avant qu'une adresse retenue ne se libère. */
+  private readonly releaseCountdown = new Map<string, number>();
   private claimFailure: NetworkErrorCode | undefined;
 
   /**
@@ -42,6 +49,18 @@ export class FakeNetworkDirectory {
   }
 
   /**
+   * Libère une adresse au bout de N tentatives de prise (plan 202).
+   *
+   * En TENTATIVES et non en millisecondes : les tests font dormir instantanément — c'est ce qui rend
+   * les réessais vérifiables sans attendre vingt secondes — donc l'horloge ne dit rien de ce qui
+   * s'est passé. Ce qui distingue un barème patient d'un barème pressé est le NOMBRE d'essais qu'il
+   * accorde.
+   */
+  releaseAfterAttempts(peerId: string, attempts: number): void {
+    this.releaseCountdown.set(peerId, attempts);
+  }
+
+  /**
    * Fait échouer toute prise d'identifiant sur la cause donnée — l'annuaire injoignable, que la
    * rémanence ne sait pas jouer. `undefined` remet l'annuaire en état de marche.
    */
@@ -58,6 +77,15 @@ export class FakeNetworkDirectory {
 
   /** @internal */
   tryClaim(peerId: string, transport: FakeTransport): boolean {
+    const remaining = this.releaseCountdown.get(peerId);
+    if (remaining !== undefined) {
+      if (remaining <= 1) {
+        this.releaseCountdown.delete(peerId);
+        this.lingering.delete(peerId);
+      } else {
+        this.releaseCountdown.set(peerId, remaining - 1);
+      }
+    }
     if (this.claimed.has(peerId) || this.lingering.has(peerId)) {
       return false;
     }
@@ -157,6 +185,7 @@ class FakeChannel implements NetworkChannel {
   private closing = false;
   private readonly messageListeners = new Set<(message: NetworkMessage) => void>();
   private readonly closeListeners = new Set<() => void>();
+  private readonly healthListeners = new Set<(health: ChannelHealth) => void>();
 
   private constructor(readonly remotePeerId: string) {}
 
@@ -191,6 +220,31 @@ class FakeChannel implements NetworkChannel {
     return () => this.closeListeners.delete(listener);
   }
 
+  onHealthChange(listener: (health: ChannelHealth) => void): () => void {
+    this.healthListeners.add(listener);
+    return () => this.healthListeners.delete(listener);
+  }
+
+  /**
+   * Pousse un état de santé à la main. Il n'y a pas d'ICE derrière un canal en mémoire, donc rien ne
+   * l'émet tout seul : c'est au test de dire quand le chemin se dégrade (plan 202).
+   *
+   * 🔴 **Les DEUX bouts en sont notifiés**, et c'est de la fidélité, pas une commodité de test : une
+   * dégradation est celle d'un *chemin*, et chaque pair a sa propre `RTCPeerConnection` dessus — donc
+   * les deux voient leur `connectionState` bouger. Ne notifier que le bout appelant obligeait un test
+   * à atteindre le bout distant, qui est privé au salon.
+   */
+  pushHealth(health: ChannelHealth): void {
+    this.emitHealth(health);
+    this.peer?.emitHealth(health);
+  }
+
+  private emitHealth(health: ChannelHealth): void {
+    for (const listener of [...this.healthListeners]) {
+      listener(health);
+    }
+  }
+
   /**
    * Ferme, mais **après avoir vidé la file**. Le vrai transport ferme avec `flush` : ce qui a été
    * envoyé avant la fermeture part quand même. Fermer en synchrone ici jetterait ces messages, et le
@@ -213,11 +267,17 @@ class FakeChannel implements NetworkChannel {
       return;
     }
     this.closed = true;
+    // Comme le vrai canal : une fermeture est un chemin perdu, donc elle vaut `Failed` sans attendre
+    // un événement ICE qui n'existe pas ici. `emitHealth` et non `pushHealth` : la fermeture se
+    // propage déjà au bout distant par `peer.close()` ci-dessous, qui y refera le même constat —
+    // croiser les deux chemins annoncerait `Failed` deux fois au même pair.
+    this.emitHealth(ChannelHealth.Failed);
     for (const listener of [...this.closeListeners]) {
       listener();
     }
     this.closeListeners.clear();
     this.messageListeners.clear();
+    this.healthListeners.clear();
     this.peer?.close();
   }
 

@@ -161,3 +161,45 @@ export class TailwindHud {
     this.turns = page.getByTestId("tailwind-turns");
   }
 }
+
+/**
+ * Compteur de chronomètre de tour (haut-centre, sous la bannière) — plan 202, Lot B3.
+ *
+ * 🔴 **Il n'existe QU'EN LIGNE** (décision #946) : sur toute partie hors réseau la racine reste
+ * `[hidden]`, et c'est une assertion en soi — pas un raté. Le compteur du tour DISTANT s'affiche
+ * aussi, comme les deux cadrans d'une pendule d'échecs, sinon l'attente n'a pas de fin visible.
+ */
+export class TurnClockHud {
+  /**
+   * La barre qui se vide. `turn-clock` vit là depuis que le compteur a perdu son cadre (retour
+   * humain 2026-09-09) : ses deux morceaux sont posés DANS la bannière de tour — le temps sur la
+   * ligne du camp qui joue, la barre juste dessous — et la barre est le seul des deux qui soit un
+   * élément à lui. « Le compteur est affiché » se lit donc sur elle.
+   */
+  readonly hud: Locator;
+  /** Le temps restant, au format `M:SS`. Partage sa ligne avec le nom du camp. */
+  readonly value: Locator;
+  constructor(page: Page) {
+    this.hud = page.getByTestId("turn-clock");
+    this.value = page.getByTestId("turn-clock-value");
+  }
+}
+
+/**
+ * Bandeau d'état du réseau, sous le compteur (plan 202, Lot B3).
+ *
+ * Trois états résolus par gravité croissante — `missed-turns`, `connection-uncertain`,
+ * `awaiting-reconnect` — et **un seul** porte un décompte : le dernier, celui dont le délai de grâce
+ * court. Le libellé est visé par son testid et non par son texte : les trois phrases nomment le
+ * joueur concerné, donc leur contenu se juge, mais le locator ne doit pas en dépendre.
+ */
+export class ConnectionNoticeHud {
+  readonly notice: Locator;
+  readonly label: Locator;
+  readonly countdown: Locator;
+  constructor(page: Page) {
+    this.notice = page.getByTestId("connection-notice");
+    this.label = page.getByTestId("connection-notice-label");
+    this.countdown = page.getByTestId("connection-notice-countdown");
+  }
+}

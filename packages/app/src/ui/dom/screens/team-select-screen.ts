@@ -25,6 +25,7 @@ import { t } from "../../../i18n";
 import type { TranslationKey } from "../../../i18n/types";
 import { loadTiledMap } from "../../../maps/load-tiled-map";
 import { mapIdFromUrl, mapUrlFromId } from "../../../maps/map-identity";
+import { networkErrorCodeOf } from "../../../network/network-error";
 import { holdOnlineRoom, releaseOnlineRoom } from "../../../network/online-room";
 import { signallingOverride } from "../../../network/signalling-override";
 import { getSettings, updateSettings } from "../../../settings";
@@ -264,6 +265,9 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
         // les places distantes étant rabattues sur `human`. Sans elle, l'écran de combat rendrait la
         // main au joueur local au tour de son adversaire.
         localSeat,
+        // Le code du salon (plan 202) : c'est l'adresse à rappeler pour se reconnecter, et la
+        // sauvegarde de reprise n'a rien d'autre pour retrouver la partie.
+        roomCode: room.code,
         // 🔴 `telemetryTeams` ne porte que NOTRE camp (plan 201, étape 7), et le motif n'est pas
         // « la composition des autres n'est pas locale » — le `start` la porte pourtant. C'est le
         // DOUBLE COMPTAGE : deux pairs qui déclarent la même partie compteraient chaque équipe deux
@@ -863,7 +867,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
         },
       );
     } catch (error) {
-      showNetworkError(codeOfError(error));
+      showNetworkError(networkErrorCodeOf(error));
       return;
     }
     countAction(TelemetryAction.RoomCreated);
@@ -881,7 +885,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
         code,
       );
     } catch (error) {
-      showNetworkError(codeOfError(error));
+      showNetworkError(networkErrorCodeOf(error));
       return;
     }
     countAction(TelemetryAction.RoomJoined);
@@ -944,31 +948,5 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
    */
   function maxSeats(): number {
     return Math.max(...REQUIRED_TEAM_COUNTS);
-  }
-
-  /**
-   * Ramène n'importe quelle erreur à l'énumération **fermée** des causes de refus.
-   *
-   * 🔴 Ce garde-fou manquait : la version d'avant faisait confiance à tout objet portant un `code` et
-   * le transtypait de force. Or un `DOMException` en porte un **numérique** — et c'est ainsi qu'un
-   * `SyntaxError` (`code === 12`) s'est retrouvé composé dans une clé de traduction, affichant
-   * « room.error.12 » au joueur au lieu d'un message. L'énumération est fermée précisément pour que
-   * ça n'arrive pas ; encore faut-il le vérifier au lieu de l'affirmer par un `as`.
-   *
-   * Une cause inconnue devient « connexion impossible » : c'est ce que le joueur peut comprendre, et
-   * il n'y a de toute façon rien qu'il puisse faire de différent selon le cas.
-   */
-  function codeOfError(error: unknown): NetworkErrorCode {
-    const code =
-      typeof error === "object" && error !== null && "code" in error
-        ? (error as { code: unknown }).code
-        : undefined;
-    const known = Object.values(NetworkErrorCode).find((candidate) => candidate === code);
-    if (known !== undefined) {
-      return known;
-    }
-    // biome-ignore lint/suspicious/noConsole: diagnostic uniquement — le joueur voit un message générique quoi qu'il arrive, et c'est la seule trace d'une cause de refus que l'énumération fermée ne connaît pas. Son absence est exactement ce qui a caché le bug d'annuaire du plan 201, où la seule chose visible était « room.error.12 » à l'écran.
-    console.warn("[réseau] cause de refus imprévue, ramenée à « connexion impossible »", error);
-    return NetworkErrorCode.ConnexionImpossible;
   }
 }

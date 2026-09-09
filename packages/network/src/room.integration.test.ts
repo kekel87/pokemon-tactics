@@ -10,11 +10,15 @@ import {
   type NetworkRoomOptions,
   NetworkSeatOccupancy,
   type NetworkSeeds,
+  type ResyncMessage,
   type StartMessage,
 } from "./protocol.js";
 import {
+  BATTLE_GRACE_AFTER_SILENCE_MS,
+  BATTLE_GRACE_SHORT_MS,
   GRACE_AFTER_CLEAN_CLOSE_MS,
   GRACE_AFTER_SILENCE_MS,
+  HOST_REDIAL_INTERVAL_MS,
   LAUNCH_ACK_TIMEOUT_MS,
   Room,
   type RoomDeps,
@@ -23,7 +27,12 @@ import {
 import { HOST_SEAT, hostPeerId, peerIdForSeat } from "./room-code.js";
 import { FakeNetworkDirectory } from "./testing/fake-transport.js";
 import type { NetworkChannel, NetworkTransport } from "./transport.js";
-import { NetworkTransportError } from "./transport.js";
+import {
+  ChannelHealth,
+  CLAIM_RETRY_DELAYS_MS,
+  NetworkTransportError,
+  REJOIN_RETRY_DELAYS_MS,
+} from "./transport.js";
 
 /**
  * Tests d'intégration du salon (plan 199, étape 3) : plusieurs salons dans le **même processus**, par
@@ -63,6 +72,22 @@ function depsFor(directory: FakeNetworkDirectory): RoomDeps {
  * Un pair « nu » : un canal vers l'hôte, sans salon derrière. Sert à jouer ce qu'un `Room` ne sait
  * pas faire — se taire au lieu d'accuser, annoncer une mauvaise version.
  */
+/**
+ * Pousser un état de santé sur un canal factice.
+ *
+ * `NetworkChannel` ne l'expose pas, et ne doit pas : c'est le contrat de production, il n'a aucune
+ * raison de porter une affordance de test. Le double, lui, en a une (`pushHealth`) parce qu'il n'y a
+ * pas d'ICE derrière un canal en mémoire. Le transtypage est donc une frontière assumée, restreinte
+ * au seul membre qu'on emprunte — et non un `as FakeChannel` qui ouvrirait tout le double.
+ */
+interface HealthPushable {
+  pushHealth(health: ChannelHealth): void;
+}
+
+function asFake(channel: NetworkChannel): HealthPushable {
+  return channel as unknown as HealthPushable;
+}
+
 async function rawGuest(
   directory: FakeNetworkDirectory,
   seat: number,
@@ -1011,5 +1036,518 @@ describe("Room — les actions de combat (Lot B2)", () => {
     await flush();
 
     expect(received).toEqual([]);
+  });
+});
+
+describe("Room — départs une fois la partie lancée (Lot B3)", () => {
+  let directory: FakeNetworkDirectory;
+
+  beforeEach(() => {
+    directory = new FakeNetworkDirectory();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  async function launchedWithRawGuest(): Promise<{
+    host: Room;
+    guest: Awaited<ReturnType<typeof rawGuest>>;
+  }> {
+    const host = await Room.create(depsFor(directory), options(2));
+    const guest = await rawGuest(directory, 2);
+    guest.channel.send({
+      type: "team_select",
+      seat: 2,
+      selection: { pokemonDefinitionIds: ["charizard"] },
+    });
+    guest.channel.send({ type: "ready", seat: 2, ready: true });
+    await flush();
+    host.setSeatSelection(1, { pokemonDefinitionIds: ["venusaur"] });
+    const launch = host.launch(SEEDS);
+    await flush();
+    guest.channel.send({ type: "start_ack", seat: 2 });
+    await flush();
+    await launch;
+    return { host, guest };
+  }
+
+  it("attend la marge complète avant de déclarer un silence absent", async () => {
+    const { host, guest } = await launchedWithRawGuest();
+    const absent: number[] = [];
+    host.onPeerAbsent((seat) => absent.push(seat));
+
+    guest.channel.close();
+    guest.transport.destroy();
+    await flush();
+    vi.advanceTimersByTime(BATTLE_GRACE_AFTER_SILENCE_MS - 1);
+    await flush();
+    expect(absent).toEqual([]);
+
+    vi.advanceTimersByTime(1);
+    await flush();
+    expect(absent).toEqual([2]);
+  });
+
+  it("attend plus longtemps qu'un salon — 45 s tomberait sur l'expiration d'un chrono honnête", async () => {
+    const { host, guest } = await launchedWithRawGuest();
+    const absent: number[] = [];
+    host.onPeerAbsent((seat) => absent.push(seat));
+
+    guest.channel.close();
+    guest.transport.destroy();
+    await flush();
+    vi.advanceTimersByTime(GRACE_AFTER_SILENCE_MS);
+    await flush();
+
+    expect(absent).toEqual([]);
+  });
+
+  it("ne rend pas la place libre en combat — le camp perd ses tours, il ne s'efface pas", async () => {
+    const { host, guest } = await launchedWithRawGuest();
+    host.onPeerAbsent(() => undefined);
+
+    guest.channel.close();
+    guest.transport.destroy();
+    await flush();
+    vi.advanceTimersByTime(BATTLE_GRACE_AFTER_SILENCE_MS);
+    await flush();
+
+    expect(host.view.seats[1]?.occupancy).toBe(NetworkSeatOccupancy.Remote);
+  });
+
+  it("raccourcit le délai à la deuxième chute de la même place", async () => {
+    const { host, guest } = await launchedWithRawGuest();
+    const absent: number[] = [];
+    host.onPeerAbsent((seat) => absent.push(seat));
+
+    guest.channel.close();
+    guest.transport.destroy();
+    await flush();
+    vi.advanceTimersByTime(BATTLE_GRACE_AFTER_SILENCE_MS - 1);
+    await flush();
+
+    const returning = await rawGuest(directory, 2);
+    await flush();
+    expect(host.view.awaited).toEqual([]);
+
+    returning.channel.close();
+    returning.transport.destroy();
+    await flush();
+    vi.advanceTimersByTime(BATTLE_GRACE_SHORT_MS);
+    await flush();
+
+    expect(absent).toEqual([2]);
+  });
+
+  it("laisse 30 s au revenant après une fermeture d'onglet, pas les 10 s du salon", async () => {
+    const { host, guest } = await launchedWithRawGuest();
+    const absent: number[] = [];
+    host.onPeerAbsent((seat) => absent.push(seat));
+
+    guest.channel.send({ type: "bye", seat: 2 });
+    await flush();
+    guest.channel.close();
+    guest.transport.destroy();
+    await flush();
+
+    // Le délai du SALON ne s'applique plus en combat : fermer sa fenêtre n'y est pas une déclaration
+    // d'abandon — le menu l'est (révision de recette 2026-09-09).
+    vi.advanceTimersByTime(GRACE_AFTER_CLEAN_CLOSE_MS);
+    await flush();
+    expect(absent).toEqual([]);
+
+    vi.advanceTimersByTime(BATTLE_GRACE_SHORT_MS - GRACE_AFTER_CLEAN_CLOSE_MS);
+    await flush();
+    expect(absent).toEqual([2]);
+  });
+});
+
+describe("Room — reconnexion et rattrapage (Lot B3)", () => {
+  let directory: FakeNetworkDirectory;
+
+  beforeEach(() => {
+    directory = new FakeNetworkDirectory();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  async function launchedPair(): Promise<{ host: Room; guest: Room }> {
+    const host = await Room.create(depsFor(directory), options(2));
+    const guest = await Room.join(depsFor(directory), ROOM_CODE);
+    await flush();
+    host.setSeatSelection(1, { pokemonDefinitionIds: ["venusaur"] });
+    guest.setSeatSelection(2, { pokemonDefinitionIds: ["charizard"] });
+    guest.setReady(true);
+    await flush();
+    const launch = host.launch(SEEDS);
+    await flush();
+    await launch;
+    return { host, guest };
+  }
+
+  const endTurn = (pokemonId: string): Action => ({
+    kind: ActionKind.EndTurn,
+    pokemonId,
+    direction: Direction.North,
+  });
+
+  it("laisse revenir la place attendue, et refuse toutes les autres", async () => {
+    const { guest } = await launchedPair();
+    guest.leave();
+    await flush();
+
+    const returning = await Room.rejoin(depsFor(directory), ROOM_CODE, 2, [HOST_SEAT]);
+    await flush();
+
+    expect(returning.seat).toBe(2);
+    expect(returning.view.locked).toBe(true);
+    // La place 3 n'est attendue par personne : le salon reste fermé pour elle.
+    await expect(Room.join(depsFor(directory), ROOM_CODE)).rejects.toMatchObject({
+      code: NetworkErrorCode.PartieCommencee,
+    });
+  });
+
+  it("annonce le retour à ceux qui l'attendaient", async () => {
+    const { host, guest } = await launchedPair();
+    const returned: number[] = [];
+    host.onPeerReturned((seat) => returned.push(seat));
+
+    guest.leave();
+    await flush();
+    await Room.rejoin(depsFor(directory), ROOM_CODE, 2);
+    await flush();
+
+    expect(returned).toEqual([2]);
+  });
+
+  it("porte la queue du journal au revenant, et rien de plus", async () => {
+    const { host, guest } = await launchedPair();
+    guest.leave();
+    await flush();
+    const returning = await Room.rejoin(depsFor(directory), ROOM_CODE, 2, [HOST_SEAT]);
+    await flush();
+
+    const requests: number[] = [];
+    host.onResyncRequest((message) => {
+      requests.push(message.actionIndex);
+      host.sendResync(message.actionIndex, [endTurn("p1-venusaur"), endTurn("p2-charizard")]);
+    });
+    const received: ResyncMessage[] = [];
+    returning.onResync((message) => received.push(message));
+
+    returning.sendResyncRequest(3);
+    await flush();
+
+    expect(requests).toEqual([3]);
+    expect(received).toHaveLength(1);
+    expect(received[0]?.fromIndex).toBe(3);
+    expect(received[0]?.actions).toHaveLength(2);
+  });
+
+  it("garde le rattrapage arrivé avant que le combat n'écoute", async () => {
+    const { host, guest } = await launchedPair();
+    guest.leave();
+    await flush();
+    const returning = await Room.rejoin(depsFor(directory), ROOM_CODE, 2, [HOST_SEAT]);
+    await flush();
+
+    host.sendResync(0, [endTurn("p1-venusaur")]);
+    await flush();
+
+    const received: ResyncMessage[] = [];
+    returning.onResync((message) => received.push(message));
+
+    expect(received).toHaveLength(1);
+  });
+
+  it("ignore un rattrapage qu'un pair prétend envoyer au nom d'un autre", async () => {
+    const host = await Room.create(depsFor(directory), options(2));
+    const guest = await rawGuest(directory, 2);
+    guest.channel.send({
+      type: "team_select",
+      seat: 2,
+      selection: { pokemonDefinitionIds: ["charizard"] },
+    });
+    guest.channel.send({ type: "ready", seat: 2, ready: true });
+    await flush();
+    host.setSeatSelection(1, { pokemonDefinitionIds: ["venusaur"] });
+    const launch = host.launch(SEEDS);
+    await flush();
+    guest.channel.send({ type: "start_ack", seat: 2 });
+    await flush();
+    await launch;
+
+    const requests: number[] = [];
+    host.onResyncRequest((message) => requests.push(message.actionIndex));
+
+    // La place 2 se présente comme la place 1 : l'adresse d'annuaire dit le contraire, donc le
+    // message est ignoré en silence. C'est l'invariant `isSpokenFor` du Lot B2, étendu au rattrapage.
+    guest.channel.send({ type: "resync_request", seat: 1, actionIndex: 7 });
+    await flush();
+    expect(requests).toEqual([]);
+
+    guest.channel.send({ type: "resync_request", seat: 2, actionIndex: 7 });
+    await flush();
+    expect(requests).toEqual([7]);
+  });
+});
+
+describe("Room — retour de l'hôte (Lot B3)", () => {
+  let directory: FakeNetworkDirectory;
+
+  beforeEach(() => {
+    directory = new FakeNetworkDirectory();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  async function launchedPair(): Promise<{ host: Room; guest: Room }> {
+    const host = await Room.create(depsFor(directory), options(2));
+    const guest = await Room.join(depsFor(directory), ROOM_CODE);
+    await flush();
+    host.setSeatSelection(1, { pokemonDefinitionIds: ["venusaur"] });
+    guest.setSeatSelection(2, { pokemonDefinitionIds: ["charizard"] });
+    guest.setReady(true);
+    await flush();
+    const launch = host.launch(SEEDS);
+    await flush();
+    await launch;
+    return { host, guest };
+  }
+
+  it("ne renvoie plus l'invité à l'écran de départ quand l'hôte s'absente en pleine partie", async () => {
+    const { host, guest } = await launchedPair();
+    const errors: NetworkErrorCode[] = [];
+    guest.onError((code) => errors.push(code));
+
+    host.leave();
+    await flush();
+    vi.advanceTimersByTime(GRACE_AFTER_CLEAN_CLOSE_MS);
+    await flush();
+
+    // En salon, ce départ vaut `code_introuvable` et ramène au `lobby`. En COMBAT, la partie est en
+    // cours : c'est un forfait à prononcer, pas un salon à quitter.
+    expect(errors).toEqual([]);
+  });
+
+  it("rappelle l'hôte pendant sa grâce, parce que lui ne rappelle personne", async () => {
+    const { host, guest } = await launchedPair();
+    const awaited: number[] = [];
+    guest.onPeerAwaited((seat) => awaited.push(seat));
+
+    host.leave();
+    await flush();
+    expect(awaited).toEqual([HOST_SEAT]);
+
+    // L'hôte revient à sa propre adresse, et se contente d'écouter : c'est l'invité qui compose.
+    const returningHost = await Room.rejoin(depsFor(directory), ROOM_CODE, HOST_SEAT, [2]);
+    await flush();
+
+    const returned: number[] = [];
+    guest.onPeerReturned((seat) => returned.push(seat));
+    vi.advanceTimersByTime(HOST_REDIAL_INTERVAL_MS);
+    await flush();
+
+    expect(returned).toEqual([HOST_SEAT]);
+    expect(returningHost.view.locked).toBe(true);
+  });
+
+  it("l'hôte revenu ACCEPTE l'invité qui le rappelle", async () => {
+    const { host, guest } = await launchedPair();
+    const returned: number[] = [];
+    guest.onPeerReturned((seat) => returned.push(seat));
+
+    host.leave();
+    await flush();
+
+    /*
+     * 🔴 Le cas que la recette a cassé (2026-09-09). Le salon du revenant est NEUF : il n'a aucun
+     * délai de grâce en cours, alors qu'`attachIncoming` n'admet, sur un salon verrouillé, que les
+     * places dont une grâce court. L'hôte refermait donc le canal de son invité à chaque tentative
+     * de rappel — l'invité rappelait en boucle, l'hôte refusait en boucle, et la partie mourait au
+     * bout du délai. Le trou ne se voyait pas en testant le retour de l'INVITÉ, dont l'hôte, lui,
+     * avait bien une grâce en cours.
+     */
+    await Room.rejoin(depsFor(directory), ROOM_CODE, HOST_SEAT, [2]);
+    await flush();
+    vi.advanceTimersByTime(HOST_REDIAL_INTERVAL_MS);
+    await flush();
+
+    expect(returned).toEqual([HOST_SEAT]);
+  });
+
+  it("l'hôte revenu répond à la présentation de son invité, au lieu de le rejeter", async () => {
+    const { host, guest } = await launchedPair();
+    host.leave();
+    await flush();
+
+    const returningHost = await Room.rejoin(depsFor(directory), ROOM_CODE, HOST_SEAT, [2]);
+    await flush();
+    vi.advanceTimersByTime(HOST_REDIAL_INTERVAL_MS);
+    await flush();
+
+    /*
+     * 🔴 Le canal doit RESTER ouvert. Un salon revenu n'a pas d'état de places — seul `create`
+     * appelle `initializeHostSeats` — et `handleHello` refuse toute place absente de `seats` : l'hôte
+     * acceptait donc le canal (la grâce de la place 2 courait) puis le refermait à la présentation.
+     * L'invité se rebranchait, se faisait éjecter, rappelait, et son bandeau d'attente clignotait
+     * jusqu'au forfait (recette 2026-09-09).
+     */
+    expect(returningHost.view.seats.map((entry) => entry.seat)).toEqual([HOST_SEAT, 2]);
+    expect(returningHost.view.awaited).toEqual([]);
+
+    // Et le lien porte : une action de l'hôte revenu parvient à l'invité.
+    const received: ActionMessage[] = [];
+    guest.onAction((message) => received.push(message));
+    returningHost.sendAction(0, {
+      kind: ActionKind.EndTurn,
+      pokemonId: "p1-venusaur",
+      direction: Direction.North,
+    });
+    await flush();
+    expect(received).toHaveLength(1);
+  });
+
+  it("l'hôte revenu forfait l'invité qui ne revient jamais", async () => {
+    const { host, guest } = await launchedPair();
+    host.leave();
+    await flush();
+    guest.leave();
+    await flush();
+
+    const returningHost = await Room.rejoin(depsFor(directory), ROOM_CODE, HOST_SEAT, [2]);
+    const absent: number[] = [];
+    returningHost.onPeerAbsent((seat) => absent.push(seat));
+    await flush();
+
+    // La fenêtre d'accueil est bornée : sans elle, un hôte revenu attendrait pour toujours un
+    // invité qui a fermé son onglet pour de bon.
+    vi.advanceTimersByTime(BATTLE_GRACE_SHORT_MS);
+    await flush();
+
+    expect(absent).toEqual([2]);
+  });
+
+  it("cesse de rappeler dès que la grâce est résolue", async () => {
+    const { host, guest } = await launchedPair();
+    const absent: number[] = [];
+    guest.onPeerAbsent((seat) => absent.push(seat));
+
+    host.leave();
+    await flush();
+    vi.advanceTimersByTime(BATTLE_GRACE_SHORT_MS);
+    await flush();
+    expect(absent).toEqual([HOST_SEAT]);
+
+    // Plus de grâce : les tentatives suivantes ne doivent rien rouvrir.
+    const returningHost = await Room.rejoin(depsFor(directory), ROOM_CODE, HOST_SEAT, [2]);
+    await flush();
+    const returned: number[] = [];
+    guest.onPeerReturned((seat) => returned.push(seat));
+    vi.advanceTimersByTime(HOST_REDIAL_INTERVAL_MS * 3);
+    await flush();
+
+    expect(returned).toEqual([]);
+    returningHost.leave();
+  });
+});
+
+describe("Room — santé du chemin ICE (Lot B3)", () => {
+  let directory: FakeNetworkDirectory;
+
+  beforeEach(() => {
+    directory = new FakeNetworkDirectory();
+  });
+
+  it("remonte une dégradation du chemin avec la place concernée", async () => {
+    const host = await Room.create(depsFor(directory), options(2));
+    const guest = await rawGuest(directory, 2);
+    await flush();
+
+    const observed: { seat: number; health: ChannelHealth }[] = [];
+    host.onPeerHealth((seat, health) => observed.push({ seat, health }));
+
+    // Il n'y a pas d'ICE derrière un canal en mémoire : c'est au test de dire quand le chemin se
+    // dégrade. Sans ce scénario, le fan-out d'`attachChannel` n'était couvert par rien — seul le
+    // faux salon des tests de l'application simulait le signal, donc le contrat et non le code.
+    asFake(guest.channel).pushHealth(ChannelHealth.Uncertain);
+    asFake(guest.channel).pushHealth(ChannelHealth.Healthy);
+
+    expect(observed).toEqual([
+      { seat: 2, health: ChannelHealth.Uncertain },
+      { seat: 2, health: ChannelHealth.Healthy },
+    ]);
+  });
+
+  it("cesse de remonter après désabonnement", async () => {
+    const host = await Room.create(depsFor(directory), options(2));
+    const guest = await rawGuest(directory, 2);
+    await flush();
+
+    const observed: ChannelHealth[] = [];
+    const unsubscribe = host.onPeerHealth((_seat, health) => observed.push(health));
+    unsubscribe();
+    asFake(guest.channel).pushHealth(ChannelHealth.Uncertain);
+
+    expect(observed).toEqual([]);
+  });
+});
+
+describe("Room — patience de la reconnexion (Lot B3)", () => {
+  let directory: FakeNetworkDirectory;
+
+  beforeEach(() => {
+    directory = new FakeNetworkDirectory();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  /*
+   * Trouvé en recette (2026-09-09) : un hôte qui ferme son onglet puis clique « Reprendre le combat »
+   * se voyait refuser SA propre adresse, l'annuaire la retenant encore. Les 4,6 s de
+   * `CLAIM_RETRY_DELAYS_MS` sont taillées pour un fantôme de quelques centaines de millisecondes.
+   *
+   * 🔴 On compte les TENTATIVES et non le temps écoulé : `depsFor` rend un `sleep` instantané, donc
+   * les réessais brûlent tous au même instant et une assertion sur l'horloge ne prouverait rien.
+   * C'est de toute façon le nombre de tentatives qui distingue les deux barèmes — les délais, eux,
+   * ne se vérifient qu'en lisant la constante.
+   */
+  it("insiste bien plus longtemps qu'à la création pour reprendre sa propre adresse", async () => {
+    directory.linger(hostPeerId(ROOM_CODE));
+    // Libérée juste après le budget de la création : un `Room.create` aurait déjà renoncé ici.
+    directory.releaseAfterAttempts(hostPeerId(ROOM_CODE), CLAIM_RETRY_DELAYS_MS.length + 2);
+
+    const room = await Room.rejoin(depsFor(directory), ROOM_CODE, HOST_SEAT, [2]);
+
+    expect(room.seat).toBe(HOST_SEAT);
+
+    /*
+     * Sur le BUDGET DE TEMPS et non sur le nombre d'essais : c'est ce que la constante promet, et
+     * c'est ce qui décide si un départ propre est absorbé — mesuré à 110 ms de libération d'adresse
+     * sur le service public, contre 99 s pour un départ brutal qu'aucun budget ne rattrape
+     * (décision #966).
+     */
+    const total = (delays: readonly number[]): number =>
+      delays.reduce((sum, delay) => sum + delay, 0);
+    expect(total(REJOIN_RETRY_DELAYS_MS)).toBeGreaterThan(3 * total(CLAIM_RETRY_DELAYS_MS));
+  });
+
+  it("renonce quand l'adresse ne se libère jamais", async () => {
+    directory.linger(hostPeerId(ROOM_CODE));
+
+    await expect(Room.rejoin(depsFor(directory), ROOM_CODE, HOST_SEAT, [2])).rejects.toMatchObject({
+      code: NetworkErrorCode.SalonPlein,
+    });
   });
 });

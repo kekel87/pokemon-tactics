@@ -130,3 +130,30 @@ test("HUD : combat en anglais quand pt-lang=en (boot sandbox)", async ({ page, b
     await expect(menu.getByRole("button", { name: label, exact: true })).toBeVisible();
   }
 });
+
+/*
+ * §4.21 (plan 202, Lot B3) — le chronomètre de tour n'existe **qu'en ligne** (décision #946).
+ *
+ * Son absence en solo n'est pas un bug, c'est le mécanisme : `turnClock` absent de la configuration
+ * de l'orchestrateur ⇒ aucun minuteur ne s'arme, et le solo n'a rien à désactiver. La décision #819
+ * (« un seul comportement, dès le solo ») porte sur le MENU de combat, qui ne suspend rien même en
+ * solo — pas sur un compte à rebours, dont la seule raison d'être est de ne pas faire attendre un
+ * pair distant. Le compteur en ligne est couvert par `dom/online-resilience.spec`.
+ */
+test("HUD : aucun compteur de chrono sur une partie locale", async ({
+  page,
+  bootSandbox,
+  combatMenu,
+}) => {
+  await bootSandbox(DUEL);
+
+  // Monté mais éteint : c'est la distinction qui compte, `toBeHidden()` seul passerait aussi sur un
+  // HUD qui aurait oublié de construire le compteur.
+  await expect(page.getByTestId("turn-clock")).toHaveCount(1);
+  await expect(page.getByTestId("turn-clock")).toBeHidden();
+
+  // Et le menu ne prévient de rien : aucun temps ne court, donc la pastille serait un mensonge.
+  await combatMenu.openByButton();
+  await expect(combatMenu.dialog).toBeVisible();
+  await expect(combatMenu.clockWarning).toHaveCount(0);
+});

@@ -19,14 +19,53 @@ import {
   type AttackSubmenuView,
   type BattleChrome,
   BattleOrchestrator,
+  type BattleOrchestratorConfig,
   type BoardHighlight,
   type BoardView,
   type DirectionPickerCallbacks,
   formatDamageRange,
   formatFacingSuffix,
   type RemoteActionRejection,
+  type TurnClockView,
   type TurnInfoView,
 } from "./battle-orchestrator.js";
+
+function createFakeTurnClock(durationMs: number) {
+  let nowMs = 0;
+  let pending: { callback: () => void; dueAt: number } | null = null;
+  return {
+    deps: {
+      durationMs,
+      now: () => nowMs,
+      schedule: (callback: () => void, delayMs: number) => {
+        pending = { callback, dueAt: nowMs + delayMs };
+        return () => {
+          pending = null;
+        };
+      },
+    },
+    advance(ms: number): void {
+      const target = nowMs + ms;
+      let due = pending;
+      while (due !== null && due.dueAt <= target) {
+        nowMs = due.dueAt;
+        pending = null;
+        due.callback();
+        due = pending;
+      }
+      nowMs = target;
+    },
+    wakeLate(ms: number): void {
+      nowMs += ms;
+      const due = pending;
+      pending = null;
+      due?.callback();
+    },
+    isArmed(): boolean {
+      return pending !== null;
+    },
+  };
+}
 
 const ACTIVE_ID = "p1-pikachu";
 const ACTIVE_POSITION: Position = { x: 4, y: 4 };
@@ -81,6 +120,8 @@ interface Harness {
   reportedEvents: { type: string }[];
   forfeited: string[];
   actionMenuShownCount: number;
+  state: BattleState;
+  turnClockViews: (TurnClockView | null)[];
 }
 
 function setup(
@@ -94,6 +135,7 @@ function setup(
     engineRefuses?: boolean;
     /** Refus du moteur au forfait — camp déjà éliminé, ou combat déjà terminé. */
     forfeitRefused?: boolean;
+    turnClock?: BattleOrchestratorConfig["turnClock"];
   },
 ): Harness {
   const submitted: Action[] = [];
@@ -102,6 +144,8 @@ function setup(
   const turnInfos: TurnInfoView[] = [];
   const reportedEvents: { type: string }[] = [];
   const forfeited: string[] = [];
+  const turnClockViews: (TurnClockView | null)[] = [];
+  const state = fakeState();
   let actionMenuShownCount = 0;
   const highlights: { kind: BoardHighlight; tiles: readonly Position[] }[] = [];
   const outlines: (readonly Position[])[] = [];
@@ -195,6 +239,8 @@ function setup(
     showCancellableInstruction: () => undefined,
     hideMenus: () => undefined,
     updateTurnInfo: (info) => turnInfos.push(info),
+    updateTurnClock: (view) => turnClockViews.push(view),
+    updateConnectionNotice: () => undefined,
     updateInfoPanel: () => undefined,
     updateTileInfo: () => undefined,
     updateCursorPanel: () => undefined,
@@ -211,7 +257,7 @@ function setup(
 
   const orchestrator = new BattleOrchestrator(
     engine,
-    fakeState(),
+    state,
     new Map<string, MoveDefinition>(move ? [[move.id, move]] : []),
     board,
     chrome,
@@ -223,6 +269,7 @@ function setup(
       ...(options?.localPlayerIds === undefined ? {} : { localPlayerIds: options.localPlayerIds }),
       onLocalAction: (action, actionIndex) => localActions.push({ action, actionIndex }),
       onRemoteActionRejected: (rejection) => rejections.push(rejection),
+      ...(options?.turnClock === undefined ? {} : { turnClock: options.turnClock }),
     },
     {
       translate: (key) => key,
@@ -251,6 +298,8 @@ function setup(
     turnInfos,
     reportedEvents,
     forfeited,
+    state,
+    turnClockViews,
     get actionMenuShownCount() {
       return actionMenuShownCount;
     },
@@ -907,5 +956,140 @@ describe("BattleOrchestrator — une action distante hors de notre attente est g
     harness.orchestrator.onBoardConfirm(ACTIVE_POSITION);
 
     expect(harness.rejections).toEqual([]);
+  });
+});
+
+describe("BattleOrchestrator — chronomètre de tour (plan 202)", () => {
+  const TURN_MS = 60_000;
+
+  function clockHarness(options?: { localPlayerIds?: readonly string[] }) {
+    const clock = createFakeTurnClock(TURN_MS);
+    const harness = setup([endTurnAction()], undefined, {
+      humanPlayerIds: ["player-1"],
+      ...(options?.localPlayerIds === undefined ? {} : { localPlayerIds: options.localPlayerIds }),
+      turnClock: clock.deps,
+    });
+    harness.orchestrator.start();
+    return { clock, harness };
+  }
+
+  it("n'arme aucun minuteur quand le chrono est absent", () => {
+    const harness = setup([endTurnAction()], undefined, { humanPlayerIds: ["player-1"] });
+    harness.orchestrator.start();
+
+    expect(harness.turnClockViews).toEqual([]);
+  });
+
+  it("publie le temps restant qui décroît pendant le tour", () => {
+    const { clock, harness } = clockHarness();
+
+    clock.advance(1_000);
+
+    const last = harness.turnClockViews.at(-1);
+    expect(last).not.toBeNull();
+    expect(last?.durationMs).toBe(TURN_MS);
+    expect(last?.remainingMs).toBe(TURN_MS - 1_000);
+    expect(last?.owner).toBe("you");
+  });
+
+  it("soumet EndTurn avec l'orientation courante à l'expiration", () => {
+    const { clock, harness } = clockHarness();
+
+    clock.advance(TURN_MS);
+
+    expect(harness.submitted).toEqual([
+      { kind: ActionKind.EndTurn, pokemonId: ACTIVE_ID, direction: Direction.South },
+    ]);
+  });
+
+  it("diffuse le dépassement comme une action locale ordinaire", () => {
+    const { clock, harness } = clockHarness();
+
+    clock.advance(TURN_MS);
+
+    expect(harness.localActions).toEqual([
+      {
+        action: { kind: ActionKind.EndTurn, pokemonId: ACTIVE_ID, direction: Direction.South },
+        actionIndex: 0,
+      },
+    ]);
+  });
+
+  it("soumet immédiatement quand le minuteur se réveille après l'échéance", () => {
+    const { clock, harness } = clockHarness();
+
+    clock.wakeLate(TURN_MS + 30_000);
+
+    expect(harness.submitted).toHaveLength(1);
+  });
+
+  it("ne soumet jamais le dépassement d'une place distante", () => {
+    const { clock, harness } = clockHarness({ localPlayerIds: ["player-2"] });
+
+    clock.advance(TURN_MS + 10_000);
+
+    expect(harness.submitted).toEqual([]);
+    expect(harness.turnClockViews.at(-1)).toBeNull();
+  });
+
+  async function playWaitAction(harness: Harness): Promise<void> {
+    harness.lastActionMenu().onWait();
+    harness.pickerCallbacks?.onConfirm(Direction.South);
+    for (let hop = 0; hop < 20; hop += 1) {
+      await Promise.resolve();
+    }
+  }
+
+  it("ne rejoue pas la fenêtre tant que le tour n'a pas changé", async () => {
+    const { clock, harness } = clockHarness();
+    clock.advance(20_000);
+
+    await playWaitAction(harness);
+    clock.advance(1_000);
+
+    expect(harness.turnClockViews.at(-1)?.remainingMs).toBeLessThanOrEqual(TURN_MS - 20_000);
+  });
+
+  it("ouvre une fenêtre neuve quand le tour change", async () => {
+    const { clock, harness } = clockHarness();
+    clock.advance(30_000);
+
+    harness.state.actionCounter = (harness.state.actionCounter ?? 0) + 1;
+    await playWaitAction(harness);
+
+    expect(harness.turnClockViews.at(-1)?.remainingMs).toBe(TURN_MS);
+  });
+
+  it("fige le compte à rebours pendant qu'une action se résout", async () => {
+    const { clock, harness } = clockHarness();
+    clock.advance(10_000);
+
+    harness.lastActionMenu().onWait();
+    harness.pickerCallbacks?.onConfirm(Direction.South);
+    clock.advance(5_000);
+
+    expect(harness.turnClockViews.at(-1)?.remainingMs).toBe(TURN_MS - 10_000);
+  });
+
+  it("éteint le compteur à la fin du combat", async () => {
+    const { clock, harness } = clockHarness();
+    clock.advance(1_000);
+
+    harness.orchestrator.applyForfeit("player-1");
+    for (let hop = 0; hop < 20; hop += 1) {
+      await Promise.resolve();
+    }
+
+    expect(harness.turnClockViews.at(-1)).toBeNull();
+  });
+
+  it("éteint le compteur au démontage", () => {
+    const { clock, harness } = clockHarness();
+    clock.advance(1_000);
+
+    harness.orchestrator.dispose();
+
+    expect(harness.turnClockViews.at(-1)).toBeNull();
+    expect(clock.isArmed()).toBe(false);
   });
 });

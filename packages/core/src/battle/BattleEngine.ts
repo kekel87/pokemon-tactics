@@ -11,6 +11,7 @@ import { EffectKind } from "../enums/effect-kind";
 import { EffectTarget } from "../enums/effect-target";
 import { EntryHazardKind } from "../enums/entry-hazard-kind";
 import { FieldGlobalKind } from "../enums/field-global-kind";
+import type { ForfeitReason } from "../enums/forfeit-reason";
 import { HeldItemId } from "../enums/held-item-id";
 import { HitAndRunRetreatFallbackReason } from "../enums/hit-and-run-retreat-fallback-reason";
 import { MoveFailedReason } from "../enums/move-failed-reason";
@@ -1268,7 +1269,7 @@ export class BattleEngine {
    * mentir l'API sur les formats jusqu'à `12v1`, et il ne serait couvert par aucun des tests de fin
    * de partie existants.
    */
-  forfeit(playerId: string): ActionResult {
+  forfeit(playerId: string, reason?: ForfeitReason): ActionResult {
     if (this.battleOver) {
       return { success: false, events: [], error: ActionError.BattleOver };
     }
@@ -1286,6 +1287,10 @@ export class BattleEngine {
     const forfeitEvent: BattleEvent = {
       type: BattleEventType.PlayerForfeited,
       playerId,
+      // Transportée, jamais interprétée : `forfeit` se comporte pareil dans les trois cas. Sans elle,
+      // le journal annonçait « les parties ne concordent plus » à un joueur qui venait d'appuyer sur
+      // « Abandonner » (retour de recette 2026-09-09).
+      ...(reason === undefined ? {} : { reason }),
     };
     this.emit(forfeitEvent);
     events.push(forfeitEvent);

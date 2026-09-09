@@ -32,6 +32,12 @@ export class CombatMenuOverlay {
   readonly quit: Locator;
   readonly confirm: Locator;
   readonly confirmCancel: Locator;
+  /**
+   * Pastille « le temps continue » (plan 202) — en tête de liste, **seulement en ligne** : le menu
+   * n'est pas une pause (#819) et il grignote désormais du temps mesuré. `toHaveCount(0)` est donc
+   * l'assertion d'une partie locale, où aucun chronomètre ne tourne.
+   */
+  readonly clockWarning: Locator;
   /** Titre du panneau des Paramètres, monté tel quel dans la modale (extraction du plan 187). */
   readonly settingsTitle: Locator;
   /** Titre du panneau des Contrôles, un niveau plus profond. */
@@ -48,6 +54,7 @@ export class CombatMenuOverlay {
     this.quit = page.getByTestId("combat-menu-quit");
     this.confirm = page.getByTestId("combat-menu-confirm");
     this.confirmCancel = page.getByTestId("combat-menu-confirm-cancel");
+    this.clockWarning = page.getByTestId("combat-menu-clock-warning");
     this.settingsTitle = page.getByRole("heading", { name: "Paramètres" });
     this.controlsTitle = page.getByRole("heading", { name: "Contrôles" });
   }

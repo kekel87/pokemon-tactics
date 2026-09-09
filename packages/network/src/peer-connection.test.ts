@@ -3,7 +3,7 @@ import { PeerJsTransport } from "./peer-connection.js";
 import { NetworkErrorCode, type NetworkMessage } from "./protocol.js";
 import type { FakeDataConnection } from "./testing/fake-peerjs.js";
 import { fakePeerjs } from "./testing/fake-peerjs.js";
-import type { NetworkChannel } from "./transport.js";
+import { ChannelHealth, type NetworkChannel } from "./transport.js";
 
 /** Pourquoi la bibliothèque est remplacée plutôt qu'injectée : voir `testing/fake-peerjs.ts`. */
 vi.mock("peerjs", async () => {
@@ -230,5 +230,78 @@ describe("PeerJsTransport — options d'annuaire", () => {
     await expect(transport.claim("pkmntac-A7K2M-1")).rejects.toMatchObject({
       code: NetworkErrorCode.ConnexionImpossible,
     });
+  });
+});
+
+describe("PeerJsChannel.onHealthChange", () => {
+  it("rend le chemin incertain quand ICE perd la réponse", async () => {
+    const { channel, connection } = await openOutgoingChannel();
+    const observed: ChannelHealth[] = [];
+    channel.onHealthChange((health) => observed.push(health));
+
+    connection.peerConnection.transitionTo("disconnected");
+
+    expect(observed).toEqual([ChannelHealth.Uncertain]);
+  });
+
+  it("rend le chemin perdu quand ICE renonce", async () => {
+    const { channel, connection } = await openOutgoingChannel();
+    const observed: ChannelHealth[] = [];
+    channel.onHealthChange((health) => observed.push(health));
+
+    connection.peerConnection.transitionTo("failed");
+
+    expect(observed).toEqual([ChannelHealth.Failed]);
+  });
+
+  it("rend le chemin sain quand ICE se rétablit", async () => {
+    const { channel, connection } = await openOutgoingChannel();
+    const observed: ChannelHealth[] = [];
+    channel.onHealthChange((health) => observed.push(health));
+
+    connection.peerConnection.transitionTo("disconnected");
+    connection.peerConnection.transitionTo("connected");
+
+    expect(observed).toEqual([ChannelHealth.Uncertain, ChannelHealth.Healthy]);
+  });
+
+  it("ne signale rien pendant l'établissement normal du chemin", async () => {
+    const { channel, connection } = await openOutgoingChannel();
+    const observed: ChannelHealth[] = [];
+    channel.onHealthChange((health) => observed.push(health));
+
+    connection.peerConnection.transitionTo("connecting");
+
+    expect(observed).toEqual([ChannelHealth.Healthy]);
+  });
+
+  it("compte une fermeture comme un chemin perdu, sans attendre ICE", async () => {
+    const { channel, connection } = await openOutgoingChannel();
+    const observed: ChannelHealth[] = [];
+    channel.onHealthChange((health) => observed.push(health));
+
+    connection.emitClose();
+
+    expect(observed).toEqual([ChannelHealth.Failed]);
+  });
+
+  it("débranche son écoute d'ICE à la fermeture", async () => {
+    const { connection } = await openOutgoingChannel();
+    expect(connection.peerConnection.listenerCount).toBe(1);
+
+    connection.emitClose();
+
+    expect(connection.peerConnection.listenerCount).toBe(0);
+  });
+
+  it("cesse de notifier après désabonnement", async () => {
+    const { channel, connection } = await openOutgoingChannel();
+    const observed: ChannelHealth[] = [];
+    const unsubscribe = channel.onHealthChange((health) => observed.push(health));
+
+    unsubscribe();
+    connection.peerConnection.transitionTo("disconnected");
+
+    expect(observed).toEqual([]);
   });
 });

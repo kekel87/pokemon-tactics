@@ -108,8 +108,12 @@ test("§6.11 reprise : le combat remonte à l'identique depuis le menu principal
   // Le moteur a bien été ré-avancé : la même main à jouer, avec les mêmes PV, et un journal d'actions
   // de même longueur (la reprise réenregistre son propre `exportReplay`, qui doit retomber sur le
   // compte quitté).
+  //
+  // La bannière ne porte plus le nom du Pokemon actif depuis le plan 202 (elle porte le camp et,
+  // en ligne, le compteur de chrono) : « le même Pokemon a la main » se lit donc sur le panneau
+  // d'information, ci-dessous, qui est de toute façon la source la plus précise — il compare aussi
+  // les PV et le niveau.
   await expect(page.getByTestId("combat-turn")).toHaveText(bannerBefore);
-  expect(bannerBefore).toContain(activeBefore.name);
   expect(await readActivePokemon(page)).toEqual(activeBefore);
   await expect.poll(() => store.actionCount()).toBe(savedActions);
 });

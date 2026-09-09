@@ -27,7 +27,7 @@ const STORAGE_KEY = "pt-battle-resume";
  * Bumped whenever the shape below changes in a way an older entry cannot satisfy. A save from another
  * schema is dropped, never migrated: a battle is cheap to lose, a wrongly restored one is not.
  */
-const SAVE_VERSION = 1;
+const SAVE_VERSION = 2;
 
 export interface BattleResumeSave {
   version: number;
@@ -78,6 +78,20 @@ export interface BattleResumeSave {
  */
 export function isOnlineSave(save: BattleResumeSave): boolean {
   return save.setup.localSeat !== undefined;
+}
+
+/**
+ * Une sauvegarde en ligne qu'on peut réellement **reprendre** (plan 202, étape 5).
+ *
+ * Plus exigeant qu'`isOnlineSave` : reprendre demande de rappeler le salon, donc il faut le code
+ * **et** la place. Une sauvegarde en ligne d'avant le Lot B3 n'a pas de code — elle ne peut être que
+ * jetée, ce que le contrôle de `SAVE_VERSION` fait déjà, mais le dire ici évite de promettre une
+ * reprise impossible si un autre chemin l'oublie.
+ */
+export function isResumableOnlineSave(
+  save: BattleResumeSave,
+): save is BattleResumeSave & { setup: { localSeat: number; roomCode: string } } {
+  return save.setup.localSeat !== undefined && save.setup.roomCode !== undefined;
 }
 
 export interface BattleResumeStore {

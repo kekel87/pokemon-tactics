@@ -88,6 +88,36 @@ export const TelemetryAction = {
   RoomFailedVersionIncompatible: "room-failed-version_incompatible",
   RoomFailedConnexionImpossible: "room-failed-connexion_impossible",
   RoomFailedDelaiDepasse: "room-failed-delai_depasse",
+  /*
+   * Robustesse du jeu en ligne (plan 202, Lot B3). Ces compteurs existent pour une raison précise :
+   * **les délais du lot sont des paris**, arrêtés à la main faute de terrain — 60 s de chrono, 75 s
+   * de silence, 30 s après une fermeture, trois tours manqués. « On ajustera à l'usage » n'est
+   * tenable que si l'usage se mesure, sinon on devine deux fois.
+   *
+   * Ce que chacun répond :
+   * - `turn-timed-out` : **60 s suffisent-ils ?** Un taux élevé de tours partis au dépassement dit
+   *   que la fenêtre est trop courte pour un tour tactique — c'est la mesure que la revue de design
+   *   réclamait sans pouvoir la faire.
+   * - `reconnect-succeeded` / `reconnect-failed` vs `forfeit-absent` : **le délai de grâce est-il
+   *   bien réglé ?** Beaucoup de forfaits pour absence face à peu de reprises réussies veut dire
+   *   qu'on coupe trop tôt.
+   * - `forfeit-missed-turns` : distinct de `forfeit-absent` **exprès** — l'un est un joueur parti,
+   *   l'autre un joueur présent qui ne joue plus. Les confondre masquerait lequel des deux
+   *   mécanismes tranche vraiment.
+   * - `forfeit-diverged` : **le déterminisme tient-il ?** C'est le chiffre qui dira si le Lot B4
+   *   (somme de contrôle d'état) est urgent ou théorique.
+   * - `connection-uncertain` : **le pair-à-pair sans relais est-il tenable ?** ICE signale une
+   *   dégradation bien avant le chien de garde ; sa fréquence dit si un relais TURN devient
+   *   nécessaire, question laissée ouverte en V1.
+   */
+  TurnTimedOut: "turn-timed-out",
+  ForfeitAbsent: "forfeit-absent",
+  ForfeitMissedTurns: "forfeit-missed-turns",
+  ForfeitDiverged: "forfeit-diverged",
+  ForfeitResigned: "forfeit-resigned",
+  ReconnectSucceeded: "reconnect-succeeded",
+  ReconnectFailed: "reconnect-failed",
+  ConnectionUncertain: "connection-uncertain",
 } as const;
 export type TelemetryAction = (typeof TelemetryAction)[keyof typeof TelemetryAction];
 

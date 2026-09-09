@@ -2,8 +2,10 @@
 
 > Document de référence pour l'implémentation du multijoueur (Phase 7).
 > Écrit le 2026-04-06, **révisé le 2026-08-29** après une passe d'audit de faisabilité, puis
-> **corrigé le 2026-09-04 par le Lot B1, qui est le premier à avoir été implémenté**.
-> Décisions associées : #209-212 (fondations), #862-870 (révision), #895-912 (Lot B1).
+> **corrigé le 2026-09-04 par le Lot B1, qui est le premier à avoir été implémenté**, puis
+> **corrigé le 2026-09-09 par le Lot B3, implémenté et validé en recette humaine**.
+> Décisions associées : #209-212 (fondations), #862-870 (révision), #895-912 (Lot B1),
+> #946-#962 (Lot B3, plan 202 — chrono, chien de garde, abandon, reconnexion).
 
 ---
 
@@ -267,21 +269,42 @@ inagrégeable.
 
 ---
 
-## Chronomètre de tour (décisions #864, #865)
+## Chronomètre de tour (décisions #864, #865, #946-#950)
 
 Il y a un chrono. Il est **local et auto-déclarant** : quand le tien expire, **ton propre client
 soumet l'action par défaut** (passer le tour) et la diffuse comme n'importe quelle autre action.
 L'autre pair reçoit une action ordinaire et la valide comme le reste.
 
-Trois conséquences heureuses :
+**Tranché avec l'humain le 2026-09-08** (plan 202, étape 1) :
+
+| Réglage | Valeur | Motif |
+|---|---|---|
+| Durée | **60 s** | Une seule fenêtre doit couvrir déplacement + sous-menu + choix d'attaque + visée + confirmation + orientation, au pad et au doigt, sur une grille iso avec hauteurs. Le 45 s du VGC est un précédent pour un **choix unique**, pas pour un tour tactique multi-étapes |
+| Portée de la fenêtre | **Une par tour**, jamais rejouée | `enterActionMenu()` est rappelé à **chaque étape** du tour et sur chaque annulation ; redémarrer le compte à rebours dessus permettrait de geler la partie en annulant en boucle |
+| Repli au timeout | **`EndTurn`, orientation courante** | Aucune décision de jeu prise à la place du joueur, action toujours légale, traverse le replay sans cas particulier. **Pas `CT_WAIT` / « Attendre »** : cette action est illégale si `hasMoved` ou `hasActed`, un timeout survenant après un déplacement déjà validé se ferait refuser par le moteur |
+
+Deux conséquences heureuses :
 
 - **Aucun ajout au protocole.** Pas de message `timeout`, pas d'arbitrage, pas de question
   « qui fait autorité sur l'horloge » — la question la plus embarrassante du P2P sans arbitre.
-- **La dérive va dans le bon sens, gratuitement.** Tu démarres ton chrono en finissant d'appliquer
-  l'action précédente ; le pair distant démarre le sien en la **recevant**, donc ~150 ms plus tard,
-  donc son chrono expire après le tien. Tu n'es jamais coupé avant que ta propre horloge le dise.
 - **Ça traverse le replay tout seul.** L'action de timeout entre dans `exportReplay()` comme les
   autres → la reprise du plan 181 la rejoue à l'identique, sans cas particulier.
+
+⚠️ **« La dérive va dans le bon sens, gratuitement » — vrai seulement de ton PROPRE chrono, pas du
+chien de garde d'en face.** Le raisonnement — tu démarres ton chrono en finissant d'appliquer
+l'action précédente, le pair distant démarre le sien en la **recevant** ~150 ms plus tard, donc son
+chrono expire après le tien — ne protège que contre ton propre minuteur. Si tu mets ton onglet en
+arrière-plan **pendant ton propre tour**, ton minuteur ralentit (Chrome ~1/s, puis ~1/min après
+5 min d'inactivité) donc tu ne t'auto-passes pas — mais le chien de garde de l'adversaire, lui,
+tourne sur **sa propre** horloge murale en temps réel, et te forfaite à 75 s, connexion intacte.
+Les deux minuteurs n'ont pas la même base de temps. **Risque assumé** : passé cinq minutes
+d'arrière-plan pendant son propre tour, le joueur *est* parti.
+
+🔴 **Parade retenue : une échéance en horloge murale, jamais un `setTimeout` unique de 60 s.**
+L'orchestrateur retient `deadlineAt = now() + durationMs` et se réveille périodiquement pour
+comparer, plutôt que de planifier un unique minuteur de 60 000 ms qui se déclencherait très en
+retard sur un onglet ralenti. Avec une échéance, un réveil tardif constate immédiatement le
+dépassement et soumet l'action au lieu d'attendre un minuteur suivant.
 
 ### Ce que le chrono ne couvre pas — et ne doit pas essayer
 
@@ -293,17 +316,35 @@ chrono, c'est le problème de **déconnexion** (§ Gestion de la déconnexion). 
 | **Chrono de tour** | rythme, anti-AFK | ton client soumet « passer le tour » |
 | **Chien de garde de connexion** | anti-déconnexion | « En attente de reconnexion… » puis forfait |
 
-Le chien de garde doit valoir **chrono + marge**, sinon un paquet lent honnête le déclenche à tort.
+⚠️ **« Onglet gelé » recouvre deux réalités, à ne pas confondre** : le *ralentissement* des
+minuteurs de navigateur (couvert par la marge du chien de garde ci-dessous) et le **déchargement
+complet** de l'onglet sous pression mémoire iOS, qui détruit le contexte JS et la connexion WebRTC.
+Le premier se rythme ; le second n'a rien à voir avec le chrono, c'est le chemin de reconnexion
+(§ Gestion de la déconnexion, Lot B3).
+
+Le chien de garde vaut **chrono + 15 s = 75 s** au premier déclenchement — la marge de #865, qui
+couvre l'animation d'une attaque de zone à plusieurs cibles plus une latence honnête — sinon un
+paquet lent honnête le déclenche à tort.
 
 **Surface de triche assumée** : un client qui s'octroie cinq minutes n'est puni par rien
 d'automatique. Le joueur honnête peut toujours quitter — suffisant à cette échelle.
 
-**À trancher au moment de coder** : la durée, et l'action par défaut. « Passer le tour » sans agir est
-le choix sûr ; surtout pas un move au hasard.
+🔴 **Asymétrie `CT_WAIT` assumée.** Passer le tour au timeout coûte `CT_WAIT` = 350, le coût **le
+plus bas de toute la table** (`packages/core/src/battle/ct-costs.ts` : déplacement seul 400,
+attaque seule ≥ 500, combo ≥ 750) : le timeout est donc l'action **la plus rentable en tempo de
+jeu**. Effet plateau nul (aucun déplacement, aucun dégât), aucun move ni talent du roster ne
+récompense l'attente pure — asymétrie assumée plutôt que d'ouvrir un `CT_WAIT` propre au réseau
+pour un gain nul.
 
-> **À ne pas oublier** (noté par le plan 187) : ouvrir le menu de combat **grignotera le temps du
-> joueur sans le dire**, puisque rien n'est mis en pause (décision #819, cadrage « un seul
-> comportement dès le solo »). Il faudra une pastille « le temps continue » sur la modale.
+**Le chrono du tour adverse s'affiche aussi.** Écart délibéré d'avec Pokémon Showdown, qui cache le
+temps de l'adversaire : Showdown est à choix simultané, où le temps de réflexion trahit
+l'incertitude, alors qu'ici le tour est séquentiel et le plateau visible — on est plus près d'une
+pendule d'échecs, où les deux cadrans se voient toujours.
+
+> **Réglé** (noté par le plan 187, corrigé au Lot B3, étape 6) : ouvrir le menu de combat **grignote
+> le temps du joueur sans le dire**, puisque rien n'est mis en pause (décision #819, cadrage « un
+> seul comportement dès le solo »). Une pastille « le temps continue » l'annonce désormais sur la
+> modale.
 
 ---
 
@@ -398,12 +439,28 @@ La **reconstruction**, elle, est bien triviale : c'est exactement ce que fait le
 ### Déconnexion temporaire
 
 ```
-Joueur B perd la connexion
-  → Timer de 30s pour reconnecter
-  → Joueur A voit "En attente de reconnexion..."
-  → Si B reconnecte : resync via replay (seed + actions depuis le début)
-  → Si timeout : victoire par forfait pour A
+Joueur B disparaît
+  → Combien de temps A l'attend, selon COMMENT il a disparu :
+      · silence, aucun `bye` reçu (câble arraché, onglet gelé) ...... 75 s = chrono + 15 s de marge
+      · fermeture d'onglet, un `bye` est arrivé ...................... 30 s (`BATTLE_GRACE_SHORT_MS`)
+      · deuxième chute de la même place ............................. 30 s (le même chiffre)
+  → Joueur A voit "En attente de reconnexion..." avec le décompte du délai réellement accordé
+  → Si B reconnecte : resync via replay (actions manquées, pas tout le journal)
+  → Si le délai expire : victoire par forfait pour A
 ```
+
+(Lot B3, plan 202, étapes 2, 4 et 5 — décisions #950-#952, #954-#955, #957, #960, #961)
+
+### Signal précoce, avant le chien de garde (Lot B3, étape 3, décision #956)
+
+`connectionState` de la `RTCPeerConnection`, exposé par PeerJS, donne un signal **gratuit et bien
+plus rapide** que le chien de garde : ICE Consent Freshness (RFC 7675) fait émettre une requête
+STUN toutes les 5 à 15 s sur le chemin établi, donc `connectionState` passe à `disconnected` en
+~5 s sans réponse, puis à `failed` vers ~30 s — sans aucun message de protocole ni battement de
+cœur applicatif à écrire, le navigateur le calcule déjà. Il alimente le bandeau (« connexion
+instable »), il ne déclenche **jamais** de forfait à lui seul : `disconnected` se rétablit souvent
+tout seul, et éliminer quelqu'un sur un état rétablissable serait pire que d'attendre le chien de
+garde.
 
 ### Reconnexion — la brique existe déjà (plan 181)
 
@@ -421,19 +478,143 @@ sont déjà réglées par le Lot B1, comme effet de bord du salon plutôt que de
 elle-même : le setup diffusé porte l'**identifiant stable de carte** (jamais l'URL, § Sélection
 d'équipe) et la **version de protocole au handshake** est `NETWORK_VERSION`, **pas** `buildVersion`
 (#900, § Protocole) — `buildVersion` reste le garde-fou du solo (décision #748), un autre mécanisme.
-Ce qui reste à faire, au **Lot B3** :
+Ce que le **Lot B3** (livré le 2026-09-09) y a ajouté :
 
 - politique de reconnexion **en combat** (délai, qui attend, ce que voit l'autre) — les délais de
-  grâce du salon (10 s après un `bye`, 45 s après un silence, #905) en sont le prototype, pas encore
-  transposés au combat.
+  grâce du salon (10 s après un `bye`, 45 s après un silence, #905) en sont le **prototype**, mais
+  pas le patron final : en combat, contrairement au salon, fermer l'onglet (la croix) **ne déclare
+  aucune intention** — l'intention se déclare par le menu de combat (« Abandonner », « Quitter »).
+  Voici comment c'est transposé (Lot B3, plan 202, étape 2, corrigé en recette humaine par la
+  décision #961) : **75 s** — pas 45 s — après un **silence** (aucun `bye` reçu), et **30 s**
+  (`BATTLE_GRACE_SHORT_MS`) dans les deux autres cas — une **fermeture d'onglet**, ou une **deuxième
+  chute** de la même place.
+
+  🔴 **Le combat ne réutilise PAS `GRACE_AFTER_SILENCE_MS` (45 s), malgré la ressemblance des
+  valeurs** (décision #950). Un délai de grâce de 45 s en combat tomberait pile quand un chrono de
+  tour honnête de 60 s approche de son échéance : le joueur qui joue à la dernière seconde se ferait
+  passer pour absent — exactement ce contre quoi #865 met en garde. Le chien de garde de combat est
+  donc **dérivé du chrono lui-même** (chrono + 15 s = 75 s), pas du salon.
+
+  🔴 **Le `bye` de fermeture d'onglet vaut 30 s en combat, et non plus 10 s** (décision #961, amende
+  #950). Le 10 s était hérité du salon et n'avait jamais été réexaminé pour le combat : il produisait
+  une absurdité mesurée à la main — fermer sa fenêtre poliment donnait **moins** de temps (10 s) à
+  l'adversaire qu'arracher son câble (75 s). Le motif de #905, « l'intention est connue », vaut dans
+  une salle d'attente où partir ne coûte rien ; en combat l'intention se déclare par le **menu**
+  (« Abandonner », « Quitter »), jamais par la croix de la fenêtre — la croix, c'est l'accident, celui
+  que la reprise existe pour absorber. Et 30 s plutôt que 75 : celui qui reste ne doit pas attendre
+  une minute et quart contre quelqu'un qui est vraiment parti, et il peut toujours abandonner
+  lui-même. Le **même** chiffre sert à la deuxième chute d'une place — un seul chiffre à retenir,
+  demandé par l'humain. Le **salon**, lui, garde ses valeurs de #905 (10 s / 45 s) : là, la place se
+  libère et personne ne perd de partie. `room.ts` tient le minuteur du canal refermé et ne décide
+  rien (`onPeerAbsent`) ; `online-battle.ts`, qui tient à la fois le salon et l'orchestrateur, décide
+  et déclenche le forfait (décision #951).
+
+### La limite mesurée : un hôte tué net ne revient pas (décision #966)
+
+**Chiffres mesurés le 2026-09-09** contre le service public de PeerJS, en WebSocket nu — pas
+supposés, et la mesure a fait tomber deux hypothèses au passage :
+
+| Comment le pair est parti | Délai avant que son adresse soit libre |
+|---|---|
+| **proprement** (« Quitter », ou une croix dont le message de départ part) | **110 ms** |
+| **brutalement** (onglet tué avant d'avoir pu parler) | **99 s** |
+
+Un **hôte** parti brutalement **ne peut donc pas revenir** : il lui faudrait 99 s pour reprendre son
+adresse, alors que l'adversaire ne l'attend au maximum que 75 s (§ Gestion de la déconnexion). Aucun
+budget de réessais n'y change quoi que ce soit — insister plus longtemps ne ramènerait personne dans
+une partie déjà perdue par forfait.
+
+**Pourquoi cela ne touche que l'hôte** : il doit récupérer une adresse **précise**, le code de salon
+étant son adresse (#904). Un invité qui revient réclame la sienne dans les mêmes conditions, mais
+l'invité n'est pas le point de rendez-vous : c'est lui qui compose, donc son retour ne dépend pas de
+la libération d'une adresse que quelqu'un d'autre attend.
+
+**Ce qui a été écarté**, et pourquoi : allonger la grâce du silence à 110 s dégraderait le cas
+courant — l'adversaire attendrait deux minutes devant un écran figé — pour sauver le cas rare. La
+vraie correction de fond serait de **ne plus dériver l'adresse de la place**, ce qui demande un point
+de rendez-vous tiers (le Worker Cloudflare du Lot A existe déjà) : c'est un lot à part, pas un
+réglage.
+
+⚠️ **Deux hypothèses infirmées, à ne pas ressusciter.** Il n'y a **aucune limitation par IP** sur le
+service public — 25 prises d'adresse d'affilée passent sans un refus — donc jouer à deux depuis la
+même machine n'y est pour rien. Et un barème de réessais **serré** rend les choses pires, pas
+meilleures : treize essais en 53 s faisaient se gêner les sockets entre elles côté client, et le
+refus devenait « connexion impossible » au lieu de « place occupée », donc un abandon immédiat au
+lieu d'un réessai.
+
+### L'hôte ne rappelle jamais — l'asymétrie de qui compose (décisions #957, #960)
+
+**Qui compose est asymétrique, et le document d'origine ne le disait pas** : l'invité appelle
+l'hôte à une adresse dérivée du code ; l'hôte n'appelle **jamais** personne, il écoute. Un hôte qui
+recharge sa page reprend bien son adresse et redevient joignable (§ Connexion) — mais **personne ne
+le rappelle**. Sans correctif, l'invité restait devant son délai de grâce en entier face à un hôte
+pourtant revenu et joignable, puis prononçait un forfait sur un adversaire présent.
+
+**Correctif : `scheduleHostRedial`** — pendant sa fenêtre de grâce, l'invité **recompose** l'adresse
+de l'hôte toutes les `HOST_REDIAL_INTERVAL_MS` (2 s) au lieu d'attendre un appel qui ne viendra
+jamais. Ce trou ne se voit pas en testant la reconnexion de l'invité (qui, elle, compose) — il ne se
+révèle qu'en testant le retour de l'**hôte**.
+
+**Deux couches supplémentaires du même trou** (décision #960), trouvées en écrivant : un salon
+revenu (l'hôte qui recharge) n'avait **ni** délai de grâce en cours **ni** état de places à
+présenter — il refusait donc le canal entrant de l'invité qui le rappelait, puis se refermait à la
+présentation. `handleHello` doit désormais envoyer l'état du salon **au revenant, à lui seul**,
+avant même que `waitForWelcome` ne se dise entré — sans quoi l'arrivant lisait une configuration
+vide et croyait à une incompatibilité de version.
 
 ### Abandon volontaire
 
+**« Abandonner » existe déjà** dans le menu de combat (plan 187), avec sa confirmation et sa
+navigation clavier/manette. Ce qui manque n'est pas le contrôle mais son **effet en ligne** :
+aujourd'hui son `onAbandon` fait `onBattleClosed()` puis `onExit()` — il quitte **sans prévenir
+l'adversaire**, qui reste devant un tour qui ne viendra jamais. **C'était un bug, réparé par le Lot
+B3** (plan 202, étape 6), pas une fonctionnalité créée de zéro.
+
 ```
-Joueur ferme l'onglet ou clique "Quitter"
-  → Message "forfeit" envoyé si possible
+Joueur clique "Abandonner" (confirmé) ou ferme l'onglet
+  → room.sendForfeit(monSiège, NetworkForfeitReason.Abandon) PUIS applyForfeit(monJoueur)
+    — l'ordre compte : on part, on ne pourra plus rien dire ensuite
   → L'autre joueur gagne par forfait
 ```
+
+Le `bye` doit partir à la **fermeture d'onglet** (`pagehide`), pas seulement sur un clic
+« Quitter ».
+
+**Une phrase par raison, pas un message unique** — correctif de recette humaine : le journal de
+combat disait « les parties ne concordent plus » (la phrase de la divergence, § Anti-triche) pour
+**tout** forfait, y compris un abandon volontaire tout juste confirmé au menu. `ForfeitReason`
+distingue désormais `resigned` (abandon), `disconnected` (chien de garde) et `desynced`
+(divergence), chacun avec sa propre phrase.
+
+**Le bandeau de connexion se tait dès que le combat est terminé** — correctif de recette humaine :
+il continuait sinon d'afficher « en attente de reconnexion… » ou l'avertissement AFK par-dessus
+l'écran de victoire.
+
+🔴 **L'abandon (et le forfait de chien de garde) contourne les clauses de survie — statu quo
+assumé** (décision #953) : `forfeit()` met les PV à 0 en dur, donc hors du pipeline de dégâts —
+**Ténacité**, **Fermeté** et **Ceinture Force** ne se déclenchent jamais. Un abandon n'est pas un
+dégât, c'est un renoncement. Les cascades de K.O., elles, restent préservées (**Lien du Destin**,
+**Rancune**, **Représailles**) : même bloc `handleKo` que pour un K.O. ordinaire.
+
+---
+
+## Ce qui reste ouvert
+
+Limites assumées à la clôture du Lot B3 (2026-09-09), chacune avec son entrée de backlog dans le
+graphe de mémoire — aucune n'est une régression, ce sont des choix de V1 :
+
+- **Élection d'un nouvel hôte impossible** — le code de partie **est** l'adresse de l'hôte
+  (§ Connexion, #898) : si l'hôte part pour de bon, il n'y a personne à élire, la partie s'arrête là.
+  Backlog : `backlog-election-nouvel-hote-multijoueur`.
+- **Sauvegarde partagée entre deux onglets d'un même profil** — deux onglets du même navigateur, sur
+  le même profil, se disputent la même clé de sauvegarde de reprise. Backlog :
+  `backlog-sauvegarde-partagee-entre-onglets-meme-profil`.
+- **Délai réel de libération d'adresse du cloud PeerJS non mesuré** — observé à l'écriture jusqu'à
+  ~1 minute (§ Risques, plan 202), jamais confirmé sur le vrai service public. Backlog :
+  `backlog-delai-liberation-peerjs-cloud`.
+- **`battle_started` toujours pas émis en ligne** (décision #962) — la télémétrie compte des
+  `battle_ended` en ligne sans le `battle_started` qui leur correspondrait : les compteurs ont des
+  numérateurs sans dénominateur, un taux d'abandon en ligne ne peut pas se calculer.
 
 ---
 

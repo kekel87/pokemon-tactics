@@ -56,6 +56,13 @@ const VALID_MESSAGES: Record<NetworkMessageType, object> = {
     action: { kind: "end_turn", pokemonId: "p1-venusaur", direction: "north" },
   },
   forfeit: { type: "forfeit", seat: 2, forfeitedSeat: 1, reason: "diverged" },
+  resync_request: { type: "resync_request", seat: 2, actionIndex: 4 },
+  resync: {
+    type: "resync",
+    seat: 1,
+    fromIndex: 4,
+    actions: [{ kind: "end_turn", pokemonId: "p1-venusaur", direction: "north" }],
+  },
 };
 
 describe("isNetworkMessage", () => {
@@ -319,5 +326,43 @@ describe("deriveAiSeedsBySeat", () => {
 
   it("rend une table vide pour un salon sans place", () => {
     expect(deriveAiSeedsBySeat([], countingRandom()).size).toBe(0);
+  });
+});
+
+describe("isNetworkMessage — rattrapage (plan 202)", () => {
+  it("accepte un rattrapage vide — le revenant n'a peut-être rien manqué", () => {
+    expect(isNetworkMessage({ type: "resync", seat: 1, fromIndex: 0, actions: [] })).toBe(true);
+  });
+
+  it("refuse un index de rattrapage négatif ou fractionnaire", () => {
+    expect(isNetworkMessage({ type: "resync_request", seat: 2, actionIndex: -1 })).toBe(false);
+    expect(isNetworkMessage({ type: "resync_request", seat: 2, actionIndex: 1.5 })).toBe(false);
+  });
+
+  it("refuse un rattrapage dont une action est mal formée", () => {
+    expect(
+      isNetworkMessage({
+        type: "resync",
+        seat: 1,
+        fromIndex: 0,
+        actions: [{ kind: "danse_de_la_pluie" }],
+      }),
+    ).toBe(false);
+  });
+
+  it("refuse un rattrapage sans liste d'actions", () => {
+    expect(isNetworkMessage({ type: "resync", seat: 1, fromIndex: 0 })).toBe(false);
+  });
+
+  it("refuse un dépassement déclaré autrement que par `true`", () => {
+    const base = {
+      type: "action",
+      seat: 2,
+      actionIndex: 0,
+      action: { kind: "end_turn", pokemonId: "p1-venusaur", direction: "north" },
+    };
+    expect(isNetworkMessage({ ...base, timedOut: true })).toBe(true);
+    expect(isNetworkMessage({ ...base, timedOut: false })).toBe(false);
+    expect(isNetworkMessage({ ...base, timedOut: "oui" })).toBe(false);
   });
 });

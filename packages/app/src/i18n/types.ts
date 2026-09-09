@@ -234,6 +234,8 @@ export interface Translations {
   "menu.adventure": string;
   "menu.battle": string;
   "menu.resumeBattle": string;
+  "menu.resumeBattle.connecting": string;
+  "menu.resumeBattle.error.addressBusy": string;
   "menu.settings": string;
   "menu.credits": string;
   "orientation.title": string;
@@ -963,9 +965,17 @@ export interface Translations {
   "battle.turnOwner.you": string;
   "battle.turnOwner.player": string;
   "battle.turnOwner.ai": string;
+  "combatMenu.timeKeepsRunning": string;
+  "battle.network.uncertain": string;
+  "battle.network.awaitingReconnect": string;
+  "battle.network.missedTurns": string;
+  "battle.network.countdown": string;
   "battleLog.turnStarted": string;
   /** Un camp quitte la partie (plan 201) : abandon, ou parties qui ne concordent plus. */
   "battleLog.playerForfeited": string;
+  "battleLog.playerForfeited.resigned": string;
+  "battleLog.playerForfeited.disconnected": string;
+  "battleLog.playerForfeited.desynced": string;
   "battleLog.typeChanged.becomes": string;
   "battleLog.typeChanged.burnUp": string;
   "battleLog.typeChanged.typeSeparator": string;

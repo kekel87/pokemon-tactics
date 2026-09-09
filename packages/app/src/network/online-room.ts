@@ -1,4 +1,6 @@
-import type { Room } from "@pokemon-tactic/network";
+import { REQUIRED_TEAM_COUNTS } from "@pokemon-tactic/data";
+import { PeerJsTransport, type Room, type RoomDeps } from "@pokemon-tactic/network";
+import { signallingOverride } from "./signalling-override";
 
 /**
  * Le salon en ligne de la session, détenu **hors des écrans** (plan 199, correctif de revue).
@@ -21,7 +23,45 @@ import type { Room } from "@pokemon-tactic/network";
  * aussi l'architecture dont le **Lot B2** a besoin, où les actions s'échangent pendant le combat.
  */
 
+/**
+ * Les dépendances d'un salon, au même endroit pour les trois chemins qui en montent un — créer,
+ * rejoindre, et **revenir** (plan 202, étape 5).
+ *
+ * `maxSeats` vient de l'application et non du paquet réseau : `packages/network` ne dépend pas de
+ * `@pokemon-tactic/data`, c'est à l'appelant de dire jusqu'où un arrivant balaie les places.
+ */
+export function onlineRoomDeps(): RoomDeps {
+  return {
+    transport: new PeerJsTransport(signallingOverride()),
+    maxSeats: Math.max(...REQUIRED_TEAM_COUNTS),
+  };
+}
+
 let current: Room | null = null;
+let closeOnPageHideInstalled = false;
+
+/**
+ * Annonce notre départ quand l'onglet se ferme (plan 202, étape 6).
+ *
+ * 🔴 Ce que ça change pour l'autre joueur : le `bye` fait la différence entre **10 s** et **75 s**
+ * d'attente avant que son forfait ne tombe (décision #950). Sans lui, fermer son onglet — le geste
+ * le plus banal du monde — imposait à l'adversaire une minute et quart devant un écran qui n'attend
+ * plus personne. « Quitter » l'envoyait déjà ; la croix de l'onglet, non.
+ *
+ * `pagehide` et non `beforeunload` : c'est celui qui part vraiment sur mobile, où l'onglet est
+ * déchargé sans passer par `beforeunload` (le même choix que la télémétrie, cf. `telemetry.ts`).
+ *
+ * Best-effort assumé : `leave()` diffuse en synchrone puis détruit le pair, ce qui suffit dans les
+ * cas ordinaires, mais un onglet tué net (pression mémoire iOS) ne dira rien — et c'est exactement
+ * le cas que le délai long existe pour couvrir.
+ */
+function installCloseOnPageHide(): void {
+  if (closeOnPageHideInstalled || typeof window === "undefined") {
+    return;
+  }
+  closeOnPageHideInstalled = true;
+  window.addEventListener("pagehide", () => releaseOnlineRoom());
+}
 
 /** Confie le salon à la session. Un salon déjà détenu est fermé — on n'en garde jamais deux. */
 export function holdOnlineRoom(room: Room): void {
@@ -29,6 +69,7 @@ export function holdOnlineRoom(room: Room): void {
     current.leave();
   }
   current = room;
+  installCloseOnPageHide();
 }
 
 /**

@@ -70,6 +70,15 @@ export interface CombatMenuOptions {
    * réversible use le réflexe jusqu'à ce qu'on valide sans lire — y compris devant l'abandon.
    */
   readonly onQuitKeepingSave?: () => void;
+  /**
+   * Vrai quand un chronomètre de tour tourne derrière — c'est-à-dire en ligne (plan 202, étape 6).
+   *
+   * 🔴 Dette notée par le plan 187 et payée ici : ce menu **n'est pas une pause** (décision #819) et
+   * rien n'est suspendu à son ouverture. Tant que le seul enjeu était l'IA qui continue de jouer, ça
+   * pouvait se déduire. Depuis qu'un compte à rebours mesure le temps du joueur, ouvrir ce menu lui
+   * **coûte son tour sans le dire** — un piège qu'il faut refermer par une phrase.
+   */
+  readonly timeKeepsRunning?: boolean;
 }
 
 export interface CombatMenu {
@@ -91,7 +100,14 @@ type Level =
   | { readonly kind: "confirm"; readonly action: "abandon" | "restart" };
 
 export function createCombatMenu(options: CombatMenuOptions): CombatMenu {
-  const { host, onAbandon, onRestart, onQuitKeepingSave, variant = "battle" } = options;
+  const {
+    host,
+    onAbandon,
+    onRestart,
+    onQuitKeepingSave,
+    variant = "battle",
+    timeKeepsRunning = false,
+  } = options;
   const isPlacement = variant === "placement";
 
   let dialog: HTMLDialogElement | null = null;
@@ -110,6 +126,25 @@ export function createCombatMenu(options: CombatMenuOptions): CombatMenu {
 
   const renderRoot = (): HTMLElement => {
     const list = el("div", "cm-buttons");
+    if (timeKeepsRunning) {
+      /*
+       * En tête de liste, avant le premier bouton : la prévenir après les choix serait la lire trop
+       * tard. Pas un bouton — rien à activer, et elle ne doit pas prendre le focus au clavier.
+       *
+       * 🔴 L'icône est un ÉLÉMENT à elle (retour humain 2026-09-09) et non un caractère dans la
+       * phrase : un emoji tombe sur la police système, dont les métriques ne sont pas celles de la
+       * police pixel du jeu — il pendait sous la ligne de texte. En élément propre, un
+       * `align-items: center` le recale, et la ligne se cadre comme le reste du menu.
+       */
+      const warning = el("p", "cm-clock-warning", "combat-menu-clock-warning");
+      const glyph = el("span", "cm-clock-glyph");
+      glyph.textContent = "⏱";
+      glyph.setAttribute("aria-hidden", "true");
+      const label = el("span", "cm-clock-text");
+      label.textContent = t("combatMenu.timeKeepsRunning");
+      warning.append(glyph, label);
+      list.append(warning);
+    }
     const entry = (
       labelKey: TranslationKey,
       testid: string,

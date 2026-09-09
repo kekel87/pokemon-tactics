@@ -12,8 +12,9 @@ import {
   PlayerId,
 } from "@pokemon-tactic/core";
 import { getMoveName, getPokemonName } from "@pokemon-tactic/data";
-import { deriveAiSeedsBySeat } from "@pokemon-tactic/network";
+import { deriveAiSeedsBySeat, ONLINE_TURN_DURATION_MS } from "@pokemon-tactic/network";
 import type {
+  BattleChrome,
   CombatPokemonHandle,
   CombatScene,
   FieldTerrainSpec,
@@ -50,6 +51,7 @@ import {
   endBattleTelemetry,
   observeBattleTelemetry,
 } from "../analytics/battle-telemetry-session.js";
+import { countAction, TelemetryAction } from "../analytics/telemetry.js";
 import { type BattleResumeSave, battleResumeStore } from "../app/battle-persistence.js";
 import type { Navigate, Screen } from "../app/screen-manager.js";
 import type { CombatSetup, ScreenParamsById } from "../app/screens.js";
@@ -72,7 +74,7 @@ import { getInputSystem } from "../input/input-system.js";
 import { cameraKeyLabels, combatMenuKeyHint, keyHintOf } from "../input/key-legend.js";
 import { LogicalAction } from "../input/logical-action.js";
 import { attachPointerSource, type PointerSource } from "../input/pointer-source.js";
-import { wireOnlineBattle } from "../network/online-battle.js";
+import { type ConnectionNotice, wireOnlineBattle } from "../network/online-battle.js";
 import { releaseOnlineRoom } from "../network/online-room.js";
 import {
   isFullscreen,
@@ -368,6 +370,25 @@ function runBattle(options: {
   onLocalAction?: BattleOrchestratorConfig["onLocalAction"];
   /** Une action distante refusée, avec son rang dans le barème (plan 201, décision D1). */
   onRemoteActionRejected?: BattleOrchestratorConfig["onRemoteActionRejected"];
+  /** Entrée et sortie de l'attente d'un tour distant — le chien de garde s'y accroche (plan 202). */
+  onWaitingRemote?: BattleOrchestratorConfig["onWaitingRemote"];
+  /**
+   * Annonce l'abandon volontaire aux pairs (plan 202, étape 6). Absent en local.
+   *
+   * Branché sur l'entrée « Abandonner » qui existe déjà : c'est son effet en ligne qui manquait.
+   */
+  onResign?: () => void;
+  /**
+   * Le chrome vient d'être monté (plan 202).
+   *
+   * Existe parce que le bandeau d'état du réseau est alimenté par `packages/network`, dont le
+   * câblage est monté **avant** le chrome : sans ce point d'accès il faudrait réordonner tout le
+   * montage, ou faire remonter le chrome par la valeur de retour et toucher les trois chemins de
+   * combat. Un rappel coûte deux lignes et n'en dérange aucun.
+   */
+  onChromeReady?: (chrome: BattleChrome) => void;
+  /** Chronomètre de tour. Absent = partie hors ligne, aucun compteur (plan 202, décision #946). */
+  turnClock?: BattleOrchestratorConfig["turnClock"];
   /**
    * Events of a battle rebuilt from its saved action log (plan 181). Pushed into the log ONLY, so a
    * resumed battle comes back with its history — never through `feedback`, which would re-spawn every
@@ -398,6 +419,10 @@ function runBattle(options: {
     localPlayerIds,
     onLocalAction,
     onRemoteActionRejected,
+    onWaitingRemote,
+    onResign,
+    onChromeReady,
+    turnClock,
     initialLogEvents,
     onActionCommitted,
     onBattleClosed,
@@ -473,6 +498,10 @@ function runBattle(options: {
     // Abandonner et Recommencer détruisent la partie : ils purgent la sauvegarde comme le fait le
     // dialogue de victoire. C'est ce que leur confirmation annonce.
     onAbandon: () => {
+      // En ligne, l'adversaire doit apprendre POURQUOI un camp disparaît, et il doit l'apprendre
+      // AVANT que `onBattleClosed` ne libère le salon : après, il n'y a plus de canal pour le dire
+      // (plan 202, étape 6). Sans effet en local, où `onResign` n'est pas fourni.
+      onResign?.();
       onBattleClosed?.();
       onExit();
     },
@@ -485,8 +514,13 @@ function runBattle(options: {
     // (`store.clear()`), pas par le studio sandbox. Là-bas, l'entrée ne s'affiche donc pas plutôt
     // que de promettre une reprise sans rien à reprendre.
     onQuitKeepingSave: onBattleClosed === undefined ? undefined : () => onExit(),
+    // Un chronomètre tourne dès que la partie est en ligne (plan 202) : le menu grignote alors le
+    // temps du joueur, et la dette du plan 187 était de ne pas le dire.
+    timeKeepsRunning: turnClock !== undefined,
   });
   signal.addEventListener("abort", () => combatMenu.dispose(), { once: true });
+
+  onChromeReady?.(chrome);
 
   const language = getLanguage();
   // Shared name resolvers for the log + floating texts (instance id → localised names).
@@ -669,6 +703,8 @@ function runBattle(options: {
       ...(localPlayerIds === undefined ? {} : { localPlayerIds }),
       ...(onLocalAction === undefined ? {} : { onLocalAction }),
       ...(onRemoteActionRejected === undefined ? {} : { onRemoteActionRejected }),
+      ...(onWaitingRemote === undefined ? {} : { onWaitingRemote }),
+      ...(turnClock === undefined ? {} : { turnClock }),
       onActionCommitted,
       getElapsedMs,
     },
@@ -974,6 +1010,11 @@ function runResolvedBattle(options: {
    * partie fraîche, la valeur sauvegardée sur une reprise. Ce montage y ajoutera sa propre tranche.
    */
   resumedElapsedMs?: number;
+  /**
+   * Ce combat est une **reprise** (plan 202, étape 5) : le câblage réseau réclamera les actions
+   * jouées pendant l'absence. Absent au démarrage normal, où les deux pairs sont au même index.
+   */
+  resuming?: boolean;
 }): BattleOrchestrator {
   const {
     backend,
@@ -1031,11 +1072,26 @@ function runResolvedBattle(options: {
     inputs.setup.localSeat === undefined
       ? undefined
       : allPlayerIds.slice(inputs.setup.localSeat - 1, inputs.setup.localSeat);
-  const online = wireOnlineBattle({
-    localSeat: inputs.setup.localSeat,
-    allPlayerIds,
-    humanPlayerIds,
-  });
+  /*
+   * Le bandeau d'état du réseau (plan 202, étapes 3 et 6).
+   *
+   * Le chrome n'existe pas encore ici — il naît dans `runBattle` —, donc on passe par une référence
+   * différée plutôt que de réordonner le montage. `seat` devient un numéro de camp par l'invariant
+   * qui court sur trois fichiers : `room.ts` trie par place croissante, le setup mappe l'index sur
+   * `PLAYER_IDS`, le placement préserve l'ordre — la place *n* est le joueur *n*.
+   */
+  let publishNotice: ((notice: ConnectionNotice | null) => void) | null = null;
+  const online = wireOnlineBattle(
+    {
+      localSeat: inputs.setup.localSeat,
+      allPlayerIds,
+      humanPlayerIds,
+      ...(options.resuming === undefined ? {} : { resuming: options.resuming }),
+    },
+    {
+      onNotice: (notice) => publishNotice?.(notice),
+    },
+  );
   const orchestrator = runBattle({
     backend,
     combat,
@@ -1077,12 +1133,65 @@ function runResolvedBattle(options: {
     damagePreview: inputs.setup.damagePreview,
     humanPlayerIds,
     ...(localPlayerIds === undefined ? {} : { localPlayerIds }),
+    /*
+     * Chronomètre de tour (plan 202, décision #946) — gouverné par `localSeat`, PAS par `online`.
+     *
+     * Même piège que `localPlayerIds` juste au-dessus : `online` vaut `null` sur un combat en ligne
+     * REPRIS, dont le salon n'existe pas encore. Le gouverner dessus aurait éteint le chrono
+     * exactement sur le chemin que le Lot B3 ajoute. `localSeat` dit « cette partie est en ligne »
+     * indépendamment de la vie du salon.
+     *
+     * Absent hors ligne, et c'est tout le mécanisme : le solo n'a rien à désactiver.
+     */
+    ...(inputs.setup.localSeat === undefined
+      ? {}
+      : {
+          turnClock: {
+            durationMs: ONLINE_TURN_DURATION_MS,
+            now: () => Date.now(),
+            schedule: (callback: () => void, delayMs: number) => {
+              const handle = setTimeout(callback, delayMs);
+              return () => clearTimeout(handle);
+            },
+          },
+        }),
     ...(online === null
       ? {}
       : {
-          onLocalAction: (action, actionIndex) => online.sendAction(actionIndex, action),
+          onLocalAction: (action, actionIndex, timedOut) => {
+            if (timedOut === true) {
+              // La mesure qui dira si les 60 s du chrono suffisent à un tour tactique — la revue de
+              // design la réclamait sans pouvoir la faire (plan 202).
+              countAction(TelemetryAction.TurnTimedOut);
+            }
+            online.sendAction(actionIndex, action, timedOut);
+          },
           onRemoteActionRejected: (rejection) => online.onRejection(rejection),
+          // Arme et désarme le chien de garde du silence (plan 202, décision #951). L'orchestrateur
+          // signale l'état, le module réseau décide.
+          onWaitingRemote: (playerId) => online.onWaitingRemote(playerId),
+          onResign: () => online.resign(),
         }),
+    /*
+     * Le bandeau d'état du réseau : le module réseau décrit (`ConnectionNotice`), l'écran traduit en
+     * modèle de vue. `seat` devient un numéro de camp par l'invariant qui court sur trois fichiers
+     * (`room.ts` trie par place croissante → le setup mappe l'index sur `PLAYER_IDS` → le placement
+     * préserve l'ordre) : la place *n* est le joueur *n*.
+     */
+    onChromeReady: (chrome) => {
+      publishNotice = (notice) =>
+        chrome.updateConnectionNotice(
+          notice === null
+            ? null
+            : {
+                kind: notice.kind,
+                playerNumber: notice.seat,
+                ...(notice.graceMs === undefined ? {} : { graceMs: notice.graceMs }),
+                ...(notice.missedTurns === undefined ? {} : { missedTurns: notice.missedTurns }),
+                ...(notice.limit === undefined ? {} : { limit: notice.limit }),
+              },
+        );
+    },
     onActionCommitted: persist,
     onBattleClosed: () => {
       store.clear();
@@ -1163,6 +1272,8 @@ function startResumedBattle(
     initialLogEvents: logEvents,
     // Reprise : on repart du temps de jeu déjà accumulé avant le rechargement.
     resumedElapsedMs: save.elapsedMs,
+    // Et, en ligne, on réclame au pair resté ce qui s'est joué pendant l'absence.
+    resuming: true,
   });
 }
 

@@ -525,6 +525,14 @@ export const ACTION_LABELS: Record<string, string> = {
   "room-failed-version_incompatible": "Échec en ligne — versions incompatibles",
   "room-failed-connexion_impossible": "Échec en ligne — connexion impossible",
   "room-failed-delai_depasse": "Échec en ligne — délai dépassé",
+  "turn-timed-out": "Tour parti au dépassement du chrono",
+  "forfeit-absent": "Forfait — connexion perdue",
+  "forfeit-missed-turns": "Forfait — trois tours manqués",
+  "forfeit-diverged": "Forfait — parties divergentes",
+  "forfeit-resigned": "Forfait — abandon volontaire",
+  "reconnect-succeeded": "Reprise en ligne réussie",
+  "reconnect-failed": "Reprise en ligne ÉCHOUÉE",
+  "connection-uncertain": "Connexion dégradée (ICE)",
 };
 export const INPUT_LABELS: Record<string, string> = {
   pointer: "Souris",

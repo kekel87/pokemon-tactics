@@ -19,4 +19,6 @@
 @import "./move-tooltip.css";
 @import "./turn-timeline.css";
 @import "./control-legend.css";
+@import "./connection-notice.css";
+@import "./turn-clock-hud.css";
 @import "./weather-hud.css";

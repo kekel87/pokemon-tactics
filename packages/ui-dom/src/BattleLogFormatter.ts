@@ -9,6 +9,7 @@ import type {
 import {
   AbilityChangeReason,
   BattleEventType,
+  ForfeitReason,
   HitAndRunRetreatFallbackReason,
   MoveFailedReason,
   ProtectionReason,
@@ -91,6 +92,25 @@ export interface BattleLogContext {
   /** Localisateur de l'hôte pour les clés `battleLog.*` (plan 190). */
   readonly translate: Translate;
 }
+
+/**
+ * `player-2` → `2`. La V1 n'a pas de noms de joueur (décision #906), donc le numéro de camp est le
+ * seul identifiant que tout le monde partage — mais l'identifiant BRUT n'a rien à faire à l'écran.
+ */
+function playerNumberOf(playerId: string): string {
+  return /^player-(\d+)$/.exec(playerId)?.[1] ?? playerId;
+}
+
+/**
+ * Une clé PAR raison, en table exhaustive plutôt qu'une clé fabriquée par concaténation (correctif
+ * de revue) : ajouter une valeur à `ForfeitReason` fait alors échouer la compilation ici, au lieu de
+ * produire silencieusement une clé inconnue que `translate` afficherait telle quelle à l'écran.
+ */
+const FORFEIT_REASON_LOG_KEY: Record<ForfeitReason, string> = {
+  [ForfeitReason.Resigned]: "battleLog.playerForfeited.resigned",
+  [ForfeitReason.Disconnected]: "battleLog.playerForfeited.disconnected",
+  [ForfeitReason.Desynced]: "battleLog.playerForfeited.desynced",
+};
 
 export const BattleLogColors = {
   turn: BATTLE_LOG_COLOR_TURN,
@@ -176,8 +196,18 @@ export function formatBattleEvent(
      * `player-2` est déjà le seul identifiant que tout le monde partage.
      */
     case BattleEventType.PlayerForfeited: {
-      const player = /^player-(\d+)$/.exec(event.playerId)?.[1] ?? event.playerId;
-      const message = translate("battleLog.playerForfeited", { player });
+      const player = playerNumberOf(event.playerId);
+      /*
+       * Une phrase PAR RAISON (retour de recette 2026-09-09). La ligne était unique et disait « les
+       * parties ne concordent plus » — donc un joueur qui venait d'appuyer sur « Abandonner » lisait
+       * une accusation de divergence, et un joueur déconnecté aussi. La raison absente retombe sur
+       * une phrase neutre : mieux vaut ne rien expliquer qu'expliquer de travers.
+       */
+      const key =
+        event.reason === undefined
+          ? "battleLog.playerForfeited"
+          : FORFEIT_REASON_LOG_KEY[event.reason];
+      const message = translate(key, { player });
       return { message, color: BattleLogColors.ko, pokemonIds: [] };
     }
 
@@ -353,10 +383,17 @@ export function formatBattleEvent(
     }
 
     case BattleEventType.BattleEnded: {
+      /*
+       * Le NUMÉRO de camp, pas l'identifiant brut : la ligne affichait « player-1 remporte le
+       * combat ! », un identifiant interne lâché à l'écran (repéré en recette 2026-09-09, antérieur
+       * au plan 202). Même traitement que la ligne de forfait juste au-dessus.
+       */
       const message =
         event.winnerId === null
           ? translate("battleLog.battleEnded.draw")
-          : translate("battleLog.battleEnded.winner", { winnerId: event.winnerId });
+          : translate("battleLog.battleEnded.winner", {
+              winnerId: playerNumberOf(event.winnerId),
+            });
       return { message, color: BattleLogColors.battleEnded, pokemonIds: [] };
     }
 

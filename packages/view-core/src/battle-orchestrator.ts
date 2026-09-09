@@ -13,6 +13,7 @@ import {
   enumerateHitAndRunRetreatTiles,
   FieldGlobalKind,
   FieldTerrain,
+  type ForfeitReason,
   isEffectivelyGrounded,
   isUproarLocked,
   isWithinAuraRadius,
@@ -95,9 +96,6 @@ import type {
 } from "@pokemon-tactic/render-ports";
 import { buildOutcomeSummary } from "./battle-outcome-summary.js";
 
-// Ports + chrome/board view-models live in the renderer contract package (plan
-// 125). Re-exported here so existing importers keep resolving while the
-// orchestrator moves to `@pokemon-tactic/view-core` in a later phase.
 export type {
   ActionMenuView,
   AttackPreviewKind,
@@ -115,6 +113,7 @@ export type {
   BoardFieldTerrain,
   BoardHighlight,
   BoardView,
+  ConnectionNoticeView,
   DirectionPickerCallbacks,
   DirectionPickerHandle,
   RemoteActionEnvelope,
@@ -122,9 +121,15 @@ export type {
   RemoteActionRejectionCause,
   SelectedMoveView,
   SemiInvulnerableDisplay,
+  TurnClockDeps,
+  TurnClockView,
   TurnInfoView,
   TurnOwner,
 } from "@pokemon-tactic/render-ports";
+// Ports + chrome/board view-models live in the renderer contract package (plan
+// 125). Re-exported here so existing importers keep resolving while the
+// orchestrator moves to `@pokemon-tactic/view-core` in a later phase.
+export { ConnectionNoticeKind } from "@pokemon-tactic/render-ports";
 
 /** Pacing between board-affecting events in the minimal loop (not a tween — a beat to follow the action). */
 const BATTLE_STEP_DELAY_MS = 180;
@@ -155,6 +160,14 @@ const FIELD_GLOBAL_COLOR: Record<FieldGlobalKind, number> = {
 
 /** Predicted slots shown in the Charge-Time timeline (deep enough to see a mon's repeated turns). */
 const CT_TIMELINE_SLOTS = 48;
+
+/**
+ * Battement du chronomètre de tour (plan 202). Court, parce qu'il porte **deux** rôles : rafraîchir
+ * l'affichage assez souvent pour que le décompte soit fluide, et comparer l'échéance à l'horloge
+ * murale (décision #947) — un battement ralenti par l'arrière-plan constate le dépassement au
+ * réveil au lieu de le laisser filer.
+ */
+const TURN_CLOCK_TICK_MS = 250;
 
 type InputState =
   | { phase: "action_menu" }
@@ -298,6 +311,23 @@ export class BattleOrchestrator {
   private readonly pendingRemoteActions: RemoteActionEnvelope[] = [];
   private disposed = false;
 
+  /**
+   * État du chronomètre de tour (plan 202, Lot B3). Tout est `null` hors ligne : `config.turnClock`
+   * absent, rien ne s'arme jamais.
+   *
+   * `actionCounter` est l'ancre qui définit « un tour », et le choix compte : `refreshUI()` est
+   * rappelé **plusieurs fois par tour** (après chaque déplacement ou attaque acceptés), et
+   * `enterActionMenu()` l'est en plus à chaque annulation. S'accrocher à l'un ou l'autre ferait
+   * redémarrer la fenêtre en cours de tour — donc permettrait de geler la partie pour toujours en
+   * annulant en boucle (décision #946). `state.actionCounter`, lui, est incrémenté exactement une
+   * fois par tour d'acteur, par la boucle Charge Time (`beginActorTurn`).
+   */
+  private turnClockDeadlineAt: number | null = null;
+  private turnClockCancel: (() => void) | null = null;
+  private turnClockActionCounter: number | null = null;
+  /** Depuis quand l'animation en cours suspend le compte à rebours (`null` = pas suspendu). */
+  private turnClockSuspendedAt: number | null = null;
+
   constructor(
     private readonly engine: BattleEngine,
     private readonly state: BattleState,
@@ -321,6 +351,7 @@ export class BattleOrchestrator {
 
   dispose(): void {
     this.disposed = true;
+    this.stopTurnClock();
     this.picker?.dispose();
     this.picker = null;
     this.board.setActive(null);
@@ -477,7 +508,8 @@ export class BattleOrchestrator {
    * a phase transition that forgot to notify would leave the arrows driving the wrong consumer.
    */
   private setInputState(next: InputState): void {
-    const previousContext = INPUT_CONTEXT_BY_PHASE[this.inputState.phase];
+    const previousPhase = this.inputState.phase;
+    const previousContext = INPUT_CONTEXT_BY_PHASE[previousPhase];
     this.inputState = next;
     // Une action se résout : la case survolée devient une information PÉRIMÉE (le plateau change
     // sous elle). On la DÉSÉLECTIONNE, on ne se contente pas de cacher le curseur — sinon le
@@ -485,6 +517,23 @@ export class BattleOrchestrator {
     // (retour humain 2026-08-21).
     if (next.phase === "animating") {
       this.hoveredTile = null;
+    }
+    // Le chrono ne court pas pendant qu'une action se résout (plan 202) : l'animation de l'action
+    // précédente n'a pas à manger le temps de réflexion du joueur.
+    this.setTurnClockSuspended(next.phase === "animating");
+    /*
+     * Entrée et sortie de l'attente d'un tour distant (plan 202, décision #951).
+     *
+     * Signalé ICI et pas au site d'entrée : `setInputState` est le seul entonnoir, donc aucune sortie
+     * de la phase ne peut être oubliée — et il y en a plusieurs (action reçue, forfait, fin de
+     * partie). Un chien de garde qu'on oublie d'éteindre est pire que pas de chien de garde.
+     */
+    const waitedBefore = previousPhase === "waiting_remote";
+    const waitsNow = next.phase === "waiting_remote";
+    if (waitsNow && !waitedBefore) {
+      this.config.onWaitingRemote?.(next.playerId);
+    } else if (waitedBefore && !waitsNow) {
+      this.config.onWaitingRemote?.(null);
     }
     const nextContext = INPUT_CONTEXT_BY_PHASE[next.phase];
     if (nextContext !== previousContext) {
@@ -783,6 +832,158 @@ export class BattleOrchestrator {
     );
   }
 
+  // --- Chronomètre de tour (plan 202, Lot B3) --------------------------------------------------
+
+  /**
+   * Ouvre une fenêtre de chrono si — et seulement si — le tour vient de changer.
+   *
+   * Appelé depuis `refreshUI()`, qui tourne plusieurs fois par tour : c'est la comparaison de
+   * `actionCounter` qui fait le tri, pas l'endroit de l'appel.
+   */
+  private syncTurnClock(): void {
+    const clock = this.config.turnClock;
+    if (clock === undefined) {
+      return;
+    }
+    const counter = this.state.actionCounter ?? 0;
+    if (this.turnClockActionCounter === counter) {
+      // Même tour : la fenêtre court déjà, on n'y touche pas. C'est toute la décision #946.
+      return;
+    }
+    this.turnClockActionCounter = counter;
+    this.turnClockSuspendedAt = null;
+    this.turnClockDeadlineAt = clock.now() + clock.durationMs;
+    this.armTurnClockTick();
+    this.publishTurnClock();
+  }
+
+  private armTurnClockTick(): void {
+    const clock = this.config.turnClock;
+    if (clock === undefined) {
+      return;
+    }
+    this.turnClockCancel?.();
+    this.turnClockCancel = clock.schedule(() => this.onTurnClockTick(), TURN_CLOCK_TICK_MS);
+  }
+
+  private onTurnClockTick(): void {
+    this.turnClockCancel = null;
+    const clock = this.config.turnClock;
+    if (this.disposed || clock === undefined || this.turnClockDeadlineAt === null) {
+      return;
+    }
+    if (this.inputState.phase === "battle_over") {
+      this.stopTurnClock();
+      return;
+    }
+    // Suspendu pendant qu'une action se résout : l'animation de l'action précédente n'a pas à manger
+    // le temps de réflexion. On continue de battre pour savoir quand elle finit, sans rien décider.
+    if (this.turnClockSuspendedAt !== null) {
+      this.publishTurnClock();
+      this.armTurnClockTick();
+      return;
+    }
+    if (clock.now() < this.turnClockDeadlineAt) {
+      this.publishTurnClock();
+      this.armTurnClockTick();
+      return;
+    }
+    this.expireTurnClock();
+  }
+
+  /**
+   * L'échéance est passée.
+   *
+   * 🔴 **On ne soumet que pour une place locale.** Le chrono d'un tour distant n'est ici que pour
+   * s'afficher : c'est au client de l'intéressé de soumettre son propre dépassement, et c'est toute
+   * l'idée du chrono auto-déclarant (#864). Soumettre à sa place ferait exactement l'arbitrage
+   * d'horloge que ce modèle existe pour éviter.
+   */
+  private expireTurnClock(): void {
+    const active = this.activePokemon();
+    const locals = this.config.localPlayerIds ?? this.config.humanPlayerIds ?? [];
+    if (!active || (locals.length > 0 && !locals.includes(active.playerId))) {
+      this.turnClockDeadlineAt = null;
+      this.publishTurnClock();
+      return;
+    }
+    if (this.inputState.phase !== "action_menu" && this.inputState.phase !== "select_direction") {
+      // Une visée ou une confirmation est ouverte : on laisse le battement suivant réessayer plutôt
+      // que de soumettre par-dessus un état d'entrée à demi construit.
+      this.armTurnClockTick();
+      return;
+    }
+    this.turnClockDeadlineAt = null;
+    this.publishTurnClock();
+    /*
+     * 🔴 `EndTurn`, et surtout PAS l'action « Attendre » (`CT_WAIT`).
+     *
+     * « Attendre » n'est légale que si le Pokemon n'a NI bougé NI agi. Un dépassement survenant
+     * après un déplacement déjà validé se ferait donc refuser par le moteur — c'est le bug que
+     * `game-designer` a trouvé dans la première rédaction du plan 202 (décision #948). `EndTurn`
+     * avec l'orientation courante est toujours légale, ne décide rien à la place du joueur, et
+     * traverse le replay sans cas particulier.
+     */
+    this.executeAction(
+      {
+        kind: ActionKind.EndTurn,
+        pokemonId: active.id,
+        direction: active.orientation,
+      },
+      true,
+    );
+  }
+
+  private publishTurnClock(): void {
+    const clock = this.config.turnClock;
+    if (clock === undefined) {
+      return;
+    }
+    const active = this.activePokemon();
+    if (this.turnClockDeadlineAt === null || !active) {
+      this.chrome.updateTurnClock(null);
+      return;
+    }
+    const reference = this.turnClockSuspendedAt ?? clock.now();
+    this.chrome.updateTurnClock({
+      remainingMs: Math.max(0, this.turnClockDeadlineAt - reference),
+      durationMs: clock.durationMs,
+      owner: this.turnOwner(active.playerId),
+    });
+  }
+
+  private stopTurnClock(): void {
+    this.turnClockCancel?.();
+    this.turnClockCancel = null;
+    this.turnClockDeadlineAt = null;
+    this.turnClockSuspendedAt = null;
+    if (this.config.turnClock !== undefined) {
+      this.chrome.updateTurnClock(null);
+    }
+  }
+
+  /**
+   * Gèle ou dégèle le compte à rebours sur l'entrée et la sortie d'`animating`.
+   *
+   * Le dégel **décale l'échéance** de la durée gelée, il ne la recalcule pas : la fenêtre garde le
+   * temps qu'il lui restait avant l'animation.
+   */
+  private setTurnClockSuspended(suspended: boolean): void {
+    const clock = this.config.turnClock;
+    if (clock === undefined || this.turnClockDeadlineAt === null) {
+      return;
+    }
+    if (suspended) {
+      this.turnClockSuspendedAt ??= clock.now();
+      return;
+    }
+    if (this.turnClockSuspendedAt === null) {
+      return;
+    }
+    this.turnClockDeadlineAt += clock.now() - this.turnClockSuspendedAt;
+    this.turnClockSuspendedAt = null;
+  }
+
   private refreshUI(): void {
     if (this.disposed || this.inputState.phase === "battle_over") {
       return;
@@ -797,6 +998,9 @@ export class BattleOrchestrator {
       playerId: active.playerId,
       owner: this.turnOwner(active.playerId),
     });
+    // Avant le reste : la fenêtre du tour doit s'ouvrir même si un rafraîchissement plus loin
+    // échoue. Sans effet quand le tour n'a pas changé (voir `syncTurnClock`).
+    this.syncTurnClock();
     this.syncBoard();
     this.refreshInfoPanel();
     this.refreshTileInfo();
@@ -1540,6 +1744,48 @@ export class BattleOrchestrator {
   }
 
   /**
+   * Le combat est-il terminé ? (plan 202, retour de recette 2026-09-09.)
+   *
+   * Le module réseau en a besoin pour se taire : un abandon fait partir le pair, donc son canal se
+   * referme, donc un délai de grâce s'ouvre — et le bandeau « en attente de reconnexion » s'affichait
+   * **par-dessus l'écran de victoire**, à attendre quelqu'un dont la partie était déjà finie.
+   */
+  isBattleOver(): boolean {
+    return this.inputState.phase === "battle_over";
+  }
+
+  /**
+   * Les actions enregistrées **à partir** de cet index (plan 202, étape 5).
+   *
+   * Membre mince et volontairement mince : le rattrapage a besoin de la queue du journal, et la vue
+   * n'expose pas son moteur pour autant. C'est le pendant en lecture de `submitRemoteAction`.
+   */
+  actionsSince(index: number): readonly Action[] {
+    return this.engine.exportReplay().actions.slice(index);
+  }
+
+  /**
+   * Combien d'actions ce moteur a déjà appliquées (plan 202, étape 5).
+   *
+   * C'est l'index qu'un revenant annonce en réclamant la suite. Un accesseur plutôt que
+   * `actionsSince(0).length`, qui recopierait tout le journal pour le compter.
+   */
+  get appliedActionCount(): number {
+    return this.engine.actionLogLength;
+  }
+
+  /**
+   * Le camp dont c'est le tour, ou `null` si le combat est fini (plan 202, étape 5).
+   *
+   * Le rattrapage en a besoin parce que les actions rattrapées voyagent **nues** : c'est notre
+   * propre moteur qui dit à qui appartient chaque index. Rendu en `playerId` et non en place — la
+   * vue ne connaît pas les places, c'est l'appelant qui traduit.
+   */
+  currentActorPlayerId(): string | null {
+    return this.activePokemon()?.playerId ?? null;
+  }
+
+  /**
    * Un camp quitte la partie — abandon, ou parties qui ne concordent plus (plan 201).
    *
    * 🔴 **Seul point d'entrée du forfait dans la vue, et il doit l'être.** `engine.forfeit()` rend ses
@@ -1555,11 +1801,11 @@ export class BattleOrchestrator {
    * verrouille l'entrée, joue les événements — et le `BattleEnded` qu'ils portent déclenche
    * `enterBattleOver`, donc l'écran de victoire et la fermeture du salon.
    */
-  applyForfeit(playerId: string): boolean {
+  applyForfeit(playerId: string, reason?: ForfeitReason): boolean {
     if (this.disposed || this.inputState.phase === "battle_over") {
       return false;
     }
-    const result = this.engine.forfeit(playerId);
+    const result = this.engine.forfeit(playerId, reason);
     if (!result.success) {
       return false;
     }
@@ -1584,7 +1830,12 @@ export class BattleOrchestrator {
    * qui diffuse : l'IA tourne des deux côtés (décision #901), donc diffuser la sienne la ferait
    * jouer deux fois, et une action distante est déjà connue de tout le monde.
    */
-  private executeAction(action: Action): void {
+  /**
+   * `timedOut` marque une action née de l'expiration du chronomètre et non d'un choix (plan 202,
+   * décision #952). Elle voyage avec elle, parce qu'à la réception un `end_turn` volontaire et un
+   * `end_turn` subi sont **le même message** — et n'appellent pas la même conclusion.
+   */
+  private executeAction(action: Action, timedOut?: true): void {
     const active = this.activePokemon();
     if (!active) {
       return;
@@ -1598,7 +1849,7 @@ export class BattleOrchestrator {
       this.enterActionMenu();
       return;
     }
-    this.config.onLocalAction?.(action, actionIndex);
+    this.config.onLocalAction?.(action, actionIndex, timedOut);
     this.afterActionAccepted(result.events);
   }
 
@@ -2120,6 +2371,18 @@ export class BattleOrchestrator {
 
   private enterBattleOver(winnerId: string | null): void {
     this.setInputState({ phase: "battle_over", winnerId });
+    // Plus personne n'a de tour à jouer : le compteur doit disparaître, pas se figer sur un reste.
+    this.stopTurnClock();
+    /*
+     * Et le bandeau réseau avec lui (correctif de revue).
+     *
+     * Le garde `isBattleOver` de `online-battle.ts` ne ferme que la moitié du trou : il fait taire
+     * une publication qui SURVIENT après la fin, mais rien ne rappelait le bandeau déjà affiché. Un
+     * adversaire qui perd sa connexion pendant MON tour publie « en attente de reconnexion » avec
+     * son décompte ; si je gagne pendant ce temps, aucun événement réseau ne suit et le bandeau
+     * restait posé sur l'écran de victoire.
+     */
+    this.chrome.updateConnectionNotice(null);
     this.board.clearHighlights();
     this.board.setActive(null);
     this.chrome.showVictory(

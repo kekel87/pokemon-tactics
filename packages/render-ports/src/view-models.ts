@@ -16,6 +16,38 @@ export interface WeatherView {
   readonly turnsRemaining: number;
 }
 
+/**
+ * Ce que le joueur doit savoir de l'état du réseau (plan 202, Lot B3).
+ *
+ * Trois états, par gravité croissante, qui est aussi l'ordre de priorité d'affichage. Le module
+ * réseau les compose ; ce modèle ne parle ni de places ni de canaux, seulement de ce qui se lit.
+ */
+export const ConnectionNoticeKind = {
+  /** Le pair répond, mais il laisse expirer ses tours. */
+  MissedTurns: "missed-turns",
+  /** ICE ne reçoit plus de réponse, souvent passager (~5 s). */
+  ConnectionUncertain: "connection-uncertain",
+  /** Le canal est tombé, le délai de grâce court. Le seul état qui porte un décompte. */
+  AwaitingReconnect: "awaiting-reconnect",
+} as const;
+
+export type ConnectionNoticeKind = (typeof ConnectionNoticeKind)[keyof typeof ConnectionNoticeKind];
+
+export interface ConnectionNoticeView {
+  readonly kind: ConnectionNoticeKind;
+  /** Le camp concerné, tel qu'on le nomme à l'écran (« Joueur 2 »). */
+  readonly playerNumber: number;
+  /**
+   * Budget de grâce accordé, en ms. Le rendu en fait un décompte, qui repart de cette valeur à
+   * chaque publication — d'où l'importance de ne pas republier un bandeau inchangé.
+   * `awaiting-reconnect` seulement.
+   */
+  readonly graceMs?: number;
+  /** Tours manqués d'affilée, et le total du barème. `missed-turns` seulement. */
+  readonly missedTurns?: number;
+  readonly limit?: number;
+}
+
 /** Active Vent Arrière (tailwind) readout: the direction the wind blows toward + turns left. */
 export interface TailwindView {
   readonly direction: "north" | "south" | "east" | "west";

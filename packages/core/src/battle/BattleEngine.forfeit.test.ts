@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { ActionKind } from "../enums/action-kind";
 import { BattleEventType } from "../enums/battle-event-type";
+import { DefensiveKind } from "../enums/defensive-kind";
 import { Direction } from "../enums/direction";
+import { ForfeitReason } from "../enums/forfeit-reason";
+import { HeldItemId } from "../enums/held-item-id";
 import { PlayerId } from "../enums/player-id";
 import { StatusType } from "../enums/status-type";
 import { MockBattle, MockPokemon } from "../testing";
@@ -175,5 +178,74 @@ describe("BattleEngine.forfeit", () => {
     expect(koIds(result.events)).toEqual(expect.arrayContaining(["fast", "slow"]));
     expect(state.pokemon.get("slow")?.currentHp).toBe(0);
     expect(endedWinners(result.events)).toEqual([PlayerId.Player3]);
+  });
+
+  it("transporte la raison de l'abandon dans son événement", () => {
+    const state = MockBattle.stateFrom([fresh(P1), fresh(P2)]);
+    const engine = new BattleEngine(state, new Map());
+
+    const result = engine.forfeit(PlayerId.Player1, ForfeitReason.Resigned);
+
+    const forfeited = result.events.filter(
+      (event) => event.type === BattleEventType.PlayerForfeited,
+    );
+    expect(forfeited).toEqual([
+      {
+        type: BattleEventType.PlayerForfeited,
+        playerId: PlayerId.Player1,
+        reason: ForfeitReason.Resigned,
+      },
+    ]);
+  });
+
+  it("n'invente pas de raison quand personne ne l'a dite", () => {
+    const state = MockBattle.stateFrom([fresh(P1), fresh(P2)]);
+    const engine = new BattleEngine(state, new Map());
+
+    const result = engine.forfeit(PlayerId.Player1);
+
+    const forfeited = result.events.find((event) => event.type === BattleEventType.PlayerForfeited);
+    expect(forfeited).toEqual({
+      type: BattleEventType.PlayerForfeited,
+      playerId: PlayerId.Player1,
+    });
+  });
+
+  it("déclenche Rancune comme n'importe quel K.O.", () => {
+    const state = MockBattle.stateFrom([
+      fresh(P1),
+      fresh(P2),
+      fresh(P2, { id: "third", playerId: PlayerId.Player3, position: { x: 2, y: 2 } }),
+    ]);
+    const engine = new BattleEngine(state, new Map());
+    const grudging = state.pokemon.get("fast");
+    if (grudging) {
+      grudging.volatileStatuses.push({ type: StatusType.Grudge, remainingTurns: 3 });
+      grudging.lastHitBy = { attackerId: "slow", moveId: "tackle" };
+    }
+
+    const result = engine.forfeit(PlayerId.Player1);
+
+    expect(
+      result.events.filter((event) => event.type === BattleEventType.GrudgeTriggered),
+    ).toHaveLength(1);
+    expect(state.pokemon.get("slow")?.grudgeLockedMoveIds).toEqual(["tackle"]);
+    expect(state.pokemon.get("slow")?.currentHp).toBeGreaterThan(0);
+  });
+
+  it("ignore les clauses de survie — un abandon n'est pas un dégât", () => {
+    const state = MockBattle.stateFrom([fresh(P1), fresh(P2)]);
+    const engine = new BattleEngine(state, new Map());
+    const enduring = state.pokemon.get("fast");
+    if (enduring) {
+      enduring.activeDefense = { kind: DefensiveKind.Endure, appliedAtAction: 0 };
+      enduring.abilityId = "sturdy";
+      enduring.heldItemId = HeldItemId.FocusSash;
+    }
+
+    const result = engine.forfeit(PlayerId.Player1);
+
+    expect(state.pokemon.get("fast")?.currentHp).toBe(0);
+    expect(endedWinners(result.events)).toEqual([PlayerId.Player2]);
   });
 });

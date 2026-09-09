@@ -4,6 +4,8 @@ import { FakeNetworkDirectory } from "./testing/fake-transport.js";
 import {
   CLAIM_RETRY_DELAYS_MS,
   claimOwnIdentity,
+  type NetworkTransport,
+  NetworkTransportError,
   networkErrorCodeFromPeerError,
 } from "./transport.js";
 
@@ -213,5 +215,64 @@ describe("FakeNetworkDirectory", () => {
     await Promise.resolve();
 
     expect(received).toEqual(["bye"]);
+  });
+});
+
+describe("claimOwnIdentity — patience de la reconnexion (plan 202)", () => {
+  const patientSleep = async (): Promise<void> => {
+    /* aucune attente réelle en test */
+  };
+
+  function transportFailing(codes: readonly NetworkErrorCode[]): {
+    transport: NetworkTransport;
+    attempts: () => number;
+  } {
+    let attempt = 0;
+    return {
+      transport: {
+        claim: async () => {
+          const code = codes[attempt];
+          attempt += 1;
+          if (code !== undefined) {
+            throw new NetworkTransportError(code, "refus simulé");
+          }
+        },
+        connect: () => Promise.reject(new Error("non utilisé")),
+        onIncoming: () => () => undefined,
+        destroy: () => undefined,
+      },
+      attempts: () => attempt,
+    };
+  }
+
+  it("réessaie un refus transitoire sur le barème patient", async () => {
+    const failing = transportFailing([
+      NetworkErrorCode.ConnexionImpossible,
+      NetworkErrorCode.DelaiDepasse,
+    ]);
+
+    await claimOwnIdentity(failing.transport, "pkmntac-A7K2M-1", patientSleep, [1, 1, 1], true);
+
+    expect(failing.attempts()).toBe(3);
+  });
+
+  it("abandonne un refus transitoire sur le barème de la création", async () => {
+    const failing = transportFailing([NetworkErrorCode.ConnexionImpossible]);
+
+    await expect(
+      claimOwnIdentity(failing.transport, "pkmntac-A7K2M-1", patientSleep),
+    ).rejects.toMatchObject({ code: NetworkErrorCode.ConnexionImpossible });
+    expect(failing.attempts()).toBe(1);
+  });
+
+  it("réessaie une place occupée dans les deux cas", async () => {
+    const patient = transportFailing([NetworkErrorCode.SalonPlein]);
+    const pressed = transportFailing([NetworkErrorCode.SalonPlein]);
+
+    await claimOwnIdentity(patient.transport, "pkmntac-A7K2M-1", patientSleep, [1], true);
+    await claimOwnIdentity(pressed.transport, "pkmntac-A7K2M-1", patientSleep);
+
+    expect(patient.attempts()).toBe(2);
+    expect(pressed.attempts()).toBe(2);
   });
 });

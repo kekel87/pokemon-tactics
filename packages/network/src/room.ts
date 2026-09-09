@@ -12,6 +12,9 @@ import {
   type NetworkSeatState,
   type NetworkSeeds,
   type NetworkTeamSelection,
+  ONLINE_TURN_DURATION_MS,
+  type ResyncMessage,
+  type ResyncRequestMessage,
   type StartMessage,
   type StartSeat,
 } from "./protocol.js";
@@ -23,10 +26,12 @@ import {
   seatFromPeerId,
 } from "./room-code.js";
 import {
+  type ChannelHealth,
   claimOwnIdentity,
   type NetworkChannel,
   type NetworkTransport,
   NetworkTransportError,
+  REJOIN_RETRY_DELAYS_MS,
 } from "./transport.js";
 
 /**
@@ -48,6 +53,54 @@ export const GRACE_AFTER_CLEAN_CLOSE_MS = 10_000;
 
 /** Après un silence. Long : c'est le téléphone en arrière-plan, et il revient. */
 export const GRACE_AFTER_SILENCE_MS = 45_000;
+
+/**
+ * Après un silence, **une fois la partie lancée** (plan 202, Lot B3, décision #950).
+ *
+ * 🔴 **Pas `GRACE_AFTER_SILENCE_MS`, et la ressemblance des valeurs est un piège.** 45 s de silence
+ * en combat tomberait pile quand un chronomètre de tour honnête expire, donc faux positif sur chaque
+ * tour joué à la dernière seconde — exactement ce contre quoi #865 met en garde. Cette valeur vaut
+ * `ONLINE_TURN_DURATION_MS` **plus une marge de 15 s**, qui couvre l'animation d'une attaque de zone
+ * à plusieurs cibles plus une latence honnête. Ancrage externe : le délai de reconnexion de Pokémon
+ * Showdown est aussi de 60 s, et il a un serveur pour trancher.
+ */
+export const BATTLE_GRACE_AFTER_SILENCE_MS = ONLINE_TURN_DURATION_MS + 15_000;
+
+/**
+ * Le délai COURT du combat (plan 202, décision #950, révisée en recette le 2026-09-09).
+ *
+ * Il sert deux situations, et c'est délibérément **un seul chiffre** — l'humain a demandé à ne pas
+ * en retenir deux :
+ *
+ * 1. **Une fermeture d'onglet** (`bye` reçu). Il valait 10 s, hérités du salon sans être réexaminés,
+ *    et la recette a montré l'absurdité : fermer sa fenêtre poliment donnait **moins** de temps
+ *    qu'arracher son câble réseau (10 s contre 75 s). Le motif de #905 — « l'intention est connue »
+ *    — vaut dans une salle d'attente, où partir ne coûte rien ; en combat l'intention se déclare par
+ *    le menu (« Abandonner », « Quitter »), jamais par la croix de la fenêtre. La croix, c'est
+ *    l'accident, celui que la reprise existe pour absorber.
+ * 2. **La deuxième chute de la même place.** Un pair déjà tombé une fois, revenu, puis retombé n'a
+ *    plus droit à la présomption de lenteur : sans ce palier, une connexion qui clignote ferait
+ *    attendre l'adversaire par tranches de 75 s indéfiniment.
+ *
+ * 30 s et non 75 : celui qui reste ne doit pas attendre une minute et quart pour gagner contre
+ * quelqu'un qui est vraiment parti — et il peut toujours abandonner lui-même s'il ne veut pas
+ * attendre.
+ */
+export const BATTLE_GRACE_SHORT_MS = 30_000;
+
+/**
+ * Entre deux tentatives de rappel de l'hôte, pendant son délai de grâce (plan 202, étape 5).
+ *
+ * 🔴 **Pourquoi ce rappel existe.** Qui appelle qui est asymétrique : l'invité compose l'adresse de
+ * l'hôte, jamais l'inverse. Quand c'est **l'hôte** qui recharge, il reprend bien son adresse — le
+ * code EST son adresse (#904) — et se met à écouter, mais **personne ne le rappelle** : l'invité
+ * attendrait son délai en entier devant un hôte joignable, puis prononcerait un forfait. Le trou ne
+ * se voit pas en testant la reconnexion de l'invité, qui, elle, compose.
+ *
+ * 2 s : assez lâche pour ne pas marteler l'annuaire, assez serré pour que le retour soit ressenti
+ * comme immédiat dans une fenêtre de 75 s.
+ */
+export const HOST_REDIAL_INTERVAL_MS = 2_000;
 
 /** Au-delà, un accusé de lancement manquant fait annuler le lancement. */
 export const LAUNCH_ACK_TIMEOUT_MS = 15_000;
@@ -136,6 +189,45 @@ export class Room {
    */
   private readonly bufferedActions: ActionMessage[] = [];
   private readonly forfeitListeners = new Set<(forfeit: ForfeitMessage) => void>();
+  /**
+   * Places dont le silence est devenu un fait, **une fois la partie lancée** (plan 202, Lot B3).
+   *
+   * 🔴 Le salon SIGNALE, il ne décide pas (décision #951) : il ne connaît ni les joueurs ni le
+   * moteur, donc il ne peut pas prononcer un forfait. C'est `online-battle.ts`, qui tient à la fois
+   * le salon et l'orchestrateur, qui traduit la place en joueur et applique.
+   */
+  private readonly peerAbsentListeners = new Set<(seat: number) => void>();
+  /**
+   * Santé du chemin ICE de chaque pair (plan 202, décision #956). Purement informatif : aucun
+   * forfait n'en découle, il ne sert qu'à dire au joueur ce qui se passe cinq secondes après une
+   * coupure au lieu de soixante-quinze.
+   */
+  private readonly peerHealthListeners = new Set<(seat: number, health: ChannelHealth) => void>();
+  /**
+   * On commence à attendre le retour d'une place, partie lancée (plan 202). Porte le **budget
+   * exact** que le salon vient de choisir — court après un `bye`, long après un silence, raccourci à
+   * la deuxième chute — pour que l'interface puisse afficher un décompte qui ne mente pas.
+   */
+  private readonly peerAwaitedListeners = new Set<(seat: number, graceMs: number) => void>();
+  /** Une place attendue vient de se rebrancher avant l'échéance (plan 202). */
+  private readonly peerReturnedListeners = new Set<(seat: number) => void>();
+  private readonly resyncRequestListeners = new Set<(message: ResyncRequestMessage) => void>();
+  private readonly resyncListeners = new Set<(message: ResyncMessage) => void>();
+  /**
+   * Les rattrapages arrivés avant que le combat n'écoute, comme `bufferedActions` (plan 202).
+   *
+   * Même piège, même parade : le revenant demande la suite depuis `attach`, mais la réponse peut
+   * revenir pendant que son écran de combat finit de se monter. Sans ce tampon, la queue du journal
+   * serait perdue et il resterait bloqué un tour derrière pour toujours.
+   */
+  private readonly bufferedResyncs: ResyncMessage[] = [];
+  /**
+   * Places dont la connexion est déjà tombée une fois pendant cette partie. Leur deuxième chute ne
+   * vaut plus le délai long (décision #950) : on ne redonne pas le bénéfice du doute à qui l'a déjà
+   * consommé. Marqué à la fermeture du canal, pas à l'expiration du délai — sinon, en 1v1, le
+   * premier déclenchement prononçant déjà le forfait, il n'y aurait jamais de « fois suivante ».
+   */
+  private readonly seatsAbsentOnce = new Set<number>();
 
   private roomOptions: NetworkRoomOptions;
   private locked = false;
@@ -155,6 +247,9 @@ export class Room {
         settle: (acked: boolean) => void;
       }
     | undefined;
+
+  /** Le rappel de l'hôte en cours, s'il y en a un. Voir `scheduleHostRedial`. */
+  private hostRedialTimer: unknown;
 
   private readonly timers: RoomTimers;
   private readonly sleep: (delayMs: number) => Promise<void>;
@@ -204,6 +299,108 @@ export class Room {
     const claimedSeat = await claimFirstFreeSeat(deps, code);
     const room = new Room(deps, code, RoomRole.Guest, claimedSeat, placeholderOptions());
     room.listenIncoming();
+
+    try {
+      await room.handshakeWithHost();
+    } catch (error) {
+      room.leave();
+      throw error;
+    }
+    return room;
+  }
+
+  /**
+   * Un pair revient à la place qu'il occupait, en pleine partie (plan 202, étape 5).
+   *
+   * 🔴 **Ni `create` ni `join`, et les trois diffèrent vraiment.** `join` *balaie* les places libres
+   * et prendrait donc une autre place que la sienne, ce qui rendrait le journal sauvegardé
+   * inapplicable — il décrit la partie vue depuis un camp précis. Ici la place est **connue**, elle
+   * vient de la sauvegarde, et on la réclame nommément par les réessais de `claimOwnIdentity` :
+   * l'annuaire retient l'ancienne adresse quelques secondes après une coupure, donc revenir trop
+   * vite se verrait refuser sa propre place sans eux.
+   *
+   * L'hôte revient par ce même chemin : le code **est** son adresse (#904), donc il reprend la
+   * place 1 et redevient joignable. La seule différence est qu'il n'a personne à qui se présenter —
+   * ce sont les autres qui se rebrancheront sur lui.
+   *
+   * Le `welcome` obtenu prouve seulement que l'hôte est là et compatible ; ce qui ramène la partie
+   * est le rattrapage, que l'appelant demande ensuite (`sendResyncRequest`).
+   */
+  static async rejoin(
+    deps: RoomDeps,
+    code: string,
+    seat: number,
+    /**
+     * Les places qui ont le droit de nous rappeler — celles que la partie comptait, sauf la nôtre et
+     * sauf les places tenues par l'IA, qui ne se connectent jamais.
+     *
+     * 🔴 **Sans elles, un hôte qui revient refuse son propre invité** (recette 2026-09-09) : son
+     * salon est NEUF, donc sans aucun délai de grâce en cours, alors qu'`attachIncoming` n'admet sur
+     * un salon verrouillé que les places dont une grâce court. Il refermait le canal à chaque
+     * tentative de rappel, l'invité rappelait en boucle, et la partie mourait au bout du délai. Un
+     * salon revenu n'a aucune mémoire : c'est l'appelant qui la lui rend, depuis la sauvegarde.
+     */
+    awaitedSeats: readonly number[] = [],
+  ): Promise<Room> {
+    await claimOwnIdentity(
+      deps.transport,
+      peerIdForSeat(code, seat),
+      deps.sleep ?? defaultSleep,
+      // Bien plus patient qu'à la création : sur une reconnexion, « occupé » ne peut être que notre
+      // propre fantôme, et l'annuaire met plusieurs secondes à le constater (voir la constante).
+      REJOIN_RETRY_DELAYS_MS,
+      // Et on encaisse aussi les hoquets du service, pas seulement le fantôme de notre adresse.
+      true,
+    );
+    const role = seat === HOST_SEAT ? RoomRole.Host : RoomRole.Guest;
+    const room = new Room(deps, code, role, seat, placeholderOptions());
+    // Verrouillé d'emblée : la partie est en cours, et un salon qui se croirait ouvert accepterait
+    // des arrivants et remettrait des places en `Waiting` au milieu d'un combat.
+    room.locked = true;
+
+    /*
+     * 🔴 **Les places, AVANT d'écouter.** Un salon revenu n'a pas d'état de places : seul `create`
+     * appelle `initializeHostSeats`. Or `handleHello` refuse toute place absente de `this.seats` —
+     * donc un hôte revenu acceptait le canal de son invité (sa grâce courait) puis le **refermait
+     * aussitôt** à la présentation. L'invité se rebranchait, se faisait éjecter, rappelait : le
+     * bandeau d'attente clignotait chez lui et la partie mourait au délai (recette 2026-09-09).
+     *
+     * On ne reconstruit que ce qui compte : notre place, et celles qui ont le droit de nous rappeler.
+     * Prêtes d'office — une partie lancée n'attend plus aucune confirmation d'équipe.
+     */
+    room.seats.set(seat, {
+      seat,
+      occupancy: NetworkSeatOccupancy.Human,
+      ready: true,
+    });
+    for (const awaited of awaitedSeats) {
+      if (awaited !== seat) {
+        room.seats.set(awaited, {
+          seat: awaited,
+          occupancy: NetworkSeatOccupancy.Remote,
+          ready: true,
+        });
+      }
+    }
+
+    room.listenIncoming();
+
+    /*
+     * La fenêtre d'accueil, et elle est BORNÉE dans le temps comme n'importe quelle grâce : sans
+     * échéance, un pair revenu attendrait pour toujours quelqu'un qui a fermé son onglet pour de
+     * bon. Passer par `graceTimers` plutôt que par un ensemble à part n'est pas un raccourci — c'est
+     * exactement le même état que « cette place peut revenir », donc `attachIncoming` et
+     * `resolveDeparture` marchent sans un cas particulier de plus.
+     */
+    for (const awaited of awaitedSeats) {
+      if (awaited !== seat) {
+        room.openReconnectWindow(awaited);
+      }
+    }
+
+    if (role === RoomRole.Host) {
+      return room;
+    }
 
     try {
       await room.handshakeWithHost();
@@ -268,6 +465,7 @@ export class Room {
     if (this.bufferedActions.length > 0) {
       const kept = [...this.bufferedActions];
       this.bufferedActions.length = 0;
+      this.bufferedResyncs.length = 0;
       for (const message of kept) {
         listener(message);
       }
@@ -282,6 +480,78 @@ export class Room {
   }
 
   /**
+   * Une place s'est tue **et son délai de grâce est écoulé**, partie lancée (plan 202, Lot B3).
+   *
+   * Ce n'est pas un forfait : c'est le constat qu'il n'y a plus personne à cette place. Qui décide
+   * quoi en faire est l'affaire de l'appelant — voir décision #951 et `resolveDeparture`.
+   */
+  onPeerAbsent(listener: (seat: number) => void): () => void {
+    this.peerAbsentListeners.add(listener);
+    return () => this.peerAbsentListeners.delete(listener);
+  }
+
+  /**
+   * Le chemin vers un pair s'est dégradé ou rétabli (plan 202, décision #956).
+   *
+   * 🔴 **Ne prononce aucun forfait** : `disconnected` se rétablit très souvent tout seul. C'est le
+   * chien de garde qui tranche ; ceci ne fait qu'alimenter le bandeau.
+   */
+  onPeerHealth(listener: (seat: number, health: ChannelHealth) => void): () => void {
+    this.peerHealthListeners.add(listener);
+    return () => this.peerHealthListeners.delete(listener);
+  }
+
+  /**
+   * Le canal d'une place vient de se refermer **en pleine partie**, et son délai de grâce court
+   * (plan 202). `graceMs` est le budget réellement accordé, pas une constante à redeviner.
+   */
+  onPeerAwaited(listener: (seat: number, graceMs: number) => void): () => void {
+    this.peerAwaitedListeners.add(listener);
+    return () => this.peerAwaitedListeners.delete(listener);
+  }
+
+  /**
+   * Une place qu'on attendait est revenue **avant** son échéance (plan 202).
+   *
+   * C'est le pendant de `onPeerAwaited`, et il ne va pas de soi : le canal d'un revenant est un
+   * canal **neuf**, dont l'état ICE ne change pas en s'ouvrant. Sans ce signal, rien n'annoncerait
+   * le retour et le bandeau « en attente » resterait affiché sur une partie qui a repris.
+   */
+  onPeerReturned(listener: (seat: number) => void): () => void {
+    this.peerReturnedListeners.add(listener);
+    return () => this.peerReturnedListeners.delete(listener);
+  }
+
+  /** Un pair revenu réclame les actions jouées pendant son absence (plan 202, décision #955). */
+  onResyncRequest(listener: (message: ResyncRequestMessage) => void): () => void {
+    this.resyncRequestListeners.add(listener);
+    return () => this.resyncRequestListeners.delete(listener);
+  }
+
+  /** La queue du journal nous parvient. Ce qui est arrivé avant qu'on écoute part maintenant. */
+  onResync(listener: (message: ResyncMessage) => void): () => void {
+    this.resyncListeners.add(listener);
+    if (this.bufferedResyncs.length > 0) {
+      const kept = [...this.bufferedResyncs];
+      this.bufferedResyncs.length = 0;
+      for (const message of kept) {
+        listener(message);
+      }
+    }
+    return () => this.resyncListeners.delete(listener);
+  }
+
+  /** « J'en suis là, donne-moi la suite. » */
+  sendResyncRequest(actionIndex: number): void {
+    this.broadcast({ type: "resync_request", seat: this.seat, actionIndex });
+  }
+
+  /** La queue du journal, en réponse. Une liste vide est une réponse valide et fréquente. */
+  sendResync(fromIndex: number, actions: readonly Action[]): void {
+    this.broadcast({ type: "resync", seat: this.seat, fromIndex, actions });
+  }
+
+  /**
    * Diffuse une action que **notre** moteur a déjà acceptée.
    *
    * `actionIndex` est le nombre d'actions enregistrées chez nous avant celle-ci : c'est ce qui
@@ -291,8 +561,16 @@ export class Room {
    * Diffusé au maillage entier, pas au seul adversaire : en 1v1 c'est indiscernable, et à trois
    * camps tout le monde doit voir chaque action pour tenir la même partie.
    */
-  sendAction(actionIndex: number, action: Action): void {
-    this.broadcast({ type: "action", seat: this.seat, actionIndex, action });
+  sendAction(actionIndex: number, action: Action, timedOut?: true): void {
+    this.broadcast({
+      type: "action",
+      seat: this.seat,
+      actionIndex,
+      action,
+      // Jamais `timedOut: false` : l'absence dit déjà « ce n'était pas un dépassement », et deux
+      // façons d'écrire le même message est une façon d'en oublier une (plan 202).
+      ...(timedOut === undefined ? {} : { timedOut }),
+    });
   }
 
   /**
@@ -480,6 +758,9 @@ export class Room {
     this.left = true;
     this.broadcast({ type: "bye", seat: this.seat });
     this.bufferedActions.length = 0;
+    this.bufferedResyncs.length = 0;
+    this.timers.clearTimeout(this.hostRedialTimer);
+    this.hostRedialTimer = undefined;
     for (const timer of this.graceTimers.values()) {
       this.timers.clearTimeout(timer.handle);
     }
@@ -529,7 +810,15 @@ export class Room {
       channel.close();
       return;
     }
-    if (this.locked) {
+    /*
+     * 🔴 Un salon verrouillé admet UN revenant, et lui seul (plan 202, décision #954).
+     *
+     * Avant le Lot B3 cette branche refermait **tout** canal entrant, donc un pair déconnecté
+     * tombait exactement sur `partie_commencee` : le message qui lui dit de ne pas revenir. Ce n'est
+     * pas une réouverture du salon — seule une place dont le délai de grâce court passe, et sa
+     * place vient de l'**adresse d'annuaire** (`seatFromPeerId` ci-dessus), jamais d'un message.
+     */
+    if (this.locked && !this.graceTimers.has(remoteSeat)) {
       channel.close();
       return;
     }
@@ -539,10 +828,20 @@ export class Room {
   private attachChannel(remoteSeat: number, channel: NetworkChannel): void {
     this.channels.set(remoteSeat, channel);
     this.announcedBye.delete(remoteSeat);
-    this.clearGrace(remoteSeat);
+    const wasAwaited = this.clearGrace(remoteSeat);
+    if (wasAwaited && this.locked) {
+      for (const listener of [...this.peerReturnedListeners]) {
+        listener(remoteSeat);
+      }
+    }
 
     channel.onMessage((message) => this.handleMessage(remoteSeat, message));
     channel.onClose(() => this.handleChannelClosed(remoteSeat));
+    channel.onHealthChange((health) => {
+      for (const listener of [...this.peerHealthListeners]) {
+        listener(remoteSeat, health);
+      }
+    });
   }
 
   /**
@@ -716,6 +1015,10 @@ export class Room {
       case "bye":
       case "action":
       case "forfeit":
+      // Le rattrapage aussi : un pair ne demande la suite QUE pour lui-même, et ne répond QUE pour
+      // lui-même (plan 202).
+      case "resync_request":
+      case "resync":
         return message.seat === remoteSeat;
       // Ceux-là font autorité sur le salon entier : l'hôte seul les émet.
       case "room_state":
@@ -757,6 +1060,22 @@ export class Room {
         // Noté, pas agi : la fermeture du canal suit, et c'est elle qui déclenche le délai. Un `bye`
         // sans fermeture est un pair qui s'annonce partant puis change d'avis.
         this.announcedBye.add(message.seat);
+        return;
+      case "resync_request":
+        for (const listener of [...this.resyncRequestListeners]) {
+          listener(message);
+        }
+        return;
+      case "resync":
+        // Gardé si le combat n'écoute pas encore, exactement comme une action : c'est le cas NORMAL
+        // du revenant, qui demande la suite pendant que son écran se monte.
+        if (this.resyncListeners.size === 0) {
+          this.bufferedResyncs.push(message);
+          return;
+        }
+        for (const listener of [...this.resyncListeners]) {
+          listener(message);
+        }
         return;
       case "action":
         // Rien à noter côté salon : le combat vit dans l'orchestrateur, pas ici. Mais s'il n'est pas
@@ -805,6 +1124,32 @@ export class Room {
     // nombre de places. C'est ici, et nulle part ailleurs, que « salon plein » se décide.
     if (claimedSeat !== remoteSeat || !this.seats.has(claimedSeat)) {
       channel.close();
+      return;
+    }
+
+    /*
+     * Un revenant en pleine partie (plan 202, décision #954) : il a déjà sa place et son équipe, et
+     * il n'a rien à re-confirmer. Repasser par le chemin ci-dessous le remettrait `ready: false`,
+     * donc **pas prêt dans une partie déjà lancée** — un état qui ne veut rien dire —, et
+     * rediffuserait un état de salon que personne n'attend plus. Le `welcome` est déjà parti : c'est
+     * tout ce dont il a besoin pour enchaîner sur son rattrapage.
+     */
+    if (this.locked) {
+      /*
+       * 🔴 L'état du salon lui part quand même, mais à LUI SEUL et sans passer par
+       * `broadcastRoomState` : `handshakeWithHost` attend un premier `room_state` avant de se dire
+       * entré (sinon l'arrivant lit une configuration vide et croit à une incompatibilité de
+       * version), donc sans cet envoi un revenant attendrait le délai de garde en entier pour
+       * finir sur « plus de réponse ». Diffuser à tout le maillage serait pire qu'inutile : ça
+       * annoncerait un changement de salon là où rien n'a changé.
+       */
+      this.channels.get(claimedSeat)?.send({
+        type: "room_state",
+        options: this.roomOptions,
+        seats: this.view.seats,
+        locked: true,
+      });
+      this.notifyChange();
       return;
     }
 
@@ -897,19 +1242,86 @@ export class Room {
     this.abandonLaunchIfAwaiting(remoteSeat);
 
     const cleanClose = this.announcedBye.has(remoteSeat);
-    const delayMs = cleanClose ? GRACE_AFTER_CLEAN_CLOSE_MS : GRACE_AFTER_SILENCE_MS;
+    const delayMs = this.graceDelayFor(remoteSeat, cleanClose);
+    /*
+     * L'absence est établie **maintenant**, à la fermeture — pas à l'expiration du délai (plan 202,
+     * décision #950).
+     *
+     * Le marquer à l'expiration le rendait inatteignable : en 1v1 le premier déclenchement prononce
+     * déjà le forfait, donc il n'y a jamais de « fois suivante ». Ici, un pair qui tombe, revient,
+     * puis retombe voit son second délai raccourci — ce qui est exactement le sens de « une fois
+     * l'absence établie ».
+     */
+    if (this.locked) {
+      this.seatsAbsentOnce.add(remoteSeat);
+    }
     this.clearGrace(remoteSeat);
     this.graceTimers.set(remoteSeat, {
       cleanClose,
       handle: this.timers.setTimeout(() => this.resolveDeparture(remoteSeat), delayMs),
     });
+    if (this.locked) {
+      for (const listener of [...this.peerAwaitedListeners]) {
+        listener(remoteSeat, delayMs);
+      }
+      this.scheduleHostRedial(remoteSeat);
+    }
     this.notifyChange();
+  }
+
+  /**
+   * Combien de temps on attend ce retour (plan 202, décision #950).
+   *
+   * Trois régimes, et le troisième est celui que le Lot B3 ajoute :
+   * - fermeture propre (un `bye` est arrivé) : court, l'intention est connue — mais un rechargement
+   *   de page passe aussi par là, d'où 10 s et non zéro ;
+   * - silence en **salon** : 45 s, le téléphone en arrière-plan qui revient ;
+   * - silence en **combat** : `chrono + 15 s`, parce que 45 s tomberait pile sur l'expiration d'un
+   *   chronomètre honnête. Et 10 s seulement si cette place a **déjà** disparu une fois.
+   */
+  private graceDelayFor(remoteSeat: number, cleanClose: boolean): number {
+    /*
+     * En SALON, une fermeture propre vaut le délai court : la place se libère, personne ne perd de
+     * partie, et l'intention annoncée par un `bye` est la seule information disponible (#905).
+     */
+    if (!this.locked) {
+      return cleanClose ? GRACE_AFTER_CLEAN_CLOSE_MS : GRACE_AFTER_SILENCE_MS;
+    }
+    /*
+     * En COMBAT, le `bye` ne raccourcit plus autant : fermer son onglet n'y est pas une déclaration
+     * d'abandon — le menu l'est — mais 30 s suffisent à revenir, et laisser 75 s ferait attendre
+     * pour rien celui qui est resté (révision de recette 2026-09-09).
+     */
+    if (cleanClose || this.seatsAbsentOnce.has(remoteSeat)) {
+      return BATTLE_GRACE_SHORT_MS;
+    }
+    return BATTLE_GRACE_AFTER_SILENCE_MS;
   }
 
   /** Le délai est écoulé sans retour. C'est seulement ici qu'un départ devient un fait. */
   private resolveDeparture(remoteSeat: number): void {
     this.graceTimers.delete(remoteSeat);
     this.announcedBye.delete(remoteSeat);
+
+    /*
+     * 🔴 Partie LANCÉE : un départ n'est plus une affaire de salon (plan 202, décision #951).
+     *
+     * Ce qui suit rendait la place `Waiting` et continuait la préparation — ce qui n'a aucun sens en
+     * combat : la place n'est pas « libre pour quelqu'un d'autre », son camp est en train de perdre
+     * ses tours. Et le cas de l'hôte renvoyait l'invité à l'écran `lobby`, donc un hôte qui recharge
+     * sa page pour revenir trouvait un invité déjà sorti de la partie (décision #954).
+     *
+     * On ne touche pas non plus à `selections` : c'est la composition d'équipe de la partie en
+     * cours, dont le rattrapage du revenant a besoin.
+     */
+    if (this.locked) {
+      for (const listener of [...this.peerAbsentListeners]) {
+        listener(remoteSeat);
+      }
+      this.notifyChange();
+      return;
+    }
+
     this.selections.delete(remoteSeat);
 
     // L'hôte parti, il n'y a plus de salon : le code **est** son adresse, donc un nouvel hôte
@@ -937,12 +1349,83 @@ export class Room {
     this.notifyChange();
   }
 
-  private clearGrace(remoteSeat: number): void {
-    const existing = this.graceTimers.get(remoteSeat);
-    if (existing !== undefined) {
-      this.timers.clearTimeout(existing.handle);
-      this.graceTimers.delete(remoteSeat);
+  /**
+   * Rappelle l'hôte tant que son délai de grâce court (plan 202, étape 5).
+   *
+   * Réservé à **l'invité rappelant l'hôte**, et rien d'autre : c'est la seule direction que le
+   * maillage compose (`handshakeWithHost` puis `connectToMesh`), et le réseau est restreint au 1v1
+   * (décision #944). Un hôte n'a personne à rappeler — ce sont ses invités qui reviennent vers lui.
+   *
+   * Le minuteur meurt avec la grâce : `clearGrace` le coupe, donc un retour réussi comme une
+   * échéance atteinte l'arrêtent sans qu'il ait à le savoir.
+   */
+  private scheduleHostRedial(remoteSeat: number): void {
+    if (this.role !== RoomRole.Guest || remoteSeat !== HOST_SEAT) {
+      return;
     }
+    const attempt = (): void => {
+      // Plus de grâce en cours : le retour a eu lieu, ou l'échéance est tombée. Dans les deux cas,
+      // il n'y a plus rien à rappeler.
+      if (this.left || !this.graceTimers.has(HOST_SEAT)) {
+        return;
+      }
+      void this.deps.transport
+        .connect(hostPeerId(this.code))
+        .then((channel) => {
+          // La grâce a pu se résoudre pendant l'aller-retour : un canal de trop laisserait deux
+          // connexions vivantes vers le même pair.
+          if (this.left || !this.graceTimers.has(HOST_SEAT)) {
+            channel.close();
+            return;
+          }
+          this.attachChannel(HOST_SEAT, channel);
+          // On se présente : c'est ce qui fait répondre l'hôte, verrou compris (décision #954).
+          channel.send({ type: "hello", networkVersion: NETWORK_VERSION, seat: this.seat });
+        })
+        .catch(() => {
+          // L'hôte n'est pas encore revenu, ou l'annuaire retient encore son ancienne adresse. On
+          // réessaie : c'est exactement ce que cette boucle existe pour absorber.
+          this.hostRedialTimer = this.timers.setTimeout(attempt, HOST_REDIAL_INTERVAL_MS);
+        });
+    };
+    this.timers.clearTimeout(this.hostRedialTimer);
+    this.hostRedialTimer = this.timers.setTimeout(attempt, HOST_REDIAL_INTERVAL_MS);
+  }
+
+  /**
+   * Ouvre une fenêtre de retour pour une place, sur un salon qu'on vient de reprendre (plan 202).
+   *
+   * Le pendant de `handleChannelClosed` pour un salon **neuf** : il n'y a pas eu de canal à fermer,
+   * donc rien ne l'aurait armée. Le délai court suffit — le pair d'en face rappelle toutes les 2 s
+   * s'il est encore là (`scheduleHostRedial`).
+   */
+  private openReconnectWindow(remoteSeat: number): void {
+    this.clearGrace(remoteSeat);
+    this.graceTimers.set(remoteSeat, {
+      cleanClose: true,
+      handle: this.timers.setTimeout(
+        () => this.resolveDeparture(remoteSeat),
+        BATTLE_GRACE_SHORT_MS,
+      ),
+    });
+    for (const listener of [...this.peerAwaitedListeners]) {
+      listener(remoteSeat, BATTLE_GRACE_SHORT_MS);
+    }
+  }
+
+  /** @returns vrai si un délai courait vraiment — donc si cette place était attendue. */
+  private clearGrace(remoteSeat: number): boolean {
+    const existing = this.graceTimers.get(remoteSeat);
+    if (existing === undefined) {
+      return false;
+    }
+    this.timers.clearTimeout(existing.handle);
+    this.graceTimers.delete(remoteSeat);
+    if (remoteSeat === HOST_SEAT) {
+      this.timers.clearTimeout(this.hostRedialTimer);
+      this.hostRedialTimer = undefined;
+    }
+    return true;
   }
 
   // — Lancement ——————————————————————————————————————————————————————————————————

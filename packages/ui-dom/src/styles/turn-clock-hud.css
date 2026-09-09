@@ -1,0 +1,75 @@
+/*
+ * TurnClockHud (plan 202, Lot B3) — le compte à rebours, DANS le cadre de la bannière de tour.
+ *
+ * 🔴 Pas de cadre à lui (retour humain 2026-09-09) : un encadré séparé empilait jusqu'à cinq boîtes
+ * en haut de l'écran dès qu'un climat était actif. Le temps s'aligne donc sur la ligne du camp qui
+ * joue, la barre passe juste dessous, et `.bc-turn` (dans `battle-chrome.css`) devient la colonne
+ * qui tient les deux.
+ *
+ * Échelle en `--ui-scale` comme tout le chrome de combat (plan 179 §C) et non en `cqw` : ces
+ * éléments vivent maintenant DANS `.bc-turn`, qui hérite de ce système-là. Mélanger les deux aurait
+ * fait grandir le compteur et la bannière à des rythmes différents dans le même cadre.
+ */
+
+@layer components {
+  /* La bannière devient une colonne : ligne de texte, puis barre. */
+  .bc-turn-line {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: calc(10px * var(--ui-scale));
+  }
+
+  .bc-turn-owner {
+    /* La taille héritée du chrome (28px × ui-scale) : `responsive-chrome.spec` la mesure ici. */
+    font-weight: 600;
+  }
+
+  .tc-value {
+    /* Chiffres à largeur fixe : sans ça le compteur tremble à chaque seconde qui change de glyphe,
+       et il entraînerait le nom du camp avec lui puisqu'ils partagent une ligne centrée. */
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+
+    &[hidden] { display: none; }
+  }
+
+  .tc-bar {
+    inline-size: 100%;
+    block-size: calc(5px * var(--ui-scale));
+    margin-block-start: calc(4px * var(--ui-scale));
+    border-radius: calc(3px * var(--ui-scale));
+    background: var(--color-border-faint);
+    overflow: hidden;
+
+    &[hidden] { display: none; }
+  }
+
+  .tc-fill {
+    block-size: 100%;
+    background: var(--color-text-secondary);
+    /* Pas de transition : la barre est pilotée par un battement de 250 ms, et une transition la
+       ferait courir derrière la valeur affichée. */
+  }
+
+  /* Mon tour : le compteur me concerne, il passe au premier plan. */
+  .tc-value.tc-mine {
+    color: var(--color-text-primary);
+  }
+
+  .tc-bar.tc-mine > .tc-fill {
+    background: var(--color-accent);
+  }
+
+  /* Sous 10 s. Couleur seulement — le chiffre partage sa ligne avec le nom du camp, donc le faire
+     grandir décalerait ce nom à chaque seconde. La teinte emporte le chiffre ET la barre, ce qui la
+     rend plus visible que l'ancien grossissement isolé. */
+  .tc-value.tc-urgent {
+    color: var(--color-state-danger);
+  }
+
+  .tc-bar.tc-urgent > .tc-fill {
+    background: var(--color-state-danger);
+  }
+}

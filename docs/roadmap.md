@@ -20,9 +20,9 @@ Pour l'ouvrir : `node scripts/memory/query.mjs --open <entité>`. Ci-dessous l'e
 
 ## Ce qui vient
 
-> **Où on en est** : la **Phase 7 — Multijoueur** est la phase en cours (télémétrie livrée, transport,
-> salon réseau et combat en réseau livrés ; robustesse et détection de désync restants). Les
-> autres sections ci-dessous sont ouvertes, dans un ordre qui n'est pas figé.
+> **Où on en est** : la **Phase 7 — Multijoueur** est la phase en cours (télémétrie, transport, salon
+> réseau, combat en réseau et robustesse livrés ; détection de désync restante). Les autres sections
+> ci-dessous sont ouvertes, dans un ordre qui n'est pas figé.
 
 ### Post-Babylon — petits chantiers de rendu
 
@@ -117,8 +117,10 @@ La carte au centre, une palette de blocs + décorations sur le côté ; on pose 
 > 199, décisions #895-912) : deux navigateurs se trouvent par un code et entrent en combat avec un
 > état identique. **Lot B2 (combat en réseau) livré et validé à la main le 2026-09-08** (plan 201) :
 > un 1v1 complet se joue de bout en bout entre deux navigateurs, jusqu'à l'écran de victoire, sur le
-> service public de PeerJS. `docs/plans/195` reste `in-progress` : **B3 (robustesse) et B4 (détection
-> de désync)** restent à faire.
+> service public de PeerJS. **Lot B3 (robustesse) livré le 2026-09-09** (plan 202) : chronomètre de
+> tour, chien de garde de connexion, reconnexion d'un pair (hôte compris) et abandon volontaire,
+> validés en recette humaine et par `code-reviewer`/`core-guardian`. `docs/plans/195` reste
+> `in-progress` : **B4 (détection de désync)** reste à faire.
 
 **Ce qui est déjà prêt** : replay et déterminisme verrouillés (plan 181), port de persistance (#751),
 hot-seat N joueurs avec `humanPlayerIds` (plan 188) — le tour distant se greffe là où le tour hot-seat
@@ -147,7 +149,11 @@ existe déjà.
       validation de chaque action reçue contre `getLegalActions()`, barème 1er/2e/3e refus (avertir
       puis forfait), forfait dans le core (`BattleEngine.forfeit`). Réseau restreint au **1v1** — le
       garde-fou d'index suppose un canal ordonné, vrai par connexion mais pas à trois camps et plus.
-      Restent **B3** (chronomètre, reconnexion, abandon) et **B4** (checksum de désync)
+      **Lot B3 (chronomètre, reconnexion, abandon) LIVRÉ le 2026-09-09** (plan 202) : chronomètre de
+      tour local auto-déclarant (60 s), chien de garde de connexion distinct (75 s puis 30 s),
+      admission d'un revenant dans un salon verrouillé (hôte compris — asymétrie de qui compose
+      corrigée par `scheduleHostRedial`), rattrapage du journal manqué, abandon volontaire propagé
+      aux deux pairs. Reste **B4** (checksum de désync)
 - [x] **Écran de victoire enrichi** — sans dépendance réseau, garde sa place ici : même matière que
       l'événement `battle_ended` de la télémétrie (durée, tours, camp vainqueur). **LIVRÉ ET VALIDÉ
       (2026-09-03, plan 197)** : rangée de portraits de l'équipe du vainqueur (K.O. grisés) + « N tours ·

@@ -48,6 +48,39 @@ class FakeEventEmitter {
 
 const createdPeers: FakePeer[] = [];
 
+/**
+ * Double de la `RTCPeerConnection` que `peerjs` expose sur chaque connexion (plan 202).
+ *
+ * Elle porte les trois membres que `PeerJsChannel` lit — l'état et les deux moitiés de l'écoute —
+ * et rien de plus : c'est aussi la forme que `IceConnectionLike` décrit côté production, faute de la
+ * bibliothèque `DOM` dans ce paquet.
+ */
+export class FakeIceConnection {
+  connectionState = "connected";
+  private readonly listeners = new Set<() => void>();
+
+  addEventListener(_type: "connectionstatechange", listener: () => void): void {
+    this.listeners.add(listener);
+  }
+
+  removeEventListener(_type: "connectionstatechange", listener: () => void): void {
+    this.listeners.delete(listener);
+  }
+
+  /** Combien d'écouteurs restent branchés — c'est ce qui prouve que le désabonnement a lieu. */
+  get listenerCount(): number {
+    return this.listeners.size;
+  }
+
+  /** ICE change d'avis. Le vrai navigateur émet l'événement APRÈS avoir posé l'état. */
+  transitionTo(state: string): void {
+    this.connectionState = state;
+    for (const listener of [...this.listeners]) {
+      listener();
+    }
+  }
+}
+
 export class FakeDataConnection extends FakeEventEmitter {
   /** Ce qui est parti, dans l'ordre. */
   readonly sent: unknown[] = [];
@@ -58,6 +91,8 @@ export class FakeDataConnection extends FakeEventEmitter {
    * remplace par une promesse tenue ou rejetée.
    */
   sendResult: () => void | Promise<void> = () => undefined;
+  /** Le chemin ICE sous la connexion, comme `peerjs` le publie (plan 202). */
+  readonly peerConnection = new FakeIceConnection();
 
   constructor(
     readonly peer: string,

@@ -5,6 +5,7 @@ import type { Direction } from "../enums/direction";
 import type { EntryHazardKind } from "../enums/entry-hazard-kind";
 import type { FieldGlobalKind } from "../enums/field-global-kind";
 import type { FieldTerrain } from "../enums/field-terrain";
+import type { ForfeitReason } from "../enums/forfeit-reason";
 import type { HitAndRunRetreatFallbackReason } from "../enums/hit-and-run-retreat-fallback-reason";
 import type { MoveFailedReason } from "../enums/move-failed-reason";
 import type { PokemonType } from "../enums/pokemon-type";
@@ -105,7 +106,15 @@ export type BattleEvent =
    * ce qui les observe — journal, télémétrie — sache les qualifier au lieu de les prendre pour des
    * dégâts.
    */
-  | { type: typeof BattleEventType.PlayerForfeited; playerId: string }
+  | {
+      type: typeof BattleEventType.PlayerForfeited;
+      playerId: string;
+      /**
+       * Pourquoi ce camp part (plan 202). Absent quand personne ne l'a dit — le journal retombe
+       * alors sur une phrase neutre, ce qui vaut mieux que d'en inventer une.
+       */
+      reason?: ForfeitReason;
+    }
   | {
       type: typeof BattleEventType.PokemonRevived;
       pokemonId: string;

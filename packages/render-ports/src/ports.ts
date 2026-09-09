@@ -10,6 +10,7 @@ import type {
 import { AuraKind } from "@pokemon-tactic/core";
 import type {
   BattleOutcomeSummary,
+  ConnectionNoticeView,
   InfoPanelData,
   TailwindView,
   TileInfoChip,
@@ -308,6 +309,26 @@ export interface TurnInfoView {
 export type TurnOwner = "you" | "player" | "ai";
 
 /**
+ * Compte à rebours du tour en cours (plan 202, Lot B3). `null` côté chrome = pas de compteur du
+ * tout, ce qui est le cas de **toute** partie hors ligne : le chrono n'existe qu'en réseau
+ * (décision #946), et son absence en solo n'est pas un bug.
+ *
+ * Le compteur du tour **distant** s'affiche aussi, et c'est délibéré. Pokémon Showdown cache le
+ * temps de l'adversaire parce qu'il est à choix simultané — le temps de réflexion y trahit
+ * l'incertitude. Ici le tour est séquentiel et le plateau visible : on est plus près d'une pendule
+ * d'échecs, dont les deux cadrans se voient toujours. Sans lui, l'attente d'un tour distant n'a
+ * aucune fin visible.
+ */
+export interface TurnClockView {
+  /** Temps restant, borné à 0. Jamais négatif : l'affichage n'a pas à connaître le dépassement. */
+  remainingMs: number;
+  /** Durée totale de la fenêtre, pour un rendu proportionnel (barre, arc). */
+  durationMs: number;
+  /** À qui ce tour appartient — le compteur ne se lit pas pareil selon qu'il te menace ou non. */
+  owner: TurnOwner;
+}
+
+/**
  * Semantic instruction the chrome localises (keeps the FSM free of i18n key strings).
  *
  * `selectMoveDestination` / `selectDirection` joined at plan 183: those two phases used to blank the
@@ -336,6 +357,10 @@ export interface BattleChrome {
   showCancellableInstruction(instruction: BattleInstruction, onCancel: () => void): void;
   hideMenus(): void;
   updateTurnInfo(info: TurnInfoView): void;
+  /** Compte à rebours du tour (plan 202). `null` masque le compteur — voir `TurnClockView`. */
+  updateTurnClock(view: TurnClockView | null): void;
+  /** Bandeau d'état du réseau (plan 202). `null` l'efface — voir `ConnectionNoticeView`. */
+  updateConnectionNotice(view: ConnectionNoticeView | null): void;
   /**
    * Left panel: the ACTIVE Pokémon, and only it (human 2026-07-25 — hovering another mon no longer
    * hijacks this card; that readout moved to the cursor card).
@@ -424,7 +449,7 @@ export interface BattleOrchestratorConfig {
    * l'IA est déterministe et tourne des deux côtés (décision #901), diffuser ses actions les ferait
    * jouer deux fois.
    */
-  onLocalAction?: (action: Action, actionIndex: number) => void;
+  onLocalAction?: (action: Action, actionIndex: number, timedOut?: true) => void;
   /**
    * Une action distante refusée, avec son rang dans le barème (1, 2, 3…) et la cause exacte du
    * refus (plan 201, décision D1).
@@ -435,6 +460,18 @@ export interface BattleOrchestratorConfig {
    */
   onRemoteActionRejected?: (rejection: RemoteActionRejection) => void;
   /**
+   * On entre ou on sort de l'attente d'un tour distant (plan 202, Lot B3, décision #951).
+   *
+   * `playerId` à l'entrée, `null` à la sortie. L'orchestrateur **signale seulement** : le chien de
+   * garde du silence appartient à l'hôte, parce que c'est lui qui tient aussi le salon et sait
+   * traduire une place en joueur.
+   *
+   * 🔴 C'est ce signal, et pas la date du dernier message reçu, qui borne le silence coupable :
+   * pendant notre propre tour l'adversaire n'a **rien** à envoyer, donc mesurer depuis le dernier
+   * message éliminerait un joueur attentif pendant qu'on réfléchit.
+   */
+  onWaitingRemote?: (playerId: string | null) => void;
+  /**
    * Temps de jeu cumulé depuis le début de la partie, pour la durée du récapitulatif de victoire
    * (plan 197).
    *
@@ -443,6 +480,36 @@ export interface BattleOrchestratorConfig {
    * min » au lendemain d'une reprise).
    */
   getElapsedMs: () => number;
+  /**
+   * Chronomètre de tour (plan 202, Lot B3, décisions #946 et #947).
+   *
+   * 🔴 **Son absence EST le « pas de chrono hors ligne ».** Le solo, le hot-seat et le studio ne le
+   * passent pas, donc ils n'ont rien à désactiver et aucun `if` ne traîne dans l'orchestrateur. La
+   * seule raison d'être du chrono est de ne pas faire attendre un pair distant ; en solo la
+   * contrainte n'existe pas, et en hot-seat l'autre joueur est physiquement là.
+   *
+   * `now` et `schedule` sont injectés pour la même raison que `RoomTimers` l'est dans le salon : un
+   * test ne doit pas attendre 60 secondes pour vérifier une expiration.
+   */
+  turnClock?: TurnClockDeps;
+}
+
+export interface TurnClockDeps {
+  /** Longueur de la fenêtre. En ligne : `ONLINE_TURN_DURATION_MS`. */
+  durationMs: number;
+  /**
+   * Horloge **murale**, et c'est tout le point (décision #947).
+   *
+   * L'orchestrateur retient une échéance et la compare à cette horloge à chaque battement, au lieu
+   * de faire confiance à un `setTimeout(60000)` unique. Motif : un onglet en arrière-plan voit ses
+   * minuteurs ralentis (Chrome ~1/s, puis ~1/min après cinq minutes d'inactivité), donc un minuteur
+   * unique se déclencherait très en retard — et le joueur serait éliminé par le chien de garde de
+   * son adversaire avant que son propre chrono ne parle. Avec une échéance, le réveil ralenti
+   * constate le dépassement et agit tout de suite.
+   */
+  now: () => number;
+  /** Arme un battement. Rend de quoi l'annuler. */
+  schedule: (callback: () => void, delayMs: number) => () => void;
 }
 
 /**

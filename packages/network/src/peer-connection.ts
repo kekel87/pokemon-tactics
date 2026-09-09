@@ -1,6 +1,7 @@
 import Peer, { type DataConnection } from "peerjs";
 import { isNetworkMessage, NetworkErrorCode, type NetworkMessage } from "./protocol.js";
 import {
+  ChannelHealth,
   CONNECT_TIMEOUT_MS,
   type NetworkChannel,
   type NetworkTransport,
@@ -293,10 +294,47 @@ function withGuard(
   };
 }
 
+/**
+ * Le strict nécessaire d'une `RTCPeerConnection`, décrit ici plutôt qu'emprunté au DOM.
+ *
+ * 🔴 Motif : ce paquet **n'a pas** la bibliothèque `DOM` dans son `tsconfig`, et c'est délibéré — il
+ * ne doit pas connaître le navigateur (même choix que `view-core`, cf. le commentaire de
+ * `packages/network/tsconfig.json`). Nommer `RTCPeerConnection` obligerait à tirer tout le DOM pour
+ * trois membres. La forme ci-dessous est celle que `peerjs` expose, et la seule qu'on lise.
+ */
+interface IceConnectionLike {
+  readonly connectionState: string;
+  addEventListener(type: "connectionstatechange", listener: () => void): void;
+  removeEventListener(type: "connectionstatechange", listener: () => void): void;
+}
+
+/**
+ * Traduit l'état ICE du navigateur vers notre énumération fermée (plan 202, décision #956).
+ *
+ * `new` et `connecting` valent `Healthy` : un canal ne nous est remis qu'une fois ouvert, donc s'y
+ * trouver n'est pas un symptôme — et annoncer « connexion instable » pendant l'établissement normal
+ * ferait clignoter le bandeau à chaque début de partie. Un état inconnu d'une version future y tombe
+ * aussi : le défaut d'un signal purement informatif doit être « rien à signaler ».
+ */
+function healthFromConnectionState(state: string): ChannelHealth {
+  switch (state) {
+    case "disconnected":
+      return ChannelHealth.Uncertain;
+    case "failed":
+    case "closed":
+      return ChannelHealth.Failed;
+    default:
+      return ChannelHealth.Healthy;
+  }
+}
+
 class PeerJsChannel implements NetworkChannel {
   private closed = false;
   private readonly messageListeners = new Set<(message: NetworkMessage) => void>();
   private readonly closeListeners = new Set<() => void>();
+  private readonly healthListeners = new Set<(health: ChannelHealth) => void>();
+  /** Ce qui défait l'écoute de l'état ICE. `null` quand il n'y avait rien à écouter. */
+  private detachHealthWatch: (() => void) | null = null;
 
   constructor(
     private readonly connection: DataConnection,
@@ -307,6 +345,33 @@ class PeerJsChannel implements NetworkChannel {
     // Une erreur sur un canal ouvert le rend inutilisable : la traiter comme une fermeture évite
     // qu'un pair reste « connecté » dans l'état du salon alors que rien ne passe plus.
     connection.on("error", () => this.handleClose());
+    this.watchConnectionState();
+  }
+
+  /**
+   * Branche l'écoute de l'état ICE, s'il y a une `RTCPeerConnection` à écouter.
+   *
+   * Défensif à dessein : `peerConnection` est renseignée pendant la négociation, donc elle existe
+   * pour tout canal qui nous parvient ouvert — mais c'est un champ d'une bibliothèque tierce, et un
+   * bandeau d'information ne vaut pas de faire tomber un canal par ailleurs sain.
+   */
+  private watchConnectionState(): void {
+    const peerConnection: IceConnectionLike | undefined = this.connection.peerConnection;
+    if (peerConnection === undefined) {
+      return;
+    }
+    const onStateChange = (): void => {
+      this.emitHealth(healthFromConnectionState(peerConnection.connectionState));
+    };
+    peerConnection.addEventListener("connectionstatechange", onStateChange);
+    this.detachHealthWatch = () =>
+      peerConnection.removeEventListener("connectionstatechange", onStateChange);
+  }
+
+  private emitHealth(health: ChannelHealth): void {
+    for (const listener of [...this.healthListeners]) {
+      listener(health);
+    }
   }
 
   get remotePeerId(): string {
@@ -352,6 +417,11 @@ class PeerJsChannel implements NetworkChannel {
     return () => this.closeListeners.delete(listener);
   }
 
+  onHealthChange(listener: (health: ChannelHealth) => void): () => void {
+    this.healthListeners.add(listener);
+    return () => this.healthListeners.delete(listener);
+  }
+
   close(): void {
     if (this.closed) {
       return;
@@ -367,11 +437,17 @@ class PeerJsChannel implements NetworkChannel {
       return;
     }
     this.closed = true;
+    // Avant de vider les écouteurs : un canal qui se referme est un chemin perdu, et l'interface
+    // doit pouvoir le refléter sans attendre un événement ICE qui ne viendra plus.
+    this.emitHealth(ChannelHealth.Failed);
+    this.detachHealthWatch?.();
+    this.detachHealthWatch = null;
     for (const listener of [...this.closeListeners]) {
       listener();
     }
     this.closeListeners.clear();
     this.messageListeners.clear();
+    this.healthListeners.clear();
     this.onDetached();
   }
 

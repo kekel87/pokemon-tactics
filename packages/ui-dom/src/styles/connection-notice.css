@@ -1,0 +1,68 @@
+/*
+ * ConnectionNotice (plan 202, Lot B3) — bandeau d'état du réseau, sous le compteur de tour.
+ *
+ * Enfant de flux de `.bc-top`, comme les autres HUD du haut : aucun positionnement absolu, donc il
+ * ne peut chevaucher ni la bannière ni le compteur. Même contrat d'échelle en cqw.
+ *
+ * Invisible sur toute partie hors ligne : il n'y a pas de réseau dont parler.
+ */
+
+@layer components {
+  .cn-notice {
+    --cn-px: calc(100cqw / 1920);
+
+    display: flex;
+    align-items: baseline;
+    gap: calc(8 * var(--cn-px));
+    max-inline-size: calc(560 * var(--cn-px));
+    padding: calc(5 * var(--cn-px)) calc(14 * var(--cn-px));
+
+    background: color-mix(in srgb, var(--color-bg-surface) 85%, transparent);
+    border: max(1px, calc(1.5 * var(--cn-px))) solid var(--color-border-faint);
+    border-radius: calc(8 * var(--cn-px));
+    color: var(--color-text-primary);
+    font-family: var(--font-family);
+    text-align: center;
+
+    &[hidden] { display: none; }
+  }
+
+  .cn-label {
+    font-size: calc(22 * var(--cn-px));
+  }
+
+  .cn-countdown {
+    /* Largeur de chiffre fixe : sans ça le libellé se décale à chaque seconde. */
+    font-variant-numeric: tabular-nums;
+    font-size: calc(22 * var(--cn-px));
+    font-weight: bold;
+    color: var(--color-text-secondary);
+
+    &[hidden] { display: none; }
+  }
+
+  /* Le canal est tombé et le délai court : c'est l'état où la partie peut se perdre. L'alerte porte
+     sur la couleur ET la bordure — une couleur seule ne se voit pas en vision déficiente. */
+  .cn-severe {
+    border-color: var(--color-state-danger);
+    color: var(--color-state-danger);
+
+    & .cn-countdown {
+      color: var(--color-state-danger);
+    }
+  }
+
+  /* Stage format téléphone (plan 179 §B) : référence 1280. */
+  @container stage ((height < 500px) or (width < 900px)) {
+    .cn-notice {
+      --cn-px: calc(100cqw / 1280);
+    }
+  }
+
+  /* Boîte de jeu étroite (plan 119) : référence 768, déclarée en dernier pour gagner. */
+  @container stage (width < 768px) {
+    .cn-notice {
+      --cn-px: calc(100cqw / 768);
+    }
+  }
+}
