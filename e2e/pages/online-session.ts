@@ -48,6 +48,23 @@ export class OnlinePeer {
   readonly wait: Locator;
   /** La modale de fin de partie, reconnue à son verdict plutôt qu'à un testid (cf `combat-flow`). */
   readonly victory: Locator;
+  /**
+   * La même modale, prise par son testid — donc quel que soit le verdict.
+   *
+   * Nécessaire dès qu'un scénario ne peut pas prédire QUI l'emporte : à la divergence, chaque pair
+   * élimine l'autre au même instant, et les deux constats se croisent (voir §11.8).
+   */
+  readonly battleOver: Locator;
+  /**
+   * Le constat de divergence, tel que le joueur le LIT (plan 203, Lot B4) : la ligne de journal du
+   * forfait `EtatDivergent`, propre à cette raison depuis la recette du plan 202 (une phrase par
+   * raison, donc « quitte la partie » nu ne la désigne plus).
+   *
+   * Vide est la seule valeur acceptable sur une partie honnête — c'est l'assertion du lot, et elle
+   * porte le risque dominant : une empreinte qui diverge sans raison met fin à un vrai combat par un
+   * message que le joueur ne peut ni comprendre ni contester.
+   */
+  readonly divergence: Locator;
 
   constructor(readonly page: Page) {
     this.menu = new MainMenu(page);
@@ -64,6 +81,8 @@ export class OnlinePeer {
     this.logEntries = page.getByTestId("battle-log-entry");
     this.wait = page.getByRole("button", { name: "Attendre", exact: true });
     this.victory = page.getByRole("dialog").filter({ hasText: /gagne/ });
+    this.battleOver = page.getByTestId("battle-over");
+    this.divergence = this.logEntries.filter({ hasText: "les parties ne concordent plus" });
   }
 
   hasHand(): Promise<boolean> {
@@ -75,6 +94,43 @@ export class OnlinePeer {
   }
 }
 
+/**
+ * Ce qu'un scénario peut CHOISIR de la session, quand le hasard ne lui convient pas.
+ *
+ * Par défaut les deux camps prennent « 🎲 Aléatoire » : c'est le chemin le plus court vers un combat
+ * en réseau, et il suffit à tout scénario qui n'a besoin que de tours qui s'échangent. Un scénario
+ * qui pilote un combat jusqu'à son terme, lui, a besoin de savoir ce qui se bat — d'où le magasin
+ * d'équipes posé avant le boot et le choix explicite par camp.
+ */
+export interface OnlineSessionOptions {
+  /**
+   * Magasin d'équipes de l'application (`pokemon-tactics:teams`), posé dans les DEUX contextes avant
+   * le premier script de page. La clé et l'enveloppe `{ version, teams }` sont celles de
+   * `packages/app/src/team/team-storage.ts` — un `version` qui ne vaut pas 1 est jeté en silence.
+   */
+  readonly savedTeams?: Readonly<Record<string, unknown>>;
+  /** Identifiant de l'équipe sauvegardée que l'hôte assigne au camp 1. Défaut : « 🎲 Aléatoire ». */
+  readonly hostTeamId?: string;
+  /** Idem pour l'invité, au camp 2. */
+  readonly guestTeamId?: string;
+  /**
+   * Point d'entrée sur le contexte de l'INVITÉ, avant l'ouverture de son premier onglet.
+   *
+   * 🔴 Existe pour une seule chose, et elle vaut d'être dite : faire **réellement** diverger l'état
+   * d'un pair depuis le test, sans toucher au code de production. Un scénario qui veut éprouver le
+   * détecteur de désynchronisation (plan 203) n'a aucun autre levier — le hook de scène est en
+   * lecture seule par construction, et rien du jeu n'expose son moteur. En détournant ce que le
+   * navigateur de l'invité TÉLÉCHARGE (`context.route`), on lui fait construire un état légitimement
+   * différent : c'est une divergence vraie, pas une empreinte truquée.
+   *
+   * Sur le contexte et non sur la page : les onglets d'un pair qui revient sont ouverts plus tard.
+   */
+  readonly interceptGuest?: (context: BrowserContext) => Promise<void>;
+}
+
+/** Clé du magasin d'équipes de l'app (`packages/app/src/team/team-storage.ts`). */
+const TEAMS_STORAGE_KEY = "pokemon-tactics:teams";
+
 export class OnlineSession {
   private roomCode = "";
   private hostPeer: OnlinePeer;
@@ -85,17 +141,29 @@ export class OnlineSession {
     private readonly guestContext: BrowserContext,
     host: OnlinePeer,
     guest: OnlinePeer,
+    private readonly options: OnlineSessionOptions,
   ) {
     this.hostPeer = host;
     this.guestPeer = guest;
   }
 
-  static async open(browser: Browser): Promise<OnlineSession> {
+  static async open(browser: Browser, options: OnlineSessionOptions = {}): Promise<OnlineSession> {
     const hostContext = await browser.newContext({ locale: "fr-FR" });
     const guestContext = await browser.newContext({ locale: "fr-FR" });
+    if (options.savedTeams !== undefined) {
+      // Sur le CONTEXTE, pas sur la page : les onglets d'un pair qui revient sont ouverts plus tard
+      // (voir `loseGuestTab`), et ils doivent trouver le même magasin.
+      const seed = [TEAMS_STORAGE_KEY, JSON.stringify(options.savedTeams)] as [string, string];
+      for (const context of [hostContext, guestContext]) {
+        await context.addInitScript(([key, payload]: [string, string]) => {
+          window.localStorage.setItem(key, payload);
+        }, seed);
+      }
+    }
+    await options.interceptGuest?.(guestContext);
     const host = new OnlinePeer(await hostContext.newPage());
     const guest = new OnlinePeer(await guestContext.newPage());
-    return new OnlineSession(hostContext, guestContext, host, guest);
+    return new OnlineSession(hostContext, guestContext, host, guest, options);
   }
 
   /**
@@ -134,7 +202,7 @@ export class OnlineSession {
     // Le code naît à l'entrée sur la salle d'attente, jamais avant.
     await expect(host.room.panel).toBeVisible();
     this.roomCode = ((await host.room.code.textContent()) ?? "").trim();
-    await host.teams.pickRandomTeam(0);
+    await this.pickTeam(host, 0, this.options.hostTeamId);
 
     await guest.menu.goto(localSignalling);
     await guest.menu.combat.click();
@@ -146,7 +214,7 @@ export class OnlineSession {
 
     // L'invité compose SA ligne, la deuxième, puis confirme. Sans équipe sur chaque camp, « Lancer »
     // resterait inerte pour une raison qui n'a rien à voir avec le réseau.
-    await guest.teams.pickRandomTeam(1);
+    await this.pickTeam(guest, 1, this.options.guestTeamId);
     await expect(guest.room.ready).toBeEnabled();
     await guest.room.ready.click();
 
@@ -160,6 +228,19 @@ export class OnlineSession {
     // Le lancement est ACCUSÉ (#903) : voir les DEUX scènes prêtes prouve la boucle complète.
     await host.scene.waitReady(30_000);
     await guest.scene.waitReady(30_000);
+  }
+
+  /** L'équipe demandée pour ce camp, ou le tirage aléatoire à défaut. */
+  private async pickTeam(
+    peer: OnlinePeer,
+    slotIndex: number,
+    teamId: string | undefined,
+  ): Promise<void> {
+    if (teamId === undefined) {
+      await peer.teams.pickRandomTeam(slotIndex);
+      return;
+    }
+    await peer.teams.pickSavedTeam(slotIndex, teamId);
   }
 
   /**
@@ -191,8 +272,32 @@ export class OnlineSession {
   }
 
   private static async playTurnOf(actor: OnlinePeer, observer: OnlinePeer): Promise<void> {
+    await OnlineSession.actAndAwait(observer, () => actor.scene.endTurn());
+  }
+
+  /**
+   * `actor` joue l'action donnée, et on attend qu'elle soit PARVENUE chez celui qui regarde.
+   *
+   * Le pendant de {@link playOneTurn} pour une action qui n'est pas « passer son tour » — une
+   * attaque, un Téléport. Le signal est le même, et c'est le seul qui vaille : le journal du pair
+   * d'en face grandit quand SON moteur a reçu l'action, l'a validée contre son propre
+   * `getLegalActions()` et l'a appliquée.
+   */
+  actAndPropagate(actor: OnlinePeer, action: () => Promise<void>): Promise<void> {
+    return OnlineSession.actAndAwait(this.other(actor), action);
+  }
+
+  /** Celui qui REGARDE quand `peer` joue — le réseau étant verrouillé en 1v1 (#944), il est unique. */
+  other(peer: OnlinePeer): OnlinePeer {
+    return peer === this.hostPeer ? this.guestPeer : this.hostPeer;
+  }
+
+  private static async actAndAwait(
+    observer: OnlinePeer,
+    action: () => Promise<void>,
+  ): Promise<void> {
     const before = (await observer.logTexts()).length;
-    await actor.scene.endTurn();
+    await action();
     await expect
       .poll(async () => (await observer.logTexts()).length, { timeout: 30_000 })
       .toBeGreaterThan(before);

@@ -21,8 +21,8 @@ Pour l'ouvrir : `node scripts/memory/query.mjs --open <entité>`. Ci-dessous l'e
 ## Ce qui vient
 
 > **Où on en est** : la **Phase 7 — Multijoueur** est la phase en cours (télémétrie, transport, salon
-> réseau, combat en réseau et robustesse livrés ; détection de désync restante). Les autres sections
-> ci-dessous sont ouvertes, dans un ordre qui n'est pas figé.
+> réseau, combat en réseau et robustesse livrés ; détection de désync codée, e2e et recette humaine
+> en cours). Les autres sections ci-dessous sont ouvertes, dans un ordre qui n'est pas figé.
 
 ### Post-Babylon — petits chantiers de rendu
 
@@ -119,8 +119,10 @@ La carte au centre, une palette de blocs + décorations sur le côté ; on pose 
 > un 1v1 complet se joue de bout en bout entre deux navigateurs, jusqu'à l'écran de victoire, sur le
 > service public de PeerJS. **Lot B3 (robustesse) livré le 2026-09-09** (plan 202) : chronomètre de
 > tour, chien de garde de connexion, reconnexion d'un pair (hôte compris) et abandon volontaire,
-> validés en recette humaine et par `code-reviewer`/`core-guardian`. `docs/plans/195` reste
-> `in-progress` : **B4 (détection de désync)** reste à faire.
+> validés en recette humaine et par `code-reviewer`/`core-guardian`. **Lot B4 (détection de désync)
+> codé le 2026-09-10** (plan 203) : somme de contrôle de l'état à chaque action, forfait sur
+> divergence, sans reconstruction. `docs/plans/195` reste `in-progress` : restent l'e2e à deux
+> contextes, le cahier de recette et la recette humaine du Lot B4.
 
 **Ce qui est déjà prêt** : replay et déterminisme verrouillés (plan 181), port de persistance (#751),
 hot-seat N joueurs avec `humanPlayerIds` (plan 188) — le tour distant se greffe là où le tour hot-seat
@@ -140,8 +142,8 @@ existe déjà.
       aucune partie menée jusqu'au bout, l'événement `battle_ended` reste non éprouvé — détail dans
       le graphe, entités `agenda` et `plan-196`
 - [ ] **Multijoueur réseau P2P** — lobby (`ScreenId` neuf), protocole d'actions, validation,
-      détection de désync (sérialisation canonique à écrire), chronomètre local auto-déclarant
-      (#864, #865), reconnexion par le chemin du plan 181. **Viser le 1v1**, retester le FFA à 12
+      détection de désync (sérialisation canonique livrée, plan 203), chronomètre local
+      auto-déclarant (#864, #865), reconnexion par le chemin du plan 181. **Viser le 1v1**, retester le FFA à 12
       ensuite. **Lot B1 (transport et salon) LIVRÉ le 2026-09-04** (plan 199, paquet
       `packages/network/`, décisions #895-912) : code de partie, écran `lobby`, salle d'attente,
       lancement accusé, trois graines partagées (combat/placement/IA). **Lot B2 (combat en réseau)
@@ -153,7 +155,9 @@ existe déjà.
       tour local auto-déclarant (60 s), chien de garde de connexion distinct (75 s puis 30 s),
       admission d'un revenant dans un salon verrouillé (hôte compris — asymétrie de qui compose
       corrigée par `scheduleHostRedial`), rattrapage du journal manqué, abandon volontaire propagé
-      aux deux pairs. Reste **B4** (checksum de désync)
+      aux deux pairs. **Lot B4 (somme de contrôle de désync) CODÉ le 2026-09-10** (plan 203) :
+      empreinte de `BattleState` à chaque action, forfait sur divergence sans reconstruction ;
+      restent l'e2e à deux contextes et la recette humaine
 - [x] **Écran de victoire enrichi** — sans dépendance réseau, garde sa place ici : même matière que
       l'événement `battle_ended` de la télémétrie (durée, tours, camp vainqueur). **LIVRÉ ET VALIDÉ
       (2026-09-03, plan 197)** : rangée de portraits de l'équipe du vainqueur (K.O. grisés) + « N tours ·

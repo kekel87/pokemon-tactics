@@ -149,7 +149,18 @@ const FAMILY_MATCHES: Readonly<Record<Family, (spec: string) => boolean>> = {
   mechanics: isMechanicsSpec,
   // « combat sans les mécaniques » : interface de combat, caméra, placement, scène, aperçu…
   combat: (spec) => spec.startsWith(`${COMBAT_GLOB}/`) && !isMechanicsSpec(spec),
-  online: (spec) => spec.endsWith("online-lobby.spec.ts"),
+  /*
+   * 🔴 **Tous** les specs du jeu en ligne, et pas seulement celui du salon.
+   *
+   * La famille ne nommait que `online-lobby.spec.ts`, qui était le seul spec en ligne quand elle a
+   * été écrite. Depuis, le Lot B3 a livré `online-resilience.spec.ts` et le Lot B4
+   * `online-determinism.spec.ts` — c'est-à-dire précisément les deux specs qui gardent ce qu'un
+   * changement sous `packages/network/` ou `packages/app/src/network/` peut casser, et ils n'étaient
+   * pas rejoués par le gate. Un filet qui ne se déclenche pas sur son propre sujet n'est pas un
+   * filet. Ils vivent tous dans `tests/dom/`, donc le préfixe suffit et le prochain n'aura rien à
+   * déclarer (relevé en écrivant le Lot B4).
+   */
+  online: (spec) => spec.startsWith("e2e/tests/dom/online-"),
   input: (spec) => INPUT_SPEC_NAMES.has(spec),
 };
 

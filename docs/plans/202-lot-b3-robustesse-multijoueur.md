@@ -1,11 +1,15 @@
 # Plan 202 — Lot B3 : robustesse du multijoueur
 
-> **Statut** : in-progress — **exécution terminée** : les 7 étapes sont codées, e2e écrit, cahier de
-> recette à jour, recette humaine et revue de code (`code-reviewer`, `core-guardian`) faites, tous
-> les correctifs appliqués (2026-09-09). Seule la mesure à la main du délai de libération d'adresse
-> du cloud PeerJS reste ouverte (backlog). Reste la **consignation au graphe** (décisions #963+, mise
-> à jour de `plan-202`) avant que ce fichier ne soit supprimé. Voir § Ce que l'implémentation a
-> corrigé et § Ce que la revue de code a trouvé.
+> **Statut** : done — les 7 étapes sont codées, e2e écrit, cahier de recette à jour, recette humaine
+> et revue de code (`code-reviewer`, `core-guardian`) faites, tous les correctifs appliqués
+> (2026-09-09). **Consignation au graphe FAITE** : décisions #946 à #967, entité `plan-202` avec son
+> § ÉTAT FINAL. Seule la mesure à la main du délai de libération d'adresse du cloud PeerJS reste
+> ouverte (`backlog-delai-liberation-peerjs-cloud`). Voir § Ce que l'implémentation a corrigé et
+> § Ce que la revue de code a trouvé.
+>
+> ⚠️ **Ce fichier est en attente de suppression** (méthode du plan 200 : le contenu d'un plan clos
+> vit dans le graphe). Statut soldé le 2026-09-10 ; la suppression demande l'accord de l'humain, et
+> n'a pas été faite d'office.
 > **Créé** : 2026-09-08
 > **Revu** : 2026-09-08 — `plan-reviewer`, `game-designer`, `best-practices`. Les retours des trois
 > sont intégrés ; ce qu'ils ont trouvé est consigné en bas de document (§ Ce que les revues ont

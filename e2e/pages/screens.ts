@@ -134,6 +134,24 @@ export class TeamSelectScreen {
       .getByRole("button", { name: "🎲 Aléatoire", exact: true })
       .click();
   }
+
+  /**
+   * Assigne une équipe SAUVEGARDÉE à un camp, par son identifiant — la ligne du sélecteur porte
+   * `data-team-id`, qui est l'identifiant et non le nom affiché (contrat de test de `TeamListItem`).
+   *
+   * Le pendant de {@link pickRandomTeam} pour un test qui a besoin de savoir CE QUI se bat : une
+   * équipe tirée au hasard donne six Pokemon inconnus, donc des attaques, des portées et des points
+   * de vie inconnus. Un scénario qui pilote un combat jusqu'à son terme a besoin de l'inverse.
+   * L'équipe est posée dans `localStorage` avant le boot (voir `OnlineSessionOptions.savedTeams`).
+   */
+  async pickSavedTeam(slotIndex: number, teamId: string): Promise<void> {
+    await this.teamButton(slotIndex).click();
+    await this.page
+      .getByRole("dialog")
+      .getByTestId("team-row")
+      .and(this.page.locator(`[data-team-id="${teamId}"]`))
+      .click();
+  }
 }
 
 export class SettingsScreen {

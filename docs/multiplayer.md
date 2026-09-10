@@ -3,9 +3,12 @@
 > Document de référence pour l'implémentation du multijoueur (Phase 7).
 > Écrit le 2026-04-06, **révisé le 2026-08-29** après une passe d'audit de faisabilité, puis
 > **corrigé le 2026-09-04 par le Lot B1, qui est le premier à avoir été implémenté**, puis
-> **corrigé le 2026-09-09 par le Lot B3, implémenté et validé en recette humaine**.
+> **corrigé le 2026-09-09 par le Lot B3, implémenté et validé en recette humaine**, puis
+> **corrigé le 2026-09-10 par le Lot B4 (détection de désync)** — codé, e2e et recette humaine
+> encore en cours (plan 203).
 > Décisions associées : #209-212 (fondations), #862-870 (révision), #895-912 (Lot B1),
-> #946-#962 (Lot B3, plan 202 — chrono, chien de garde, abandon, reconnexion).
+> #946-#967 (Lot B3, plan 202 — chrono, chien de garde, abandon, reconnexion),
+> #968+ (Lot B4, plan 203 — somme de contrôle, forfait sur divergence).
 
 ---
 
@@ -49,8 +52,10 @@ sections concernées ; les voici groupés, parce que plusieurs décisions d'aoû
 
 🔴 **La règle à retenir de tout ça** : `NETWORK_VERSION` (`packages/network/src/protocol.ts`)
 **s'incrémente à la main** dès que toucher au moteur, aux données de jeu ou au protocole peut faire
-diverger deux pairs. On l'oubliera au moins une fois ; le filet est la somme de contrôle du Lot B4,
-qui transformera l'oubli en erreur lisible au lieu d'un combat qui part en silence.
+diverger deux pairs. On l'oubliera au moins une fois ; le filet **existe désormais** : la somme de
+contrôle du Lot B4 (§ Détection de désync) transforme l'oubli en erreur lisible au lieu d'un combat
+qui part en silence — mais elle ne remplace pas la discipline d'incrémenter la version, elle ne
+fait que rattraper l'oubli une fois qu'il a eu lieu.
 
 **Deux pièges de déterminisme trouvés en écrivant**, tous deux corrigés :
 
@@ -253,8 +258,30 @@ de désync du pauvre (décision D3), qui dit « nous ne sommes pas au même poin
 une action au mauvais acteur. `forfeitedSeat` désigne la place éliminée, qui n'est pas celle de
 l'émetteur quand c'est un constat de divergence — et **`NETWORK_VERSION` est passée à 2**.
 
-**Ce qui reste à écrire** : `checksum` / `desync` (Lot B4), `rematch` et `chat` (hors V1). Le **nom de joueur a été écarté de la V1** (#906) : il revient avec le
-compte et le classement ; la salle d'attente affiche « Joueur 2 ».
+**Ce que le Lot B3 a ajouté** (plan 202) :
+
+```typescript
+  | { type: "resync_request"; seat: number; actionIndex: number }
+  | { type: "resync"; seat: number; fromIndex: number; actions: readonly Action[] }
+```
+
+Le message `action` gagne `timedOut?: true` (auto-déclaré par l'émetteur, décision #955). Le
+rattrapage d'un revenant : « j'en suis là, donne-moi la suite » / la queue du journal — et
+**`NETWORK_VERSION` est passée à 3**.
+
+**Ce que le Lot B4 a ajouté** (plan 203) :
+
+```typescript
+  | { type: "checksum"; seat: number; actionIndex: number; digest: string }
+```
+
+Une empreinte de l'état de combat (`battleStateChecksum`, `packages/core`), émise après chaque
+action complétée et une fois au lancement (`actionIndex` 0, après le placement). Comparée par pair
+et par ancrage ; à l'écart, `forfeitSeat(...)` avec `NetworkForfeitReason.EtatDivergent` — **et
+`NETWORK_VERSION` est passée à 4**. Détail : § Détection de désync.
+
+**Ce qui reste à écrire** : `rematch` et `chat` (hors V1). Le **nom de joueur a été écarté de la V1**
+(#906) : il revient avec le compte et le classement ; la salle d'attente affiche « Joueur 2 ».
 
 **Pas de message `timeout`** — c'est délibéré, voir § Chronomètre.
 
@@ -413,24 +440,51 @@ qui refuse délibérément des actions **légitimes** élimine donc l'autre à c
 n'étant pas authentifiable, il peut même le désigner directement. Sans effet dans le cadrage du jeu
 (§ Fog, #863) ; le recours serait du côté de la somme de contrôle du Lot B4.
 
-### Détection de désync
+### Détection de désync (Lot B4, plan 203, décisions #968+)
 
-Tous les N tours (ex: 5), les deux joueurs comparent un hash de leur `BattleState` :
+**Livré.** À **chaque action complétée** (`CHECKSUM_EVERY_N_ACTIONS = 1`), plus une empreinte au
+lancement (`actionIndex` 0, après le placement) : les deux pairs comparent un hash de leur
+`BattleState`.
 
 ```
-hash(BattleState) joueur A === hash(BattleState) joueur B ?
-  Oui → tout va bien
-  Non → désync détecté
-    → Reconstruction depuis le replay (seed + actions enregistrées)
-    → Si la reconstruction diverge aussi → bug dans le déterminisme, signaler
+battleStateChecksum(state) chez A === battleStateChecksum(state) chez B, au même actionIndex ?
+  Oui → rien ne se passe (ni message ni journal)
+  Non → forfeitSeat(..., NetworkForfeitReason.EtatDivergent) — « les parties ne concordent plus »
 ```
 
-⚠️ **Le hash n'est pas trivial** — l'audit a corrigé le document sur ce point. `BattleState` est de la
-donnée simple, mais il contient une `Map<string, PokemonInstance>`, des tableaux de zones, des champs
-optionnels et des flottants (`tile.height`). Il faut une **sérialisation canonique** : ordre des clés,
-ordre d'itération des Map, arrondi des flottants. Petit chantier réel, à ne pas sous-estimer.
+🔴 **Constat et forfait, rien de plus — pas de reconstruction depuis le replay.** Le document
+annonçait ici une reconstruction ; le plan-cadre 195 aussi. **Amendé en implémentant** : en 1v1,
+personne ne peut dire qui s'est écarté (#943), donc « réparer » voudrait dire adopter la version
+d'en face sans preuve, et le rattrapage du Lot B3 n'envoie de toute façon que la queue du journal
+(`fromIndex`), pas l'état complet. Le but — rendre l'écart **lisible** au lieu de silencieux — est
+servi sans reconstruction.
 
-La **reconstruction**, elle, est bien triviale : c'est exactement ce que fait le plan 181.
+**Sérialisation canonique** (`packages/core/src/battle/state-checksum.ts`, pur, générique et
+récursif — jamais une projection énumérée des ~100 champs de `PokemonInstance`) : clés d'objet
+triées par point de code, clés à valeur `undefined` omises (charnière : `handleKo` remet une
+vingtaine de champs à `undefined` plutôt que de les supprimer), `Map` triée par clé et émise en
+liste de paires, **tableaux non triés** (leur ordre est sémantique — `fieldTerrains`, `statusEffects`,
+`auras`), flottants quantifiés à un nombre fixe de décimales, `-0` normalisé en `0`, `NaN`/`Infinity`
+levés comme erreur. Toute la grille est incluse, `height`/`terrain` compris. Hachage **non
+cryptographique** (FNV-1a 64 bits) : détecte la divergence accidentelle, ne résiste à aucune
+contrefaçon — cohérent avec #943, rien n'étant authentifié de toute façon. Coût mesuré :
+**0,299 ms** par empreinte sur `simple-arena` (12×20 = 240 tuiles, 4 Pokémon), pour un texte
+canonique de 25 330 caractères. La plus grande carte du roster (`le-mur`, 16×16) n'est qu'à ×1,1, et
+le réseau étant en 1v1 il n'y a jamais plus de 4 Pokémon : la cadence de 1 action est confirmée par
+le chiffre, pas par l'intuition (#969).
+
+🔴 **Ce n'est pas un anti-triche, et la cadence n'y change rien.** Rien ne lie l'empreinte émise à
+l'état réellement détenu — un client modifié fait tourner un état honnête à côté et émet l'empreinte
+honnête. Ce qui empêche de tricher reste la validation d'actions (#211, Lot B2). Le seul gain
+contre un menteur : un constat de divergence **fabriqué** alors que les empreintes concordent
+devient contredisable (nuance à #943).
+
+Deux compteurs de télémétrie, et il en faut bien deux (#976) : `checksum-mismatch`, distinct de
+`forfeit-diverged` — leur **écart** dit combien de forfaits pour divergence viennent d'actions
+refusées plutôt que d'une désync d'état muette ; et `checksum-compared`, compté une fois par combat
+où au moins deux empreintes ont été confrontées. Ce dernier est le **dénominateur** : sans lui, un
+`checksum-mismatch` à zéro serait indiscernable de « aucune comparaison n'a jamais eu lieu », et le
+seul chiffre censé mesurer le déterminisme ne prouverait rien.
 
 ---
 
@@ -800,10 +854,16 @@ packages/network/src/
   transport.ts           LIVRÉ — le contrat commun + la prise d'identifiant à réessais
   peer-connection.ts     LIVRÉ — la mise en œuvre PeerJS
   fake-transport.ts      LIVRÉ — canal en mémoire : c'est lui qui rend le salon testable sans réseau
-  room.ts                LIVRÉ — état de salon, arrivées, départs, lancement accusé
-  network-controller.ts  Lot B2 — orchestre le tour réseau (attend l'action distante)
-  checksum.ts            Lot B4 — sérialisation canonique + hash du BattleState
+  room.ts                LIVRÉ — état de salon, arrivées, départs, lancement accusé,
+                         routage action/forfeit/checksum/resync (B2, B3, B4 — pas de
+                         `network-controller.ts` séparé, ce fichier suffit)
 ```
+
+🔴 **`checksum.ts` ne vit pas ici.** Le plan-cadre 195 le plaçait dans ce paquet ; **amendé en
+implémentant le Lot B4** (plan 203) : la sérialisation canonique et le hash du `BattleState`
+vivent dans `packages/core/src/battle/state-checksum.ts`. Motif : c'est un module **pur qui connaît
+la forme de l'état de combat** — sa place est auprès de l'état, pas du transport. Le salon ne gagne
+qu'un type de message, un envoi, un rappel et une branche de routage (une trentaine de lignes).
 
 Le **canal en mémoire n'est pas un artifice de test** : c'est lui qui permet de faire tourner deux
 salons — ou douze — dans le même processus, donc de couvrir l'allocation concurrente, les départs et
