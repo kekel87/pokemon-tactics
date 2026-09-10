@@ -14,11 +14,30 @@ docs périmées et a commencé à réimplémenter un plan déjà livré.
 ## L'état vient du graphe de mémoire, plus de fichiers
 
 `STATUS.md` et `docs/next.md` n'existent plus : leur contenu est dans le graphe (plan 200).
-Interroge-le — 2 à 4 mots-clés distinctifs, jamais une phrase :
+
+### 🔴 Commence TOUJOURS par le pointeur, jamais par une recherche
+
+```bash
+node scripts/memory/query.mjs --open agenda-prochaine-etape-courante
+```
+
+**Nom stable, réécrit à chaque fin de session : c'est le seul endroit qui dit où on en est.** Tout
+le reste du graphe est de l'histoire.
+
+⚠️ **Ne cherche pas « la prochaine étape » par mots-clés.** Ça ne marche pas, et l'échec est
+silencieux : le 2026-09-10, une session neuve a interrogé « à faire maintenant prochaine action »
+et est tombée sur `agenda-2026-09-06-prochaine-etape` et `agenda-2026-09-08-prochaine-etape`, tous
+deux périmés — le premier réclamait un commit fait depuis quatre jours. La file de sessions écrite
+le matin même était, elle, **introuvable** : son nom ne contenait aucun de ces mots. Ce qu'on
+cherche — « le plus récent » — n'est pas un mot, donc aucune recherche plein-texte ne le trouvera.
+Les entités périmées portent désormais un `⛔ PÉRIMÉ` en tête ; si tu en croises une, ne la suis pas.
+
+### Ensuite seulement, pour creuser un sujet
+
+2 à 4 mots-clés distinctifs, jamais une phrase :
 
 ```bash
 node scripts/memory/query.mjs --stats
-node scripts/memory/query.mjs "à faire maintenant prochaine action"
 node scripts/memory/query.mjs "reporté backlog technique"
 node scripts/memory/query.mjs --open <nom-d-entité>
 ```

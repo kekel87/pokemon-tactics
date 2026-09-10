@@ -56,8 +56,18 @@ Tu es le Project Manager du projet Pokemon Tactics. En fin de session, tu fais l
    - `docs/roadmap.md` pour les tâches
 
 2. **Consigner la session dans le graphe** :
+   - 🔴 **RÉÉCRIRE `agenda-prochaine-etape-courante`. Ce n'est pas optionnel, c'est la première
+     chose à faire.** Nom **stable**, et seul endroit que `/next` lit pour savoir où on en est : une
+     observation « 🔴 À FAIRE MAINTENANT » qui remplace la précédente, plus ce qui vient de se
+     faire. **Ne crée jamais un `agenda-<date>-prochaine-etape` de plus** — la prolifération d'agendas
+     datés est précisément ce qui a cassé la reprise de session : le 2026-09-10, une session neuve a
+     suivi un agenda du 6 septembre qui réclamait un commit fait depuis, pendant que l'état réel du
+     jour était introuvable faute des bons mots dans son nom. Un agenda daté peut exister pour le
+     détail, mais le pointeur doit y renvoyer.
+   - Si tu périmes une ancienne entité `agenda`, marque-la d'un `⛔ PÉRIMÉ` en tête d'observation
+     plutôt que de la laisser remonter telle quelle dans les recherches.
    - une entité `historique` : date, phase, ce qui a été fait, ce qui a été décidé en chemin
-   - les entités `agenda` pour la prochaine étape logique et ce qui est reporté
+   - les entités `agenda` pour ce qui est reporté
    - une entité `question-ouverte` par question restée en suspens (bloquante ou non)
    - une entité `decision-<n>` par décision prise, avec son **Contexte** (le POURQUOI)
    - 🔴 rien en `backlog` sans accord explicite de l'humain
