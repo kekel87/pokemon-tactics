@@ -97,7 +97,9 @@
   }
 
   .ct-cell {
-    min-block-size: clamp(28px, 2.8vmin, 58px);
+    /* Le bas du clamp EST le plancher tactile : 2.8vmin ne vaut que 9 px en paysage téléphone, donc
+       c'est le minimum qui décide, et il valait 28 px — deux de moins que le plancher (plan 206). */
+    min-block-size: clamp(var(--target-min), 2.8vmin, 58px);
     padding: var(--spacing-xs);
     border: 1px solid var(--color-border-surface);
     border-radius: var(--radius-sm);

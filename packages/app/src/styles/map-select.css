@@ -61,6 +61,9 @@
 
   .ms-list-item {
     inline-size: 100%;
+    /* La liste des cartes défile dans une colonne étroite : ses lignes se resserraient jusqu'à
+       20,8 px en paysage téléphone, le pire écart mesuré du jeu (plan 206). */
+    min-block-size: var(--target-min);
     padding: var(--pad-control-y) var(--pad-control-x);
     text-align: start;
     font-size: clamp(16px, 1.8vmin, 30px);

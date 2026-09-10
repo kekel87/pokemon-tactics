@@ -195,9 +195,29 @@
   --pad-chip-y: 6px;
   --pad-chip-x: 14px;
 
-  /* Tailles cibles tactiles */
+  /* Tailles cibles tactiles — plancher relevé à 30px sous `pointer: coarse`, voir la règle sous
+     ce bloc. */
   --target-min: 24px;
   --target-recommended: 44px;
+
+  /*
+   * Recalage optique du glyphe « × » dans un bouton de fermeture carré. Consommé par
+   * `.tb-slot-card-clear` (slot-card.css) et `.tb-modal-close` (ui-dom/modal.css) : la valeur vit
+   * ICI, en un seul exemplaire, parce que sa démonstration ne tient pas dans deux paquets.
+   *
+   * Le « × » de `PokemonEmeraldPro` se pose HAUT dans son cadratin — mesuré, son encre déborde de
+   * 0,0417 em sous le centre de la boîte de ligne (elle s'arrête au-dessus de la ligne de base, sa
+   * « descente » est négative). `align-items: center` centre la LIGNE, pas le dessin : l'écart
+   * survit au centrage.
+   *
+   * Un `translateY` ne le corrige PAS — il emporte le bouton avec son contenu, donc l'écart reste
+   * et c'est le carré qui se décale. Un padding bas, lui, rogne la boîte de contenu et le contenu
+   * centré remonte de la MOITIÉ : d'où le double, 0,083 em. Le carré, en `border-box`, ne bouge pas.
+   *
+   * ⚠️ Dépend d'un `line-height: 1` sur le bouton : le changer change le demi-interligne, donc
+   * l'écart, donc cette valeur.
+   */
+  --glyph-cross-nudge: 0.083em;
 
   /* Radius */
   --radius-sm: 4px;
@@ -219,4 +239,41 @@
   /* Durées animation */
   --duration-fast: 0.15s;
   --duration-base: 0.3s;
+}
+
+/*
+ * Plancher tactile — LE réglage unique du projet (plan 206).
+ *
+ * Au doigt, la cible minimale passe de 24 à 30 px. La valeur vient du plan 179 §E, arbitrée sur
+ * téléphone réel : 44 px (recommandation Apple/Material) puis 36 px ont tous deux été jugés trop
+ * hauts par l'humain (2026-08-06) ; 30 px est ce qui allait, et reste au-dessus du *minimum* de
+ * 24 px de WCAG 2.2 SC 2.5.8.
+ *
+ * Elle a d'abord été posée localement sur la barre de combat, avec pour raison écrite que la
+ * relever ici « redimensionnerait aussi tous les boutons du constructeur d'équipe au doigt ». C'est
+ * exactement ce qu'on assume : la mesure du plan 206 a montré que le plancher n'était tenu NULLE
+ * PART ailleurs (jusqu'à 20,8 px sur la liste des cartes, 19 px sur les cases du pied de l'écran de
+ * sélection d'équipe, 16 px sur les curseurs d'EV). Un plancher qui ne vaut que sur un écran n'est
+ * pas un plancher.
+ *
+ * Hors de tout `@layer`, comme le `:root` ci-dessus : les deux se répondent au même niveau de
+ * cascade, le second gagne par l'ordre.
+ */
+@media (pointer: coarse) {
+  :root {
+    --target-min: 30px;
+
+    /*
+     * Taille du glyphe « × » des boutons de fermeture, au doigt. Consommée par
+     * `.tb-slot-card-clear` (slot-card.css) et `.tb-modal-close` (ui-dom/modal.css) — d'où sa place
+     * ici plutôt que dans l'un des deux.
+     *
+     * ⚠️ Le facteur porte sur l'ENCRE, pas sur la boîte : le « × » de `PokemonEmeraldPro` ne
+     * dessine qu'un tiers de son cadratin, donc ×1,1 sur le plancher rend ~11 px d'encre dans un
+     * carré de 30. Conséquence à connaître avant d'y toucher : la boîte de LIGNE, elle, dépasse le
+     * carré du bouton d'environ 3 px. Ça ne se voit que parce que l'encre est minuscule — remplacer
+     * le glyphe par un dessin qui remplit son cadratin déborderait.
+     */
+    --glyph-cross-size: calc(var(--target-min) * 1.1);
+  }
 }

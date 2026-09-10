@@ -77,11 +77,15 @@
     top: var(--spacing-xs);
     right: var(--spacing-xs);
     display: inline-flex;
-    align-items: baseline;
+    /* `center` et non `baseline` : la ligne de base collait la croix vers le bas de son carré, ce
+       qui ne se voyait pas tant que le carré serrait le glyphe et qui saute aux yeux depuis que le
+       plancher tactile l'agrandit (retour de recette, plan 206). */
+    align-items: center;
     justify-content: center;
-    width: var(--tb-clear-size, 28px);
-    height: var(--tb-clear-size, 28px);
-    padding: 0;
+    /* `--tb-clear-size` descend à 22 px sur écran étroit ; le plancher tactile reprend la main au
+       doigt, et sur pointeur fin il vaut 24 px, donc la taille resserrée gagne (plan 206). */
+    width: max(var(--tb-clear-size, 28px), var(--target-min));
+    height: max(var(--tb-clear-size, 28px), var(--target-min));
     cursor: pointer;
     border-radius: var(--radius-sm);
     background: rgb(0 0 0 / 0.3);
@@ -89,7 +93,20 @@
     color: var(--red-400);
     font-size: var(--tb-clear-font, 24px);
     line-height: 1;
+    /* Recalage du DESSIN dans le carré, `align-items: center` ne centrant que la boîte de ligne
+       (retour de recette, plan 206). Démonstration complète sur `--glyph-cross-nudge`, tokens.css. */
+    padding: 0;
+    padding-block-end: var(--glyph-cross-nudge);
     &[hidden] { display: none; }
     &:hover { background: rgb(255 0 0 / 0.3); }
+  }
+
+  /* Au doigt le carré passe à 30 px (plancher tactile) et 8 px d'encre s'y perdaient — « un chouille
+     plus gros », retour de recette. Sous `pointer: coarse` uniquement : à la souris le carré n'a
+     pas bougé, son glyphe non plus. */
+  @media (pointer: coarse) {
+    .tb-slot-card-clear {
+      font-size: var(--glyph-cross-size);
+    }
   }
 }

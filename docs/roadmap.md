@@ -25,10 +25,12 @@ Pour l'ouvrir : `node scripts/memory/query.mjs --open <entité>`. Ci-dessous l'e
 > dédiées suit la clôture avant d'ouvrir la Phase 8 — entité `agenda-2026-09-10-file-de-sessions-dediees` :
 > session 1 (plan 204, télémétrie des parties en ligne), session 2 (sélecteur e2e
 > `scripts/e2e-affected.ts` — cadrage `--since-main` au lieu de `HEAD`, garde contre une famille de
-> specs muette) et session 3 (plan 205, le retour du navigateur remonte d'un écran au lieu de quitter
-> le jeu — solde `backlog-retour-navigateur-non-gere`) **faites**, session 4 (passe tactile globale du
-> plancher de 30 px) à venir. Les autres sections ci-dessous sont ouvertes, dans un ordre qui n'est
-> pas figé.
+> specs muette), session 3 (plan 205, le retour du navigateur remonte d'un écran au lieu de quitter
+> le jeu — solde `backlog-retour-navigateur-non-gere`) et session 4 (plan 206, passe tactile globale
+> du plancher de 30 px — `--target-min` devient un réglage unique dans `tokens.css`, solde les
+> segments de format et les cases du pied de la sélection d'équipe) **faites**, session 5 (cadrage du
+> lobby et de l'écran « partie introuvable ») à venir. Les autres sections ci-dessous sont ouvertes,
+> dans un ordre qui n'est pas figé.
 
 ### Post-Babylon — petits chantiers de rendu
 

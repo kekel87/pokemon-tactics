@@ -38,3 +38,5 @@ Les seuls sur lesquels on travaille.
 | 202 | [Plan 202 — Lot B3 : robustesse du multijoueur](./202-lot-b3-robustesse-multijoueur.md) | done |
 | 203 | [Plan 203 — Lot B4 : détection de désynchronisation](./203-lot-b4-detection-desync.md) | done |
 | 204 | [Plan 204 — Télémétrie : une partie en ligne compte pour une](./204-telemetrie-parties-en-ligne.md) | done |
+| 205 | [Plan 205 — Le retour du navigateur remonte d'un écran](./205-retour-navigateur.md) | done |
+| 206 | [Plan 206 — Passe tactile : le plancher de 30 px tenu partout](./206-passe-tactile-plancher-30px.md) | done |

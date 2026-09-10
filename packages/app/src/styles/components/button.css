@@ -5,6 +5,11 @@
     justify-content: center;
     gap: var(--spacing-xs);
     font-size: inherit;
+    /* Le plancher tactile vaut dans les DEUX sens : un bouton à libellé d'un caractère (le « D » de
+       remise à zéro d'une ligne d'EV) tombait à 25 px de large pour 30 px de haut, donc sous le
+       plancher par la largeur (plan 206). La variante `icon` posait déjà ce `min-width` ; c'est le
+       même besoin, pas une exception. */
+    min-width: var(--target-min);
     min-height: var(--target-min);
     padding: var(--pad-control-y) var(--pad-control-x);
     background: var(--color-btn-bg);
@@ -36,7 +41,6 @@
     }
     &[data-variant="icon"] {
       padding: var(--pad-icon-btn);
-      min-width: var(--target-min);
       background: transparent;
       border-color: transparent;
       color: var(--color-text-muted);

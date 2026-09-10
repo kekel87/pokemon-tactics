@@ -56,11 +56,16 @@
     }
     .tb-modal-close {
       display: inline-flex;
-      align-items: baseline;
+      /* `center` et non `baseline`, même correctif que `.tb-slot-card-clear` : la ligne de base
+         posait la croix vers le bas de son carré (retour de recette, plan 206). */
+      align-items: center;
       justify-content: center;
       width: 36px;
       height: 36px;
+      /* Recalage du DESSIN dans le carré, `align-items: center` ne centrant que la boîte de ligne.
+         Démonstration complète sur `--glyph-cross-nudge`, tokens.css (plan 206). */
       padding: 0;
+      padding-block-end: var(--glyph-cross-nudge);
       background: transparent;
       border: none;
       cursor: pointer;
@@ -101,10 +106,17 @@
       --pad-chip-x: 9px;
     }
 
+    /* La croix se resserre avec le reste de l'en-tête sur écran étroit, mais pas sous le plancher
+       tactile — `--target-min` vaut 24 px à la souris (28 px gagne) et 30 px au doigt (plan 206). */
     .tb-modal-header .tb-modal-close {
-      width: 28px;
-      height: 28px;
+      width: max(28px, var(--target-min));
+      height: max(28px, var(--target-min));
       font-size: 22px;
+      /* Au doigt le carré passe à 30 px et 7 px d'encre s'y perdaient — même retour de recette et
+         même token que `.tb-slot-card-clear`. */
+      @media (pointer: coarse) {
+        font-size: var(--glyph-cross-size);
+      }
     }
   }
 

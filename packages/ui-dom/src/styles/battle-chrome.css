@@ -111,18 +111,6 @@
     --bc-gap-xs: calc(6px * var(--ui-scale));
     --bc-gap-sm: calc(9px * var(--ui-scale));
     line-height: var(--line-height-base);
-
-    /*
-     * Touch floor (plan 179 §E). `.tb-btn` carries `min-height: var(--target-min)` (24px); on a
-     * coarse pointer the combat menu rows get a taller floor. 44px (the Apple/Material
-     * recommendation) then 36px both read as too tall on a real phone (human, 2026-08-06); 30px is
-     * the value that looked right there, still above the 24px WCAG 2.2 SC 2.5.8 *minimum*. Scoped
-     * to the combat chrome on purpose — raising `--target-min` in `tokens.css` would also resize
-     * every Team Builder button on touch.
-     */
-    @media (pointer: coarse) {
-      --target-min: 30px;
-    }
   }
 
   /* Top-centre stack: turn banner + weather HUD beneath it. */

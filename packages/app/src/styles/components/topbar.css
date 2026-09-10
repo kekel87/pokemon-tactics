@@ -34,6 +34,9 @@
     border-radius: var(--radius-sm);
     padding: var(--pad-control-y) var(--pad-control-x);
     width: var(--tb-name-input-w, 320px);
+    /* Même plancher que `.tb-picker-search`, qui le porte déjà : un champ de saisie se tape comme
+       un bouton (plan 206). */
+    min-block-size: var(--target-min);
   }
 
   .tb-topbar-count {

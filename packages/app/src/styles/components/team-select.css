@@ -418,6 +418,14 @@
     font-size: var(--font-size-sm);
   }
 
+  /* Le `<label>` enveloppe la case ET son texte, donc c'est LUI qu'on tape — et lui qu'on mesure
+     (`.claude/rules/multi-input.md`). Sans plancher il retombait sur la hauteur de ligne du texte :
+     19 px en paysage téléphone, 23 px en 4K, pour une case native de 13 px. `.ts-footer-turn` est
+     du texte, pas un contrôle : il reste hors de cette règle. */
+  .ts-footer-toggle {
+    min-block-size: var(--target-min);
+  }
+
   /* — Salle d'attente en ligne (plan 199) ————————————————————————————————————— */
 
   .ts-footer-error {

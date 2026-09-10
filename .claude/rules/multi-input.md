@@ -60,9 +60,15 @@ faire tester un écran injoignable au pad. Voir `CLAUDE.md` § « Après impl »
 - **Plancher de 30 px sur la hit-area sous `pointer: coarse`** (rappelé par `html.md`), arbitré sur
   téléphone réel au plan 179. La hit-area, pas le rendu : un `<label>` qui enveloppe une case et son
   texte est tapable en entier, donc c'est **le label** qu'on mesure, pas la case.
-- ⚠️ **Une case à cocher native fait 13 px** et son label une vingtaine — sous le plancher. C'est un
-  écart connu et non résolu du pied de l'écran de sélection d'équipe (graphe, entités `backlog`) : ne pas
-  en ajouter d'autres sans le poser à l'humain.
+- **Une case à cocher native fait 13 px** : c'est le `<label>` qui enveloppe la case et son texte
+  qu'on mesure, pas la case seule — il est tapable en entier.
+- Le plancher est un **réglage unique** : `--target-min` (`packages/app/src/styles/tokens.css`),
+  24 px par défaut, relevé à 30 px sous `pointer: coarse` **depuis la racine** (plan 206). Tout
+  contrôle câblé dessus (`min-height`/`min-width`/`min-block-size: var(--target-min)`, ou
+  `max(<taille propre>, var(--target-min))` quand une variable locale peut descendre plus bas) en
+  hérite automatiquement — pas de relèvement local à écrire écran par écran. Un garde-fou e2e le
+  vérifie : `e2e/tests/dom/touch-targets.spec.ts` (§6.10, écrans de menu) et
+  `e2e/tests/combat/responsive-chrome.spec.ts` §4.16 (combat et placement).
 - Vérifier qu'un geste ne demande pas de survol : il n'y a pas de `:hover` au doigt.
 
 ## 4. Responsive

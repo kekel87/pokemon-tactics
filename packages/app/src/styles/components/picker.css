@@ -123,6 +123,10 @@
     align-items: center;
     gap: var(--spacing-md);
     padding: var(--pad-control-y) var(--pad-control-x);
+    /* Lignes des sélecteurs de nature, d'objet et de capacité : elles se resserraient à 26,5 px en
+       paysage téléphone, alors que `.tb-pokemon-cell` et `.tb-filter-chip`, du même écran,
+       tenaient déjà le plancher (plan 206). */
+    min-block-size: var(--target-min);
     background: var(--color-bg-elevated);
     border: 1px solid var(--color-border-surface);
     border-radius: var(--radius-sm);

@@ -90,8 +90,9 @@
      */
     @media (pointer: coarse) {
       /* 44px puis 36px lisaient trop haut sur un vrai téléphone (humain, 2026-08-06) — aligné sur
-         le plancher du menu d'action (`--target-min: 30px`) pour que les deux s'accordent. */
-      --bl-header-size: max(30px, calc(35.2px * var(--ui-scale)));
+         le plancher tactile du projet (`--target-min`, relevé à 30px ici par `tokens.css`) pour que
+         les deux s'accordent, et pour qu'un seul réglage les déplace tous les deux (plan 206). */
+      --bl-header-size: max(var(--target-min), calc(35.2px * var(--ui-scale)));
     }
   }
 

@@ -92,6 +92,9 @@
       align-items: center;
       gap: var(--spacing-sm);
       padding: var(--spacing-xs) 0;
+      /* Comme les cases du pied de l'écran de sélection d'équipe : c'est le `<label>` qu'on tape,
+         et il plafonnait à la hauteur de ligne du texte (plan 206). */
+      min-block-size: var(--target-min);
       cursor: pointer;
       color: var(--color-text-secondary);
       input { accent-color: var(--color-accent); }
@@ -108,6 +111,9 @@
     appearance: none;
     text-align: left;
     width: 100%;
+    /* Ce sont des `<button>` qui n'héritent pas de `.tb-btn` : le plancher tactile leur manquait
+       (26,5 px mesurés en paysage téléphone, plan 206). */
+    min-block-size: var(--target-min);
   }
 
   .tb-input-clickable {

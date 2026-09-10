@@ -132,14 +132,6 @@
       --pad-control-x: 9px;
     }
 
-    /* Terminer le placement est une action tactile primaire : même plancher que les lignes du menu
-       de combat, sinon elle resterait au minimum de 24px. */
-    @media (pointer: coarse) {
-      .pl-roster {
-        --target-min: 30px;
-      }
-    }
-
     .pl-roster-portrait {
       width: 36px;
       height: 36px;

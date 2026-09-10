@@ -792,7 +792,9 @@ Les couleurs de type sont extraites du pixel dominant des icônes `assets/ui/typ
 | `--pad-control-*` | Padding des contrôles interactifs (inputs, selects, boutons textuels) |
 | `--pad-chip-*` | Padding des chips/badges (badges types, tags items) |
 | `--pad-icon-btn` | Padding uniform des boutons icônes (×, close) |
-| `--target-min: 24px` | Taille tactile minimale (jouabilité au pouce, pas conformité WCAG — décision #752) — appliquée à tous les boutons icônes, plancher relevé à 30px sous `pointer: coarse` sur le chrome de combat et la barre de placement (plan 179, décision #735) |
+| `--target-min: 24px` | Taille tactile minimale (jouabilité au pouce, pas conformité WCAG — décision #752) — appliquée à tous les boutons icônes ; plancher relevé à 30px sous `pointer: coarse` **depuis `:root`**, un seul réglage pour tout le DOM (plan 206). Auparavant relevé localement sur le seul chrome de combat et la barre de placement (plan 179, décision #735) : la mesure du plan 206 a montré que le plancher n'était tenu nulle part ailleurs, le relèvement local a été retiré |
+| `--glyph-cross-nudge: 0.083em` | Recalage optique du glyphe « × » dans un bouton de fermeture carré (`.tb-slot-card-clear`, `.tb-modal-close`) : `align-items: center` centre la boîte de ligne, pas l'encre du glyphe (qui déborde au-dessus du centre dans `PokemonEmeraldPro`). Un padding bas de moitié la corrige ; `translateY` ne marche pas, il décale tout le carré. Dépend de `line-height: 1` (plan 206) |
+| `--glyph-cross-size` | Taille du glyphe « × », `calc(var(--target-min) * 1.1)` sous `pointer: coarse` seulement — le facteur porte sur l'encre (qui ne remplit qu'un tiers du cadratin), pas sur la boîte (plan 206) |
 
 ### Couleurs stats (barres stats Team Builder)
 

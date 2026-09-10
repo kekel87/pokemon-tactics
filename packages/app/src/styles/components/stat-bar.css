@@ -42,6 +42,10 @@
     input[type="range"] {
       width: 100%;
       accent-color: var(--color-accent);
+      /* 16 px de haut au doigt, le pire contrôle du jeu à saisir (plan 206) : c'est la BOÎTE du
+         curseur qu'on agrandit, pas le rail dessiné — la piste reste fine, la zone qui reçoit le
+         geste couvre le plancher. */
+      min-block-size: var(--target-min);
     }
     .tb-sp-value { color: var(--color-text-primary); text-align: right; }
   }
