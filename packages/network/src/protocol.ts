@@ -34,7 +34,7 @@ import {
  * Le filet du jour où on oubliera est la somme de contrôle d'état du Lot B4 : la divergence devient
  * une erreur lisible au lieu d'un combat qui part en silence.
  */
-export const NETWORK_VERSION = 4;
+export const NETWORK_VERSION = 5;
 
 /**
  * Durée d'un tour en ligne (plan 202, Lot B3, décision #946).
@@ -224,6 +224,18 @@ export interface StartMessage {
   options: NetworkRoomOptions;
   seeds: NetworkSeeds;
   seats: readonly StartSeat[];
+  /**
+   * Identifiant de la partie, tiré par l'hôte (plan 204).
+   *
+   * 🔴 **Opaque pour ce paquet** : `network` le transporte sans jamais le lire. Il sert à la
+   * télémétrie, qui compte une partie par identifiant — les deux pairs émettent chacun leurs
+   * événements, et sans identifiant commun une partie en ligne comptait pour deux dans TOUS les
+   * agrégats par partie (parties, cartes, formats, durées, taux d'abandon).
+   *
+   * Champ propre et non quatrième membre de `NetworkSeeds` : celui-ci est un triplet de graines
+   * aléatoires, et y glisser une chaîne casserait son sens comme sa validation.
+   */
+  battleId: string;
 }
 
 export interface StartSeat {
@@ -562,6 +574,10 @@ const MESSAGE_VALIDATORS = {
   start: (message) =>
     isRoomOptions(message.options) &&
     isSeeds(message.seeds) &&
+    // Non vide : une chaîne vide passerait le typage et rendrait toutes les parties d'un pair
+    // indiscernables les unes des autres à l'agrégation (plan 204).
+    typeof message.battleId === "string" &&
+    message.battleId.length > 0 &&
     isNonEmptyArrayOf(message.seats, isStartSeat) &&
     // 🔴 Places 1..N, croissantes et sans trou. `composeStartSeats` le garantit déjà, mais rien ne le
     // VÉRIFIAIT — et tout l'aval en dépend : l'écran de combat mappe `start.seats` par INDEX sur

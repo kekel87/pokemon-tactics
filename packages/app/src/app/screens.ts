@@ -91,6 +91,17 @@ export interface CombatSetup {
    * Absent en local, comme `localSeat`.
    */
   roomCode?: string;
+  /**
+   * L'identifiant de partie de la télémétrie, tiré par l'HÔTE et reçu dans le `start` (plan 204).
+   *
+   * 🔴 Il est ici, et pas tiré à l'ouverture de la télémétrie comme en local, parce que les deux
+   * pairs émettent chacun leur `battle_started` et leur `battle_ended`. Sans identifiant commun,
+   * rien à la lecture ne dit que ces lignes sont la même partie : une partie en ligne comptait
+   * pour deux dans les parties, les cartes, les formats, les durées et le taux d'abandon.
+   *
+   * Absent en local, où un seul client déclare la partie et tire donc son identifiant lui-même.
+   */
+  battleId?: string;
 }
 
 /** Params passed to each screen's mount(). Extended as plan 120 steps land. */

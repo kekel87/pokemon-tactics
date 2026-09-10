@@ -612,6 +612,9 @@ export class Room {
   /**
    * L'hôte grave la partie et la diffuse (étape 6).
    *
+   * `battleId` est un identifiant **opaque** que l'appelant tire et que le `start` transporte pour
+   * que les deux pairs désignent la même partie (plan 204). Ce paquet ne le lit jamais.
+   *
    * 🔴 **Le lancement est accusé** (décision #903). Sans accusé, un pair qui manque le `start` reste
    * sur l'écran d'équipe pendant que les autres jouent, et **aucun moment n'existe** où quelqu'un
    * s'en aperçoit : il attend un tour qui n'arrivera jamais.
@@ -624,7 +627,7 @@ export class Room {
    * à la salle d'attente ; c'est le prix d'un protocole sans troisième message, et ça n'arrive que
    * quand un pair a réellement disparu au pire moment.
    */
-  async launch(seeds: NetworkSeeds): Promise<void> {
+  async launch(seeds: NetworkSeeds, battleId: string): Promise<void> {
     this.assertHost();
     if (this.left || this.locked) {
       return;
@@ -640,6 +643,7 @@ export class Room {
       options: this.roomOptions,
       seeds,
       seats: this.composeStartSeats(),
+      battleId,
     };
 
     const awaitedSeats = [...this.channels.keys()];

@@ -84,6 +84,28 @@ export class BattleResumeStore {
     return (await this.read())?.actionCount ?? -1;
   }
 
+  /**
+   * L'identifiant de partie de la télémétrie porté par le setup sauvegardé (plan 204), ou `null`
+   * quand il n'y en a pas — donc en local, et poll-friendly (ne lève jamais).
+   *
+   * 🔴 **Le seul signal observable de l'extérieur pour cet identifiant**, et il vaut d'expliquer
+   * pourquoi on lit une sauvegarde plutôt qu'un événement. La télémétrie est MUETTE hors des hôtes
+   * de publication (`platformPrefix()` rend `null` sur `localhost`), donc aucune requête ne part
+   * sous Playwright — par construction, et c'est très bien ainsi : une suite e2e n'écrit pas une
+   * ligne en production. Le hook de scène, lui, ne décrit que des meshes. Reste la sauvegarde de
+   * reprise, qui sérialise le `CombatSetup` **entier** : l'identifiant reçu dans le `start` y figure
+   * donc tel quel, sur chacun des deux pairs.
+   */
+  async battleId(): Promise<string | null> {
+    const stored = await this.raw();
+    if (stored === null) {
+      return null;
+    }
+    const parsed = JSON.parse(stored) as { setup?: { battleId?: unknown } };
+    const battleId = parsed.setup?.battleId;
+    return typeof battleId === "string" ? battleId : null;
+  }
+
   raw(): Promise<string | null> {
     return this.page.evaluate((key) => localStorage.getItem(key), BattleResumeStore.KEY);
   }

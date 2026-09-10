@@ -46,6 +46,7 @@ const VALID_MESSAGES: Record<NetworkMessageType, object> = {
     options: OPTIONS,
     seeds: SEEDS,
     seats: [{ seat: 1, controller: "human", selection: SELECTION }],
+    battleId: "b47f2c19",
   },
   start_ack: { type: "start_ack", seat: 2 },
   bye: { type: "bye", seat: 2 },
@@ -386,5 +387,27 @@ describe("isNetworkMessage — rattrapage (plan 202)", () => {
     expect(isNetworkMessage({ ...base, timedOut: true })).toBe(true);
     expect(isNetworkMessage({ ...base, timedOut: false })).toBe(false);
     expect(isNetworkMessage({ ...base, timedOut: "oui" })).toBe(false);
+  });
+});
+
+describe("identifiant de partie du lancement", () => {
+  /**
+   * Plan 204. Le paquet ne LIT jamais cet identifiant — il le transporte pour la télémétrie, qui
+   * compte une partie par identifiant. Un `start` qui n'en porte pas laisserait les deux pairs
+   * déclarer deux parties distinctes, et c'est précisément ce qu'on corrige : le garde est ici,
+   * pas à l'arrivée.
+   */
+  it("refuse un lancement sans identifiant de partie", () => {
+    const { battleId: _omitted, ...withoutBattleId } = VALID_MESSAGES.start as Record<
+      string,
+      unknown
+    >;
+
+    expect(isNetworkMessage(withoutBattleId)).toBe(false);
+  });
+
+  it("🔴 refuse un identifiant vide, qui passerait le typage sans rien identifier", () => {
+    expect(isNetworkMessage({ ...VALID_MESSAGES.start, battleId: "" })).toBe(false);
+    expect(isNetworkMessage({ ...VALID_MESSAGES.start, battleId: 42 })).toBe(false);
   });
 });

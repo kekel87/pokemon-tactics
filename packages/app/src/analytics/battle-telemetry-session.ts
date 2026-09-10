@@ -11,6 +11,7 @@
 
 import type { BattleEvent, TeamSelection } from "@pokemon-tactic/core";
 import { MAP_ID_UNKNOWN, mapIdFromUrl } from "../maps/map-identity";
+import { modeOf } from "./battle-mode";
 import { type BattleTelemetryCollector, createBattleTelemetryCollector } from "./battle-telemetry";
 import { countControllers, trackedSidesOf } from "./team-telemetry";
 import {
@@ -21,21 +22,6 @@ import {
 } from "./telemetry";
 
 let collector: BattleTelemetryCollector | null = null;
-
-/**
- * Modes de la V1. `story` viendra avec la Phase 9.
- *
- * `online` se reconnaît à la présence d'une **place locale** (plan 201) et non au décompte
- * d'humains : une partie en ligne à un humain et une IA en face porte `humans: 2` — la place
- * distante est rabattue sur `human` dans le setup — donc le décompte seul l'aurait rangée en
- * hot-seat, exactement l'inverse de ce qu'on veut mesurer.
- */
-function modeOf(humans: number, localSeat: number | undefined): string {
-  if (localSeat !== undefined) {
-    return "online";
-  }
-  return humans >= 2 ? "local-hotseat" : "local-vs-ai";
-}
 
 /**
  * Ouvre la télémétrie d'une partie et émet `battle_started`.
@@ -56,8 +42,17 @@ export function beginBattleTelemetry(input: {
   teams: readonly TeamSelection[];
   /** Notre place en ligne. Sa seule présence fait le mode `online` (plan 201). */
   localSeat?: number;
+  /**
+   * L'identifiant tiré par l'hôte et reçu dans le `start` (plan 204). **Absent en local**, où on
+   * tire le nôtre : un seul client déclare la partie, il n'y a personne avec qui s'accorder.
+   *
+   * 🔴 En ligne il est indispensable : les deux pairs émettent chacun leurs événements, et c'est
+   * cet identifiant partagé qui permet à l'agrégation de compter UNE partie au lieu de deux, tout
+   * en gardant les deux camps que chaque pair déclare de son côté.
+   */
+  battleId?: string;
 }): void {
-  const battleId = createBattleId();
+  const battleId = input.battleId ?? createBattleId();
   const { humans, ai } = countControllers(input.teams);
 
   trackBattleStarted({

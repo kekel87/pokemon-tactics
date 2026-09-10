@@ -280,6 +280,17 @@ action complétée et une fois au lancement (`actionIndex` 0, après le placemen
 et par ancrage ; à l'écart, `forfeitSeat(...)` avec `NetworkForfeitReason.EtatDivergent` — **et
 `NETWORK_VERSION` est passée à 4**. Détail : § Détection de désync.
 
+**Ce que le plan 204 a ajouté** (hors lot, dette de télémétrie soldée avant la Phase 8) : le message
+`start` porte un champ `battleId: string` de plus, tiré par l'hôte — **et `NETWORK_VERSION` est
+passée à 5**.
+
+C'est le seul champ du protocole que `packages/network` **transporte sans jamais le lire**. Il sert
+à la télémétrie : les deux pairs émettent chacun leur `battle_started` et leur `battle_ended`, et
+sans identifiant commun rien à la lecture ne disait que ces lignes étaient la même partie — une
+partie en ligne comptait pour deux dans les parties, les cartes, les formats, les durées et le taux
+d'abandon. Les compositions d'équipes, elles, étaient déjà justes : chaque pair ne déclare que son
+camp (plan 201, étape 7), et l'agrégation les cumule toujours sur les deux lignes.
+
 **Ce qui reste à écrire** : `rematch` et `chat` (hors V1). Le **nom de joueur a été écarté de la V1**
 (#906) : il revient avec le compte et le classement ; la salle d'attente affiche « Joueur 2 ».
 

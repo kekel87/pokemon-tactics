@@ -30,6 +30,7 @@ import {
   ACTION_LABELS,
   buildReport,
   CAUSE_LABELS,
+  END_REASON_LABELS,
   type EventRow,
   INPUT_LABELS,
   label,
@@ -159,6 +160,9 @@ function renderTerminal(report: Report): string {
   parts.push(section("Cartes", report.battlesByMap, (k) => label(MAP_NAMES, k)));
   parts.push(section("Formats", report.battlesByFormat));
   parts.push(section("Modes", report.battlesByMode, (k) => label(MODE_LABELS, k)));
+  parts.push(
+    section("Fins de partie", report.battlesByEndReason, (k) => label(END_REASON_LABELS, k)),
+  );
   parts.push(section("Provenance des équipes", report.teamSources, (k) => label(SOURCE_LABELS, k)));
 
   parts.push("\n  ── Statistiques d'usage (équipes bâties par un humain) ──\n");

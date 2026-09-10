@@ -260,6 +260,22 @@ function mountPlacementChrome(options: {
   };
 }
 
+/**
+ * Le setup d'un REJEU : le même, moins l'identifiant de partie (plan 204).
+ *
+ * 🔴 Un rejeu est une NOUVELLE partie. L'identifiant est persisté avec le reste du setup dans la
+ * sauvegarde de reprise, donc un remontage le rejouerait tel quel — et la déduplication de la
+ * télémétrie avalerait la partie rejouée comme un doublon de la précédente : ni départ, ni fin, ni
+ * durée, sans un mot. `beginBattleTelemetry` en tire un neuf quand il n'en reçoit pas.
+ *
+ * Relevé en revue de code, jamais atteint en recette : il faut rejouer une partie EN LIGNE pour le
+ * voir, et la déduplication ne concerne qu'elle.
+ */
+function setupForReplay(setup: CombatSetup): CombatSetup {
+  const { battleId: _restart, ...rest } = setup;
+  return rest;
+}
+
 async function mountPlacement(
   combat: CombatScene,
   stage: GameStage,
@@ -296,6 +312,10 @@ async function mountPlacement(
       telemetryTeams: setup.telemetryTeams,
       teams: setup.teams,
       ...(setup.localSeat === undefined ? {} : { localSeat: setup.localSeat }),
+      // Fourni en ligne seulement (plan 204) : c'est l'hôte qui l'a tiré et le `start` qui l'a
+      // apporté, pour que les deux pairs déclarent la même partie sous le même identifiant. Absent
+      // en local, où `beginBattleTelemetry` tire le sien.
+      ...(setup.battleId === undefined ? {} : { battleId: setup.battleId }),
     });
   }
   return startPlacementFlow({
@@ -1714,7 +1734,10 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
           // as a fresh battle, minus the stale log.
           () => {
             teardown();
-            void mountContent(host, { mapUrl: resume.mapUrl, setup: resume.setup });
+            void mountContent(host, {
+              mapUrl: resume.mapUrl,
+              setup: setupForReplay(resume.setup),
+            });
           },
         );
       } catch (error) {
@@ -1763,7 +1786,10 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
     // internal re-mount, NOT an FSM navigation (plan 120 victory contract).
     const replay = (): void => {
       teardown();
-      void mountContent(host, params);
+      void mountContent(host, {
+        ...params,
+        ...(params.setup === undefined ? {} : { setup: setupForReplay(params.setup) }),
+      });
     };
     /*
      * Monté AVANT le placement, détruit dès que le combat prend la main (plan 189).

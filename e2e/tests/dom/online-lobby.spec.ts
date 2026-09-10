@@ -1,4 +1,5 @@
 import { expect, localSignalling, test } from "../../fixtures";
+import { BattleResumeStore } from "../../pages/battle-resume";
 import { CombatScene } from "../../pages/CombatScene";
 import { readActivePokemon } from "../../pages/combat-queries";
 import { LobbyScreen, WaitingRoom } from "../../pages/lobby";
@@ -199,6 +200,44 @@ test("§11.1 en ligne : créer, rejoindre, et entrer en combat à deux", async (
       )
       .toBe(hostEntries.length);
     expect(await guestPage.getByTestId("battle-log-entry").allTextContents()).toEqual(hostEntries);
+
+    /*
+     * (e) — Une partie en ligne, UN identifiant de partie (plan 204) ————————————————————————————
+     *
+     * Les deux pairs émettent chacun leur `battle_started` et leur `battle_ended`. Tant que chacun
+     * tirait le sien, rien à la lecture ne disait que ces lignes étaient la même partie : une
+     * partie en ligne comptait pour deux dans les parties, les cartes, les formats, les durées et
+     * le taux d'abandon. L'hôte tire donc l'identifiant, il voyage dans le `start`, et l'agrégation
+     * déduplique.
+     *
+     * 🔴 **C'est le maillon qu'aucun test unitaire ne voit**, et c'est pour ce risque précis que
+     * l'assertion est ici. Le protocole est couvert (`protocol.test.ts`), le transport aussi
+     * (`room.integration.test.ts`), l'agrégation aussi (`report.test.ts`) — mais la décision #979 a
+     * montré qu'un champ de setup peut être jeté EN SILENCE par un passe-plat que le compilateur ne
+     * peut pas surveiller, l'objet étant bâti par des `...` conditionnels. Le Lot B4 était
+     * entièrement inerte dans l'application pour cette raison exacte, avec 55 tests unitaires verts.
+     * Seule une traversée réelle de l'écran d'équipe jusqu'au combat le prouve.
+     *
+     * **Pourquoi la sauvegarde de reprise, et pas l'événement.** La télémétrie est muette hors des
+     * hôtes de publication (`platformPrefix()` rend `null` sur `localhost`) : rien ne part sous
+     * Playwright, par construction, et une suite e2e n'a surtout pas à écrire en production. La
+     * sauvegarde, elle, sérialise le `CombatSetup` entier après le placement — l'identifiant reçu
+     * y figure donc tel quel, de chaque côté. ⚠️ Ce que ce signal ne couvre PAS : le passage du
+     * setup à `beginBattleTelemetry()` (`combat-screen.ts`), qui n'expose rien d'observable ; il
+     * est pris en unitaire (`battle-telemetry-session.test.ts`) sur la fonction, pas sur l'appel.
+     *
+     * En `expect.poll` : la sauvegarde est écrite au montage de la boucle de combat, qui suit la
+     * scène prête sans être annoncé par elle.
+     */
+    const hostSave = new BattleResumeStore(hostPage);
+    const guestSave = new BattleResumeStore(guestPage);
+    // Huit hexadécimaux : la forme de `createBattleId()`. Prouve qu'on lit l'identifiant et non une
+    // chaîne vide qu'un `?? ""` aurait laissé passer des deux côtés à l'identique.
+    await expect.poll(() => hostSave.battleId(), { timeout: 15_000 }).toMatch(/^[0-9a-f]{8}$/);
+    const sharedBattleId = await hostSave.battleId();
+    // L'invité n'a rien tiré : il porte l'identifiant de l'hôte, à la lettre. Sur 32 bits d'entropie
+    // tirés par `crypto.randomUUID()`, deux tirages indépendants ne se rencontrent pas.
+    await expect.poll(() => guestSave.battleId(), { timeout: 15_000 }).toBe(sharedBattleId);
   } finally {
     await hostContext.close();
     await guestContext.close();

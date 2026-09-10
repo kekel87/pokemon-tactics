@@ -15,6 +15,7 @@ import { buildOnlineTelemetryTeams, buildTelemetryTeams } from "../../../analyti
 import {
   countAction,
   countScreen,
+  createBattleId,
   ROOM_FAILURE_ACTIONS,
   TelemetryAction,
   TelemetryScreen,
@@ -167,16 +168,24 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
    * L'hôte grave la partie et la diffuse (plan 199, étape 6). Les trois graines sont tirées **ici**,
    * une fois, et voyagent dans le `start` : c'est ce qui fait que les deux pairs montent le même
    * combat sans échanger un mot de plus.
+   *
+   * L'identifiant de partie de la télémétrie est tiré au même endroit, et pour la même raison
+   * (plan 204) : les deux pairs émettent chacun leurs événements, et sans identifiant commun une
+   * partie en ligne comptait pour deux dans tous les agrégats par partie. C'est l'hôte qui le tire,
+   * faute de serveur pour le faire.
    */
   const onNetworkLaunch = (): void => {
     if (room === null || !isHost() || !isEveryoneReady()) {
       return;
     }
-    void room.launch({
-      battle: freshSeed(),
-      placement: freshSeed(),
-      ai: freshSeed(),
-    });
+    void room.launch(
+      {
+        battle: freshSeed(),
+        placement: freshSeed(),
+        ai: freshSeed(),
+      },
+      createBattleId(),
+    );
   };
 
   /** Chacun confirme sa propre sélection, l'hôte compris. Une place IA est prête d'office. */
@@ -277,6 +286,11 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
           localSeat,
           start.seats.find((seat) => seat.seat === localSeat)?.selection.slots,
         ),
+        // 🔴 Le pendant du commentaire ci-dessus (plan 204). Chacun déclare son camp, mais les deux
+        // déclarent la MÊME partie : sans identifiant commun, elle comptait pour deux dans tous les
+        // agrégats par partie. Il vient de l'hôte, par le `start` — l'hôte passe ici aussi, son
+        // propre `start` lui étant réémis, donc c'est l'unique point de pose pour les deux camps.
+        battleId: start.battleId,
       },
     });
   };

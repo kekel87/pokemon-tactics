@@ -20,9 +20,10 @@ Pour l'ouvrir : `node scripts/memory/query.mjs --open <entité>`. Ci-dessous l'e
 
 ## Ce qui vient
 
-> **Où on en est** : la **Phase 7 — Multijoueur** est la phase en cours (télémétrie, transport, salon
-> réseau, combat en réseau et robustesse livrés ; détection de désync codée, e2e et recette humaine
-> en cours). Les autres sections ci-dessous sont ouvertes, dans un ordre qui n'est pas figé.
+> **Où on en est** : la **Phase 7 — Multijoueur** est **close** (2026-09-10, plan-cadre 195). Une file
+> de sessions dédiées la suit avant d'ouvrir la Phase 8 — entité `agenda-2026-09-10-file-de-sessions-dediees` :
+> session 1 (plan 204, télémétrie des parties en ligne) **faite**, session 2 (gate `/ci-gate full` sur
+> `HEAD`) à venir. Les autres sections ci-dessous sont ouvertes, dans un ordre qui n'est pas figé.
 
 ### Post-Babylon — petits chantiers de rendu
 

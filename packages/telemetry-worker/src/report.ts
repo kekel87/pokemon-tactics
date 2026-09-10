@@ -210,6 +210,15 @@ export interface Report {
   /** Attaques réellement lancées, tous combats terminés confondus. */
   movesCast: Tally;
   knockOutCauses: Tally;
+  /**
+   * Comment les parties se sont terminées : au combat, par forfait, ou sans qu'on le sache pour
+   * les lignes d'avant le plan 201 (plan 204). Compté une fois par partie.
+   *
+   * 🔴 Ne pas le confondre avec le taux d'abandon, qui mesure l'ABSENCE de `battle_ended`. Un
+   * forfait en émet un : il compte donc parmi les parties finies, et c'est ce compteur — pas
+   * l'autre — qui dit combien de parties ne sont pas allées à leur terme.
+   */
+  battlesByEndReason: Tally;
   averageTurns: number | null;
   averageDurationMs: number | null;
   /** Versions du jeu, comptées par VISITE. Rapport terminal uniquement. */
@@ -267,6 +276,17 @@ export interface SeriesPoint {
  */
 const FUNNEL_STAGES: readonly string[] = ["main-menu", "battle-mode", "map-select", "team-select"];
 
+/**
+ * Le mode des parties EN LIGNE, tel que `modeOf()` le produit côté application
+ * (`packages/app/src/analytics/battle-telemetry-session.ts`).
+ *
+ * 🔴 Recopié d'un paquet à l'autre, comme `MAP_NAMES` — mais c'est le premier littéral de ce
+ * fichier qui gouverne un CALCUL et non un libellé. Le renommer d'un seul côté ferait cesser la
+ * déduplication en silence : les parties en ligne recompteraient double, sans qu'aucun test ne
+ * rougisse. D'où le test de parité dans `report.test.ts`, sur le modèle de celui des cartes.
+ */
+export const ONLINE_MODE = "online";
+
 export function buildReport(rows: EventRow[], days: number): Report {
   const report: Report = {
     days,
@@ -296,6 +316,7 @@ export function buildReport(rows: EventRow[], days: number): Report {
     movesetUsage: new Map(),
     movesCast: new Map(),
     knockOutCauses: new Map(),
+    battlesByEndReason: new Map(),
     averageTurns: null,
     averageDurationMs: null,
     builds: new Map(),
@@ -324,6 +345,55 @@ export function buildReport(rows: EventRow[], days: number): Report {
   };
   let turnsTotal = 0;
   let durationTotal = 0;
+
+  /*
+   * 🔴 PREMIÈRE PASSE — les identifiants des parties EN LIGNE (plan 204).
+   *
+   * En ligne, les deux pairs émettent chacun leur `battle_started` et leur `battle_ended` : sans
+   * regroupement, une partie compte pour deux dans TOUT ce qui se compte par partie (parties,
+   * cartes, formats, modes, durées, tours, série journalière, taux d'abandon). Seules les
+   * compositions étaient justes, parce que chaque pair ne déclare que son camp (plan 201, étape 7).
+   *
+   * Pourquoi une passe séparée plutôt qu'un seul parcours : un `battle_ended` peut arriver au
+   * Worker AVANT le `battle_started` de l'autre pair — les envois sont du fire-and-forget, et
+   * l'ordre d'insertion serveur n'est pas l'ordre logique. En une passe, la déduplication aurait
+   * dépendu de cet ordre en silence.
+   *
+   * 🔴 Et on ne déduplique QUE le mode `online`. `createBattleId()` rend 8 caractères hexadécimaux,
+   * soit 32 bits : deux parties sans aucun rapport peuvent porter le même identifiant. C'est
+   * improbable à notre échelle, mais le mode d'échec serait une vraie partie effacée du relevé sans
+   * une ligne d'erreur. Une partie locale n'est donc jamais candidate, quelle que soit la collision.
+   */
+  /*
+   * ⚠️ LIMITE CONNUE, relevée en revue de code et laissée telle quelle. Cet ensemble ne se peuple
+   * que depuis les `battle_started`, et les deux consommateurs bornent leur requête à N jours. Une
+   * partie en ligne dont les départs tombent AVANT la borne et les fins dedans n'est donc pas
+   * reconnue : ses deux fins comptent double, et `abandonRate` peut même passer négatif puisque
+   * `battlesStarted` n'a rien vu.
+   *
+   * Non réparable sans ajouter `mode` à `BattleEndedPayload`, ce que le plan 204 exclut (il
+   * n'ajoute aucun champ de payload). Portée réelle : les seules parties à cheval sur une borne
+   * glissante, soit quelques minutes par fenêtre. À savoir en lisant un taux d'abandon aberrant.
+   */
+  const onlineBattleIds = new Set<string>();
+  for (const row of rows) {
+    if (row.kind !== "battle_started") {
+      continue;
+    }
+    const payload = JSON.parse(row.payload) as BattleStartedPayload;
+    if (payload.mode === ONLINE_MODE) {
+      onlineBattleIds.add(payload.battleId);
+    }
+  }
+
+  /*
+   * Deux ensembles DISTINCTS, un par genre d'événement — et c'est le piège de cette règle. Un
+   * ensemble unique aurait fait sauter aussi le PREMIER `battle_ended` de chaque partie en ligne,
+   * son identifiant y ayant déjà été inscrit par le `battle_started` : `battlesEnded` serait tombé
+   * à zéro pour toutes les parties en ligne, et le taux d'abandon à 100 %.
+   */
+  const countedStarts = new Set<string>();
+  const countedEnds = new Set<string>();
 
   for (const row of rows) {
     if (row.kind === "session") {
@@ -387,11 +457,29 @@ export function buildReport(rows: EventRow[], days: number): Report {
 
     if (row.kind === "battle_started") {
       const payload = JSON.parse(row.payload) as BattleStartedPayload;
-      report.battlesStarted += 1;
-      dayEntry(row.receivedAt).started += 1;
-      bump(report.battlesByMap, payload.map);
-      bump(report.battlesByFormat, payload.format);
-      bump(report.battlesByMode, payload.mode);
+      // La PARTIE une seule fois (plan 204). Le second pair d'une partie en ligne n'ajoute rien
+      // ici : c'est la même partie, sur la même carte, dans le même format.
+      //
+      // 🔴 Le mode se lit sur la LIGNE, jamais sur l'appartenance de l'identifiant au monde en
+      // ligne : une ligne locale ne doit ni entrer dans l'ensemble, ni pouvoir être sautée. Une
+      // première version regardait `onlineBattleIds` ici, et une partie locale qui aurait
+      // collisionné avec un identifiant en ligne disparaissait du relevé — exactement le mode
+      // d'échec contre lequel on se protège. Relevé en revue de code.
+      let alreadyCounted = false;
+      if (payload.mode === ONLINE_MODE) {
+        alreadyCounted = countedStarts.has(payload.battleId);
+        countedStarts.add(payload.battleId);
+      }
+      if (!alreadyCounted) {
+        report.battlesStarted += 1;
+        dayEntry(row.receivedAt).started += 1;
+        bump(report.battlesByMap, payload.map);
+        bump(report.battlesByFormat, payload.format);
+        bump(report.battlesByMode, payload.mode);
+      }
+      // 🔴 Les ÉQUIPES, elles, se cumulent sur les DEUX lignes — hors du garde ci-dessus. Chaque
+      // pair ne déclare que son propre camp : les sauter reviendrait à perdre la moitié des
+      // compositions des statistiques d'usage, c'est-à-dire la raison d'être du Lot A.
       for (const team of payload.teams) {
         bump(report.teamSources, team.source);
         // Seules les équipes bâties par un humain portent une composition : c'est voulu, une équipe
@@ -411,10 +499,25 @@ export function buildReport(rows: EventRow[], days: number): Report {
     }
 
     const payload = JSON.parse(row.payload) as BattleEndedPayload;
-    report.battlesEnded += 1;
-    dayEntry(row.receivedAt).ended += 1;
-    turnsTotal += payload.turns;
-    durationTotal += payload.durationMs;
+    // Même règle qu'au démarrage, avec son propre ensemble (plan 204). La PREMIÈRE ligne vue donne
+    // la durée et le nombre de tours : chaque pair mesure depuis son propre `startedAt`, aucune
+    // n'est plus vraie que l'autre, et moyenner deux mesures du même phénomène n'apporterait rien.
+    const endAlreadyCounted =
+      onlineBattleIds.has(payload.battleId) && countedEnds.has(payload.battleId);
+    countedEnds.add(payload.battleId);
+    if (!endAlreadyCounted) {
+      report.battlesEnded += 1;
+      dayEntry(row.receivedAt).ended += 1;
+      turnsTotal += payload.turns;
+      durationTotal += payload.durationMs;
+      // Une fois par partie, comme le reste de ce bloc. `endReason` manque aux lignes d'avant le
+      // plan 201 : elles tombent dans une clé à part plutôt que d'être ignorées — leur nombre dit
+      // la profondeur de l'historique, et un total qui ne retomberait pas sur `battlesEnded`
+      // laisserait croire à une perte.
+      bump(report.battlesByEndReason, payload.endReason ?? END_REASON_UNKNOWN);
+    }
+    // Les issues par Pokemon se cumulent sur les deux lignes, comme les équipes : `outcomes` suit
+    // les camps dont la composition a voyagé, donc un camp par pair en ligne.
     for (const outcome of payload.outcomes) {
       for (const [move, count] of Object.entries(outcome.moves)) {
         bump(report.movesCast, move, count);
@@ -540,9 +643,24 @@ export const INPUT_LABELS: Record<string, string> = {
   gamepad: "Manette",
   touch: "Tactile",
 };
+/**
+ * Clé des parties terminées AVANT que `endReason` n'existe (plan 201). Elles sont rangées à part
+ * plutôt qu'ignorées : leur nombre dit la profondeur de l'historique, et le total de la table
+ * retombe sur `battlesEnded` — sans quoi on croirait à une perte.
+ */
+export const END_REASON_UNKNOWN = "unknown";
+
+export const END_REASON_LABELS: Record<string, string> = {
+  combat: "au combat",
+  forfeit: "par forfait",
+  [END_REASON_UNKNOWN]: "avant la mesure",
+};
+
 export const MODE_LABELS: Record<string, string> = {
   "local-vs-ai": "solo contre l'IA",
   "local-hotseat": "deux joueurs sur le même écran",
+  // Manquait depuis que le mode existe (plan 201) : la table le rendait en anglais brut.
+  online: "en ligne",
 };
 
 /**
@@ -985,6 +1103,10 @@ export function renderHtml(report: Report, generatedAt: Date): string {
         htmlBars(report.battlesByMode, (k) => label(MODE_LABELS, k)),
       )}
       ${block(
+        "Fins de partie",
+        htmlBars(report.battlesByEndReason, (k) => label(END_REASON_LABELS, k)),
+      )}
+      ${block(
         "Provenance des équipes",
         htmlBars(report.teamSources, (k) => label(SOURCE_LABELS, k)),
       )}
@@ -994,6 +1116,13 @@ export function renderHtml(report: Report, generatedAt: Date): string {
   <footer>
     <p><strong>${report.rows}</strong> ligne(s) lues sur la période. Les visiteurs uniques se
     comptent <strong>par jour</strong> et ne s'additionnent pas d'une journée à l'autre.</p>
+    <p><strong>Abandon</strong> mesure les parties lancées dont la fin n'est jamais parvenue —
+    onglet fermé, jeu quitté en cours. Un <strong>forfait</strong> annonce sa fin : il compte donc
+    parmi les parties finies, pas ici. C'est la table <strong>Fins de partie</strong> qui dit
+    combien de parties ne sont pas allées à leur terme.</p>
+    <p>Une partie <strong>en ligne</strong> compte pour <strong>une</strong>, bien que ses deux
+    joueurs déclarent chacun la leur. Les parties d'avant le 10/09/2026 font exception : elles n'ont
+    pas d'identifiant commun et restent comptées double.</p>
   </footer>
 </div>
 <script>

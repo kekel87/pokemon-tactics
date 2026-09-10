@@ -43,6 +43,11 @@ const ROOM_CODE = "A7K2M";
 const MAX_SEATS = 12;
 
 const SEEDS: NetworkSeeds = { battle: 11, placement: 22, ai: 33 };
+/**
+ * Identifiant de partie du `start` (plan 204). Le paquet le transporte sans le lire, donc une
+ * valeur figée suffit — sauf là où un test vérifie justement qu'il arrive intact chez l'invité.
+ */
+const BATTLE_ID = "b47f2c19";
 
 function options(teamCount: number): NetworkRoomOptions {
   return { mapId: "plaine", teamCount, autoPlacement: true, damagePreview: false };
@@ -269,7 +274,7 @@ describe("Room — un pair ne parle que pour lui-même", () => {
 
     const starts: StartMessage[] = [];
     host.onStart((start) => starts.push(start));
-    const launch = host.launch(SEEDS);
+    const launch = host.launch(SEEDS, BATTLE_ID);
     await flush();
     vi.advanceTimersByTime(LAUNCH_ACK_TIMEOUT_MS);
     await flush();
@@ -290,7 +295,7 @@ describe("Room — un pair ne parle que pour lui-même", () => {
 
     const starts: StartMessage[] = [];
     host.onStart((start) => starts.push(start));
-    const launch = host.launch(SEEDS);
+    const launch = host.launch(SEEDS, BATTLE_ID);
     await flush();
 
     // Le menteur accuse pour LUI (légitime) et pour la place 2 (usurpé).
@@ -364,7 +369,7 @@ describe("Room — rejoindre une partie déjà lancée", () => {
     await flush();
     guest.setReady(true);
     await flush();
-    const launch = host.launch(SEEDS);
+    const launch = host.launch(SEEDS, BATTLE_ID);
     await flush();
     await launch;
     expect(host.view.locked).toBe(true);
@@ -610,7 +615,7 @@ describe("Room — lancement", () => {
     host.onStart((start) => hostStarts.push(start));
     guest.onStart((start) => guestStarts.push(start));
 
-    const launch = host.launch(SEEDS);
+    const launch = host.launch(SEEDS, BATTLE_ID);
     await flush();
     await launch;
 
@@ -626,6 +631,10 @@ describe("Room — lancement", () => {
     ]);
     // L'identifiant **stable** de carte, jamais une URL : une URL dépend de la base de déploiement.
     expect(hostStarts[0]?.options.mapId).toBe("plaine");
+    // 🔴 L'identifiant de partie de l'hôte arrive INTACT chez l'invité (plan 204). C'est lui qui
+    // fait que les deux pairs déclarent la même partie à la télémétrie au lieu de deux.
+    expect(guestStarts[0]?.battleId).toBe(BATTLE_ID);
+    expect(hostStarts[0]?.battleId).toBe(BATTLE_ID);
   });
 
   it("laisse l'hôte composer les équipes de ses lignes IA, et refuse celles des autres", async () => {
@@ -643,7 +652,7 @@ describe("Room — lancement", () => {
 
     const starts: StartMessage[] = [];
     host.onStart((start) => starts.push(start));
-    const launch = host.launch(SEEDS);
+    const launch = host.launch(SEEDS, BATTLE_ID);
     await flush();
     await launch;
 
@@ -662,7 +671,7 @@ describe("Room — lancement", () => {
     guest.setReady(true);
     await flush();
 
-    const launch = host.launch(SEEDS);
+    const launch = host.launch(SEEDS, BATTLE_ID);
     await flush();
     await launch;
 
@@ -678,7 +687,7 @@ describe("Room — lancement", () => {
     const starts: StartMessage[] = [];
     host.onStart((start) => starts.push(start));
 
-    await host.launch(SEEDS);
+    await host.launch(SEEDS, BATTLE_ID);
 
     expect(starts).toHaveLength(1);
     expect(starts[0]?.seats.map((seat) => seat.controller)).toEqual(["human", "ai", "ai", "ai"]);
@@ -693,7 +702,7 @@ describe("Room — lancement", () => {
 
     const starts: StartMessage[] = [];
     host.onStart((start) => starts.push(start));
-    const launch = host.launch(SEEDS);
+    const launch = host.launch(SEEDS, BATTLE_ID);
     await flush();
     await launch;
 
@@ -725,7 +734,7 @@ describe("Room — lancement annulé", () => {
     host.onStart((start) => starts.push(start));
     host.onError((code) => errors.push(code));
 
-    const launch = host.launch(SEEDS);
+    const launch = host.launch(SEEDS, BATTLE_ID);
     await flush();
     expect(host.view.locked).toBe(true);
     expect(mute.received.some((message) => message.type === "start")).toBe(true);
@@ -750,7 +759,7 @@ describe("Room — lancement annulé", () => {
     const errors: NetworkErrorCode[] = [];
     host.onError((code) => errors.push(code));
 
-    const launch = host.launch(SEEDS);
+    const launch = host.launch(SEEDS, BATTLE_ID);
     await flush();
     expect(host.view.locked).toBe(true);
 
@@ -774,7 +783,7 @@ describe("Room — lancement annulé", () => {
     host.onStart((start) => starts.push(start));
     host.onError((code) => errors.push(code));
 
-    const launch = host.launch(SEEDS);
+    const launch = host.launch(SEEDS, BATTLE_ID);
     await flush();
 
     /*
@@ -803,7 +812,7 @@ describe("Room — lancement annulé", () => {
     guest.onLaunchCancelled(() => cancelled.push(true));
     guest.onStart((start) => guestStarts.push(start));
 
-    const launch = host.launch(SEEDS);
+    const launch = host.launch(SEEDS, BATTLE_ID);
     await flush();
     // L'invité est bien parti en combat : il n'a aucun moyen de savoir où en sont les autres.
     expect(guestStarts).toHaveLength(1);
@@ -1064,7 +1073,7 @@ describe("Room — départs une fois la partie lancée (Lot B3)", () => {
     guest.channel.send({ type: "ready", seat: 2, ready: true });
     await flush();
     host.setSeatSelection(1, { pokemonDefinitionIds: ["venusaur"] });
-    const launch = host.launch(SEEDS);
+    const launch = host.launch(SEEDS, BATTLE_ID);
     await flush();
     guest.channel.send({ type: "start_ack", seat: 2 });
     await flush();
@@ -1183,7 +1192,7 @@ describe("Room — reconnexion et rattrapage (Lot B3)", () => {
     guest.setSeatSelection(2, { pokemonDefinitionIds: ["charizard"] });
     guest.setReady(true);
     await flush();
-    const launch = host.launch(SEEDS);
+    const launch = host.launch(SEEDS, BATTLE_ID);
     await flush();
     await launch;
     return { host, guest };
@@ -1275,7 +1284,7 @@ describe("Room — reconnexion et rattrapage (Lot B3)", () => {
     guest.channel.send({ type: "ready", seat: 2, ready: true });
     await flush();
     host.setSeatSelection(1, { pokemonDefinitionIds: ["venusaur"] });
-    const launch = host.launch(SEEDS);
+    const launch = host.launch(SEEDS, BATTLE_ID);
     await flush();
     guest.channel.send({ type: "start_ack", seat: 2 });
     await flush();
@@ -1316,7 +1325,7 @@ describe("Room — retour de l'hôte (Lot B3)", () => {
     guest.setSeatSelection(2, { pokemonDefinitionIds: ["charizard"] });
     guest.setReady(true);
     await flush();
-    const launch = host.launch(SEEDS);
+    const launch = host.launch(SEEDS, BATTLE_ID);
     await flush();
     await launch;
     return { host, guest };
