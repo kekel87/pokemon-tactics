@@ -1,6 +1,6 @@
 # Plan 195 — Phase 7 « Multijoueur & télémétrie » (plan-cadre)
 
-> **Statut** : in-progress
+> **Statut** : done — **Phase 7 CLOSE le 2026-09-10**
 > **Créé** : 2026-08-31
 > **Phase démarrée** : 2026-09-02 — par le Lot A (télémétrie, plan 196). Compte Cloudflare créé le même jour.
 > **Avancement** : **Lot A ✅ clos le 2026-09-02** (plan 196 `done`, télémétrie en production, relevé live,
@@ -10,10 +10,24 @@
 > 2026-09-08** (plan 201 — combat en réseau, tour distant, anti-triche, forfait dans le core) ; **B3
 > ✅ livré le 2026-09-09** (plan 202 — chronomètre de tour, chien de garde de connexion, reconnexion
 > d'un pair, hôte compris, abandon volontaire ; recette humaine, `code-reviewer` et `core-guardian`
-> passés, tous correctifs faits) ; **B4** (détection de désync) **codé le 2026-09-10** (plan 203) —
-> les 5 étapes sont faites, gate local vert ; restent l'e2e à deux contextes, le cahier de recette et
-> la recette humaine, en cours dans un autre agent.
-> ⚠️ Ce plan reste `in-progress` tant que le Lot B4 n'est pas clos.
+> passés, tous correctifs faits) ; **B4 ✅ livré et validé à la main le 2026-09-10** (plan 203 —
+> sérialisation canonique du `BattleState` et empreinte dans le core, `Math.log` sorti de
+> `computeCtGain`, message `checksum`, comparaison à chaque action, e2e à deux contextes en trois
+> scénarios ; décisions #968 à #982).
+>
+> 🔴 **Tous les lots sont clos : la Phase 7 « Multijoueur & télémétrie » est TERMINÉE.**
+>
+> Ce que la recette humaine du B4 a validé : un duel en ligne honnête et complet sans aucun faux
+> positif, et la reconnexion en **trois** variantes — rafraîchissement, fermeture du navigateur
+> pendant son propre tour, et fermeture pendant le tour de l'hôte avec rattrapage du retard. Le
+> scénario de divergence provoquée n'est pas testable à la main (il faudrait faire diverger le moteur
+> d'un seul pair) et reste couvert par l'e2e §11.8, rouge-vert vérifié.
+>
+> **Ce qui reste ouvert derrière la phase**, en dette nommée et non bloquante : la sauvegarde de
+> reprise partagée entre deux onglets d'un même profil (`backlog-sauvegarde-partagee-entre-onglets-meme-profil`,
+> rencontrée en vrai à cette recette), le double écran de victoire sur divergence
+> (`question-ouverte-double-victoire-sur-divergence`), l'élection d'un nouvel hôte et la réouverture
+> du FFA en ligne (#944), et la flakiness à froid de la famille e2e `online`.
 > **Nature** : plan-cadre d'une phase entière. Chaque lot sera détaillé dans son propre plan au moment de l'attaquer. Ce document fixe le périmètre, l'ordre, les acquis, les décisions déjà prises et celles qui restent ouvertes.
 > **Référence de conception** : `docs/multiplayer.md` (réécrit en v2 le 2026-08-29). Décisions `#209-212` (fondations) et `#862-870` (cadrage). Ce plan **ne rejoue pas** le raisonnement de ce document — il l'ordonne en lots exécutables.
 

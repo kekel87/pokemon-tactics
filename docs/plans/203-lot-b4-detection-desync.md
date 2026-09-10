@@ -1,9 +1,15 @@
 # Plan 203 — Lot B4 : détection de désynchronisation
 
-> **Statut** : in-progress — les 5 étapes sont **codées**, gate local vert (typecheck monorepo,
-> Biome zéro avertissement, 4448 unitaires, 465 intégration). Restent l'e2e à deux contextes, le
-> cahier de recette et la recette humaine. Voir § Ce que l'implémentation a corrigé.
-> **Créé** : 2026-09-09
+> **Statut** : done — livré et **validé à la main le 2026-09-10**. Les 5 étapes sont codées, l'e2e à
+> deux contextes couvre les trois scénarios (§11.6/§11.7/§11.8, rouge-vert vérifié), le cahier de
+> recette est à jour, et la recette humaine est passée. Gate `full` vert. Décisions #968 à #982.
+> **Ce lot clôt la Phase 7** — le plan-cadre 195 passe `done` avec lui.
+>
+> Recette humaine : duel honnête complet sans faux positif, et reconnexion validée en **trois**
+> variantes (rafraîchissement, fermeture du navigateur pendant son tour, fermeture pendant le tour de
+> l'hôte avec rattrapage). Le scénario de divergence provoquée n'est pas testable à la main et reste
+> couvert par l'e2e.
+
 > **Lot** : B4 du plan-cadre [195](./195-phase7-multijoueur-telemetrie.md) — **dernier lot de la
 > Phase 7**. Le plan-cadre reste `in-progress` tant que celui-ci n'est pas clos.
 

@@ -81,13 +81,21 @@ test("§11.6 en ligne : un duel honnête va jusqu'à la victoire sans qu'aucune 
     /*
      * 🔴 L'assertion du lot : aucun constat de divergence, ni chez l'un ni chez l'autre.
      *
-     * Doublée par « personne n'a quitté la partie » : la ligne de divergence est une déclinaison du
-     * forfait, donc un forfait pour une AUTRE raison (trois refus d'action, absence) signalerait tout
-     * autant que les deux moteurs se sont séparés — et il faut qu'il échoue aussi.
+     * Doublée par « personne n'a quitté la partie, pour AUCUNE raison » : la ligne de divergence est
+     * une déclinaison du forfait, donc un forfait pour une autre cause signalerait tout autant que
+     * les deux moteurs se sont séparés.
+     *
+     * 🔴 Elle a d'abord filtré sur « quitte la partie », ce qui était un FAUX VERT (relevé en revue
+     * de code) : depuis la recette du plan 202 il y a UNE PHRASE PAR RAISON, et deux d'entre elles ne
+     * contiennent pas ces mots — « abandonne la partie » et « a perdu la connexion ». Or trois tours
+     * manqués mènent à `Disconnected`, donc à « a perdu la connexion », et un forfait fait tomber
+     * toute l'équipe donc ÉMET les K.O. attendus ci-dessus. Le test passait donc au vert sans
+     * qu'aucun combat n'ait été mené — et le pilote a réellement produit ce cas au premier essai.
+     * `anyForfeit` couvre les quatre phrasés.
      */
     for (const peer of [duel.attacker, duel.defender]) {
       await expect(peer.divergence).toHaveCount(0);
-      await expect(peer.logEntries.filter({ hasText: "quitte la partie" })).toHaveCount(0);
+      await expect(peer.anyForfeit).toHaveCount(0);
     }
   } finally {
     await session.close();
@@ -207,11 +215,22 @@ test("§11.8 en ligne : deux cartes qui diffèrent d'une case, et les deux joueu
   /*
    * La contre-épreuve des deux scénarios précédents, et la seule qui prouve que le détecteur EXISTE.
    *
-   * Aucune équipe n'est posée : la divergence est constatée sur l'empreinte de **lancement**, émise
-   * après la phase de placement et avant la première action, donc ce qui se bat n'a aucune
-   * importance. C'est aussi ce qui rend ce scénario rapide.
+   * La divergence est constatée sur l'empreinte de **lancement**, émise après la phase de placement
+   * et avant la première action, donc ce qui se bat n'a aucune importance pour le constat lui-même.
+   *
+   * ⚠️ Les équipes sont posées quand même, et c'est une exigence d'ISOLEMENT (relevé en revue de
+   * code) : sans elles les deux camps prenaient « 🎲 Aléatoire », donc la carte détournée n'était
+   * plus la SEULE différence possible entre les deux moteurs au lancement. Si la diffusion de la
+   * composition tirée régressait un jour, ce scénario resterait vert — il attend une divergence, il
+   * en aurait deux — et aucun scénario honnête ne le verrait, §11.6 et §11.7 utilisant des équipes
+   * fixes. Accessoirement c'est plus rapide : un sprite par camp au lieu de six.
    */
-  const session = await OnlineSession.open(browser, { interceptGuest: serveDivergentMap });
+  const session = await OnlineSession.open(browser, {
+    savedTeams: DUEL_TEAM_STORAGE,
+    hostTeamId: DUEL_ATTACKER_TEAM_ID,
+    guestTeamId: DUEL_DEFENDER_TEAM_ID,
+    interceptGuest: serveDivergentMap,
+  });
 
   try {
     await session.startBattle();

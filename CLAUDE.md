@@ -95,8 +95,20 @@ Détails : graphe de mémoire, entités `orchestration`.
 **Dès que tu finis d'implémenter** (build OK, code écrit, tests passent), AVANT de dire "fait" / "terminé" / proposer la suite, tu DOIS :
 
 1. Exécuter `git status --porcelain` pour confirmer fichiers modifiés.
-2. Appeler `AskUserQuestion` avec un menu multi-select des étapes de chaîne, pré-cochées selon contexte.
-3. Attendre la sélection humain. Exécuter en ordre fixe. Stop sur fail bloquant.
+2. **Résumer ce que tu as fait.**
+3. Appeler `AskUserQuestion` avec un menu multi-select des étapes de chaîne, pré-cochées selon contexte.
+4. Attendre la sélection humain. Exécuter en ordre fixe. Stop sur fail bloquant.
+
+🔴 **« Finir d'implémenter » veut dire ALLER AU BOUT DU DEV, tests compris — pas au bout d'une étape.**
+Sur un **plan validé**, tu l'exécutes **en entier** sans t'arrêter pour demander la permission de passer
+à l'étape suivante ni pour proposer un commit intermédiaire. Puis, une seule fois, à la fin : le
+résumé, puis le menu.
+
+⚠️ Précision née d'une méprise (2026-09-10, plan 203) : l'humain avait dit « quand on a validé un plan
+tu le fais en entier, point » pour interdire les interruptions **par étape**. Ç'a été lu comme
+« n'affiche plus le menu du tout », et le menu a disparu pendant tout le reste du lot. Les deux règles
+ne s'opposent pas : **pas d'interruption pendant le dev, menu obligatoire à la fin.** Le menu n'est
+jamais annulé par une consigne d'autonomie.
 
 **Raccourci** : l'humain peut afficher ce menu à tout moment (même mid-session, hors fin d'impl) via `/menu` ou en envoyant le mot **`menu`** seul. Traiter "menu" nu comme un appel au skill `/menu`.
 

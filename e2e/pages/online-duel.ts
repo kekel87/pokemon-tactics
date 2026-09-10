@@ -33,7 +33,7 @@ export const DUEL_ATTACKER_TEAM_ID = "duel-attacker";
 export const DUEL_DEFENDER_TEAM_ID = "duel-defender";
 
 /**
- * Alakazam contre Abra, et le déséquilibre est le point : Ball'Ombre (Ténèbres, 80, précision 100)
+ * Alakazam contre Abra, et le déséquilibre est le point : Ball’Ombre (Spectre, 80, précision 100)
  * lancée par une Attaque Spéciale de base 135 sur un Abra Psy (25 de PV de base, 55 de Défense
  * Spéciale) est super efficace — le K.O. tient en UN coup, même au jet de dégâts le plus faible.
  * Un duel qui demanderait trois échanges dépendrait, lui, des tirages.
@@ -45,8 +45,15 @@ export const DUEL_DEFENDER_TEAM_ID = "duel-defender";
 const ATTACKER_SPECIES = "alakazam";
 const DEFENDER_SPECIES = "abra";
 
-/** Nom FR affiché du coup qui conclut. Le pilote sélectionne les attaques par leur nom à l'écran. */
-const SHADOW_BALL = "Ball";
+/**
+ * Nom FR affiché du coup qui conclut. Le pilote sélectionne les attaques par leur nom à l'écran.
+ *
+ * ⚠️ Le nom ENTIER, apostrophe typographique comprise (U+2019, celle des données). Il a d'abord été
+ * réduit au fragment « Ball », ce qui matchait aussi Balle Graine, Ball’Glace, Ball’Brume, Ballon
+ * Brûlant et Ball’Météo — sans danger avec un Alakazam à deux attaques, mais un piège pour qui
+ * réutiliserait ce pilote avec un autre roster. Relevé en revue de code.
+ */
+const SHADOW_BALL = "Ball’Ombre";
 /** Nom FR affiché de Téléport. */
 const TELEPORT = "Téléport";
 
@@ -287,7 +294,7 @@ export class OnlineDuel {
     const defender = sprites.find((sprite) => sprite.pokemonId === DEFENDER_SPECIES);
     if (attacker === undefined || defender === undefined) {
       throw new Error(
-        `le plateau ne montre pas les deux combattants (${sprites.map((s) => s.pokemonId).join(", ") || "aucun sprite"})`,
+        `le plateau ne montre pas les deux combattants (${sprites.map((sprite) => sprite.pokemonId).join(", ") || "aucun sprite"})`,
       );
     }
     return { attacker: attacker.tile, defender: defender.tile };

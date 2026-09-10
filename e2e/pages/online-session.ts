@@ -65,6 +65,17 @@ export class OnlinePeer {
    * message que le joueur ne peut ni comprendre ni contester.
    */
   readonly divergence: Locator;
+  /**
+   * N'IMPORTE quel forfait, quelle qu'en soit la raison (plan 203, corrigé en revue de code).
+   *
+   * 🔴 Les quatre phrasés sont distincts depuis la recette du plan 202 — une phrase par raison — et
+   * deux d'entre eux ne contiennent PAS « quitte la partie » :
+   * `battleLog.playerForfeited` « quitte la partie. », `.desynced` « quitte la partie — les parties
+   * ne concordent plus. », `.resigned` « **abandonne** la partie. », `.disconnected` « **a perdu la
+   * connexion**. ». Filtrer sur les seuls mots communs laissait passer un forfait pour absence, qui
+   * émet pourtant les K.O. et l'écran de victoire : le scénario honnête passait au vert sans combat.
+   */
+  readonly anyForfeit: Locator;
 
   constructor(readonly page: Page) {
     this.menu = new MainMenu(page);
@@ -83,6 +94,9 @@ export class OnlinePeer {
     this.victory = page.getByRole("dialog").filter({ hasText: /gagne/ });
     this.battleOver = page.getByTestId("battle-over");
     this.divergence = this.logEntries.filter({ hasText: "les parties ne concordent plus" });
+    this.anyForfeit = this.logEntries.filter({
+      hasText: /quitte la partie|abandonne la partie|a perdu la connexion/,
+    });
   }
 
   hasHand(): Promise<boolean> {
@@ -288,7 +302,7 @@ export class OnlineSession {
   }
 
   /** Celui qui REGARDE quand `peer` joue — le réseau étant verrouillé en 1v1 (#944), il est unique. */
-  other(peer: OnlinePeer): OnlinePeer {
+  private other(peer: OnlinePeer): OnlinePeer {
     return peer === this.hostPeer ? this.guestPeer : this.hostPeer;
   }
 
@@ -326,9 +340,15 @@ export class OnlineSession {
    * FRAIS, déjà booté sur l'écran d'accueil, prend sa place. Rend ce dernier.
    *
    * 🔴 **L'onglet de retour est préparé AVANT la coupure, et c'est une exigence de déterminisme, pas
-   * une commodité.** Une fermeture propre fait parvenir le `bye`, donc le pair resté n'accorde que
-   * `GRACE_AFTER_CLEAN_CLOSE_MS` (10 s) — mesuré au décompte du bandeau — et passé ce délai un
-   * revenant n'est plus admis : `attachIncoming` n'ouvre qu'aux places dont la grâce court encore.
+   * une commodité.** Une fermeture propre fait parvenir le `bye`, donc le pair resté n'accorde qu'une
+   * fenêtre bornée, et passé ce délai un revenant n'est plus admis : `attachIncoming` n'ouvre qu'aux
+   * places dont la grâce court encore.
+   *
+   * ⚠️ La fenêtre est `BATTLE_GRACE_SHORT_MS` = **30 s** (`packages/network/src/room-config.ts`), et
+   * PAS les 10 s de `GRACE_AFTER_CLEAN_CLOSE_MS` que cette doc annonçait — corrigé en revue de code.
+   * Les 10 s ne valent qu'en SALON, où une place se libère sans que personne ne perde de partie ; en
+   * combat, seul cas où cette méthode sert, la recette du 2026-09-09 les a portées à 30 s (décision
+   * #961) parce que fermer sa fenêtre poliment donnait moins de temps qu'arracher son câble.
    * Booter l'application DANS cette fenêtre y ferait entrer tout le coût du harnais (splash, bundle
    * de sprites, montage du menu), qui n'a rien à voir avec ce qu'on éprouve. Il est donc payé avant,
    * et il ne reste dans la fenêtre que ce qui s'y joue vraiment : rappeler le salon et se rebrancher.
