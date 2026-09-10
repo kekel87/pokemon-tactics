@@ -24,6 +24,7 @@
     "build-release-assets.ts",
     "telemetry-stats.ts",
     "e2e-affected.ts",
+    "e2e-affected.test.ts",
     "e2e-status.ts",
     "webgl-probe.ts"
   ]

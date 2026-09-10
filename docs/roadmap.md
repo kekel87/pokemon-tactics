@@ -20,10 +20,13 @@ Pour l'ouvrir : `node scripts/memory/query.mjs --open <entité>`. Ci-dessous l'e
 
 ## Ce qui vient
 
-> **Où on en est** : la **Phase 7 — Multijoueur** est **close** (2026-09-10, plan-cadre 195). Une file
-> de sessions dédiées la suit avant d'ouvrir la Phase 8 — entité `agenda-2026-09-10-file-de-sessions-dediees` :
-> session 1 (plan 204, télémétrie des parties en ligne) **faite**, session 2 (gate `/ci-gate full` sur
-> `HEAD`) à venir. Les autres sections ci-dessous sont ouvertes, dans un ordre qui n'est pas figé.
+> **Où on en est** : la **Phase 7 — Multijoueur** est **close** côté développement (2026-09-10,
+> plan-cadre 195) ; sa **release reste en attente, hors file, jamais tranchée**. Une file de sessions
+> dédiées suit la clôture avant d'ouvrir la Phase 8 — entité `agenda-2026-09-10-file-de-sessions-dediees` :
+> session 1 (plan 204, télémétrie des parties en ligne) et session 2 (sélecteur e2e `scripts/e2e-affected.ts` —
+> cadrage `--since-main` au lieu de `HEAD`, garde contre une famille de specs muette) **faites**,
+> session 3 (`backlog-retour-navigateur-non-gere`) à venir. Les autres sections ci-dessous sont
+> ouvertes, dans un ordre qui n'est pas figé.
 
 ### Post-Babylon — petits chantiers de rendu
 

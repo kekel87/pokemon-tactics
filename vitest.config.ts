@@ -52,7 +52,13 @@ export default defineConfig({
           isolate: false,
           pool: "threads",
           fsModuleCache: true,
-          include: ["packages/*/src/**/*.test.ts", "packages/*/scripts/**/*.test.ts"],
+          // `scripts/**` : l'outillage de la RACINE. Il en manquait, et `e2e-affected.ts` — qui
+          // décide combien de tests le gate joue — n'était donc couvert par aucun projet vitest.
+          include: [
+            "packages/*/src/**/*.test.ts",
+            "packages/*/scripts/**/*.test.ts",
+            "scripts/**/*.test.ts",
+          ],
           exclude: ["**/*.integration.test.ts", "**/*.scenario.test.ts"],
         },
       },

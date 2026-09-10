@@ -33,7 +33,7 @@ Tiers :
 | Tier | Contenu | Budget |
 |---|---|---|
 | `fast` | **audit:flow** → lint:fix → typecheck → test → test:integration, **avec le tour des écrans lancé en parallèle** (`e2e/tests/smoke`) | **boucle d'itération** |
-| `full` | + build + test:scenario + **e2e `affected`** (niveau choisi d'après le diff : L1 smoke / L2 affected / L3 full). L'étape `test` y devient **`test:coverage`** : mêmes tests unitaires, plus le seuil de non-recul du core (+2 s) | point de contrôle |
+| `full` | + build + test:scenario + **e2e `affected --since-main`** (niveau choisi d'après le diff du LOT : L1 smoke / L2 affected / L3 full). L'étape `test` y devient **`test:coverage`** : mêmes tests unitaires, plus le seuil de non-recul du core (+2 s) | point de contrôle |
 | `slow` | + test:all (scenario) + **e2e complet** (les 531) | filet pré-release |
 
 `fast` superpose le tour des écrans aux vérifications statiques : le tour attend un navigateur
@@ -43,6 +43,19 @@ de s'additionner. Un échec du tour arrête le gate comme n'importe quelle étap
 Depuis le 2026-09-05, `affected` route par **famille de code → famille de specs** au lieu de
 n'avoir qu'un cran « je ne sais pas scoper → je lance tout » : toucher au salon en ligne ne rejoue
 plus les 218 specs de mécanique. Le tour des écrans est le plancher, toujours joint.
+
+🔴 **Pourquoi `full` passe `--since-main`** (corrigé le 2026-09-10). Par défaut le sélecteur se cadre
+sur `HEAD`, c'est-à-dire sur le **dernier commit**. Or la règle du commit WIP avant la revue
+(`feedback_wip_commit_retest_before_final`) fait qu'à l'heure du gate, `HEAD` contient déjà tout le
+lot : le diff est presque vide et le gate valide une fraction du travail en annonçant du vert.
+Mesuré le 2026-09-08 : **14 tests joués au lieu de 531** sur un lot qui touchait six paquets.
+`--since-main` cadre sur le **point de divergence d'avec `origin/main`**, donc sur le lot entier,
+commit WIP compris. Ne le retire pas du tier `full`.
+
+Deuxième garde-fou du même jour : une famille retenue qui ne résout **aucun** spec (dossier renommé,
+spec déplacé) escalade désormais en suite entière au lieu de disparaître en silence — auparavant le
+plancher `tour` maintenait la sélection non vide et le message restait rassurant. La logique de
+sélection est couverte par `scripts/e2e-affected.test.ts`.
 
 `pnpm lint:fix` peut modifier des fichiers (autofix Biome) — c'est attendu, ne les revert pas.
 

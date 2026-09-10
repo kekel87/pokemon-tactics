@@ -120,7 +120,9 @@ case "$MODE" in
     step "test:coverage"   pnpm test:coverage
     step "test:integration" pnpm test:integration
     step "test:scenario"   pnpm test:scenario
-    step "e2e"             pnpm test:e2e:affected
+    # `--since-main` cadre sur le lot, pas sur le dernier commit. Ne pas le retirer : pourquoi,
+    # dans SKILL.md § « Pourquoi `full` passe --since-main ».
+    step "e2e"             pnpm test:e2e:affected --since-main
     ;;
   slow)
     step "audit:flow"      pnpm audit:flow

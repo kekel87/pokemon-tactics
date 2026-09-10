@@ -347,7 +347,8 @@ pokemon-tactics/
 │   ├── download-status-icons.ts # Télécharge 14 assets statut ZA depuis Pokepedia (7 icônes 52x36 + 7 miniatures 172x36)
 │   ├── generate-golden-replay.ts # Génère packages/core/fixtures/replays/golden-replay.json (3v3 aggressive vs aggressive, seed 12345)
 │   ├── sprite-config.json       # +51 entrées (plan 135) + 1 (Ditto 0132, plan 157) → couvre les 151 Pokemon Gen 1 (complet)
-│   ├── e2e-affected.ts          # Plan 170 : calcule le niveau e2e (smoke/affected/full) depuis le diff, escalade auto conservatrice — `pnpm test:e2e:affected`
+│   ├── e2e-affected.ts          # Plan 170 : calcule le niveau e2e (smoke/affected/full) depuis le diff, escalade auto conservatrice — `pnpm test:e2e:affected`. `--since-main` (2026-09-10) cadre sur le point de divergence d'avec `origin/main` au lieu de `HEAD` ; famille de specs résolue vide → escalade en suite entière au lieu de disparaître en silence
+│   ├── e2e-affected.test.ts     # 2026-09-10 : 42 tests, diff et liste de specs injectés (aucun appel git). Câblé au projet vitest `unit` via `scripts/**/*.test.ts`
 │   ├── map-preview.js           # Vite helper pour pnpm dev:map
 │   └── telemetry-stats.ts       # `pnpm stats` : rapport terminal des statistiques d'usage (Pokemon,
 │                                 # talents, objets tenus, attaques, causes de K.O.) — matière

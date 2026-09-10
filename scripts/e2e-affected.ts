@@ -19,23 +19,34 @@
  * d'eux, le niveau EFFECTIF était « les 531, toujours » — les 24 minutes que le gate coûtait. La
  * table de correspondance est la moitié qui manquait, pas un raffinement.
  *
+ * ⚠️ **Le piège du commit WIP** (mesuré le 2026-09-08) : par défaut la comparaison se fait contre
+ * `HEAD`, donc contre le DERNIER COMMIT. Or `feedback_wip_commit_retest_before_final` impose un
+ * commit WIP avant la revue — passé ce commit, `HEAD` contient déjà tout le lot et il ne reste
+ * presque rien à comparer. Relevé ce jour-là : **14 tests joués au lieu de 531** sur un lot qui
+ * touchait six paquets, gate vert en ayant validé une fraction du travail. `--since-main` existe
+ * pour ça : il cadre sur la base du LOT — le point de divergence d'avec `origin/main` — au lieu du
+ * dernier commit. Le tier `full` de `/ci-gate` le passe systématiquement.
+ *
  * Usage :
- *   tsx scripts/e2e-affected.ts [baseRef] [--print] [--level=smoke|affected|full]
- *   baseRef  ref de comparaison (défaut : arbre de travail vs HEAD).
- *   --print  imprime le niveau + les commandes, ne lance pas.
- *   --level  force un niveau (court-circuite le calcul).
+ *   tsx scripts/e2e-affected.ts [baseRef] [--since-main] [--print] [--level=smoke|affected|full]
+ *   baseRef      ref de comparaison (défaut : arbre de travail vs HEAD).
+ *   --since-main cadre sur le lot entier : point de divergence d'avec `origin/main`. Ignoré si un
+ *                `baseRef` explicite est donné.
+ *   --print      imprime le niveau + les commandes, ne lance pas.
+ *   --level      force un niveau (court-circuite le calcul).
  */
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 const SMOKE_GLOB = "e2e/tests/smoke";
 const COMBAT_GLOB = "e2e/tests/combat";
 const SANDBOX_CONFIGS = "e2e/fixtures/sandbox-configs.ts";
 
 const LEVELS = ["smoke", "affected", "full"] as const;
-type Level = (typeof LEVELS)[number];
+export type Level = (typeof LEVELS)[number];
 
-interface Decision {
+export interface Decision {
   level: Level;
   reason: string;
   /**
@@ -49,6 +60,52 @@ interface Decision {
 
 function git(args: string[]): string {
   return execFileSync("git", args, { encoding: "utf8" }).trim();
+}
+
+/**
+ * Comme `git`, mais rend `undefined` au lieu de jeter — pour les refs qui peuvent ne pas exister.
+ *
+ * `stderr` est capturé, pas hérité : `execFileSync` le laisse filer vers le terminal par défaut,
+ * donc une ref absente crachait un « fatal: Not a valid object name » brut au milieu du gate, alors
+ * même que l'échec est ATTENDU et rattrapé ici. Un message d'erreur sans contexte au milieu d'une
+ * sortie verte est pire qu'aucun message.
+ */
+function gitOrUndefined(args: string[]): string | undefined {
+  try {
+    const out = execFileSync("git", args, {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    }).trim();
+    return out.length > 0 ? out : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Base du LOT : le point où le travail courant a divergé de `main`.
+ *
+ * Pourquoi le point de divergence plutôt que `origin/main` tel quel : sur une branche en retard,
+ * comparer directement à `origin/main` compte AUSSI l'avance de `main` comme des changements du
+ * lot — des fichiers que ce travail n'a jamais touchés, donc un périmètre gonflé pour rien. Le
+ * point de divergence donne exactement ce que le lot a écrit, commit WIP compris.
+ *
+ * `origin/main` d'abord (la référence partagée), `main` en repli (dépôt sans distant, ou `fetch`
+ * jamais fait). Aucune des deux → `undefined` : l'appelant retombe sur le comportement par défaut
+ * (`HEAD`) et le dit, plutôt que d'échouer.
+ *
+ * La ref RETENUE ressort avec la base : tomber sur `main` local au lieu d'`origin/main` décale le
+ * périmètre, et l'appelant doit pouvoir le dire. Un repli muet est le défaut que ce fichier
+ * corrige ; s'en offrir un de plus dans le correctif serait une farce.
+ */
+function resolveLotBase(): { base: string; ref: string } | undefined {
+  for (const ref of ["origin/main", "main"]) {
+    const base = gitOrUndefined(["merge-base", ref, "HEAD"]);
+    if (base !== undefined) {
+      return { base, ref };
+    }
+  }
+  return undefined;
 }
 
 /** Fichiers changés vs base : suivis (staged + non-staged) + non suivis non ignorés. */
@@ -119,13 +176,13 @@ const isData = (f: string) => f.startsWith("packages/data/");
  * La moitié manquante est ici : une correspondance **famille de code → famille de specs**, pour que
  * toucher au salon en ligne ne rejoue pas les 218 specs de mécanique, et réciproquement.
  */
-type Family = "tour" | "dom" | "mechanics" | "combat" | "visual" | "online" | "input";
+export type Family = "tour" | "dom" | "mechanics" | "combat" | "visual" | "online" | "input";
 
 /**
  * Specs de saisie — elles chevauchent `combat` et `dom`, donc elles sont nommées une par une
  * plutôt que déduites d'un dossier.
  */
-const INPUT_SPEC_NAMES = new Set([
+export const INPUT_SPEC_NAMES = new Set([
   "e2e/tests/combat/keyboard-controls.spec.ts",
   "e2e/tests/combat/touch-controls.spec.ts",
   "e2e/tests/combat/input-prompt-glyph.spec.ts",
@@ -344,7 +401,7 @@ function changedMoveIds(dataFiles: string[], baseRef: string | undefined): Chang
 // --- Résolution id → constantes de config → specs ---------------------------
 
 /** Toutes les constantes de `sandbox-configs.ts` (exportées ou non) : nom → corps littéral. */
-function parseConstBlocks(sandboxSource: string): Map<string, string> {
+export function parseConstBlocks(sandboxSource: string): Map<string, string> {
   const blocks = new Map<string, string>();
   const blockRe =
     /(?:export\s+)?const ([A-Za-z0-9_]+)\s*=([\s\S]*?)(?=\n(?:export\s+)?const |\n?$)/g;
@@ -362,7 +419,7 @@ function parseConstBlocks(sandboxSource: string): Map<string, string> {
  * toutes celles qui les héritent par spread (`{ ...BASE }`), transitivement. Sinon un spec qui ne
  * référence qu'une const dérivée (ex. `POISONED = { ...DUEL }`, `DUEL` portant le move) serait raté.
  */
-function configConstsForId(id: string, constBlocks: Map<string, string>): string[] {
+export function configConstsForId(id: string, constBlocks: Map<string, string>): string[] {
   const needle = `"${id}"`;
   const carrying = new Set<string>();
   for (const [name, body] of constBlocks) {
@@ -440,13 +497,71 @@ function allSpecs(): string[] {
   return [...new Set(all)];
 }
 
-/** Les fichiers de spec appartenant à l'une des familles retenues. */
-function specsOfFamilies(families: ReadonlySet<Family>): string[] {
-  const specs = allSpecs();
-  return specs.filter((spec) => [...families].some((family) => FAMILY_MATCHES[family](spec)));
+/**
+ * Résolution famille par famille, et PAS seulement l'union.
+ *
+ * 🔴 Le détail par famille est ce qui rend une famille MUETTE détectable. Le motif d'une famille
+ * peut cesser de matcher — dossier renommé, spec déplacé — et l'ancienne résolution par union
+ * rendait alors zéro spec POUR CETTE FAMILLE sans que rien ne bouge : `tour` est toujours ajouté,
+ * donc l'union reste non vide, donc la sélection paraît saine. Le message restait rassurant
+ * (« L2 affected — réseau → familles : online, tour ») en ne jouant que les deux specs de smoke.
+ * Relevé en revue du Lot B4, le 2026-09-10.
+ */
+export function specsByFamily(
+  families: ReadonlySet<Family>,
+  specs: readonly string[],
+): Map<Family, string[]> {
+  const byFamily = new Map<Family, string[]>();
+  for (const family of families) {
+    byFamily.set(
+      family,
+      specs.filter((spec) => FAMILY_MATCHES[family](spec)),
+    );
+  }
+  return byFamily;
 }
 
-interface Routing {
+/**
+ * Ce que la résolution des familles a de CASSÉ — motifs qui ne matchent plus, pas périmètres
+ * légitimement vides. Non vide ⇒ l'appelant escalade en suite entière plutôt que d'annoncer un
+ * périmètre qu'il ne joue pas.
+ *
+ * Deux modes de panne, et le second est le plus sournois :
+ *
+ * 1. **Famille entièrement muette** — le dossier a été renommé, la famille rend zéro spec. Le
+ *    plancher `tour` maintient l'union non vide, donc rien ne se voyait.
+ * 2. **Dérive PARTIELLE de `input`** — seule famille définie par une liste de noms en dur, donc la
+ *    seule qui peut perdre un spec sans se vider. Renommer un seul des onze en laisse dix : la
+ *    famille reste non vide, aucune escalade, et le spec disparaît sans un mot. C'est exactement
+ *    le scénario que le premier point prétend fermer, et il y échappait (relevé en revue,
+ *    2026-09-10). D'où le contrôle de la liste elle-même, et pas seulement de son agrégat.
+ */
+export function selectionDefects(
+  families: ReadonlySet<Family>,
+  specs: readonly string[],
+): string[] {
+  const defects: string[] = [];
+  const mute = [...specsByFamily(families, specs)]
+    .filter(([, matched]) => matched.length === 0)
+    .map(([family]) => family);
+  if (mute.length > 0) {
+    defects.push(
+      `famille(s) sans aucun spec : ${mute.join(", ")} — motif cassé (dossier renommé ? spec déplacé ?)`,
+    );
+  }
+  if (families.has("input")) {
+    const known = new Set(specs);
+    const missing = [...INPUT_SPEC_NAMES].filter((name) => !known.has(name));
+    if (missing.length > 0) {
+      defects.push(
+        `spec(s) de saisie nommé(s) dans INPUT_SPEC_NAMES mais introuvable(s) : ${missing.join(", ")}`,
+      );
+    }
+  }
+  return defects;
+}
+
+export interface Routing {
   families: Set<Family>;
   /** Chemins de source qu'aucune règle ne classe → on ne sait pas scoper, donc `full`. */
   unclassified: string[];
@@ -455,7 +570,7 @@ interface Routing {
 }
 
 /** Passe chaque fichier changé dans la table, et réunit les familles de specs concernées. */
-function route(files: readonly string[]): Routing {
+export function route(files: readonly string[]): Routing {
   const families = new Set<Family>();
   const labels = new Set<string>();
   const unclassified: string[] = [];
@@ -473,8 +588,20 @@ function route(files: readonly string[]): Routing {
   return { families, unclassified, labels };
 }
 
-function decide(baseRef: string | undefined): Decision {
-  const files = changedFiles(baseRef);
+/**
+ * Entrées que les tests injectent à la place de git. Chacune est facultative : sans elle, `decide`
+ * interroge le dépôt comme en vrai. C'est de la logique de sélection PURE, elle mérite d'être
+ * jouée sans dépendre de l'état du dépôt du moment.
+ */
+export interface DecideInputs {
+  /** Remplace le diff git. Priorité sur `PT_AFFECTED_FILES`. */
+  readonly files?: readonly string[];
+  /** Remplace la liste des specs du dépôt. */
+  readonly specs?: readonly string[];
+}
+
+export function decide(baseRef: string | undefined, injected: DecideInputs = {}): Decision {
+  const files = injected.files === undefined ? changedFiles(baseRef) : [...injected.files];
   if (files.length === 0) {
     return { level: "smoke", reason: "aucun changement détecté", runs: [SMOKE_RUN] };
   }
@@ -596,23 +723,27 @@ function decide(baseRef: string | undefined): Decision {
   // périmètre trop étroit laisserait passer (un écran qui ne monte plus du tout).
   families.add("tour");
 
-  const selected = new Set<string>(specsOfFamilies(families));
+  const specs = injected.specs ?? allSpecs();
+  const defects = selectionDefects(families, specs);
+  if (defects.length > 0) {
+    return {
+      level: "full",
+      reason: `${defects.join(" ; ")} → suite entière, par sûreté`,
+      runs: [FULL_RUN],
+    };
+  }
+
+  // Playwright lirait une liste de chemins VIDE comme « toute la suite » — silencieusement. C'est
+  // `selectionDefects` qui ferme ce cas, en amont et en nommant la cause : passé cette garde,
+  // chaque famille retenue a au moins un spec, et `tour` en est toujours, donc la sélection ne
+  // peut plus être vide.
+  const selected = new Set<string>([...specsByFamily(families, specs).values()].flat());
   for (const spec of targetedMoveSpecs) {
     selected.add(spec);
   }
   // Un spec e2e modifié se rejoue, quoi qu'en dise la table.
   for (const spec of e2eFiles.filter((f) => f.endsWith(".spec.ts"))) {
     selected.add(spec);
-  }
-
-  // Playwright lit une liste de chemins VIDE comme « toute la suite ». C'est la direction sûre,
-  // mais silencieuse : on croirait avoir ciblé alors qu'on lance tout. On le dit.
-  if (selected.size === 0) {
-    return {
-      level: "full",
-      reason: "aucun spec sélectionné (familles vides) → suite entière, par sûreté",
-      runs: [FULL_RUN],
-    };
   }
 
   // Fixture ou objet de page changé (pas un spec) : le graphe d'import de Playwright sait seul qui
@@ -643,6 +774,101 @@ function isLevel(value: string | undefined): value is Level {
   return value !== undefined && (LEVELS as readonly string[]).includes(value);
 }
 
+const KNOWN_FLAGS = ["--print", "--since-main"] as const;
+
+/**
+ * Message d'erreur si un drapeau est inconnu, `undefined` sinon.
+ *
+ * Liste blanche et pas tolérance : `--level` sortait déjà en 2 sur une valeur invalide, mais
+ * `--since-mian` mal tapé était simplement IGNORÉ — repli sur `HEAD`, périmètre étroit, gate vert.
+ * La faute de frappe rejouait le défaut même que `--since-main` corrige.
+ */
+export function unknownFlag(argv: readonly string[]): string | undefined {
+  const bad = argv.find(
+    (arg) =>
+      arg.startsWith("--") &&
+      !arg.startsWith("--level=") &&
+      !(KNOWN_FLAGS as readonly string[]).includes(arg),
+  );
+  return bad === undefined
+    ? undefined
+    : `drapeau inconnu « ${bad} » (attendu : ${[...KNOWN_FLAGS, "--level=…"].join(", ")})`;
+}
+
+/** Les refs dont `--since-main` a besoin. Résolues paresseusement : un `merge-base` pour rien sinon. */
+export interface LotRefs {
+  /** Point de divergence d'avec `main`. `undefined` si ni `origin/main` ni `main` n'existent. */
+  readonly base: string | undefined;
+  /** La ref d'où vient `base` : `origin/main`, ou `main` en repli. */
+  readonly ref: string | undefined;
+  /** Sha de `HEAD`, pour dire quand la base du lot ne vaut pas mieux que le défaut. */
+  readonly head: string | undefined;
+}
+
+export interface BaseRefChoice {
+  readonly baseRef: string | undefined;
+  /** Ce que l'utilisateur doit savoir avant de croire le périmètre affiché. Jamais silencieux. */
+  readonly warnings: string[];
+  /** Ligne de commande invalide : l'appelant sort en 2 plutôt que de deviner. */
+  readonly error?: string;
+}
+
+/**
+ * Quelle base de comparaison, et ce qu'il faut en dire. Partie PURE de la décision : `refs` est la
+ * seule porte vers git, et les tests la remplacent.
+ *
+ * Chaque repli parle. Un cadrage qui rétrécit sans le dire est le défaut d'origine de ce fichier ;
+ * le reproduire dans son propre correctif serait une farce.
+ */
+export function resolveBaseRef(argv: readonly string[], refs: () => LotRefs): BaseRefChoice {
+  const positionals = argv.filter((arg) => !arg.startsWith("--"));
+  const sinceMain = argv.includes("--since-main");
+  const warnings: string[] = [];
+
+  // Un second positionnel était avalé sans un mot. Dans un fichier dont tout le sujet est « plus
+  // rien de muet », c'est le genre d'incohérence qui finit par coûter un périmètre.
+  if (positionals.length > 1) {
+    return {
+      baseRef: undefined,
+      warnings,
+      error: `une seule base attendue, ${positionals.length} reçues (${positionals.join(", ")})`,
+    };
+  }
+  const explicitBase = positionals[0];
+
+  if (explicitBase !== undefined) {
+    if (sinceMain) {
+      warnings.push(`--since-main ignoré : la base explicite « ${explicitBase} » l'emporte`);
+    }
+    return { baseRef: explicitBase, warnings };
+  }
+  if (!sinceMain) {
+    return { baseRef: undefined, warnings };
+  }
+
+  const { base, ref, head } = refs();
+  if (base !== undefined && ref === "main") {
+    warnings.push(
+      "base du lot calculée depuis `main` local — `origin/main` introuvable, périmètre potentiellement décalé",
+    );
+  }
+  if (base === undefined) {
+    warnings.push(
+      "--since-main sans base de lot (ni origin/main ni main) — repli sur HEAD, périmètre potentiellement étroit",
+    );
+    return { baseRef: undefined, warnings };
+  }
+  if (base === head) {
+    // Cas courant, pas exceptionnel : avant le premier commit du lot, la base VAUT HEAD. La base
+    // existe, donc l'en-tête l'affichait comme une victoire alors qu'elle n'élargit rien. Dire
+    // exactement ça — et pas « rien de local », qui serait faux quand l'arbre de travail est sale.
+    warnings.push(
+      "--since-main : aucun commit local en avance sur `main` — le périmètre se limite à l'arbre de travail",
+    );
+  }
+  return { baseRef: base, warnings };
+}
+
 function resolveDecision(baseRef: string | undefined, forced: Level | undefined): Decision {
   if (forced === "smoke") {
     return { level: "smoke", reason: "forcé --level=smoke", runs: [SMOKE_RUN] };
@@ -667,13 +893,33 @@ function main(): void {
     );
     process.exit(2);
   }
-  const baseRef = argv.find((a) => !a.startsWith("--"));
+  const badFlag = unknownFlag(argv);
+  if (badFlag !== undefined) {
+    process.stderr.write(`e2e-affected : ${badFlag}\n`);
+    process.exit(2);
+  }
+
+  const { baseRef, warnings, error } = resolveBaseRef(argv, () => {
+    const lot = resolveLotBase();
+    return { base: lot?.base, ref: lot?.ref, head: gitOrUndefined(["rev-parse", "HEAD"]) };
+  });
+  for (const warning of warnings) {
+    process.stderr.write(`e2e-affected : ${warning}\n`);
+  }
+  if (error !== undefined) {
+    process.stderr.write(`e2e-affected : ${error}\n`);
+    process.exit(2);
+  }
 
   const decision = resolveDecision(baseRef, isLevel(levelArg) ? levelArg : undefined);
   const label = { smoke: "L1 smoke", affected: "L2 affected", full: "L3 full" }[decision.level];
   const cmds = decision.runs.map((run) => `npx ${["playwright", "test", ...run].join(" ")}`);
+  // Un sha se tronque, un nom de ref non : « origin/m » ne renseigne personne.
+  const shortBase =
+    baseRef !== undefined && /^[0-9a-f]{40}$/.test(baseRef) ? baseRef.slice(0, 8) : baseRef;
+  const baseNote = shortBase === undefined ? "" : ` (base : ${shortBase})`;
   process.stderr.write(
-    `\ne2e-affected → ${label}\n  raison : ${decision.reason}\n${cmds.map((c) => `  $ ${c}`).join("\n")}\n\n`,
+    `\ne2e-affected → ${label}${baseNote}\n  raison : ${decision.reason}\n${cmds.map((c) => `  $ ${c}`).join("\n")}\n\n`,
   );
 
   if (printOnly) {
@@ -690,4 +936,28 @@ function main(): void {
   process.exit(0);
 }
 
-main();
+// Le fichier est importé par ses tests unitaires (`e2e-affected.test.ts`) : sans cette garde,
+// l'import lancerait Playwright et sortirait du process.
+//
+// `realpathSync` n'est pas décoratif : Node résout les liens symboliques pour `import.meta.url`,
+// PAS pour `process.argv[1]`. Lancé via un lien, la comparaison brute échouait — le script ne
+// faisait rien et sortait 0, donc le gate affichait un ✓ en ayant joué zéro test. Exactement le
+// vert silencieux que ce fichier combat (relevé et mesuré en revue, 2026-09-10).
+//
+// Résolu des DEUX côtés, et jamais jetant. `realpathSync` lève `ENOENT` sur un chemin absent : nu,
+// il rendrait ce module inimportable, donc ferait tomber `pnpm test` entier sur une erreur opaque
+// — le fichier est désormais dans le projet vitest `unit`. Et résoudre les deux côtés garde la
+// comparaison juste sous `--preserve-symlinks`, où `import.meta.url` n'est plus le realpath.
+function realPathOrSelf(candidate: string): string {
+  try {
+    return realpathSync(candidate);
+  } catch {
+    return candidate;
+  }
+}
+
+const entryPoint = process.argv[1];
+const thisFile = realPathOrSelf(fileURLToPath(import.meta.url));
+if (entryPoint !== undefined && realPathOrSelf(entryPoint) === thisFile) {
+  main();
+}

@@ -80,7 +80,15 @@ L'humain **travaille et joue sur cette machine pendant que la suite tourne**. Un
 
 - **Toujours passer par `pnpm test:e2e:affected`**, jamais `pnpm test:e2e` en cours de chantier. Le
   niveau (L1 smoke / L2 affected / L3 full) se **décide depuis le diff** (`scripts/e2e-affected.ts`,
-  plan 170) ; le choisir soi-même « par sécurité », c'est lancer 478 tests pour un bouton.
+  plan 170) ; le choisir soi-même « par sécurité », c'est lancer 531 tests pour un bouton.
+- 🔴 **Dès qu'un commit existe déjà pour le lot en cours, ajouter `--since-main`** :
+  `pnpm test:e2e:affected --since-main`. Sans lui, le sélecteur se cadre sur `HEAD`, donc sur le
+  **dernier commit** — et le commit WIP imposé avant la revue vide alors le diff. Mesuré le
+  2026-09-08 : **14 tests joués au lieu de 531** sur un lot qui touchait six paquets, gate vert en
+  ayant validé une fraction du travail. `--since-main` cadre sur le point de divergence d'avec
+  `origin/main`, donc sur le lot entier. Le tier `full` de `/ci-gate` le passe déjà ; c'est l'appel
+  **manuel** qui l'oublie. Le script avertit sur stderr quand la base retenue n'élargit rien —
+  lire cette ligne, elle dit si le périmètre est réel.
 - **Le plafond est posé par `scripts/with-cpu-cap.sh`**, branché sur `test:e2e`, `test:e2e:smoke` et
   `test:e2e:affected` : `systemd-run --user --scope` avec `CPUQuota=400%` (4 cœurs sur 16),
   `MemoryMax=8G` et `CPUWeight=20` (cède le CPU aux tâches interactives). C'est le **noyau** qui
