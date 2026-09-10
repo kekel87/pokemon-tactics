@@ -34,7 +34,7 @@ import {
  * Le filet du jour où on oubliera est la somme de contrôle d'état du Lot B4 : la divergence devient
  * une erreur lisible au lieu d'un combat qui part en silence.
  */
-export const NETWORK_VERSION = 3;
+export const NETWORK_VERSION = 4;
 
 /**
  * Durée d'un tour en ligne (plan 202, Lot B3, décision #946).
@@ -339,6 +339,35 @@ export interface ResyncMessage {
   actions: readonly Action[];
 }
 
+/**
+ * L'empreinte de l'état de combat local, à un point d'ancrage donné (plan 203, Lot B4).
+ *
+ * Les deux pairs l'émettent après chaque action et comparent : mêmes empreintes = les deux parties
+ * racontent la même chose. C'est le seul filet contre une divergence qui laisse toutes les actions
+ * **légales** — un point de vie d'écart, un compteur de météo qui diffère. Le validateur d'actions
+ * du Lot B2 ne voit rien de ce cas, puisqu'il ne juge que la légalité.
+ *
+ * 🔴 **Ce n'est pas un anti-triche**, et aucune cadence n'y changerait rien : rien ne lie cette
+ * empreinte à l'état réellement détenu, donc un client modifié émet celle de l'état honnête. Elle
+ * détecte la divergence **accidentelle** — un `NETWORK_VERSION` oublié, un bug de déterminisme, deux
+ * versions du moteur qui se rencontrent. Ce qui empêche de tricher reste la validation de chaque
+ * action reçue (#211). Le seul gain contre un menteur : un pair qui **fabrique** un constat de
+ * divergence alors que les empreintes concordent devient contredisable, ce qui restreint un peu le
+ * trou assumé de #943.
+ */
+export interface ChecksumMessage {
+  type: "checksum";
+  seat: number;
+  /**
+   * Nombre d'actions appliquées chez l'émetteur au moment du calcul. **Le point d'ancrage** : on ne
+   * compare que des empreintes de même index, un pair pouvant être une action en avance. Comparer
+   * deux ancrages différents serait un faux positif garanti.
+   */
+  actionIndex: number;
+  /** 16 caractères hexadécimaux — `battleStateChecksum` du core. */
+  digest: string;
+}
+
 export type NetworkMessage =
   | HelloMessage
   | WelcomeMessage
@@ -351,7 +380,8 @@ export type NetworkMessage =
   | ActionMessage
   | ForfeitMessage
   | ResyncRequestMessage
-  | ResyncMessage;
+  | ResyncMessage
+  | ChecksumMessage;
 
 export type NetworkMessageType = NetworkMessage["type"];
 
@@ -565,6 +595,15 @@ const MESSAGE_VALIDATORS = {
     message.fromIndex >= 0 &&
     // Une liste VIDE est valide et fréquente : le revenant n'a peut-être rien manqué.
     isArrayOf(message.actions, isAction),
+  checksum: (message) =>
+    isSeat(message.seat) &&
+    typeof message.actionIndex === "number" &&
+    Number.isInteger(message.actionIndex) &&
+    message.actionIndex >= 0 &&
+    // Longueur et alphabet fixes : `battleStateChecksum` rend toujours 16 chiffres hexadécimaux.
+    // Un pair qui enverrait autre chose n'est pas un pair dont on veut comparer les empreintes.
+    typeof message.digest === "string" &&
+    /^[0-9a-f]{16}$/.test(message.digest),
 } as const satisfies Record<NetworkMessageType, (message: Record<string, unknown>) => boolean>;
 
 /**

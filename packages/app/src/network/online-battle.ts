@@ -71,6 +71,7 @@ export type OnlineBattleOrchestrator = Pick<
   | "actionsSince"
   | "currentActorPlayerId"
   | "appliedActionCount"
+  | "emitStateChecksum"
 >;
 
 /** Ce que l'écran de combat branche quand la partie est en ligne. `null` en local. */
@@ -98,6 +99,12 @@ export interface OnlineBattleWiring {
   attach(orchestrator: OnlineBattleOrchestrator, signal: AbortSignal): void;
   /** Applique le barème (décision D1) : au troisième refus, la place est éliminée. */
   onRejection(rejection: RemoteActionRejection): void;
+  /**
+   * Notre empreinte d'état, à son point d'ancrage (plan 203, Lot B4). Diffusée puis comparée à
+   * celles des pairs. L'orchestrateur calcule et annonce ; il ne compare pas — comparer demande les
+   * empreintes des autres, donc le salon, que la vue ne connaît pas.
+   */
+  reportChecksum(actionIndex: number, digest: string): void;
   /**
    * Le joueur abandonne volontairement (plan 202, étape 6).
    *
@@ -199,6 +206,8 @@ type RoomSurface = Pick<
   | "onResync"
   | "sendResyncRequest"
   | "sendResync"
+  | "sendChecksum"
+  | "onChecksum"
 >;
 
 /** Ce que le câblage a besoin d'emprunter au monde extérieur. Injecté par les tests. */
@@ -230,6 +239,64 @@ export function createWiring(
    */
   const remotePlayerIds = new Set(humanPlayerIds.filter((playerId) => playerId !== localPlayerId));
   let attached: OnlineBattleOrchestrator | null = null;
+
+  /**
+   * Les empreintes reçues, **par place puis par index d'ancrage** (plan 203, Lot B4).
+   *
+   * Pourquoi pas un simple booléen « on concorde » : un pair peut être une action en avance, donc son
+   * empreinte d'un index arrive avant qu'on atteigne cet index. Il faut la garder pour la comparer
+   * plus tard, et ne comparer que des empreintes de **même index** — comparer deux ancrages
+   * différents serait un faux positif garanti.
+   *
+   * Et pourquoi par PLACE alors que le réseau est verrouillé en 1v1 (#944) : c'est gratuit et ça
+   * garde la porte ouverte. À plus de deux pairs, la somme de contrôle devient **meilleure** qu'en
+   * 1v1 parce que la majorité devient possible — onze pairs d'accord, un qui diffère, l'isolé a tort
+   * et on l'exclut au lieu de terminer la partie. C'est la réponse au « qui a raison ? » que le 1v1
+   * ne peut structurellement pas avoir (#943). La règle de majorité se greffera ici sans toucher au
+   * protocole ; ce lot ne l'implémente pas.
+   */
+  const remoteDigests = new Map<number, Map<number, string>>();
+  /** Nos propres empreintes, gardées le temps qu'une empreinte distante du même index arrive. */
+  const localDigests = new Map<number, string>();
+  /**
+   * A-t-on confronté au moins deux empreintes dans ce combat ? (plan 203, relevé en revue de code.)
+   *
+   * Sans ce dénominateur, `checksum-mismatch = 0` est **indiscernable** de « aucune comparaison n'a
+   * jamais eu lieu » — donc le seul compteur censé répondre « le déterminisme tient-il ? » ne
+   * prouverait rien. Compté une fois par combat, pas par action : c'est la bonne granularité pour la
+   * question posée, et ça n'inonde pas le relevé.
+   */
+  let comparisonCounted = false;
+  /**
+   * Le constat a-t-il déjà été prononcé ? Le moteur, lui, est idempotent (`engine.forfeit` refuse le
+   * second), mais sans cette garde une seconde empreinte divergente au même ancrage rejouerait le
+   * compteur et rediffuserait le constat — le compteur qui mesure le déterminisme se polluerait
+   * lui-même. Relevé en revue de code.
+   */
+  let divergencePronounced = false;
+
+  /**
+   * Combien d'index on garde derrière soi avant de purger.
+   *
+   * Deux suffiraient (un pair a au plus une action d'avance), mais la marge est gratuite et une purge
+   * trop serrée ferait silencieusement rater une comparaison au lieu de la faire échouer.
+   */
+  const CHECKSUM_HISTORY = 8;
+
+  const pruneDigests = (upTo: number): void => {
+    for (const index of localDigests.keys()) {
+      if (index < upTo - CHECKSUM_HISTORY) {
+        localDigests.delete(index);
+      }
+    }
+    for (const bySeat of remoteDigests.values()) {
+      for (const index of bySeat.keys()) {
+        if (index < upTo - CHECKSUM_HISTORY) {
+          bySeat.delete(index);
+        }
+      }
+    }
+  };
 
   const timers = deps.timers ?? defaultTimers;
 
@@ -342,9 +409,60 @@ export function createWiring(
     attached.applyForfeit(playerId, ENGINE_FORFEIT_REASON[reason]);
   };
 
+  /**
+   * Confronte une empreinte locale et une empreinte distante de **même index** (plan 203, Lot B4).
+   *
+   * Le camp éliminé est le pair divergent, pas nous : notre moteur est le seul juge dont on dispose.
+   * 🔴 Ce n'est PAS une accusation — en 1v1 personne ne peut dire qui s'est écarté (#943), et le
+   * joueur lit « les parties ne concordent plus », jamais « vous avez triché ». Le pair d'en face
+   * prononce le même constat au même instant, symétriquement.
+   */
+  const compareDigests = (seat: number, actionIndex: number): void => {
+    const mine = localDigests.get(actionIndex);
+    const theirs = remoteDigests.get(seat)?.get(actionIndex);
+    if (mine === undefined || theirs === undefined) {
+      return;
+    }
+    if (!comparisonCounted) {
+      comparisonCounted = true;
+      countAction(TelemetryAction.ChecksumCompared);
+    }
+    if (mine === theirs || divergencePronounced) {
+      return;
+    }
+    divergencePronounced = true;
+    /*
+     * Deux compteurs montent ensemble, et c'est voulu : `forfeit-diverged` compte les forfaits pour
+     * divergence toutes causes, `checksum-mismatch` ceux que la somme de contrôle a trouvés. Leur
+     * ÉCART dit combien viennent d'actions refusées (le barème du Lot B2) plutôt que d'une désync
+     * d'état muette — celle qu'aucun autre mécanisme ne voit. Même leçon que
+     * `forfeit-absent` / `forfeit-missed-turns` au Lot B3 : les confondre masquerait lequel des deux
+     * mécanismes tranche vraiment.
+     */
+    countAction(TelemetryAction.ChecksumMismatch);
+    forfeitSeat(seat, NetworkForfeitReason.EtatDivergent, TelemetryAction.ForfeitDiverged);
+  };
+
   return {
     isRemotePlayer: (playerId) => remotePlayerIds.has(playerId),
     sendAction: (actionIndex, action, timedOut) => room.sendAction(actionIndex, action, timedOut),
+
+    /*
+     * On diffuse la nôtre, puis on confronte celles déjà reçues à cet index — un pair plus rapide a
+     * pu nous devancer. Le combat fini, plus rien : comparer deux états d'après-match n'apprend rien
+     * et un forfait prononcé sur un combat terminé serait du bruit.
+     */
+    reportChecksum: (actionIndex, digest) => {
+      if (attached === null || attached.isBattleOver()) {
+        return;
+      }
+      localDigests.set(actionIndex, digest);
+      pruneDigests(actionIndex);
+      room.sendChecksum(actionIndex, digest);
+      for (const seat of remoteDigests.keys()) {
+        compareDigests(seat, actionIndex);
+      }
+    },
 
     /*
      * Arme le chien de garde du SILENCE, celui que la fermeture de canal ne signale jamais : un
@@ -585,6 +703,27 @@ export function createWiring(
         orchestrator.applyForfeit(playerId, ENGINE_FORFEIT_REASON[message.reason]);
       });
       /*
+       * 🔴 Réémettre l'empreinte de l'index COURANT, maintenant que le salon écoute.
+       *
+       * `orchestrator.start()` a déjà tourné — il est appelé à la fin de `runBattle`, ce branchement
+       * vient après — et quand le moteur n'avait aucun événement de démarrage à jouer, son
+       * `refreshUI()` synchrone a annoncé l'empreinte de lancement dans le vide, en marquant l'index
+       * comme annoncé. Sans cette réémission, l'index 0 était perdu pour de bon et une divergence de
+       * PLACEMENT (#902) repassait en silence — selon la composition des équipes, ce qui est le pire
+       * des deux mondes pour une recette. Relevé en revue de code.
+       */
+      orchestrator.emitStateChecksum();
+
+      const unsubscribeChecksum = room.onChecksum((message) => {
+        let bySeat = remoteDigests.get(message.seat);
+        if (bySeat === undefined) {
+          bySeat = new Map();
+          remoteDigests.set(message.seat, bySeat);
+        }
+        bySeat.set(message.actionIndex, message.digest);
+        compareDigests(message.seat, message.actionIndex);
+      });
+      /*
        * La demande part **après** les écouteurs, et c'est l'ordre qui compte : une action jouée par
        * le pair resté peut croiser la demande, et sans l'abonnement déjà en place elle serait perdue.
        */
@@ -601,6 +740,13 @@ export function createWiring(
           unsubscribeHealth();
           unsubscribeResyncRequest();
           unsubscribeResync();
+          unsubscribeChecksum();
+          // Un combat démonté ne compare plus rien : garder ces empreintes ferait comparer l'état
+          // d'une partie à celui de la suivante.
+          localDigests.clear();
+          remoteDigests.clear();
+          comparisonCounted = false;
+          divergencePronounced = false;
           // Un minuteur qui survit à l'écran ferait prononcer un forfait dans une partie qui
           // n'existe plus — la même erreur que les écouteurs non défaits.
           clearSilenceWatchdog();

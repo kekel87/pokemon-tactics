@@ -97,6 +97,13 @@ export { computeCombatStats, computeStatAtLevel } from "./battle/stat-calculator
 export { computeMovement, isMajorStatus } from "./battle/stat-modifier";
 export { validateStatSpread } from "./battle/stat-spread-validator";
 export {
+  battleStateChecksum,
+  CHECKSUM_FLOAT_DIGITS,
+  canonicalize,
+  canonicalizeBattleState,
+  checksumOf,
+} from "./battle/state-checksum";
+export {
   setTailwind,
   TAILWIND_DEFAULT_DURATION,
   TAILWIND_SPEED_MULTIPLIER,

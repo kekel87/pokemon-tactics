@@ -5,6 +5,7 @@ import {
   type BattleEvent,
   BattleEventType,
   type BattleState,
+  battleStateChecksum,
   CallMoveSourceKind,
   Category,
   type Direction,
@@ -32,7 +33,11 @@ import {
   Weather,
 } from "@pokemon-tactic/core";
 import { AnimationCategory, moveAnimationCategory } from "@pokemon-tactic/data";
-import { getTeamColorByPlayerId, type TilePointerSource } from "@pokemon-tactic/render-ports";
+import {
+  getTeamColorByPlayerId,
+  type StateChecksumDeps,
+  type TilePointerSource,
+} from "@pokemon-tactic/render-ports";
 import { AnimationQueue } from "./AnimationQueue.js";
 import { buildAuraRingSpecs } from "./aura-ring-view.js";
 import {
@@ -121,6 +126,7 @@ export type {
   RemoteActionRejectionCause,
   SelectedMoveView,
   SemiInvulnerableDisplay,
+  StateChecksumDeps,
   TurnClockDeps,
   TurnClockView,
   TurnInfoView,
@@ -322,6 +328,15 @@ export class BattleOrchestrator {
    * annulant en boucle (décision #946). `state.actionCounter`, lui, est incrémenté exactement une
    * fois par tour d'acteur, par la boucle Charge Time (`beginActorTurn`).
    */
+  /**
+   * Dernier index d'action pour lequel une empreinte a été annoncée (plan 203, Lot B4).
+   *
+   * L'ancre est `appliedActionCount` et **pas** `state.actionCounter`, contrairement au chronomètre
+   * juste au-dessus. Motif : cette valeur doit être **la même chez les deux pairs** pour que la
+   * comparaison ait un sens, et c'est déjà l'index que porte chaque message `action`. L'horloge
+   * d'action du combat, elle, est interne au moteur.
+   */
+  private lastChecksumIndex: number | null = null;
   private turnClockDeadlineAt: number | null = null;
   private turnClockCancel: (() => void) | null = null;
   private turnClockActionCounter: number | null = null;
@@ -832,6 +847,91 @@ export class BattleOrchestrator {
     );
   }
 
+  // --- Somme de contrôle d'état (plan 203, Lot B4) ---------------------------------------------
+
+  /**
+   * Annonce notre empreinte d'état si une action vient d'être appliquée.
+   *
+   * Appelé depuis `refreshUI()` comme `syncTurnClock`, et pour la même raison : c'est la comparaison
+   * d'index qui fait le tri, pas l'endroit de l'appel. `refreshUI()` tourne plusieurs fois par tour.
+   *
+   * L'index 0 est annoncé au montage — c'est **l'empreinte de lancement**, émise après la phase de
+   * placement et avant la première action. Elle couvre le placement, dont le tirage local avait déjà
+   * produit deux plateaux différents une fois (décision #902), et elle passe par le même chemin que
+   * les autres, sans cas particulier.
+   */
+  private syncStateChecksum(): void {
+    const checksum = this.config.stateChecksum;
+    if (checksum === undefined) {
+      return;
+    }
+    const actionIndex = this.appliedActionCount;
+    if (this.lastChecksumIndex === actionIndex) {
+      return;
+    }
+    this.lastChecksumIndex = actionIndex;
+    /*
+     * `Math.max(1, …)` et pas un jet : une cadence de 0 rendait `actionIndex % 0` donc `NaN`, donc
+     * `NaN !== 0`, donc un détecteur ÉTEINT sans une ligne d'erreur — une faute de frappe suffisait.
+     * Le repli va dans le sens sûr : une valeur absurde fait vérifier PLUS souvent, jamais moins.
+     * Jeter ici serait pire, `refreshUI` tournant dans la file d'animation (voir
+     * `publishStateChecksum`). Relevé en revue de code.
+     */
+    if (actionIndex % Math.max(1, checksum.everyNActions) !== 0) {
+      return;
+    }
+    this.publishStateChecksum(checksum, actionIndex);
+  }
+
+  /**
+   * Force l'annonce de l'empreinte à l'index courant, hors cadence.
+   *
+   * 🔴 **Referme un trou réel, trouvé en revue de code.** `start()` court AVANT
+   * `online.attach()` — il est appelé à la fin de `runBattle`, l'appelant branche le réseau après —
+   * et quand le moteur n'a aucun événement de démarrage à jouer (aucun talent d'entrée, aucune météo
+   * de carte), `start()` appelle `refreshUI()` de façon **synchrone**. L'empreinte de lancement
+   * partait donc alors que le salon n'était pas encore branché : jetée, et l'index 0 déjà marqué
+   * comme annoncé, donc jamais réessayé. Une divergence née pendant le placement (#902) repassait
+   * en silence — et le détecteur couvrait le placement ou non **selon la composition des équipes**,
+   * ce qui est le pire des deux mondes pour une recette. Même chose sur un combat repris, dont les
+   * événements de démarrage sont déjà consommés par le rejeu.
+   *
+   * Appelé par `attach`, une fois les écouteurs en place.
+   */
+  emitStateChecksum(): void {
+    const checksum = this.config.stateChecksum;
+    if (checksum === undefined || this.disposed) {
+      return;
+    }
+    const actionIndex = this.appliedActionCount;
+    this.lastChecksumIndex = actionIndex;
+    this.publishStateChecksum(checksum, actionIndex);
+  }
+
+  /**
+   * 🔴 **Le jet est attrapé ICI, et pas laissé remonter.** `canonicalize` échoue exprès sur un
+   * nombre non fini ou une forme non prévue — fail-fast juste, dans le core. Mais `refreshUI` tourne
+   * dans la file d'animation, dont `enqueue` fait `void this.flush()` sans `try` : un jet y rejette
+   * une promesse que personne n'écoute **et** laisse `running` à `true` pour toujours, donc la file
+   * ne repart plus jamais. Plus d'animation, plus de menu d'action, et comme les deux pairs ont le
+   * même état, **les deux se figent au même instant, sans un mot**. C'est strictement pire que le
+   * faux positif qu'on cherche à éviter : celui-là affiche au moins une phrase.
+   *
+   * Aucun champ de `BattleState` ne peut y mener aujourd'hui — mais c'est le raisonnement que
+   * l'étape 2 de ce lot refuse de tenir pour `Math.log` : la propriété tient par coïncidence de
+   * contenu, rien ne la surveille, et un champ neuf par plan de talents la casse. Relevé en revue.
+   */
+  private publishStateChecksum(checksum: StateChecksumDeps, actionIndex: number): void {
+    let digest: string;
+    try {
+      digest = battleStateChecksum(this.state);
+    } catch (error) {
+      this.config.onStateChecksumFailed?.(error);
+      return;
+    }
+    checksum.report(actionIndex, digest);
+  }
+
   // --- Chronomètre de tour (plan 202, Lot B3) --------------------------------------------------
 
   /**
@@ -1001,6 +1101,7 @@ export class BattleOrchestrator {
     // Avant le reste : la fenêtre du tour doit s'ouvrir même si un rafraîchissement plus loin
     // échoue. Sans effet quand le tour n'a pas changé (voir `syncTurnClock`).
     this.syncTurnClock();
+    this.syncStateChecksum();
     this.syncBoard();
     this.refreshInfoPanel();
     this.refreshTileInfo();

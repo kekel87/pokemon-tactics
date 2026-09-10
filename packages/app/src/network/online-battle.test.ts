@@ -3,6 +3,7 @@ import {
   type ActionMessage,
   BATTLE_GRACE_AFTER_SILENCE_MS,
   ChannelHealth,
+  type ChecksumMessage,
   type ForfeitMessage,
   NetworkForfeitReason,
   type ResyncMessage,
@@ -40,6 +41,8 @@ type FakeRoomSurface = Pick<
   | "onResync"
   | "sendResyncRequest"
   | "sendResync"
+  | "sendChecksum"
+  | "onChecksum"
 >;
 
 function fakeRoom(): {
@@ -56,6 +59,8 @@ function fakeRoom(): {
   emitResync: (seat: number, fromIndex: number, actions: readonly Action[]) => void;
   sentResyncRequests: number[];
   sentResyncs: { fromIndex: number; actions: readonly Action[] }[];
+  emitChecksum: (seat: number, actionIndex: number, digest: string) => void;
+  sentChecksums: { actionIndex: number; digest: string }[];
 } {
   const sentActions: { actionIndex: number; action: Action; timedOut?: true }[] = [];
   const sentForfeits: { forfeitedSeat: number; reason: string }[] = [];
@@ -67,6 +72,8 @@ function fakeRoom(): {
   const healthListeners = new Set<(seat: number, health: ChannelHealth) => void>();
   const resyncRequestListeners = new Set<(message: ResyncRequestMessage) => void>();
   const resyncListeners = new Set<(message: ResyncMessage) => void>();
+  const checksumListeners = new Set<(message: ChecksumMessage) => void>();
+  const sentChecksums: { actionIndex: number; digest: string }[] = [];
   const sentResyncRequests: number[] = [];
   const sentResyncs: { fromIndex: number; actions: readonly Action[] }[] = [];
   return {
@@ -112,6 +119,17 @@ function fakeRoom(): {
       },
       sendResyncRequest: (actionIndex) => sentResyncRequests.push(actionIndex),
       sendResync: (fromIndex, actions) => sentResyncs.push({ fromIndex, actions }),
+      onChecksum: (listener) => {
+        checksumListeners.add(listener);
+        return () => checksumListeners.delete(listener);
+      },
+      sendChecksum: (actionIndex, digest) => sentChecksums.push({ actionIndex, digest }),
+    },
+    sentChecksums,
+    emitChecksum: (seat, actionIndex, digest) => {
+      for (const listener of checksumListeners) {
+        listener({ type: "checksum", seat, actionIndex, digest });
+      }
     },
     sentResyncRequests,
     sentResyncs,
@@ -198,9 +216,11 @@ function fakeOrchestrator(): {
   orchestrator: OrchestratorSurface;
   received: { seat: number; playerId: string; actionIndex: number }[];
   forfeited: string[];
+  emitted: number;
 } {
   const received: { seat: number; playerId: string; actionIndex: number }[] = [];
   const forfeited: string[] = [];
+  const counters = { emitted: 0 };
   return {
     orchestrator: {
       submitRemoteAction: (envelope) => {
@@ -219,9 +239,15 @@ function fakeOrchestrator(): {
       actionsSince: () => [],
       currentActorPlayerId: () => null,
       appliedActionCount: 0,
+      emitStateChecksum: () => {
+        counters.emitted += 1;
+      },
     },
     received,
     forfeited,
+    get emitted() {
+      return counters.emitted;
+    },
   };
 }
 
@@ -855,5 +881,145 @@ describe("createWiring — le chien de garde du silence recommence au retour (pl
     room.emitPeerReturned(3);
 
     expect(clock.armedCount()).toBe(0);
+  });
+});
+
+describe("createWiring — somme de contrôle d'état (plan 203, Lot B4)", () => {
+  const DIGEST_MINE = "aaaaaaaaaaaaaaaa";
+  const DIGEST_THEIRS = "bbbbbbbbbbbbbbbb";
+
+  function attachedWiring(): {
+    wiring: ReturnType<typeof createWiring>;
+    room: ReturnType<typeof fakeRoom>;
+    forfeited: string[];
+  } {
+    const room = fakeRoom();
+    const { orchestrator, forfeited } = fakeOrchestrator();
+    const wiring = createWiring(room.room, "player-2", PLAYERS, ["player-1", "player-2"]);
+    wiring.attach(orchestrator, new AbortController().signal);
+    return { wiring, room, forfeited };
+  }
+
+  it("broadcasts our own digest at its anchor", () => {
+    const { wiring, room } = attachedWiring();
+
+    wiring.reportChecksum(4, DIGEST_MINE);
+
+    expect(room.sentChecksums).toEqual([{ actionIndex: 4, digest: DIGEST_MINE }]);
+  });
+
+  it("says nothing when both peers agree", () => {
+    const { wiring, room, forfeited } = attachedWiring();
+
+    wiring.reportChecksum(4, DIGEST_MINE);
+    room.emitChecksum(1, 4, DIGEST_MINE);
+
+    expect(forfeited).toEqual([]);
+    expect(room.sentForfeits).toEqual([]);
+  });
+
+  it("forfeits the diverged seat when the digests differ at the same anchor", () => {
+    const { wiring, room, forfeited } = attachedWiring();
+
+    wiring.reportChecksum(4, DIGEST_MINE);
+    room.emitChecksum(1, 4, DIGEST_THEIRS);
+
+    // Le camp éliminé est le pair divergent : notre moteur est le seul juge dont on dispose. Ce
+    // n'est pas une accusation — l'autre prononce le même constat au même instant (#943).
+    expect(forfeited).toEqual(["player-1"]);
+    expect(room.sentForfeits).toEqual([{ forfeitedSeat: 1, reason: "diverged" }]);
+  });
+
+  it("catches a divergence whichever side arrives first", () => {
+    // Un pair peut être une action en avance : son empreinte arrive AVANT qu'on atteigne l'index.
+    const { wiring, room, forfeited } = attachedWiring();
+
+    room.emitChecksum(1, 4, DIGEST_THEIRS);
+    wiring.reportChecksum(4, DIGEST_MINE);
+
+    expect(forfeited).toEqual(["player-1"]);
+  });
+
+  it("never compares two different anchors — that would be a guaranteed false positive", () => {
+    const { wiring, room, forfeited } = attachedWiring();
+
+    wiring.reportChecksum(4, DIGEST_MINE);
+    room.emitChecksum(1, 5, DIGEST_THEIRS);
+    room.emitChecksum(1, 3, DIGEST_THEIRS);
+
+    expect(forfeited).toEqual([]);
+    expect(room.sentForfeits).toEqual([]);
+  });
+
+  it("stops once the battle is over", () => {
+    const room = fakeRoom();
+    const { orchestrator, forfeited } = fakeOrchestrator();
+    const wiring = createWiring(room.room, "player-2", PLAYERS, ["player-1", "player-2"]);
+    wiring.attach({ ...orchestrator, isBattleOver: () => true }, new AbortController().signal);
+
+    wiring.reportChecksum(4, DIGEST_MINE);
+    room.emitChecksum(1, 4, DIGEST_THEIRS);
+
+    // Comparer deux états d'après-match n'apprend rien, et un forfait prononcé sur un combat
+    // terminé serait du bruit.
+    expect(room.sentChecksums).toEqual([]);
+    expect(forfeited).toEqual([]);
+  });
+
+  it("forgets its digests when the screen unmounts", () => {
+    const room = fakeRoom();
+    const { orchestrator, forfeited } = fakeOrchestrator();
+    const wiring = createWiring(room.room, "player-2", PLAYERS, ["player-1", "player-2"]);
+    const controller = new AbortController();
+    wiring.attach(orchestrator, controller.signal);
+
+    wiring.reportChecksum(4, DIGEST_MINE);
+    controller.abort();
+    // Sans la purge, l'empreinte d'une partie se comparerait à celle de la suivante.
+    room.emitChecksum(1, 4, DIGEST_THEIRS);
+
+    expect(forfeited).toEqual([]);
+  });
+});
+
+describe("createWiring — les correctifs de la revue du Lot B4", () => {
+  const DIGEST_MINE = "aaaaaaaaaaaaaaaa";
+  const DIGEST_THEIRS = "bbbbbbbbbbbbbbbb";
+
+  it("re-emits the current digest once the room is listening", () => {
+    const room = fakeRoom();
+    const orchestrator = fakeOrchestrator();
+    const wiring = createWiring(room.room, "player-2", PLAYERS, ["player-1", "player-2"]);
+
+    expect(orchestrator.emitted).toBe(0);
+    wiring.attach(orchestrator.orchestrator, new AbortController().signal);
+    expect(orchestrator.emitted).toBe(1);
+  });
+
+  it("drops a digest reported before the room is listening, without wedging the anchor", () => {
+    const room = fakeRoom();
+    const orchestrator = fakeOrchestrator();
+    const wiring = createWiring(room.room, "player-2", PLAYERS, ["player-1", "player-2"]);
+
+    wiring.reportChecksum(0, DIGEST_MINE);
+    expect(room.sentChecksums).toEqual([]);
+
+    wiring.attach(orchestrator.orchestrator, new AbortController().signal);
+    wiring.reportChecksum(0, DIGEST_MINE);
+    expect(room.sentChecksums).toEqual([{ actionIndex: 0, digest: DIGEST_MINE }]);
+  });
+
+  it("pronounces the divergence only once, whatever arrives afterwards", () => {
+    const room = fakeRoom();
+    const orchestrator = fakeOrchestrator();
+    const wiring = createWiring(room.room, "player-2", PLAYERS, ["player-1", "player-2"]);
+    wiring.attach(orchestrator.orchestrator, new AbortController().signal);
+
+    wiring.reportChecksum(4, DIGEST_MINE);
+    room.emitChecksum(1, 4, DIGEST_THEIRS);
+    room.emitChecksum(1, 4, DIGEST_THEIRS);
+
+    expect(room.sentForfeits).toEqual([{ forfeitedSeat: 1, reason: "diverged" }]);
+    expect(orchestrator.forfeited).toEqual(["player-1"]);
   });
 });

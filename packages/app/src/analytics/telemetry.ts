@@ -109,6 +109,16 @@ export const TelemetryAction = {
    * - `connection-uncertain` : **le pair-à-pair sans relais est-il tenable ?** ICE signale une
    *   dégradation bien avant le chien de garde ; sa fréquence dit si un relais TURN devient
    *   nécessaire, question laissée ouverte en V1.
+   * - `checksum-mismatch` : **le déterminisme tient-il, pour de vrai ?** Distinct de
+   *   `forfeit-diverged` **exprès** (plan 203, Lot B4) : l'un compte les forfaits pour divergence
+   *   toutes causes, l'autre ceux que la somme de contrôle d'état a trouvés. Les deux montent
+   *   ensemble sur ce chemin, donc c'est leur **écart** qui parle — il dit combien de divergences
+   *   viennent d'actions refusées (le barème du Lot B2) plutôt que d'une désync d'état muette, celle
+   *   qui laisse toutes les actions légales et qu'aucun autre mécanisme ne voit.
+   * - `checksum-compared` : **le dénominateur de `checksum-mismatch`**, compté une fois par combat
+   *   où au moins deux empreintes ont été confrontées. Sans lui, un `checksum-mismatch` à zéro est
+   *   indiscernable de « aucune comparaison n'a jamais eu lieu », et le seul chiffre censé mesurer
+   *   le déterminisme ne prouverait rien. Relevé en revue de code du Lot B4.
    */
   TurnTimedOut: "turn-timed-out",
   ForfeitAbsent: "forfeit-absent",
@@ -118,6 +128,8 @@ export const TelemetryAction = {
   ReconnectSucceeded: "reconnect-succeeded",
   ReconnectFailed: "reconnect-failed",
   ConnectionUncertain: "connection-uncertain",
+  ChecksumMismatch: "checksum-mismatch",
+  ChecksumCompared: "checksum-compared",
 } as const;
 export type TelemetryAction = (typeof TelemetryAction)[keyof typeof TelemetryAction];
 

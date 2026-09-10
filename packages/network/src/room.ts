@@ -2,6 +2,7 @@ import { type Action, PlayerController } from "@pokemon-tactic/core";
 import { Listeners } from "./listeners.js";
 import {
   type ActionMessage,
+  type ChecksumMessage,
   type ForfeitMessage,
   isCompatibleVersion,
   NETWORK_VERSION,
@@ -119,6 +120,7 @@ export class Room {
   private readonly peerReturnedListeners = new Listeners<[seat: number]>();
   private readonly resyncRequestListeners = new Listeners<[message: ResyncRequestMessage]>();
   private readonly resyncListeners = new Listeners<[message: ResyncMessage]>();
+  private readonly checksumListeners = new Listeners<[message: ChecksumMessage]>();
   /**
    * Les rattrapages arrivés avant que le combat n'écoute, comme `bufferedActions` (plan 202).
    *
@@ -381,6 +383,17 @@ export class Room {
   }
 
   /**
+   * Une empreinte d'état est arrivée d'un pair (plan 203, Lot B4).
+   *
+   * **Pas de tampon**, contrairement aux actions et aux rattrapages : une empreinte périmée n'a
+   * aucune valeur — elle porte un ancrage précis, et si le combat n'écoutait pas encore, l'ancrage
+   * est déjà passé. La suivante arrive à l'action d'après.
+   */
+  onChecksum(listener: (message: ChecksumMessage) => void): () => void {
+    return this.checksumListeners.subscribe(listener);
+  }
+
+  /**
    * Une place s'est tue **et son délai de grâce est écoulé**, partie lancée (plan 202, Lot B3).
    *
    * Ce n'est pas un forfait : c'est le constat qu'il n'y a plus personne à cette place. Qui décide
@@ -467,6 +480,16 @@ export class Room {
       // façons d'écrire le même message est une façon d'en oublier une (plan 202).
       ...(timedOut === undefined ? {} : { timedOut }),
     });
+  }
+
+  /**
+   * Notre empreinte d'état au point d'ancrage `actionIndex` (plan 203, Lot B4).
+   *
+   * Diffusée sans rien attendre en retour : chaque pair compare de son côté, et un pair qui ne
+   * répond pas n'est pas le problème de ce mécanisme — c'est celui du chien de garde du Lot B3.
+   */
+  sendChecksum(actionIndex: number, digest: string): void {
+    this.broadcast({ type: "checksum", seat: this.seat, actionIndex, digest });
   }
 
   /**
@@ -911,6 +934,8 @@ export class Room {
       // lui-même (plan 202).
       case "resync_request":
       case "resync":
+      // Une empreinte ne parle que de l'état de son émetteur (plan 203).
+      case "checksum":
         return message.seat === remoteSeat;
       // Ceux-là font autorité sur le salon entier : l'hôte seul les émet.
       case "room_state":
@@ -976,6 +1001,9 @@ export class Room {
         return;
       case "forfeit":
         this.forfeitListeners.emit(message);
+        return;
+      case "checksum":
+        this.checksumListeners.emit(message);
         return;
       case "welcome":
         // Traité par `waitForWelcome`, qui est le seul moment où il a un sens.

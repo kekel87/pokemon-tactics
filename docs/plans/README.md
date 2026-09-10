@@ -36,3 +36,4 @@ Les seuls sur lesquels on travaille.
 | 200 | [Plan 200 — Étape 0 : batterie de restitution (ligne de base)](./200-etape0-restitution.md) | done |
 | 200 | [Plan 200 — Méthode de travail et système de mémoire](./200-methode-et-memoire.md) | done |
 | 202 | [Plan 202 — Lot B3 : robustesse du multijoueur](./202-lot-b3-robustesse-multijoueur.md) | in-progress |
+| 203 | [Plan 203 — Lot B4 : détection de désynchronisation](./203-lot-b4-detection-desync.md) | in-progress |

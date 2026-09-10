@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { EffectTier } from "../enums/effect-tier";
 import {
+  CT_LOG_DOMAIN_MAX,
+  CT_LOG_STEPS,
   computeCtActionCost,
   computeCtGain,
   computeMoveCost,
@@ -85,5 +87,64 @@ describe("computeCtGain", () => {
     const ratio = regi / shuckle;
     expect(ratio).toBeGreaterThan(1);
     expect(ratio).toBeLessThanOrEqual(2.5);
+  });
+});
+
+describe("computeCtGain — table de paliers figée (plan 203, Lot B4)", () => {
+  /** L'ancienne formule, gardée ICI seulement, comme oracle de non-régression. */
+  const previousFormula = (baseStat: number): number =>
+    30 + Math.floor(20 * Math.log(baseStat + 1));
+
+  it("reproduces the previous formula over the whole tabulated domain", () => {
+    const mismatches: number[] = [];
+    for (let baseStat = 1; baseStat <= CT_LOG_DOMAIN_MAX; baseStat += 1) {
+      if (computeCtGain(baseStat, 0) !== Math.floor(previousFormula(baseStat))) {
+        mismatches.push(baseStat);
+      }
+    }
+    expect(mismatches).toEqual([]);
+  });
+
+  it("reproduces the previous formula at every stat stage, not just at zero", () => {
+    const mismatches: string[] = [];
+    for (let baseStat = 1; baseStat <= 400; baseStat += 1) {
+      for (let stages = -6; stages <= 6; stages += 1) {
+        const soft = stages * 0.7;
+        const expected = Math.floor(
+          previousFormula(baseStat) * (soft >= 0 ? (2 + soft) / 2 : 2 / (2 - soft)),
+        );
+        if (computeCtGain(baseStat, stages) !== expected) {
+          mismatches.push(`${baseStat}/${stages}`);
+        }
+      }
+    }
+    expect(mismatches).toEqual([]);
+  });
+
+  it("keeps the roster inside the tabulated domain", () => {
+    const fastestBaseSpeed = 200; // Regieleki
+    expect(fastestBaseSpeed * 4).toBeLessThanOrEqual(CT_LOG_DOMAIN_MAX);
+  });
+
+  it("falls back deterministically outside the domain, never back to Math.log", () => {
+    expect(computeCtGain(0, 0)).toBe(computeCtGain(1, 0));
+    expect(computeCtGain(-5, 0)).toBe(computeCtGain(1, 0));
+    expect(computeCtGain(CT_LOG_DOMAIN_MAX + 1000, 0)).toBe(computeCtGain(CT_LOG_DOMAIN_MAX, 0));
+  });
+
+  it("floors a non-integer input", () => {
+    expect(computeCtGain(100.9, 0)).toBe(computeCtGain(100, 0));
+  });
+});
+
+describe("CT_LOG_STEPS — l'invariant dont ctLogStep dépend", () => {
+  it("keeps its thresholds strictly ascending", () => {
+    const thresholds = CT_LOG_STEPS.map(([threshold]) => threshold);
+    expect(thresholds).toEqual([...thresholds].sort((left, right) => left - right));
+    expect(new Set(thresholds).size).toBe(thresholds.length);
+  });
+
+  it("starts at the threshold the fallback constant assumes", () => {
+    expect(CT_LOG_STEPS[0]).toEqual([1, 13]);
   });
 });

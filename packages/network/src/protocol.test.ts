@@ -63,9 +63,31 @@ const VALID_MESSAGES: Record<NetworkMessageType, object> = {
     fromIndex: 4,
     actions: [{ kind: "end_turn", pokemonId: "p1-venusaur", direction: "north" }],
   },
+  checksum: { type: "checksum", seat: 2, actionIndex: 7, digest: "0123456789abcdef" },
 };
 
 describe("isNetworkMessage", () => {
+  it("refuse une empreinte qui n'a pas la forme que le core produit", () => {
+    // `battleStateChecksum` rend TOUJOURS 16 chiffres hexadécimaux minuscules. Un pair qui envoie
+    // autre chose n'est pas un pair dont on veut comparer les empreintes — et sans ce contrôle, une
+    // empreinte `undefined` se comparerait joyeusement à une autre `undefined`, donc « ça concorde ».
+    for (const digest of [
+      "",
+      "0123456789abcde",
+      "0123456789abcdef0",
+      "0123456789ABCDEF",
+      "0123456789abcdeg",
+      42,
+      null,
+      undefined,
+    ]) {
+      expect(
+        isNetworkMessage({ type: "checksum", seat: 2, actionIndex: 7, digest }),
+        String(digest),
+      ).toBe(false);
+    }
+  });
+
   it("reconnaît chaque type du protocole, bien formé", () => {
     for (const [type, message] of Object.entries(VALID_MESSAGES)) {
       expect(isNetworkMessage(message), type).toBe(true);

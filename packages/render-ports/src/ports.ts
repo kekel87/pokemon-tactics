@@ -492,6 +492,37 @@ export interface BattleOrchestratorConfig {
    * test ne doit pas attendre 60 secondes pour vérifier une expiration.
    */
   turnClock?: TurnClockDeps;
+  /**
+   * Somme de contrôle d'état (plan 203, Lot B4). **Son absence est le « pas de somme de contrôle
+   * hors ligne »** — même patron que `turnClock` : un combat solo n'a personne avec qui comparer.
+   */
+  stateChecksum?: StateChecksumDeps;
+  /**
+   * Le calcul de l'empreinte a échoué (plan 203, Lot B4). Sans ce rappel, le jet remonterait dans la
+   * file d'animation et **figerait le combat sans un mot** — voir `publishStateChecksum`.
+   */
+  onStateChecksumFailed?: (error: unknown) => void;
+}
+
+/**
+ * Ce qu'il faut à l'orchestrateur pour émettre une empreinte d'état (plan 203, Lot B4).
+ *
+ * L'orchestrateur **calcule et annonce**, il ne compare pas : la comparaison a besoin des empreintes
+ * des autres pairs, donc du salon, que la vue ne connaît pas. Même partage que le chronomètre, dont
+ * le dépassement produit une action et pas un message réseau.
+ */
+export interface StateChecksumDeps {
+  /**
+   * Cadence, en actions. 1 = chaque action (le réglage retenu).
+   *
+   * Le motif de la cadence courte n'est PAS l'anti-triche — rien ne lie une empreinte à l'état
+   * réellement détenu, donc aucune cadence ne gêne un client modifié. C'est qu'une divergence qui
+   * laisse toutes les actions **légales** n'est attrapée par rien d'autre : chaque action laissée
+   * passer est une action de plus construite sur un état déjà faux.
+   */
+  everyNActions: number;
+  /** Notre empreinte, à son point d'ancrage. L'appelant la diffuse et la compare. */
+  report: (actionIndex: number, digest: string) => void;
 }
 
 export interface TurnClockDeps {

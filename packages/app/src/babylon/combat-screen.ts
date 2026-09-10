@@ -390,6 +390,19 @@ function runBattle(options: {
   /** Chronomètre de tour. Absent = partie hors ligne, aucun compteur (plan 202, décision #946). */
   turnClock?: BattleOrchestratorConfig["turnClock"];
   /**
+   * Somme de contrôle d'état (plan 203, Lot B4). Absente = partie hors ligne, personne avec qui
+   * comparer — même mécanisme que `turnClock` juste au-dessus.
+   *
+   * 🔴 **Ce passe-plat manquait, et son absence rendait tout le Lot B4 inerte dans l'application.**
+   * `runResolvedBattle` posait bien `stateChecksum` dans l'objet passé à `runBattle`, mais
+   * `runBattle` ne le déclarait pas ici et ne le réexpédiait donc pas à l'orchestrateur : le champ
+   * était jeté en silence. Et TypeScript ne pouvait pas le dire — l'objet est bâti par des `...`
+   * conditionnels, ce qui désactive le contrôle des propriétés excédentaires. Les tests unitaires ne
+   * le voyaient pas non plus, `createWiring` étant testé en direct sans passer par l'écran. Trouvé
+   * en écrivant l'e2e, et c'est exactement ce que l'e2e existe pour attraper.
+   */
+  stateChecksum?: BattleOrchestratorConfig["stateChecksum"];
+  /**
    * Events of a battle rebuilt from its saved action log (plan 181). Pushed into the log ONLY, so a
    * resumed battle comes back with its history — never through `feedback`, which would re-spawn every
    * damage number of the whole battle over the sprites.
@@ -423,6 +436,7 @@ function runBattle(options: {
     onResign,
     onChromeReady,
     turnClock,
+    stateChecksum,
     initialLogEvents,
     onActionCommitted,
     onBattleClosed,
@@ -705,6 +719,7 @@ function runBattle(options: {
       ...(onRemoteActionRejected === undefined ? {} : { onRemoteActionRejected }),
       ...(onWaitingRemote === undefined ? {} : { onWaitingRemote }),
       ...(turnClock === undefined ? {} : { turnClock }),
+      ...(stateChecksum === undefined ? {} : { stateChecksum }),
       onActionCommitted,
       getElapsedMs,
     },
@@ -1171,6 +1186,22 @@ function runResolvedBattle(options: {
           // signale l'état, le module réseau décide.
           onWaitingRemote: (playerId) => online.onWaitingRemote(playerId),
           onResign: () => online.resign(),
+          /*
+           * Somme de contrôle d'état (plan 203, Lot B4). Accroché à `online` et non à `localSeat`
+           * comme le chronomètre : un combat REPRIS a bien une place locale mais `online` vaut
+           * `null` tant que le salon n'est pas rebranché, et il n'y a alors personne avec qui
+           * comparer. Même distinction qu'`onLocalAction`.
+           *
+           * Cadence de 1 = chaque action. Le motif n'est pas l'anti-triche (rien ne lie une
+           * empreinte à l'état réellement détenu) : c'est qu'une divergence qui laisse toutes les
+           * actions légales n'est attrapée par rien d'autre, donc chaque action laissée passer est
+           * une action de plus construite sur un état déjà faux.
+           */
+          stateChecksum: {
+            everyNActions: 1,
+            report: (actionIndex: number, digest: string) =>
+              online.reportChecksum(actionIndex, digest),
+          },
         }),
     /*
      * Le bandeau d'état du réseau : le module réseau décrit (`ConnectionNotice`), l'écran traduit en
