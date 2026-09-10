@@ -29,6 +29,7 @@ import "./styles/combat-menu.css";
 import "./styles/map-select.css";
 import "./styles/lobby.css";
 import { initTelemetry } from "./analytics/telemetry.js";
+import { initBrowserBack } from "./app/browser-back.js";
 import { type Navigate, ScreenManager } from "./app/screen-manager.js";
 import { loadPersistedScreen } from "./app/screen-persistence.js";
 import { createCombatScreen, mountSandboxStudio } from "./babylon/combat-screen.js";
@@ -160,6 +161,25 @@ async function boot(root: HTMLElement): Promise<void> {
     credits: () => createCreditsScreen(navigate),
     combat: () => createCombatScreen(navigate, backend),
   });
+  // Retour du navigateur (plan 205) : le bouton précédent, le bouton latéral de la souris et le
+  // geste de retour du téléphone remontent d'un écran au lieu de quitter le jeu. Le retour est
+  // routé dans le `cancel` de l'`InputSystem`, là où arrivent déjà `Échap` et le bouton B.
+  //
+  // Monté ICI, et pas à côté d'`initInputSystem()` comme le reste de la couche d'entrée, parce
+  // qu'il lui faut le gestionnaire d'écrans : la RACINE se lit, elle ne se déduit pas de
+  // « personne n'a consommé l'annulation ». La déduire faisait quitter le jeu depuis toute modale
+  // d'écran de menu, et pendant la fenêtre de montage asynchrone de `team-select`.
+  //
+  // Le bac à sable n'a pas de racine au sens du gestionnaire (il ne monte aucun écran) : son
+  // `current` reste `null`, donc le retour y remonte sans jamais sortir. C'est une route de dev, et
+  // le piège se lève dès que son « Retour au menu » appelle `manager.start(...)`, qui pose enfin
+  // `current`.
+  //
+  // Conséquence du déplacement, relevée en revue : les écouteurs d'armement n'existent plus pendant
+  // `runSplash`. Un geste fait pendant le chargement des sprites n'arme donc rien. Sans effet au
+  // menu principal (la racine sort de toute façon) ; visible seulement sur une reprise directe d'un
+  // écran non-racine, où il faut un geste APRÈS le splash.
+  initBrowserBack(() => manager.current === "main-menu");
   if (sandboxEnabled) {
     // The sandbox studio is mounted directly (not via the manager), so "Back to
     // menu" is a boot-level entry, not a guarded in-app navigation: tear down the
