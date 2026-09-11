@@ -5,6 +5,7 @@ import { generateRandomTeam } from "../../team/team-generator";
 import { createEmptyTeam } from "../../team/team-helpers";
 import { deleteTeam, listTeamSummaries, loadTeam, saveTeam } from "../../team/team-storage";
 import { renderPreservingFocus } from "../dom/preserve-focus";
+import { screenHeader, screenHeaderSpacer, screenHeaderTitle } from "../dom/screens/elements";
 import { openDeleteConfirmModal } from "./DeleteConfirmModal";
 import { openShowdownIoModal } from "./ShowdownIoModal";
 import { createTeamCardElement } from "./TeamCard";
@@ -26,27 +27,13 @@ export class MyTeamsView {
   constructor(options: MyTeamsViewOptions) {
     this.options = options;
     const root = document.createElement("div");
-    root.className = "tb-root";
+    root.className = "scr-root tb-root";
 
-    const topbar = document.createElement("div");
-    topbar.className = "tb-topbar";
-
-    const backBtn = document.createElement("button");
-    backBtn.className = "tb-btn";
-    backBtn.dataset.variant = "ghost";
-    backBtn.type = "button";
-    backBtn.textContent = t("teamBuilder.back");
-    backBtn.addEventListener("click", () => this.options.onBack());
-    topbar.appendChild(backBtn);
-
-    const title = document.createElement("div");
-    title.className = "tb-topbar-title";
-    title.textContent = t("teamBuilder.myTeamsTitle");
-    topbar.appendChild(title);
-
-    const spacer = document.createElement("div");
-    spacer.className = "tb-topbar-spacer";
-    topbar.appendChild(spacer);
+    // Barre PARTAGÉE avec la salle d'attente et l'écran « Jouer en ligne » depuis le plan 207 : le
+    // patron « écran plein » existait en trois copies, celle-ci servant de référence (« le bouton
+    // retour de team builder est mieux », retour humain).
+    const topbar = screenHeader(() => this.options.onBack());
+    topbar.append(screenHeaderTitle(t("teamBuilder.myTeamsTitle")), screenHeaderSpacer());
 
     const newBtn = document.createElement("button");
     newBtn.className = "tb-btn";

@@ -47,9 +47,9 @@ test("§11.1 en ligne : créer, rejoindre, et entrer en combat à deux", async (
     await hostMode.online.click();
     await expect(hostLobby.title).toBeVisible();
 
-    // Le format est ANNONCÉ, plus choisi : le réseau est 1v1 (plan 201), donc un sélecteur à une
-    // seule option aurait été un contrôle mort. Il reste dit, et gravé avant la création (#896).
-    await expect(hostLobby.formatLine).toContainText("2 joueurs");
+    // Le format n'est PLUS annoncé ici (plan 207, étape 2) : à ce stade il n'est pas décidé, il se
+    // choisit à l'écran suivant — « je ne comprends pas Joueurs : 2 joueurs » (retour humain). Il
+    // reste gravé avant la création (#896) et annoncé dans la salle d'attente, vérifié plus bas.
     await hostLobby.create.click();
 
     // L'hôte passe par l'écran de terrain — l'invité, lui, n'en verra que le nom.
@@ -61,8 +61,11 @@ test("§11.1 en ligne : créer, rejoindre, et entrer en combat à deux", async (
     const code = (await hostRoom.code.textContent())?.trim() ?? "";
     expect(code).toMatch(/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{5}$/);
 
-    // Le format est gravé : sa rangée de segments a disparu de l'écran d'équipe.
+    // Le format est gravé : sa rangée de segments a disparu de l'écran d'équipe. Mais il est DIT —
+    // et franchement, sur sa propre ligne (plan 207, étape 7) : c'est désormais le seul endroit où
+    // le joueur l'apprend avant de composer, donc il ne peut plus être noyé dans les paramètres.
     await expect(hostRoom.formatSegments).toHaveCount(0);
+    await expect(hostRoom.format).toContainText("1 contre 1");
 
     // L'hôte compose SA ligne — la première, la sienne. Sans équipe, « Lancer » reste inerte.
     await hostTeams.pickRandomTeam(0);

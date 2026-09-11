@@ -33,7 +33,10 @@ export class TeamEditScreen {
   constructor(private readonly page: Page) {
     this.clearAll = page.getByRole("button", { name: "Tout vider" });
     this.nameInput = page.getByTestId("team-name-input");
-    this.back = page.getByRole("button", { name: "← Retour" });
+    // Par testid : la barre d'en-tête est PARTAGÉE depuis le plan 207 (`screenHeader`), avec la
+    // salle d'attente et l'écran « Jouer en ligne ». Ce bouton n'appartient plus au Team Builder,
+    // donc le viser par son libellé le couplerait à un glyphe qui vaut pour trois écrans.
+    this.back = page.getByTestId("screen-back");
   }
 
   /** Empty slot N (1-based). Accessible name is "+ Slot N" (the plus is inside the button). */

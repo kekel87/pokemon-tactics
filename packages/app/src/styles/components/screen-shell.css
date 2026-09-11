@@ -1,0 +1,66 @@
+/* La RACINE des écrans pleins — ancrée au viewport, colonne, et ses tokens de petit écran.
+ *
+ * Son pendant est `screen-header.css`, qui décrit la barre posée en haut de cette racine, et
+ * `screenHeader()` dans `screens/elements.ts` pour le DOM.
+ *
+ * 🔴 Pourquoi cette classe existe (plan 207). Il y avait **trois** définitions quasi identiques de
+ * cette coquille — `.tb-root` (Team Builder), `.ts-root` (salle d'attente) et la `.lb-screen` que ce
+ * plan venait d'écrire pour l'écran « Jouer en ligne ».
+ *
+ * Ce qui a fait sortir la dette n'est pas une revue mais un défaut visible : `base.css` listait
+ * NOMMÉMENT `.tb-root, .tb-dialog, .ts-root` pour la taille de police et pour l'héritage du corps
+ * par les contrôles. `.lb-screen` n'y figurant pas, son bouton « ← Retour » ne recevait pas
+ * `--font-size-md` et l'en-tête du lobby était visiblement plus petit que ses deux jumeaux — « t'as
+ * pas aligné Jouer en ligne encore ? », captures à l'appui.
+ *
+ * Ajouter une quatrième entrée à cette liste aurait garanti qu'un cinquième écran rejoue le bug.
+ * Les trois racines portent donc cette classe et ne redéclarent plus la coquille. `.tb-root` et
+ * `.ts-root` survivent comme **crochets** — des dizaines de règles s'en servent comme ancêtre — et
+ * ne gardent que ce qui leur est propre.
+ */
+
+@layer components {
+  .scr-root {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-overlay);
+    display: flex;
+    flex-direction: column;
+    background: var(--color-bg-base);
+    color: var(--color-text-secondary);
+    font-family: var(--font-family);
+    font-size: var(--font-size-md);
+    line-height: var(--line-height-base);
+
+    /*
+     * Petits écrans (plan 179). Ces écrans vivaient sur les tokens `:root` fixes, d'où le « on
+     * dirait qu'il ne scale pas comme le reste » (humain, 2026-08-06, sur téléphone réel).
+     */
+    @media (height < 500px), (width < 900px) {
+      --font-size-xs: 12px;
+      --font-size-sm: 13px;
+      --font-size-md: 15px;
+      --font-size-lg: 18px;
+      --spacing-sm: 4px;
+      --spacing-md: 5px;
+      --spacing-lg: 8px;
+      --spacing-xl: 10px;
+      --pad-control-y: 5px;
+      --pad-control-x: 9px;
+
+      /* Ancré aux bords, donc soumis à l'encoche et à la barre de gestes en paysage. */
+      padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
+      padding-block-end: env(safe-area-inset-bottom);
+    }
+  }
+
+  /* Les contrôles héritent le corps de LEUR écran, au lieu du défaut du navigateur. C'est
+     exactement ce qui manquait au lobby. */
+  .scr-root input,
+  .scr-root select,
+  .scr-root button,
+  .scr-root textarea {
+    font-size: inherit;
+    line-height: var(--line-height-tight);
+  }
+}

@@ -54,25 +54,21 @@
     outline-offset: -2px;
   }
 
-  .tb-root,
-  .tb-dialog,
-  .ts-root {
+  /* 🔴 Cette liste nommait les racines UNE PAR UNE, et c'est ce qui a produit un bug visible : le
+     lobby du plan 207 n'y figurait pas, donc son bouton retour n'héritait pas de `--font-size-md`
+     et son en-tête était plus petit que ceux de ses deux jumeaux. Les écrans pleins passent
+     désormais par `.scr-root` (`components/screen-shell.css`), qui porte ces règles pour tous. Ne
+     reste ici que la modale, qui n'est pas un écran. */
+  .tb-dialog {
     font-size: var(--font-size-md);
     line-height: var(--line-height-base);
     color: var(--color-text-secondary);
   }
 
-  .tb-root input,
-  .tb-root select,
-  .tb-root button,
   .tb-dialog input,
   .tb-dialog select,
   .tb-dialog button,
-  .tb-dialog textarea,
-  .ts-root input,
-  .ts-root select,
-  .ts-root button,
-  .ts-root textarea {
+  .tb-dialog textarea {
     font-size: inherit;
     line-height: var(--line-height-tight);
   }

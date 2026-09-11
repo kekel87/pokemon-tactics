@@ -13,6 +13,7 @@ import { getOpSetsByPokemonId } from "../../team/team-builder-data";
 import { SaveDebouncer, touchTeam } from "../../team/team-helpers";
 import { loadTeam, saveTeam } from "../../team/team-storage";
 import { renderPreservingFocus } from "../dom/preserve-focus";
+import { screenHeader, screenHeaderSpacer } from "../dom/screens/elements";
 import { openClearTeamConfirmModal } from "./ClearTeamConfirmModal";
 import { EditLeftPanel } from "./EditLeftPanel";
 import { EditRightPanel } from "./EditRightPanel";
@@ -48,18 +49,11 @@ export class TeamEditView {
     this.saveDebouncer.onSaved(() => this.flashSaved());
 
     const root = document.createElement("div");
-    root.className = "tb-root";
+    root.className = "scr-root tb-root";
 
-    const topbar = document.createElement("div");
-    topbar.className = "tb-topbar";
-
-    const backBtn = document.createElement("button");
-    backBtn.className = "tb-btn";
-    backBtn.dataset.variant = "ghost";
-    backBtn.type = "button";
-    backBtn.textContent = t("teamBuilder.back");
-    backBtn.addEventListener("click", () => options.onBack());
-    topbar.appendChild(backBtn);
+    // Barre PARTAGÉE (plan 207). Cet écran ne porte pas de titre : le nom de l'équipe s'y saisit,
+    // donc c'est un champ qui prend cette place — d'où un `screenHeader` sans titre.
+    const topbar = screenHeader(() => options.onBack());
 
     const nameInput = document.createElement("input");
     nameInput.type = "text";
@@ -83,9 +77,7 @@ export class TeamEditView {
     topbar.appendChild(countLabel);
     this.countLabel = countLabel;
 
-    const spacer = document.createElement("div");
-    spacer.className = "tb-topbar-spacer";
-    topbar.appendChild(spacer);
+    topbar.appendChild(screenHeaderSpacer());
 
     const savedIndicator = document.createElement("div");
     savedIndicator.className = "tb-topbar-saved";

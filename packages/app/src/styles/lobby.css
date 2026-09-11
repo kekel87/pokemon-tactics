@@ -1,32 +1,51 @@
 /* Écran `lobby` et roue de caractères (plan 199, étape 4).
- * Se pose sur `.mn-screen` (menu-screens.css) : mêmes tokens, mêmes clamps vmin. */
+ * Patron « écran plein » (`components/screen-header.css`), partagé avec l'écran de sélection
+ * d'équipe. Il se posait sur `.mn-screen` — le patron *menu* — jusqu'au 2026-09-11. */
 
 @layer components {
-  .lb-screen {
-    --lb-slot-block-size: clamp(72px, 14vmin, 132px);
-    gap: clamp(12px, 3vmin, 36px);
+  /* `.lb-screen` n'a plus aucune déclaration propre : la coquille vient de `.scr-root`
+     (`components/screen-shell.css`), partagée avec le Team Builder et la salle d'attente. La classe
+     reste posée pour que les règles de cet écran aient un ancêtre à viser. */
 
-    /* 🔴 Filet de sécurité, mesuré à la recette : `.mn-screen` centre son contenu sans permettre de
-       défiler, donc à 568×320 le titre sortait AU-DESSUS du cadre et « Retour » EN DESSOUS — tous
-       deux injoignables, et `scrollHeight` ne le signalait même pas (un débordement de conteneur
-       centré ne l'allonge pas). `safe center` cesse de centrer dès que ça ne tient plus et remet le
-       contenu au début, ce que `overflow-y` rend alors atteignable. La media query ci-dessous fait
-       que le cas ne se produit pas aux tailles visées ; ceci couvre celles qu'on n'a pas mesurées. */
-    justify-content: safe center;
+  /* Le contenu sous l'en-tête. Les deux cartes s'y empilent, centrées.
+
+     🔴 `safe center` et `overflow-y` : mesuré à 568×320, le contenu dépasse le cadre. `safe center`
+     cesse de centrer dès que ça ne tient plus et remet le contenu au début, ce que le défilement
+     rend alors atteignable — sans lui, un conteneur centré pousse son contenu hors des DEUX bords et
+     `scrollHeight` ne le signale même pas. */
+  .lb-body {
+    --lb-slot-block-size: clamp(72px, 14vmin, 132px);
+    /* Token PROPRE et non `--mn-gap` : celui-là est défini par `.mn-screen`, que cet écran a quitté
+       en passant au patron « écran plein ». L'y référencer encore laissait `gap` invalide, donc nul,
+       sur les cartes — trouvé en migrant, pas à l'œil. */
+    --lb-panel-gap: clamp(8px, 1.5vmin, 20px);
+    flex: 1;
+    min-height: 0;
+    /* Grille à UNE colonne, et non une pile flex : la colonne se dimensionne sur la carte la plus
+       large, et les deux s'y étirent. Elles avaient sinon des largeurs propres (263 px et 291 px,
+       mesuré), donc des bords qui ne s'alignaient pas — chacune étant centrée pour son compte.
+       Pas de valeur magique à écrire : c'est le contenu qui décide, la roue en pratique. */
+    display: grid;
+    grid-auto-rows: min-content;
+    justify-content: center;
+    justify-items: stretch;
+    align-content: safe center;
+    gap: clamp(12px, 3vmin, 36px);
+    padding: var(--spacing-lg);
     overflow-y: auto;
   }
 
-  /* Écran court (téléphone en paysage) : le contenu doit TENIR, pas seulement défiler. Mesuré à
-     568×320 — 374 px de contenu pour 320 px de hauteur, soit 54 px à trouver. La hauteur de la roue
-     n'est pas négociable (plancher tactile), donc l'économie vient des espacements et du titre. */
+  /* Écran court (téléphone en paysage) : le contenu doit tenir autant que possible. La hauteur de la
+     roue n'est pas négociable (plancher tactile), donc l'économie vient des espacements. */
   @media (max-height: 420px) {
-    .lb-screen {
-      --mn-gap: 4px;
+    .lb-body {
+      --lb-panel-gap: 4px;
       gap: 8px;
     }
 
-    .mn-title:has(~ .lb-section) {
-      font-size: 20px;
+    .lb-panel {
+      gap: 4px;
+      padding: 4px 8px;
     }
   }
 
@@ -41,24 +60,89 @@
        chacune doit tenir le plancher de 30 px sous `pointer: coarse` : 3 × 30 = 90 px de bouton. Sans
        ce plancher, le clamp en vmin retombe à 72 px sur un téléphone en paysage (14 vmin de 320 px
        valent 45 px, rattrapés par le minimum du clamp), soit 24 px par zone — sous le seuil. */
-    .lb-screen {
+    .lb-body {
       --lb-slot-block-size: max(90px, clamp(72px, 14vmin, 132px));
     }
   }
 
-  .lb-section {
+  /* Les deux gestes, chacun dans son panneau (plan 207, étape 1). L'humain ne les distinguait pas :
+     ils partageaient le fond de l'écran et se disaient chacun deux fois, en titre de section PUIS
+     sur leur bouton. Les titres ont disparu, et le cadre fait le travail qu'ils faisaient mal. */
+  .lb-panel {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--mn-gap);
+    gap: var(--lb-panel-gap);
+    padding: clamp(10px, 2vmin, 24px);
+    border: 1px solid var(--color-border-surface);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-elevated);
   }
 
-  .lb-section-title {
+  /* Ce que le panneau raconte, à la place du titre supprimé. Contenu, pas étiquette : c'est lui qui
+     dit lequel des deux gestes on est en train de regarder. */
+  .lb-panel-hint {
     margin: 0;
-    font-size: clamp(16px, 2.2vmin, 32px);
-    font-weight: bold;
+    max-inline-size: clamp(220px, 30vmin, 460px);
+    font-size: clamp(13px, 1.8vmin, 24px);
+    line-height: var(--line-height-base);
     color: var(--color-text-secondary);
+    text-align: center;
   }
+
+  /* Les deux légendes — la note sous « Créer une partie » et l'astuce sous la roue. Elles
+     précisent, elles n'annoncent pas : d'où l'italique et le texte estompé, qui les rangent d'un
+     cran sous `.lb-panel-hint`. Remontées d'un cran au passage (« un peu petit », retour humain),
+     sans rejoindre la taille du texte qu'elles accompagnent. */
+  .lb-panel-note {
+    margin: 0;
+    /* 🔴 **Pas de largeur maximale**, contrairement à `.lb-panel-hint` juste au-dessus : c'est elle
+       qui provoquait le retour à la ligne, et une légende coupée en deux « c'est moche » (retour
+       humain). Sans plafond, la légende tient sur une ligne et c'est la CARTE qui s'élargit pour
+       elle — les deux textes ont d'ailleurs été raccourcis dans le même geste, pour que cet
+       élargissement reste modeste. Elle se remet à passer à la ligne sur téléphone, là où la
+       largeur manque vraiment ; c'est le seul cas et il est inévitable. */
+    font-size: clamp(12px, 1.7vmin, 23px);
+    font-style: italic;
+    line-height: var(--line-height-base);
+    color: var(--color-text-faint);
+    text-align: center;
+  }
+
+  /* La question et son bouton sur une même ligne de base. `wrap` parce qu'à 568×320 la colonne du
+     panneau est étroite : mieux vaut que « Coller » passe dessous que de comprimer le texte. */
+  .lb-join-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(6px, 1.2vmin, 16px);
+  }
+
+  /* Le « Coller » est secondaire devant « Rejoindre » : il aide à remplir la roue, il ne valide
+     rien. D'où la variante fantôme et un corps plus petit que le bouton de menu standard.
+     🔴 `var(--target-min)` et NON `0` pour défaire la largeur de `.mn-btn` : à zéro, ce bouton
+     sortait du réglage unique du plancher tactile et n'aurait plus rien garanti au doigt. Relevé en
+     mesurant, pas en relisant (`.claude/rules/multi-input.md`). */
+  .lb-paste {
+    min-width: var(--target-min);
+    font-size: clamp(13px, 1.8vmin, 24px);
+  }
+
+  /* 🔴 **Une seule colonne, à toutes les tailles** — tranché par l'humain le 2026-09-11.
+
+     Le plan 207 prévoyait les deux panneaux côte à côte sur écran large ou court, et une grille de
+     trois rangées les y plaçait. L'humain l'a refusé : « j'ai jamais validé cet affichage en
+     2 colonnes ». C'était écrit dans l'étape 1 du plan, pas dans une question qu'il a tranchée — la
+     validation du plan ne valait pas validation de cette ligne.
+
+     Deux effets de bord de cette grille, trouvés en même temps : le titre se retrouvait collé en
+     haut à GAUCHE (il occupait une zone de grille, qui ne centre pas comme le fait la colonne flex
+     de `.mn-screen`), et les cartes étirées laissaient un grand vide au bas de la plus courte.
+
+     Contrepartie ASSUMÉE, mesurée : empilé, à 568×320, le contenu fait 406 px pour 320 px de cadre,
+     donc l'écran défile. Le filet `safe center` + `overflow-y: auto` en tête de ce fichier existe
+     précisément pour ça, et le cas préexistait au plan 207 (374 px). */
 
   .lb-wheel {
     display: flex;
@@ -78,10 +162,43 @@
     background: var(--color-bg-surface);
     color: var(--color-text-primary);
     cursor: pointer;
+    /* Un glissement ne doit pas surligner le texte des trois caractères au passage — au doigt comme
+       à la souris, ça posait une sélection bleue en travers de la roue. */
+    user-select: none;
+    /* Le glissement vertical appartient à l'emplacement (plan 207, étape 4) : sans ça le navigateur
+       emmènerait le geste en défilement de page et la roue ne verrait jamais les `pointermove`.
+       L'écran reste défilable partout ailleurs — et il n'a besoin de l'être qu'aux tailles où
+       `max-height: 420px` ne suffit pas. */
+    touch-action: none;
+    /* Le décalage sous-cran d'un glissement en cours, posé en ligne par `code-wheel.ts`. Nul au
+       repos, donc la roue ne bouge pas tant que personne ne la tire. */
+    --lb-slot-shift: 0px;
 
     &[data-state="active"] {
       border-color: var(--color-accent);
       background: var(--color-bg-elevated);
+    }
+  }
+
+  /* L'alphabet suit le doigt. La translation porte sur les TROIS caractères ensemble, pas sur le
+     bouton : c'est le contenu qui glisse dans son cadre, comme une molette derrière sa fenêtre. */
+  .lb-slot-neighbour,
+  .lb-slot-current {
+    translate: 0 var(--lb-slot-shift);
+    /* L'accrochage au relâchement : le décalage retombe à zéro, et cette transition le montre.
+       Coupée PENDANT le geste, sinon le contenu traînerait derrière le doigt. */
+    transition: translate 120ms ease-out;
+  }
+
+  .lb-slot[data-dragging] .lb-slot-neighbour,
+  .lb-slot[data-dragging] .lb-slot-current {
+    transition: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lb-slot-neighbour,
+    .lb-slot-current {
+      transition: none;
     }
   }
 
@@ -101,18 +218,40 @@
     color: var(--color-accent);
   }
 
-  .lb-hint {
+  /* Plus de style propre : l'astuce clavier porte désormais `.lb-panel-note` pour son allure, et ne
+     garde cette classe que comme crochet de la règle `pointer: coarse` ci-dessus, qui la masque. */
+
+  /* La modale de refus (plan 207, étape 5). Elle vit dans un `<dialog>` sur `<body>`, donc HORS de
+     `#game-root` — d'où des sélecteurs qui ne s'appuient sur aucun ancêtre d'écran. */
+  .lb-refusal-message {
     margin: 0;
-    font-size: clamp(12px, 1.6vmin, 22px);
-    color: var(--color-text-muted);
+    padding: var(--spacing-lg);
+    font-size: clamp(14px, 1.9vmin, 26px);
+    line-height: var(--line-height-base);
+    color: var(--color-text-secondary);
     text-align: center;
   }
 
-  /* Hauteur réservée même vide : sinon l'apparition du refus décalerait le bouton « Retour »
-     sous le curseur (même raison que `.tt-active` du plan 185). */
+  .lb-refusal-actions {
+    display: flex;
+    justify-content: center;
+    padding: 0 var(--spacing-lg) var(--spacing-lg);
+  }
+
+  /* 🔴 **Plus de hauteur réservée** — et c'est un correctif de recette, pas un oubli.
+
+     Elle l'était pour que l'apparition d'un refus ne décale pas « Retour » sous le curseur (même
+     raison que `.tt-active` du plan 185). Deux choses l'ont périmée au plan 207 : les six causes de
+     refus sont passées **en modale**, qui ne décale rien du tout, et ce qu'il reste ici — « Ce code
+     est incomplet. » et les messages de collage — s'affiche **sous** le bouton qu'on vient de
+     cliquer, donc pousse « Retour » vers le bas, à l'opposé du curseur.
+
+     Ce que la réserve coûtait, en revanche, était visible : 20 px de blanc permanent en pied de la
+     seule carte « Rejoindre », soit 41 px de vide contre 21 en face — « c'est pas le même
+     espacement » (retour humain, capture à l'appui). Les deux cartes finissent maintenant sur le
+     même pied. */
   .lb-error {
     margin: 0;
-    min-block-size: clamp(16px, 2vmin, 28px);
     font-size: clamp(12px, 1.6vmin, 22px);
     color: var(--color-feedback-error-text);
     text-align: center;

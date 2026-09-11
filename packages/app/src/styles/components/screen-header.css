@@ -1,0 +1,47 @@
+/* La barre d'en-tête des écrans PLEINS — « ← Retour », un titre, et ce que l'écran veut y ajouter.
+ *
+ * 🔴 Pourquoi ce fichier existe (plan 207, retours humains des 2026-09-11) : « en gros on a deux
+ * layouts, menu ou plein écran avec un header et le bouton retour en haut. Essayons de rester
+ * consistant », puis « y'en a d'autres écrans qui ont ce layout, le team builder par exemple.
+ * D'ailleurs le bouton retour de team builder est mieux ».
+ *
+ * Il y avait **trois** copies du même patron, chacune dans le namespace d'un écran :
+ *   - `.tb-topbar` (Team Builder : mes équipes, éditeur d'équipe) — « ← Retour » ;
+ *   - `.ts-header` (salle d'attente / sélection d'équipe) — « ◀ Retour » ;
+ *   - et l'écran « Jouer en ligne » qui, lui, n'avait pas ce patron du tout mais celui du *menu*.
+ *
+ * Les trois sont désormais ici. Les métriques retenues sont celles du **Team Builder**, référence
+ * désignée par l'humain, glyphe de retour compris. Le pendant DOM est `screenHeader()` dans
+ * `screens/elements.ts`.
+ *
+ * L'autre patron, le menu (`menu-screens.css`), reste tel quel : titre doré centré, boutons
+ * empilés, retour en dernier de la pile. Menu principal, mode de combat, crédits.
+ */
+
+@layer components {
+  .scr-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-md) var(--spacing-xl);
+    background: var(--color-bg-surface);
+    border-bottom: 1px solid var(--color-border-surface);
+    /* L'en-tête ne se comprime ni ne s'étire : c'est le contenu sous lui qui prend le reste. */
+    flex: 0 0 auto;
+  }
+
+  .scr-header-title {
+    margin: 0;
+    color: var(--color-accent);
+    font-size: var(--font-size-lg);
+    font-weight: bold;
+  }
+
+  /* 🔴 Un espaceur EXPLICITE, et non `flex: 1` sur le titre — c'était le choix de `.ts-header`, et
+     il ne tient pas dès qu'un écran met autre chose à côté du titre : l'éditeur d'équipe y pose un
+     compteur « 1/6 Pokémon », qu'un titre élastique repousserait à l'autre bout de la barre. Avec
+     l'espaceur, chaque écran décide où commence la droite. */
+  .scr-header-spacer {
+    flex: 1;
+  }
+}

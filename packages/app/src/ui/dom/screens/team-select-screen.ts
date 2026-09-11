@@ -1,11 +1,9 @@
 import { type MapFormat, PlayerController, type TeamSelection } from "@pokemon-tactic/core";
-import { REQUIRED_TEAM_COUNTS } from "@pokemon-tactic/data";
 import {
   HOST_SEAT,
   NetworkErrorCode,
   NetworkSeatOccupancy,
   type NetworkSeatState,
-  PeerJsTransport,
   Room,
   RoomRole,
   type RoomView,
@@ -27,8 +25,12 @@ import type { TranslationKey } from "../../../i18n/types";
 import { loadTiledMap } from "../../../maps/load-tiled-map";
 import { mapIdFromUrl, mapUrlFromId } from "../../../maps/map-identity";
 import { networkErrorCodeOf } from "../../../network/network-error";
-import { holdOnlineRoom, releaseOnlineRoom } from "../../../network/online-room";
-import { signallingOverride } from "../../../network/signalling-override";
+import {
+  getOnlineRoom,
+  holdOnlineRoom,
+  onlineRoomDeps,
+  releaseOnlineRoom,
+} from "../../../network/online-room";
 import { getSettings, updateSettings } from "../../../settings";
 import {
   buildFormatKey,
@@ -54,7 +56,13 @@ import {
 } from "../../team-select/slot-state";
 import { openTeamPickerModal } from "../../team-select/TeamPickerModal";
 import { renderPreservingFocus } from "../preserve-focus";
-import { bindScreenInput, el } from "./elements";
+import {
+  bindScreenInput,
+  el,
+  screenHeader,
+  screenHeaderSpacer,
+  screenHeaderTitle,
+} from "./elements";
 
 /**
  * DOM port of TeamSelectScene (plan 120 step 4), refondu au plan 188.
@@ -444,22 +452,16 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
   };
 
   const buildHeader = (): HTMLElement => {
-    const header = el("header", "ts-header");
-
-    const back = el("button", "tb-btn");
-    back.type = "button";
-    back.dataset.variant = "ghost";
-    back.textContent = t("teamSelect.actions.back");
-    back.addEventListener("click", goBack);
-
-    const title = el("h2", "ts-header-title");
-    title.textContent = `${t("teamSelect.title")} — ${mapName}`;
+    // En-tête PARTAGÉ avec l'écran « Jouer en ligne » depuis le plan 207 : les règles `ts-header`
+    // ne décrivaient pas cet écran-ci en particulier, elles décrivaient LE patron « écran plein »
+    // du projet. Restées ici, le lobby aurait dû les recopier — deux jumeaux libres de diverger.
+    const header = screenHeader(goBack);
+    header.append(screenHeaderTitle(`${t("teamSelect.title")} — ${mapName}`));
 
     // En ligne, le format est **gravé depuis le `lobby`** : le sélecteur disparaît plutôt que de
     // s'afficher désactivé, parce qu'il n'y a pas de choix en attente — la décision est déjà prise,
     // et l'encart de salon la rappelle (décision #896).
     if (isOnline()) {
-      header.append(back, title);
       return header;
     }
 
@@ -473,7 +475,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
       { onChange: onFormatChange },
     );
 
-    header.append(back, title, picker);
+    header.append(screenHeaderSpacer(), picker);
     return header;
   };
 
@@ -783,9 +785,9 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
        * paramètre prenait cette branche-ci par la négative — mode réseau actif, aucun salon.
        */
       if (params.mapUrl === undefined) {
-        root = el("div", "ts-root");
+        root = el("div", "scr-root ts-root");
         host.append(root);
-        await joinAsGuest(params.network.code);
+        await joinAsGuest();
         unbindScreenInput = bindScreenInput(goBack);
         return;
       }
@@ -805,7 +807,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
       }
       formatKey = chosen.key;
       slots = buildInitialSlots(chosen.format);
-      root = el("div", "ts-root");
+      root = el("div", "scr-root ts-root");
       host.append(root);
 
       if (networkIntent?.role === RoomRole.Host) {
@@ -871,15 +873,12 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
       return;
     }
     try {
-      room = await Room.create(
-        { transport: new PeerJsTransport(signallingOverride()), maxSeats: maxSeats() },
-        {
-          mapId,
-          teamCount,
-          autoPlacement,
-          damagePreview,
-        },
-      );
+      room = await Room.create(onlineRoomDeps(), {
+        mapId,
+        teamCount,
+        autoPlacement,
+        damagePreview,
+      });
     } catch (error) {
       showNetworkError(networkErrorCodeOf(error));
       return;
@@ -891,21 +890,29 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     announceOwnedSelections();
   }
 
-  /** L'invité rejoint, puis découvre la carte et le format dans le premier état de salon reçu. */
-  async function joinAsGuest(code: string): Promise<void> {
-    try {
-      room = await Room.join(
-        { transport: new PeerJsTransport(signallingOverride()), maxSeats: maxSeats() },
-        code,
-      );
-    } catch (error) {
-      showNetworkError(networkErrorCodeOf(error));
-      return;
+  /**
+   * L'invité adopte le salon déjà joint, puis découvre la carte et le format dans son état.
+   *
+   * 🔴 **La connexion ne se fait plus ici** (plan 207, étape 5) : c'est l'écran `lobby` qui joint,
+   * AVANT de naviguer, pour que le refus se prononce là où le joueur a encore sa roue sous les yeux.
+   * Un code mal recopié le posait sinon devant cet écran-ci — une composition d'équipe complète pour
+   * une partie qui n'existe pas — le refus réduit à une ligne rouge en bas du pied de page.
+   *
+   * Rien à passer en paramètre de navigation pour autant : le salon appartient à la SESSION depuis
+   * le plan 199 (`online-room.ts`), précisément pour survivre aux transitions d'écran. On le lit.
+   *
+   * Fail-fast si la session n'en tient aucun : c'est un défaut de câblage, pas un refus réseau, et
+   * un « versions incompatibles » de consolation mentirait sur la cause.
+   */
+  async function joinAsGuest(): Promise<void> {
+    const joined = getOnlineRoom();
+    if (joined === null) {
+      throw new Error("Guest reached team-select with no room held by the session");
     }
-    countAction(TelemetryAction.RoomJoined);
-    wireRoom(room);
+    room = joined;
+    wireRoom(joined);
 
-    const url = mapUrlFromId(room.view.options.mapId);
+    const url = mapUrlFromId(joined.view.options.mapId);
     if (url === undefined) {
       showNetworkError(NetworkErrorCode.VersionIncompatible);
       return;
@@ -917,7 +924,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
       key: buildFormatKey(format),
       format,
     }));
-    const chosen = pickFormatOption(room.view.options.teamCount);
+    const chosen = pickFormatOption(joined.view.options.teamCount);
     if (!chosen) {
       showNetworkError(NetworkErrorCode.VersionIncompatible);
       return;
@@ -953,14 +960,5 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
       joined.onStart((start) => enterNetworkBattle(start)),
       joined.onLaunchCancelled(() => showNetworkError(NetworkErrorCode.DelaiDepasse)),
     );
-  }
-
-  /**
-   * Le plus grand format existant. Fourni au salon parce que le paquet réseau ne dépend pas de
-   * `@pokemon-tactic/data` : c'est jusque-là qu'un arrivant balaie les places, ne connaissant pas
-   * encore le format de la partie qu'il rejoint.
-   */
-  function maxSeats(): number {
-    return Math.max(...REQUIRED_TEAM_COUNTS);
   }
 }

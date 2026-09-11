@@ -193,9 +193,10 @@ test("§6.10 la roue de code se pilote au pad, et on peut en sortir", async ({ p
   await expect(lobby.title).toBeVisible();
   await connectPad(page);
 
-  // On entre dans la roue par le bas depuis « Créer une partie » — le premier contrôle de l'écran
-  // depuis que la rangée de formats a cédé la place à une simple ligne (plan 201 : le réseau est
-  // 1v1, donc un sélecteur à une seule option était un contrôle mort qui prenait un arrêt de focus).
+  // On entre dans la roue par le BAS depuis « Créer une partie ». Les deux gestes vivent depuis le
+  // plan 207 dans deux cartes EMPILÉES (l'humain a refusé le côte-à-côte, et l'écran suit désormais
+  // le patron « écran plein » : en-tête avec le retour en haut, contenu dessous), donc « Créer »
+  // reste au-dessus de la roue et la navigation spatiale descend droit dessus.
   await lobby.create.focus();
   await tapPadButton(page, PadButton.DpadDown);
   await expect.poll(() => focusedTestId(page)).toBe("code-slot");
@@ -218,6 +219,10 @@ test("§6.10 la roue de code se pilote au pad, et on peut en sortir", async ({ p
   for (let step = 0; step < 8 && (await focusedTestId(page)) === "code-slot"; step += 1) {
     await tapPadButton(page, PadButton.DpadRight);
   }
-  expect(await focusedTestId(page)).toBeNull();
+  // On atterrit sur « Rejoindre ». C'est l'ORDRE DU DOCUMENT que la sortie horizontale suit — la
+  // géométrie ne dit rien, la roue étant centrée dans son panneau — et « Coller » est passé AVANT
+  // la roue au plan 207, sur la même ligne que « Tu as reçu un code ? » (retour humain). Il se
+  // rejoint donc par la GAUCHE, « Rejoindre » par la droite.
+  expect(await focusedTestId(page)).toBe("lobby-join");
   expect(await page.evaluate(() => document.activeElement?.textContent?.trim())).toBe("Rejoindre");
 });

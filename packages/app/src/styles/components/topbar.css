@@ -1,30 +1,12 @@
+/* La BARRE d'en-tête a déménagé dans `components/screen-header.css` (`.scr-header`) : c'est le
+   patron « écran plein » du projet, partagé avec la salle d'attente et l'écran « Jouer en ligne »
+   depuis le plan 207. Ne restent ici que les éléments PROPRES au Team Builder qu'on y pose. */
+
 @layer components {
+  /* La coquille vient de `.scr-root` (`screen-shell.css`) : cette classe ne garde que ce qui lui
+     est propre, et sert de CROCHET aux dizaines de règles qui s'en servent comme ancêtre. */
   .tb-root {
-    position: fixed;
-    inset: 0;
-    z-index: var(--z-overlay);
-    display: flex;
-    flex-direction: column;
-    background: var(--color-bg-base);
     overflow: hidden;
-  }
-
-  .tb-topbar {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-lg);
-    padding: var(--spacing-md) var(--spacing-xl);
-    background: var(--color-bg-surface);
-    border-bottom: 1px solid var(--color-border-surface);
-    flex: 0 0 auto;
-  }
-
-  .tb-topbar-title {
-    margin: 0;
-    color: var(--color-accent);
-    font-size: var(--font-size-lg);
-    font-weight: bold;
-    margin-right: var(--spacing-xl);
   }
 
   .tb-topbar-name-input {
@@ -43,8 +25,6 @@
     color: var(--color-text-muted);
     margin-left: var(--spacing-md);
   }
-
-  .tb-topbar-spacer { flex: 1; }
 
   .tb-topbar-saved {
     color: var(--green-500);

@@ -1,6 +1,6 @@
 # Plan 207 — L'écran « Jouer en ligne » rhabillé, et le refus enfin visible
 
-**Statut** : ready
+**Statut** : done
 **Session** : 5 de `agenda-2026-09-10-file-de-sessions-dediees`
 **Solde** : `backlog-revoir-ecran-creation-partie-multijoueur` (volet esthétique),
 `backlog-ecran-partie-introuvable`

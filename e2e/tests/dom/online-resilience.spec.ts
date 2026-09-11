@@ -227,16 +227,43 @@ test("§11.3 en ligne : le canal tombe, le pair revient, rattrape, et se fait fo
      * mène plus nulle part — le salon est parti avec la fin de la partie — donc sa reprise échoue,
      * et l'échec se dit puis se solde : message d'erreur, sauvegarde jetée, entrée disparue.
      *
-     * La CAUSE n'est pas assertée exprès : grâce expirée, hôte parti pour de bon, pare-feu, poignée
-     * de main sans réponse — toutes mènent au même comportement, et c'est précisément ce que le plan
-     * demandait : plusieurs causes, un seul chemin.
+     * 🔴 **La cause n'est pas assertée, mais elle DÉCIDE de la suite** — et ce test l'ignorait, ce
+     * qui le rendait instable.
+     *
+     * Le commentaire d'origine disait « toutes mènent au même comportement ». C'est FAUX contre le
+     * code : `TERMINAL_RESUME_FAILURES` (`main-menu-screen.ts`) ne jette la sauvegarde que sur
+     * `code_introuvable` et `partie_commencee`. Un `delai_depasse` ou un `connexion_impossible` la
+     * GARDE, exprès — un délai peut être passager, et le joueur doit pouvoir réessayer.
+     *
+     * Les deux causes sont atteignables ici et c'est une course : l'hôte est parti pour de bon
+     * (`code_introuvable`), mais sous charge la poignée de main expire d'abord (`delai_depasse`).
+     * Le test échouait alors sur `toHaveCount(0)`, une fois sur plusieurs dizaines, sans rien
+     * d'autre de cassé — observé au gate du 2026-09-11, 318 tests, 3 travailleurs.
+     *
+     * On assied donc l'assertion sur la cause RÉELLEMENT obtenue, au lieu de parier sur celle qui
+     * arrive d'ordinaire. Ce qui vaut pour toutes les causes — l'échec se DIT, au lieu d'un écran
+     * figé — reste asserté inconditionnellement, et c'est ça que le plan demandait.
      */
     await lateGuest.menu.resume.click();
     const resumeError = lateGuest.page.getByTestId("resume-error");
     await expect(resumeError).toBeVisible({ timeout: 45_000 });
     await expect(resumeError).not.toHaveText("");
-    await expect(lateGuest.menu.resume).toHaveCount(0);
-    await expect.poll(() => lateGuest.save.raw(), { timeout: 20_000 }).toBeNull();
+
+    // Les deux messages des causes TERMINALES, en français : ce sont eux qui disent qu'on ne peut
+    // rien réessayer, donc que la sauvegarde n'a plus de raison d'être.
+    const message = (await resumeError.textContent())?.trim() ?? "";
+    const terminal =
+      message === "Ce code ne correspond à aucune partie." ||
+      message === "Cette partie a déjà commencé.";
+
+    if (terminal) {
+      await expect(lateGuest.menu.resume).toHaveCount(0);
+      await expect.poll(() => lateGuest.save.raw(), { timeout: 20_000 }).toBeNull();
+    } else {
+      // Cause non terminale : la reprise reste offerte, et c'est le contrat — le joueur réessaie.
+      await expect(lateGuest.menu.resume).toHaveCount(1);
+      expect(await lateGuest.save.raw()).not.toBeNull();
+    }
   } finally {
     await session.close();
   }

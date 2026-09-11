@@ -1,51 +1,11 @@
 @layer components {
-  .ts-root {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    background: var(--color-bg-base);
-    color: var(--color-text-primary);
-    font-family: var(--font-family);
-    z-index: var(--z-overlay);
-    /*
-     * Petits écrans (plan 179). Cet écran vivait entièrement sur les tokens `:root` fixes, comme
-     * le Team Builder et les sélecteurs avant lui — d'où le « on dirait qu'il ne scale pas comme
-     * le reste » (humain, 2026-08-06, sur téléphone réel). Mêmes valeurs que `.tb-root` pour que
-     * les deux écrans s'accordent, plus les métriques propres à celui-ci (portraits, safe-area).
-     */
-    @media (height < 500px), (width < 900px) {
-      --font-size-xs: 12px;
-      --font-size-sm: 13px;
-      --font-size-md: 15px;
-      --font-size-lg: 18px;
-      --spacing-sm: 4px;
-      --spacing-md: 5px;
-      --spacing-lg: 8px;
-      --spacing-xl: 10px;
-      --pad-control-y: 5px;
-      --pad-control-x: 9px;
+  /* `.ts-root` n'a plus AUCUNE déclaration propre : sa coquille et ses tokens de petit écran sont
+     passés dans `.scr-root` (`screen-shell.css`), partagés avec le Team Builder et l'écran « Jouer
+     en ligne ». La classe reste posée dans le DOM parce que des dizaines de règles, ici et dans
+     `picker.css`, s'en servent comme ANCÊTRE — un sélecteur n'a pas besoin d'un bloc à lui. */
 
-      /* Ancré aux bords, donc soumis à l'encoche et à la barre de gestes en paysage. */
-      padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
-      padding-block-end: env(safe-area-inset-bottom);
-    }
-  }
-
-  .ts-header {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-    padding: var(--spacing-md) var(--spacing-lg);
-    background: var(--color-bg-elevated);
-    border-bottom: 1px solid var(--color-border-surface);
-    .ts-header-title {
-      flex: 1;
-      margin: 0;
-      color: var(--color-accent);
-      font-size: var(--font-size-lg);
-    }
-  }
+  /* L'en-tête a déménagé dans `screen-header.css` (`.scr-header`) : c'est le patron « écran
+     plein » du projet, partagé avec l'écran « Jouer en ligne » depuis le plan 207. */
 
   .ts-format-picker {
     display: flex;
@@ -453,19 +413,33 @@
     gap: var(--spacing-lg);
   }
 
+  /* Montée d'un cran au plan 207, étape 7 : à `--font-size-sm` contre un code à 44 px, l'écart
+     atteignait 3× en 4K — « ça fait bizarre » (retour humain). */
   .ts-room-code-caption {
     color: var(--color-text-dim);
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-md);
   }
 
   /* Le code se recopie à la main ou se dicte à voix haute : chasse fixe, interlettrage ouvert, et
-     assez gros pour être lu depuis un téléphone tenu à côté d'un écran. */
+     assez gros pour être lu depuis un téléphone tenu à côté d'un écran.
+     Redescendu de `clamp(22px, 3.4vmin, 44px)` au plan 207 : il reste le plus gros élément de
+     l'encart — c'est ce que l'hôte vient chercher — mais sans écraser son étiquette. */
   .ts-room-code-value {
     font-family: var(--font-family-mono);
-    font-size: clamp(22px, 3.4vmin, 44px);
+    font-size: clamp(20px, 2.6vmin, 34px);
     font-weight: bold;
     letter-spacing: 0.18em;
     color: var(--color-accent);
+  }
+
+  /* Le format, sorti de la liste de paramètres (plan 207, étape 7) : depuis que l'écran « Jouer en
+     ligne » ne l'annonce plus, c'est le seul endroit où le joueur l'apprend avant de composer son
+     équipe. Il ne peut donc plus être une ligne de `<dl>` parmi quatre. */
+  .ts-room-format {
+    margin: 0;
+    font-size: var(--font-size-md);
+    font-weight: bold;
+    color: var(--color-text-secondary);
   }
 
   .ts-room-settings {

@@ -25,7 +25,29 @@ import {
  * boutons que les flèches devraient ensuite traverser pour rien. Une seule contrainte en découle,
  * mesurée à la recette : chaque tiers doit tenir le plancher de 30 px sous `pointer: coarse`, donc le
  * bouton fait au moins 90 px de haut.
+ *
+ * Depuis le plan 207 (étape 4), un emplacement se **fait aussi glisser** : l'alphabet suit le doigt
+ * et s'accroche au relâchement. Le glissement s'AJOUTE aux trois zones de tape, il ne les remplace
+ * pas — c'est un seuil qui départage les deux gestes, cf. `DRAG_THRESHOLD_PX`.
  */
+
+/**
+ * Au-delà de combien de pixels un appui devient un glissement plutôt qu'une tape.
+ *
+ * Assez haut pour absorber le tremblement d'un doigt qui tape (quelques pixels), assez bas pour
+ * qu'un vrai geste de défilement soit pris tout de suite. En dessous, la tape garde le comportement
+ * d'avant — le tiers touché décide.
+ */
+const DRAG_THRESHOLD_PX = 8;
+
+/**
+ * Combien de pixels de glissement valent une lettre.
+ *
+ * Calé sur le tiers d'un emplacement à sa taille de doigt (90 px de bouton, donc 30 px par zone) :
+ * faire défiler d'un cran demande le même déplacement que traverser une zone de tape, ce qui rend le
+ * geste prévisible d'un mode à l'autre.
+ */
+const DRAG_STEP_PX = 30;
 
 export interface CodeWheelCallbacks {
   onChange?: (code: string) => void;
@@ -38,6 +60,12 @@ export interface CodeWheel {
   code(): string;
   /** Le haut/bas de l'appelant. Rend `false` s'il n'a rien à consommer. */
   step(direction: "up" | "down"): boolean;
+  /**
+   * Pose un code venu d'ailleurs que de l'événement `paste` — le bouton « Coller » du lobby, qui lit
+   * le presse-papier lui-même (plan 207, étape 3). Rend `false` si le texte ne contient pas un code,
+   * pour que l'appelant puisse le dire au joueur au lieu de rester muet.
+   */
+  paste(pasted: string): boolean;
   /**
    * Vrai quand le focus est posé dans la roue. L'appelant s'en sert pour savoir si la navigation lui
    * revient — **les deux axes**, pas seulement haut/bas : la roue boucle sur l'alphabet, donc elle
@@ -98,6 +126,100 @@ export function createCodeWheel(callbacks: CodeWheelCallbacks = {}): CodeWheel {
       { signal: listeners.signal },
     );
 
+    /*
+     * Le glissement (plan 207, étape 4). Trois états seulement : pas de geste, un appui encore
+     * indécis, un glissement établi.
+     *
+     * `appliedSteps` est tenu en absolu depuis le début du geste, et non incrémenté à chaque
+     * `pointermove` : un doigt qui revient sur ses pas doit **rendre** les lettres qu'il a prises,
+     * ce qu'un compteur cumulatif ne saurait pas faire.
+     */
+    let dragStartY: number | null = null;
+    let dragging = false;
+    let appliedSteps = 0;
+    /**
+     * Un glissement se termine par un `click` que le navigateur émet quand même. Sans ce drapeau, le
+     * relâchement volerait une lettre de plus — celle du tiers où le doigt s'est arrêté.
+     */
+    let swallowNextClick = false;
+
+    const endDrag = (): void => {
+      if (dragStartY === null) {
+        return;
+      }
+      dragStartY = null;
+      appliedSteps = 0;
+      // L'accrochage : le décalage sous-cran retombe à zéro, et la transition CSS le rend visible.
+      delete button.dataset.dragging;
+      button.style.removeProperty("--lb-slot-shift");
+      if (dragging) {
+        dragging = false;
+        swallowNextClick = true;
+      }
+    };
+
+    button.addEventListener(
+      "pointerdown",
+      (event) => {
+        // La souris garde ses trois zones de tape au clic simple : seul le bouton principal ouvre un
+        // geste, et un clic droit n'est pas un glissement.
+        if (event.button !== 0) {
+          return;
+        }
+        dragStartY = event.clientY;
+        dragging = false;
+        appliedSteps = 0;
+        /*
+         * 🔴 Un nouveau geste part TOUJOURS propre — relevé en revue de code.
+         *
+         * `swallowNextClick` n'était désarmé que par le `click` qu'il attendait, or trois chemins
+         * n'en produisent aucun : un `pointercancel` (perte de capture, geste système, troisième
+         * doigt), un relâchement hors du bouton sur un navigateur qui ne retargète pas le `click`
+         * — et Firefox est justement celui qui a déjà pris ce lot en défaut sur le presse-papier —,
+         * et un second doigt sur le même emplacement, dont le `pointerup` du premier neutralise le
+         * geste. Le drapeau restait alors armé et **avalait la tape suivante** : un appui sans
+         * effet, une seule fois, sans explication pour le joueur.
+         */
+        swallowNextClick = false;
+        // Le doigt sort vite du bouton sur un geste ample : sans capture, les `pointermove` iraient
+        // à l'élément survolé et le défilement s'arrêterait net au bord.
+        button.setPointerCapture(event.pointerId);
+      },
+      { signal: listeners.signal },
+    );
+
+    button.addEventListener(
+      "pointermove",
+      (event) => {
+        if (dragStartY === null) {
+          return;
+        }
+        const delta = event.clientY - dragStartY;
+        if (!dragging) {
+          if (Math.abs(delta) < DRAG_THRESHOLD_PX) {
+            return;
+          }
+          dragging = true;
+          applyState(setActiveSlot(state, slot));
+          button.dataset.dragging = "true";
+        }
+        // Le contenu suit le doigt : descendre fait remonter l'alphabet, comme une molette physique.
+        const wanted = Math.round(-delta / DRAG_STEP_PX);
+        if (wanted !== appliedSteps) {
+          applyState(stepActiveSlot(state, wanted - appliedSteps));
+          appliedSteps = wanted;
+        }
+        // Le reste sous-cran, pour que le mouvement soit continu et pas saccadé d'une lettre à
+        // l'autre. C'est tout « l'effet joli » : le reste du temps la roue est du texte.
+        button.style.setProperty("--lb-slot-shift", `${delta + appliedSteps * DRAG_STEP_PX}px`);
+      },
+      { signal: listeners.signal },
+    );
+
+    for (const event of ["pointerup", "pointercancel"] as const) {
+      button.addEventListener(event, endDrag, { signal: listeners.signal });
+    }
+
     button.addEventListener(
       "click",
       (event) => {
@@ -105,6 +227,10 @@ export function createCodeWheel(callbacks: CodeWheelCallbacks = {}): CodeWheel {
         // `active.click()`) porte `detail === 0` et des coordonnées nulles : le prendre pour une tape
         // le rangerait dans la zone du haut, et `Entrée` reculerait d'une lettre au lieu de valider.
         if (event.detail === 0) {
+          return;
+        }
+        if (swallowNextClick) {
+          swallowNextClick = false;
           return;
         }
         applyState(setActiveSlot(state, slot));
@@ -252,6 +378,15 @@ export function createCodeWheel(callbacks: CodeWheelCallbacks = {}): CodeWheel {
         return false;
       }
       applyState(stepActiveSlot(state, direction === "down" ? 1 : -1));
+      return true;
+    },
+    paste(pasted) {
+      const filled = pasteCode(pasted);
+      if (filled === undefined) {
+        return false;
+      }
+      applyState(filled);
+      focusActiveSlot();
       return true;
     },
     holdsFocus,

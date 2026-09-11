@@ -27,6 +27,8 @@ import "./styles/menu-screens.css";
 import "./styles/controls-screen.css";
 import "./styles/combat-menu.css";
 import "./styles/map-select.css";
+import "./styles/components/screen-shell.css";
+import "./styles/components/screen-header.css";
 import "./styles/lobby.css";
 import { initTelemetry } from "./analytics/telemetry.js";
 import { initBrowserBack } from "./app/browser-back.js";

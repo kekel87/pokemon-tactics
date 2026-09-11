@@ -74,12 +74,27 @@ function buildSettingsBlock(props: RoomPanelProps): HTMLElement {
   block.className = "ts-room-settings";
   block.dataset.testid = "room-settings";
 
+  const format = document.createElement("p");
+  format.className = "ts-room-format";
+  format.dataset.testid = "room-format";
+  format.textContent = `${t("room.format")} · ${formatLabel(props.teamCount)}`;
+  block.append(format);
+
   const list = document.createElement("dl");
   list.className = "ts-room-settings-list";
 
+  /*
+   * 🔴 Le format a QUITTÉ cette liste (plan 207, étape 7) pour sa propre ligne, juste au-dessus.
+   *
+   * Motif, relevé en revue de game-designer : l'étape 2 du même plan retire la mention du format de
+   * l'écran « Jouer en ligne ». Cet encart devenait donc le seul endroit où le joueur peut l'
+   * apprendre AVANT d'investir du temps dans sa composition — et il le disait au même corps que
+   * « Placement auto », noyé dans quatre lignes de paramètres. Un joueur venu du solo, où cinq
+   * formats de camps sont offerts, pouvait ouvrir un salon en croyant inviter plusieurs amis et ne
+   * le découvrir qu'en partageant son code.
+   */
   const rows: readonly (readonly [string, string])[] = [
     [t("room.map"), props.mapName],
-    [t("room.format"), t("lobby.format.option", { players: props.teamCount })],
     [t("teamSelect.autoPlacement.label"), onOff(props.autoPlacement)],
     [t("teamSelect.damagePreview.label"), onOff(props.damagePreview)],
   ];
@@ -105,4 +120,17 @@ function buildSettingsBlock(props: RoomPanelProps): HTMLElement {
 
 function onOff(value: boolean): string {
   return value ? t("settings.on") : t("settings.off");
+}
+
+/**
+ * Le format en clair. « 1 contre 1 » plutôt que « 2 joueurs » quand il n'y a que deux camps : c'est
+ * ainsi qu'un joueur le nomme, et l'ancienne formule était précisément ce que l'humain ne comprenait
+ * pas au lobby (« Joueurs : 2 joueurs »).
+ *
+ * Le cas général reste écrit, et ce n'est pas de la précaution gratuite : `ONLINE_TEAM_COUNT` vaut 2
+ * tant que le maillage ne garde pas les actions hors séquence, mais cet encart n'a pas à savoir
+ * pourquoi — le jour où trois camps seront permis, il le dira sans être retouché.
+ */
+function formatLabel(teamCount: number): string {
+  return teamCount === 2 ? t("room.formatDuel") : t("room.formatPlayers", { players: teamCount });
 }

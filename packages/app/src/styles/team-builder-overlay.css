@@ -55,13 +55,18 @@
     }
 
     /* Icon + label side by side instead of stacking: what put the header buttons on two
-       lines was the label wrapping under its glyph, not the row overflowing. */
-    .tb-topbar .tb-btn {
+       lines was the label wrapping under its glyph, not the row overflowing.
+       `.scr-header` depuis le plan 207 — la barre est partagée, le correctif la suit. */
+    /* 🔴 Scopé à `.tb-root` : la barre est PARTAGÉE depuis le plan 207, donc ces deux règles
+       s'appliquaient aussi au lobby et à la salle d'attente — ce que la règle écrite par ce même lot
+       dans `.claude/rules/css.md` interdit (la barre appartient à `components/screen-header.css`).
+       Relevé en revue de code. */
+    .tb-root .scr-header .tb-btn {
       flex-wrap: nowrap;
       white-space: nowrap;
     }
 
-    .tb-topbar-title {
+    .tb-root .scr-header-title {
       margin-right: var(--spacing-md);
     }
   }
