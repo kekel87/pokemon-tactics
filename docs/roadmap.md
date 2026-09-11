@@ -29,9 +29,12 @@ Pour l'ouvrir : `node scripts/memory/query.mjs --open <entité>`. Ci-dessous l'e
 > le jeu — solde `backlog-retour-navigateur-non-gere`), session 4 (plan 206, passe tactile globale
 > du plancher de 30 px — `--target-min` devient un réglage unique dans `tokens.css`, solde les
 > segments de format et les cases du pied de la sélection d'équipe) et session 5 (cadrage avec
-> l'humain du lobby et de l'écran « partie introuvable » — deux plans `ready` non encore
-> implémentés : `docs/plans/207-lobby-rhabillage-et-refus.md`, `docs/plans/208-carte-en-modale.md`).
-> **Prochaine étape : implémenter le plan 207 puis le 208** — entité `agenda-prochaine-etape-courante`.
+> l'humain du lobby et de l'écran « partie introuvable » — deux plans `ready` :
+> `docs/plans/207-lobby-rhabillage-et-refus.md`, `docs/plans/208-carte-en-modale.md`).
+> **Le plan 207 est livré** (2026-09-11, commit `3900a33`) : écran « Jouer en ligne » rhabillé, refus
+> de rejoindre visible avant navigation, et patron « écran plein » partagé extrait au passage.
+> **Prochaine étape : implémenter le plan 208** — deux arbitrages humains en préalable (télémétrie,
+> carte par défaut), voir entité `agenda-prochaine-etape-courante`.
 > Les autres sections ci-dessous sont ouvertes, dans un ordre qui n'est pas figé.
 
 ### Post-Babylon — petits chantiers de rendu
