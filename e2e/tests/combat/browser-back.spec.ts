@@ -6,7 +6,7 @@ import { BrowserHistory } from "../../pages/browser-history";
 import { CombatScene } from "../../pages/CombatScene";
 import type { CombatMenuOverlay } from "../../pages/combat-menu";
 import { MainMenu } from "../../pages/MainMenu";
-import { BattleModeScreen, MapSelectScreen, TeamSelectScreen } from "../../pages/screens";
+import { BattleModeScreen, TeamSelectScreen } from "../../pages/screens";
 
 // Cahier §4.20 — le retour du navigateur EN COMBAT (plan 205).
 //
@@ -111,7 +111,6 @@ test("§4.20 dans un combat RÉEL, le retour ouvre le menu avec ses deux sorties
   // chez l'adversaire. Le cas vaut donc son coût.
   const menu = new MainMenu(page);
   const mode = new BattleModeScreen(page);
-  const maps = new MapSelectScreen(page);
   const teams = new TeamSelectScreen(page);
   const scene = new CombatScene(page);
   const store = new BattleResumeStore(page);
@@ -120,8 +119,6 @@ test("§4.20 dans un combat RÉEL, le retour ouvre le menu avec ses deux sorties
   await menu.goto();
   await menu.combat.click();
   await mode.local.click();
-  await expect(maps.title).toBeVisible();
-  await maps.confirm.click();
   await expect(teams.title).toBeVisible();
   await teams.pickRandomTeam();
   await expect(teams.launch).toBeEnabled();

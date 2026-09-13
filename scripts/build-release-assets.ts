@@ -81,17 +81,17 @@ const GIF_SETTINGS: readonly GifSetting[] = [
 
 /** Les trois captures fixes demandées, et le beat dont elles viennent. */
 const SCREENSHOTS: readonly { name: string; fromBeat: string; what: string }[] = [
-  { name: "01-map-select", fromBeat: "carte-retenue", what: "sélecteur de terrain (Arène Simple)" },
+  { name: "01-map-picker", fromBeat: "carte-retenue", what: "choix de terrain (Arène Simple)" },
   /*
-   * Deuxième variante du sélecteur, et c'est un ARBITRAGE à rendre, pas un doublon : Grotte Exiguë a un
+   * Deuxième variante du choix de carte, et c'est un ARBITRAGE à rendre, pas un doublon : Grotte Exiguë a un
    * relief autrement plus vendeur qu'un plateau plat, mais ses étiquettes s'affichent en FRANÇAIS même
    * en anglais (`maps-registry.ts` les code en dur — bug noté au backlog). Arène Simple, elle, n'a pas
    * d'étiquette du tout, donc sa fiche est propre en anglais.
    */
   {
-    name: "01b-map-select-cave",
+    name: "01b-map-picker-cave",
     fromBeat: "map-cramped-cave",
-    what: "sélecteur de terrain (Grotte Exiguë, étiquettes FR)",
+    what: "choix de terrain (Grotte Exiguë, étiquettes FR)",
   },
   { name: "02-team-builder", fromBeat: "build-applique", what: "constructeur d'équipe" },
   { name: "03-twelve-players", fromBeat: "format-max", what: "sélection d'équipe en 12 joueurs" },

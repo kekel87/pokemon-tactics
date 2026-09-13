@@ -4,7 +4,6 @@ import { MainMenu } from "../../pages/MainMenu";
 import {
   BattleModeScreen,
   CreditsScreen,
-  MapSelectScreen,
   SettingsScreen,
   TeamSelectScreen,
 } from "../../pages/screens";
@@ -98,20 +97,22 @@ test("§6.10 reprise d'écran : un écran à paramètres n'est pas restauré (re
 }) => {
   const menu = new MainMenu(page);
   const mode = new BattleModeScreen(page);
-  const maps = new MapSelectScreen(page);
   const teams = new TeamSelectScreen(page);
   const shell = new AppShell(page);
 
   await menu.goto();
   await menu.combat.click();
-  await mode.local.click();
-  await expect(maps.title).toBeVisible();
-  // « Choix de la carte » est sans paramètre → restaurable, donc enregistré.
-  expect(await shell.persistedScreenId()).toBe("map-select");
+  // « Mode de combat » est sans paramètre → restaurable, donc enregistré.
+  expect(await shell.persistedScreenId()).toBe("battle-mode");
 
-  await maps.confirm.click();
+  /*
+   * 🔴 Le choix du terrain n'est PLUS un écran restaurable (plan 208) : c'est une modale, et « Jeu en
+   * solo » entre droit dans la sélection d'équipe. L'assertion portait dessus, et elle vaut
+   * désormais pour l'écran d'avant.
+   */
+  await mode.local.click();
   await expect(teams.title).toBeVisible();
-  // « Sélection d'équipe » exige un `mapUrl` : le point de reprise est EFFACÉ, pas laissé sur le
+  // « Sélection d'équipe » exige un `mapId` : le point de reprise est EFFACÉ, pas laissé sur le
   // menu précédent — sinon un rechargement ferait réapparaître un écran qu'on avait quitté.
   expect(await shell.persistedScreenId()).toBeNull();
 

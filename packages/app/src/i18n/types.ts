@@ -179,6 +179,12 @@ export interface Translations {
   "screen.back": string;
   "teamSelect.autoPlacement.label": string;
   "teamSelect.damagePreview.label": string;
+  "teamSelect.online.goOnline": string;
+  "teamSelect.online.switchTitle": string;
+  "teamSelect.online.switchConfirm": string;
+  "teamSelect.online.switchCancel": string;
+  "teamSelect.online.switchLosesCamps": string;
+  "teamSelect.online.switchLosesTeam": string;
   "placement.done": string;
   "pokemon.bulbasaur": string;
   "pokemon.venusaur": string;
@@ -282,7 +288,9 @@ export interface Translations {
   "lobby.back": string;
   "mapSelect.title": string;
   "mapSelect.confirm": string;
-  "mapSelect.back": string;
+  "mapSelect.random": string;
+  "mapSelect.randomHint": string;
+  "mapSelect.randomDescription": string;
   "settings.title": string;
   "settings.language": string;
   "settings.fullscreen": string;

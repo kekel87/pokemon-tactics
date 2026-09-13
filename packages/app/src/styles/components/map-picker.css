@@ -1,19 +1,32 @@
-/* Map-select screen (plan 120 step 3) — left list panel + live Babylon preview. */
+/*
+ * Le choix du terrain — liste à gauche, aperçu Babylon vivant à droite.
+ *
+ * 🔴 C'était un ÉCRAN plein (`map-select`, plan 120 étape 3) jusqu'au plan 208, où il est devenu une
+ * MODALE posée sur la sélection d'équipe. Les classes `ms-*` ont suivi telles quelles, et ce n'est
+ * pas de la paresse : `map-preview-stage.ts` (paquet `render-babylon`) pose lui-même
+ * `.ms-preview-canvas` et `.ms-preview-loading`, et les règles ci-dessous portent des mesures de
+ * recette qu'un renommage aurait décrochées de leur histoire (plans 179 et 206).
+ *
+ * Ce qui change vraiment : la racine ne s'ancre plus au viewport (`position: absolute; inset: 0`)
+ * mais remplit le corps de la modale, que `.tb-dialog[data-size="picker"]` dimensionne déjà.
+ */
 
 @layer components {
   .ms-screen {
     --ms-gap: clamp(8px, 1.5vmin, 20px);
     --ms-padding: clamp(12px, 2vmin, 32px);
-    position: absolute;
-    inset: 0;
     display: grid;
-    grid-template-columns: clamp(260px, 24vw, 480px) 1fr;
+    grid-template-columns: clamp(180px, 24vw, 420px) 1fr;
     /* The implicit row is `auto`-sized, whose minimum is the columns' min-content — so on a
        short viewport the row grew past the 393px box and both columns' bottom buttons fell off
        the screen. `minmax(0, 1fr)` pins the row to the grid height and lets the children
        shrink (they have `min-block-size: 0` + their own scrollers). */
     grid-template-rows: minmax(0, 1fr);
-    background: var(--color-bg-base);
+    gap: var(--ms-gap);
+    /* La modale porte déjà sa hauteur : la grille la remplit sans jamais la dépasser, ce qui laisse
+       la liste (et elle seule) prendre la contrainte et défiler. */
+    block-size: 100%;
+    min-block-size: 0;
     font-family: var(--font-family);
     color: var(--color-text-primary);
   }
@@ -26,20 +39,16 @@
     display: flex;
     flex-direction: column;
     gap: var(--ms-gap);
-    padding: var(--ms-padding);
+    /* Plus de `--ms-padding` latéral : la modale porte le sien, et l'empiler donnait une liste
+       enfoncée de deux gouttières dans un cadre déjà étroit en paysage téléphone. */
+    padding-block: var(--spacing-xs);
     background: var(--color-bg-surface);
+    border-radius: var(--radius-md);
     /* The panel itself no longer scrolls — `.ms-list` does (plan 179). Scrolling the panel
        pushed the confirm button below the fold as soon as the map list outgrew the height,
        and `margin-block-start: auto` cannot pin it inside an overflowing box. */
     overflow: hidden;
     min-block-size: 0;
-  }
-
-  .ms-title {
-    margin: 0;
-    text-align: center;
-    font-size: clamp(22px, 3vmin, 48px);
-    color: var(--color-accent);
   }
 
   .ms-list {
@@ -83,20 +92,10 @@
     }
   }
 
-  .ms-list-panel .mn-btn {
-    margin-block-start: auto;
-    /* Le `min-width` large de `.mn-btn` (clamp 240px+) débordait du panneau gauche étroit →
-       on le contient dans la largeur du panneau. */
-    min-inline-size: 0;
-    inline-size: 100%;
-    box-sizing: border-box;
-  }
-
   .ms-main {
     display: flex;
     flex-direction: column;
     gap: var(--ms-gap);
-    padding: var(--ms-padding);
     min-inline-size: 0;
     /* Lets the preview absorb the squeeze instead of the column overflowing. */
     min-block-size: 0;
@@ -151,6 +150,51 @@
     }
   }
 
+  /*
+   * Le panneau du tirage (plan 208). Il COUVRE l'aperçu plutôt que de le remplacer : la scène
+   * Babylon n'est construite que si une vraie carte est regardée, et une fois construite elle reste
+   * là pour la carte suivante. Un cadre vide était exclu d'avance — c'est la raison même du voile de
+   * chargement ci-dessus (retour humain 2026-08-06).
+   */
+  .ms-random {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    /*
+     * 🔴 `display: none` explicite sous `[hidden]`, et ce n'est PAS redondant avec le navigateur.
+     *
+     * La feuille de l'agent utilisateur pose `[hidden] { display: none }`, mais elle perd contre
+     * toute règle d'auteur qui déclare un `display` — ici `flex`. Le panneau du tirage restait donc
+     * affiché PAR-DESSUS l'aperçu Babylon, quelle que soit la carte retenue : « la preview des
+     * cartes ne s'affiche plus, j'ai toujours "Terrain tiré au lancement" » (recette humaine,
+     * 2026-09-11). Le piège vaut pour tout composant masqué par `el.hidden` qui se donne un
+     * `display` — et `.claude/rules/html.md` recommande justement `hidden`.
+     */
+    &[hidden] {
+      display: none;
+    }
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-lg);
+    background: var(--color-bg-surface);
+    text-align: center;
+  }
+
+  .ms-random-die {
+    font-size: clamp(40px, 8vmin, 96px);
+    line-height: 1;
+  }
+
+  .ms-random-text {
+    margin: 0;
+    max-inline-size: 40ch;
+    font-size: clamp(13px, 1.5vmin, 24px);
+    color: var(--color-text-secondary);
+  }
+
   .ms-preview-canvas {
     display: block;
     inline-size: 100%;
@@ -183,6 +227,9 @@
 
   .ms-confirm {
     align-self: center;
+    /* Le plancher tactile du projet s'applique ici comme ailleurs (plan 206) : la modale se pilote
+       aussi au doigt, et ce bouton est le seul geste qui valide. */
+    min-block-size: var(--target-min);
   }
 
   /*
@@ -196,11 +243,7 @@
     .ms-screen {
       --ms-gap: 6px;
       --ms-padding: 8px;
-      grid-template-columns: clamp(150px, 22vw, 480px) 1fr;
-    }
-
-    .ms-title {
-      font-size: 16px;
+      grid-template-columns: clamp(120px, 30vw, 420px) 1fr;
     }
 
     .ms-list-item {
@@ -221,6 +264,10 @@
     }
 
     .ms-details-description {
+      font-size: 12px;
+    }
+
+    .ms-random-text {
       font-size: 12px;
     }
   }

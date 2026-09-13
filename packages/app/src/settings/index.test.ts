@@ -4,7 +4,12 @@ import { getSettings, initSettings, updateSettings } from "./index";
 
 const STORAGE_KEY = "pt-settings";
 
-const DEFAULTS = { damagePreview: true, autoPlacement: true, invertRightStick: false };
+const DEFAULTS = {
+  damagePreview: true,
+  autoPlacement: true,
+  lastMapId: "simple-arena",
+  invertRightStick: false,
+};
 
 describe("préférences persistées", () => {
   let stub: LocalStorageStub;
@@ -52,6 +57,7 @@ describe("préférences persistées", () => {
     expect(getSettings()).toEqual({
       autoPlacement: true,
       damagePreview: false,
+      lastMapId: "simple-arena",
       invertRightStick: true,
     });
   });

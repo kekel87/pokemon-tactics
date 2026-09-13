@@ -95,31 +95,42 @@ test.describe("§6.9 fondations viewport", () => {
   });
 });
 
-/** menu → mode de combat → choix de la carte. */
+/**
+ * menu → mode de combat → sélection d'équipe → MODALE de choix de la carte.
+ *
+ * Le choix du terrain n'est plus un écran depuis le plan 208 : il faut l'ouvrir depuis le bandeau de
+ * partie. On y retient une VRAIE carte au passage, pour que l'aperçu Babylon existe — « Aléatoire »,
+ * qui ouvre la liste, n'en construit aucun.
+ */
 const openMapSelect = async (page: Page): Promise<MapSelectScreen> => {
   const menu = new MainMenu(page);
   const battleMode = new BattleModeScreen(page);
+  const teams = new TeamSelectScreen(page);
   const maps = new MapSelectScreen(page);
   await menu.goto();
   await menu.combat.click();
   await battleMode.local.click();
-  await expect(maps.title).toBeVisible();
+  await expect(teams.title).toBeVisible();
+  await maps.open();
+  await maps.item("simple-arena").click();
   return maps;
 };
 
 test.describe("§6.9 choix de la carte sur téléphone paysage", () => {
   test.use({ viewport: PHONE_LANDSCAPE });
 
-  // Le bug du plan : les deux boutons (« Retour » à gauche, « Choisir cette carte » à droite)
-  // tombaient sous le bord bas de l'écran — l'écran devenait un cul-de-sac.
-  test("§6.9 les 9 cartes, les deux boutons et le reste de l'écran tiennent dedans", async ({
+  // Le bug d'origine (plan 179) : les boutons tombaient sous le bord bas de l'écran, qui devenait un
+  // cul-de-sac. En modale le risque reste entier — c'est le cas le plus serré du projet, une liste
+  // PLUS un aperçu Babylon dans un cadre déjà réduit.
+  test("§6.9 les 10 lignes, les deux sorties et le reste de la modale tiennent dedans", async ({
     page,
   }) => {
     const maps = await openMapSelect(page);
     const responsive = new Responsive(page);
 
-    await expect(maps.listItems).toHaveCount(9);
-    await expect(maps.back).toBeInViewport({ ratio: 1 });
+    // Dix : les neuf cartes plus « Aléatoire » (plan 208).
+    await expect(maps.listItems).toHaveCount(10);
+    await expect(maps.closeButton).toBeInViewport({ ratio: 1 });
     await expect(maps.confirm).toBeInViewport({ ratio: 1 });
 
     await expect
@@ -139,15 +150,15 @@ test.describe("§6.3 voile de chargement de l'aperçu de carte", () => {
   }) => {
     const maps = await openMapSelect(page);
     const responsive = new Responsive(page);
-    // L'aperçu de la carte 0 se construit au montage → on attend qu'il soit retombé au repos avant
-    // de mesurer le suivant, sinon on enregistre la fin du premier chargement.
+    // L'aperçu de la première carte retenue se construit à son clic → on attend qu'il soit retombé
+    // au repos avant de mesurer le suivant, sinon on enregistre la fin du premier chargement.
     await expect.poll(() => responsive.metrics(".ms-preview-loading")).not.toBeNull();
     await expect
       .poll(() => page.locator(".ms-preview-loading").getAttribute("data-state"))
       .toBe("idle");
 
     await responsive.watchDataState(".ms-preview-loading");
-    await maps.listItems.nth(1).click();
+    await maps.item("volcano").click();
 
     await expect.poll(() => responsive.recordedDataStates()).toEqual(["idle", "loading", "idle"]);
   });

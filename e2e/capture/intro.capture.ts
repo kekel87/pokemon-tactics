@@ -340,6 +340,14 @@ test("séquence d'intro", async ({ page }) => {
 
   await padMoveTo(page, "down", "Local");
   await recorder.holdForPacing(700);
+  /*
+   * 🔴 « Local » entre DROIT dans la sélection d'équipe depuis le plan 208 : il n'y a plus d'écran de
+   * terrain à traverser. Le choix de carte est une modale, qu'on ouvre depuis le bandeau de partie —
+   * un geste de plus au pad, mais un écran de moins dans le montage.
+   */
+  await padActivate(page, () => ui.launch.isVisible());
+  await recorder.holdForPacing(700);
+  await padMoveTo(page, "up", "room-change-map");
   await padActivate(page, () => ui.confirmMap.isVisible());
   await recorder.holdForPacing(900);
   await recorder.capture("choix-carte", "Nine arenas, each with its own terrain");
@@ -371,9 +379,10 @@ test("séquence d'intro", async ({ page }) => {
   await recorder.capture("carte-retenue", "An arena to learn on");
 
   /*
-   * Pas de navigation vers « Choisir cette carte » : sur cet écran, `A` sans bouton focalisé appelle
-   * directement `confirmSelection()` (le consommateur de l'écran le dit explicitement). Chercher le
-   * bouton au dpad serait impossible — le focus DOM n'y bouge jamais.
+   * Pas de navigation vers « Choisir cette carte » : dans la liste, `A` retient la carte regardée et
+   * referme la modale (le consommateur d'entrée de la modale le dit explicitement). Depuis le plan
+   * 208 c'est un vrai choix de conception et plus un accident de focus — la sélection SUIT le focus,
+   * donc un bouton est toujours focalisé et il fallait que `A` y réponde.
    */
   await recorder.holdForPacing(600);
   await padActivate(page, () => ui.launch.isVisible());

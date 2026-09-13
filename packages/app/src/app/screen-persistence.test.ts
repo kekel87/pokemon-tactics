@@ -34,7 +34,7 @@ describe("screen persistence", () => {
   );
 
   it("clears an earlier resume point when moving to a screen with params", () => {
-    saveCurrentScreen("map-select");
+    saveCurrentScreen("lobby");
     saveCurrentScreen("combat");
 
     expect(loadPersistedScreen()).toBeNull();

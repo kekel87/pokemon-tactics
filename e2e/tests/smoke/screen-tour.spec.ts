@@ -35,6 +35,8 @@ import { MyTeamsScreen, TeamEditScreen } from "../../pages/teamBuilder";
 test.setTimeout(60_000);
 
 test("tour des écrans : les 10 écrans DOM montent et la navigation revient", async ({ page }) => {
+  // Dix écrans — la carte comptant pour l'un d'eux à travers sa modale depuis le plan 208, où elle a
+  // cessé d'être une route à part entière (voir l'étape 4).
   const menu = new MainMenu(page);
   const mode = new BattleModeScreen(page);
   const maps = new MapSelectScreen(page);
@@ -65,28 +67,36 @@ test("tour des écrans : les 10 écrans DOM montent et la navigation revient", a
     await expect(mode.tutorial).toBeDisabled();
   });
 
-  await test.step("3. choix de la carte", async () => {
+  await test.step("3. sélection d'équipe", async () => {
+    // 🔴 Plus d'escale sur un écran de terrain (plan 208) : « Jeu en solo » entre droit ici, avec la
+    // carte retenue d'office. Le bandeau de partie la porte, et c'est lui qui ouvre la modale.
     await mode.local.click();
-    await expect(maps.title).toBeVisible();
-    await expect(maps.listItems).toHaveCount(9);
-    // La première carte est présélectionnée : le panneau de détail la décrit déjà.
-    await expect(maps.detailName).toHaveText("Arène Simple");
-    await expect(maps.detailDescription).not.toBeEmpty();
-  });
-
-  await test.step("4. sélection d'équipe", async () => {
-    await maps.confirm.click();
     await expect(teams.title).toBeVisible();
     await expect(teams.activeFormatSegment).toHaveText("2J × 6");
     await expect(teams.teamButton(0)).toBeVisible();
+    await expect(teams.mapName).toBeVisible();
     // Aucun camp assigné → le combat n'est pas lançable.
     await expect(teams.launch).toBeDisabled();
   });
 
+  await test.step("4. choix de la carte, en modale", async () => {
+    /*
+     * 🔴 Le tour reste à DIX écrans alors que la route `map-select` a disparu : le choix du terrain
+     * y est visité en ouvrant sa modale. Arbitré avec l'humain au plan 208 — sortir la carte du tour
+     * aurait laissé sans couverture de plancher le seul écran que le plan refondait entièrement.
+     */
+    await maps.open();
+    // Dix lignes : les neuf cartes, plus « Aléatoire ».
+    await expect(maps.listItems).toHaveCount(10);
+    await maps.item("simple-arena").click();
+    await expect(maps.detailName).toHaveText("Arène Simple");
+    await expect(maps.detailDescription).not.toBeEmpty();
+    await maps.confirm.click();
+    await expect(teams.mapName).toContainText("Arène Simple");
+  });
+
   await test.step("5. retour arrière depuis la sélection d'équipe", async () => {
     await page.keyboard.press("Escape");
-    await expect(maps.title).toBeVisible();
-    await maps.back.click();
     await expect(mode.title).toBeVisible();
   });
 

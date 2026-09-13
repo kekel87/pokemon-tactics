@@ -174,6 +174,14 @@ const en: Translations = {
   "screen.back": "← Back",
   "teamSelect.autoPlacement.label": "Auto placement",
   "teamSelect.damagePreview.label": "Damage preview",
+  "teamSelect.online.goOnline": "Switch to an online game",
+  "teamSelect.online.switchTitle": "Switch to an online game",
+  "teamSelect.online.switchConfirm": "Go online",
+  "teamSelect.online.switchCancel": "Stay offline",
+  "teamSelect.online.switchLosesCamps":
+    "An online game is played by two sides. Sides beyond the second will be removed, teams included.",
+  "teamSelect.online.switchLosesTeam":
+    "The second side will be opened up for your opponent. The team you picked for it will be removed.",
   "placement.done": "✓ Done",
   "pokemon.bulbasaur": "Bulbasaur",
   "pokemon.venusaur": "Venusaur",
@@ -277,7 +285,10 @@ const en: Translations = {
   "lobby.back": "Back",
   "mapSelect.title": "Map Selection",
   "mapSelect.confirm": "Select this map",
-  "mapSelect.back": "Back",
+  "mapSelect.random": "🎲 Random",
+  "mapSelect.randomHint": "Drawn at launch",
+  "mapSelect.randomDescription":
+    "The map stays unknown until the battle starts. Nobody can build a team around the terrain.",
   "settings.title": "Settings",
   "settings.language": "Language",
   "settings.fullscreen": "Fullscreen",

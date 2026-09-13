@@ -1,9 +1,10 @@
-import { expect, localSignalling, test } from "../../fixtures";
+import { expect, localSignalling, seedSavedTeams, test } from "../../fixtures";
 import { BattleResumeStore } from "../../pages/battle-resume";
 import { CombatScene } from "../../pages/CombatScene";
 import { readActivePokemon } from "../../pages/combat-queries";
 import { LobbyScreen, WaitingRoom } from "../../pages/lobby";
 import { MainMenu } from "../../pages/MainMenu";
+import { DUEL_ATTACKER_TEAM_ID, DUEL_TEAM_STORAGE } from "../../pages/online-duel";
 import { BattleModeScreen, MapSelectScreen, TeamSelectScreen } from "../../pages/screens";
 
 // Cahier §11 — jeu en ligne (plan 199). UN SEUL scénario à deux contextes de navigateur : la suite
@@ -38,7 +39,6 @@ test("§11.1 en ligne : créer, rejoindre, et entrer en combat à deux", async (
     const hostMenu = new MainMenu(hostPage);
     const hostMode = new BattleModeScreen(hostPage);
     const hostLobby = new LobbyScreen(hostPage);
-    const hostMaps = new MapSelectScreen(hostPage);
     const hostRoom = new WaitingRoom(hostPage);
     const hostTeams = new TeamSelectScreen(hostPage);
 
@@ -53,8 +53,6 @@ test("§11.1 en ligne : créer, rejoindre, et entrer en combat à deux", async (
     await hostLobby.create.click();
 
     // L'hôte passe par l'écran de terrain — l'invité, lui, n'en verra que le nom.
-    await expect(hostMaps.title).toBeVisible();
-    await hostMaps.confirm.click();
 
     // Le code naît ICI, à l'entrée sur la salle d'attente, jamais avant.
     await expect(hostRoom.panel).toBeVisible();
@@ -97,8 +95,31 @@ test("§11.1 en ligne : créer, rejoindre, et entrer en combat à deux", async (
     // Et il ne peut pas encore lancer : personne n'est prêt.
     await expect(hostRoom.launch).toBeDisabled();
 
-    // — L'invité compose SA ligne, la deuxième, puis confirme ————————————————————————————————————
     const guestTeams = new TeamSelectScreen(guestPage);
+
+    /*
+     * — La carte de l'hôte se REFLÈTE chez l'invité (plan 208) ——————————————————————————————————
+     *
+     * Greffé ici plutôt qu'en scénario à part : celui-ci paie DÉJÀ les deux contextes et la
+     * négociation WebRTC, qui sont tout le coût. Le défaut a été trouvé à la main — l'invité gardait
+     * l'ancien nom sous les yeux et composait pour un terrain qui n'était plus celui de la partie.
+     *
+     * `setOptions` étant refusé dès que l'hôte s'est déclaré prêt, le geste se joue forcément ici,
+     * avant les confirmations.
+     */
+    const hostMaps = new MapSelectScreen(hostPage);
+    const guestMaps = new MapSelectScreen(guestPage);
+    // L'invité ne CHOISIT rien : la carte lui arrive de l'hôte, il n'en lit que le nom.
+    await expect(guestMaps.changeButton).toHaveCount(0);
+    await expect(guestTeams.mapName).not.toContainText("Volcan Actif");
+
+    await hostMaps.open();
+    await hostMaps.choose("volcano");
+    await expect(hostTeams.mapName).toContainText("Volcan Actif");
+    // Et il change SOUS LES YEUX de l'invité, sans qu'il ait rien à faire.
+    await expect(guestTeams.mapName).toContainText("Volcan Actif", { timeout: 30_000 });
+
+    // — L'invité compose SA ligne, la deuxième, puis confirme ————————————————————————————————————
     await guestTeams.teamButton(1).click({ timeout: 8_000 });
     await guestPage
       .getByRole("dialog")
@@ -267,7 +288,6 @@ test("§11.2 en ligne : « Humain » sur une place libre laisse le salon jouable
   const menu = new MainMenu(page);
   const mode = new BattleModeScreen(page);
   const lobby = new LobbyScreen(page);
-  const maps = new MapSelectScreen(page);
   const room = new WaitingRoom(page);
   const teams = new TeamSelectScreen(page);
 
@@ -278,7 +298,6 @@ test("§11.2 en ligne : « Humain » sur une place libre laisse le salon jouable
   // canaux que rien n'ordonne entre eux, et une action en avance ferait éliminer un joueur honnête.
   // Ce scénario n'en a pas besoin — il lui faut UNE place libre, et le 1v1 en a une.
   await lobby.create.click();
-  await maps.confirm.click();
   await expect(room.panel).toBeVisible();
 
   // L'hôte compose SA ligne : sans équipe sur chaque camp, « Lancer » est inerte pour une raison qui
@@ -328,4 +347,105 @@ test("§11.2 en ligne : « Humain » sur une place libre laisse le salon jouable
   await expect(room.ready).toBeEnabled();
   await room.ready.click();
   await expect(room.launch).toBeEnabled();
+});
+
+/*
+ * §11.3 — la bascule solo → en ligne (plan 208, étape 5).
+ *
+ * UN SEUL contexte de navigateur, comme §11.2 : tout se joue sur l'écran de celui qui bascule, seul
+ * dans le salon qu'il vient d'ouvrir. Il ne paie donc pas la négociation WebRTC — seulement
+ * l'annuaire, qui lui donne son identité, donc son code.
+ *
+ * Ce que ces deux scénarios gardent est la promesse même de la bascule : **on ne perd pas ce qu'on
+ * vient de composer**. Sans navigation derrière (la salle d'attente EST cet écran, décision #897),
+ * rien ne protège `slots` d'une remise à zéro par mégarde.
+ */
+test("§11.3 solo → en ligne : un 1v1 contre l'IA bascule sans rien demander", async ({ page }) => {
+  const menu = new MainMenu(page);
+  const mode = new BattleModeScreen(page);
+  const room = new WaitingRoom(page);
+  const teams = new TeamSelectScreen(page);
+
+  // Une équipe NOMMÉE : deux tirages portent le même nom, donc une composition effacée puis
+  // retirée au hasard serait indiscernable de celle-ci.
+  await seedSavedTeams(page, DUEL_TEAM_STORAGE);
+
+  await menu.goto(localSignalling);
+  await menu.combat.click();
+  await mode.local.click();
+  await expect(teams.title).toBeVisible();
+
+  // En solo, la place du code porte l'issue vers le jeu en ligne — et il n'y a pas de code.
+  await expect(teams.goOnline).toBeVisible();
+  await expect(room.code).toHaveCount(0);
+
+  await teams.pickSavedTeam(0, DUEL_ATTACKER_TEAM_ID);
+  // Le second camp à l'IA : la bascule ne coûtera alors que son équipe tirée au hasard.
+  await teams.giveSlotToAi(1);
+
+  await teams.goOnline.click();
+
+  /*
+   * (a) Aucune confirmation : demander pour rien apprend au joueur à cliquer sans lire (arbitré
+   * avec l'humain au cadrage). Le code apparaît donc directement.
+   */
+  await expect(teams.goOnlineConfirm).toHaveCount(0);
+  await expect(room.code).toBeVisible({ timeout: 30_000 });
+  await expect(room.code).toHaveText(/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{5}$/);
+  // L'issue a disparu avec le solo : on ne bascule pas deux fois.
+  await expect(teams.goOnline).toHaveCount(0);
+
+  // (b) Le second camp est ROUVERT à un joueur, et n'est plus tenu par l'IA — c'est la place que
+  // le code sert à faire remplir.
+  await expect(room.seatStatus(1)).toHaveAttribute("data-state", "open");
+  await expect(room.seatStatus(1)).toHaveText("⏳ Place libre");
+
+  // (c) 🔴 Et MA composition a survécu à la bascule : c'est ce qu'un joueur « qui s'est trompé de
+  // mode » ne pardonnerait pas de perdre.
+  await expect(teams.teamButton(0)).toHaveAttribute("data-state", "saved");
+  await expect(teams.teamButton(0)).toContainText("Duel — Alakazam");
+});
+
+test("§11.3 solo → en ligne : au-delà de deux camps, « Rester en solo » ne détruit rien", async ({
+  page,
+}) => {
+  const menu = new MainMenu(page);
+  const mode = new BattleModeScreen(page);
+  const room = new WaitingRoom(page);
+  const teams = new TeamSelectScreen(page);
+
+  await seedSavedTeams(page, DUEL_TEAM_STORAGE);
+
+  await menu.goto(localSignalling);
+  await menu.combat.click();
+  await mode.local.click();
+  await expect(teams.title).toBeVisible();
+
+  // Un format à trois camps : le réseau n'en accepte que deux (`ONLINE_TEAM_COUNT`), donc la
+  // bascule DÉTRUIRAIT le troisième — c'est exactement le cas où l'on demande avant d'agir.
+  await teams.formatSegmentForTeamCount(3).click();
+  const chosenFormat = await teams.activeFormatSegment.innerText();
+  await teams.pickSavedTeam(0, DUEL_ATTACKER_TEAM_ID);
+
+  await teams.goOnline.click();
+
+  // (a) La modale s'ouvre, et elle DIT ce que la bascule coûte.
+  await expect(teams.goOnlineConfirm).toBeVisible();
+  await expect(teams.goOnlineConfirm).toContainText("deux camps");
+  // Une vraie modale et non `window.confirm`, dont la boîte native est injoignable à la manette :
+  // les deux issues sont de vrais boutons du document.
+  await expect(teams.goOnlineCancel).toBeVisible();
+  await expect(teams.goOnlineConfirmButton).toBeVisible();
+
+  // (b) « Rester en solo » referme sans rien faire.
+  await teams.goOnlineCancel.click();
+  await expect(teams.goOnlineConfirm).toHaveCount(0);
+
+  // (c) Rien n'a bougé : ni le format, ni l'équipe, et aucun salon n'a été ouvert.
+  await expect(teams.activeFormatSegment).toHaveText(chosenFormat);
+  await expect(teams.teamButton(0)).toHaveAttribute("data-state", "saved");
+  await expect(teams.teamButton(0)).toContainText("Duel — Alakazam");
+  await expect(room.code).toHaveCount(0);
+  // Et l'issue est toujours là : refuser n'est pas renoncer.
+  await expect(teams.goOnline).toBeVisible();
 });

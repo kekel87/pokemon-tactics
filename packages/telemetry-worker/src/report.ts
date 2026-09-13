@@ -273,8 +273,16 @@ export interface SeriesPoint {
  * ⚠️ Ce sont des **cumuls d'atteintes**, pas un taux de conversion par visite : les compteurs
  * partent en deltas et ne sont rattachés à aucun identifiant de visite — c'est le prix assumé du
  * schéma sans suivi. Un même joueur qui revient au menu deux fois compte deux fois.
+ *
+ * 🔴 **`map-select` a quitté ce funnel le 2026-09-11 (plan 208), et la série d'avant n'est pas
+ * comparable à celle d'après.** L'écran de choix du terrain a été supprimé : la carte se change
+ * désormais en modale, ce qui est un geste VOLONTAIRE là où c'était un passage OBLIGÉ. Garder
+ * l'étape aurait laissé une courbe continue changer de sens en silence — le volume s'effondre sans
+ * que rien soit cassé. Arbitré avec l'humain : coupure assumée et datée plutôt que faux signal. Les
+ * gestes de la modale se lisent désormais en actions (`map-modal-open`, `map-changed`,
+ * `map-modal-dismissed`), qui répondent à une autre question — le choix de carte intéresse-t-il ?
  */
-const FUNNEL_STAGES: readonly string[] = ["main-menu", "battle-mode", "map-select", "team-select"];
+const FUNNEL_STAGES: readonly string[] = ["main-menu", "battle-mode", "team-select"];
 
 /**
  * Le mode des parties EN LIGNE, tel que `modeOf()` le produit côté application
@@ -597,7 +605,6 @@ export const SCREEN_LABELS: Record<string, string> = {
   "battle-mode": "Mode de combat",
   lobby: "Salon en ligne",
   "team-builder": "Constructeur d'équipe",
-  "map-select": "Sélection de carte",
   "team-select": "Sélection d'équipe",
   credits: "Crédits",
   controls: "Écran des contrôles",
@@ -619,6 +626,9 @@ export const ACTION_LABELS: Record<string, string> = {
   "resume-offered": "Reprise proposée",
   "resume-accepted": "Reprise acceptée",
   "remap-binding": "Touche réassignée",
+  "map-modal-open": "Choix de carte ouvert",
+  "map-changed": "Carte changée",
+  "map-modal-dismissed": "Choix de carte refermé sans changement",
   "room-created": "Partie en ligne créée",
   "room-joined": "Partie en ligne rejointe",
   "room-abandoned": "Salon quitté avant le lancement",

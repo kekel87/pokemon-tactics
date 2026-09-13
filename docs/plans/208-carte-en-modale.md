@@ -1,6 +1,6 @@
 # Plan 208 — La carte en modale, et le bandeau de partie
 
-**Statut** : ready
+**Statut** : done (2026-09-11)
 **Session** : 5 de `agenda-2026-09-10-file-de-sessions-dediees`
 **Dépend de** : plan 207, étape 6 (le contexte `modal` du système d'entrée)
 
@@ -65,9 +65,9 @@ Elles sont marquées ⬅ dans le tableau.
 navigation. Un écran de moins, c'est un cran d'historique de moins — et le geste de retour du
 téléphone doit **fermer la modale** avant de remonter d'écran, pas sauter par-dessus.
 
-**Le tour des écrans du gate** : `/ci-gate fast` fait le tour des 10 écrans. Il passe à 9, ou la
-carte s'y visite en ouvrant la modale. À trancher en implémentant, mais **le compte écrit dans le
-gate doit changer avec le code** — sinon le gate valide un écran qui n'existe plus, en silence.
+**Le tour des écrans du gate** : `/ci-gate fast` fait le tour des 10 écrans. ✅ **Tranché le
+2026-09-11 : il RESTE à 10**, la carte s'y visitant en ouvrant sa modale. Sortir la carte du tour
+aurait laissé sans couverture de plancher le seul écran que ce plan refondait entièrement.
 
 ## 🔴 Étape 2 — La télémétrie : ne pas trouer le funnel
 
@@ -75,7 +75,14 @@ Le funnel mesuré est `game-loaded → main-menu → battle-mode → map-select 
 battle-start → battle-end` (plan 114, et le Worker du plan 196). Supprimer `map-select` **trouve un
 trou au milieu d'une série historique**.
 
-Deux options, à trancher avant de coder :
+✅ **TRANCHÉ par l'humain le 2026-09-11 — ni l'une ni l'autre : on ADAPTE la mesure.** Dans ses
+mots : « tu adaptes la télémétrie pour savoir si les gens changent de map, sélectionnent et ferment,
+truc du genre ». Le compteur d'écran disparaît (l'option 2), mais la coupure ne laisse pas un trou :
+trois actions la remplacent — `map-modal-open`, `map-changed`, `map-modal-dismissed` — qui répondent
+à une question que le funnel ne posait pas, **le choix de carte intéresse-t-il ?** Coupure datée dans
+`report.ts` et dans le graphe.
+
+Les deux options envisagées au cadrage, pour mémoire :
 
 1. **Garder le compteur**, compté à l'**ouverture de la modale**. La série reste continue, mais elle
    change de sens : ce n'était pas un passage obligé, ça devient un geste volontaire — donc le
@@ -88,7 +95,7 @@ Recommandation : **option 2**, plus honnête. Un passage obligé et un geste opt
 même mesure, et prétendre le contraire coûte plus cher que la coupure.
 
 🔴 **Décision requise de l'humain avant de démarrer le plan.** C'est une coupure dans une série
-historique : elle ne se rattrape pas après coup.
+historique : elle ne se rattrape pas après coup. — *Rendue le 2026-09-11, voir ci-dessus.*
 
 ## Étape 3 — Quelle carte par défaut
 
@@ -96,9 +103,11 @@ Conséquence directe : `battle-mode → team-select` en solo, `lobby → team-se
 personne ne traverse un écran de choix de carte, donc **une carte doit être choisie d'office** avant
 d'arriver.
 
-🔴 **Décision requise de l'humain** : `MAPS_REGISTRY[0]` (la première, repli évident) ou **la
-dernière carte jouée**, lue dans les préférences persistées ? Le mécanisme existe déjà — « Placement
-auto » et « Prévisualisation dégâts » y vivent depuis le plan 198.
+✅ **TRANCHÉ le 2026-09-11 : la dernière carte jouée, et « Aléatoire » quand il n'y a rien
+d'enregistré.** Pas `MAPS_REGISTRY[0]` : sans partie jouée, le repli fait découvrir le roster au lieu
+de river tout le monde à la première entrée. Implémenté en `lastMapId` dans le magasin du plan 198,
+validé à la lecture contre le registre (`knownMapIdOrRandom`) pour qu'une carte retirée du jeu ne
+ressuscite pas par le stockage.
 
 ## Étape 4 — Le bandeau de partie, dans les deux modes
 
@@ -218,8 +227,21 @@ du move correspond), le blocage de la mêlée à `|heightDiff| ≥ 2` et le KO l
 D'où la question : **une carte avantage-t-elle structurellement un camp par la géométrie de ses
 zones de spawn ?** En solo la carte est un choix assumé, donc c'est sans gravité. **En ligne, un
 déséquilibre de spawn devient un déséquilibre de match imposé aux deux joueurs sans qu'aucun ne
-l'ait choisi.** À vérifier sur les couches `spawns_1v1` des neuf cartes avant d'ouvrir « Aléatoire »
-en ligne.
+l'ait choisi.**
+
+✅ **MESURÉ le 2026-09-11 sur les zones 1v1 des neuf cartes** (taille, hauteur moyenne, amplitude,
+composition du terrain). Sept cartes sont **parfaitement symétriques**. Deux portent un écart
+mineur, et lui seul :
+
+| Carte | Zone A | Zone B |
+|---|---|---|
+| Toundra | 36 cases, neige ×34, **glace ×2** | 36 cases, neige ×32, **glace ×4** |
+| Le Mur | 12 cases, neige ×10, **glace ×2** | 12 cases, neige ×11, **glace ×1** |
+
+Tailles et hauteurs identiques des deux côtés ; seul le nombre de tuiles glissantes diffère, d'une ou
+deux cases. Avec 10 à 34 cases non glissantes pour 6 Pokemon, chaque camp peut éviter la glace
+entièrement — l'écart n'est pas exploitable. **Verdict : rien qui bloque « Aléatoire » en ligne.** À
+resignaler si un jour le placement automatique se met à préférer les bords.
 
 ## Étape 7 — Le bouton « Retour » de la carte
 
@@ -247,3 +269,45 @@ Scénarios pour l'humain : le tirage aléatoire (carte inconnue jusqu'au lanceme
 voit bien la même que l'hôte), changer de carte en solo **sans perdre sa composition** (le motif du
 plan), changer de carte en tant qu'hôte et vérifier que l'invité voit le changement, et la bascule
 solo → en ligne avec et sans destruction.
+
+
+## Ce qui a été livré (2026-09-11)
+
+Tout le plan, les sept étapes. Écarts et ajouts par rapport au cadrage, tous justifiés en commentaire
+dans le code :
+
+1. **Les paramètres de `team-select` portent un `mapId`, plus un `mapUrl`.** Non prévu, et
+   nécessaire : le choix peut valoir `RANDOM_MAP_ID`, qui ne désigne aucun fichier. L'identifiant est
+   déjà le contrat partout ailleurs (réseau, télémétrie, préférences).
+2. **`NETWORK_VERSION` passe de 5 à 6.** La question était ouverte au cadrage : elle est tranchée par
+   l'oui. `NetworkRoomOptions.mapId` peut valoir `random` entre la création du salon et le lancement —
+   une valeur que les deux pairs doivent interpréter pareil.
+3. **`Room.launch` prend un troisième paramètre, `resolvedOptions`.** C'est par là que l'hôte publie
+   la carte tirée dans le `start`, sans passer par `setOptions` — lequel est refusé dès que l'hôte
+   s'est déclaré prêt, or il l'est forcément quand il lance.
+4. **Le tirage est fait à l'ENTRÉE de l'écran, pas au « Lancer ».** Une carte concrète est nécessaire
+   pour lire ses formats et bâtir les lignes. Un seul tirage, gardé secret jusqu'au lancement :
+   `mapChoiceId` porte le choix, `mapUrl` la carte réelle.
+5. **Le nom de carte affiché vient du REGISTRE, plus de Tiled.** Défaut trouvé en recette e2e : Tiled
+   dit « Caldeira » là où le jeu dit « Volcan Actif », et le nom Tiled n'est pas traduit. Invisible
+   tant que c'était un titre d'écran ; intenable dès que le bandeau est le seul endroit où le joueur
+   lit sa carte, juste après l'avoir choisie dans une liste qui la nomme autrement.
+6. **`ONLINE_TEAM_COUNT` a quitté `lobby-screen.ts` pour `network/online-room.ts`.** La bascule
+   solo → en ligne en a besoin aussi, et un écran n'est pas le bon propriétaire d'une règle de
+   protocole.
+7. **`RoomPanel` → `GamePanel`, `ts-room-*` → `ts-game-*`.** Prévu par le plan.
+8. **Une modale de confirmation pour la bascule, pas `window.confirm`.** La boîte native est
+   injoignable à la manette.
+9. **Un cycle d'import cassé.** `settings` a besoin de `RANDOM_MAP_ID`, donc `map-choice` ne peut pas
+   lire les préférences : `preferredMapId()` vit dans `maps/preferred-map.ts`. Le symptôme était
+   sournois — `DEFAULT_SETTINGS.lastMapId` valait `undefined` selon l'ordre de chargement, donc la
+   suite unitaire passait fichier par fichier et tombait en bloc.
+10. **Le geste de validation dans la liste de la modale.** La sélection suit le focus, donc un bouton
+    est toujours focalisé et un appui de pad ne déclenche aucune activation native : sans traitement
+    explicite, `A` ne faisait RIEN dans la liste, avec B pour seule issue. Même trou que l'étape 6 du
+    plan 207, sur un autre contrôle.
+
+**Non fait, à trancher** : `formatPlayers` / `formatLabel` restent dans `GamePanel` bien
+qu'inatteignables tant que le réseau ne grave que deux camps. C'est la question ouverte laissée par la
+recette du plan 207 (`question-formatlabel-room-formatplayers-code-mort-potentiel`), toujours pas
+tranchée.

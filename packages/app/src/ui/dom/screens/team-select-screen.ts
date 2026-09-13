@@ -20,29 +20,34 @@ import {
 } from "../../../analytics/telemetry";
 import type { Navigate, Screen } from "../../../app/screen-manager";
 import type { NetworkIntent } from "../../../app/screens";
-import { t } from "../../../i18n";
+import { getLanguage, t } from "../../../i18n";
 import type { TranslationKey } from "../../../i18n/types";
 import { loadTiledMap } from "../../../maps/load-tiled-map";
+import { isRandomMapId, RANDOM_MAP_ID, resolveMapId } from "../../../maps/map-choice";
 import { mapIdFromUrl, mapUrlFromId } from "../../../maps/map-identity";
+import { MAPS_REGISTRY } from "../../../maps/maps-registry";
 import { networkErrorCodeOf } from "../../../network/network-error";
 import {
   getOnlineRoom,
   holdOnlineRoom,
+  ONLINE_TEAM_COUNT,
   onlineRoomDeps,
   releaseOnlineRoom,
 } from "../../../network/online-room";
 import { getSettings, updateSettings } from "../../../settings";
+import { openMapPickerModal } from "../../map-select/MapPickerModal";
 import {
   buildFormatKey,
   createFormatPickerElement,
   type FormatOption,
   formatLabel,
 } from "../../team-select/FormatPicker";
+import { createGamePanelElement } from "../../team-select/GamePanel";
+import { openGoOnlineConfirmModal } from "../../team-select/GoOnlineConfirmModal";
 import {
   createPlayersColumnElement,
   type PlayerColumnEntry,
 } from "../../team-select/PlayersColumn";
-import { createRoomPanelElement } from "../../team-select/RoomPanel";
 import {
   assignTeamToSlot,
   buildInitialSlots,
@@ -77,8 +82,16 @@ import {
 export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"> {
   let root: HTMLElement | null = null;
   let unbindScreenInput: (() => void) | null = null;
+  /**
+   * Ce que le JOUEUR a choisi — un identifiant de carte, ou `RANDOM_MAP_ID` (plan 208).
+   *
+   * 🔴 Distinct de `mapUrl`, qui porte la carte réellement chargée. Sur « Aléatoire » les deux
+   * divergent volontairement : le tirage est fait **une fois**, tôt, et gardé secret — le bandeau
+   * affiche « Aléatoire », le titre ne nomme plus la carte, et personne, hôte compris, ne sait sur
+   * quoi il va tomber pendant qu'il compose son équipe. C'est tout l'intérêt de l'entrée.
+   */
+  let mapChoiceId = RANDOM_MAP_ID;
   let mapUrl = "";
-  let mapName = "";
   /**
    * Formats de la carte, SANS leur libellé : celui-ci dépend de la langue et se relit au rendu
    * (`buildHeader`). Le stocker le figerait dans la locale d'entrée d'écran — c'est précisément le
@@ -106,6 +119,20 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
   let room: Room | null = null;
   let roomView: RoomView | null = null;
   let networkError: NetworkErrorCode | null = null;
+  /**
+   * De quoi refermer la modale de carte au démontage de l'écran (revue de code du 2026-09-13).
+   *
+   * 🔴 Elle vit sur `document.body`, HORS de l'arbre de cet écran : `root.remove()` ne l'emporte pas.
+   * L'écran qu'elle remplace, lui, libérait son aperçu Babylon dans son `dispose()`, garanti par le
+   * `ScreenManager` à chaque navigation. Aucun geste local ne démonte l'écran modale ouverte — le
+   * `<dialog>` bloque les clics — mais `enterNetworkBattle` est une navigation pilotée par un MESSAGE
+   * DISTANT : un `start`, ou une reprise du Lot B3, arrivant pendant que la modale est ouverte
+   * fuirait un moteur Babylon ET laisserait un dialogue par-dessus la scène de combat. Pire, l'aperçu
+   * fuité répondrait `isReady() === true` au hook e2e — le bug même que `e2e-debug-hook.ts` documente.
+   */
+  let closeMapPicker: (() => void) | null = null;
+  /** Le jeton anti-course des chargements de carte — voir `loadMapChoice`. */
+  let mapLoadToken = 0;
   /** Les désabonnements du salon, soldés au démontage — le salon, lui, survit à cet écran. */
   const roomListeners: (() => void)[] = [];
 
@@ -139,7 +166,9 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
       navigate("lobby", undefined);
       return;
     }
-    navigate("map-select", undefined);
+    // L'écran de choix du terrain n'existe plus (plan 208) : « Retour » rend au choix du mode de
+    // combat, d'où l'on vient désormais en une seule transition.
+    navigate("battle-mode", undefined);
   };
 
   const currentFormat = (): MapFormat => {
@@ -160,6 +189,10 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     if (teams === null) {
       return;
     }
+    // La carte retenue devient le défaut de la prochaine partie (plan 208). On enregistre le CHOIX
+    // et non la carte tirée : un joueur qui a demandé « Aléatoire » veut « Aléatoire » la fois
+    // d'après, pas le terrain que le sort lui a donné une fois.
+    updateSettings({ lastMapId: mapChoiceId });
     navigate("combat", {
       mapUrl,
       setup: {
@@ -186,6 +219,25 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     if (room === null || !isHost() || !isEveryoneReady()) {
       return;
     }
+    updateSettings({ lastMapId: mapChoiceId });
+    /*
+     * 🔴 Le tirage est RÉSOLU ICI, au lancement, et c'est le seul endroit (plan 208, étape 6).
+     *
+     * Jusque-là le salon porte `mapId: "random"`, donc l'invité lit « Aléatoire » sans apprendre le
+     * terrain — s'il portait déjà l'identifiant tiré, un invité curieux le lirait dans l'état du
+     * salon et l'entrée perdrait tout son sens. L'hôte, lui, a tiré sa carte à l'entrée d'écran et
+     * la garde dans `mapUrl` : c'est CE tirage-là qu'on publie, jamais un second. « Le tirage doit
+     * venir de l'hôte avec le reste du setup, jamais tiré deux fois » — contrainte écrite au backlog
+     * dès le 2026-09-03, et la même conclusion que le cadrage a retrouvée par le code.
+     *
+     * Le `start` porte donc un identifiant CONCRET dans tous les cas : `enterNetworkBattle` n'a rien
+     * appris de nouveau, et le message de lancement n'a pas changé de forme.
+     */
+    const resolvedMapId = mapIdFromUrl(mapUrl);
+    if (resolvedMapId === undefined) {
+      showNetworkError(NetworkErrorCode.VersionIncompatible);
+      return;
+    }
     void room.launch(
       {
         battle: freshSeed(),
@@ -193,6 +245,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
         ai: freshSeed(),
       },
       createBattleId(),
+      resolvedMapId,
     );
   };
 
@@ -321,6 +374,197 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     }
     room.setOptions({ autoPlacement, damagePreview });
     render();
+  };
+
+  /**
+   * Charge la carte d'un CHOIX, en résolvant le tirage s'il y en a un (plan 208).
+   *
+   * Rend `false` quand le choix ne désigne aucune carte connue — un registre désynchronisé, ou un
+   * pair d'une autre version. L'appelant décide alors quoi en dire.
+   */
+  const loadMapChoice = async (choiceId: string): Promise<boolean> => {
+    const url = mapUrlFromId(resolveMapId(choiceId));
+    if (url === undefined) {
+      return false;
+    }
+    /*
+     * 🔴 Jeton anti-course (revue de code du 2026-09-13). `mapChoiceId` et `mapUrl` se posent avant
+     * l'attente, `formatOptions` après : deux chargements concurrents — un hôte qui enchaîne les
+     * cartes, un invité sur réseau lent que `syncGuestMap` réveille — laissaient le plus LENT écrire
+     * les formats d'une carte qui n'est plus la bonne. Conséquence silencieuse, et le genre de
+     * défaut qu'on ne retrouve jamais après coup.
+     *
+     * Même patron que le voile de `map-preview-stage.ts` : seul le dernier demandé a le droit
+     * d'écrire.
+     */
+    const token = ++mapLoadToken;
+    mapChoiceId = choiceId;
+    mapUrl = url;
+    const loaded = await loadTiledMap(url);
+    if (token !== mapLoadToken) {
+      return false;
+    }
+    formatOptions = loaded.map.formats.map((format) => ({
+      key: buildFormatKey(format),
+      format,
+    }));
+    return true;
+  };
+
+  /**
+   * Le nom à afficher : « Aléatoire » tant que le tirage n'est pas joué, sinon celui du REGISTRE.
+   *
+   * 🔴 Du registre, et surtout pas le `name` de la carte Tiled, qui était affiché ici jusqu'au plan
+   * 208 : les deux diffèrent (Tiled dit « Caldeira » là où le jeu dit « Volcan Actif ») et le nom
+   * Tiled n'est pas traduit. Tant que ça vivait dans un titre d'écran, l'écart passait inaperçu ;
+   * maintenant que le bandeau est le SEUL endroit où le joueur lit sa carte, il lui répondrait un
+   * autre nom que celui de la liste où il vient de la choisir. Le menu de reprise lit déjà le
+   * registre (`main-menu-screen.ts`) : c'est la convention, et le nom Tiled était l'exception.
+   */
+  const mapDisplayName = (): string => {
+    const mapId = effectiveMapId();
+    if (isRandomMapId(mapId)) {
+      return t("mapSelect.random");
+    }
+    return MAPS_REGISTRY.find((entry) => entry.id === mapId)?.displayName[getLanguage()] ?? "";
+  };
+
+  /**
+   * L'identifiant de carte qui FAIT FOI : celui du salon en ligne, le choix local en solo.
+   *
+   * 🔴 Le salon d'abord, et c'est le correctif d'un bug de recette (2026-09-13) : l'affichage lisait
+   * `mapChoiceId`, une variable LOCALE que seul l'hôte met à jour. Un invité voyait donc la carte de
+   * son arrivée, figée — « le choix n'est pas reflété en live comme Placement auto et
+   * Prévisualisation dégâts ». Ces deux-là marchaient précisément parce qu'ils lisent
+   * `roomView.options` ; la carte était la seule à ne pas le faire.
+   *
+   * En ligne, c'est le salon qui fait foi pour tout le monde — un pair n'a aucun état local à
+   * opposer à ce que l'hôte a gravé.
+   */
+  const effectiveMapId = (): string => roomView?.options.mapId ?? mapChoiceId;
+
+  /**
+   * L'invité recharge sa carte quand l'hôte en change.
+   *
+   * L'AFFICHAGE est déjà juste sans ça — `effectiveMapId` lit le salon — mais `mapUrl` et
+   * `formatOptions` resteraient sur la carte d'arrivée. Ça ne casse rien aujourd'hui, le `start` de
+   * l'hôte portant la carte finale, et c'est exactement le genre d'incohérence silencieuse qui
+   * mordra le jour où l'écran lira sa carte locale pour autre chose.
+   *
+   * Garde contre la boucle : on ne recharge que sur un identifiant RÉELLEMENT différent, et le
+   * rechargement ne repasse jamais par le salon.
+   */
+  const syncGuestMap = (view: RoomView): void => {
+    if (isHost() || view.options.mapId === mapChoiceId) {
+      return;
+    }
+    void loadMapChoice(view.options.mapId).then(() => render());
+  };
+
+  /**
+   * Changer de carte SANS quitter l'écran (plan 208) — le vrai motif du plan, au-delà du confort.
+   *
+   * 🔴 Avant, « Retour » ramenait à l'écran de choix du terrain, ce qui **démontait** celui-ci et
+   * jetait la composition en cours. Ici l'écran reste monté sous la modale : les équipes déjà
+   * choisies sont intactes au retour.
+   *
+   * Le format aussi est préservé, et ce n'est pas un pari : les neuf cartes de production déclarent
+   * toutes les mêmes formats — `validateTiledMap` refuse au chargement une carte qui en manque un —
+   * et la capacité par camp y est uniforme (mesuré au vrai parseur le 2026-09-11). Une carte ne peut
+   * donc pas accepter moins de Pokemon que l'équipe déjà composée. Le repli reste écrit pour le jour
+   * où une carte sortirait de ce moule : on retombe sur le premier format, ce qui reconstruit les
+   * lignes plutôt que de tronquer une équipe en silence.
+   */
+  const changeMap = (): void => {
+    // Ceinture et bretelles : le bandeau masque déjà le bouton dans ce cas, mais un changement que
+    // le salon refuserait laisserait l'écran et le salon sur deux cartes différentes.
+    if (isOnline() && (!isHost() || isSelfReady())) {
+      return;
+    }
+    closeMapPicker = openMapPickerModal({
+      currentMapId: effectiveMapId(),
+      onPick: (mapId) => void applyMapChange(mapId),
+    });
+  };
+
+  const applyMapChange = async (mapId: string): Promise<void> => {
+    const previousFormatKey = formatKey;
+    if (!(await loadMapChoice(mapId))) {
+      showNetworkError(NetworkErrorCode.VersionIncompatible);
+      return;
+    }
+    const kept = formatOptions.find((option) => option.key === previousFormatKey);
+    if (kept === undefined) {
+      const fallback = formatOptions[0];
+      if (fallback === undefined) {
+        throw new Error(`Map "${mapUrl}" has no formats`);
+      }
+      formatKey = fallback.key;
+      slots = buildInitialSlots(fallback.format, humanIndex());
+      announceOwnedSelections();
+    }
+    // L'hôte fait suivre au salon : l'invité doit voir la carte changer sous ses yeux, sinon il
+    // compose pour un terrain qui n'est plus celui de la partie. Sur « Aléatoire », c'est bien
+    // `random` qui part — la carte tirée reste secrète jusqu'au lancement.
+    room?.setOptions({ mapId: mapChoiceId });
+    render();
+  };
+
+  /**
+   * Le solo bascule en partie en ligne, sur place (plan 208, étape 5).
+   *
+   * 🔴 Il n'y a **aucune navigation**, donc rien à faire traverser : la salle d'attente EST cet
+   * écran (décision #897), et la composition est déjà dans `slots`. Le cadrage avait d'abord annoncé
+   * l'inverse — « la composition doit traverser la création du salon » — et l'humain avait raison de
+   * ne pas comprendre la difficulté : elle n'existait pas.
+   *
+   * Trois gestes seulement : forcer le format à deux camps (le réseau n'en accepte pas d'autre, et
+   * c'est structurel — voir `ONLINE_TEAM_COUNT` dans `lobby-screen.ts`), garder mon camp en libérant
+   * l'autre, puis ouvrir le salon.
+   */
+  const switchToOnline = (): void => {
+    if (isOnline()) {
+      return;
+    }
+    const duel = formatOptions.find((option) => option.format.teamCount === ONLINE_TEAM_COUNT);
+    if (duel === undefined) {
+      return;
+    }
+    /*
+     * Confirmation demandée SEULEMENT quand la bascule détruit quelque chose : un format à plus de
+     * deux camps, ou un second camp composé à la main qui va être libéré. En 1v1 contre l'IA ça ne
+     * coûte que l'équipe de l'IA — on bascule sans rien demander, parce que demander pour rien
+     * apprend au joueur à cliquer sans lire. Arbitré ainsi avec l'humain.
+     */
+    const losesCamps = slots.length > ONLINE_TEAM_COUNT;
+    const secondSlot = slots[1];
+    const losesTeam = secondSlot?.assignedTeam != null && !secondSlot.ephemeral;
+    if (losesCamps || losesTeam) {
+      openGoOnlineConfirmModal({
+        message: t(
+          losesCamps ? "teamSelect.online.switchLosesCamps" : "teamSelect.online.switchLosesTeam",
+        ),
+        onConfirm: () => goOnline(duel),
+      });
+      return;
+    }
+    goOnline(duel);
+  };
+
+  /** La bascule elle-même, une fois le coût accepté (ou nul). */
+  const goOnline = (duel: Omit<FormatOption, "label">): void => {
+    if (formatKey !== duel.key) {
+      const kept = slots[0];
+      formatKey = duel.key;
+      slots = buildInitialSlots(duel.format);
+      // Mon camp survit à la bascule : c'est celui que je viens de composer, et le perdre serait
+      // précisément ce qu'un joueur « qui s'est trompé de mode » ne pardonnerait pas.
+      if (kept !== undefined) {
+        slots[0] = kept;
+      }
+    }
+    networkIntent = { role: RoomRole.Host, teamCount: ONLINE_TEAM_COUNT };
+    void createAsHost(ONLINE_TEAM_COUNT).then(() => render());
   };
 
   const showNetworkError = (code: NetworkErrorCode): void => {
@@ -456,7 +700,13 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     // ne décrivaient pas cet écran-ci en particulier, elles décrivaient LE patron « écran plein »
     // du projet. Restées ici, le lobby aurait dû les recopier — deux jumeaux libres de diverger.
     const header = screenHeader(goBack);
-    header.append(screenHeaderTitle(`${t("teamSelect.title")} — ${mapName}`));
+    /*
+     * 🔴 Le titre ne nomme PLUS la carte (plan 208). Deux raisons, et la seconde est structurelle :
+     * le bandeau de partie la porte désormais dans les deux modes, donc le titre la redoublait ; et
+     * sur « Aléatoire » il aurait affiché le nom de la carte TIRÉE, ce qui éventait le tirage avant
+     * même que le joueur ait composé son équipe.
+     */
+    header.append(screenHeaderTitle(t("teamSelect.title")));
 
     // En ligne, le format est **gravé depuis le `lobby`** : le sélecteur disparaît plutôt que de
     // s'afficher désactivé, parce qu'il n'y a pas de choix en attente — la décision est déjà prise,
@@ -479,21 +729,42 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     return header;
   };
 
-  /** L'encart de salon : le code et les paramètres. N'existe qu'en ligne. */
-  const buildRoomPanel = (): HTMLElement | null => {
-    if (room === null || roomView === null) {
-      return null;
-    }
-    return createRoomPanelElement(
+  /**
+   * Le bandeau de partie. Il n'existait qu'en ligne ; le plan 208 l'étend au SOLO, où il porte la
+   * carte et le bouton qui la change — sans lui, plus rien à l'écran ne dirait sur quel terrain on
+   * s'apprête à jouer, l'écran de choix ayant disparu.
+   *
+   * En ligne, les valeurs viennent du SALON et non de l'état local : c'est le salon qui fait foi
+   * pour tout le monde, et un invité n'a aucun état local à afficher.
+   */
+  const buildGamePanel = (): HTMLElement => {
+    // Les deux ensemble ou aucun : `roomView` est posé par `wireRoom` en même temps que `room`, et
+    // les lire séparément laisserait le compilateur croire à un état mixte qui n'existe pas.
+    const joined = room !== null && roomView !== null ? { room, view: roomView } : null;
+    return createGamePanelElement(
       {
-        code: room.code,
-        mapName,
-        teamCount: roomView.options.teamCount,
-        autoPlacement: roomView.options.autoPlacement,
-        damagePreview: roomView.options.damagePreview,
+        code: joined?.room.code ?? null,
+        mapName: mapDisplayName(),
+        teamCount: joined?.view.options.teamCount ?? currentFormat().teamCount,
+        autoPlacement: joined?.view.options.autoPlacement ?? autoPlacement,
+        damagePreview: joined?.view.options.damagePreview ?? damagePreview,
         isHost: isHost(),
+        /*
+         * Un invité ne choisit pas de carte : elle lui arrive de l'hôte (plan 199).
+         *
+         * 🔴 Et l'hôte ne la change plus une fois PRÊT — même gel que les deux options du pied, et
+         * pour une raison plus dure que la symétrie : `Room.setOptions` REFUSE dès que l'hôte s'est
+         * déclaré prêt. Laisser la modale ouverte aurait changé sa carte locale sans que le salon
+         * suive, et au lancement il aurait publié un terrain que personne n'avait vu. « Pas prêt »
+         * dégèle, comme pour le reste.
+         */
+        canChangeMap: joined === null || (isHost() && !isSelfReady()),
       },
-      { onCopyCode: (code) => void navigator.clipboard?.writeText(code) },
+      {
+        onCopyCode: (code) => void navigator.clipboard?.writeText(code),
+        onChangeMap: changeMap,
+        onGoOnline: switchToOnline,
+      },
     );
   };
 
@@ -646,10 +917,22 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
       return wrapper;
     };
 
+    /*
+     * 🔴 Les cases lisent le SALON en ligne, comme le bandeau juste au-dessus (revue de code du
+     * 2026-09-13).
+     *
+     * Elles lisaient les variables LOCALES, initialisées des préférences de CETTE machine : chez un
+     * invité dont les réglages diffèrent de ceux de l'hôte, le même écran affichait deux réponses
+     * contradictoires — la case cochée et grisée, sous un bandeau annonçant « NON ». C'est la même
+     * famille que le bug de recette sur le nom de la carte, et le dernier de son espèce : en ligne,
+     * c'est le salon qui fait foi, jamais un état local.
+     *
+     * Le défaut préexiste au plan 208 (l'encart lisait déjà le salon), il se solde ici.
+     */
     const autoPlacementToggle = toggle(
       "team-select-auto-placement",
       t("teamSelect.autoPlacement.label"),
-      autoPlacement,
+      roomView?.options.autoPlacement ?? autoPlacement,
       (value) => {
         autoPlacement = value;
         updateSettings({ autoPlacement: value });
@@ -660,7 +943,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     const damagePreviewToggle = toggle(
       "team-select-damage-preview",
       t("teamSelect.damagePreview.label"),
-      damagePreview,
+      roomView?.options.damagePreview ?? damagePreview,
       (value) => {
         damagePreview = value;
         updateSettings({ damagePreview: value });
@@ -758,13 +1041,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     // le problème était général au Team Builder.
     const host = root;
     renderPreservingFocus(host, () => {
-      const panel = buildRoomPanel();
-      host.replaceChildren(
-        buildHeader(),
-        ...(panel === null ? [] : [panel]),
-        buildMain(),
-        buildFooter(),
-      );
+      host.replaceChildren(buildHeader(), buildGamePanel(), buildMain(), buildFooter());
     });
   };
 
@@ -784,7 +1061,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
        * contrôle de propriétés en excès laissait compiler `{ mapUrl, network: <invité> }`, et un tel
        * paramètre prenait cette branche-ci par la négative — mode réseau actif, aucun salon.
        */
-      if (params.mapUrl === undefined) {
+      if (params.mapId === undefined) {
         root = el("div", "scr-root ts-root");
         host.append(root);
         await joinAsGuest();
@@ -792,13 +1069,19 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
         return;
       }
 
-      mapUrl = params.mapUrl;
-      const loaded = await loadTiledMap(mapUrl);
-      mapName = loaded.map.name;
-      formatOptions = loaded.map.formats.map((format) => ({
-        key: buildFormatKey(format),
-        format,
-      }));
+      /*
+       * 🔴 Le tirage d'« Aléatoire » a lieu ICI, une seule fois, et reste SECRET jusqu'au lancement
+       * (plan 208, étape 6). `mapChoiceId` garde le choix du joueur, `mapUrl` la carte réellement
+       * chargée : c'est cet écart qui permet au bandeau d'afficher « Aléatoire » pendant que la
+       * scène de combat, elle, aura un vrai terrain à monter.
+       *
+       * Tirer ici plutôt qu'au « Lancer » n'est pas un raccourci : il faut une carte concrète pour
+       * lire ses formats et bâtir les lignes. Et un seul tirage est la contrainte écrite au backlog
+       * dès le 2026-09-03 — deux tirages, ce sont deux pairs sur deux terrains.
+       */
+      if (!(await loadMapChoice(params.mapId))) {
+        throw new Error(`Unknown map id "${params.mapId}"`);
+      }
       const chosen = pickFormatOption(
         networkIntent?.role === RoomRole.Host ? networkIntent.teamCount : undefined,
       );
@@ -819,6 +1102,9 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     dispose() {
       unbindScreenInput?.();
       unbindScreenInput = null;
+      // La modale de carte ne vit pas dans l'arbre de cet écran : `root.remove()` ne la ferme pas.
+      closeMapPicker?.();
+      closeMapPicker = null;
       /*
        * 🔴 **Le salon N'EST PAS fermé ici** : il appartient à la session (`online-room.ts`), pas à
        * cet écran, et il doit survivre à l'entrée en combat pour que l'accusé de lancement ait le
@@ -867,14 +1153,23 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
      * chose au joueur — « vos versions diffèrent, rechargez » — et c'est ce qu'une page en cache
      * ancien produit réellement.
      */
-    const mapId = mapIdFromUrl(mapUrl);
-    if (mapId === undefined) {
+    /*
+     * 🔴 C'est le CHOIX qui part au salon, `random` compris — pas la carte tirée. Sans quoi un
+     * invité curieux lirait le terrain dans l'état du salon et l'entrée « Aléatoire » ne servirait
+     * plus à rien. L'identifiant résolu n'est publié qu'au `launch` (voir `onNetworkLaunch`).
+     *
+     * La garde reste, sur la carte effectivement chargée : pas de salon sur une carte qu'on ne sait
+     * pas nommer. L'identifiant est le contrat entre les deux pairs — ouvrir malgré tout enverrait
+     * « unknown » à l'invité, qui afficherait « versions incompatibles », un diagnostic faux prononcé
+     * par le mauvais camp pour un salon qui n'aurait de toute façon jamais pu se jouer.
+     */
+    if (mapIdFromUrl(mapUrl) === undefined) {
       showNetworkError(NetworkErrorCode.VersionIncompatible);
       return;
     }
     try {
       room = await Room.create(onlineRoomDeps(), {
-        mapId,
+        mapId: mapChoiceId,
         teamCount,
         autoPlacement,
         damagePreview,
@@ -912,18 +1207,16 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     room = joined;
     wireRoom(joined);
 
-    const url = mapUrlFromId(joined.view.options.mapId);
-    if (url === undefined) {
+    /*
+     * 🔴 L'invité charge lui aussi une carte même quand l'hôte a choisi « Aléatoire » : il lui en
+     * faut une pour lire les formats et bâtir ses lignes. Son tirage local n'est JAMAIS celui qui
+     * sera joué — le `start` de l'hôte porte l'identifiant résolu, et `enterNetworkBattle` recharge
+     * à partir de lui. Ce que l'invité voit d'ici là, c'est « Aléatoire », comme l'hôte.
+     */
+    if (!(await loadMapChoice(joined.view.options.mapId))) {
       showNetworkError(NetworkErrorCode.VersionIncompatible);
       return;
     }
-    mapUrl = url;
-    const loaded = await loadTiledMap(mapUrl);
-    mapName = loaded.map.name;
-    formatOptions = loaded.map.formats.map((format) => ({
-      key: buildFormatKey(format),
-      format,
-    }));
     const chosen = pickFormatOption(joined.view.options.teamCount);
     if (!chosen) {
       showNetworkError(NetworkErrorCode.VersionIncompatible);
@@ -954,6 +1247,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     roomListeners.push(
       joined.onChange((view) => {
         roomView = view;
+        syncGuestMap(view);
         render();
       }),
       joined.onError((code) => showNetworkError(code)),

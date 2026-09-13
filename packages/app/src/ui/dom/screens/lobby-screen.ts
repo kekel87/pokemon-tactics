@@ -15,8 +15,9 @@ import {
 } from "../../../input/focus-navigation";
 import { InputSource } from "../../../input/input-source";
 import { getInputSystem } from "../../../input/input-system";
+import { preferredMapId } from "../../../maps/preferred-map";
 import { networkErrorCodeOf } from "../../../network/network-error";
-import { holdOnlineRoom, onlineRoomDeps } from "../../../network/online-room";
+import { holdOnlineRoom, ONLINE_TEAM_COUNT, onlineRoomDeps } from "../../../network/online-room";
 import { type CodeWheel, createCodeWheel } from "../../lobby/code-wheel";
 import { openJoinRefusalModal } from "../../lobby/join-refusal-modal";
 import { cancelToModalOrBack, el, menuButton, screenHeader, screenHeaderTitle } from "./elements";
@@ -40,28 +41,6 @@ import { cancelToModalOrBack, el, menuButton, screenHeader, screenHeaderTitle } 
  * bouton, qui reste le seul à nommer l'action.
  */
 
-/**
- * Le nombre de camps d'une partie en ligne : **deux**, et ce n'est pas un manque de finition.
- *
- * 🔴 Le garde-fou d'index (décision D3) suppose un canal fiable et ordonné : vrai **par connexion**,
- * donc exact à deux. À trois camps, `Room.broadcast` écrit sur deux canaux distincts et rien
- * n'ordonne l'un par rapport à l'autre — une action arrivée en avance serait refusée comme un
- * décalage, sur un joueur parfaitement honnête, puis **perdue** faute de renvoi. Trois refus
- * l'éliminent (relevé en revue de code du Lot B2).
- *
- * Le FFA en réseau est hors V1 de toute façon (plan-cadre 195). Mieux vaut ne pas proposer un format
- * que le proposer cassé — le mode **local**, lui, garde les cinq.
- *
- * 🔴 Et il n'est plus AFFICHÉ ici (plan 207, étape 2). La ligne « Joueurs : 2 joueurs » a été
- * retirée : l'humain ne la comprenait pas, et il avait raison sur le fond — à ce stade le format
- * n'est pas encore décidé, il se choisit à l'écran suivant. Ce que cette constante grave, c'est le
- * nombre de camps, pas le format complet. Le format est en revanche rendu franchement lisible dans
- * l'encart de salon (`RoomPanel.ts`), et ce n'était pas reportable : sans ça, l'étape 2 retirait la
- * seule mention lue AVANT que le joueur investisse du temps dans sa composition (revue de
- * game-designer).
- */
-const ONLINE_TEAM_COUNT = 2;
-
 export function createLobbyScreen(navigate: Navigate): Screen<"lobby"> {
   let root: HTMLElement | null = null;
   let wheel: CodeWheel | null = null;
@@ -74,8 +53,20 @@ export function createLobbyScreen(navigate: Navigate): Screen<"lobby"> {
 
   const goBack = (): void => navigate("battle-mode", undefined);
 
+  /**
+   * L'hôte entre DROIT dans la salle d'attente (plan 208).
+   *
+   * 🔴 Il passait par l'écran de choix du terrain, qui n'existe plus : la carte vient de ses
+   * préférences (dernière jouée, sinon un tirage) et il la change en modale depuis la salle
+   * d'attente, sans perdre la composition qu'il y a commencée. L'intention d'hôte, elle, voyage
+   * toujours — sans elle la salle d'attente se monterait en mode local, sans code ni salon, et rien
+   * ne le signalerait : l'écran est par ailleurs parfaitement fonctionnel.
+   */
   const createRoom = (): void => {
-    navigate("map-select", { network: { role: RoomRole.Host, teamCount: ONLINE_TEAM_COUNT } });
+    navigate("team-select", {
+      mapId: preferredMapId(),
+      network: { role: RoomRole.Host, teamCount: ONLINE_TEAM_COUNT },
+    });
   };
 
   /**

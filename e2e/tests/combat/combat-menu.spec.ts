@@ -5,12 +5,7 @@ import { BattleResumeStore } from "../../pages/battle-resume";
 import { CombatScene } from "../../pages/CombatScene";
 import type { CombatMenuOverlay } from "../../pages/combat-menu";
 import { MainMenu } from "../../pages/MainMenu";
-import {
-  BattleModeScreen,
-  ControlsScreen,
-  MapSelectScreen,
-  TeamSelectScreen,
-} from "../../pages/screens";
+import { BattleModeScreen, ControlsScreen, TeamSelectScreen } from "../../pages/screens";
 
 // Cahier §4.20 — menu de combat (plan 187).
 //
@@ -461,7 +456,6 @@ test("§4.20 « Quitter » n'existe qu'avec une sauvegarde, sort sans confirmati
   // que « Quitter » n'y apparaît pas. Il faut donc un vrai combat pour juger sa présence.
   const menu = new MainMenu(page);
   const mode = new BattleModeScreen(page);
-  const maps = new MapSelectScreen(page);
   const teams = new TeamSelectScreen(page);
   const scene = new CombatScene(page);
   const store = new BattleResumeStore(page);
@@ -469,8 +463,6 @@ test("§4.20 « Quitter » n'existe qu'avec une sauvegarde, sort sans confirmati
   await menu.goto();
   await menu.combat.click();
   await mode.local.click();
-  await expect(maps.title).toBeVisible();
-  await maps.confirm.click();
   await expect(teams.title).toBeVisible();
   await teams.pickRandomTeam();
   await expect(teams.launch).toBeEnabled();

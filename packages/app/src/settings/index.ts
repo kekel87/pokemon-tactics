@@ -1,3 +1,5 @@
+import { DEFAULT_MAP_ID } from "../maps/random-map-id";
+
 const STORAGE_KEY = "pt-settings";
 
 /**
@@ -20,6 +22,18 @@ export interface GameSettings {
   /** Paramètre de partie — voir l'en-tête. */
   autoPlacement: boolean;
   /**
+   * La dernière carte jouée, par identifiant stable (plan 208).
+   *
+   * 🔴 Elle est devenue une préférence le jour où l'écran de choix du terrain a disparu : plus
+   * personne ne traverse un écran de sélection, donc une carte doit être retenue d'office. Arbitré
+   * avec l'humain — la dernière jouée, et `DEFAULT_MAP_ID` (Arène Simple) tant qu'il n'y a rien
+   * d'enregistré : voir son en-tête pour pourquoi ce n'est PAS un tirage.
+   *
+   * Validée à la LECTURE contre le registre (`knownMapIdOrDefault`), pas ici : ce magasin ne connaît
+   * pas les cartes, et une carte retirée du jeu ne doit pas ressusciter par le stockage.
+   */
+  lastMapId: string;
+  /**
    * Sens du panoramique au stick droit (plan 186). `panCamera` parle le langage d'un GLISSÉ (on tire
    * le plateau, il suit le doigt), un stick celui d'un regard (je pousse à droite, je regarde à
    * droite) : les deux conventions sont opposées et le bon défaut dépend du joueur.
@@ -30,6 +44,7 @@ export interface GameSettings {
 const DEFAULT_SETTINGS: GameSettings = {
   damagePreview: true,
   autoPlacement: true,
+  lastMapId: DEFAULT_MAP_ID,
   invertRightStick: false,
 };
 
@@ -49,10 +64,17 @@ let currentSettings: GameSettings = DEFAULT_SETTINGS;
  */
 function mergeWithDefaults(parsed: Record<string, unknown>): GameSettings {
   const merged = { ...DEFAULT_SETTINGS };
-  for (const key of Object.keys(DEFAULT_SETTINGS) as (keyof GameSettings)[]) {
+  /*
+   * L'écriture passe par un accumulateur `Record<string, unknown>` plutôt que par `merged[key]`
+   * directement : depuis que le magasin mêle des booléens et une chaîne (`lastMapId`, plan 208), le
+   * type de `merged[key]` est l'INTERSECTION des deux, donc `never`, et aucune valeur ne s'y
+   * assigne. Le contrôle de type reste le même — c'est lui qui fait la sûreté, pas l'écriture.
+   */
+  const writable: Record<string, unknown> = merged;
+  for (const key of Object.keys(DEFAULT_SETTINGS)) {
     const value = parsed[key];
-    if (typeof value === typeof DEFAULT_SETTINGS[key]) {
-      merged[key] = value as GameSettings[typeof key];
+    if (typeof value === typeof DEFAULT_SETTINGS[key as keyof GameSettings]) {
+      writable[key] = value;
     }
   }
   return merged;

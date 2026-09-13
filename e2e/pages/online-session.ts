@@ -12,7 +12,7 @@ import { CombatMenuOverlay } from "./combat-menu";
 import { ConnectionNoticeHud, TurnClockHud } from "./combatHud";
 import { LobbyScreen, WaitingRoom } from "./lobby";
 import { MainMenu } from "./MainMenu";
-import { BattleModeScreen, MapSelectScreen, TeamSelectScreen } from "./screens";
+import { BattleModeScreen, TeamSelectScreen } from "./screens";
 
 /**
  * La chorégraphie « deux contextes de navigateur jusqu'à un 1v1 en réseau vivant » (plans 201/202).
@@ -31,7 +31,6 @@ export class OnlinePeer {
   readonly menu: MainMenu;
   readonly mode: BattleModeScreen;
   readonly lobby: LobbyScreen;
-  readonly maps: MapSelectScreen;
   readonly room: WaitingRoom;
   readonly teams: TeamSelectScreen;
   readonly scene: CombatScene;
@@ -81,7 +80,6 @@ export class OnlinePeer {
     this.menu = new MainMenu(page);
     this.mode = new BattleModeScreen(page);
     this.lobby = new LobbyScreen(page);
-    this.maps = new MapSelectScreen(page);
     this.room = new WaitingRoom(page);
     this.teams = new TeamSelectScreen(page);
     this.scene = new CombatScene(page);
@@ -211,8 +209,8 @@ export class OnlineSession {
     await host.menu.combat.click();
     await host.mode.online.click();
     await host.lobby.create.click();
-    await expect(host.maps.title).toBeVisible();
-    await host.maps.confirm.click();
+    // « Créer une partie » entre droit dans la salle d'attente depuis le plan 208 : la carte vient
+    // des préférences de l'hôte, et il la change en modale sans quitter l'écran.
     // Le code naît à l'entrée sur la salle d'attente, jamais avant.
     await expect(host.room.panel).toBeVisible();
     this.roomCode = ((await host.room.code.textContent()) ?? "").trim();

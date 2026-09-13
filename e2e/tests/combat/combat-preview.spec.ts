@@ -1,4 +1,4 @@
-import { expect, test } from "../../fixtures";
+import { expect, seedSettings, test } from "../../fixtures";
 import {
   COMBAT_PREVIEW_ACCURACY,
   COMBAT_PREVIEW_AOE,
@@ -196,9 +196,9 @@ test("§4.14 preview : réglage « Prévisualisation dégâts » désactivé →
   bootSandbox,
 }) => {
   // Le réglage vit en localStorage (`pt-settings`), lu au boot : on le pose AVANT navigation.
-  await page.addInitScript(() =>
-    localStorage.setItem("pt-settings", JSON.stringify({ damagePreview: false })),
-  );
+  // Par `seedSettings` et non un `setItem` direct : celui-ci écraserait le `lastMapId` de la
+  // fixture, et rendrait la carte de ce test aléatoire sans que rien ne le dise.
+  await seedSettings(page, { damagePreview: false });
   const scene = await bootSandbox(DUEL_LETHAL);
   const attacker = new InfoPanel(page);
   const target = new CursorPanel(page);

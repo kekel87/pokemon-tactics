@@ -14,6 +14,7 @@ import {
   type NetworkSeatState,
   type NetworkSeeds,
   type NetworkTeamSelection,
+  RANDOM_MAP_ID,
   type ResyncMessage,
   type ResyncRequestMessage,
   type StartMessage,
@@ -627,10 +628,20 @@ export class Room {
    * à la salle d'attente ; c'est le prix d'un protocole sans troisième message, et ça n'arrive que
    * quand un pair a réellement disparu au pire moment.
    */
-  async launch(seeds: NetworkSeeds, battleId: string): Promise<void> {
+  async launch(seeds: NetworkSeeds, battleId: string, resolvedMapId?: string): Promise<void> {
     this.assertHost();
     if (this.left || this.locked) {
       return;
+    }
+
+    /*
+     * Fail-fast : le `start` doit porter une carte CONCRÈTE. Publier la sentinelle enverrait l'invité
+     * chercher une carte nommée `random`, qu'il ne trouverait pas — et il afficherait « versions
+     * incompatibles », un diagnostic faux prononcé par le mauvais camp. Le refus appartient ici, où
+     * l'erreur d'appelant se voit, pas à la réception où elle se déguise.
+     */
+    if (resolvedMapId === RANDOM_MAP_ID) {
+      throw new Error("launch() a reçu la sentinelle de tirage : la carte doit être résolue avant");
     }
 
     // Verrouillé dès « Lancer » : plus aucune connexion acceptée.
@@ -638,9 +649,23 @@ export class Room {
     this.broadcastRoomState();
     this.notifyChange();
 
+    /*
+     * 🔴 `resolvedOptions` existe pour une seule chose : l'entrée « Aléatoire » du choix de carte
+     * (plan 208). Jusqu'au lancement, `roomOptions.mapId` vaut littéralement `random` — c'est ce qui
+     * permet à l'invité d'afficher « Aléatoire » sans apprendre le terrain. Le `start`, lui, doit
+     * porter un identifiant CONCRET, sans quoi chaque pair tirerait le sien et ils joueraient sur
+     * deux cartes.
+     *
+     * Le salon n'arbitre rien : il ne sait pas ce qu'est un tirage, il transporte ce que l'hôte lui
+     * donne. C'est pour cette même raison que ça ne passe pas par `setOptions`, qui est refusé dès
+     * que l'hôte s'est déclaré prêt — or il l'est forcément quand il lance.
+     */
     const start: StartMessage = {
       type: "start",
-      options: this.roomOptions,
+      options:
+        resolvedMapId === undefined
+          ? this.roomOptions
+          : { ...this.roomOptions, mapId: resolvedMapId },
       seeds,
       seats: this.composeStartSeats(),
       battleId,

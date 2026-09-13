@@ -99,7 +99,10 @@ export class WaitingRoom {
   readonly formatSegments: Locator;
 
   constructor(private readonly page: Page) {
-    this.panel = page.getByTestId("room-panel");
+    // `game-panel` et non `room-panel` : le bandeau existe aussi en SOLO depuis le plan 208, où il
+    // porte la carte. Sa présence ne prouve donc plus à elle seule qu'on est en ligne — c'est le
+    // CODE (`room-code`) qui le dit.
+    this.panel = page.getByTestId("game-panel");
     this.code = page.getByTestId("room-code");
     this.copy = page.getByTestId("room-code-copy");
     this.settings = page.getByTestId("room-settings");

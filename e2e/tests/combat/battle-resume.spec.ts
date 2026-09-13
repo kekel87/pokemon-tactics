@@ -38,12 +38,17 @@ test("§6.11 reprise : le combat remonte à l'identique depuis le menu principal
   // attend le joueur, il ne bouge pas sous les assertions).
   await menu.goto();
   await menu.combat.click();
+  // Plus d'escale sur le choix du terrain (plan 208) : « Jeu en solo » entre droit ici. La carte
+  // vient des préférences, donc on la FIXE explicitement plutôt que de subir un tirage — le test
+  // compare le terrain d'avant et d'après reprise, il lui faut un nom stable.
   await mode.local.click();
-  await expect(maps.title).toBeVisible();
-  const mapName = ((await maps.detailName.textContent()) ?? "").trim();
-  expect(mapName).not.toBe("");
-  await maps.confirm.click();
   await expect(teams.title).toBeVisible();
+  await maps.open();
+  await maps.choose("volcano");
+  // On ATTEND que le bandeau ait suivi avant de lire : le changement de carte recharge la carte
+  // Tiled, donc le re-rendu est asynchrone. Lire tout de suite renvoyait le choix d'avant.
+  await expect(teams.mapName).toHaveText("Volcan Actif");
+  const mapName = ((await teams.mapName.textContent()) ?? "").trim();
   await teams.pickRandomTeam();
   await expect(teams.launch).toBeEnabled();
   await teams.launch.click();

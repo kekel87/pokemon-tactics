@@ -1,7 +1,7 @@
 import { expect, test } from "../../fixtures";
 import { BrowserHistory } from "../../pages/browser-history";
 import { MainMenu } from "../../pages/MainMenu";
-import { BattleModeScreen, MapSelectScreen, TeamSelectScreen } from "../../pages/screens";
+import { BattleModeScreen, TeamSelectScreen } from "../../pages/screens";
 import { MyTeamsScreen, PokemonPicker, TeamEditScreen } from "../../pages/teamBuilder";
 
 // Cahier §6.0 — le retour du navigateur remonte d'un écran (plan 205).
@@ -54,26 +54,28 @@ test("§6.0 rien n'est armé avant le premier geste du joueur, la sentinelle na�
   expect(await historyStack.length()).toBe(beforeGesture + 1);
 });
 
-test("§6.0 le retour remonte d'un écran (choix de la carte → mode de combat) sans empiler d'entrée", async ({
+test("§6.0 le retour remonte d'un écran (sélection d'équipe → mode de combat) sans empiler d'entrée", async ({
   page,
 }) => {
   const menu = new MainMenu(page);
   const battleMode = new BattleModeScreen(page);
-  const mapSelect = new MapSelectScreen(page);
+  const teamSelect = new TeamSelectScreen(page);
   const historyStack = new BrowserHistory(page);
 
   await menu.goto();
   // Le clic est déjà un geste du joueur : la sentinelle s'arme là, sans rien de plus à jouer.
   await menu.combat.click();
+  // 🔴 Un écran de MOINS depuis le plan 208 : le choix du terrain a quitté le graphe de navigation,
+  // donc un cran d'historique de moins — ce que le geste de retour du téléphone doit suivre.
   await battleMode.local.click();
-  await expect(mapSelect.title).toBeVisible();
+  await expect(teamSelect.title).toBeVisible();
   const armedLength = await historyStack.length();
 
   await historyStack.back();
 
   // Le `goBack` de l'écran, celui-là même que son bouton « Retour » appelle.
   await expect(battleMode.title).toBeVisible();
-  await expect(mapSelect.title).toHaveCount(0);
+  await expect(teamSelect.title).toHaveCount(0);
   // Réarmée, donc un second retour marchera — et la pile n'a pas grandi d'un cran au passage.
   expect(await historyStack.sentinelArmed()).toBe(true);
   expect(await historyStack.length()).toBe(armedLength);
@@ -111,20 +113,22 @@ test("§6.0 après un rechargement, UN seul retour remonte d'un écran et la pil
 }) => {
   const menu = new MainMenu(page);
   const battleMode = new BattleModeScreen(page);
-  const mapSelect = new MapSelectScreen(page);
   const historyStack = new BrowserHistory(page);
 
   await menu.goto();
   await menu.combat.click();
-  await battleMode.local.click();
-  await expect(mapSelect.title).toBeVisible();
+  // 🔴 On s'arrête au MODE DE COMBAT, et non plus au choix du terrain (plan 208) : ce test a besoin
+  // d'un écran RESTAURABLE — sans paramètre, donc enregistré par `screen-persistence` — et la
+  // sélection d'équipe, qui exige une carte, n'en est pas un. L'écran de terrain l'était ; il
+  // n'existe plus.
+  await expect(battleMode.title).toBeVisible();
   const armedLength = await historyStack.length();
 
   await page.reload();
 
   // L'écran est restauré par `screen-persistence` (`pt-last-screen`), et l'entrée d'historique, elle,
   // a survécu telle quelle au rechargement.
-  await expect(mapSelect.title).toBeVisible();
+  await expect(battleMode.title).toBeVisible();
   expect(await historyStack.sentinelArmed()).toBe(true);
 
   // Le geste qui suit le rechargement ne doit PAS empiler une seconde sentinelle : sans la
@@ -134,7 +138,7 @@ test("§6.0 après un rechargement, UN seul retour remonte d'un écran et la pil
 
   await historyStack.back();
 
-  await expect(battleMode.title).toBeVisible();
+  await expect(menu.title).toBeVisible();
   expect(await historyStack.length()).toBe(armedLength);
 });
 
@@ -156,7 +160,6 @@ test("§6.0 le retour, un sélecteur d'équipe OUVERT, referme la modale et lais
 }) => {
   const menu = new MainMenu(page);
   const battleMode = new BattleModeScreen(page);
-  const mapSelect = new MapSelectScreen(page);
   const teamSelect = new TeamSelectScreen(page);
   const historyStack = new BrowserHistory(page);
 
@@ -166,8 +169,6 @@ test("§6.0 le retour, un sélecteur d'équipe OUVERT, referme la modale et lais
   await menu.goto();
   await menu.combat.click();
   await battleMode.local.click();
-  await expect(mapSelect.title).toBeVisible();
-  await mapSelect.confirm.click();
   await expect(teamSelect.title).toBeVisible();
 
   // Le sélecteur d'équipe du camp 1 : un `<dialog>` sans registration d'entrée à lui, qui n'a donc
@@ -191,7 +192,7 @@ test("§6.0 le retour, un sélecteur d'équipe OUVERT, referme la modale et lais
   // Et il le fait : le second retour est celui que la modale avait absorbé.
   await historyStack.back();
 
-  await expect(mapSelect.title).toBeVisible();
+  await expect(battleMode.title).toBeVisible();
 });
 
 test("§6.0 le même repli vaut pour le sélecteur de Pokemon du Constructeur d'équipe", async ({

@@ -191,7 +191,7 @@ export function installE2eSceneHook(
   });
   const holder = globalThis as { __ptE2e__?: E2eSceneApi };
   holder.__ptE2e__ = api;
-  // Returns the uninstall so the hook cannot outlive its scene. The map-select preview builds a
+  // Returns the uninstall so the hook cannot outlive its scene. The map picker preview builds a
   // full combat scene too (`map-preview-stage.ts`), so without this a disposed preview kept
   // answering `isReady() === true` and a harness waiting on "scene ready" waited on nothing.
   // Guarded by identity: a scene created before this one, disposing later, must not unhook the

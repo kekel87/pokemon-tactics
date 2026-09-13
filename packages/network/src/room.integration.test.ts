@@ -10,6 +10,7 @@ import {
   type NetworkRoomOptions,
   NetworkSeatOccupancy,
   type NetworkSeeds,
+  RANDOM_MAP_ID,
   type ResyncMessage,
   type StartMessage,
 } from "./protocol.js";
@@ -707,6 +708,80 @@ describe("Room — lancement", () => {
     await launch;
 
     expect(starts[0]?.seats.map((seat) => seat.controller)).toEqual(["human", "human", "ai", "ai"]);
+  });
+});
+
+describe("Room — la carte publiée par le lancement (plan 208)", () => {
+  let directory: FakeNetworkDirectory;
+
+  beforeEach(() => {
+    directory = new FakeNetworkDirectory();
+  });
+
+  it("publie la carte du salon quand l'hôte n'en résout aucune", async () => {
+    const host = await Room.create(depsFor(directory), options(2));
+    const guest = await Room.join(depsFor(directory), ROOM_CODE);
+    await flush();
+    guest.setReady(true);
+    await flush();
+
+    const guestStarts: StartMessage[] = [];
+    guest.onStart((start) => guestStarts.push(start));
+
+    const launch = host.launch(SEEDS, BATTLE_ID);
+    await flush();
+    await launch;
+
+    expect(guestStarts[0]?.options.mapId).toBe("plaine");
+  });
+
+  it("publie la carte RÉSOLUE, et non la sentinelle restée dans les options du salon", async () => {
+    // Le salon affiche « Aléatoire » jusqu'au bout — c'est ce que voit l'invité — mais le `start`
+    // doit porter un terrain CONCRET, sinon chaque pair tirerait le sien.
+    const host = await Room.create(depsFor(directory), {
+      ...options(2),
+      mapId: RANDOM_MAP_ID,
+    });
+    const guest = await Room.join(depsFor(directory), ROOM_CODE);
+    await flush();
+    guest.setReady(true);
+    await flush();
+
+    expect(guest.view.options.mapId).toBe(RANDOM_MAP_ID);
+
+    const hostStarts: StartMessage[] = [];
+    const guestStarts: StartMessage[] = [];
+    host.onStart((start) => hostStarts.push(start));
+    guest.onStart((start) => guestStarts.push(start));
+
+    const launch = host.launch(SEEDS, BATTLE_ID, "volcano");
+    await flush();
+    await launch;
+
+    // 🔴 Le pire mode de panne du plan : deux pairs sur deux terrains. Les deux `start` portent le
+    // MÊME identifiant concret, et pas celui des options.
+    expect(hostStarts[0]?.options.mapId).toBe("volcano");
+    expect(guestStarts[0]?.options.mapId).toBe("volcano");
+    // Le reste des options du salon suit intact : seule la carte est remplacée.
+    expect(guestStarts[0]?.options.teamCount).toBe(2);
+    expect(guestStarts[0]?.options.autoPlacement).toBe(true);
+  });
+
+  it("refuse la sentinelle de tirage plutôt que de l'envoyer sur le réseau", async () => {
+    const host = await Room.create(depsFor(directory), {
+      ...options(2),
+      mapId: RANDOM_MAP_ID,
+    });
+    const starts: StartMessage[] = [];
+    host.onStart((start) => starts.push(start));
+
+    await expect(host.launch(SEEDS, BATTLE_ID, RANDOM_MAP_ID)).rejects.toThrow(
+      /sentinelle de tirage/,
+    );
+
+    // Fail-fast : rien n'est parti, et le salon n'est même pas verrouillé — l'hôte peut corriger.
+    expect(starts).toEqual([]);
+    expect(host.view.locked).toBe(false);
   });
 });
 

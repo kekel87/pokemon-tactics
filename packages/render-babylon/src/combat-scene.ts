@@ -101,7 +101,7 @@ export interface CombatSceneOptions {
   canvas: HTMLCanvasElement;
   mapUrl: string;
   pokemon: readonly CombatSceneSpawn[];
-  /** Floating FFTA tile cursor on hover (default true; off for the map-select preview). */
+  /** Floating FFTA tile cursor on hover (default true; off for the map picker preview). */
   showHoverCursor?: boolean;
   /**
    * Geometry of the turn timeline's first portrait in CSS px (plan 183). The compass matches its
@@ -715,7 +715,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     hoverHandler(pick);
   };
 
-  // On the canvas (not window): an embedded scene (map-select preview) must not
+  // On the canvas (not window): an embedded scene (map picker preview) must not
   // steal the wheel from surrounding scrollable DOM panels.
   canvas.addEventListener("wheel", onWheel, { passive: false });
   window.addEventListener("resize", onResize);

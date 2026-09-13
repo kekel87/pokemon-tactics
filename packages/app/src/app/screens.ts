@@ -11,7 +11,6 @@ export type ScreenId =
   | "main-menu"
   | "battle-mode"
   | "lobby"
-  | "map-select"
   | "team-select"
   | "my-teams"
   | "team-edit"
@@ -110,14 +109,7 @@ export interface ScreenParamsById {
   "battle-mode": undefined;
   lobby: undefined;
   /**
-   * `network` = l'hôte choisit le terrain de sa partie en ligne ; le format est déjà gravé.
-   *
-   * `HostIntent` et non `NetworkIntent` : un invité ne choisit pas de carte, il ne passe donc jamais
-   * par cet écran.
-   */
-  "map-select": { network?: HostIntent } | undefined;
-  /**
-   * Union **discriminée par la présence de `mapUrl`**, et non un `mapUrl` optionnel : l'invité d'une
+   * Union **discriminée par la présence de `mapId`**, et non un `mapId` optionnel : l'invité d'une
    * partie en ligne est le seul à entrer ici sans carte — il n'en a pas choisi, elle lui arrive de
    * l'hôte, et il n'en verra que le nom (plan 199).
    *
@@ -125,16 +117,21 @@ export interface ScreenParamsById {
    * (« team-select sans carte hors du chemin invité en ligne »). Sous cette forme, c'est le
    * compilateur qui interdit de naviguer sans carte autrement qu'en invité, et le `throw` disparaît
    * avec le cas qu'il couvrait.
+   *
+   * 🔴 Un **identifiant** et non une URL depuis le plan 208, et ce n'est pas cosmétique : le choix
+   * peut valoir `RANDOM_MAP_ID`, qui ne désigne aucun fichier. L'identifiant est déjà le contrat
+   * partout ailleurs — réseau, télémétrie, préférences — l'URL n'étant qu'un détail de déploiement
+   * (`map-identity.ts`).
    */
   "team-select":
-    | { mapUrl: string; network?: HostIntent }
+    | { mapId: string; network?: HostIntent }
     /**
-     * `mapUrl?: undefined` explicite, et non simplement absent : sans lui, le contrôle de propriétés
-     * en excès laisse compiler `{ mapUrl, network: <invité> }` — `mapUrl` appartenant à l'autre
+     * `mapId?: undefined` explicite, et non simplement absent : sans lui, le contrôle de propriétés
+     * en excès laisse compiler `{ mapId, network: <invité> }` — `mapId` appartenant à l'autre
      * membre de l'union — et un tel paramètre prenait la branche hôte, avec un mode réseau actif
      * mais aucun salon. Déclaré ainsi, il ne se représente plus.
      */
-    | { mapUrl?: undefined; network: GuestIntent };
+    | { mapId?: undefined; network: GuestIntent };
   "my-teams": undefined;
   "team-edit": { teamId: string };
   settings: undefined;
@@ -151,14 +148,16 @@ export const SCREEN_TRANSITIONS: Readonly<Record<ScreenId, readonly ScreenId[]>>
   // `combat` is reachable straight from the menu by the resume entry (plan 181) — the only way into a
   // battle that skips map + team selection, because the saved battle already carries both.
   "main-menu": ["battle-mode", "my-teams", "settings", "credits", "combat"],
-  "battle-mode": ["map-select", "lobby", "main-menu"],
-  // L'hôte passe par le choix du terrain, l'invité entre directement dans la salle d'attente : la
-  // carte lui arrive de l'hôte, il n'a rien à choisir (plan 199).
-  lobby: ["map-select", "team-select", "battle-mode"],
-  "map-select": ["team-select", "battle-mode", "lobby"],
-  // Le retour de la salle d'attente rend au `lobby` en ligne, à l'écran de terrain en local. L'hôte
-  // change aussi de carte par ce chemin, la transition existant dans les deux sens.
-  "team-select": ["combat", "map-select", "lobby"],
+  // 🔴 Plus d'escale sur le choix du terrain (plan 208) : « Jeu en solo » entre DROIT dans la
+  // sélection d'équipe, avec la carte retenue d'office (dernière jouée, sinon tirage). La carte se
+  // change depuis là, en modale, ce qui préserve la composition en cours au lieu de la jeter.
+  "battle-mode": ["team-select", "lobby", "main-menu"],
+  // Idem pour l'hôte : le salon naît à l'entrée de la salle d'attente, sans détour par un écran de
+  // terrain. L'invité y entrait déjà directement, la carte lui arrivant de l'hôte (plan 199).
+  lobby: ["team-select", "battle-mode"],
+  // Le retour de la salle d'attente rend au `lobby` en ligne, au choix du mode en local — l'écran
+  // de terrain qu'il rendait auparavant n'existe plus.
+  "team-select": ["combat", "battle-mode", "lobby"],
   "my-teams": ["team-edit", "main-menu"],
   "team-edit": ["my-teams"],
   settings: ["main-menu", "controls"],

@@ -206,7 +206,9 @@ pokemon-tactics/
 │   │   ├── src/
 │   │   │   ├── app/             # ScreenManager FSM + écrans DOM (main-menu, battle-mode, lobby,
 │   │   │   │                    # team-select, my-teams, team-edit, settings, controls, credits,
-│   │   │   │                    # combat-screen, map-select)
+│   │   │   │                    # combat-screen — plus d'écran map-select depuis le plan 208 : le
+│   │   │   │                    # choix de carte est une modale (ui/map-select/MapPickerModal.ts)
+│   │   │   │                    # ouverte depuis team-select, pas une route
 │   │   │   ├── babylon/         # Écrans qui câblent les backends : combat-screen (boucle combat),
 │   │   │   │                    # placement-flow
 │   │   │   ├── input/           # Couche d'entrée device-agnostique (plans 184/186) : actions logiques,

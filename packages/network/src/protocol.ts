@@ -34,7 +34,7 @@ import {
  * Le filet du jour où on oubliera est la somme de contrôle d'état du Lot B4 : la divergence devient
  * une erreur lisible au lieu d'un combat qui part en silence.
  */
-export const NETWORK_VERSION = 5;
+export const NETWORK_VERSION = 6;
 
 /**
  * Durée d'un tour en ligne (plan 202, Lot B3, décision #946).
@@ -169,8 +169,30 @@ export interface NetworkTeamSelection {
  * Les paramètres de partie, fixés par l'hôte. Le format est gravé depuis l'écran `lobby` et
  * n'apparaît donc jamais comme modifiable ici (décision #896).
  */
+/**
+ * La valeur RÉSERVÉE de `NetworkRoomOptions.mapId` : « la carte n'est pas encore décidée ».
+ *
+ * 🔴 Déclarée ICI, dans le protocole, et non côté jeu : c'est une valeur que les deux pairs doivent
+ * interpréter pareil, donc elle fait partie du contrat — au même titre que les noms de messages. Le
+ * paquet réseau n'apprend rien du jeu au passage : il ne sait toujours pas ce qu'est une carte, il
+ * sait seulement qu'une chaîne est réservée et ne désigne aucun terrain.
+ *
+ * Elle ne vaut qu'AVANT le lancement. Le `StartMessage` porte toujours un identifiant concret —
+ * `Room.launch` refuse de publier celui-ci.
+ */
+export const RANDOM_MAP_ID = "random";
+
 export interface NetworkRoomOptions {
-  /** Identifiant **stable** de carte (`MAPS_REGISTRY`), jamais une URL : une URL dépend de la base de déploiement et n'est pas un contrat entre deux pairs. */
+  /**
+   * Identifiant **stable** de carte (`MAPS_REGISTRY`), jamais une URL : une URL dépend de la base de
+   * déploiement et n'est pas un contrat entre deux pairs.
+   *
+   * 🔴 Peut valoir la valeur sentinelle `random` **avant le lancement** (plan 208) : l'hôte a choisi
+   * « Aléatoire », et le salon l'annonce tel quel pour que l'invité lise « Aléatoire » sans
+   * apprendre le terrain. Le `StartMessage`, lui, porte toujours un identifiant CONCRET — l'hôte y
+   * publie son tirage, fait une seule fois. C'est cette valeur nouvelle, que les deux pairs doivent
+   * interpréter pareil, qui a fait passer `NETWORK_VERSION` de 5 à 6.
+   */
   mapId: string;
   teamCount: number;
   autoPlacement: boolean;

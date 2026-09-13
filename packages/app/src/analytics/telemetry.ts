@@ -32,7 +32,6 @@ export const TelemetryScreen = {
   BattleMode: "battle-mode",
   TeamBuilder: "team-builder",
   Lobby: "lobby",
-  MapSelect: "map-select",
   TeamSelect: "team-select",
   Credits: "credits",
   Controls: "controls",
@@ -68,6 +67,26 @@ export const TelemetryAction = {
   ResumeAccepted: "resume-accepted",
   /** L'écran de remapping du plan 186 sert-il ? */
   RemapBinding: "remap-binding",
+  /*
+   * Le choix de la carte, en modale (plan 208). Ces trois compteurs REMPLACENT l'étape `map-select`
+   * du funnel, et c'est un arbitrage de l'humain, pas une conséquence mécanique.
+   *
+   * 🔴 Pourquoi le compteur d'écran ne pouvait pas survivre : `map-select` était un **passage
+   * obligé** vers le combat. La modale est un **geste volontaire**. Garder le même compteur aurait
+   * laissé une série continue changer de sens en silence — le volume s'effondre sans que rien ne
+   * soit cassé, exactement le genre de faux signal qu'on passe des mois à mal lire. La coupure est
+   * donc assumée et datée dans le graphe de mémoire, plutôt que maquillée.
+   *
+   * Ce que les trois répondent, et qui n'était pas mesurable avant : **le choix de carte
+   * intéresse-t-il vraiment ?** `map-modal-open` dit combien de joueurs vont voir, `map-changed`
+   * combien changent réellement de terrain, et leur écart — lu avec `map-modal-dismissed` — dit
+   * combien ouvrent par curiosité puis s'en tiennent à ce qu'ils avaient. Une modale beaucoup
+   * ouverte et jamais suivie d'un changement voudrait dire que le défaut est bon ; l'inverse, que
+   * la carte retenue d'office tombe mal.
+   */
+  MapModalOpen: "map-modal-open",
+  MapChanged: "map-changed",
+  MapModalDismissed: "map-modal-dismissed",
   /*
    * Jeu en ligne (plan 199, étape 7). Deux questions, et une seule vraiment brûlante :
    *

@@ -8,8 +8,7 @@ const PARAMS: ScreenParamsById = {
   "main-menu": undefined,
   "battle-mode": undefined,
   lobby: undefined,
-  "map-select": undefined,
-  "team-select": { mapUrl: "maps/volcano.tmj" },
+  "team-select": { mapId: "volcano" },
   "my-teams": undefined,
   "team-edit": { teamId: "team-1" },
   controls: undefined,
@@ -119,31 +118,32 @@ describe("ScreenManager", () => {
       ALL_SCREEN_IDS.map((id) => [id, () => screen]),
     ) as ScreenRegistry;
     const manager = new ScreenManager(hostStub, registry);
-    await manager.start("team-select", { mapUrl: "maps/desert.tmj" });
-    expect(received).toEqual([{ mapUrl: "maps/desert.tmj" }]);
+    await manager.start("team-select", { mapId: "desert" });
+    expect(received).toEqual([{ mapId: "desert" }]);
   });
 
   it("serializes navigations issued during an async mount", async () => {
     const { manager, events } = createHarness(5);
     const boot = manager.start("main-menu", undefined);
     const first = manager.navigate("battle-mode", undefined);
-    const second = manager.navigate("map-select", undefined);
+    const second = manager.navigate("lobby", undefined);
     await Promise.all([boot, first, second]);
     expect(events).toEqual([
       "mount:main-menu",
       "dispose:main-menu",
       "mount:battle-mode",
       "dispose:battle-mode",
-      "mount:map-select",
+      "mount:lobby",
     ]);
-    expect(manager.current).toBe("map-select");
+    expect(manager.current).toBe("lobby");
   });
 
   it("walks the full battle path and back to the menu (gate path A)", async () => {
     const { manager } = createHarness();
     await manager.start("main-menu", undefined);
     await manager.navigate("battle-mode", undefined);
-    await manager.navigate("map-select", undefined);
+    // 🔴 Plus d'escale sur le choix du terrain (plan 208) : « Jeu en solo » entre DROIT dans la
+    // sélection d'équipe, avec la carte retenue d'office. Ce raccourci EST le chemin nominal.
     await manager.navigate("team-select", PARAMS["team-select"]);
     await manager.navigate("combat", PARAMS.combat);
     await manager.navigate("main-menu", undefined);

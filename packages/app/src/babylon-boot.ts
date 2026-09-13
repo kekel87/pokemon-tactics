@@ -26,7 +26,7 @@ import "./styles/team-builder-overlay.css";
 import "./styles/menu-screens.css";
 import "./styles/controls-screen.css";
 import "./styles/combat-menu.css";
-import "./styles/map-select.css";
+import "./styles/components/map-picker.css";
 import "./styles/components/screen-shell.css";
 import "./styles/components/screen-header.css";
 import "./styles/lobby.css";
@@ -53,7 +53,6 @@ import { createControlsScreen } from "./ui/dom/screens/controls-screen.js";
 import { createCreditsScreen } from "./ui/dom/screens/credits-screen.js";
 import { createLobbyScreen } from "./ui/dom/screens/lobby-screen.js";
 import { createMainMenuScreen } from "./ui/dom/screens/main-menu-screen.js";
-import { createMapSelectScreen } from "./ui/dom/screens/map-select-screen.js";
 import { createMyTeamsScreen } from "./ui/dom/screens/my-teams-screen.js";
 import { createSettingsScreen } from "./ui/dom/screens/settings-screen.js";
 import { createTeamEditScreen } from "./ui/dom/screens/team-edit-screen.js";
@@ -154,7 +153,6 @@ async function boot(root: HTMLElement): Promise<void> {
     "main-menu": () => createMainMenuScreen(navigate),
     "battle-mode": () => createBattleModeScreen(navigate),
     lobby: () => createLobbyScreen(navigate),
-    "map-select": () => createMapSelectScreen(navigate),
     "team-select": () => createTeamSelectScreen(navigate),
     "my-teams": () => createMyTeamsScreen(navigate),
     "team-edit": () => createTeamEditScreen(navigate),

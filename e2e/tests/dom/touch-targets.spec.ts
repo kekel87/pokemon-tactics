@@ -99,7 +99,7 @@ test.describe("§6.10 plancher tactile des écrans de menu", () => {
     await expectTouchFloorHeld(page, "crédits");
   });
 
-  test("§6.10 mode de combat, choix de la carte et sélection d'équipe tiennent le plancher", async ({
+  test("§6.10 mode de combat, sélection d'équipe et choix de la carte tiennent le plancher", async ({
     page,
   }) => {
     const menu = new MainMenu(page);
@@ -112,19 +112,24 @@ test.describe("§6.10 plancher tactile des écrans de menu", () => {
     await expect(battleMode.title).toBeVisible();
     await expectTouchFloorHeld(page, "mode de combat");
 
-    // Les 9 lignes de cartes défilent dans une colonne étroite et n'avaient aucun `min-height` :
-    // 20,8 px, le pire écart mesuré du jeu.
+    // Segments de format, cases « Placement auto » / « Prévisualisation dégâts », « Lancer ▶ » — les
+    // trois familles nommées par le backlog — plus les deux boutons du bandeau de partie, qui sont
+    // petits par nature et donc le profil qui passait sous le plancher (plan 208).
     await battleMode.local.click();
-    await expect(maps.title).toBeVisible();
-    await expect(maps.listItems).toHaveCount(9);
-    await expectTouchFloorHeld(page, "choix de la carte");
-
-    // Segments de format, cases « Placement auto » / « Prévisualisation dégâts » et « Lancer ▶ » —
-    // les trois familles nommées par le backlog, sur le même écran.
-    await maps.confirm.click();
     await expect(teamSelect.title).toBeVisible();
     await expect(teamSelect.launch).toBeVisible();
     await expectTouchFloorHeld(page, "sélection d'équipe");
+
+    /*
+     * Les 10 lignes de la modale de carte défilent dans une colonne étroite et n'avaient aucun
+     * `min-height` : 20,8 px, le pire écart mesuré du jeu (plan 206). Un `<dialog>` est monté sur
+     * `<body>`, donc rien de ce qu'il contient n'est mesuré tant qu'il est fermé.
+     */
+    await maps.open();
+    await expect(maps.listItems).toHaveCount(10);
+    await expectTouchFloorHeld(page, "choix de la carte");
+    await page.keyboard.press("Escape");
+    await expect(maps.title).toBeHidden();
 
     // Le sélecteur d'équipe est un `<dialog>` monté sur `<body>` : ses lignes ne sont pas dans
     // l'arbre de l'écran, donc rien de ce qu'il contient n'est mesuré tant qu'il est fermé.

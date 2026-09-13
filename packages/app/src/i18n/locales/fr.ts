@@ -174,6 +174,14 @@ const fr: Translations = {
   "screen.back": "← Retour",
   "teamSelect.autoPlacement.label": "Placement auto",
   "teamSelect.damagePreview.label": "Prévisualisation dégâts",
+  "teamSelect.online.goOnline": "Passer en partie en ligne",
+  "teamSelect.online.switchTitle": "Passer en partie en ligne",
+  "teamSelect.online.switchConfirm": "Passer en ligne",
+  "teamSelect.online.switchCancel": "Rester en solo",
+  "teamSelect.online.switchLosesCamps":
+    "Une partie en ligne se joue à deux camps. Les camps au-delà du second seront retirés, et leurs équipes avec.",
+  "teamSelect.online.switchLosesTeam":
+    "Le second camp sera libéré pour ton adversaire. L'équipe que tu lui avais choisie sera retirée.",
   "placement.done": "✓ Terminer",
   "pokemon.bulbasaur": "Bulbizarre",
   "pokemon.venusaur": "Florizarre",
@@ -278,7 +286,10 @@ const fr: Translations = {
   "lobby.back": "Retour",
   "mapSelect.title": "Choix de la carte",
   "mapSelect.confirm": "Choisir cette carte",
-  "mapSelect.back": "Retour",
+  "mapSelect.random": "🎲 Aléatoire",
+  "mapSelect.randomHint": "Terrain tiré au lancement",
+  "mapSelect.randomDescription":
+    "La carte reste inconnue jusqu'au lancement de la partie. Personne ne peut préparer son équipe en fonction du terrain.",
   "settings.title": "Paramètres",
   "settings.language": "Langue",
   "settings.fullscreen": "Plein écran",

@@ -2,7 +2,7 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "../../fixtures";
 import { CombatScene } from "../../pages/CombatScene";
 import { MainMenu } from "../../pages/MainMenu";
-import { BattleModeScreen, MapSelectScreen, TeamSelectScreen } from "../../pages/screens";
+import { BattleModeScreen, TeamSelectScreen } from "../../pages/screens";
 
 // Cahier §4.20 (variante `placement`) — menu de combat pendant la phase de placement (plan 189,
 // volet B). Il referme le trou signalé par le plan 187 : le menu naissait dans `runBattle`, donc
@@ -23,15 +23,12 @@ import { BattleModeScreen, MapSelectScreen, TeamSelectScreen } from "../../pages
 async function startInteractivePlacement(page: Page): Promise<CombatScene> {
   const menu = new MainMenu(page);
   const mode = new BattleModeScreen(page);
-  const maps = new MapSelectScreen(page);
   const teams = new TeamSelectScreen(page);
   const scene = new CombatScene(page);
 
   await menu.goto();
   await menu.combat.click();
   await mode.local.click();
-  await expect(maps.title).toBeVisible();
-  await maps.confirm.click();
   await expect(teams.title).toBeVisible();
   // Le camp 1 reste HUMAIN (contrairement à `giveSlotToAi`) : c'est lui qui doit avoir des Pokemon
   // à poser, donc une phase de placement à traverser.

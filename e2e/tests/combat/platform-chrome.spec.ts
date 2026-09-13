@@ -4,7 +4,7 @@ import { AppShell } from "../../pages/app-shell";
 import { BattleResumeStore } from "../../pages/battle-resume";
 import { CombatScene } from "../../pages/CombatScene";
 import { MainMenu } from "../../pages/MainMenu";
-import { BattleModeScreen, MapSelectScreen, TeamSelectScreen } from "../../pages/screens";
+import { BattleModeScreen, TeamSelectScreen } from "../../pages/screens";
 
 // Cahier §4.17 / §6.10 — comportement plateforme côté combat (plan 180) : le bouton plein écran du
 // chrome, et le garde-fou « un combat perdu ne se restaure pas ».
@@ -57,7 +57,6 @@ test("§4.17 chrome de combat : le bouton disparaît en plein écran et revient 
 test("§6.10 reprise d'écran : un combat perdu revient au menu principal", async ({ page }) => {
   const menu = new MainMenu(page);
   const mode = new BattleModeScreen(page);
-  const maps = new MapSelectScreen(page);
   const teams = new TeamSelectScreen(page);
   const scene = new CombatScene(page);
   const shell = new AppShell(page);
@@ -67,8 +66,6 @@ test("§6.10 reprise d'écran : un combat perdu revient au menu principal", asyn
   await menu.goto();
   await menu.combat.click();
   await mode.local.click();
-  await expect(maps.title).toBeVisible();
-  await maps.confirm.click();
   await expect(teams.title).toBeVisible();
   await teams.giveSlotToAi();
   await teams.launch.click();

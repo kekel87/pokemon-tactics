@@ -116,13 +116,11 @@ test("§6.4 à la manette, changer de format garde le focus dans la rangée de f
   await withFakeGamepad(page);
   const menu = new MainMenu(page);
   const mode = new BattleModeScreen(page);
-  const maps = new MapSelectScreen(page);
   const teams = new TeamSelectScreen(page);
 
   await menu.goto();
   await menu.combat.click();
   await mode.local.click();
-  await maps.confirm.click();
   await expect(teams.title).toBeVisible();
   // Le poller démarre ici, une fois l'`InputSystem` en place — pas sur `load`, qui est une course.
   await connectPad(page);
@@ -225,4 +223,89 @@ test("§6.10 la roue de code se pilote au pad, et on peut en sortir", async ({ p
   // rejoint donc par la GAUCHE, « Rejoindre » par la droite.
   expect(await focusedTestId(page)).toBe("lobby-join");
   expect(await page.evaluate(() => document.activeElement?.textContent?.trim())).toBe("Rejoindre");
+});
+
+/*
+ * §6.12 — la modale de carte à la manette (plan 208).
+ *
+ * 🔴 C'est le risque nº 1 que le plan s'était désigné, et un **fail bloquant** : le choix du terrain
+ * est passé d'un écran plein à une modale, et une modale injoignable ou insortable au pad rend la
+ * carte inchangeable pour qui joue à la manette. Deux trous connus étaient à éviter, chacun ayant
+ * déjà mordu ailleurs :
+ *
+ *   - `B` qui NE REFERME PAS — le routeur livre l'action au seul consommateur du sommet de la pile,
+ *     donc un `false` rendu par la modale ne redescend pas à l'écran. C'est le trou que l'étape 6 du
+ *     plan 207 a bouché sur le lobby.
+ *   - `A` qui ne fait RIEN dans la liste — la sélection suit le focus, donc un bouton est toujours
+ *     focalisé, et un appui de pad ne déclenche aucune activation native.
+ */
+test("§6.12 à la manette, la modale de carte s'atteint, se pilote et se referme par B", async ({
+  page,
+}) => {
+  await withFakeGamepad(page);
+  const menu = new MainMenu(page);
+  const mode = new BattleModeScreen(page);
+  const teams = new TeamSelectScreen(page);
+  const maps = new MapSelectScreen(page);
+
+  await menu.goto();
+  await menu.combat.click();
+  await mode.local.click();
+  await expect(teams.title).toBeVisible();
+  await connectPad(page);
+
+  // Atteindre « Changer de carte » par de VRAIES pressions depuis le premier contrôle de l'écran,
+  // jamais par un `.focus()` sur la cible : c'est le chemin qui est en question.
+  await holdPadUntil(page, PadButton.DpadDown, async () => (await focusedTestId(page)) !== null);
+  await holdPadUntil(page, PadButton.DpadRight, async () =>
+    ["room-change-map", "format-segment"].includes((await focusedTestId(page)) ?? ""),
+  );
+  await holdPadUntil(
+    page,
+    PadButton.DpadDown,
+    async () => (await focusedTestId(page)) === "room-change-map",
+  );
+
+  await tapPadButton(page, PadButton.A);
+  await expect(maps.title).toBeVisible();
+
+  // Dans la liste, le bas déplace la SÉLECTION — pas le focus DOM, qui sortirait par le haut.
+  const first = await focusedDataValue(page, "mapId");
+  await tapPadButton(page, PadButton.DpadDown);
+  await expect.poll(() => focusedDataValue(page, "mapId")).not.toBe(first);
+
+  // B referme la modale et laisse l'écran EN PLACE : il ne quitte pas la sélection d'équipe
+  // par-dessous elle.
+  await tapPadButton(page, PadButton.B);
+  await expect(maps.title).toBeHidden();
+  await expect(teams.title).toBeVisible();
+  await expect(teams.launch).toBeVisible();
+});
+
+/** Et `A` retient bien la carte regardée : sans ça la liste n'aurait aucune validation au pad. */
+test("§6.12 à la manette, A dans la liste retient la carte et referme la modale", async ({
+  page,
+}) => {
+  await withFakeGamepad(page);
+  const menu = new MainMenu(page);
+  const mode = new BattleModeScreen(page);
+  const teams = new TeamSelectScreen(page);
+  const maps = new MapSelectScreen(page);
+
+  await menu.goto();
+  await menu.combat.click();
+  await mode.local.click();
+  await expect(teams.title).toBeVisible();
+  // La modale s'ouvre à la souris : ce test juge la VALIDATION au pad, pas le chemin pour y venir,
+  // que le test précédent couvre déjà.
+  await maps.open();
+  await connectPad(page);
+
+  await maps.item("volcano").click();
+  await expect(maps.detailName).toHaveText("Volcan Actif");
+
+  await tapPadButton(page, PadButton.A);
+
+  await expect(maps.title).toBeHidden();
+  await expect(teams.mapName).toHaveText("Volcan Actif");
 });

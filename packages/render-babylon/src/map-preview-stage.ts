@@ -7,7 +7,7 @@ export interface MapPreviewStage {
 }
 
 /**
- * Live map preview for the map-select screen (plan 120 step 3): a combat scene
+ * Live map preview for the map picker (plan 120 step 3, en modale depuis le plan 208): a combat scene
  * without Pokemon inside an arbitrary container. One Babylon engine per map —
  * simple and leak-free (the combat-scene dispose chain is already exercised by
  * the FSM); swap cost is acceptable for a selection list.

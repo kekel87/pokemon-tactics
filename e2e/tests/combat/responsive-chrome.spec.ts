@@ -3,7 +3,7 @@ import { DUEL } from "../../fixtures/sandbox-configs";
 import { CombatScene } from "../../pages/CombatScene";
 import { MainMenu } from "../../pages/MainMenu";
 import { COMBAT_CHROME_ROOT, COMBAT_CHROME_SCROLLERS, Responsive } from "../../pages/responsive";
-import { BattleModeScreen, MapSelectScreen, TeamSelectScreen } from "../../pages/screens";
+import { BattleModeScreen, TeamSelectScreen } from "../../pages/screens";
 
 // Cahier §4.16 — référentiel de design mobile, cibles tactiles, journal élargi et non-débordement du
 // chrome de combat (plan 179). Le chrome entier se dimensionne depuis `--ui-scale` (taille du stage ÷
@@ -219,15 +219,15 @@ test.describe("§8.5 barre de placement sur téléphone paysage", () => {
   }) => {
     const menu = new MainMenu(page);
     const battleMode = new BattleModeScreen(page);
-    const maps = new MapSelectScreen(page);
     const teamSelect = new TeamSelectScreen(page);
     const scene = new CombatScene(page);
     const responsive = new Responsive(page);
 
     await menu.goto();
     await menu.combat.click();
+    // « Jeu en solo » entre droit dans la sélection d'équipe depuis le plan 208, avec la carte
+    // retenue d'office : il n'y a plus d'écran de terrain à traverser.
     await battleMode.local.click();
-    await maps.confirm.click();
     await expect(teamSelect.title).toBeVisible();
     // Joueur 1 reste HUMAIN (« 🎲 Aléatoire » lui donne une équipe sans le passer en IA) : c'est la
     // seule façon d'obtenir la phase de placement interactive — un joueur IA auto-place. Passe par

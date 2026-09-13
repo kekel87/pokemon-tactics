@@ -1,6 +1,6 @@
 import { expect, test } from "../../fixtures";
 import { MainMenu } from "../../pages/MainMenu";
-import { BattleModeScreen, MapSelectScreen } from "../../pages/screens";
+import { BattleModeScreen, MapSelectScreen, TeamSelectScreen } from "../../pages/screens";
 
 // Navigation clavier des écrans de menu (plan 184). Cahier §4.19.
 //
@@ -81,15 +81,21 @@ test("§4.19 clavier : chaque écran de menu répond aux flèches et à Échap",
 test("§4.19 clavier : le choix de carte garde ses flèches pour la SÉLECTION", async ({ page }) => {
   const menu = new MainMenu(page);
   const mode = new BattleModeScreen(page);
+  const teams = new TeamSelectScreen(page);
   const maps = new MapSelectScreen(page);
 
   await menu.goto();
   await menu.combat.click();
   await mode.local.click();
+  await expect(teams.title).toBeVisible();
+  // Le choix de carte est une MODALE depuis le plan 208 : elle empile son propre consommateur
+  // d'entrée par-dessus celui de l'écran, et c'est LUI qui doit prendre les flèches.
+  await maps.open();
+  await maps.item("simple-arena").click();
   await expect(maps.detailName).toHaveText("Arène Simple");
 
-  // Cet écran enregistre son propre consommateur : la flèche déplace la carte sélectionnée, pas le
-  // focus DOM.
+  // La flèche déplace la carte SÉLECTIONNÉE, pas le focus DOM — la navigation spatiale sortirait de
+  // la liste par le haut.
   await page.keyboard.press("ArrowDown");
 
   await expect(maps.detailName).not.toHaveText("Arène Simple");

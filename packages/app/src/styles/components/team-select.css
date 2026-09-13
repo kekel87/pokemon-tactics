@@ -69,7 +69,7 @@
     /* Bleu et NON l'accent jaune : le jaune est déjà l'anneau de focus (`base.css`), et l'anneau
        étant tracé À L'INTÉRIEUR, il disparaissait purement et simplement sur un segment rempli de
        jaune — « on perd où on est » (retour humain 2026-08-25). Le bleu des boutons est déjà ce que
-       `map-select.css` emploie pour la carte sélectionnée d'une liste navigable au focus : on aligne
+       `map-picker.css` emploie pour la carte sélectionnée d'une liste navigable au focus : on aligne
        sur ce précédent plutôt que d'inventer. Décision #836. */
     &[data-state="active"] {
       background: var(--color-btn-bg);
@@ -394,9 +394,11 @@
     font-size: var(--font-size-sm);
   }
 
-  /* L'encart de salon, entre l'en-tête et les cartes de camp : le code est ce que l'hôte vient
-     chercher ici, donc il est en tête et non noyé dans le pied. */
-  .ts-room-panel {
+  /* Le bandeau de partie, entre l'en-tête et les cartes de camp.
+     En ligne, le code est ce que l'hôte vient chercher : il est donc en tête et non noyé dans le
+     pied. En solo (plan 208) le bandeau reste, et c'est lui qui porte la carte — sans lui, plus rien
+     ne dirait sur quel terrain on s'apprête à jouer depuis que l'écran de choix a disparu. */
+  .ts-game-panel {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -407,7 +409,7 @@
     border-bottom: 1px solid var(--color-border-surface);
   }
 
-  .ts-room-code {
+  .ts-game-code {
     display: flex;
     align-items: center;
     gap: var(--spacing-lg);
@@ -415,7 +417,7 @@
 
   /* Montée d'un cran au plan 207, étape 7 : à `--font-size-sm` contre un code à 44 px, l'écart
      atteignait 3× en 4K — « ça fait bizarre » (retour humain). */
-  .ts-room-code-caption {
+  .ts-game-code-caption {
     color: var(--color-text-dim);
     font-size: var(--font-size-md);
   }
@@ -424,7 +426,7 @@
      assez gros pour être lu depuis un téléphone tenu à côté d'un écran.
      Redescendu de `clamp(22px, 3.4vmin, 44px)` au plan 207 : il reste le plus gros élément de
      l'encart — c'est ce que l'hôte vient chercher — mais sans écraser son étiquette. */
-  .ts-room-code-value {
+  .ts-game-code-value {
     font-family: var(--font-family-mono);
     font-size: clamp(20px, 2.6vmin, 34px);
     font-weight: bold;
@@ -435,20 +437,20 @@
   /* Le format, sorti de la liste de paramètres (plan 207, étape 7) : depuis que l'écran « Jouer en
      ligne » ne l'annonce plus, c'est le seul endroit où le joueur l'apprend avant de composer son
      équipe. Il ne peut donc plus être une ligne de `<dl>` parmi quatre. */
-  .ts-room-format {
+  .ts-game-format {
     margin: 0;
     font-size: var(--font-size-md);
     font-weight: bold;
     color: var(--color-text-secondary);
   }
 
-  .ts-room-settings {
+  .ts-game-settings {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-xxs);
   }
 
-  .ts-room-settings-list {
+  .ts-game-settings-list {
     display: grid;
     grid-template-columns: auto auto;
     gap: var(--spacing-xxs) var(--spacing-md);
@@ -466,10 +468,86 @@
     }
   }
 
-  .ts-room-settings-note {
+  .ts-game-settings-note {
     margin: 0;
     color: var(--color-text-faint);
     font-size: var(--font-size-xs);
+  }
+
+  /* La carte, sortie de la liste de paramètres (plan 208) : c'est le seul paramètre du bandeau qui
+     se CHANGE depuis ici, et une liste dont une entrée sur trois est interactive est exactement ce
+     que le format a fui au plan 207. Même traitement que lui, donc : sa propre ligne.
+
+     🔴 `space-between` et non un `gap` (retour humain, recette 2026-09-11) : le bouton se DÉPLAÇAIT
+     horizontalement selon la longueur du nom de la carte. Ancré à droite, son bord s'aligne sur la
+     colonne des valeurs de la liste juste dessous (« OUI »), qui partage la même largeur de bloc —
+     et plus rien ne bouge quand la carte change. */
+  .ts-game-map {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+    margin: 0;
+    font-size: var(--font-size-md);
+    font-weight: bold;
+    color: var(--color-text-secondary);
+  }
+
+  .ts-game-map-caption {
+    color: var(--color-text-muted);
+  }
+
+  /* Le nom de la carte EST le bouton : il porte la valeur courante et l'ouvre au clic, comme un
+     sélecteur. Le chevron est décoratif (`aria-hidden`), il ne dit que « ça s'ouvre ». */
+  .ts-game-map-button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+  }
+
+  /* Chevron tracé : deux bordures d'un carré vide, tournées d'un quart de tour. Il se centre
+     exactement sur la ligne du nom, ce qu'un caractère de police ne fait pas — `⌄` (U+2304) est
+     dessiné bas dans sa boîte et pendait sous la ligne de base (recette 2026-09-13). */
+  .ts-game-map-chevron {
+    inline-size: 0.42em;
+    block-size: 0.42em;
+    border-inline-end: 2px solid currentColor;
+    border-block-end: 2px solid currentColor;
+    /* Le carré tourné déporte son centre optique vers le bas : on le remonte de la moitié de sa
+       diagonale apparente pour qu'il s'aligne sur le milieu des lettres, pas sur leur bas. */
+    transform: translateY(-0.15em) rotate(45deg);
+    color: var(--color-text-dim);
+  }
+
+  /* Chez l'invité, le nom n'est pas un bouton : il garde la couleur d'une valeur, pas d'un contrôle. */
+  .ts-game-map-static {
+    color: var(--color-text-secondary);
+  }
+
+  /* Pas de relèvement local du plancher tactile ici : `.tb-btn` le porte déjà (`button.css`), et
+     `.claude/rules/multi-input.md` § 3 en fait un réglage UNIQUE — `--target-min`. Une règle par
+     écran est exactement ce que le plan 206 a supprimé. Garde-fou : `touch-targets.spec.ts` §6.10. */
+
+  /* En solo, la place du code accueille l'issue vers le jeu en ligne (plan 208, étape 5). Il occupe
+     le même coin que le code qu'il remplace, pour que le bandeau garde son équilibre d'un mode à
+     l'autre. */
+  .ts-game-go-online {
+    display: flex;
+    align-items: center;
+  }
+
+  /* La confirmation de bascule solo → en ligne. Une vraie modale, pas `window.confirm` : la boîte
+     native est injoignable à la manette. */
+  .ts-confirm-message {
+    margin: 0 0 var(--spacing-lg);
+    color: var(--color-text-secondary);
+  }
+
+  .ts-confirm-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: flex-end;
   }
 
   /* Une place TENUE — par l'hôte ou par un joueur distant. Non interactif : ce n'est pas un choix en

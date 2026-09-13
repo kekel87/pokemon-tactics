@@ -291,6 +291,11 @@ partie en ligne comptait pour deux dans les parties, les cartes, les formats, le
 d'abandon. Les compositions d'équipes, elles, étaient déjà justes : chaque pair ne déclare que son
 camp (plan 201, étape 7), et l'agrégation les cumule toujours sur les deux lignes.
 
+**Ce que le plan 208 a ajouté** (2026-09-11/13, suppression de l'écran `map-select` au profit d'une
+modale, § Écrans à ajouter/modifier) : en ligne, l'hôte peut désormais tirer une carte « Aléatoire »
+tenue secrète jusqu'au lancement ; le message `start` publie la carte **résolue**, jamais la sentinelle
+— **et `NETWORK_VERSION` est passée à 6**.
+
 **Ce qui reste à écrire** : `rematch` et `chat` (hors V1). Le **nom de joueur a été écarté de la V1**
 (#906) : il revient avec le compte et le classement ; la salle d'attente affiche « Joueur 2 ».
 
@@ -890,11 +895,11 @@ Internet tombe.
 > DOM** décrite par `ScreenId` et `SCREEN_TRANSITIONS` dans `packages/app/src/app/screens.ts`.
 
 - **`lobby`** — **LIVRÉ** : format (avant la création) puis « Créer » / « Rejoindre ». Câblé dans
-  `SCREEN_TRANSITIONS` depuis `battle-mode`, vers `map-select` (l'hôte, qui choisit son terrain) et
-  vers `team-select` (l'invité, à qui la carte arrive de l'hôte).
-- **`map-select`** — **LIVRÉ** : accepte une intention de partie en ligne et la **transmet**. Sans
-  cette transmission la salle d'attente se montait en mode local, sans code ni salon, et rien ne le
-  signalait — l'écran étant par ailleurs parfaitement fonctionnel.
+  `SCREEN_TRANSITIONS` depuis `battle-mode`, droit vers `team-select` (hôte et invité) : **il n'y a
+  plus d'écran `map-select`** (plan 208, 2026-09-11/13) — la route est supprimée du graphe de
+  navigation, le choix de carte devient une modale (`ui/map-select/MapPickerModal.ts`) ouverte depuis
+  le bandeau de partie de `team-select`, pour ne plus démonter l'écran (et perdre la composition
+  d'équipe en cours) à chaque changement de carte.
 - **`team-select`** — **LIVRÉ** : la salle d'attente. Le troisième état de ligne n'est pas un
   contrôleur mais un état de **salon** — le moteur ne connaît qu'« humain » ou « IA », et un joueur
   distant est un humain, simplement pas celui qui est devant cet écran.

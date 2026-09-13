@@ -11,12 +11,11 @@
  * lot 180-c. Anything else falls back to the main menu, which is why a lost battle returns to the
  * menu instead of half-restoring something wrong.
  *
- * « Besoin d'aucun paramètre » et non « n'en prend aucun » : depuis le plan 199, `map-select` accepte
- * une intention de partie en ligne **optionnelle**, et se monte toujours sans rien. Conséquence
- * assumée : l'hôte qui recharge pendant qu'il choisit son terrain revient sur un choix de terrain
- * LOCAL, son intention en ligne étant perdue avec les paramètres. Il n'y a rien à sauver de mieux —
- * le salon lui-même n'existe plus, son adresse ayant été rendue à l'annuaire — et reprendre un
- * salon en cours est du Lot B3.
+ * 🔴 L'écran de choix du terrain a QUITTÉ cette liste avec la route elle-même (plan 208). Il y
+ * figurait depuis le plan 180-b, et son cas était le seul subtil du lot : il acceptait une intention
+ * de partie en ligne optionnelle, donc l'hôte qui rechargeait pendant qu'il choisissait sa carte
+ * revenait sur un choix de terrain LOCAL. La question ne se pose plus — plus personne ne traverse
+ * cet écran, la carte étant retenue d'office et changée en modale depuis la sélection d'équipe.
  */
 
 import type { ScreenId, ScreenParamsById } from "./screens";
@@ -39,7 +38,6 @@ const RESTORABLE_SCREENS = [
   // le salon qu'on était en train de préparer n'existe plus (l'adresse a été rendue à l'annuaire),
   // donc il faut le recréer ou le rejoindre. La reprise d'un salon en cours est du Lot B3.
   "lobby",
-  "map-select",
   "my-teams",
   "settings",
   "credits",

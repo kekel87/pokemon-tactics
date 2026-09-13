@@ -32,9 +32,12 @@ export class EnglishScreens {
     return this.page.getByRole("button", { name: "Local", exact: true });
   }
 
-  // --- Choix de la carte (`mapSelect.confirm`)
+  // --- Choix de la carte (`mapSelect.*`) — une MODALE depuis le plan 208, plus un écran.
+  get changeMap(): Locator {
+    return this.page.getByTestId("room-change-map");
+  }
   get confirmMap(): Locator {
-    return this.page.getByRole("button", { name: "Select this map", exact: true });
+    return this.page.getByTestId("map-confirm");
   }
   get mapDetailName(): Locator {
     return this.page.getByTestId("map-detail-name");

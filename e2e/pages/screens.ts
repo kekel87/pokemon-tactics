@@ -20,24 +20,55 @@ export class BattleModeScreen {
   }
 }
 
+/**
+ * Le choix du terrain — une MODALE depuis le plan 208, plus un écran.
+ *
+ * 🔴 Elle ne s'ouvre plus sur le chemin d'une partie : « Jeu en solo » entre droit dans la sélection
+ * d'équipe avec la carte retenue d'office. Il faut donc l'ouvrir soi-même, par {@link open}, depuis
+ * le bandeau de partie. Un test qui aurait gardé l'ancien enchaînement se serait arrêté sur un écran
+ * qui n'existe plus.
+ */
 export class MapSelectScreen {
   readonly title: Locator;
   readonly confirm: Locator;
-  readonly back: Locator;
-  /** The 9 selectable map rows (left list). */
+  /** Le bouton du bandeau de partie qui OUVRE la modale. */
+  readonly changeButton: Locator;
+  readonly closeButton: Locator;
+  /** Les 10 lignes sélectionnables : les 9 cartes, plus « Aléatoire ». */
   readonly listItems: Locator;
-  /** Right-hand detail panel of the currently-selected map. */
+  /** Panneau de détail de la carte survolée, à droite. */
   readonly detailName: Locator;
   readonly detailMeta: Locator;
   readonly detailDescription: Locator;
-  constructor(page: Page) {
+  /** Le panneau du tirage, affiché à la place de l'aperçu Babylon sur « Aléatoire ». */
+  readonly randomPanel: Locator;
+  constructor(private readonly page: Page) {
     this.title = page.getByText("Choix de la carte");
-    this.confirm = page.getByRole("button", { name: "Choisir cette carte", exact: true });
-    this.back = page.getByRole("button", { name: "Retour" });
+    this.confirm = page.getByTestId("map-confirm");
+    this.changeButton = page.getByTestId("room-change-map");
+    this.closeButton = page.getByRole("button", { name: "Fermer" });
     this.listItems = page.getByTestId("map-list-item");
     this.detailName = page.getByTestId("map-detail-name");
     this.detailMeta = page.getByTestId("map-detail-meta");
     this.detailDescription = page.getByTestId("map-detail-description");
+    this.randomPanel = page.getByTestId("map-random-panel");
+  }
+
+  /** Ouvre la modale depuis le bandeau de partie, et attend qu'elle soit là. */
+  async open(): Promise<void> {
+    await this.changeButton.click();
+    await this.title.waitFor();
+  }
+
+  /** Retient une carte par son identifiant de registre (`volcano`), ou `random`. */
+  async choose(mapId: string): Promise<void> {
+    await this.item(mapId).click();
+    await this.confirm.click();
+  }
+
+  /** La ligne d'une carte, visée par son identifiant plutôt que par son nom traduit. */
+  item(mapId: string): Locator {
+    return this.page.locator(`[data-testid="map-list-item"][data-map-id="${mapId}"]`);
   }
 }
 
@@ -67,6 +98,17 @@ export class TeamSelectScreen {
    */
   readonly activeFormatSegment: Locator;
   /**
+   * Le nom de la carte, lu dans le bandeau de partie (plan 208) — « Aléatoire » quand le tirage
+   * n'est pas encore joué. Le titre de l'écran ne le porte plus : il le redoublait, et sur un
+   * tirage il aurait éventé la carte.
+   */
+  readonly mapName: Locator;
+  /**
+   * « ← Retour » de l'en-tête — le patron « écran plein » partagé (plan 207), visé par son testid et
+   * non par son libellé : le glyphe a changé une fois déjà.
+   */
+  readonly back: Locator;
+  /**
    * Case « Placement auto », **cochée par défaut**. La décocher est le seul moyen d'atteindre la
    * phase de placement interactive : cochée, tout est posé d'un coup avant que la phase ne s'affiche
    * (`placement-flow.ts`), donc rien de ce qui vit pendant le placement — son menu de combat compris
@@ -79,6 +121,20 @@ export class TeamSelectScreen {
    */
   readonly damagePreview: Locator;
   readonly launch: Locator;
+  /**
+   * « Passer en partie en ligne » — l'issue vers le jeu en ligne posée à la place du code, en solo
+   * (plan 208). Absente en ligne : le bandeau y porte le code.
+   */
+  readonly goOnline: Locator;
+  /**
+   * La confirmation de cette bascule, et **elle ne s'ouvre que quand la bascule détruit quelque
+   * chose** : un format à plus de deux camps, ou un second camp composé à la main. En 1v1 contre
+   * l'IA elle n'apparaît pas — un test qui l'attendrait là attendrait pour rien.
+   */
+  readonly goOnlineConfirm: Locator;
+  readonly goOnlineConfirmButton: Locator;
+  /** « Rester en solo » — le geste par défaut, celui qui ne coûte rien. */
+  readonly goOnlineCancel: Locator;
   constructor(private readonly page: Page) {
     this.title = page.getByText("Sélection d'équipe", { exact: false });
     this.formatSegments = page.getByTestId("format-segments");
@@ -86,9 +142,26 @@ export class TeamSelectScreen {
     this.activeFormatSegment = this.formatSegmentButtons.and(page.locator('[data-state="active"]'));
     // Par `data-testid` depuis le plan 198 : le pied d'écran porte DEUX cases, donc
     // `getByRole("checkbox")` seul y est devenu ambigu.
+    this.mapName = page.getByTestId("room-map-name");
+    this.back = page.getByTestId("screen-back");
     this.autoPlacement = page.getByTestId("team-select-auto-placement");
     this.damagePreview = page.getByTestId("team-select-damage-preview");
     this.launch = page.getByRole("button", { name: "Lancer ▶", exact: true });
+    this.goOnline = page.getByTestId("game-go-online");
+    this.goOnlineConfirm = page.getByTestId("go-online-confirm");
+    this.goOnlineConfirmButton = page.getByTestId("go-online-confirm-button");
+    this.goOnlineCancel = page.getByTestId("go-online-cancel");
+  }
+
+  /**
+   * Le segment du premier format qui compte `teamCount` camps — visé par sa CLÉ (`3v4`), dont seule
+   * la première moitié est connue d'avance : le nombre de Pokemon par équipe dépend de la carte.
+   * Le libellé, lui, se traduit et passe par un `text-transform`.
+   */
+  formatSegmentForTeamCount(teamCount: number): Locator {
+    return this.page
+      .locator(`[data-testid="format-segment"][data-format-key^="${teamCount}v"]`)
+      .first();
   }
 
   /** Bouton d'équipe d'un camp (0-indexé) — l'ouvre sur son sélecteur. */

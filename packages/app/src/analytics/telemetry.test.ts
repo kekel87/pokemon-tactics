@@ -144,12 +144,12 @@ describe("compteurs de visite", () => {
 
     telemetry.countScreen(telemetry.TelemetryScreen.MainMenu);
     telemetry.countScreen(telemetry.TelemetryScreen.MainMenu);
-    telemetry.countScreen(telemetry.TelemetryScreen.MapSelect);
+    telemetry.countScreen(telemetry.TelemetryScreen.TeamSelect);
     telemetry.countAction(telemetry.TelemetryAction.ShowdownImportFail);
     telemetry.flushSession();
 
     expect(stub.beacon.envelopes[0]?.payload).toMatchObject({
-      screens: { "main-menu": 2, "map-select": 1 },
+      screens: { "main-menu": 2, "team-select": 1 },
       actions: { "showdown-import-fail": 1 },
     });
   });

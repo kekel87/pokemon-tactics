@@ -237,7 +237,13 @@ export class Responsive {
 export const COMBAT_CHROME_ROOT = "#game-overlay .ui-screen";
 /** Intentional scrollers of the chrome: the timeline strip and the battle-log list. */
 export const COMBAT_CHROME_SCROLLERS = ".tt-list, .bl-list";
-/** `.ms-screen` — map-select screen root (two columns, a button pinned at the bottom of each). */
+/**
+ * `.ms-screen` — la racine du choix de carte : liste à gauche, aperçu à droite.
+ *
+ * Une MODALE depuis le plan 208, plus un écran : la racine ne s'ancre plus au viewport, elle remplit
+ * le corps du `<dialog>`. Le cas de mesure reste le plus serré du projet — une liste PLUS un aperçu
+ * Babylon dans un cadre déjà réduit.
+ */
 export const MAP_SELECT_ROOT = ".ms-screen";
 /** Map list: the scroller since plan 179 (it takes the squeeze so the buttons stay pinned). */
 export const MAP_SELECT_SCROLLERS = ".ms-list";

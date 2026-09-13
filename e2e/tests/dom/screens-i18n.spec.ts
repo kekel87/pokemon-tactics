@@ -25,15 +25,18 @@ test("§6.3 choix de carte : les étiquettes de terrain s'affichent en français
 }) => {
   const menu = new MainMenu(page);
   const battleMode = new BattleModeScreen(page);
+  const teams = new TeamSelectScreen(page);
   const maps = new MapSelectScreen(page);
 
   await menu.goto();
   await menu.combat.click();
   await battleMode.local.click();
+  await expect(teams.title).toBeVisible();
+  await maps.open();
 
   // « Grotte Exiguë » : la seule carte dont les deux étiquettes se traduisent en mots différents
   // (« couloirs » → corridors, « dénivelé » → elevation), donc celle où une fuite se voit.
-  await maps.listItems.nth(2).click();
+  await maps.item("cramped-cave").click();
   await expect(maps.detailName).toHaveText("Grotte Exiguë");
 
   await expect(maps.detailMeta).toContainText("12×12");
@@ -51,8 +54,9 @@ test("§6.3 choix de carte : les étiquettes de terrain suivent la bascule en an
   await menu.languageToggle.click(); // FR → EN
   await english.battle.click();
   await english.local.click();
+  await english.changeMap.click();
 
-  await maps.listItems.nth(2).click();
+  await maps.item("cramped-cave").click();
   await expect(maps.detailName).toHaveText("Cramped Cave");
 
   await expect(maps.detailMeta).toContainText("corridors, elevation");
@@ -71,7 +75,6 @@ test("§6.4 sélection d'équipe : le libellé de format suit la langue (2P × 6
   await menu.languageToggle.click(); // FR → EN
   await english.battle.click();
   await english.local.click();
-  await english.confirmMap.click();
 
   // « P » comme Players, pas le « J » de Joueurs : l'initiale suit la locale, comme le titre de
   // rangée « Players × Pokemon ».
