@@ -183,7 +183,6 @@ export interface Translations {
   "teamSelect.online.switchTitle": string;
   "teamSelect.online.switchConfirm": string;
   "teamSelect.online.switchCancel": string;
-  "teamSelect.online.switchLosesCamps": string;
   "teamSelect.online.switchLosesTeam": string;
   "placement.done": string;
   "pokemon.bulbasaur": string;
@@ -271,6 +270,7 @@ export interface Translations {
   "room.error.version_incompatible": string;
   "room.error.connexion_impossible": string;
   "room.error.delai_depasse": string;
+  "room.error.format_reduit": string;
   "lobby.title": string;
   "lobby.createHint": string;
   "lobby.create": string;

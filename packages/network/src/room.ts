@@ -61,6 +61,17 @@ import {
  */
 
 /** Les minuteurs du navigateur, quand personne n'en injecte d'autres. */
+/**
+ * Combien de fois un survivant NON élu relit le registre avant de renoncer (plan 209, Lot C5).
+ *
+ * Le registre sérialise les écritures, mais rien n'ordonne la lecture de l'un par rapport à la
+ * reprise de l'autre : il faut donc pouvoir relire. Trois tentatives espacées d'un battement
+ * couvrent largement un aller-retour, sans faire attendre une partie déjà perdue quand personne ne
+ * reprend réellement la main.
+ */
+const HOST_LOOKUP_ATTEMPTS = 3;
+const HOST_LOOKUP_RETRY_MS = 400;
+
 const defaultTimers: RoomTimers = {
   setTimeout: (callback, delayMs) => setTimeout(callback, delayMs),
   clearTimeout: (handle) => clearTimeout(handle as ReturnType<typeof setTimeout>),
@@ -163,16 +174,42 @@ export class Room {
   private readonly timers: RoomTimers;
   private readonly sleep: (delayMs: number) => Promise<void>;
 
+  /**
+   * La place qui HÉBERGE, en ce moment (plan 209, Lot C5).
+   *
+   * 🔴 **À ne pas confondre avec `HOST_SEAT`**, qui reste la constante « place n° 1 ». Les deux ont
+   * longtemps été le même nombre, et le code les écrivait indifféremment — c'est précisément ce qui
+   * rendait la migration d'hôte impossible. `HOST_SEAT` numérote ; `hostSeat` désigne un rôle, et
+   * un rôle se transmet.
+   */
+  private hostSeat = HOST_SEAT;
+
+  /** L'époque du registre pour ce salon, quand il y en a un. Voir `RoomRendezvousClient`. */
+  private hostEpoch = 0;
+
+  /** Une élection est-elle déjà en vol ? Deux reprises concurrentes s'annuleraient l'une l'autre. */
+  private electing = false;
+
   private constructor(
     private readonly deps: RoomDeps,
     readonly code: string,
-    readonly role: RoomRole,
+    private currentRole: RoomRole,
     readonly seat: number,
     options: NetworkRoomOptions,
   ) {
     this.roomOptions = options;
     this.timers = deps.timers ?? defaultTimers;
     this.sleep = deps.sleep ?? defaultSleep;
+  }
+
+  /** Le rôle courant. Il CHANGE à la migration d'hôte (Lot C5) : un invité peut devenir hôte. */
+  get role(): RoomRole {
+    return this.currentRole;
+  }
+
+  /** La place qui héberge en ce moment — la 1 tant que personne n'a repris la main. */
+  get hostingSeat(): number {
+    return this.hostSeat;
   }
 
   /**
@@ -187,6 +224,28 @@ export class Room {
     await claimOwnIdentity(deps.transport, hostPeerId(code), deps.sleep ?? defaultSleep);
 
     const room = new Room(deps, code, RoomRole.Host, HOST_SEAT, options);
+    /*
+     * On publie la place qui héberge (plan 209, Lot C4). Sans registre, rien ne change : l'hôte est
+     * la place 1 parce que c'est l'avoir prise qui fait l'hôte (#904). Avec lui, cette place devient
+     * une valeur qu'un successeur pourra remplacer.
+     *
+     * 🔴 Un registre injoignable **ne doit pas empêcher de jouer** : on garde le salon et le
+     * comportement d'avant, sans migration possible. C'est une capacité en moins, pas une panne.
+     */
+    if (deps.rendezvous !== undefined) {
+      try {
+        const claimed = await deps.rendezvous.claim(code, HOST_SEAT);
+        /*
+         * 🔴 On lit le `ok`. Un enregistrement rémanent (le registre garde un code 6 h) rendait
+         * l'époque **d'autrui**, que ce salon neuf adoptait — et les invités suivaient alors le
+         * `seat` d'un autre salon. Un code déjà pris n'est pas notre code : on repart sans registre
+         * plutôt qu'avec une identité empruntée.
+         */
+        room.hostEpoch = claimed.ok ? claimed.epoch : 0;
+      } catch {
+        room.hostEpoch = 0;
+      }
+    }
     room.initializeHostSeats();
     room.listenIncoming();
     return room;
@@ -205,8 +264,33 @@ export class Room {
    * Aucun réessai pendant le balayage : ici « occupée » est la réponse **normale**, pas un fantôme.
    */
   static async join(deps: RoomDeps, code: string): Promise<Room> {
-    const claimedSeat = await claimFirstFreeSeat(deps, code);
+    /*
+     * Qui héberge ? La question ne se posait pas tant que le code était l'adresse de l'hôte : c'était
+     * forcément la place 1. Après une migration, ce n'est plus vrai — et l'arrivant est justement
+     * celui qui ne peut pas le deviner, puisqu'il n'était pas là.
+     *
+     * 🔴 **AVANT le balayage, et l'ordre est tout** : il faut savoir quelle place NE PAS prendre. Un
+     * arrivant qui s'assoit sur la place de l'hôte se connecterait ensuite à lui-même et attendrait
+     * une poignée de main qui ne vient jamais — cinq secondes pour rien, puis un faux « code
+     * introuvable ». Le registre muet ou injoignable renvoie au comportement d'origine, la place 1.
+     */
+    let hostingSeat = HOST_SEAT;
+    let hostingEpoch = 0;
+    if (deps.rendezvous !== undefined) {
+      try {
+        const known = await deps.rendezvous.lookup(code);
+        if (known !== null) {
+          hostingSeat = known.seat;
+          hostingEpoch = known.epoch;
+        }
+      } catch {
+        // Repli silencieux : la place 1, comme avant le plan 209.
+      }
+    }
+    const claimedSeat = await claimFirstFreeSeat(deps, code, hostingSeat);
     const room = new Room(deps, code, RoomRole.Guest, claimedSeat, placeholderOptions());
+    room.hostSeat = hostingSeat;
+    room.hostEpoch = hostingEpoch;
     room.listenIncoming();
 
     try {
@@ -261,8 +345,29 @@ export class Room {
       // Et on encaisse aussi les hoquets du service, pas seulement le fantôme de notre adresse.
       true,
     );
-    const role = seat === HOST_SEAT ? RoomRole.Host : RoomRole.Guest;
+    /*
+     * 🔴 Qui héberge ? Surtout pas « la place 1 » (plan 209, Lot C5). Après une migration, l'ancienne
+     * place 1 qui revient se serait déclarée hôte alors qu'un autre l'est — deux hôtes — et un invité
+     * qui revient aurait REJETÉ les `room_state` du vrai hôte, qu'`isSpokenFor` juge sur `hostSeat`.
+     * C'est l'exemple même de la confusion que `hostSeat` existe pour lever.
+     */
+    let hostingSeat = HOST_SEAT;
+    let hostingEpoch = 0;
+    if (deps.rendezvous !== undefined) {
+      try {
+        const known = await deps.rendezvous.lookup(code);
+        if (known !== null) {
+          hostingSeat = known.seat;
+          hostingEpoch = known.epoch;
+        }
+      } catch {
+        // Repli : la place 1, comme avant le plan 209.
+      }
+    }
+    const role = seat === hostingSeat ? RoomRole.Host : RoomRole.Guest;
     const room = new Room(deps, code, role, seat, placeholderOptions());
+    room.hostSeat = hostingSeat;
+    room.hostEpoch = hostingEpoch;
     // Verrouillé d'emblée : la partie est en cours, et un salon qui se croirait ouvert accepterait
     // des arrivants et remettrait des places en `Waiting` au milieu d'un combat.
     room.locked = true;
@@ -325,6 +430,7 @@ export class Room {
       code: this.code,
       role: this.role,
       seat: this.seat,
+      hostSeat: this.hostSeat,
       options: this.roomOptions,
       seats: [...this.seats.values()].sort((left, right) => left.seat - right.seat),
       locked: this.locked,
@@ -575,6 +681,74 @@ export class Room {
   }
 
   /**
+   * L'hôte change le NOMBRE DE CAMPS, depuis la salle d'attente (plan 209, Lot C3).
+   *
+   * 🔴 **Le code de salon ne change pas.** C'était l'objection qui avait fait poser ce choix au
+   * `lobby` : « un salon ne change pas de format en cours de route ». Elle ne tient pas — ce qui ne
+   * doit pas changer, c'est l'ADRESSE, et elle ne dépend pas du format. On ajoute ou retire des
+   * places, on rediffuse, et le code que l'hôte a peut-être déjà dicté reste valable.
+   *
+   * Deux refus seulement :
+   * - partie lancée — il n'y a plus de salon à recomposer ;
+   * - hôte déjà prêt — même règle que `setOptions`, on ne change pas la règle après s'y être engagé.
+   *
+   * 🔴 **Un invité assis sur une place qui disparaît est ÉJECTÉ, et on lui dit pourquoi.** C'est la
+   * partie de l'hôte, il décide de son format (arbitrage humain, 2026-09-14) ; ce qui se négocie
+   * n'est pas son droit d'éjecter mais le fait de l'expliquer — d'où `FormatReduit`, envoyé **avant**
+   * de refermer le canal, parce qu'après il n'y a plus rien pour le porter.
+   *
+   * 🔴 **On éjecte PAR LE HAUT, donc les derniers arrivés.** Ce n'est pas un détail d'ordre : un
+   * arrivant prend la première place libre en balayant vers le haut (`claimFirstFreeSeat`), donc le
+   * numéro de place **est** l'ordre d'arrivée. Retirer les places hautes fait sortir ceux qui
+   * viennent d'entrer, jamais celui qui attendait depuis le début.
+   *
+   * ⚠️ La première rédaction refusait le rétrécissement « pour ne pas punir l'invité arrivé tôt ».
+   * L'argument était faux **dans les deux sens** : il prenait l'ordre des places à l'envers, et un
+   * refus n'aurait rien protégé — il aurait seulement empêché l'hôte de composer sa partie. Relevé
+   * par l'humain, 2026-09-14.
+   *
+   * @returns vrai si le format a changé.
+   */
+  setTeamCount(teamCount: number): boolean {
+    this.assertHost();
+    if (this.left || this.locked || this.seats.get(this.seat)?.ready === true) {
+      return false;
+    }
+    if (teamCount === this.roomOptions.teamCount) {
+      return false;
+    }
+    this.roomOptions = { ...this.roomOptions, teamCount };
+    for (const seat of [...this.seats.keys()]) {
+      if (seat >= HOST_SEAT + teamCount) {
+        const channel = this.channels.get(seat);
+        if (channel !== undefined) {
+          // Dire, PUIS fermer. L'ordre est tout : l'inverse laisse l'éjecté devant un canal mort
+          // sans explication, donc devant un « partie introuvable » qui serait faux.
+          channel.send({ type: "kick", seat, reason: NetworkErrorCode.FormatReduit });
+          channel.close();
+          this.channels.delete(seat);
+        }
+        this.clearGrace(seat);
+        this.seats.delete(seat);
+      }
+    }
+    for (let seat = HOST_SEAT; seat < HOST_SEAT + teamCount; seat += 1) {
+      if (!this.seats.has(seat)) {
+        // Mêmes valeurs qu'à l'ouverture : libre et prête d'office, sinon une place que personne ne
+        // tient bloquerait « Lancer » pour toujours.
+        this.seats.set(seat, {
+          seat,
+          occupancy: NetworkSeatOccupancy.Waiting,
+          ready: true,
+        });
+      }
+    }
+    this.broadcastRoomState();
+    this.notifyChange();
+    return true;
+  }
+
+  /**
    * L'hôte bascule une ligne entre **IA** et **place libre**. C'est aussi ce qui lui permet de
    * **forcer** le lancement : repasser en IA les lignes que personne ne tient.
    *
@@ -592,7 +766,7 @@ export class Room {
   setSeatOccupancy(seat: number, occupancy: NetworkSeatOccupancy): void {
     this.assertHost();
     const seatState = this.seats.get(seat);
-    if (this.left || seatState === undefined || seat === HOST_SEAT) {
+    if (this.left || seatState === undefined || seat === this.hostSeat) {
       return;
     }
     // Une place tenue par un joueur distant connecté ne se bascule pas sous ses pieds : il faudrait
@@ -793,8 +967,8 @@ export class Room {
    * message qui n'accuse personne (décision #900).
    */
   private async handshakeWithHost(): Promise<void> {
-    const channel = await this.deps.transport.connect(hostPeerId(this.code));
-    this.attachChannel(HOST_SEAT, channel);
+    const channel = await this.deps.transport.connect(peerIdForSeat(this.code, this.hostSeat));
+    this.attachChannel(this.hostSeat, channel);
 
     const welcome = await this.waitForWelcome(channel);
     if (!isCompatibleVersion(welcome.networkVersion)) {
@@ -912,7 +1086,7 @@ export class Room {
 
   private async connectToMesh(occupiedSeats: readonly number[]): Promise<void> {
     for (const remoteSeat of occupiedSeats) {
-      if (remoteSeat === this.seat || remoteSeat === HOST_SEAT) {
+      if (remoteSeat === this.seat || remoteSeat === this.hostSeat) {
         continue;
       }
       try {
@@ -966,10 +1140,12 @@ export class Room {
       // Une empreinte ne parle que de l'état de son émetteur (plan 203).
       case "checksum":
         return message.seat === remoteSeat;
-      // Ceux-là font autorité sur le salon entier : l'hôte seul les émet.
+      // Ceux-là font autorité sur le salon entier : l'hôte seul les émet. `kick` y est parce qu'il
+      // sort quelqu'un du salon — un invité qui pourrait l'émettre éjecterait les autres.
       case "room_state":
       case "start":
-        return remoteSeat === HOST_SEAT;
+      case "kick":
+        return remoteSeat === this.hostSeat;
       // `hello` porte la place réclamée, que `handleHello` confronte lui-même ; `welcome` est traité
       // par la poignée de main.
       case "hello":
@@ -1001,6 +1177,17 @@ export class Room {
         return;
       case "start_ack":
         this.handleStartAck(message.seat);
+        return;
+      case "kick":
+        /*
+         * L'hôte nous sort du salon. On prononce la cause AVANT de partir : c'est tout l'intérêt du
+         * message — sans lui, le joueur verrait son canal se fermer et lirait « partie introuvable »,
+         * un diagnostic faux pour un salon qui existe toujours.
+         */
+        if (message.seat === this.seat) {
+          this.emitError(message.reason);
+          this.leave();
+        }
         return;
       case "bye":
         // Noté, pas agi : la fermeture du canal suit, et c'est elle qui déclenche le délai. Un `bye`
@@ -1152,7 +1339,7 @@ export class Room {
     this.locked = true;
     // À l'hôte seul : lui seul tient le compte des accusés. L'envoyer au maillage entier ferait du
     // bruit que personne ne lit.
-    this.channels.get(HOST_SEAT)?.send({ type: "start_ack", seat: this.seat });
+    this.channels.get(this.hostSeat)?.send({ type: "start_ack", seat: this.seat });
     this.emitStart(start);
   }
 
@@ -1227,6 +1414,17 @@ export class Room {
      * cours, dont le rattrapage du revenant a besoin.
      */
     if (this.locked) {
+      /*
+       * 🔴 Partie LANCÉE et c'est l'hôte qui ne revient pas : le rôle migre, la partie continue
+       * (plan 209, Lot C5). C'est le cas qui compte le plus — en préparation, personne n'a encore
+       * rien investi ; ici les survivants sont au milieu d'un combat.
+       *
+       * Le forfait du partant, lui, ne se décide pas ici : il appartient à la couche au-dessus, qui
+       * tient le moteur. Ce salon ne fait que désigner qui prend la main.
+       */
+      if (remoteSeat === this.hostSeat) {
+        void this.electNewHost();
+      }
       this.peerAbsentListeners.emit(remoteSeat);
       this.notifyChange();
       return;
@@ -1234,10 +1432,13 @@ export class Room {
 
     this.selections.delete(remoteSeat);
 
-    // L'hôte parti, il n'y a plus de salon : le code **est** son adresse, donc un nouvel hôte
-    // voudrait un nouveau code que personne n'a (décision #904). Retour à l'écran `lobby`.
-    if (remoteSeat === HOST_SEAT) {
-      this.emitError(NetworkErrorCode.CodeIntrouvable);
+    /*
+     * L'hôte est parti. Jusqu'au plan 209 c'était la fin : le code **était** son adresse, donc un
+     * nouvel hôte aurait voulu un nouveau code que personne n'a (décision #904). Avec un registre,
+     * le code n'est plus qu'une clé — la place qui héberge est une valeur publiée, donc remplaçable.
+     */
+    if (remoteSeat === this.hostSeat) {
+      void this.electNewHost();
       this.notifyChange();
       return;
     }
@@ -1260,35 +1461,178 @@ export class Room {
   }
 
   /**
+   * Élit le successeur de l'hôte parti (plan 209, Lot C5).
+   *
+   * 🔴 **L'élection elle-même est triviale, et c'est voulu.** Les places sont numérotées, donc
+   * totalement ordonnées, et le maillage complet fait que chacun voit déjà qui est connecté : « la
+   * plus petite place encore là » se calcule sans échanger un seul message. Ni algorithme du tyran
+   * (O(n²) messages) ni anneau — ils résolvent un accord que notre ordre total rend déjà acquis.
+   *
+   * 🔴 **Ce qui n'est PAS trivial, c'est le rendez-vous.** Deux pairs qui voient la même déconnexion
+   * calculent le même successeur, puis écrivent chacun de leur côté : l'ordre des places ne ferme
+   * pas cette course, parce que lire puis écrire n'est pas atomique. C'est le compare-and-swap sur
+   * `epoch` qui la ferme — un seul `takeOver` aboutit, et **le perdant l'apprend** au lieu de le
+   * supposer.
+   *
+   * Sans registre, rien de tout cela n'est possible : le code reste l'adresse de l'ancien hôte, donc
+   * la partie meurt comme avant. Le repli est le comportement d'origine, pas une panne.
+   */
+  private async electNewHost(): Promise<void> {
+    // Voir la boucle de relecture ci-dessous : le registre peut n'avoir pas encore enregistré la
+    // reprise quand le non-élu l'interroge.
+
+    const rendezvous = this.deps.rendezvous;
+    /*
+     * 🔴 Le repli AVANT tout le reste, et l'ordre compte. Sans registre, la place qui héberge reste
+     * dérivée du code (#904) : il n'y a pas de successeur possible, et **tout le monde** doit rentrer
+     * au menu — pas seulement celui qui se serait cru élu. Tester plus bas laissait les autres pairs
+     * sur un salon sans hôte, muets, alors qu'avant le plan 209 ils recevaient tous l'erreur.
+     */
+    if (rendezvous === undefined) {
+      this.emitError(NetworkErrorCode.CodeIntrouvable);
+      return;
+    }
+    if (this.electing) {
+      // Deux départs traités coup sur coup ne doivent pas lancer deux reprises concurrentes : la
+      // seconde partirait avec une époque déjà périmée par la première.
+      return;
+    }
+    const departed = this.hostSeat;
+    const candidates = [this.seat, ...this.channels.keys()]
+      .filter((seat) => seat !== departed)
+      .sort((left, right) => left - right);
+    const successor = candidates[0];
+    if (successor === undefined) {
+      // Plus personne : il n'y a pas de partie à sauver.
+      this.emitError(NetworkErrorCode.CodeIntrouvable);
+      return;
+    }
+
+    this.electing = true;
+    try {
+      /*
+       * 🔴 **Tout le monde interroge le registre, même celui qui n'est pas élu.** Se contenter
+       * d'adopter le successeur calculé localement laissait les non-élus avec une époque PÉRIMÉE —
+       * et la migration suivante était alors impossible pour eux : leur `takeOver` partait avec un
+       * vieux compteur, se faisait refuser, et la partie restait sans hôte pour de bon.
+       */
+      if (successor !== this.seat) {
+        /*
+         * 🔴 **On attend que le registre ait CHANGÉ, au lieu de lire une fois.** Les survivants
+         * arment leur grâce au même instant : le `lookup` du non-élu part en même temps que le
+         * `takeOver` de l'élu, et le Durable Object les sérialise dans leur ordre d'arrivée — pile
+         * ou face. Une lecture unique rendait donc, une fois sur trois, la place du PARTANT ; le
+         * non-élu l'adoptait comme hôte et rejetait ensuite tous les `room_state` du vrai hôte, que
+         * `isSpokenFor` juge précisément sur `hostSeat`. Rien ne l'en sortait.
+         *
+         * Mesuré par `test-writer` sur 8 exécutions, invisible à la recette manuelle — c'est une
+         * course, elle ne se montre pas à tous les coups.
+         */
+        let known: { seat: number; epoch: number } | null = null;
+        for (let attempt = 0; attempt < HOST_LOOKUP_ATTEMPTS; attempt += 1) {
+          known = await rendezvous.lookup(this.code).catch(() => null);
+          if (this.left) {
+            return;
+          }
+          if (known !== null && known.seat !== departed) {
+            break;
+          }
+          // La reprise de l'élu n'est pas encore enregistrée : on laisse passer un battement.
+          await this.sleep(HOST_LOOKUP_RETRY_MS);
+          if (this.left) {
+            return;
+          }
+        }
+        if (known === null || known.seat === departed) {
+          // Personne n'a repris la main : il n'y a pas de partie à sauver.
+          this.emitError(NetworkErrorCode.CodeIntrouvable);
+          return;
+        }
+        this.hostSeat = known.seat;
+        this.hostEpoch = known.epoch;
+        this.notifyChange();
+        return;
+      }
+
+      let taken: { ok: boolean; seat: number; epoch: number };
+      try {
+        taken = await rendezvous.takeOver(this.code, this.seat, this.hostEpoch);
+      } catch {
+        // Le registre est injoignable : on ne se déclare surtout pas hôte sur une supposition.
+        this.emitError(NetworkErrorCode.CodeIntrouvable);
+        return;
+      }
+      /*
+       * 🔴 `left` testé APRÈS le compare-and-swap, donc la reprise a pu réussir côté registre alors
+       * qu'on s'en va. On la rend au lieu de laisser le registre pointer un partant : sans ça, le
+       * prochain élu hériterait d'un hôte fantôme.
+       */
+      if (this.left) {
+        if (taken.ok) {
+          void rendezvous.takeOver(this.code, departed, taken.epoch).catch(() => undefined);
+        }
+        return;
+      }
+      this.hostSeat = taken.seat;
+      this.hostEpoch = taken.epoch;
+      if (!taken.ok) {
+        // Course perdue : `taken.seat` est le vrai hôte, et le savoir est exactement ce qui nous
+        // empêche d'en devenir un second.
+        this.notifyChange();
+        return;
+      }
+      this.currentRole = RoomRole.Host;
+      /*
+       * 🔴 La carte des places est reprise AVANT d'être rediffusée. Celle qu'un invité détient décrit
+       * le salon **vu de sa place** : la sienne y est `Human`, celle de l'ancien hôte y figure encore
+       * occupée. La diffuser telle quelle figeait la place du partant comme prise chez tout le monde.
+       */
+      const departedState = this.seats.get(departed);
+      if (departedState !== undefined) {
+        this.seats.set(departed, {
+          ...departedState,
+          occupancy: NetworkSeatOccupancy.Waiting,
+          ready: true,
+        });
+      }
+      this.broadcastRoomState();
+      this.notifyChange();
+    } finally {
+      this.electing = false;
+    }
+  }
+
+  /**
    * Rappelle l'hôte tant que son délai de grâce court (plan 202, étape 5).
    *
    * Réservé à **l'invité rappelant l'hôte**, et rien d'autre : c'est la seule direction que le
-   * maillage compose (`handshakeWithHost` puis `connectToMesh`), et le réseau est restreint au 1v1
-   * (décision #944). Un hôte n'a personne à rappeler — ce sont ses invités qui reviennent vers lui.
+   * maillage compose (`handshakeWithHost` puis `connectToMesh`). Un hôte n'a personne à rappeler —
+   * ce sont ses invités qui reviennent vers lui.
    *
    * Le minuteur meurt avec la grâce : `clearGrace` le coupe, donc un retour réussi comme une
    * échéance atteinte l'arrêtent sans qu'il ait à le savoir.
    */
   private scheduleHostRedial(remoteSeat: number): void {
-    if (this.role !== RoomRole.Guest || remoteSeat !== HOST_SEAT) {
+    const hostSeat = this.hostSeat;
+    if (this.role !== RoomRole.Guest || remoteSeat !== hostSeat) {
       return;
     }
     const attempt = (): void => {
       // Plus de grâce en cours : le retour a eu lieu, ou l'échéance est tombée. Dans les deux cas,
       // il n'y a plus rien à rappeler.
-      if (this.left || !this.graceTimers.has(HOST_SEAT)) {
+      if (this.left || !this.graceTimers.has(hostSeat)) {
         return;
       }
       void this.deps.transport
-        .connect(hostPeerId(this.code))
+        .connect(peerIdForSeat(this.code, hostSeat))
         .then((channel) => {
           // La grâce a pu se résoudre pendant l'aller-retour : un canal de trop laisserait deux
           // connexions vivantes vers le même pair.
-          if (this.left || !this.graceTimers.has(HOST_SEAT)) {
+          if (this.left || !this.graceTimers.has(hostSeat)) {
             channel.close();
             return;
           }
-          this.attachChannel(HOST_SEAT, channel);
+          this.attachChannel(hostSeat, channel);
           // On se présente : c'est ce qui fait répondre l'hôte, verrou compris (décision #954).
           channel.send({ type: "hello", networkVersion: NETWORK_VERSION, seat: this.seat });
         })
@@ -1329,7 +1673,9 @@ export class Room {
     }
     this.timers.clearTimeout(existing.handle);
     this.graceTimers.delete(remoteSeat);
-    if (remoteSeat === HOST_SEAT) {
+    // Le rappel suit le RÔLE d'hôte, pas la place n° 1 : après une migration, c'est `hostSeat` qui
+    // dit qui on rappelait — `scheduleHostRedial` l'a toujours lu ainsi.
+    if (remoteSeat === this.hostSeat) {
       this.timers.clearTimeout(this.hostRedialTimer);
       this.hostRedialTimer = undefined;
     }
@@ -1466,8 +1812,27 @@ export class Room {
  *
  * @throws NetworkTransportError `salon_plein` si aucune place n'est libre jusqu'à `maxSeats`.
  */
-async function claimFirstFreeSeat(deps: RoomDeps, code: string): Promise<number> {
-  for (let seat = HOST_SEAT + 1; seat <= deps.maxSeats; seat += 1) {
+async function claimFirstFreeSeat(
+  deps: RoomDeps,
+  code: string,
+  hostingSeat: number,
+): Promise<number> {
+  /*
+   * 🔴 Le balayage part de la place 1, et non de la 2 (plan 209, Lot C5).
+   *
+   * Il commençait à la seconde parce que la première était FORCÉMENT celle de l'hôte — c'était vrai
+   * tant que le code était son adresse (#904). Depuis que le rôle migre, l'hôte d'origine peut être
+   * parti et sa place rendue libre : l'ignorer faisait répondre « cette partie est complète » à un
+   * arrivant devant un salon qui avait une place vide. Constaté en recette le 2026-09-14.
+   *
+   * Aucun risque de voler la place de l'hôte en activité : la prise d'identifiant chez l'annuaire est
+   * exclusive, donc une place tenue est refusée — le refus EST le mécanisme d'allocation (#898).
+   */
+  for (let seat = HOST_SEAT; seat <= deps.maxSeats; seat += 1) {
+    if (seat === hostingSeat) {
+      // Jamais la place de l'hôte : s'y asseoir reviendrait à se présenter à soi-même.
+      continue;
+    }
     try {
       await deps.transport.claim(peerIdForSeat(code, seat));
       return seat;

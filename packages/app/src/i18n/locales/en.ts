@@ -178,10 +178,8 @@ const en: Translations = {
   "teamSelect.online.switchTitle": "Switch to an online game",
   "teamSelect.online.switchConfirm": "Go online",
   "teamSelect.online.switchCancel": "Stay offline",
-  "teamSelect.online.switchLosesCamps":
-    "An online game is played by two sides. Sides beyond the second will be removed, teams included.",
   "teamSelect.online.switchLosesTeam":
-    "The second side will be opened up for your opponent. The team you picked for it will be removed.",
+    "The other sides will be opened up for your opponents. The teams you picked for them will be removed.",
   "placement.done": "✓ Done",
   "pokemon.bulbasaur": "Bulbasaur",
   "pokemon.venusaur": "Venusaur",
@@ -268,6 +266,7 @@ const en: Translations = {
   "room.error.version_incompatible": "Your game versions differ. Reload the page.",
   "room.error.connexion_impossible": "Could not connect between your two networks.",
   "room.error.delai_depasse": "No answer any more. Try again.",
+  "room.error.format_reduit": "The host changed the game format: there is no seat left for you.",
   "lobby.title": "Play Online",
   "lobby.createHint": "Your code appears on the next screen.",
   "lobby.create": "Create a Game",

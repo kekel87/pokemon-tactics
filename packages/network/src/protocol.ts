@@ -33,8 +33,15 @@ import {
  *
  * Le filet du jour où on oubliera est la somme de contrôle d'état du Lot B4 : la divergence devient
  * une erreur lisible au lieu d'un combat qui part en silence.
+ *
+ * 6 → 7 au plan 209 : aucun message n'a changé de forme, mais les RÈGLES de lecture, oui, et c'est
+ * exactement ce que cette version protège. Un client d'avant refuse une action dont l'index est en
+ * avance là où un client d'après la garde (Lot C1), et prononce un forfait bilatéral là où l'autre
+ * vote à la minorité (Lot C2). Deux pairs de versions différentes élimineraient donc des joueurs
+ * honnêtes sans qu'aucun message ne paraisse malformé — le pire mode d'échec, celui qui a l'air de
+ * marcher.
  */
-export const NETWORK_VERSION = 6;
+export const NETWORK_VERSION = 7;
 
 /**
  * Durée d'un tour en ligne (plan 202, Lot B3, décision #946).
@@ -50,6 +57,17 @@ export const NETWORK_VERSION = 6;
  * partie pour toujours.
  */
 export const ONLINE_TURN_DURATION_MS = 60_000;
+
+/**
+ * Combien de temps on laisse une action manquante arriver toute seule avant de la réclamer
+ * (plan 209, Lot C1).
+ *
+ * Le quart du tour. À trois camps et plus, une action arrivée en avance est le cas NORMAL — les
+ * canaux d'un maillage ne s'ordonnent pas entre eux — et le tampon de réordonnancement la résout
+ * sans un octet de réseau. Réclamer tout de suite ferait un aller-retour à chaque désordre
+ * ordinaire ; attendre un tour entier laisserait une vraie perte manger la fenêtre du joueur.
+ */
+export const RESYNC_GAP_DELAY_MS = 15_000;
 
 /**
  * Causes de refus, en énumération **fermée**. Ce sont aussi les valeurs envoyées en télémétrie :
@@ -68,6 +86,15 @@ export const NetworkErrorCode = {
   ConnexionImpossible: "connexion_impossible",
   /** Le pair n'a pas répondu dans le délai imparti. */
   DelaiDepasse: "delai_depasse",
+  /**
+   * L'hôte a réduit le nombre de camps, et cette place n'existe plus (plan 209, Lot C3).
+   *
+   * 🔴 Une cause À SOI, et pas un `CodeIntrouvable` de circonstance : le salon existe toujours, rien
+   * n'a échoué, et le joueur n'a rien fait de mal. Lui servir « partie introuvable » le laisserait
+   * croire à un bug ou à une mauvaise saisie, alors que la vraie réponse tient en une phrase — l'hôte
+   * a changé le format. Arbitrage humain du 2026-09-14 : on éjecte, mais on DIT pourquoi.
+   */
+  FormatReduit: "format_reduit",
 } as const;
 
 export type NetworkErrorCode = (typeof NetworkErrorCode)[keyof typeof NetworkErrorCode];
@@ -285,6 +312,20 @@ export interface ByeMessage {
 }
 
 /**
+ * L'hôte sort une place du salon, et lui dit pourquoi (plan 209, Lot C3).
+ *
+ * 🔴 **Envoyé AVANT la fermeture du canal**, sinon il n'y a plus de canal pour le porter — c'est la
+ * même leçon que l'abandon du plan 202, qui rendait la main au menu sans prévenir l'adversaire.
+ * La raison voyage dans l'énumération fermée des causes de refus : jamais de texte libre, sinon
+ * chaque écran inventerait sa formulation et la télémétrie deviendrait inagrégeable.
+ */
+export interface KickMessage {
+  type: "kick";
+  seat: number;
+  reason: NetworkErrorCode;
+}
+
+/**
  * Une action de combat, telle que son auteur l'a **déjà soumise à son propre moteur** (plan 201).
  *
  * 🔴 C'est ce « déjà » qui gouverne tout le traitement à la réception. `executeAction` soumet puis
@@ -411,6 +452,7 @@ export type NetworkMessage =
   | StartMessage
   | StartAckMessage
   | ByeMessage
+  | KickMessage
   | ActionMessage
   | ForfeitMessage
   | ResyncRequestMessage
@@ -470,6 +512,7 @@ const isDirection = isMemberOf(Direction);
 const isNature = isMemberOf(Nature);
 const isPokemonGender = isMemberOf(PokemonGender);
 const isForfeitReason = isMemberOf(NetworkForfeitReason);
+const isErrorCode = isMemberOf(NetworkErrorCode);
 const isSeatOccupancy = isMemberOf(NetworkSeatOccupancy);
 /** Une place de `start` : `human` ou `ai` seulement — `remote` est un état de salon. */
 const isStartController = isMemberOf(PlayerController);
@@ -610,6 +653,7 @@ const MESSAGE_VALIDATORS = {
     message.seats.every((seat, index) => seat.seat === index + 1),
   start_ack: (message) => isSeat(message.seat),
   bye: (message) => isSeat(message.seat),
+  kick: (message) => isSeat(message.seat) && isErrorCode(message.reason),
   action: (message) =>
     isSeat(message.seat) &&
     typeof message.actionIndex === "number" &&

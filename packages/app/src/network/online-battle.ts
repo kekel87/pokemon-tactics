@@ -4,6 +4,7 @@ import {
   BATTLE_GRACE_AFTER_SILENCE_MS,
   ChannelHealth,
   NetworkForfeitReason,
+  RESYNC_GAP_DELAY_MS,
   type Room,
 } from "@pokemon-tactic/network";
 import {
@@ -15,13 +16,38 @@ import { countAction, TelemetryAction } from "../analytics/telemetry";
 import { getOnlineRoom } from "./online-room";
 
 /**
- * Tours manqués **consécutifs** au bout desquels une place est éliminée (plan 202, décision #952).
+ * Tours manqués **consécutifs** au bout desquels une place est éliminée (plan 202, décision #952 ;
+ * rendu proportionnel au plan 209, Lot C3, décision #1028).
  *
- * Trois, comme le barème de divergence du Lot B2, et pour la même raison : un tour manqué est un
- * accident banal (un appel, un écran qui se verrouille), trois d'affilée ne le sont plus. Le
+ * Trois en duel, comme le barème de divergence du Lot B2, et pour la même raison : un tour manqué
+ * est un accident banal (un appel, un écran qui se verrouille), trois d'affilée ne le sont plus. Le
  * deuxième affiche un avertissement, exactement comme le « 2/3 » des refus.
+ *
+ * 🔴 **Pourquoi il ne peut pas rester à trois au-delà de deux camps.** Le seuil compte des tours,
+ * pas des minutes, et l'intervalle entre deux tours d'un même camp croît avec le nombre de camps :
+ * le Charge Time fait toujours agir douze combattants par round quel que soit le format
+ * (`MAX_POKEMON_PER_BATTLE`), donc un camp rejoue toutes les ~N actions. À 60 s par tour, trois tours
+ * manqués valent ~6 min en duel mais ~36 min à douze : un joueur parti garderait sa place plus d'une
+ * demi-heure, et son inaction déciderait du sort des autres.
+ *
+ * ⚠️ Ce que ce n'est PAS : les autres ne sont pas bloqués pendant ce temps, ils jouent — ils ne
+ * subissent que les 60 s de chacun de ses tours perdus. Le problème est l'occupation de la place, et
+ * c'est pourquoi la correction réduit le NOMBRE de tours tolérés au lieu d'inventer un plafond en
+ * minutes que rien ne saurait observer entre deux tours.
+ *
+ * ⚠️ **Ce n'est PAS une proportion, c'est une marche, et l'écart reste grand.** Une vraie
+ * proportionnalité (« ~6 min quel que soit le format ») donnerait 1 seul tour toléré dès six camps —
+ * or éliminer au premier tour manqué ferait sortir un joueur pour un accident isolé, précisément ce
+ * que ce mécanisme existe pour éviter. Le plancher de deux est donc un compromis assumé : ~6 min en
+ * duel, ~24 min à douze. C'est deux fois mieux qu'avant, pas le même ordre de grandeur.
+ *
+ * La forme définitive est laissée ouverte par le plan 209 (questions restées ouvertes) et attend la
+ * mesure de cadence réelle : la télémétrie n'a jamais observé que du 1v1, donc on ne sait pas ce
+ * qu'un joueur consomme vraiment de ses 60 s. Trancher plus finement maintenant serait deviner.
  */
-const MISSED_TURN_LIMIT = 3;
+function missedTurnLimitFor(teamCount: number): number {
+  return teamCount <= 2 ? 3 : 2;
+}
 
 /**
  * Cause de protocole → raison de moteur (plan 202, retour de recette 2026-09-09).
@@ -89,6 +115,14 @@ export interface OnlineBattleWiring {
    * l'onglet du pair est gelé et sa connexion techniquement ouverte.
    */
   onWaitingRemote(playerId: string | null): void;
+  /**
+   * Il manque une action avant celle qu'on vient de recevoir (plan 209, Lot C1).
+   *
+   * Arme le filet : si l'absente n'est pas arrivée d'elle-même au bout de `RESYNC_GAP_DELAY_MS`, on
+   * réclame la queue du journal. Le tampon de l'orchestrateur règle le **désordre**, ce minuteur
+   * règle la **perte** — l'un n'absorbe pas l'autre.
+   */
+  onRemoteActionGap(expectedIndex: number): void;
   /**
    * Branche la réception. Séparé de la construction : l'orchestrateur n'existe pas encore avant.
    *
@@ -252,8 +286,10 @@ export function createWiring(
    * garde la porte ouverte. À plus de deux pairs, la somme de contrôle devient **meilleure** qu'en
    * 1v1 parce que la majorité devient possible — onze pairs d'accord, un qui diffère, l'isolé a tort
    * et on l'exclut au lieu de terminer la partie. C'est la réponse au « qui a raison ? » que le 1v1
-   * ne peut structurellement pas avoir (#943). La règle de majorité se greffera ici sans toucher au
-   * protocole ; ce lot ne l'implémente pas.
+   * ne peut structurellement pas avoir (#943).
+   *
+   * 🔴 La règle de majorité est LIVRÉE depuis le plan 209, Lot C2 (`evaluateDigests`), et elle s'est
+   * greffée ici sans toucher au protocole — c'est exactement ce que « par place » avait prévu.
    */
   const remoteDigests = new Map<number, Map<number, string>>();
   /** Nos propres empreintes, gardées le temps qu'une empreinte distante du même index arrive. */
@@ -274,6 +310,16 @@ export function createWiring(
    * lui-même. Relevé en revue de code.
    */
   let divergencePronounced = false;
+
+  /**
+   * Les places sorties du combat — forfait, abandon, élimination (plan 209, Lot C2).
+   *
+   * 🔴 Elles doivent quitter le QUORUM, pas seulement la partie. Leur empreinte fige à leur dernier
+   * index pendant que les survivants avancent : comptée, elle fabrique un désaccord à chaque action.
+   * C'est la limite exacte que #975 avait relevée sans pouvoir la corriger en 1v1, où un forfait
+   * termine le combat et où la question ne se posait donc jamais.
+   */
+  const forfeitedSeats = new Set<number>();
 
   /**
    * Combien d'index on garde derrière soi avant de purger.
@@ -338,7 +384,7 @@ export function createWiring(
                 kind: ConnectionNoticeKind.MissedTurns,
                 seat: missedWarning.seat,
                 missedTurns: missedWarning.missedTurns,
-                limit: MISSED_TURN_LIMIT,
+                limit: missedTurnLimit,
               }
           : { kind: ConnectionNoticeKind.ConnectionUncertain, seat: uncertainSeat }
         : {
@@ -364,7 +410,14 @@ export function createWiring(
   };
   /** Tours manqués d'affilée, par place. Une action sans `timedOut` remet le compteur à zéro. */
   const missedTurnsBySeat = new Map<number, number>();
-  /** Le minuteur du silence, et la place qu'il surveille. Un seul à la fois : le réseau est en 1v1. */
+  /** Le barème d'absence de CETTE partie : il dépend du nombre de camps (plan 209, Lot C3). */
+  const missedTurnLimit = missedTurnLimitFor(allPlayerIds.length);
+  /*
+   * Le minuteur du silence, et la place qu'il surveille. **Un seul à la fois**, et ça reste vrai à
+   * douze camps (plan 209) : le combat est tour par tour à acteur unique, donc on n'attend jamais
+   * qu'une seule place — celle qui a la main. Le motif n'est plus « le réseau est en 1v1 » mais
+   * « il n'y a qu'un joueur à attendre », ce qui ne dépend pas du nombre de camps.
+   */
   let silenceTimer: { seat: number; handle: unknown } | null = null;
 
   const clearSilenceWatchdog = (): void => {
@@ -373,6 +426,21 @@ export function createWiring(
     }
     timers.clearTimeout(silenceTimer.handle);
     silenceTimer = null;
+  };
+
+  /**
+   * Le filet du rattrapage (plan 209, Lot C1) : l'index qu'on attend, et le minuteur qui dira
+   * qu'il ne viendra pas tout seul. Un seul à la fois — c'est toujours la PLUS ANCIENNE action
+   * manquante qui bloque la file, les suivantes attendront derrière elle de toute façon.
+   */
+  let gapTimer: { expected: number; handle: unknown } | null = null;
+
+  const clearGapWatchdog = (): void => {
+    if (gapTimer === null) {
+      return;
+    }
+    timers.clearTimeout(gapTimer.handle);
+    gapTimer = null;
   };
 
   const seatForPlayer = (playerId: string): number | undefined => {
@@ -405,29 +473,108 @@ export function createWiring(
     clearSilenceWatchdog();
     clearAllNotices();
     countAction(counted);
+    forfeitedSeats.add(seat);
     room.sendForfeit(seat, reason);
     attached.applyForfeit(playerId, ENGINE_FORFEIT_REASON[reason]);
   };
 
+  /** Les places encore dans le quorum : humaines, et pas déjà sorties du combat. */
+  const votingSeats = (): number[] => {
+    const seats: number[] = [];
+    for (const playerId of humanPlayerIds) {
+      const seat = seatForPlayer(playerId);
+      if (seat !== undefined && !forfeitedSeats.has(seat)) {
+        seats.push(seat);
+      }
+    }
+    return seats;
+  };
+
   /**
-   * Confronte une empreinte locale et une empreinte distante de **même index** (plan 203, Lot B4).
+   * Tranche le désaccord d'état à N témoins, par vote de MINORITÉ (plan 209, Lot C2).
    *
-   * Le camp éliminé est le pair divergent, pas nous : notre moteur est le seul juge dont on dispose.
-   * 🔴 Ce n'est PAS une accusation — en 1v1 personne ne peut dire qui s'est écarté (#943), et le
-   * joueur lit « les parties ne concordent plus », jamais « vous avez triché ». Le pair d'en face
-   * prononce le même constat au même instant, symétriquement.
+   * 🔴 **Ce qui change par rapport au Lot B4, et pourquoi c'était urgent.** L'ancienne version
+   * confrontait mon empreinte à celle d'UN pair et prononçait le forfait de CE pair. À deux, c'est
+   * symétrique et juste. À trois, si c'est **moi** qui diverge, j'éliminais les deux autres —
+   * honnêtes — l'un après l'autre pendant qu'ils m'éliminaient : le seul fautif restait le seul
+   * debout dans sa propre partie. Le désaccord n'accuse donc plus « l'autre », il accuse le
+   * **minoritaire**, moi compris. Se reconnaître divergent est un cas normal de ce code.
+   *
+   * 🔴 **Ce n'est toujours PAS un anti-triche**, et le rester est délibéré (#943, #975). Le seuil
+   * byzantin est de 3f+1 : tolérer un seul pair menteur demanderait quatre pairs, donc à trois camps
+   * un vote 2 contre 1 ne **prouve** rien. C'est un outil de diagnostic contre la divergence
+   * accidentelle, et le joueur lit « les parties ne concordent plus », jamais « vous avez triché ».
    */
-  const compareDigests = (seat: number, actionIndex: number): void => {
+  const evaluateDigests = (actionIndex: number): void => {
+    if (divergencePronounced) {
+      return;
+    }
     const mine = localDigests.get(actionIndex);
-    const theirs = remoteDigests.get(seat)?.get(actionIndex);
-    if (mine === undefined || theirs === undefined) {
+    const localSeat = seatForPlayer(localPlayerId);
+    if (mine === undefined || localSeat === undefined || forfeitedSeats.has(localSeat)) {
+      return;
+    }
+    const seats = votingSeats();
+    /*
+     * On attend que TOUT LE MONDE ait parlé à cet index. Trancher sur un quorum partiel ferait
+     * désigner un minoritaire qu'une empreinte encore en vol aurait mis en majorité. Un pair qui ne
+     * parle jamais n'est pas le problème de ce mécanisme — c'est celui du chien de garde du silence.
+     */
+    const byDigest = new Map<string, number[]>();
+    for (const seat of seats) {
+      const digest = seat === localSeat ? mine : remoteDigests.get(seat)?.get(actionIndex);
+      if (digest === undefined) {
+        return;
+      }
+      const group = byDigest.get(digest);
+      if (group === undefined) {
+        byDigest.set(digest, [seat]);
+      } else {
+        group.push(seat);
+      }
+    }
+    if (seats.length < 2) {
+      // Seul survivant : il n'y a plus personne avec qui être d'accord ou non.
       return;
     }
     if (!comparisonCounted) {
       comparisonCounted = true;
       countAction(TelemetryAction.ChecksumCompared);
     }
-    if (mine === theirs || divergencePronounced) {
+    if (byDigest.size === 1) {
+      // Tout le monde d'accord : le déterminisme tient.
+      return;
+    }
+    const groups = [...byDigest.values()].sort((left, right) => right.length - left.length);
+    const largest = groups[0];
+    const runnerUp = groups[1];
+    if (seats.length === 2) {
+      /*
+       * 🔴 LE 1v1 GARDE SON CONSTAT SYMÉTRIQUE (#943), et ce n'est pas une exception paresseuse.
+       * À deux témoins, tout désaccord est une égalité 1-1 : appliquer la règle de majorité
+       * supprimerait purement et simplement la détection de divergence du duel, livrée au Lot B4.
+       * La règle d'égalité (#1026) ne vaut que là où une majorité est POSSIBLE — à trois camps et
+       * plus. Ici personne ne peut dire qui s'est écarté, donc chacun prononce le même constat au
+       * même instant et la partie s'arrête des deux côtés.
+       */
+      divergencePronounced = true;
+      countAction(TelemetryAction.ChecksumMismatch);
+      for (const seat of seats) {
+        if (seat !== localSeat) {
+          forfeitSeat(seat, NetworkForfeitReason.EtatDivergent, TelemetryAction.ForfeitDiverged);
+        }
+      }
+      return;
+    }
+    if (largest === undefined || runnerUp === undefined || largest.length === runnerUp.length) {
+      /*
+       * 🔴 ÉGALITÉ : personne n'est accusé (plan 209, décision #1026). Aucun précédent ne tranche —
+       * Age of Empires et Factorio constatent la divergence et ne réconcilient jamais. Prononcer un
+       * forfait sur une égalité, ce serait éliminer un joueur à pile ou face. On compte, et on
+       * laisse jouer.
+       */
+      divergencePronounced = true;
+      countAction(TelemetryAction.ChecksumMismatch);
       return;
     }
     divergencePronounced = true;
@@ -435,12 +582,17 @@ export function createWiring(
      * Deux compteurs montent ensemble, et c'est voulu : `forfeit-diverged` compte les forfaits pour
      * divergence toutes causes, `checksum-mismatch` ceux que la somme de contrôle a trouvés. Leur
      * ÉCART dit combien viennent d'actions refusées (le barème du Lot B2) plutôt que d'une désync
-     * d'état muette — celle qu'aucun autre mécanisme ne voit. Même leçon que
-     * `forfeit-absent` / `forfeit-missed-turns` au Lot B3 : les confondre masquerait lequel des deux
-     * mécanismes tranche vraiment.
+     * d'état muette — celle qu'aucun autre mécanisme ne voit.
      */
     countAction(TelemetryAction.ChecksumMismatch);
-    forfeitSeat(seat, NetworkForfeitReason.EtatDivergent, TelemetryAction.ForfeitDiverged);
+    for (const group of groups) {
+      if (group === largest) {
+        continue;
+      }
+      for (const seat of group) {
+        forfeitSeat(seat, NetworkForfeitReason.EtatDivergent, TelemetryAction.ForfeitDiverged);
+      }
+    }
   };
 
   return {
@@ -459,9 +611,8 @@ export function createWiring(
       localDigests.set(actionIndex, digest);
       pruneDigests(actionIndex);
       room.sendChecksum(actionIndex, digest);
-      for (const seat of remoteDigests.keys()) {
-        compareDigests(seat, actionIndex);
-      }
+      // Un seul verdict par index, sur l'ensemble des témoins — plus une confrontation par pair.
+      evaluateDigests(actionIndex);
     },
 
     /*
@@ -473,6 +624,38 @@ export function createWiring(
      * à envoyer : son silence est le comportement normal, et le compter serait éliminer un joueur
      * attentif pendant qu'on réfléchit.
      */
+    /*
+     * Une action est arrivée en avance : il en manque une devant elle (plan 209, Lot C1).
+     *
+     * 🔴 On ne réclame RIEN tout de suite. À trois camps et plus, le désordre de livraison est le
+     * cas ordinaire — deux canaux que rien n'ordonne entre eux — et le tampon de l'orchestrateur le
+     * résout sans un octet de réseau. Ce minuteur ne sert qu'au cas où l'absente est vraiment
+     * perdue ; il se désarme tout seul si le journal avance entre-temps.
+     */
+    onRemoteActionGap: (expectedIndex) => {
+      if (attached === null || attached.isBattleOver()) {
+        return;
+      }
+      if (gapTimer !== null && gapTimer.expected === expectedIndex) {
+        // Déjà armé sur ce trou-là : les actions suivantes qui s'empilent derrière ne le relancent
+        // pas, sinon un pair bavard repousserait indéfiniment le rattrapage qu'il rend nécessaire.
+        return;
+      }
+      clearGapWatchdog();
+      const handle = timers.setTimeout(() => {
+        gapTimer = null;
+        if (attached === null || attached.isBattleOver()) {
+          return;
+        }
+        if (attached.appliedActionCount !== expectedIndex) {
+          // Le journal a avancé : l'absente est arrivée toute seule, il n'y a rien à réclamer.
+          return;
+        }
+        room.sendResyncRequest(attached.appliedActionCount);
+      }, RESYNC_GAP_DELAY_MS);
+      gapTimer = { expected: expectedIndex, handle };
+    },
+
     onWaitingRemote: (playerId) => {
       clearSilenceWatchdog();
       if (playerId === null) {
@@ -559,13 +742,13 @@ export function createWiring(
           if (actorSeat === undefined) {
             return;
           }
-          const applied = orchestrator.submitRemoteAction({
+          const outcome = orchestrator.submitRemoteAction({
             seat: actorSeat,
             playerId,
             actionIndex,
             action,
           });
-          if (!applied) {
+          if (outcome === "rejected") {
             /*
              * Refusé : nos deux journaux ne racontent pas la même histoire, et insister ferait
              * empiler des refus sur un état déjà faux. Le barème a déjà compté celui-ci, et c'est
@@ -573,6 +756,12 @@ export function createWiring(
              */
             return;
           }
+          /*
+           * 🔴 « Gardée » n'arrête PAS le rattrapage (plan 209, Lot C1). La première action appliquée
+           * fait entrer en animation, donc toutes les suivantes du même lot sont mises en attente —
+           * c'est normal, le tampon les rejouera dans l'ordre. S'arrêter là, comme le faisait le
+           * booléen d'avant, **jetait la queue du lot** : ni appliquée, ni gardée, ni redemandée.
+           */
         }
       });
 
@@ -591,7 +780,7 @@ export function createWiring(
         if (message.timedOut === true) {
           const missedTurns = (missedTurnsBySeat.get(message.seat) ?? 0) + 1;
           missedTurnsBySeat.set(message.seat, missedTurns);
-          if (missedTurns >= MISSED_TURN_LIMIT) {
+          if (missedTurns >= missedTurnLimit) {
             forfeitSeat(
               message.seat,
               NetworkForfeitReason.Absent,
@@ -599,7 +788,7 @@ export function createWiring(
             );
             return;
           }
-          if (missedTurns === MISSED_TURN_LIMIT - 1) {
+          if (missedTurns === missedTurnLimit - 1) {
             // Le même avertissement que le « 2/3 » du barème de divergence : personne ne doit être
             // éliminé sans avoir vu venir le dernier coup.
             missedWarning = { seat: message.seat, missedTurns };
@@ -700,6 +889,7 @@ export function createWiring(
          * `forfeit` est idempotent, donc un constat qui arrive de deux pairs à la fois ne compte
          * qu'une fois.
          */
+        forfeitedSeats.add(message.forfeitedSeat);
         orchestrator.applyForfeit(playerId, ENGINE_FORFEIT_REASON[message.reason]);
       });
       /*
@@ -721,7 +911,7 @@ export function createWiring(
           remoteDigests.set(message.seat, bySeat);
         }
         bySeat.set(message.actionIndex, message.digest);
-        compareDigests(message.seat, message.actionIndex);
+        evaluateDigests(message.actionIndex);
       });
       /*
        * La demande part **après** les écouteurs, et c'est l'ordre qui compte : une action jouée par
@@ -745,11 +935,13 @@ export function createWiring(
           // d'une partie à celui de la suivante.
           localDigests.clear();
           remoteDigests.clear();
+          forfeitedSeats.clear();
           comparisonCounted = false;
           divergencePronounced = false;
           // Un minuteur qui survit à l'écran ferait prononcer un forfait dans une partie qui
           // n'existe plus — la même erreur que les écouteurs non défaits.
           clearSilenceWatchdog();
+          clearGapWatchdog();
           attached = null;
         },
         { once: true },
@@ -769,6 +961,7 @@ export function createWiring(
         return;
       }
       clearSilenceWatchdog();
+      clearGapWatchdog();
       clearAllNotices();
       countAction(TelemetryAction.ForfeitResigned);
       room.sendForfeit(seat, NetworkForfeitReason.Abandon);

@@ -97,6 +97,36 @@ export class OnlinePeer {
     });
   }
 
+  /**
+   * Menu → Combat → En ligne → « Créer une partie », jusqu'à la salle d'attente. Rend le code.
+   *
+   * Sur le PAIR et non sur la session : un scénario à trois joueurs ou plus n'a pas de « session »
+   * au sens de {@link OnlineSession}, qui ne connaît que le duel — mais chacun de ses pairs traverse
+   * exactement les mêmes écrans.
+   */
+  async openRoom(): Promise<string> {
+    await this.menu.goto(localSignalling);
+    await this.menu.combat.click();
+    await this.mode.online.click();
+    // « Créer une partie » entre droit dans la salle d'attente depuis le plan 208 : la carte vient
+    // des préférences de l'hôte, et il la change en modale sans quitter l'écran.
+    // Le code naît à l'entrée sur la salle d'attente, jamais avant.
+    await this.lobby.create.click();
+    await expect(this.room.panel).toBeVisible();
+    return ((await this.room.code.textContent()) ?? "").trim();
+  }
+
+  /** Menu → Combat → En ligne → code composé au clavier → « Rejoindre », jusqu'à la salle d'attente. */
+  async joinRoom(code: string): Promise<void> {
+    await this.menu.goto(localSignalling);
+    await this.menu.combat.click();
+    await this.mode.online.click();
+    await expect(this.lobby.codeSlots).toHaveCount(5);
+    await this.lobby.typeCode(code);
+    await this.lobby.join.click();
+    await expect(this.room.panel).toBeVisible({ timeout: 30_000 });
+  }
+
   hasHand(): Promise<boolean> {
     return this.wait.isVisible();
   }
@@ -205,24 +235,10 @@ export class OnlineSession {
   async startBattle(): Promise<void> {
     const { host, guest } = this;
 
-    await host.menu.goto(localSignalling);
-    await host.menu.combat.click();
-    await host.mode.online.click();
-    await host.lobby.create.click();
-    // « Créer une partie » entre droit dans la salle d'attente depuis le plan 208 : la carte vient
-    // des préférences de l'hôte, et il la change en modale sans quitter l'écran.
-    // Le code naît à l'entrée sur la salle d'attente, jamais avant.
-    await expect(host.room.panel).toBeVisible();
-    this.roomCode = ((await host.room.code.textContent()) ?? "").trim();
+    this.roomCode = await host.openRoom();
     await this.pickTeam(host, 0, this.options.hostTeamId);
 
-    await guest.menu.goto(localSignalling);
-    await guest.menu.combat.click();
-    await guest.mode.online.click();
-    await expect(guest.lobby.codeSlots).toHaveCount(5);
-    await guest.lobby.typeCode(this.roomCode);
-    await guest.lobby.join.click();
-    await expect(guest.room.panel).toBeVisible({ timeout: 30_000 });
+    await guest.joinRoom(this.roomCode);
 
     // L'invité compose SA ligne, la deuxième, puis confirme. Sans équipe sur chaque camp, « Lancer »
     // resterait inerte pour une raison qui n'a rien à voir avec le réseau.

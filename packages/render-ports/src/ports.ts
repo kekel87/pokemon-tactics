@@ -472,6 +472,20 @@ export interface BattleOrchestratorConfig {
    */
   onWaitingRemote?: (playerId: string | null) => void;
   /**
+   * Une action distante est arrivée **en avance** : il en manque une avant elle (plan 209, Lot C1).
+   *
+   * `expectedIndex` est l'index que notre journal attend. L'orchestrateur **signale seulement** — il
+   * a déjà fait sa part en gardant l'action au lieu de l'accuser ; c'est au réseau de décider si
+   * l'absente chemine encore ou si elle est perdue pour de bon, parce que lui seul sait demander un
+   * rattrapage.
+   *
+   * 🔴 Le trou est le cas NORMAL d'un maillage à trois camps et plus : `Room.broadcast` écrit sur un
+   * canal par pair et rien n'ordonne entre eux. Ce signal ne dit jamais « quelqu'un triche », il dit
+   * « il manque une pièce ». Réagir trop vite ferait un aller-retour réseau à chaque désordre
+   * ordinaire, que le tampon résout tout seul.
+   */
+  onRemoteActionGap?: (expectedIndex: number) => void;
+  /**
    * Temps de jeu cumulé depuis le début de la partie, pour la durée du récapitulatif de victoire
    * (plan 197).
    *
@@ -562,6 +576,18 @@ export interface RemoteActionEnvelope {
   actionIndex: number;
   action: Action;
 }
+
+/**
+ * Ce que `submitRemoteAction` a fait de l'enveloppe (plan 209, Lot C1).
+ *
+ * 🔴 **Un booléen ne suffit plus, et s'en contenter a coûté un bug.** Avant le plan 209, « pas
+ * appliquée » voulait forcément dire « refusée ». Depuis, une action peut aussi être **gardée** —
+ * arrivée trop tôt, elle attend son tour sans que personne ne soit accusé. Les deux cas demandent
+ * des réactions opposées : on s'arrête sur un refus (les journaux divergent), on continue sur une
+ * mise en attente (tout va bien, ça vient). Le rattrapage confondait les deux et jetait la queue de
+ * son propre lot.
+ */
+export type RemoteActionOutcome = "applied" | "kept" | "rejected";
 
 export interface RemoteActionRejection {
   /** La place dont l'action est refusée. */

@@ -107,6 +107,7 @@ export const TelemetryAction = {
   RoomFailedVersionIncompatible: "room-failed-version_incompatible",
   RoomFailedConnexionImpossible: "room-failed-connexion_impossible",
   RoomFailedDelaiDepasse: "room-failed-delai_depasse",
+  RoomFailedFormatReduit: "room-failed-format_reduit",
   /*
    * Robustesse du jeu en ligne (plan 202, Lot B3). Ces compteurs existent pour une raison précise :
    * **les délais du lot sont des paris**, arrêtés à la main faute de terrain — 60 s de chrono, 75 s
@@ -164,6 +165,7 @@ export const ROOM_FAILURE_ACTIONS = {
   version_incompatible: TelemetryAction.RoomFailedVersionIncompatible,
   connexion_impossible: TelemetryAction.RoomFailedConnexionImpossible,
   delai_depasse: TelemetryAction.RoomFailedDelaiDepasse,
+  format_reduit: TelemetryAction.RoomFailedFormatReduit,
 } as const satisfies Record<NetworkErrorCode, TelemetryAction>;
 
 export const TeamSource = {

@@ -24,7 +24,7 @@ import {
   HOST_REDIAL_INTERVAL_MS,
   LAUNCH_ACK_TIMEOUT_MS,
 } from "./room-config.js";
-import { type RoomDeps, RoomRole } from "./room-types.js";
+import { type RoomDeps, type RoomRendezvousClient, RoomRole } from "./room-types.js";
 import { FakeNetworkDirectory } from "./testing/fake-transport.js";
 import type { NetworkChannel, NetworkTransport } from "./transport.js";
 import {
@@ -1540,6 +1540,302 @@ describe("Room — retour de l'hôte (Lot B3)", () => {
 
     expect(returned).toEqual([]);
     returningHost.leave();
+  });
+});
+
+describe("Room — le format se change depuis la salle d'attente (plan 209, Lot C3)", () => {
+  let directory: FakeNetworkDirectory;
+
+  beforeEach(() => {
+    directory = new FakeNetworkDirectory();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("recompose les places SANS changer le code du salon", async () => {
+    const host = await Room.create(depsFor(directory), options(2));
+    const code = host.code;
+    await flush();
+
+    expect(host.setTeamCount(4)).toBe(true);
+
+    // Le code est l'adresse : c'est LUI qui ne doit pas bouger, pas le nombre de places.
+    expect(host.code).toBe(code);
+    expect(host.view.options.teamCount).toBe(4);
+    expect(host.view.seats.map((seat) => seat.seat)).toEqual([1, 2, 3, 4]);
+  });
+
+  it("retire les places en trop quand le format rétrécit", async () => {
+    const host = await Room.create(depsFor(directory), options(6));
+    await flush();
+
+    expect(host.setTeamCount(2)).toBe(true);
+
+    expect(host.view.seats.map((seat) => seat.seat)).toEqual([1, 2]);
+  });
+
+  it("annonce le nouveau format aux invités déjà là", async () => {
+    const host = await Room.create(depsFor(directory), options(2));
+    const guest = await Room.join(depsFor(directory), ROOM_CODE);
+    await flush();
+
+    host.setTeamCount(3);
+    await flush();
+
+    expect(guest.view.options.teamCount).toBe(3);
+    expect(guest.view.seats.map((seat) => seat.seat)).toEqual([1, 2, 3]);
+  });
+
+  it("🔴 éjecte l'invité dont la place disparaît, en lui DISANT pourquoi", async () => {
+    const host = await Room.create(depsFor(directory), options(3));
+    await Room.join(depsFor(directory), ROOM_CODE);
+    const third = await Room.join(depsFor(directory), ROOM_CODE);
+    const errors: NetworkErrorCode[] = [];
+    third.onError((code) => errors.push(code));
+    await flush();
+
+    // C'est la partie de l'hôte : il décide du format. Ce qui se négocie n'est pas son droit
+    // d'éjecter, c'est le fait de l'expliquer — sans quoi l'éjecté lirait « partie introuvable »,
+    // un diagnostic faux pour un salon qui existe toujours.
+    //
+    // Et c'est bien la place 3 qui sort, pas la 2 : le numéro de place est l'ordre d'arrivée, donc
+    // éjecter par le haut fait sortir le dernier entré.
+    expect(host.setTeamCount(2)).toBe(true);
+    await flush();
+
+    expect(host.view.options.teamCount).toBe(2);
+    expect(host.view.seats.map((seat) => seat.seat)).toEqual([1, 2]);
+    expect(errors).toEqual([NetworkErrorCode.FormatReduit]);
+  });
+
+  it("🔴 éjecte les DERNIERS arrivés, jamais les premiers", async () => {
+    const host = await Room.create(depsFor(directory), options(4));
+    const second = await Room.join(depsFor(directory), ROOM_CODE);
+    const third = await Room.join(depsFor(directory), ROOM_CODE);
+    const fourth = await Room.join(depsFor(directory), ROOM_CODE);
+    const sorties: number[] = [];
+    third.onError(() => sorties.push(third.seat));
+    fourth.onError(() => sorties.push(fourth.seat));
+    second.onError(() => sorties.push(second.seat));
+    await flush();
+
+    // Le numéro de place EST l'ordre d'arrivée : un arrivant prend la première libre en balayant
+    // vers le haut. Passer de quatre à deux camps doit donc sortir les places 3 et 4 — les deux
+    // derniers entrés — et laisser la 2, qui attendait depuis le début.
+    expect(host.setTeamCount(2)).toBe(true);
+    await flush();
+
+    expect(sorties.sort()).toEqual([3, 4]);
+    expect(host.view.seats.map((seat) => seat.seat)).toEqual([1, 2]);
+    expect(second.view.options.teamCount).toBe(2);
+  });
+
+  it("refuse dès que l'hôte s'est déclaré prêt", async () => {
+    const host = await Room.create(depsFor(directory), options(2));
+    await flush();
+    host.setReady(true);
+
+    expect(host.setTeamCount(4)).toBe(false);
+    expect(host.view.options.teamCount).toBe(2);
+  });
+});
+
+describe("Room — migration d'hôte (plan 209, Lot C5)", () => {
+  let directory: FakeNetworkDirectory;
+
+  beforeEach(() => {
+    directory = new FakeNetworkDirectory();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  /** Un registre en mémoire : le vrai vit dans un Durable Object, le contrat est le même. */
+  function fakeRendezvous(): RoomRendezvousClient & {
+    readonly seat: number;
+    readonly epoch: number;
+  } {
+    const state = { seat: 0, epoch: 0 };
+    return {
+      get seat() {
+        return state.seat;
+      },
+      get epoch() {
+        return state.epoch;
+      },
+      claim: (_code: string, seat: number) => {
+        state.seat = seat;
+        state.epoch = 1;
+        return Promise.resolve({ ok: true, seat, epoch: 1 });
+      },
+      lookup: () =>
+        Promise.resolve(state.epoch === 0 ? null : { seat: state.seat, epoch: state.epoch }),
+      takeOver: (_code: string, seat: number, epoch: number) => {
+        if (epoch !== state.epoch) {
+          // Course perdue : on rend le VRAI hôte, c'est ce qui empêche un second de se croire élu.
+          return Promise.resolve({ ok: false, seat: state.seat, epoch: state.epoch });
+        }
+        state.seat = seat;
+        state.epoch += 1;
+        return Promise.resolve({ ok: true, seat, epoch: state.epoch });
+      },
+    };
+  }
+
+  function depsWith(registry: RoomRendezvousClient): RoomDeps {
+    return { ...depsFor(directory), rendezvous: registry };
+  }
+
+  it("publie la place qui héberge à l'ouverture du salon", async () => {
+    const registry = fakeRendezvous();
+
+    const host = await Room.create(depsWith(registry), options(3));
+    await flush();
+
+    expect(host.hostingSeat).toBe(1);
+    expect(registry.seat).toBe(1);
+  });
+
+  it("continue de jouer sans registre — la migration est une capacité, pas une exigence", async () => {
+    const host = await Room.create(depsFor(directory), options(2));
+    const guest = await Room.join(depsFor(directory), ROOM_CODE);
+    await flush();
+
+    // Vu de l'hôte, la place de l'invité est « distante » : `Human` ne décrit que la sienne.
+    expect(host.view.seats[1]?.occupancy).toBe(NetworkSeatOccupancy.Remote);
+    expect(host.hostingSeat).toBe(1);
+    expect(guest.hostingSeat).toBe(1);
+  });
+
+  it("🔴 un seul successeur l'emporte, et le perdant apprend qui est le vrai hôte", async () => {
+    const registry = fakeRendezvous();
+    await registry.claim(ROOM_CODE, 1);
+
+    // Deux pairs ont vu la même déconnexion et calculé le même successeur.
+    const first = await registry.takeOver(ROOM_CODE, 2, 1);
+    const second = await registry.takeOver(ROOM_CODE, 3, 1);
+
+    expect(first).toEqual({ ok: true, seat: 2, epoch: 2 });
+    expect(second).toEqual({ ok: false, seat: 2, epoch: 2 });
+  });
+
+  it("🔴 une DEUXIÈME migration aboutit — les non-élus tiennent leur époque à jour", async () => {
+    const registry = fakeRendezvous();
+    const host = await Room.create(depsWith(registry), options(3));
+    const second = await Room.join(depsWith(registry), ROOM_CODE);
+    const third = await Room.join(depsWith(registry), ROOM_CODE);
+    await flush();
+
+    // Migration 1 : la place 2 prend la main.
+    host.leave();
+    await flush();
+    vi.advanceTimersByTime(GRACE_AFTER_CLEAN_CLOSE_MS);
+    await flush();
+    await flush();
+    expect(third.hostingSeat).toBe(2);
+
+    // Migration 2 : la place 2 s'en va à son tour, la 3 doit pouvoir reprendre.
+    second.leave();
+    await flush();
+    vi.advanceTimersByTime(GRACE_AFTER_CLEAN_CLOSE_MS);
+    await flush();
+    await flush();
+
+    /*
+     * Sans la correction, la place 3 partait avec l'époque 1 (jamais rafraîchie à la migration 1),
+     * son compare-and-swap était refusé, elle adoptait la place 2 — un pair mort — et la partie
+     * restait sans hôte pour de bon.
+     */
+    expect(registry.seat).toBe(3);
+    expect(third.hostingSeat).toBe(3);
+    expect(third.role).toBe(RoomRole.Host);
+  });
+
+  it("🔴 sans registre, TOUT LE MONDE est renvoyé au menu, pas seulement le successeur", async () => {
+    const host = await Room.create(depsFor(directory), options(3));
+    const second = await Room.join(depsFor(directory), ROOM_CODE);
+    const third = await Room.join(depsFor(directory), ROOM_CODE);
+    const errors: NetworkErrorCode[] = [];
+    second.onError((code) => errors.push(code));
+    third.onError((code) => errors.push(code));
+    await flush();
+
+    host.leave();
+    await flush();
+    vi.advanceTimersByTime(GRACE_AFTER_CLEAN_CLOSE_MS);
+    await flush();
+    await flush();
+
+    // Avant la correction, seul le successeur recevait l'erreur : les autres restaient sur un salon
+    // sans hôte, muets. C'était une régression par rapport à l'avant-plan 209.
+    expect(errors).toEqual([NetworkErrorCode.CodeIntrouvable, NetworkErrorCode.CodeIntrouvable]);
+  });
+
+  it("🔴 le NON-ÉLU ne s'accroche pas au partant quand le registre est en retard", async () => {
+    const registry = fakeRendezvous();
+
+    /*
+     * La course réelle, mesurée sur 8 exécutions : les deux survivants arment leur grâce au même
+     * instant, donc le `lookup` du non-élu peut atteindre le registre AVANT le `takeOver` de l'élu
+     * et rendre encore la place du partant. Une lecture unique le faisait adopter un hôte mort, puis
+     * rejeter tous les `room_state` du vrai — `isSpokenFor` les juge sur `hostSeat`, et rien ne l'en
+     * sortait. Ici, la lecture de l'élection (la seconde, la première étant celle de l'arrivée) rend
+     * délibérément la valeur périmée.
+     */
+    let lectures = 0;
+    const enRetard: RoomRendezvousClient = {
+      claim: (code, seat) => registry.claim(code, seat),
+      takeOver: (code, seat, epoch) => registry.takeOver(code, seat, epoch),
+      lookup: (code) => {
+        lectures += 1;
+        return lectures === 2 ? Promise.resolve({ seat: 1, epoch: 1 }) : registry.lookup(code);
+      },
+    };
+
+    const host = await Room.create(depsWith(registry), options(3));
+    const second = await Room.join(depsWith(registry), ROOM_CODE);
+    const third = await Room.join({ ...depsFor(directory), rendezvous: enRetard }, ROOM_CODE);
+    await flush();
+
+    host.leave();
+    await flush();
+    vi.advanceTimersByTime(GRACE_AFTER_CLEAN_CLOSE_MS);
+    for (let tour = 0; tour < 6; tour += 1) {
+      vi.advanceTimersByTime(500);
+      await flush();
+    }
+
+    // Le non-élu a relu, et suit le VRAI hôte au lieu de rester sur le partant.
+    expect(lectures).toBeGreaterThan(2);
+    expect(third.hostingSeat).toBe(2);
+    expect(second.role).toBe(RoomRole.Host);
+    expect(third.role).toBe(RoomRole.Guest);
+  });
+
+  it("désigne la plus petite place encore là quand l'hôte s'en va", async () => {
+    const registry = fakeRendezvous();
+    const host = await Room.create(depsWith(registry), options(3));
+    const second = await Room.join(depsWith(registry), ROOM_CODE);
+    const third = await Room.join(depsWith(registry), ROOM_CODE);
+    await flush();
+
+    host.leave();
+    await flush();
+    vi.advanceTimersByTime(GRACE_AFTER_CLEAN_CLOSE_MS);
+    await flush();
+    await flush();
+
+    // La place 2 est la plus petite encore connectée : c'est elle qui prend la main, des deux côtés.
+    expect(second.hostingSeat).toBe(2);
+    expect(third.hostingSeat).toBe(2);
+    expect(second.role).toBe(RoomRole.Host);
+    // 🔴 Et le troisième ne se croit surtout pas hôte.
+    expect(third.role).toBe(RoomRole.Guest);
   });
 });
 

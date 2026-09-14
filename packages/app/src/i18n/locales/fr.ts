@@ -178,10 +178,8 @@ const fr: Translations = {
   "teamSelect.online.switchTitle": "Passer en partie en ligne",
   "teamSelect.online.switchConfirm": "Passer en ligne",
   "teamSelect.online.switchCancel": "Rester en solo",
-  "teamSelect.online.switchLosesCamps":
-    "Une partie en ligne se joue à deux camps. Les camps au-delà du second seront retirés, et leurs équipes avec.",
   "teamSelect.online.switchLosesTeam":
-    "Le second camp sera libéré pour ton adversaire. L'équipe que tu lui avais choisie sera retirée.",
+    "Les autres camps seront libérés pour tes adversaires. Les équipes que tu leur avais choisies seront retirées.",
   "placement.done": "✓ Terminer",
   "pokemon.bulbasaur": "Bulbizarre",
   "pokemon.venusaur": "Florizarre",
@@ -269,6 +267,8 @@ const fr: Translations = {
   "room.error.version_incompatible": "Vos versions du jeu diffèrent. Rechargez la page.",
   "room.error.connexion_impossible": "Connexion impossible entre vos deux réseaux.",
   "room.error.delai_depasse": "Plus de réponse. Réessayez.",
+  "room.error.format_reduit":
+    "L'hôte a changé le format de la partie : il n'y a plus de place pour toi.",
   "lobby.title": "Jouer en ligne",
   "lobby.createHint": "Ton code apparaîtra à l’écran suivant.",
   "lobby.create": "Créer une partie",

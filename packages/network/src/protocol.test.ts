@@ -4,6 +4,7 @@ import {
   isCompatibleVersion,
   isNetworkMessage,
   NETWORK_VERSION,
+  NetworkErrorCode,
   type NetworkMessageType,
 } from "./protocol.js";
 
@@ -41,6 +42,7 @@ const VALID_MESSAGES: Record<NetworkMessageType, object> = {
   },
   team_select: { type: "team_select", seat: 2, selection: SELECTION },
   ready: { type: "ready", seat: 2, ready: true },
+  kick: { type: "kick", seat: 2, reason: NetworkErrorCode.FormatReduit },
   start: {
     type: "start",
     options: OPTIONS,

@@ -1,5 +1,5 @@
 import type { TeamSelection } from "@pokemon-tactic/core";
-import type { NetworkSeeds, RoomRole } from "@pokemon-tactic/network";
+import type { NetworkErrorCode, NetworkSeeds, RoomRole } from "@pokemon-tactic/network";
 import type { TelemetryTeam } from "../analytics/telemetry";
 import type { BattleResumeSave } from "./battle-persistence";
 
@@ -107,7 +107,15 @@ export interface CombatSetup {
 export interface ScreenParamsById {
   "main-menu": undefined;
   "battle-mode": undefined;
-  lobby: undefined;
+  /**
+   * Une cause de refus, quand on **revient** au lobby au lieu d'y entrer (plan 209, Lot C3).
+   *
+   * 🔴 Le cas qui l'a créée : l'hôte réduit le format et une place disparaît. L'occupant ne peut pas
+   * rester sur l'écran d'équipe d'un salon qui ne l'attend plus, et une ligne rouge en pied de page
+   * ne lui apprend rien — c'est exactement le défaut que le plan 207 avait corrigé pour les refus
+   * d'entrée, en les prononçant en modale. Même traitement pour les refus de SORTIE.
+   */
+  lobby: { readonly refusal: NetworkErrorCode } | undefined;
   /**
    * Union **discriminée par la présence de `mapId`**, et non un `mapId` optionnel : l'invité d'une
    * partie en ligne est le seul à entrer ici sans carte — il n'en a pas choisi, elle lui arrive de

@@ -128,8 +128,27 @@ export function createTelemetryEnv(options: { failWrite?: Error; secret?: string
     limit: () => Promise.resolve({ success: true }),
   } as unknown as Env["rateLimiter"];
 
+  /*
+   * Le registre des salons n'a rien à voir avec la collecte : ces tests ne l'exercent jamais, mais
+   * `Env` l'exige. Un double qui jette est plus honnête qu'un objet vide — si un test venait à
+   * l'emprunter sans le vouloir, il échouerait au lieu de passer sur du silence.
+   */
+  const rendezvous = {
+    idFromName: () => {
+      throw new Error("mock-telemetry : le registre des salons n'est pas branché dans ces tests");
+    },
+    get: () => {
+      throw new Error("mock-telemetry : le registre des salons n'est pas branché dans ces tests");
+    },
+  } as unknown as Env["rendezvous"];
+
   return {
-    env: { database, rateLimiter, visitorSecret: options.secret ?? "secret-de-test" },
+    env: {
+      database,
+      rateLimiter,
+      rendezvous,
+      visitorSecret: options.secret ?? "secret-de-test",
+    },
     spy: { rows, statements },
   };
 }

@@ -688,7 +688,7 @@ describe("BattleOrchestrator — tour distant", () => {
       action: endTurnAction(),
     });
 
-    expect(applied).toBe(true);
+    expect(applied).toBe("applied");
     expect(harness.submitted).toEqual([endTurnAction()]);
     expect(harness.rejections).toEqual([]);
   });
@@ -705,7 +705,7 @@ describe("BattleOrchestrator — tour distant", () => {
     expect(harness.localActions).toEqual([]);
   });
 
-  it("refuse un index d'action décalé, en disant lequel", () => {
+  it("garde un index en avance au lieu de le refuser (plan 209)", () => {
     const harness = remoteHarness();
 
     const applied = harness.orchestrator.submitRemoteAction({
@@ -714,12 +714,38 @@ describe("BattleOrchestrator — tour distant", () => {
       action: endTurnAction(),
     });
 
-    expect(applied).toBe(false);
+    // Pas encore appliquée — il manque les actions 0 à 6 — mais AUCUN refus : l'émetteur est
+    // honnête, c'est le maillage qui n'ordonne pas entre ses canaux. Et le verdict le DIT.
+    expect(applied).toBe("kept");
     expect(harness.submitted).toEqual([]);
+    expect(harness.rejections).toEqual([]);
+  });
+
+  it("refuse un index en retard, en disant lequel", async () => {
+    const harness = remoteHarness();
+    harness.orchestrator.submitRemoteAction({
+      ...REMOTE,
+      actionIndex: 0,
+      action: endTurnAction(),
+    });
+    // L'animation doit retomber, sinon la suivante serait gardée « hors de notre attente » et
+    // jamais jugée — c'est l'autre porte du tampon.
+    for (let hop = 0; hop < 20; hop += 1) {
+      await Promise.resolve();
+    }
+
+    // Le journal est maintenant à 1 : rejouer l'action 0 est un vrai décalage.
+    const applied = harness.orchestrator.submitRemoteAction({
+      ...REMOTE,
+      actionIndex: 0,
+      action: endTurnAction(),
+    });
+
+    expect(applied).toBe("rejected");
     expect(harness.rejections[0]?.cause).toEqual({
       kind: "desynced_index",
-      expected: 0,
-      received: 7,
+      expected: 1,
+      received: 0,
     });
   });
 
@@ -766,10 +792,13 @@ describe("BattleOrchestrator — tour distant", () => {
   it("compte les refus par place, jusqu'au troisième qui élimine", () => {
     const harness = remoteHarness();
 
+    // Refus par `not_this_seat`, et plus par un index décalé : depuis le plan 209, un index EN
+    // AVANCE est gardé au lieu d'être refusé, donc il ne fait plus monter le barème.
     for (let attempt = 0; attempt < 3; attempt += 1) {
       harness.orchestrator.submitRemoteAction({
         ...REMOTE,
-        actionIndex: 42,
+        playerId: "player-2",
+        actionIndex: 0,
         action: endTurnAction(),
       });
     }
@@ -784,13 +813,14 @@ describe("BattleOrchestrator — tour distant", () => {
 
     harness.orchestrator.submitRemoteAction({
       ...REMOTE,
-      actionIndex: 42,
+      playerId: "player-2",
+      actionIndex: 0,
       action: endTurnAction(),
     });
     harness.orchestrator.submitRemoteAction({
       seat: 3,
-      playerId: "player-1",
-      actionIndex: 42,
+      playerId: "player-2",
+      actionIndex: 0,
       action: endTurnAction(),
     });
 
@@ -801,7 +831,8 @@ describe("BattleOrchestrator — tour distant", () => {
     const harness = remoteHarness();
     harness.orchestrator.submitRemoteAction({
       ...REMOTE,
-      actionIndex: 42,
+      playerId: "player-2",
+      actionIndex: 0,
       action: endTurnAction(),
     });
 
@@ -815,7 +846,8 @@ describe("BattleOrchestrator — tour distant", () => {
     }
     harness.orchestrator.submitRemoteAction({
       ...REMOTE,
-      actionIndex: 42,
+      playerId: "player-2",
+      actionIndex: 1,
       action: endTurnAction(),
     });
 
@@ -931,7 +963,7 @@ describe("BattleOrchestrator — une action distante hors de notre attente est g
       action: endTurnAction(),
     });
 
-    expect(applied).toBe(false);
+    expect(applied).toBe("kept");
     expect(harness.rejections).toEqual([]);
     expect(harness.submitted).toEqual([]);
   });
@@ -955,6 +987,84 @@ describe("BattleOrchestrator — une action distante hors de notre attente est g
     remote = true;
     harness.orchestrator.onBoardConfirm(ACTIVE_POSITION);
 
+    expect(harness.rejections).toEqual([]);
+  });
+});
+
+describe("BattleOrchestrator — le désordre de livraison n'accuse personne (plan 209, Lot C1)", () => {
+  /** Laisse la file d'animation retomber entre deux actions appliquées. */
+  async function settle(): Promise<void> {
+    for (let hop = 0; hop < 80; hop += 1) {
+      await Promise.resolve();
+    }
+  }
+
+  it("applique 0, 1, 2 quand elles arrivent 2, 0, 1 — sans un seul refus", async () => {
+    const harness = remoteHarness();
+
+    // L'ordre d'arrivée d'un maillage à trois camps : rien n'ordonne entre deux canaux.
+    harness.orchestrator.submitRemoteAction({ ...REMOTE, actionIndex: 2, action: endTurnAction() });
+    harness.orchestrator.submitRemoteAction({ ...REMOTE, actionIndex: 0, action: endTurnAction() });
+    harness.orchestrator.submitRemoteAction({ ...REMOTE, actionIndex: 1, action: endTurnAction() });
+    await settle();
+
+    expect(harness.submitted).toHaveLength(3);
+    expect(harness.rejections).toEqual([]);
+  });
+
+  it("garde l'action en avance tant que celle qui manque n'est pas arrivée", async () => {
+    const harness = remoteHarness();
+
+    harness.orchestrator.submitRemoteAction({ ...REMOTE, actionIndex: 1, action: endTurnAction() });
+    await settle();
+
+    // Elle attend son tour : ni appliquée, ni refusée.
+    expect(harness.submitted).toEqual([]);
+    expect(harness.rejections).toEqual([]);
+
+    harness.orchestrator.submitRemoteAction({ ...REMOTE, actionIndex: 0, action: endTurnAction() });
+    await settle();
+
+    expect(harness.submitted).toHaveLength(2);
+    expect(harness.rejections).toEqual([]);
+  });
+
+  it("ne garde pas pour toujours une action que le journal a dépassée", async () => {
+    const harness = remoteHarness();
+
+    // Une action très en avance, que personne ne réclamera jamais.
+    harness.orchestrator.submitRemoteAction({
+      ...REMOTE,
+      actionIndex: 900,
+      action: endTurnAction(),
+    });
+    harness.orchestrator.submitRemoteAction({ ...REMOTE, actionIndex: 0, action: endTurnAction() });
+    await settle();
+
+    // La 900 n'a pas bloqué la 0, et n'a toujours accusé personne.
+    expect(harness.submitted).toHaveLength(1);
+    expect(harness.rejections).toEqual([]);
+  });
+
+  it("tient un flot d'actions en avance sans accuser personne", async () => {
+    const harness = remoteHarness();
+
+    for (let index = 200; index > 0; index -= 1) {
+      harness.orchestrator.submitRemoteAction({
+        ...REMOTE,
+        actionIndex: index,
+        action: endTurnAction(),
+      });
+    }
+    await settle();
+
+    expect(harness.rejections).toEqual([]);
+
+    // Le plafond a jeté des actions lointaines, mais celle qu'on attend passe toujours.
+    harness.orchestrator.submitRemoteAction({ ...REMOTE, actionIndex: 0, action: endTurnAction() });
+    await settle();
+
+    expect(harness.submitted.length).toBeGreaterThan(0);
     expect(harness.rejections).toEqual([]);
   });
 });

@@ -95,8 +95,21 @@ export class WaitingRoom {
   /** Les lignes tenues par un joueur distant — le troisième état de ligne. */
   readonly remoteSeats: Locator;
   readonly readyBadges: Locator;
-  /** La rangée de format, ABSENTE en ligne : le format est gravé depuis le `lobby`. */
+  /**
+   * Les segments de format, **de retour dans la salle d'attente** (plan 209, Lot C3).
+   *
+   * 🔴 Ils y étaient absents depuis le plan 199 (« le format est gravé depuis le `lobby` »), puis
+   * l'implémentation du plan 209 les avait posés au `lobby` — arbitrage humain du 2026-09-14 : ils
+   * reviennent ici. Ce qui ne doit pas changer, c'est l'ADRESSE du salon, et elle ne dépend pas du
+   * nombre de camps.
+   *
+   * Visibles pour l'HÔTE seul, et seulement tant qu'il n'est pas « Prêt ».
+   */
   readonly formatSegments: Locator;
+  /** La ligne qui porte la couronne — « 👑 Joueur hôte », vue de tout le monde y compris de lui. */
+  readonly hostChip: Locator;
+  /** Ma propre ligne — « 🎮 Vous ». Son `data-slot-index` dit quelle place je tiens. */
+  readonly selfChip: Locator;
 
   constructor(private readonly page: Page) {
     // `game-panel` et non `room-panel` : le bandeau existe aussi en SOLO depuis le plan 208, où il
@@ -113,6 +126,8 @@ export class WaitingRoom {
     this.remoteSeats = page.getByTestId("player-remote");
     this.readyBadges = page.getByTestId("player-ready");
     this.formatSegments = page.getByTestId("format-segment");
+    this.hostChip = page.getByTestId("player-host");
+    this.selfChip = page.getByTestId("player-self");
   }
 
   /**

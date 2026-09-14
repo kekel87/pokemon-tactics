@@ -177,6 +177,12 @@
     grid-auto-flow: column;
     grid-auto-columns: minmax(0, 1fr);
     width: 100%;
+
+    /* `width: 100%` compte la LARGEUR DE CONTENU par défaut, et `.ts-segments` ajoute par-dessus son
+       padding de gouttière et sa bordure : la rangée dépassait donc de ~5,5 px à droite, mangeant le
+       padding de la carte et venant buter sur son liseré — visible à l'œil, mesuré à la recette du
+       2026-09-14. Ici la largeur doit TOUT contenir, bordure comprise. */
+    box-sizing: border-box;
   }
 
   /* Bouton, et non plus texte : c'est lui qui ouvre le sélecteur d'équipe du camp (#832). */

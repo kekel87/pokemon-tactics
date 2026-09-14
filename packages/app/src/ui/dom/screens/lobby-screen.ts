@@ -17,7 +17,7 @@ import { InputSource } from "../../../input/input-source";
 import { getInputSystem } from "../../../input/input-system";
 import { preferredMapId } from "../../../maps/preferred-map";
 import { networkErrorCodeOf } from "../../../network/network-error";
-import { holdOnlineRoom, ONLINE_TEAM_COUNT, onlineRoomDeps } from "../../../network/online-room";
+import { holdOnlineRoom, onlineRoomDeps } from "../../../network/online-room";
 import { type CodeWheel, createCodeWheel } from "../../lobby/code-wheel";
 import { openJoinRefusalModal } from "../../lobby/join-refusal-modal";
 import { cancelToModalOrBack, el, menuButton, screenHeader, screenHeaderTitle } from "./elements";
@@ -62,10 +62,20 @@ export function createLobbyScreen(navigate: Navigate): Screen<"lobby"> {
    * toujours — sans elle la salle d'attente se monterait en mode local, sans code ni salon, et rien
    * ne le signalerait : l'écran est par ailleurs parfaitement fonctionnel.
    */
+  /**
+   * Le format d'ouverture : le duel, que l'hôte change ensuite dans la salle d'attente (plan 209).
+   *
+   * 🔴 **Le choix n'est PAS ici**, et c'est un arbitrage humain explicite du 2026-09-14. Le mettre au
+   * lobby paraissait plus sûr — le format serait gravé avant la naissance du code — mais l'objection
+   * ne tenait pas : ce qui ne doit pas changer, c'est l'ADRESSE du salon, et elle ne dépend pas du
+   * nombre de camps. `Room.setTeamCount` recompose les places sans toucher au code.
+   */
+  const OPENING_TEAM_COUNT = 2;
+
   const createRoom = (): void => {
     navigate("team-select", {
       mapId: preferredMapId(),
-      network: { role: RoomRole.Host, teamCount: ONLINE_TEAM_COUNT },
+      network: { role: RoomRole.Host, teamCount: OPENING_TEAM_COUNT },
     });
   };
 
@@ -145,6 +155,22 @@ export function createLobbyScreen(navigate: Navigate): Screen<"lobby"> {
        * ne correspond à aucune partie » ne dit pas QUEL caractère est faux, donc on relit depuis le
        * début. Rendre l'emplacement actif reviendrait à désigner un coupable qu'on ne connaît pas.
        */
+      onRetry: () => focusWheel(),
+      onBackToMenu: () => navigate("main-menu", undefined),
+    });
+  };
+
+  /**
+   * On ne fait pas qu'entrer dans le lobby : on peut y être **renvoyé** (plan 209, Lot C3).
+   *
+   * 🔴 Après le montage, jamais pendant : la modale a besoin d'un document où se poser, et le focus
+   * qu'elle prend doit se rendre à une roue qui existe déjà. Même traitement que les refus d'entrée
+   * du plan 207 — ce qui sort un joueur d'une partie mérite une modale, pas une ligne rouge en pied
+   * de page qu'il ne lira pas.
+   */
+  const announceRefusal = (code: NetworkErrorCode): void => {
+    countAction(ROOM_FAILURE_ACTIONS[code]);
+    openJoinRefusalModal(code, {
       onRetry: () => focusWheel(),
       onBackToMenu: () => navigate("main-menu", undefined),
     });
@@ -231,7 +257,7 @@ export function createLobbyScreen(navigate: Navigate): Screen<"lobby"> {
   };
 
   return {
-    mount(host) {
+    mount(host, params) {
       countScreen(TelemetryScreen.Lobby);
       /*
        * Patron « écran plein » du projet : en-tête « ◀ Retour  Jouer en ligne », puis le contenu.
@@ -264,6 +290,7 @@ export function createLobbyScreen(navigate: Navigate): Screen<"lobby"> {
        */
       const createHint = el("p", "lb-panel-note");
       createHint.textContent = t("lobby.createHint");
+
       createPanel.append(createButton, createHint);
 
       const joinPanel = el("section", "lb-panel", "lobby-panel-join");
@@ -373,6 +400,11 @@ export function createLobbyScreen(navigate: Navigate): Screen<"lobby"> {
           cancel: () => cancelToModalOrBack(goBack),
         },
       });
+
+      // Renvoyé ici par un refus ? On le dit, une fois l'écran debout.
+      if (params?.refusal !== undefined) {
+        announceRefusal(params.refusal);
+      }
     },
     dispose() {
       unregisterInput?.();

@@ -392,6 +392,7 @@ function runBattle(options: {
   onRemoteActionRejected?: BattleOrchestratorConfig["onRemoteActionRejected"];
   /** Entrée et sortie de l'attente d'un tour distant — le chien de garde s'y accroche (plan 202). */
   onWaitingRemote?: BattleOrchestratorConfig["onWaitingRemote"];
+  onRemoteActionGap?: BattleOrchestratorConfig["onRemoteActionGap"];
   /**
    * Annonce l'abandon volontaire aux pairs (plan 202, étape 6). Absent en local.
    *
@@ -453,6 +454,7 @@ function runBattle(options: {
     onLocalAction,
     onRemoteActionRejected,
     onWaitingRemote,
+    onRemoteActionGap,
     onResign,
     onChromeReady,
     turnClock,
@@ -738,6 +740,7 @@ function runBattle(options: {
       ...(onLocalAction === undefined ? {} : { onLocalAction }),
       ...(onRemoteActionRejected === undefined ? {} : { onRemoteActionRejected }),
       ...(onWaitingRemote === undefined ? {} : { onWaitingRemote }),
+      ...(onRemoteActionGap === undefined ? {} : { onRemoteActionGap }),
       ...(turnClock === undefined ? {} : { turnClock }),
       ...(stateChecksum === undefined ? {} : { stateChecksum }),
       onActionCommitted,
@@ -1205,6 +1208,7 @@ function runResolvedBattle(options: {
           // Arme et désarme le chien de garde du silence (plan 202, décision #951). L'orchestrateur
           // signale l'état, le module réseau décide.
           onWaitingRemote: (playerId) => online.onWaitingRemote(playerId),
+          onRemoteActionGap: (expectedIndex) => online.onRemoteActionGap(expectedIndex),
           onResign: () => online.resign(),
           /*
            * Somme de contrôle d'état (plan 203, Lot B4). Accroché à `online` et non à `localSeat`

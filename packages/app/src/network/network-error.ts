@@ -4,9 +4,13 @@ import { NetworkErrorCode } from "@pokemon-tactic/network";
  * Les causes qu'un joueur peut corriger en réessayant sur place — code mal recopié, partie pleine,
  * partie déjà lancée, pair muet.
  *
- * Les deux autres (`VersionIncompatible`, `ConnexionImpossible`) ne se corrigent PAS ici : l'une
- * demande de recharger la page, l'autre tient à la traversée de pare-feu entre deux réseaux.
- * Proposer « Réessayer » y serait une invitation à refaire en vain ce qui vient d'échouer.
+ * Les autres ne se corrigent PAS ici. `VersionIncompatible` demande de recharger la page,
+ * `ConnexionImpossible` tient à la traversée de pare-feu entre deux réseaux : proposer « Réessayer »
+ * y serait une invitation à refaire en vain ce qui vient d'échouer.
+ *
+ * `FormatReduit` (plan 209) les rejoint pour une raison plus nette encore : **rien n'a échoué**. Un
+ * humain a décidé du format de sa partie, et la place n'existe plus. « Réessayer » laisserait croire
+ * à un aléa réparable en insistant.
  */
 const RETRYABLE_REFUSALS: ReadonlySet<NetworkErrorCode> = new Set([
   NetworkErrorCode.CodeIntrouvable,

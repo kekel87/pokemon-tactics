@@ -1,8 +1,9 @@
 # Plan 209 — Le FFA en réseau, et la fin du multijoueur
 
-**Statut** : ready
+**Statut** : done (2026-09-14)
 **Ouvert le** : 2026-09-13, à la demande de l'humain, en recette du plan 208
 **Cadré le** : 2026-09-13, avec l'humain et une recherche de bonnes pratiques
+**Livré le** : 2026-09-14, les cinq lots d'un trait
 **Rouvre** : décision #944 (le 1v1 seul en ligne), **renversée** par ce plan
 
 ## Pourquoi ce plan existe
@@ -87,6 +88,8 @@ camps. **Rien à reprendre au moteur** : tout le défaut de #975 est dans la cou
 
 ### Lot C1 — L'ordre des actions
 
+✅ **Livré.** Le tampon garde l'avance et ne refuse que le retard, on y pioche par index (jamais en tête), il se purge et se plafonne, et le resync s'arme en filet à 15 s. Quatre tests de désordre dans `battle-orchestrator.test.ts`.
+
 **Ce qu'il débloque** : le FFA jouable à 3 et 4 camps. C'est le seul lot qui lève l'obstacle de fond ;
 les trois autres traitent ce que le FFA rend visible.
 
@@ -113,6 +116,8 @@ désordre (2, 0, 1) sont appliquées dans l'ordre 0, 1, 2 et **aucun refus n'est
 d'index inférieur est refusée ; le tampon ne grossit pas indéfiniment sur une action jamais réclamée.
 
 ### Lot C2 — Le désaccord à N témoins
+
+✅ **Livré.** `compareDigests` devient `evaluateDigests` : vote de minorité, forfaités hors quorum, égalité qui n'accuse personne. Le 1v1 garde son constat symétrique — à deux témoins toute divergence est une égalité, la règle de majorité y aurait supprimé la détection.
 
 **Ce qu'il corrige** : l'inversion du constat 3, et la limite de #975.
 
@@ -149,6 +154,15 @@ s'accusent pas l'un l'autre ; le pair divergent se reconnaît minoritaire ; un c
 déclenche plus aucun écart chez les survivants ; une égalité à quatre n'accuse personne.
 
 ### Lot C3 — Les cinq formats
+
+✅ **Livré.** `ONLINE_TEAM_COUNT` a disparu, le sélecteur est revenu **dans la salle d'attente**, la bascule solo → en ligne garde le format, et le seuil d'absence se resserre au-delà de deux camps.
+
+🔴 **Correction de trajectoire, 2026-09-14.** L'implémentation avait d'abord posé le sélecteur au
+`lobby`, au motif qu'un salon « ne change pas de format en cours de route » : le nombre de places est
+gravé à `Room.create` et le code publié dans la foulée. **L'objection ne tenait pas** — ce qui ne doit
+pas changer, c'est l'ADRESSE du salon, et elle ne dépend pas du format. `Room.setTeamCount` recompose
+les places et l'annonce aux invités **sans toucher au code**, vérifié en jeu. L'humain a dû le
+signaler lui-même ; la déviation aurait dû lui être posée au lieu d'être justifiée après coup.
 
 **Ce qu'il rend au joueur** : ce que l'humain réclame depuis trois plans.
 
@@ -189,8 +203,13 @@ topologie étoile du Lot C4 — pas un abandon du format.
 
 **Critères de sortie** : une partie à 3 et à 4 se crée, se rejoint et se joue jusqu'au verdict ; le
 sélecteur affiche les cinq formats ; la mesure de montage à 6 et 12 est faite et consignée ; **un
-joueur qui décroche à 12 camps est forfaité dans un délai du même ordre qu'en 1v1**, pas en trente-six
-minutes.
+joueur qui décroche à 12 camps est forfaité nettement plus vite qu'en trente-six minutes**.
+
+⚠️ **Critère revu à la livraison, parce que le premier promettait ce qu'aucun réglage ne peut tenir.**
+Il disait « dans un délai du même ordre qu'en 1v1 » : pour y arriver à douze camps il faudrait
+tolérer **un seul** tour manqué, donc éliminer sur un accident isolé — exactement ce que le mécanisme
+existe pour éviter. Le plancher de deux tours donne ~24 min à douze contre ~36 : deux fois mieux, pas
+le même ordre. Relevé en revue de code, 2026-09-14.
 
 🔴 **Un critère de cadence, pas seulement de réseau.** La première rédaction ne mesurait que la
 connectivité — c'était un angle mort, relevé au cadrage. Un format peut se connecter parfaitement et
@@ -200,6 +219,8 @@ entre deux tours d'un même joueur**, à 6 et à 12. Le pire cas théorique est 
 consomment réellement de leurs 60 s — la télémétrie du plan 204 n'a jamais mesuré que du 1v1.
 
 ### Lot C4 — Le rendez-vous tiers
+
+✅ **Livré.** Durable Object `RoomRendezvous` dans `packages/telemetry-worker`, protocole à trois messages, compare-and-swap sur `epoch`, TTL de 6 h. Injecté par `onlineRoomDeps` ; **optionnel** — sans lui tout fonctionne comme avant.
 
 **Pourquoi il est là** : la migration d'hôte n'a que deux issues connues — un point de rendez-vous
 indépendant de tout pair, ou renoncer. L'humain a tranché « dedans », donc c'est le rendez-vous.
@@ -250,6 +271,8 @@ vrai hôte** ; le chemin PeerJS Cloud reste fonctionnel en repli tant que le Dur
 déployé.
 
 ### Lot C5 — La migration d'hôte
+
+✅ **Livré.** `hostSeat` sépare enfin « la place n° 1 » du « rôle d'hôte », qui se transmet. Élection de la plus petite place connectée, en préparation **et** en partie lancée.
 
 **L'élection elle-même est triviale et ne mérite aucune cérémonie.** Le maillage complet fait que
 chaque pair observe déjà qui est connecté, et les places sont numérotées, donc totalement ordonnées :
@@ -326,6 +349,21 @@ ne fait que l'exposer entre humains :
   pondération pour celui qui mène ni protection du plus faible. En FFA, la dynamique classique est que
   tout le monde tape le premier qui dépasse. Aucune décision ne tranche si c'est voulu ou subi. Vrai
   depuis que les formats à N camps existent en solo. → à trancher avec l'humain, hors protocole.
+
+## Ce que la livraison a appris
+
+- **Le tampon seul aurait figé la partie.** Le rejeu était en FIFO ; sans la pioche par index, deux
+  actions gardées dans le désordre se bloquaient l'une l'autre, et rien ne relançait la file. Écrit
+  au cadrage, confirmé à l'implémentation.
+- **La règle de majorité ne s'applique pas au duel.** À deux témoins, tout désaccord est une égalité
+  1-1 : appliquer #1026 tel quel aurait supprimé la détection de divergence du 1v1, livrée au Lot B4.
+  Trouvé parce que trois tests du Lot B4 sont tombés d'un coup. Le duel garde son constat symétrique.
+- **`HOST_SEAT` portait deux sens.** « La place n° 1 » et « celle qui héberge » s'écrivaient du même
+  nom, et c'est cela, plus que l'adressage, qui rendait la migration impossible. Les séparer a suffi ;
+  les 177 tests réseau existants sont passés sans une retouche.
+- **`NETWORK_VERSION` 6 → 7 alors qu'aucun message n'a changé de forme.** Ce sont les règles de
+  LECTURE qui changent : un client d'avant refuse ce qu'un client d'après garde. Deux versions
+  mélangées élimineraient des joueurs honnêtes sans qu'aucun message ne paraisse malformé.
 
 ## Questions restées ouvertes
 

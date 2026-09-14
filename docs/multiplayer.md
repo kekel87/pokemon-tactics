@@ -594,8 +594,9 @@ adresse, alors que l'adversaire ne l'attend au maximum que 75 s (§ Gestion de l
 budget de réessais n'y change quoi que ce soit — insister plus longtemps ne ramènerait personne dans
 une partie déjà perdue par forfait.
 
-**Pourquoi cela ne touche que l'hôte** : il doit récupérer une adresse **précise**, le code de salon
-étant son adresse (#904). Un invité qui revient réclame la sienne dans les mêmes conditions, mais
+**Pourquoi cela ne touchait que l'hôte** (avant le plan 209) : il devait récupérer une adresse
+**précise**, le code de salon étant son adresse (#904). Depuis, la place qui héberge est une valeur
+publiée au registre : un hôte qui ne revient pas est remplacé au lieu d'être attendu. Un invité qui revient réclame la sienne dans les mêmes conditions, mais
 l'invité n'est pas le point de rendez-vous : c'est lui qui compose, donc son retour ne dépend pas de
 la libération d'une adresse que quelqu'un d'autre attend.
 
@@ -726,6 +727,12 @@ Pas un arbitre du combat. Trois usages, **dans cet ordre** :
    déploiement CI. Le reste devient nettement moins cher une fois cette marche franchie.
 2. **Signaling** — un Durable Object par code de partie remplace PeerJS Cloud : namespace à nous,
    plus de collisions (#866), plus de dépendance au SLA inexistant de `peerjs.com`. ~100 lignes.
+
+   🔴 **Un premier Durable Object existe depuis le plan 209** : `RoomRendezvous`, qui tient la
+   correspondance *code de salon → place qui héberge*. Il ne remplace pas encore le signaling — les
+   canaux passent toujours par PeerJS — mais il découple le code de salon de l'identité de l'hôte,
+   ce qui était le vrai blocage de la migration d'hôte (#904). Il est **optionnel** : injoignable,
+   le jeu retombe sur le comportement d'avant, place 1 et pas de migration.
 3. **Relais de secours quand le NAT gagne** — le DO relaie les actions par WebSocket quand WebRTC
    échoue. Tour par tour, ~100 octets par action : charge négligeable, et **cela supprime le besoin
    d'un TURN tiers**. L'API Hibernation garde les clients connectés au réseau Cloudflare sans
@@ -804,15 +811,22 @@ Pour N joueurs, chaque joueur a N-1 connexions. Avec max 12 joueurs, c'est 66 co
 définie pour une désync partielle** (3 pairs sur 12 divergent — qui a raison ?). À noter aussi que la
 doc PeerJS observe une dégradation au-delà d'une poignée de connexions simultanées par pair.
 
-**Position** : viser le **1v1** en V1, retester le FFA à 12 ensuite. Le relais de secours (§ Workers)
-offrirait au besoin une topologie étoile sans réintroduire un « host » joueur.
+**Position (mise à jour 2026-09-14, plan 209)** : les cinq formats sont ouverts. Le maillage à 12
+reste **non mesuré** — la bande passante n'est pas le sujet (~100 octets à la cadence humaine), le
+montage l'est : 66 négociations ICE indépendantes, et une surface de panne qui croît plus vite que le
+nombre de joueurs. Si la mesure le condamne, le repli est la topologie étoile du relais de secours
+(§ Workers), sans réintroduire un « host » joueur.
 
-🔴 **Le Lot B2 a rendu cette limite concrète, pas seulement prudente** (décision D6, plan 201) :
-`actionIndex` (§ Protocole) suppose un canal **ordonné**, vrai **par connexion** dans un maillage
-complet — mais à trois camps et plus, `broadcast()` écrit sur des canaux que rien n'ordonne **entre
-eux**. Une action en avance sur un canal serait refusée puis perdue, et trois refus élimineraient un
-joueur honnête. **Le réseau est donc restreint au 1v1** : l'écran `lobby` **annonce** le format au
-lieu de l'offrir (plus de sélecteur — il n'y a rien à choisir).
+🔴 **LEVÉ par le plan 209 (2026-09-14).** Le Lot B2 avait rendu cette limite concrète : `actionIndex`
+(§ Protocole) suppose un canal **ordonné**, vrai **par connexion** mais faux entre les canaux qu'un
+maillage écrit en parallèle — une action en avance était refusée puis perdue, et trois refus
+éliminaient un joueur honnête.
+
+Ce qui l'a levée tient en une phrase : **le jeu avait déjà un ordre total**, il le tient du Charge
+Time (un seul acteur à la fois, donc jamais deux émetteurs légitimes). Ce qui manquait n'était pas
+l'ordre *logique* mais l'ordre de *livraison* — un tampon de réordonnancement par index suffit, sans
+horloge logique (décision #1024) ni relais. **Le réseau accepte désormais les cinq formats**, et
+l'écran `lobby` **offre** de nouveau le choix, avant la naissance du code.
 
 ---
 

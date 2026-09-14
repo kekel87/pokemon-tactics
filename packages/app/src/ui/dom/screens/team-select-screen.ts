@@ -30,7 +30,6 @@ import { networkErrorCodeOf } from "../../../network/network-error";
 import {
   getOnlineRoom,
   holdOnlineRoom,
-  ONLINE_TEAM_COUNT,
   onlineRoomDeps,
   releaseOnlineRoom,
 } from "../../../network/online-room";
@@ -136,7 +135,17 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
   /** Les désabonnements du salon, soldés au démontage — le salon, lui, survit à cet écran. */
   const roomListeners: (() => void)[] = [];
 
-  const isHost = (): boolean => networkIntent?.role === RoomRole.Host;
+  /**
+   * Suis-je l'hôte ? **Le salon fait foi, pas l'intention de navigation** (plan 209, Lot C5).
+   *
+   * 🔴 L'intention est figée à l'entrée sur l'écran : elle dit comment on est arrivé, pas où on en
+   * est. Depuis que le rôle d'hôte se transmet, un invité peut le devenir en cours de route — et
+   * s'en tenir à l'intention le laissait affiché comme invité, sans couronne ni bouton « Lancer »,
+   * alors que le salon l'avait élu. L'intention reste le repli tant qu'aucun salon n'existe (le
+   * temps de la création).
+   */
+  const isHost = (): boolean =>
+    room === null ? networkIntent?.role === RoomRole.Host : room.role === RoomRole.Host;
   const isOnline = (): boolean => networkIntent !== undefined;
 
   /**
@@ -518,53 +527,53 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
    * l'inverse — « la composition doit traverser la création du salon » — et l'humain avait raison de
    * ne pas comprendre la difficulté : elle n'existait pas.
    *
-   * Trois gestes seulement : forcer le format à deux camps (le réseau n'en accepte pas d'autre, et
-   * c'est structurel — voir `ONLINE_TEAM_COUNT` dans `lobby-screen.ts`), garder mon camp en libérant
-   * l'autre, puis ouvrir le salon.
+   * Deux gestes seulement : garder mon camp en libérant les autres, puis ouvrir le salon.
+   *
+   * 🔴 **Le format ne change plus** (plan 209, Lot C3). Il était forcé à deux camps tant que le
+   * réseau n'en acceptait pas d'autre ; ce n'est plus le cas, donc un joueur qui bascule en 4v4v4
+   * garde son 4v4v4 — et ses trois autres camps deviennent des places à pourvoir au lieu d'être
+   * rabattues sur un duel qu'il n'a pas demandé.
    */
   const switchToOnline = (): void => {
     if (isOnline()) {
       return;
     }
-    const duel = formatOptions.find((option) => option.format.teamCount === ONLINE_TEAM_COUNT);
-    if (duel === undefined) {
+    const current = formatOptions.find((option) => option.key === formatKey);
+    if (current === undefined) {
       return;
     }
     /*
-     * Confirmation demandée SEULEMENT quand la bascule détruit quelque chose : un format à plus de
-     * deux camps, ou un second camp composé à la main qui va être libéré. En 1v1 contre l'IA ça ne
-     * coûte que l'équipe de l'IA — on bascule sans rien demander, parce que demander pour rien
-     * apprend au joueur à cliquer sans lire. Arbitré ainsi avec l'humain.
+     * Confirmation demandée SEULEMENT quand la bascule détruit quelque chose : un camp autre que le
+     * mien composé à la main, qui va être libéré pour un joueur distant. Contre l'IA ça ne coûte que
+     * l'équipe de l'IA — on bascule sans rien demander, parce que demander pour rien apprend au
+     * joueur à cliquer sans lire. Arbitré ainsi avec l'humain.
      */
-    const losesCamps = slots.length > ONLINE_TEAM_COUNT;
-    const secondSlot = slots[1];
-    const losesTeam = secondSlot?.assignedTeam != null && !secondSlot.ephemeral;
-    if (losesCamps || losesTeam) {
+    const losesTeam = slots.some(
+      (slot, index) => index > 0 && slot.assignedTeam != null && !slot.ephemeral,
+    );
+    if (losesTeam) {
       openGoOnlineConfirmModal({
-        message: t(
-          losesCamps ? "teamSelect.online.switchLosesCamps" : "teamSelect.online.switchLosesTeam",
-        ),
-        onConfirm: () => goOnline(duel),
+        message: t("teamSelect.online.switchLosesTeam"),
+        onConfirm: () => goOnline(current),
       });
       return;
     }
-    goOnline(duel);
+    goOnline(current);
   };
 
   /** La bascule elle-même, une fois le coût accepté (ou nul). */
-  const goOnline = (duel: Omit<FormatOption, "label">): void => {
-    if (formatKey !== duel.key) {
-      const kept = slots[0];
-      formatKey = duel.key;
-      slots = buildInitialSlots(duel.format);
-      // Mon camp survit à la bascule : c'est celui que je viens de composer, et le perdre serait
-      // précisément ce qu'un joueur « qui s'est trompé de mode » ne pardonnerait pas.
-      if (kept !== undefined) {
-        slots[0] = kept;
-      }
+  const goOnline = (chosen: Omit<FormatOption, "label">): void => {
+    const { teamCount } = chosen.format;
+    const kept = slots[0];
+    slots = buildInitialSlots(chosen.format);
+    // Mon camp survit à la bascule : c'est celui que je viens de composer, et le perdre serait
+    // précisément ce qu'un joueur « qui s'est trompé de mode » ne pardonnerait pas. Les autres sont
+    // libérés — en ligne, ce sont des places qui attendent quelqu'un.
+    if (kept !== undefined) {
+      slots[0] = kept;
     }
-    networkIntent = { role: RoomRole.Host, teamCount: ONLINE_TEAM_COUNT };
-    void createAsHost(ONLINE_TEAM_COUNT).then(() => render());
+    networkIntent = { role: RoomRole.Host, teamCount };
+    void createAsHost(teamCount).then(() => render());
   };
 
   const showNetworkError = (code: NetworkErrorCode): void => {
@@ -688,11 +697,25 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
   };
 
   const onFormatChange = (key: string): void => {
-    if (key !== formatKey) {
-      formatKey = key;
-      slots = buildInitialSlots(currentFormat());
-      render();
+    if (key === formatKey) {
+      return;
     }
+    const chosen = formatOptions.find((option) => option.key === key);
+    if (chosen === undefined) {
+      return;
+    }
+    /*
+     * En ligne, le format est un fait de SALON avant d'être un fait d'écran (plan 209, Lot C3) : le
+     * salon recompose ses places et l'annonce aux autres. S'il refuse — partie lancée, hôte déjà
+     * prêt, ou un invité qui sortirait du format — on ne touche à rien ici non plus, sinon l'écran
+     * afficherait un format que personne d'autre ne voit.
+     */
+    if (isOnline() && room !== null && !room.setTeamCount(chosen.format.teamCount)) {
+      return;
+    }
+    formatKey = key;
+    slots = buildInitialSlots(currentFormat());
+    render();
   };
 
   const buildHeader = (): HTMLElement => {
@@ -708,10 +731,16 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
      */
     header.append(screenHeaderTitle(t("teamSelect.title")));
 
-    // En ligne, le format est **gravé depuis le `lobby`** : le sélecteur disparaît plutôt que de
-    // s'afficher désactivé, parce qu'il n'y a pas de choix en attente — la décision est déjà prise,
-    // et l'encart de salon la rappelle (décision #896).
-    if (isOnline()) {
+    /*
+     * 🔴 Le sélecteur EST dans la salle d'attente, et pas au lobby (arbitrage humain du 2026-09-14).
+     * Le plan 209 le disait ; l'implémentation l'avait déplacé au lobby pour graver le format avant
+     * la naissance du code, ce qui n'était pas nécessaire : `Room.setTeamCount` recompose les places
+     * sans toucher à l'adresse du salon.
+     *
+     * Un invité, lui, n'a rien à choisir : c'est l'hôte qui tient le format, et la rangée disparaît
+     * plutôt que de s'afficher inerte — il n'y a pas de décision en attente de son côté.
+     */
+    if (isOnline() && (!isHost() || isSelfReady())) {
       return header;
     }
 
@@ -792,7 +821,8 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     if (seatState === undefined) {
       return undefined;
     }
-    if (seatState.seat === HOST_SEAT) {
+    // La place qui héberge MAINTENANT, jamais la constante : le rôle se transmet (plan 209, Lot C5).
+    if (seatState.seat === (roomView?.hostSeat ?? HOST_SEAT)) {
       return "host";
     }
     if (seatState.occupancy !== NetworkSeatOccupancy.Remote) {
@@ -805,10 +835,11 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
   /** Une place tenue par un humain — l'hôte ou un joueur distant. Son équipe ne se montre pas. */
   const isHeldByHuman = (seatState: NetworkSeatState | undefined): boolean =>
     seatState !== undefined &&
-    (seatState.seat === HOST_SEAT || seatState.occupancy === NetworkSeatOccupancy.Remote);
+    (seatState.seat === (roomView?.hostSeat ?? HOST_SEAT) ||
+      seatState.occupancy === NetworkSeatOccupancy.Remote);
 
   const buildPlayerEntry = (slotIndex: number, slot: SlotState): PlayerColumnEntry => {
-    // La place du salon correspondant à ce camp : la place 1 est l'hôte, donc l'index + 1.
+    // La place du salon correspondant à ce camp : les places sont numérotées à partir de 1.
     const seatState = roomView?.seats.find((seat) => seat.seat === slotIndex + 1);
     const isMine = room !== null && seatState?.seat === room.seat;
 
@@ -1241,6 +1272,28 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
    * temps de partir — des écouteurs oubliés ici feraient rendre un écran détruit à chaque message
    * distant reçu pendant le combat.
    */
+  /**
+   * L'invité SUIT le format que l'hôte change (plan 209, Lot C3, retour de recette 2026-09-14).
+   *
+   * 🔴 Sans ça, il gardait les lignes bâties à son arrivée : l'hôte repassait de quatre camps à
+   * deux, et l'invité continuait d'afficher un troisième joueur — avec l'équipe aléatoire qu'on lui
+   * avait tirée. Deux pairs ne voyaient plus la même partie, ce qui est exactement ce que l'état de
+   * salon existe pour empêcher.
+   */
+  function syncFormat(view: RoomView): void {
+    const chosen = pickFormatOption(view.options.teamCount);
+    if (chosen === undefined || chosen.key === formatKey) {
+      return;
+    }
+    const kept = slots[0];
+    formatKey = chosen.key;
+    slots = buildInitialSlots(chosen.format);
+    // Ma propre ligne survit : le format a changé, pas mon équipe.
+    if (kept !== undefined) {
+      slots[0] = kept;
+    }
+  }
+
   function wireRoom(joined: Room): void {
     holdOnlineRoom(joined);
     roomView = joined.view;
@@ -1248,9 +1301,23 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
       joined.onChange((view) => {
         roomView = view;
         syncGuestMap(view);
+        syncFormat(view);
         render();
       }),
-      joined.onError((code) => showNetworkError(code)),
+      joined.onError((code) => {
+        /*
+         * 🔴 Éjecté : on ne RESTE pas sur la salle d'attente d'un salon qui ne nous attend plus
+         * (retour de recette, 2026-09-14). Le joueur y voyait une ligne rouge en pied de page devant
+         * un écran de composition encore complet — il ne comprenait pas qu'il était sorti. On le
+         * ramène au lobby, qui prononce la cause en modale, comme les refus d'entrée du plan 207.
+         */
+        if (code === NetworkErrorCode.FormatReduit) {
+          releaseOnlineRoom();
+          navigate("lobby", { refusal: code });
+          return;
+        }
+        showNetworkError(code);
+      }),
       joined.onStart((start) => enterNetworkBattle(start)),
       joined.onLaunchCancelled(() => showNetworkError(NetworkErrorCode.DelaiDepasse)),
     );

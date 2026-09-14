@@ -9,6 +9,12 @@
 
 import { handleDashboard } from "./dashboard";
 import {
+  isRendezvousOrigin,
+  isValidRendezvousCode,
+  RENDEZVOUS_PATH,
+  RoomRendezvous,
+} from "./rendezvous";
+import {
   categorizeBrowser,
   categorizeOs,
   checkAccess,
@@ -24,6 +30,8 @@ import { dayStamp, visitorHash } from "./visitor";
 export interface Env {
   database: D1Database;
   rateLimiter: RateLimit;
+  /** Le registre des salons : un objet par code de partie (plan 209, Lot C4). */
+  rendezvous: DurableObjectNamespace;
   /** Sel du haché de visiteur. Posé par `wrangler secret put visitorSecret`, absent du dépôt. */
   visitorSecret?: string;
   /** Mot de passe du relevé live. Posé par `wrangler secret put dashboardPassword`. Sans lui, la
@@ -58,10 +66,10 @@ function statusFor(reason: ValidationFailure): number {
  * origine arbitraire ferait de cette fonction un piège dès qu'on la réutilise ailleurs.
  * `Vary: Origin` évite qu'un cache intermédiaire ne serve la réponse d'une origine à une autre.
  */
-function respond(status: number, origin: string | null): Response {
+function respond(status: number, origin: string | null, corsFor = isAllowedOrigin): Response {
   const headers = new Headers({ Vary: "Origin" });
-  if (isAllowedOrigin(origin)) {
-    headers.set("Access-Control-Allow-Origin", origin);
+  if (corsFor(origin)) {
+    headers.set("Access-Control-Allow-Origin", origin as string);
   }
   return new Response(null, { status, headers });
 }
@@ -76,6 +84,54 @@ export default {
     // collecte, donc ni l'origine, ni le limiteur, ni la validation d'enveloppe ne le concernent.
     if (pathname === DASHBOARD_PATH) {
       return handleDashboard(request, env.database, env.dashboardPassword);
+    }
+
+    /*
+     * Le rendez-vous des salons (plan 209, Lot C4). Comme le relevé, ce n'est pas une collecte : ni
+     * le limiteur ni la validation d'enveloppe ne le concernent. L'origine, elle, est vérifiée — un
+     * salon ne se réclame que depuis le jeu.
+     *
+     * 🔴 Le code voyage dans le CHEMIN et sert de nom d'objet : `idFromName` garantit qu'un code
+     * donné tombe toujours sur la même instance, où qu'elle vive. C'est cette correspondance, et le
+     * mono-thread par objet qu'elle implique, qui rend le compare-and-swap fiable.
+     */
+    if (pathname.startsWith(`${RENDEZVOUS_PATH}/`)) {
+      // Liste PROPRE au registre : le développement local y est admis, contrairement à la collecte.
+      if (!isRendezvousOrigin(origin)) {
+        return respond(403, origin, isRendezvousOrigin);
+      }
+      if (request.method === "OPTIONS") {
+        /*
+         * 🔴 `isRendezvousOrigin` ici AUSSI, et c'est tout le sujet. Le client pose un en-tête
+         * `content-type`, donc sa requête n'est pas « simple » au sens CORS : le navigateur envoie
+         * d'abord un OPTIONS. Répondre sans `Access-Control-Allow-Origin` le fait échouer — et
+         * `curl` ne le voit jamais, puisqu'il n'envoie aucun préflight. Trouvé en recette le
+         * 2026-09-14 : le registre répondait parfaitement en ligne de commande et restait
+         * injoignable depuis le jeu.
+         */
+        const preflight = respond(204, origin, isRendezvousOrigin);
+        preflight.headers.set("Access-Control-Allow-Methods", "POST");
+        preflight.headers.set("Access-Control-Allow-Headers", "content-type");
+        preflight.headers.set("Access-Control-Max-Age", "86400");
+        return preflight;
+      }
+      if (request.method !== "POST") {
+        return respond(405, origin, isRendezvousOrigin);
+      }
+      const code = pathname.slice(RENDEZVOUS_PATH.length + 1).toUpperCase();
+      if (!isValidRendezvousCode(code)) {
+        return respond(400, origin, isRendezvousOrigin);
+      }
+      const stub = env.rendezvous.get(env.rendezvous.idFromName(code));
+      const answer = await stub.fetch(
+        new Request(request.url, { method: "POST", body: await request.text() }),
+      );
+      const headers = new Headers(answer.headers);
+      if (isRendezvousOrigin(origin)) {
+        headers.set("Access-Control-Allow-Origin", origin);
+        headers.set("Vary", "Origin");
+      }
+      return new Response(answer.body, { status: answer.status, headers });
     }
 
     if (pathname !== ENDPOINT_PATH) {
@@ -186,3 +242,5 @@ export default {
     return respond(204, origin);
   },
 } satisfies ExportedHandler<Env>;
+
+export { RoomRendezvous };

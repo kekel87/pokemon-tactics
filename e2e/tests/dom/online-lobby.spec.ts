@@ -59,10 +59,10 @@ test("§11.1 en ligne : créer, rejoindre, et entrer en combat à deux", async (
     const code = (await hostRoom.code.textContent())?.trim() ?? "";
     expect(code).toMatch(/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{5}$/);
 
-    // Le format est gravé : sa rangée de segments a disparu de l'écran d'équipe. Mais il est DIT —
-    // et franchement, sur sa propre ligne (plan 207, étape 7) : c'est désormais le seul endroit où
-    // le joueur l'apprend avant de composer, donc il ne peut plus être noyé dans les paramètres.
-    await expect(hostRoom.formatSegments).toHaveCount(0);
+    // Le format s'ouvre sur le duel, et il est DIT franchement, sur sa propre ligne (plan 207,
+    // étape 7) : c'est le seul endroit où le joueur l'apprend avant de composer, donc il ne peut
+    // plus être noyé dans les paramètres. Le CHOISIR est le sujet de `online-format.spec.ts` — la
+    // rangée de segments est revenue ici au plan 209, pour l'hôte seul.
     await expect(hostRoom.format).toContainText("1 contre 1");
 
     // L'hôte compose SA ligne — la première, la sienne. Sans équipe, « Lancer » reste inerte.
@@ -294,9 +294,9 @@ test("§11.2 en ligne : « Humain » sur une place libre laisse le salon jouable
   await menu.goto(localSignalling);
   await menu.combat.click();
   await mode.online.click();
-  // Le 1v1 est le SEUL format en ligne (plan 201) : à trois camps et plus, `broadcast` écrit sur des
-  // canaux que rien n'ordonne entre eux, et une action en avance ferait éliminer un joueur honnête.
-  // Ce scénario n'en a pas besoin — il lui faut UNE place libre, et le 1v1 en a une.
+  // Le salon s'ouvre sur le duel, et ce scénario s'en contente : il lui faut UNE place libre, et le
+  // duel en a une. Les cinq formats sont offerts depuis le plan 209 (Lot C3) et se choisissent dans
+  // la salle d'attente — c'est le sujet de `online-format.spec.ts`, pas d'ici.
   await lobby.create.click();
   await expect(room.panel).toBeVisible();
 
@@ -406,9 +406,7 @@ test("§11.3 solo → en ligne : un 1v1 contre l'IA bascule sans rien demander",
   await expect(teams.teamButton(0)).toContainText("Duel — Alakazam");
 });
 
-test("§11.3 solo → en ligne : au-delà de deux camps, « Rester en solo » ne détruit rien", async ({
-  page,
-}) => {
+test("§11.3 solo → en ligne : « Rester en solo » ne détruit rien", async ({ page }) => {
   const menu = new MainMenu(page);
   const mode = new BattleModeScreen(page);
   const room = new WaitingRoom(page);
@@ -421,17 +419,21 @@ test("§11.3 solo → en ligne : au-delà de deux camps, « Rester en solo » ne
   await mode.local.click();
   await expect(teams.title).toBeVisible();
 
-  // Un format à trois camps : le réseau n'en accepte que deux (`ONLINE_TEAM_COUNT`), donc la
-  // bascule DÉTRUIRAIT le troisième — c'est exactement le cas où l'on demande avant d'agir.
+  /*
+   * Un format à trois camps. Depuis le plan 209 (Lot C3) la bascule ne rabat plus sur le duel : le
+   * format SURVIT. Ce qui coûte encore, c'est l'équipe qu'on avait choisie pour un autre camp —
+   * cette place va être libérée pour un joueur distant.
+   */
   await teams.formatSegmentForTeamCount(3).click();
   const chosenFormat = await teams.activeFormatSegment.innerText();
   await teams.pickSavedTeam(0, DUEL_ATTACKER_TEAM_ID);
+  await teams.pickSavedTeam(1, DUEL_ATTACKER_TEAM_ID);
 
   await teams.goOnline.click();
 
   // (a) La modale s'ouvre, et elle DIT ce que la bascule coûte.
   await expect(teams.goOnlineConfirm).toBeVisible();
-  await expect(teams.goOnlineConfirm).toContainText("deux camps");
+  await expect(teams.goOnlineConfirm).toContainText("libérés");
   // Une vraie modale et non `window.confirm`, dont la boîte native est injoignable à la manette :
   // les deux issues sont de vrais boutons du document.
   await expect(teams.goOnlineCancel).toBeVisible();

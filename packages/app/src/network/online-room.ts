@@ -1,5 +1,6 @@
 import { REQUIRED_TEAM_COUNTS } from "@pokemon-tactic/data";
 import { PeerJsTransport, type Room, type RoomDeps } from "@pokemon-tactic/network";
+import { createRendezvousClient } from "./rendezvous-client";
 import { signallingOverride } from "./signalling-override";
 
 /**
@@ -34,6 +35,12 @@ export function onlineRoomDeps(): RoomDeps {
   return {
     transport: new PeerJsTransport(signallingOverride()),
     maxSeats: Math.max(...REQUIRED_TEAM_COUNTS),
+    /*
+     * Le registre des salons (plan 209, Lot C4) : il dit quelle place héberge, ce qui rend la
+     * migration d'hôte possible. Injecté ici comme `maxSeats` — `packages/network` ne connaît ni
+     * l'URL du Worker, ni la façon de l'atteindre.
+     */
+    rendezvous: createRendezvousClient(),
   };
 }
 
@@ -92,28 +99,3 @@ export function releaseOnlineRoom(): void {
   current?.leave();
   current = null;
 }
-
-/**
- * Le nombre de camps d'une partie en ligne : **deux**, et ce n'est pas un manque de finition.
- *
- * 🔴 Le garde-fou d'index (décision D3) suppose un canal fiable et ordonné : vrai **par connexion**,
- * donc exact à deux. À trois camps, `Room.broadcast` écrit sur deux canaux distincts et rien
- * n'ordonne l'un par rapport à l'autre — une action arrivée en avance serait refusée comme un
- * décalage, sur un joueur parfaitement honnête, puis **perdue** faute de renvoi. Trois refus
- * l'éliminent (relevé en revue de code du Lot B2).
- *
- * Le FFA en réseau est hors V1 de toute façon (plan-cadre 195). Mieux vaut ne pas proposer un format
- * que le proposer cassé — le mode **local**, lui, garde les cinq.
- *
- * 🔴 Il a quitté `lobby-screen.ts` au plan 208 : la bascule « solo → partie en ligne » de la salle
- * d'attente en a besoin aussi, et un écran n'est pas le bon propriétaire d'une règle de protocole.
- *
- * 🔴 Et il n'est plus AFFICHÉ au lobby (plan 207, étape 2). La ligne « Joueurs : 2 joueurs » a été
- * retirée : l'humain ne la comprenait pas, et il avait raison sur le fond — à ce stade le format
- * n'est pas encore décidé, il se choisit à l'écran suivant. Ce que cette constante grave, c'est le
- * nombre de camps, pas le format complet. Le format est en revanche rendu franchement lisible dans
- * le bandeau de partie (`GamePanel.ts`), et ce n'était pas reportable : sans ça, l'étape 2 retirait la
- * seule mention lue AVANT que le joueur investisse du temps dans sa composition (revue de
- * game-designer).
- */
-export const ONLINE_TEAM_COUNT = 2;

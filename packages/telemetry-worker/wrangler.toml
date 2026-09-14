@@ -13,6 +13,17 @@ database_name = "pokemon-tactics-events"
 database_id = "f0a2fca1-e016-4537-82c3-2f6cb8d53eca"  # région WEUR, créée le 2026-09-02
 migrations_dir = "migrations"
 
+# Le registre des salons — un objet par code de partie (plan 209, Lot C4).
+# 🔴 `new_sqlite_classes` et NON `new_classes` : le backend clé-valeur des Durable Objects est
+# payant, le backend SQLite est le seul disponible sur le plan gratuit (vérifié le 2026-08-29).
+[[durable_objects.bindings]]
+name = "rendezvous"          # ce que le Worker voit : env.rendezvous
+class_name = "RoomRendezvous"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["RoomRendezvous"]
+
 # Filet anti-rafale. Le WAF et les Rate Limiting Rules gratuits opèrent au niveau zone,
 # ce qui exige un domaine personnalisé — indisponible sur *.workers.dev (décisions #871, #877).
 # `period` n'accepte que 10 ou 60 secondes. Volontairement approximatif (eventually consistent) :

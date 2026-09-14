@@ -125,3 +125,9 @@ export { expect };
  * Ici plutôt que recopiée dans chaque spec : elle l'était déjà à deux endroits.
  */
 export const localSignalling = `?peerPort=${signallingPort}&peerIce=off`;
+
+/**
+ * Le pendant de {@link localSignalling} pour le **registre des salons** : un double local, qui évite
+ * d'appeler le Worker Cloudflare de production. Voir `room-registry.ts` pour le pourquoi.
+ */
+export { RoomRegistryStub } from "./room-registry";

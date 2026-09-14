@@ -29,13 +29,18 @@ describe("isRetryableRefusal", () => {
    * Ce qui ne se corrige PAS d'ici : l'une demande de recharger la page, l'autre tient à la
    * traversée de pare-feu entre deux réseaux. « Réessayer » y serait une invitation à refaire en
    * vain ce qui vient d'échouer.
+   *
+   * `FormatReduit` les rejoint pour une raison différente et plus nette encore : rien n'a échoué.
+   * Un humain — l'hôte — a décidé du format de SA partie, et la place n'existe plus. Proposer de
+   * réessayer laisserait croire à un aléa réparable en insistant.
    */
-  it.each([NetworkErrorCode.VersionIncompatible, NetworkErrorCode.ConnexionImpossible])(
-    "renvoie au menu sur %s",
-    (code) => {
-      expect(isRetryableRefusal(code)).toBe(false);
-    },
-  );
+  it.each([
+    NetworkErrorCode.VersionIncompatible,
+    NetworkErrorCode.ConnexionImpossible,
+    NetworkErrorCode.FormatReduit,
+  ])("renvoie au menu sur %s", (code) => {
+    expect(isRetryableRefusal(code)).toBe(false);
+  });
 
   /**
    * 🔴 Le garde-fou qui compte vraiment : le jour où `NetworkErrorCode` gagne une cause, ce test
@@ -43,7 +48,7 @@ describe("isRetryableRefusal", () => {
    * ci-dessus resteraient verts en ignorant la nouvelle — et elle hériterait de « Retour au menu »
    * par omission, sans que personne ne l'ait décidé.
    */
-  it("couvre les SIX causes de l'énumération, et échoue si une s'ajoute", () => {
+  it("couvre les SEPT causes de l'énumération, et échoue si une s'ajoute", () => {
     const decidees = [
       NetworkErrorCode.CodeIntrouvable,
       NetworkErrorCode.SalonPlein,
@@ -51,6 +56,7 @@ describe("isRetryableRefusal", () => {
       NetworkErrorCode.DelaiDepasse,
       NetworkErrorCode.VersionIncompatible,
       NetworkErrorCode.ConnexionImpossible,
+      NetworkErrorCode.FormatReduit,
     ];
     expect([...Object.values(NetworkErrorCode)].sort()).toEqual([...decidees].sort());
   });

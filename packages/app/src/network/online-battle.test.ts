@@ -20,6 +20,8 @@ import {
 } from "./online-battle";
 
 const PLAYERS = ["player-1", "player-2", "player-3"];
+/** Un duel : deux camps, donc le barème d'absence le plus indulgent (trois tours). */
+const DUO = ["player-1", "player-2"];
 
 const action: Action = {
   kind: ActionKind.EndTurn,
@@ -229,7 +231,7 @@ function fakeOrchestrator(): {
           playerId: envelope.playerId,
           actionIndex: envelope.actionIndex,
         });
-        return true;
+        return "applied";
       },
       applyForfeit: (playerId) => {
         forfeited.push(playerId);
@@ -503,7 +505,7 @@ describe("createWiring — tours manqués consécutifs (plan 202)", () => {
 
   it("porte le drapeau de dépassement sur l'action diffusée", () => {
     const room = fakeRoom();
-    const wiring = createWiring(room.room, "player-1", PLAYERS, ["player-1", "player-2"]);
+    const wiring = createWiring(room.room, "player-1", DUO, ["player-1", "player-2"]);
 
     wiring.sendAction(2, action, true);
 
@@ -514,7 +516,7 @@ describe("createWiring — tours manqués consécutifs (plan 202)", () => {
     const room = fakeRoom();
     const notices: (ConnectionNotice | null)[] = [];
     const orchestrator = fakeOrchestrator();
-    const wiring = createWiring(room.room, "player-1", PLAYERS, ["player-1", "player-2"], {
+    const wiring = createWiring(room.room, "player-1", DUO, ["player-1", "player-2"], {
       onNotice: (notice) => notices.push(notice),
     });
     wiring.attach(orchestrator.orchestrator, new AbortController().signal);
@@ -534,7 +536,7 @@ describe("createWiring — tours manqués consécutifs (plan 202)", () => {
   it("élimine au troisième tour manqué d'affilée", () => {
     const room = fakeRoom();
     const orchestrator = fakeOrchestrator();
-    const wiring = createWiring(room.room, "player-1", PLAYERS, ["player-1", "player-2"]);
+    const wiring = createWiring(room.room, "player-1", DUO, ["player-1", "player-2"]);
     wiring.attach(orchestrator.orchestrator, new AbortController().signal);
 
     room.emitAction(timedOutAction(2, 0));
@@ -548,7 +550,7 @@ describe("createWiring — tours manqués consécutifs (plan 202)", () => {
   it("remet le compteur à zéro dès qu'un tour est vraiment joué", () => {
     const room = fakeRoom();
     const orchestrator = fakeOrchestrator();
-    const wiring = createWiring(room.room, "player-1", PLAYERS, ["player-1", "player-2"]);
+    const wiring = createWiring(room.room, "player-1", DUO, ["player-1", "player-2"]);
     wiring.attach(orchestrator.orchestrator, new AbortController().signal);
 
     room.emitAction(timedOutAction(2, 0));
@@ -563,7 +565,7 @@ describe("createWiring — tours manqués consécutifs (plan 202)", () => {
   it("ne mélange pas les compteurs de deux places", () => {
     const room = fakeRoom();
     const orchestrator = fakeOrchestrator();
-    const wiring = createWiring(room.room, "player-1", PLAYERS, ["player-1", "player-2"]);
+    const wiring = createWiring(room.room, "player-1", DUO, ["player-1", "player-2"]);
     wiring.attach(orchestrator.orchestrator, new AbortController().signal);
 
     room.emitAction(timedOutAction(2, 0));
@@ -571,6 +573,40 @@ describe("createWiring — tours manqués consécutifs (plan 202)", () => {
     room.emitAction(timedOutAction(2, 2));
     room.emitAction(timedOutAction(3, 3));
 
+    expect(orchestrator.forfeited).toEqual([]);
+  });
+
+  it("resserre le barème dès qu'il y a plus de deux camps (plan 209, Lot C3)", () => {
+    const room = fakeRoom();
+    const orchestrator = fakeOrchestrator();
+    // Trois camps : le tour d'une place ne revient plus toutes les deux actions mais toutes les
+    // trois, donc trois tours manqués tiendraient la place bien trop longtemps.
+    const wiring = createWiring(room.room, "player-1", PLAYERS, [
+      "player-1",
+      "player-2",
+      "player-3",
+    ]);
+    wiring.attach(orchestrator.orchestrator, new AbortController().signal);
+
+    room.emitAction(timedOutAction(2, 0));
+    room.emitAction(timedOutAction(2, 1));
+
+    expect(orchestrator.forfeited).toEqual(["player-2"]);
+  });
+
+  it("n'élimine jamais sur un seul tour manqué, quel que soit le nombre de camps", () => {
+    const room = fakeRoom();
+    const orchestrator = fakeOrchestrator();
+    const wiring = createWiring(room.room, "player-1", PLAYERS, [
+      "player-1",
+      "player-2",
+      "player-3",
+    ]);
+    wiring.attach(orchestrator.orchestrator, new AbortController().signal);
+
+    room.emitAction(timedOutAction(2, 0));
+
+    // Un tour manqué reste un accident banal — c'est tout l'objet du mécanisme.
     expect(orchestrator.forfeited).toEqual([]);
   });
 });
@@ -823,6 +859,37 @@ describe("createWiring — l'hôte revenu réclame la suite quand son canal arri
     expect(room.sentResyncRequests).toEqual([3, 3]);
   });
 
+  it("🔴 ne jette pas la queue du lot quand une action est mise en attente", () => {
+    const room = fakeRoom();
+    const received: number[] = [];
+    /*
+     * Le moteur réel n'applique qu'une action avant de passer en animation : les suivantes du même
+     * lot sont GARDÉES. C'est le cas ordinaire d'un rattrapage, pas une anomalie.
+     */
+    const orchestrator = {
+      submitRemoteAction: (envelope: { actionIndex: number }) => {
+        received.push(envelope.actionIndex);
+        return envelope.actionIndex === 0 ? "applied" : "kept";
+      },
+      applyForfeit: () => true,
+      isBattleOver: () => false,
+      actionsSince: () => [],
+      currentActorPlayerId: () => "player-1",
+      appliedActionCount: 0,
+      emitStateChecksum: () => undefined,
+    } as unknown as Parameters<ReturnType<typeof createWiring>["attach"]>[0];
+    const wiring = createWiring(room.room, "player-2", PLAYERS, ["player-1", "player-2"], {
+      resuming: true,
+    });
+    wiring.attach(orchestrator, new AbortController().signal);
+
+    room.emitResync(1, 0, [action, action, action, action]);
+
+    // Les quatre sont passées par l'orchestrateur. Avant la correction, la boucle sortait au premier
+    // « kept » et les deux dernières étaient perdues — ni appliquées, ni gardées, ni redemandées.
+    expect(received).toEqual([0, 1, 2, 3]);
+  });
+
   it("cesse de réclamer une fois le rattrapage reçu", () => {
     const { room } = returningHostHarness();
 
@@ -899,6 +966,94 @@ describe("createWiring — somme de contrôle d'état (plan 203, Lot B4)", () =>
     wiring.attach(orchestrator, new AbortController().signal);
     return { wiring, room, forfeited };
   }
+
+  /** Trois camps humains : places 1, 2 et 3 — nous sommes la 2. */
+  function trioWiring(): {
+    wiring: ReturnType<typeof createWiring>;
+    room: ReturnType<typeof fakeRoom>;
+    forfeited: string[];
+  } {
+    const room = fakeRoom();
+    const { orchestrator, forfeited } = fakeOrchestrator();
+    const wiring = createWiring(room.room, "player-2", PLAYERS, [
+      "player-1",
+      "player-2",
+      "player-3",
+    ]);
+    wiring.attach(orchestrator, new AbortController().signal);
+    return { wiring, room, forfeited };
+  }
+
+  it("à trois camps, accuse le minoritaire et pas celui qui n'est pas d'accord avec nous", () => {
+    const { wiring, room, forfeited } = trioWiring();
+
+    wiring.reportChecksum(4, DIGEST_MINE);
+    room.emitChecksum(1, 4, DIGEST_MINE);
+    room.emitChecksum(3, 4, DIGEST_THEIRS);
+
+    // La place 3 est seule contre deux : c'est elle qui sort, et elle seule.
+    expect(forfeited).toEqual(["player-3"]);
+    expect(room.sentForfeits).toEqual([{ forfeitedSeat: 3, reason: "diverged" }]);
+  });
+
+  it("se reconnaît minoritaire — et s'élimine soi-même plutôt que les deux autres", () => {
+    const { wiring, room, forfeited } = trioWiring();
+
+    wiring.reportChecksum(4, DIGEST_MINE);
+    room.emitChecksum(1, 4, DIGEST_THEIRS);
+    room.emitChecksum(3, 4, DIGEST_THEIRS);
+
+    // 🔴 Le cœur du Lot C2 : l'ancienne version aurait forfaité les places 1 ET 3, honnêtes.
+    expect(forfeited).toEqual(["player-2"]);
+    expect(room.sentForfeits).toEqual([{ forfeitedSeat: 2, reason: "diverged" }]);
+  });
+
+  it("attend que tout le monde ait parlé avant de trancher", () => {
+    const { wiring, room, forfeited } = trioWiring();
+
+    wiring.reportChecksum(4, DIGEST_MINE);
+    room.emitChecksum(1, 4, DIGEST_THEIRS);
+
+    // La place 3 n'a rien dit : une empreinte encore en vol peut renverser la majorité.
+    expect(forfeited).toEqual([]);
+    expect(room.sentForfeits).toEqual([]);
+  });
+
+  it("n'accuse personne quand les voix se partagent également", () => {
+    const room = fakeRoom();
+    const { orchestrator, forfeited } = fakeOrchestrator();
+    const wiring = createWiring(
+      room.room,
+      "player-2",
+      [...PLAYERS, "player-4"],
+      ["player-1", "player-2", "player-3", "player-4"],
+    );
+    wiring.attach(orchestrator, new AbortController().signal);
+
+    wiring.reportChecksum(4, DIGEST_MINE);
+    room.emitChecksum(1, 4, DIGEST_MINE);
+    room.emitChecksum(3, 4, DIGEST_THEIRS);
+    room.emitChecksum(4, 4, DIGEST_THEIRS);
+
+    // Deux contre deux : aucun groupe ne domine. Éliminer ici serait tirer à pile ou face.
+    expect(forfeited).toEqual([]);
+    expect(room.sentForfeits).toEqual([]);
+  });
+
+  it("sort du quorum une place déjà forfaitée, dont l'empreinte est figée", () => {
+    const { wiring, room, forfeited } = trioWiring();
+
+    // La place 3 quitte le combat : son empreinte ne bougera plus.
+    room.emitForfeit({ type: "forfeit", seat: 1, forfeitedSeat: 3, reason: "resigned" });
+    room.emitChecksum(3, 4, DIGEST_THEIRS);
+
+    wiring.reportChecksum(4, DIGEST_MINE);
+    room.emitChecksum(1, 4, DIGEST_MINE);
+
+    // Les deux survivants sont d'accord : l'empreinte figée du partant n'accuse personne.
+    expect(forfeited).toEqual(["player-3"]);
+    expect(room.sentForfeits).toEqual([]);
+  });
 
   it("broadcasts our own digest at its anchor", () => {
     const { wiring, room } = attachedWiring();

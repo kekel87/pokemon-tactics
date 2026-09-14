@@ -250,10 +250,13 @@ function onOff(value: boolean): string {
  * ainsi qu'un joueur le nomme, et l'ancienne formule était précisément ce que l'humain ne comprenait
  * pas au lobby (« Joueurs : 2 joueurs »).
  *
- * Le cas général reste écrit, et ce n'est pas de la précaution gratuite : `ONLINE_TEAM_COUNT` vaut 2
- * tant que le maillage ne garde pas les actions hors séquence, mais ce bandeau n'a pas à savoir
- * pourquoi — le jour où trois camps seront permis, il le dira sans être retouché.
+ * 🔴 Le cas général n'était pas de la précaution gratuite : il est ATTEIGNABLE depuis le plan 209,
+ * qui lève la restriction au 1v1. Ce bandeau n'a pas eu à être retouché pour l'accueillir — c'est
+ * précisément pourquoi il avait été gardé plutôt que supprimé quand la revue du plan 207 l'avait
+ * signalé comme du code mort potentiel.
+ *
+ * Exporté pour le `lobby`, qui grave le format AVANT d'ouvrir le salon et doit le nommer pareil.
  */
-function formatLabel(teamCount: number): string {
+export function formatLabel(teamCount: number): string {
   return teamCount === 2 ? t("room.formatDuel") : t("room.formatPlayers", { players: teamCount });
 }

@@ -95,6 +95,7 @@ import type {
   DirectionPickerHandle,
   PresentationContext,
   RemoteActionEnvelope,
+  RemoteActionOutcome,
   RemoteActionRejectionCause,
   SemiInvulnerableDisplay,
   TurnOwner,
@@ -122,6 +123,7 @@ export type {
   DirectionPickerCallbacks,
   DirectionPickerHandle,
   RemoteActionEnvelope,
+  RemoteActionOutcome,
   RemoteActionRejection,
   RemoteActionRejectionCause,
   SelectedMoveView,
@@ -139,6 +141,15 @@ export { ConnectionNoticeKind } from "@pokemon-tactic/render-ports";
 
 /** Pacing between board-affecting events in the minimal loop (not a tween — a beat to follow the action). */
 const BATTLE_STEP_DELAY_MS = 180;
+
+/**
+ * Combien d'actions distantes en avance on garde avant d'en jeter (plan 209, Lot C1).
+ *
+ * Le désordre légitime est borné par le nombre de pairs : à douze camps, au pire onze actions
+ * peuvent doubler la nôtre. 64 laisse une marge confortable tout en refusant qu'un pair bavard
+ * fasse gonfler la mémoire sans fin — le tampon est alimenté par le réseau, donc par autrui.
+ */
+const MAX_PENDING_REMOTE_ACTIONS = 64;
 
 /**
  * Refus consécutifs au bout desquels une place distante est éliminée (plan 201, décision D1).
@@ -306,13 +317,21 @@ export class BattleOrchestrator {
   /** Refus CONSÉCUTIFS par place distante (plan 201, décision D1). Un succès remet à zéro. */
   private readonly remoteRejectionsBySeat = new Map<number, number>();
   /**
-   * Actions distantes arrivées **hors de notre attente**, gardées jusqu'à ce que ce soit leur tour.
+   * Actions distantes arrivées **hors de leur tour**, gardées jusqu'à ce que ce soit le leur.
    *
-   * 🔴 Pourquoi garder plutôt que refuser : les deux pairs ne montent pas le combat au même instant
-   * (chargement de carte et d'atlas), et un onglet en arrière-plan voit ses minuteurs plafonnés à
-   * 1 s — donc une action légitime peut arriver pendant notre animation, ou même pendant nos
-   * événements de démarrage. La refuser compterait un refus **contre un joueur honnête**, et trois
-   * suffisent à l'éliminer. Relevé en revue de code.
+   * 🔴 Pourquoi garder plutôt que refuser : la refuser compterait un refus **contre un joueur
+   * honnête**, et trois suffisent à l'éliminer. Deux situations distinctes l'alimentent :
+   *
+   * 1. **Hors de notre attente** (plan 201) — les pairs ne montent pas le combat au même instant
+   *    (carte, atlas), et un onglet en arrière-plan voit ses minuteurs plafonnés à 1 s, donc une
+   *    action légitime peut arriver pendant notre animation ou nos événements de démarrage.
+   * 2. **En avance sur notre journal** (plan 209, Lot C1) — `Room.broadcast` écrit sur **un canal
+   *    par pair** et SCTP n'ordonne que *dans* un canal : à trois camps et plus, l'action d'un pair
+   *    peut légitimement doubler celle d'un autre. C'est ce qui interdisait le FFA.
+   *
+   * 🔴 **Jamais en FIFO.** On y pioche l'index attendu, jamais la tête de file : deux actions
+   * gardées dans le désordre et la mauvaise sortirait d'abord, repartirait en queue, et rien ne
+   * relancerait la file puisque `refreshUI` est le seul point de reprise. La partie se figerait.
    */
   private readonly pendingRemoteActions: RemoteActionEnvelope[] = [];
   private disposed = false;
@@ -1117,11 +1136,24 @@ export class BattleOrchestrator {
       this.setInputState({ phase: "waiting_remote", playerId: active.playerId });
       this.chrome.hideMenus();
       this.board.clearHighlights();
-      // Une action gardée pendant qu'on animait attend peut-être ici. Une à la fois : celle-ci
-      // relancera la file, qui repassera par `refreshUI` pour la suivante.
-      const kept = this.pendingRemoteActions.shift();
+      /*
+       * Une action gardée attend peut-être ici — arrivée pendant qu'on animait, ou en avance sur
+       * notre journal. Une à la fois : celle-ci relancera la file, qui repassera par `refreshUI`
+       * pour la suivante. Piochée par index, jamais en tête : voir `pendingRemoteActions`.
+       */
+      const expectedIndex = this.engine.actionLogLength;
+      const kept = this.takePendingRemoteAction(expectedIndex);
       if (kept !== undefined) {
         this.submitRemoteAction(kept);
+      } else if (this.pendingRemoteActions.length > 0) {
+        /*
+         * 🔴 Le tampon n'est pas vide mais l'action attendue n'y est PAS : il manque une pièce, et
+         * c'est ici qu'on s'en aperçoit. Signaler depuis la seule réception (`submitRemoteAction`)
+         * ne suffisait pas — une action mise de côté pendant une animation n'émettait rien, et le
+         * trou restait muet jusqu'à ce que la partie pende. Ré-émis à chaque entrée en attente, ce
+         * signal réarme aussi le filet quand le trou se DÉPLACE.
+         */
+        this.config.onRemoteActionGap?.(expectedIndex);
       }
       return;
     }
@@ -1804,19 +1836,34 @@ export class BattleOrchestrator {
    * compteur à zéro, parce qu'un hoquet isolé est un bug plausible et qu'un pair réellement divergent
    * voit **tout** refusé, donc atteint trois d'affilée.
    *
-   * @returns vrai si l'action a été appliquée.
+   * @returns ce qu'il est advenu de l'enveloppe — appliquée, gardée pour plus tard, ou refusée.
+   *   🔴 « Gardée » n'est PAS un échec : l'appelant qui les confond s'arrête sur une action
+   *   parfaitement légitime. Voir `RemoteActionOutcome`.
    */
-  submitRemoteAction(envelope: RemoteActionEnvelope): boolean {
+  submitRemoteAction(envelope: RemoteActionEnvelope): RemoteActionOutcome {
     if (this.disposed || this.inputState.phase === "battle_over") {
-      return false;
+      return "rejected";
     }
     if (this.inputState.phase !== "waiting_remote") {
       // Pas encore notre attente : on garde, on ne juge pas. Voir `pendingRemoteActions`.
-      this.pendingRemoteActions.push(envelope);
-      return false;
+      this.keepPendingRemoteAction(envelope);
+      return "kept";
     }
     const expected = this.engine.actionLogLength;
-    if (envelope.actionIndex !== expected) {
+    if (envelope.actionIndex > expected) {
+      /*
+       * 🔴 EN AVANCE, donc LÉGITIME (plan 209, Lot C1). L'émetteur a vu plus d'actions que nous :
+       * il en manque une, qui chemine encore sur le canal d'un autre pair. Rien ici n'accuse
+       * personne — c'est le maillage qui n'ordonne pas entre ses canaux, pas ce pair qui triche.
+       * On garde, et `refreshUI` la repêchera quand notre journal l'aura rattrapée.
+       */
+      this.keepPendingRemoteAction(envelope);
+      this.config.onRemoteActionGap?.(expected);
+      return "kept";
+    }
+    if (envelope.actionIndex < expected) {
+      // EN RETARD : l'émetteur rejoue une action déjà appliquée, ou son journal a divergé du nôtre.
+      // Celui-là se refuse, et c'est le seul écart d'index qui compte encore un refus.
       return this.rejectRemoteAction(envelope.seat, {
         kind: "desynced_index",
         expected,
@@ -1841,7 +1888,60 @@ export class BattleOrchestrator {
     }
     this.remoteRejectionsBySeat.delete(envelope.seat);
     this.afterActionAccepted(submitted.events);
-    return true;
+    return "applied";
+  }
+
+  /**
+   * Met une action distante de côté, et purge ce qui ne servira plus (plan 209, Lot C1).
+   *
+   * La purge n'est pas du confort : une action dont l'index est passé **sous** notre journal a été
+   * appliquée par un autre chemin — un rattrapage `resync`, typiquement — et plus rien ne viendra
+   * la réclamer. Sans ce ménage elle resterait à occuper le tampon pour toujours.
+   */
+  private keepPendingRemoteAction(envelope: RemoteActionEnvelope): void {
+    const applied = this.engine.actionLogLength;
+    for (let index = this.pendingRemoteActions.length - 1; index >= 0; index -= 1) {
+      const kept = this.pendingRemoteActions[index];
+      if (kept !== undefined && kept.actionIndex < applied) {
+        this.pendingRemoteActions.splice(index, 1);
+      }
+    }
+    if (this.pendingRemoteActions.length >= MAX_PENDING_REMOTE_ACTIONS) {
+      /*
+       * Plafond atteint : on jette la PLUS AVANCÉE, jamais la plus proche d'être jouée. Celle qu'on
+       * sacrifie est la moins près de servir, et le rattrapage `resync` sait la redemander — alors
+       * qu'abandonner la plus proche figerait la file qu'on essaie de vider.
+       */
+      let furthest = 0;
+      for (let index = 1; index < this.pendingRemoteActions.length; index += 1) {
+        const candidate = this.pendingRemoteActions[index];
+        const current = this.pendingRemoteActions[furthest];
+        if (
+          candidate !== undefined &&
+          current !== undefined &&
+          candidate.actionIndex > current.actionIndex
+        ) {
+          furthest = index;
+        }
+      }
+      this.pendingRemoteActions.splice(furthest, 1);
+    }
+    this.pendingRemoteActions.push(envelope);
+  }
+
+  /**
+   * Retire du tampon l'action dont c'est le tour, s'il y en a une (plan 209, Lot C1).
+   *
+   * 🔴 Par index, jamais en tête de file — c'est tout l'intérêt du tampon. Voir
+   * `pendingRemoteActions` pour ce que coûterait un `shift()`.
+   */
+  private takePendingRemoteAction(expected: number): RemoteActionEnvelope | undefined {
+    const at = this.pendingRemoteActions.findIndex((envelope) => envelope.actionIndex === expected);
+    if (at === -1) {
+      return undefined;
+    }
+    const [taken] = this.pendingRemoteActions.splice(at, 1);
+    return taken;
   }
 
   /**
@@ -1914,7 +2014,7 @@ export class BattleOrchestrator {
     return true;
   }
 
-  private rejectRemoteAction(seat: number, cause: RemoteActionRejectionCause): boolean {
+  private rejectRemoteAction(seat: number, cause: RemoteActionRejectionCause): RemoteActionOutcome {
     const strike = (this.remoteRejectionsBySeat.get(seat) ?? 0) + 1;
     this.remoteRejectionsBySeat.set(seat, strike);
     this.config.onRemoteActionRejected?.({
@@ -1923,7 +2023,7 @@ export class BattleOrchestrator {
       limit: REMOTE_REJECTION_LIMIT,
       cause,
     });
-    return false;
+    return "rejected";
   }
 
   /**
