@@ -38,10 +38,12 @@ Pour l'ouvrir : `node scripts/memory/query.mjs --open <entité>`. Ci-dessous l'e
 > qui existe désormais en solo aussi — changer de carte ne démonte plus l'écran de composition
 > d'équipe. Entrée « Aléatoire », carte par défaut = dernière jouée, bascule solo → en ligne sur
 > place. `NETWORK_VERSION` 5 → 6.
-> **Prochaine étape : cadrer le plan 209** (`docs/plans/209-ffa-en-reseau.md`, statut `à cadrer`) avec
-> l'humain — il rouvre la décision #944 (« le 1v1 seul en ligne »), contestée par l'humain le
-> 2026-09-13. Voir entité `agenda-prochaine-etape-courante`. La release de la Phase 7 (multijoueur)
-> reste hors file, jamais tranchée.
+> **Prochaine étape : implémenter le plan 209** (`docs/plans/209-ffa-en-reseau.md`, statut `ready`),
+> cadré avec l'humain le 2026-09-13. Il **finit le multijoueur** — consigne humaine « on finit le multi
+> ce plan » — en cinq lots : l'ordre des actions (C1), le désaccord à N témoins (C2), les cinq formats
+> (C3), le rendez-vous tiers (C4), la migration d'hôte (C5). Il **renverse** la décision #944 (« le 1v1
+> seul en ligne »). Voir entité `agenda-prochaine-etape-courante`. La release de la Phase 7
+> (multijoueur) reste hors file, jamais tranchée.
 > Les autres sections ci-dessous sont ouvertes, dans un ordre qui n'est pas figé.
 
 ### Post-Babylon — petits chantiers de rendu
@@ -171,8 +173,10 @@ existe déjà.
       validation de chaque action reçue contre `getLegalActions()`, barème 1er/2e/3e refus (avertir
       puis forfait), forfait dans le core (`BattleEngine.forfeit`). Réseau restreint au **1v1** — le
       garde-fou d'index suppose un canal ordonné, vrai par connexion mais pas à trois camps et plus.
-      Cette restriction (décision #944) est **contestée par l'humain le 2026-09-13** — le plan 209
-      (`docs/plans/209-ffa-en-reseau.md`, `à cadrer`) la rouvre.
+      Cette restriction (décision #944) est **renversée** par le plan 209
+      (`docs/plans/209-ffa-en-reseau.md`, `ready`, cadré le 2026-09-13) : le tour par tour donne déjà
+      un ordre total, seul l'ordre de **livraison** manquait — un tampon de réordonnancement par index
+      suffit, sans horloge logique ni relais.
       **Lot B3 (chronomètre, reconnexion, abandon) LIVRÉ le 2026-09-09** (plan 202) : chronomètre de
       tour local auto-déclarant (60 s), chien de garde de connexion distinct (75 s puis 30 s),
       admission d'un revenant dans un salon verrouillé (hôte compris — asymétrie de qui compose
