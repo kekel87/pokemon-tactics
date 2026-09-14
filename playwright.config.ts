@@ -125,7 +125,14 @@ export default defineConfig({
    *
    * `PT_FULL_SPEED=1` rend la main au défaut Playwright (runs où personne n'utilise la machine).
    */
-  workers: process.env.PT_FULL_SPEED ? undefined : Number(process.env.PT_E2E_WORKERS ?? 3),
+  // PT_BENCH force UN worker : une mesure qui partage la machine avec trois autres navigateurs ne
+  // mesure plus le maillage, elle mesure la contention. Elle passe avant PT_FULL_SPEED, qui dit
+  // l'inverse.
+  workers: process.env.PT_BENCH
+    ? 1
+    : process.env.PT_FULL_SPEED
+      ? undefined
+      : Number(process.env.PT_E2E_WORKERS ?? 3),
   reporter: process.env.CI ? "blob" : "list",
   use: {
     baseURL,
@@ -160,6 +167,29 @@ export default defineConfig({
     // charge, pas de déterminisme). Le rendu reste déterministe ; seul le temps de boot varie.
     { name: "combat", testMatch: "**/combat/**/*.spec.ts", timeout: 60_000 },
     { name: "visual", testMatch: "**/visual/**/*.spec.ts", retries: 0 },
+    /*
+     * Les MESURES (`e2e/tests/bench/`), absentes sauf si PT_BENCH est posée.
+     *
+     * 🔴 La garde n'est pas un confort, c'est la seule chose qui les tient hors de la suite :
+     * `npx playwright test` sans `--project` lance TOUS les projets, donc la tranche GitHub
+     * ouvrirait douze contextes de navigateur et 66 négociations WebRTC pour un fichier qui
+     * n'assertionne rien. Un `testIgnore` sur les autres projets n'y suffirait pas — il faut que
+     * le projet lui-même n'existe pas.
+     *
+     * `workers: 1` et pas de parallélisme : une mesure partagée avec trois autres navigateurs ne
+     * mesure plus le maillage, elle mesure la contention de la machine.
+     */
+    ...(process.env.PT_BENCH
+      ? [
+          {
+            name: "bench",
+            testMatch: "**/bench/**/*.spec.ts",
+            timeout: 600_000,
+            retries: 0,
+            fullyParallel: false,
+          },
+        ]
+      : []),
   ].map((project) => ({ ...project, use: { ...devices["Desktop Chrome"], locale: "fr-FR" } })),
   webServer: [
     {

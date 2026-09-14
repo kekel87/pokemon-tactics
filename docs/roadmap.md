@@ -38,12 +38,13 @@ Pour l'ouvrir : `node scripts/memory/query.mjs --open <entité>`. Ci-dessous l'e
 > qui existe désormais en solo aussi — changer de carte ne démonte plus l'écran de composition
 > d'équipe. Entrée « Aléatoire », carte par défaut = dernière jouée, bascule solo → en ligne sur
 > place. `NETWORK_VERSION` 5 → 6.
-> **Prochaine étape : implémenter le plan 209** (`docs/plans/209-ffa-en-reseau.md`, statut `ready`),
-> cadré avec l'humain le 2026-09-13. Il **finit le multijoueur** — consigne humaine « on finit le multi
-> ce plan » — en cinq lots : l'ordre des actions (C1), le désaccord à N témoins (C2), les cinq formats
-> (C3), le rendez-vous tiers (C4), la migration d'hôte (C5). Il **renverse** la décision #944 (« le 1v1
-> seul en ligne »). Voir entité `agenda-prochaine-etape-courante`. La release de la Phase 7
-> (multijoueur) reste hors file, jamais tranchée.
+> **Le plan 209 est livré** (`docs/plans/209-ffa-en-reseau.md`, statut `done`, cadré le 2026-09-13,
+> livré le 2026-09-14). Il **finit le multijoueur** — consigne humaine « on finit le multi ce plan » —
+> en cinq lots : l'ordre des actions (C1), le désaccord à N témoins (C2), les cinq formats (C3), le
+> rendez-vous tiers (C4), la migration d'hôte (C5). Il **renverse** la décision #944 (« le 1v1 seul en
+> ligne »). Le maillage à 6 et 12 camps a été mesuré et tient (`docs/multiplayer.md` § 3+ joueurs) : la
+> release de la Phase 7 **n'a plus de bloquant nommé**. Suite décidée : cadrer le plan 210 (spectateur
+> après élimination — decision-1040). Voir entité `agenda-prochaine-etape-courante`.
 > Les autres sections ci-dessous sont ouvertes, dans un ordre qui n'est pas figé.
 
 ### Post-Babylon — petits chantiers de rendu
@@ -163,20 +164,22 @@ existe déjà.
       retiré du bundle (compte pas encore fermé). Étape 6 (vérification en production) **partielle** :
       aucune partie menée jusqu'au bout, l'événement `battle_ended` reste non éprouvé — détail dans
       le graphe, entités `agenda` et `plan-196`
-- [ ] **Multijoueur réseau P2P** — lobby (`ScreenId` neuf), protocole d'actions, validation,
+- [x] **Multijoueur réseau P2P** — lobby (`ScreenId` neuf), protocole d'actions, validation,
       détection de désync (sérialisation canonique livrée, plan 203), chronomètre local
-      auto-déclarant (#864, #865), reconnexion par le chemin du plan 181. **Viser le 1v1**, retester le FFA à 12
-      ensuite. **Lot B1 (transport et salon) LIVRÉ le 2026-09-04** (plan 199, paquet
+      auto-déclarant (#864, #865), reconnexion par le chemin du plan 181. **Lot B1 (transport et
+      salon) LIVRÉ le 2026-09-04** (plan 199, paquet
       `packages/network/`, décisions #895-912) : code de partie, écran `lobby`, salle d'attente,
       lancement accusé, trois graines partagées (combat/placement/IA). **Lot B2 (combat en réseau)
       LIVRÉ et validé à la main le 2026-09-08** (plan 201) : tour distant greffé sur `humanPlayerIds`,
       validation de chaque action reçue contre `getLegalActions()`, barème 1er/2e/3e refus (avertir
-      puis forfait), forfait dans le core (`BattleEngine.forfeit`). Réseau restreint au **1v1** — le
-      garde-fou d'index suppose un canal ordonné, vrai par connexion mais pas à trois camps et plus.
-      Cette restriction (décision #944) est **renversée** par le plan 209
-      (`docs/plans/209-ffa-en-reseau.md`, `ready`, cadré le 2026-09-13) : le tour par tour donne déjà
-      un ordre total, seul l'ordre de **livraison** manquait — un tampon de réordonnancement par index
-      suffit, sans horloge logique ni relais.
+      puis forfait), forfait dans le core (`BattleEngine.forfeit`). Le réseau avait d'abord été
+      restreint au **1v1** — le garde-fou d'index suppose un canal ordonné, vrai par connexion mais
+      pas à trois camps et plus. Cette restriction (décision #944) est **renversée** par le plan 209
+      (`docs/plans/209-ffa-en-reseau.md`, `done`, cadré le 2026-09-13, livré le 2026-09-14) : le tour
+      par tour donne déjà un ordre total, seul l'ordre de **livraison** manquait — un tampon de
+      réordonnancement par index suffit, sans horloge logique ni relais. Les cinq formats (1v1 à
+      12 joueurs) sont en ligne ; le maillage à 6 et 12 camps a été mesuré et tient
+      (`docs/multiplayer.md` § 3+ joueurs).
       **Lot B3 (chronomètre, reconnexion, abandon) LIVRÉ le 2026-09-09** (plan 202) : chronomètre de
       tour local auto-déclarant (60 s), chien de garde de connexion distinct (75 s puis 30 s),
       admission d'un revenant dans un salon verrouillé (hôte compris — asymétrie de qui compose

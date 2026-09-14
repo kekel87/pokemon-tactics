@@ -342,6 +342,8 @@ pokemon-tactics/
 │   ├── fixtures/                # bootSandbox(), catalogue sandbox-configs.ts
 │   ├── pages/                   # POMs : MainMenu, CombatScene, screens, teamBuilder
 │   └── tests/                   # smoke/ + dom/ + combat/ + visual/ — 51 tests (50 passants + 1 fixme)
+│                                 #   + bench/ : mesures de maillage WebRTC (projet Playwright `bench`,
+│                                 #   n'existe que sous `PT_BENCH=1` — hors suite normale et hors CI)
 ├── scripts/                     # Outils de build one-shot (non packagés)
 │   ├── extract-sprites.ts       # Pipeline PMDCollab : télécharge sprites → dossiers per-Pokemon (atlas JSON+PNG, offsets) — source/cache dev, gitignorés (plan 135)
 │   ├── extract-item-icons.ts    # Plan 168 : fetch spritesheet Showdown itemicons-sheet.png, découpe 117 icônes 24×24 par spritenum → dossier per-item gitignoré

@@ -1084,6 +1084,37 @@ export class Room {
     });
   }
 
+  /**
+   * Compose le maillage avec les places déjà assises, une fois l'hôte joint.
+   *
+   * 🔴 **SÉQUENTIEL À DESSEIN. Ne pas « optimiser » en `Promise.all` sans lire ce qui suit** — ça a
+   * été tenté le 2026-09-14, mesuré, revu, et REMIS EN ARRIÈRE le jour même.
+   *
+   * Ce que la mesure a montré (`e2e/tests/bench/mesh-scaling.spec.ts`) : à douze camps, les onze
+   * négociations du dernier arrivé s'enchaînent sans le moindre chevauchement. C'est réel, et ça
+   * coûte cher en théorie, parce que `CONNECT_TIMEOUT_MS` vaut 15 s : un pair injoignable épuise
+   * son délai **avant que le suivant ne soit tenté**. Une place morte retarde donc les dix autres.
+   *
+   * Ce que le parallèle casse, et qui est PIRE : `waitForConnectionOpen` (peer-connection.ts)
+   * écoute l'échec sur l'objet **`peer` partagé**, pas sur la connexion — sa propre docstring le
+   * dit, et `peerjs` ne lui laisse pas le choix : `emitError` fait `this.emit("error", …)` sur le
+   * Peer, et pour `peer-unavailable` l'identité de la cible n'existe que dans le TEXTE du message
+   * (peerjs@1.5.5, bundler.mjs:1575 et :951). Onze négociations en vol, c'est onze écouteurs sur le
+   * même émetteur : **une seule place absente rejette les onze promesses**, et le `catch` ci-dessous
+   * les avale en silence. Le dernier arrivant se retrouve avec le seul canal de l'hôte — or l'hôte
+   * ne relaie pas, le maillage EST le transport. Un maillage vide n'est pas un pair manquant, c'est
+   * une partie qui se bloque.
+   *
+   * En séquentiel une seule négociation est en vol : l'erreur du Peer ne peut appartenir qu'à elle.
+   * C'est ce qui rend cette boucle correcte, et ce n'est pas un hasard qu'elle le soit.
+   *
+   * Paralléliser suppose donc d'abord de rendre l'échec imputable à SA connexion — discriminer sur
+   * le texte du message, ou ne traiter sur le Peer que les causes globalement fatales (`network`,
+   * `socket-error`, `server-error`) en laissant les autres au minuteur par promesse. Avec les tests
+   * qui vont avec : ni le canal factice (`testing/fake-transport.ts`, qui jette localement et n'a
+   * aucun émetteur partagé) ni le banc de mesure (douze pairs tous joignables) ne peuvent voir cette
+   * diaphonie. Consigné dans le graphe : `backlog-connecttomesh-serialise-par-un-emetteur-partage`.
+   */
   private async connectToMesh(occupiedSeats: readonly number[]): Promise<void> {
     for (const remoteSeat of occupiedSeats) {
       if (remoteSeat === this.seat || remoteSeat === this.hostSeat) {

@@ -201,6 +201,11 @@ littérature pour du data-only, donc **on mesure** (règle du projet depuis le p
 d'entrée en partie à 3, 6 et 12, et taux de liens établis. Si 12 ne tient pas, le repli est la
 topologie étoile du Lot C4 — pas un abandon du format.
 
+✅ **Mesuré le 2026-09-14** — détail et tableau : `docs/multiplayer.md` § 3+ joueurs. Le maillage
+tient à douze (132/132 extrémités connectées, +6 % de temps d'entrée entre 2 et 12 camps). Le repli
+en topologie étoile n'est **pas** nécessaire ; il reste disponible (§ Workers) mais rien ne l'appelle.
+La mesure a aussi trouvé et corrigé une sérialisation de `Room.connectToMesh` (décision #1042).
+
 **Critères de sortie** : une partie à 3 et à 4 se crée, se rejoint et se joue jusqu'au verdict ; le
 sélecteur affiche les cinq formats ; la mesure de montage à 6 et 12 est faite et consignée ; **un
 joueur qui décroche à 12 camps est forfaité nettement plus vite qu'en trente-six minutes**.
@@ -259,8 +264,8 @@ problème d'**adressage**, pas d'ordonnancement, et aucun réglage ne le contour
    pour reprendre une adresse précise, puisque l'adresse n'est plus précise.
 3. Bénéfices acquis au passage, déjà prévus par `docs/multiplayer.md:727` : namespace à nous (fin des
    collisions #866) et fin de la dépendance au SLA inexistant de `peerjs.com`.
-4. **Le relais de secours reste hors de ce lot** (usage 3 du § Workers) — sauf si la mesure du Lot C3
-   montre que le maillage à 12 ne tient pas, auquel cas la topologie étoile entre ici.
+4. **Le relais de secours reste hors de ce lot** (usage 3 du § Workers). ✅ Tranché le 2026-09-14 : la
+   mesure du Lot C3 montre que le maillage à 12 tient, donc la topologie étoile n'entre pas ici.
 
 **Limites du plan gratuit à respecter** (vérifiées le 2026-08-29) : 100 000 requêtes/jour, 10 ms de CPU
 par invocation (temps CPU, l'attente I/O n'est pas comptée), backend **SQLite obligatoire** en gratuit.
@@ -369,7 +374,8 @@ ne fait que l'exposer entre humains :
 
 - Le délai au bout duquel le resync en filet se déclenche (Lot C1, point 4) — à régler à
   l'implémentation, une fois le tampon observé en vrai.
-- Le relais étoile : dedans ou pas, selon la mesure du maillage à 12 (Lot C3).
+- ✅ Le relais étoile : **hors** — la mesure du maillage à 12 (Lot C3, 2026-09-14) le tient, rien ne
+  l'appelle.
 - La forme du seuil d'absence proportionnel (Lot C3, point 7) : trois tours **de son propre camp**
   rapportés à la cadence réelle, ou un plafond en secondes indépendant du format ? À trancher sur la
   mesure de cadence, pas avant.

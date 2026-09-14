@@ -814,16 +814,87 @@ central.
 
 Pour N joueurs, chaque joueur a N-1 connexions. Avec max 12 joueurs, c'est 66 connexions mesh.
 
-⚠️ **Jamais mesuré, et l'audit invite à s'en méfier.** Le problème n'est pas la bande passante
-(négligeable) mais la **cohérence** : 12 copies du moteur à garder identiques, et **aucune politique
-définie pour une désync partielle** (3 pairs sur 12 divergent — qui a raison ?). À noter aussi que la
-doc PeerJS observe une dégradation au-delà d'une poignée de connexions simultanées par pair.
+### ✅ MESURÉ le 2026-09-14 — le maillage tient à douze
 
-**Position (mise à jour 2026-09-14, plan 209)** : les cinq formats sont ouverts. Le maillage à 12
-reste **non mesuré** — la bande passante n'est pas le sujet (~100 octets à la cadence humaine), le
-montage l'est : 66 négociations ICE indépendantes, et une surface de panne qui croît plus vite que le
-nombre de joueurs. Si la mesure le condamne, le repli est la topologie étoile du relais de secours
-(§ Workers), sans réintroduire un « host » joueur.
+Le harnais est `e2e/tests/bench/mesh-scaling.spec.ts`, dans son propre projet Playwright que
+`PT_BENCH=1` fait exister (sans quoi la suite GitHub ouvrirait douze navigateurs par tranche) :
+
+```
+PT_BENCH=1 npx playwright test --project=bench
+```
+
+| Format | Liens attendus | Extrémités connectées | Entrée du dernier arrivé |
+|--------|----------------|------------------------|--------------------------|
+| 2 camps  | 1  | 2 / 2 — **100 %** | 1 229 ms |
+| 3 camps  | 3  | 6 / 6 — **100 %** | 1 236 ms |
+| 6 camps  | 15 | 30 / 30 — **100 %** | 1 345 ms |
+| 12 camps | 66 | 132 / 132 — **100 %** | 1 304 ms |
+
+**Aucune extrémité en échec, à aucun format.** Le temps d'entrée est plat : +6 % entre deux et douze
+camps, pour six fois plus de pairs et soixante-six fois plus de liens. La crainte d'un effondrement
+quadratique ne se vérifie pas. Le repli en topologie étoile n'est donc **pas** nécessaire — il reste
+disponible (§ Workers) mais rien ne l'appelle.
+
+🔴 **Ce que ces chiffres ne valent PAS.** Le harnais tourne sous `peerIce=off`, tout le monde sur la
+boucle locale : c'est un **plancher**, le coût du montage tel que notre code l'ordonne, sans une
+milliseconde de réseau réel. Le temps d'entrée entre deux machines derrière deux NAT ne se mesure
+pas ici, il se mesure à deux postes.
+
+### Ce que la mesure a trouvé au passage : `connectToMesh` était sérialisé
+
+La sonde horodate chaque négociation du dernier arrivé. À douze camps, ses onze négociations
+s'enchaînaient **sans le moindre chevauchement** — chacune n'ouvrait qu'une fois la précédente
+connectée :
+
+```
+[1093→1097] [1100→1104] [1105→1108] [1108→1111] … [1129→1132]
+```
+
+`Room.connectToMesh` les `await`ait dans une boucle `for`. Sur la boucle locale ça ne coûte rien
+(~3,5 ms la négociation, donc ~39 ms perdus dans 1,3 s d'entrée), et c'est exactement pourquoi
+personne ne l'avait jamais vu.
+
+**Le vrai coût n'est pas la lenteur, c'est `CONNECT_TIMEOUT_MS = 15_000`** (`transport.ts`). Un pair
+injoignable devait épuiser ses quinze secondes **avant que le suivant ne soit seulement tenté**. Une
+seule place morte retardait donc les dix autres, l'une après l'autre — le contraire exact de ce que
+promet le commentaire du `catch` (« un pair injoignable n'empêche pas d'entrer »). Et le défaut
+grandit avec le nombre de joueurs, c'est-à-dire précisément là où on s'inquiétait.
+
+#### ⚠️ NON corrigé — et la tentative de correction a été annulée le jour même
+
+`Promise.all` a été essayé le 2026-09-14, mesuré (séquentiel 1 836 / 1 342 / 1 806 ms, parallèle
+1 820 / 1 326 / 1 516 ms — indiscernable sur la boucle locale), puis **remis en arrière** après revue
+de code. Motif, et il est décisif :
+
+`waitForConnectionOpen` (`peer-connection.ts`) écoute l'échec sur l'objet **`peer` partagé**, pas sur
+la connexion. Ce n'est pas un choix : `peerjs` émet `emitError` par `this.emit("error", …)` sur le
+Peer, et pour `peer-unavailable` l'identité de la cible n'existe que dans le **texte** du message
+(`peerjs@1.5.5`, `bundler.mjs:1575` et `:951`). Onze négociations en vol, c'est onze écouteurs sur le
+même émetteur : **une seule place absente rejette les onze promesses**, et le `catch` les avale en
+silence. Le dernier arrivant se retrouve alors avec le seul canal de l'hôte — or l'hôte ne relaie
+pas, **le maillage EST le transport**. Un maillage vide n'est pas un pair manquant, c'est une partie
+qui se bloque.
+
+Le séquentiel n'a pas ce défaut parce qu'une seule négociation est en vol à la fois : l'erreur du
+Peer ne peut appartenir qu'à elle. La boucle est correcte, et ce n'est pas un hasard.
+
+Ce qu'il faudra pour paralléliser un jour : rendre l'échec imputable à SA connexion — discriminer
+sur le texte du message, ou ne traiter sur le Peer que les causes globalement fatales (`network`,
+`socket-error`, `server-error`) et laisser les autres au minuteur par promesse. Avec des tests que
+rien ne fournit aujourd'hui : ni le canal factice (`testing/fake-transport.ts`, qui jette localement
+et n'a aucun émetteur partagé) ni le banc de mesure (douze pairs tous joignables) ne peuvent voir
+cette diaphonie.
+
+**Conséquence pratique, à savoir avant de publier** : une place morte dans un salon à douze retarde
+les autres liens de 15 s chacun, en cascade. Ça dégrade, ça ne casse pas — le maillage finit par se
+composer. C'est la raison pour laquelle ça ne bloque pas la release, et la raison pour laquelle ça ne
+doit pas rester.
+
+⚠️ **Ce qui reste non mesuré, et qui n'a rien à voir avec le montage** : la **cohérence** à douze —
+12 copies du moteur à garder identiques, et **aucune politique définie pour une désync partielle**
+(3 pairs sur 12 divergent — qui a raison ?). Et la **cadence** d'un round : le pire cas théorique
+connu est 12 actions × 60 s = 12 min par round, soit ~11 min d'attente entre deux tours d'un même
+joueur. Aucun des deux ne se règle en accélérant le maillage.
 
 🔴 **LEVÉ par le plan 209 (2026-09-14).** Le Lot B2 avait rendu cette limite concrète : `actionIndex`
 (§ Protocole) suppose un canal **ordonné**, vrai **par connexion** mais faux entre les canaux qu'un
