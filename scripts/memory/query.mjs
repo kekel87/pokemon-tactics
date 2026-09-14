@@ -4,6 +4,7 @@
  * Usage : PT_MEMORY_HOME=<dir> PT_MEMORY_VENDOR=<dir> node query.mjs "ma question"
  *         ... --open <nom-entite>   pour lire une entite en entier
  */
+import { planifierOubli } from "./forget-guards.mjs";
 import { ouvrirStore } from "./paths.mjs";
 
 const argvReel = process.argv.slice(2);
@@ -175,80 +176,29 @@ if (args[0] === "--forget" || args[0] === "--forget-all") {
   // mesurée, agenda-prochaine-etape-courante accumulait ses versions successives au
   // lieu de les remplacer, et le tri plaçait la PÉRIMÉE avant la bonne — la panne
   // exacte que ce pointeur au nom stable existait pour éviter.
+  //
+  // 🔴 Les GARDES ne sont plus ici : elles vivent dans ./forget-guards.mjs, pures et
+  // couvertes par query.test.ts (decision-1039). Ce bloc ne fait plus que lire la
+  // base, obéir au verdict, et imprimer. Motif : tant qu'elles étaient en ligne dans
+  // ce script top-level à process.exit, elles étaient intestables — et c'est là que
+  // les deux Critical de la revue du 2026-09-14 s'étaient logés.
   const tout = args[0] === "--forget-all";
-  const reste = args.slice(1);
-  // Refuser les arguments surnuméraires, plutôt que de les jeter en silence : sans
-  // guillemets, « --forget-all agenda le plan 42 » réduisait le fragment à « le » et
-  // vidait l'entité en sortant 0. Le fragment DOIT être un seul argument.
-  if (reste.length !== 2) {
-    console.error(
-      `usage : ${args[0]} <nom> <fragment>\n` +
-        `  le fragment doit être UN seul argument, entre guillemets — reçu ${reste.length}.`,
-    );
-    process.exit(1);
-  }
-  const [nom, fragment] = reste;
-  // Plancher de longueur : un fragment d'un caractère correspond à presque tout.
-  const FRAGMENT_MIN = 10;
-  if (fragment.trim().length < FRAGMENT_MIN) {
-    console.error(
-      `fragment trop court (${fragment.trim().length} caractères utiles, minimum ${FRAGMENT_MIN}).\n` +
-        "  Copiez une phrase entière depuis --open : c'est une sous-chaîne exacte, pas un mot-clé.",
-    );
-    process.exit(1);
-  }
-  const existe = store.db.prepare("SELECT 1 FROM entities WHERE name = ?").get(nom);
-  if (!existe) {
-    console.error(`entité introuvable : ${nom}`);
-    process.exit(1);
-  }
-  const touchees = store.db
-    .prepare("SELECT content FROM observations WHERE entity_name = ? AND instr(content, ?) > 0")
-    .all(nom, fragment)
-    .map((r) => r.content);
+  const bruts = args.slice(1);
 
-  if (!touchees.length) {
-    // Dire POURQUOI ça ne correspond pas : sinon l'appelant élargit son fragment,
-    // et c'est comme ça qu'on retombe sur une sur-suppression.
-    // Code 1 ASSUMÉ, donc non idempotent : rejouer un --forget déjà appliqué échoue.
-    // C'est voulu — sur un geste destructeur, « rien à faire » et « je ne trouve pas
-    // ce que tu visais » se ressemblent trop pour qu'on les confonde en silence.
-    console.error(
-      `aucune observation de ${nom} ne contient : ${fragment}\n` +
-        "  La recherche est une SOUS-CHAÎNE EXACTE, sensible à la casse et aux accents.\n" +
-        "  Copiez le texte depuis --open plutôt que de le retaper.",
-    );
-    process.exit(1);
-  }
-  const total = store.db
-    .prepare("SELECT COUNT(*) c FROM observations WHERE entity_name = ?")
-    .get(nom).c;
-  // Vider une entité doit être un geste NOMMÉ, jamais l'effet de bord d'un fragment
-  // trop large : une entité sans observation reste indexée et continue de sortir au
-  // classement, muette.
-  if (touchees.length === total) {
-    console.error(
-      `refus : ce fragment retirerait les ${total} observations de ${nom}, donc la viderait.\n` +
-        "  Une entité vide reste indexée et ressort en recherche sans rien dire.\n" +
-        "  Précisez le fragment, ou retirez les observations une à une.",
-    );
-    process.exit(1);
-  }
-  const PLAFOND = 5;
-  if (tout && touchees.length > PLAFOND) {
-    console.error(
-      `refus : ${touchees.length} observations correspondent, au-delà du plafond de ${PLAFOND}.\n` +
-        "  Un fragment aussi large est presque toujours une erreur de quotation.\n" +
-        "  Retirez-les par lots avec des fragments plus précis.",
-    );
-    process.exit(1);
-  }
-  if (touchees.length > 1 && !tout) {
-    console.error(`${touchees.length} observations contiennent ce fragment — refus.`);
-    console.error("Précisez le fragment, ou assumez-les toutes avec --forget-all :");
-    for (const o of touchees) {
-      console.error(`  · ${o.slice(0, 160)}${o.length > 160 ? " […]" : ""}`);
-    }
+  const nomVise = bruts[0];
+  const connue =
+    nomVise !== undefined &&
+    store.db.prepare("SELECT 1 FROM entities WHERE name = ?").get(nomVise) !== undefined;
+  const observations = connue
+    ? store.db
+        .prepare("SELECT content FROM observations WHERE entity_name = ?")
+        .all(nomVise)
+        .map((row) => row.content)
+    : null;
+
+  const verdict = planifierOubli({ tout, arguments: bruts, observations });
+  if (!verdict.ok) {
+    console.error(verdict.message);
     process.exit(1);
   }
 
@@ -256,15 +206,15 @@ if (args[0] === "--forget" || args[0] === "--forget-all") {
   // historique — mais la BASE est versionnée par le hook memory-git-sync.sh dans un
   // dépôt privé, donc le geste est rattrapable à la granularité de la sauvegarde.
   // On imprime la commande de rattrapage ici, au moment où elle sert.
-  console.log(`retiré de ${nom} :`);
-  for (const o of touchees) {
+  console.log(`retiré de ${verdict.nom} :`);
+  for (const o of verdict.touchees) {
     console.log(`  --- ${o}`);
   }
-  store.deleteObservations([{ entityName: nom, observations: touchees }]);
+  store.deleteObservations([{ entityName: verdict.nom, observations: verdict.touchees }]);
   const restantes = store.db
     .prepare("SELECT COUNT(*) c FROM observations WHERE entity_name = ?")
-    .get(nom).c;
-  console.log(`${touchees.length} observation(s) retirée(s) — il en reste ${restantes}.`);
+    .get(verdict.nom).c;
+  console.log(`${verdict.touchees.length} observation(s) retirée(s) — il en reste ${restantes}.`);
   console.log(
     "  rattrapage si c'était une erreur (la base est versionnée par memory-git-sync.sh) :\n" +
       '    git -C "$CLAUDE_CONFIG_DIR/memory/sync" log --oneline -- memory.db\n' +

@@ -1,6 +1,7 @@
 {
   "//1": "Les scripts de la séquence d'intro (plan 194) n'étaient couverts par aucune cible : ni le tsconfig racine (packages/*/src + scenarios), ni e2e/tsconfig.json. Mille deux cents lignes hors de tout filet, relevé par la revue de code du 2026-08-28.",
   "//3": "`lib` inclut DOM pour `webgl-probe.ts`, dont le `page.evaluate` s'exécute dans le navigateur et manipule canvas/WebGL. Les autres scripts n'en dépendent pas.",
+  "//4": "`allowJs` SANS `checkJs` (decision-1039, 2026-09-14) : il ouvre la porte à `memory/query.mjs` et `memory/forget-guards.mjs`, les seuls .mjs de cette liste, pour que `memory/query.test.ts` puisse les importer et typechecker. L'autre route — convertir en .ts lancé par tsx — coûtait 75 références à réécrire (CLAUDE.md, 9 agents, skills, docs) et ~200 ms de démarrage tsx sur l'outil le plus appelé du dispositif. Sans `checkJs` ces deux modules restent non vérifiés, ce qu'ils étaient déjà : allowJs ne dégrade rien, il rend l'îlot atteignable par un test.",
   "//2": "`files` et non `include` à dessein : les scripts plus anciens (extract-sprites, pack-sprites, generate-golden-replay, extract-item-icons) ne passent pas `strict` aujourd'hui. Les inclure ici rendrait le gate rouge sur du code que ce chantier ne touche pas ; les corriger est un chantier à part, à ouvrir pour eux-mêmes. Tout nouveau script s'ajoute à cette liste.",
   "compilerOptions": {
     "strict": true,
@@ -13,6 +14,7 @@
     "noEmit": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
+    "allowJs": true,
     "verbatimModuleSyntax": true
   },
   "files": [
@@ -26,6 +28,8 @@
     "e2e-affected.ts",
     "e2e-affected.test.ts",
     "e2e-status.ts",
-    "webgl-probe.ts"
+    "webgl-probe.ts",
+    "memory/forget-guards.mjs",
+    "memory/query.test.ts"
   ]
 }

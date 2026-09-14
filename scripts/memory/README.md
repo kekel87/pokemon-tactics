@@ -8,6 +8,7 @@ La mémoire du projet (décisions, plans terminés, historique, dette, retours) 
 | Fichier | Rôle |
 |---|---|
 | `query.mjs` | **Le point d'entrée.** Lecture (`"mots clés"`, `--open`, `--stats`), écriture (`--add`, `--link`, `--resolve`, `--retype`) et **suppression** (`--forget`, `--forget-all`). `--help` pour le détail |
+| `forget-guards.mjs` | Les gardes de `--forget`/`--forget-all`, **pures** (aucun accès disque, aucun `process.exit`) — sorties de `query.mjs` pour rester testables. Couvertes par `query.test.ts` |
 | `paths.mjs` | Résolution **unique** du chemin de la base, déduite de `CLAUDE_CONFIG_DIR`. Surcharges : `PT_MEMORY_HOME`, `PT_MEMORY_VENDOR` |
 | `import.mjs` | Chargement en masse d'un JSON `{entities, relations}` |
 | `set-recency.py` | Alimente la table de récence et force la reconstruction de l'index FTS. À rejouer après un import en masse |
