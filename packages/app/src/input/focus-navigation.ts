@@ -1,3 +1,4 @@
+import { closeModalDialog } from "@pokemon-tactic/ui-dom";
 import type { ScreenDirection } from "./input-router.js";
 import { LogicalAction } from "./logical-action.js";
 
@@ -164,7 +165,10 @@ export function closeOpenModal(): boolean {
   if (top === null) {
     return false;
   }
-  top.close();
+  // `closeModalDialog` et non `top.close()` : celui-ci laisse la modale se démonter une tâche plus
+  // tard, fenêtre pendant laquelle `isModalOpen()` la dit déjà partie alors que le consommateur
+  // d'entrée qu'elle a empilé tient encore le sommet de la pile. Voir `Modal.teardown`.
+  closeModalDialog(top);
   return true;
 }
 
