@@ -3,14 +3,12 @@ import { t } from "../../i18n";
 
 export interface ClearTeamConfirmModalOptions {
   onConfirm: () => void;
-  onCancel?: () => void;
 }
 
 export function openClearTeamConfirmModal(options: ClearTeamConfirmModalOptions): void {
   const modal = new Modal({
     title: t("teamBuilder.clearAllConfirmTitle"),
     closeAriaLabel: t("teamBuilder.aria.close"),
-    onClose: options.onCancel,
   });
 
   const body = modal.getBody();

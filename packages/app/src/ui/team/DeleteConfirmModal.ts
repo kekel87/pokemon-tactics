@@ -4,14 +4,12 @@ import { t } from "../../i18n";
 export interface DeleteConfirmModalOptions {
   teamName: string;
   onConfirm: () => void;
-  onCancel?: () => void;
 }
 
 export function openDeleteConfirmModal(options: DeleteConfirmModalOptions): void {
   const modal = new Modal({
     title: t("teamBuilder.deleteConfirmTitle"),
     closeAriaLabel: t("teamBuilder.aria.close"),
-    onClose: options.onCancel,
   });
 
   const body = modal.getBody();
