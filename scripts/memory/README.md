@@ -7,7 +7,7 @@ La mémoire du projet (décisions, plans terminés, historique, dette, retours) 
 
 | Fichier | Rôle |
 |---|---|
-| `query.mjs` | **Le point d'entrée.** Lecture (`"mots clés"`, `--open`, `--stats`) et écriture (`--add`, `--link`). `--help` pour le détail |
+| `query.mjs` | **Le point d'entrée.** Lecture (`"mots clés"`, `--open`, `--stats`), écriture (`--add`, `--link`, `--resolve`, `--retype`) et **suppression** (`--forget`, `--forget-all`). `--help` pour le détail |
 | `paths.mjs` | Résolution **unique** du chemin de la base, déduite de `CLAUDE_CONFIG_DIR`. Surcharges : `PT_MEMORY_HOME`, `PT_MEMORY_VENDOR` |
 | `import.mjs` | Chargement en masse d'un JSON `{entities, relations}` |
 | `set-recency.py` | Alimente la table de récence et force la reconstruction de l'index FTS. À rejouer après un import en masse |
@@ -20,6 +20,41 @@ node scripts/memory/query.mjs "llvmpipe rasteriseur"
 node scripts/memory/query.mjs --open decision-924
 node scripts/memory/eval-search.mjs        # non-régression du classement
 ```
+
+## Solder une entrée : `--resolve`, jamais une observation seule
+
+```bash
+node scripts/memory/query.mjs --resolve backlog-machin "Soldé par le plan 210, decision-1042."
+```
+
+`--resolve` consigne la clôture **et** bascule le type (`backlog` → `backlog-résolu`,
+`question-ouverte` → `question-résolue`) dans une seule transaction. `--retype` fait la bascule
+seule, pour un cas délibéré.
+
+🔴 **Ajouter une observation « ✅ RÉSOLU » ne solde rien** : l'entrée reste comptée ouverte par
+`--stats` et par toute reprise de session. C'est arrivé à **24 entrées de backlog**, certaines
+pendant deux mois — voir `decision-1035`. La cause n'était pas la négligence : jusqu'au
+2026-09-14, l'outil ne savait qu'ajouter, donc la conclusion était hors de portée.
+
+## 🔴 `--forget` — le seul geste destructeur
+
+```bash
+node scripts/memory/query.mjs --forget <entité> "une phrase entière copiée depuis --open"
+node scripts/memory/query.mjs --forget-all <entité> "<fragment>"   # plusieurs, assumé
+```
+
+Retire des observations. Le fragment est une **sous-chaîne exacte**, sensible à la casse et aux
+accents — copiez le texte depuis `--open`, ne le retapez pas.
+
+Gardes, toutes en refus avec code 1 : fragment de moins de 10 caractères utiles ; argument
+surnuméraire (le fragment doit être **entre guillemets** : sans elles, `--forget-all x le plan 42`
+réduisait le fragment à `le`) ; fragment qui vide l'entité — une entité sans observation reste
+indexée et ressort en recherche, muette ; plus de 5 correspondances sur `--forget-all`. Tout ce
+qui est retiré est **réimprimé en entier** avant de l'être.
+
+**Rattrapage** : la base est versionnée par `.claude/hooks/memory-git-sync.sh`, donc un retrait
+regretté se récupère à la granularité de la sauvegarde — la commande est rappelée dans la sortie
+de `--forget`.
 
 ## Ce qui n'est plus là
 

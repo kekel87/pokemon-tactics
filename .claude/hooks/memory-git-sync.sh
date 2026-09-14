@@ -42,10 +42,18 @@ empreinte() {
     const D = require(process.argv[2] + "/node_modules/better-sqlite3");
     const d = new D(process.argv[1], { readonly: true, fileMustExist: true });
     const q = (s) => d.prepare(s).get().c;
+    // NB : pas une seule apostrophe dans ce bloc -- il vit dans un node -e '...'
+    // entre apostrophes shell, ou la moindre apostrophe casse la quotation.
+    // La repartition des TYPES fait partie de cette empreinte : sans elle, un
+    // --retype seul ne bouge aucun compteur ni aucune longueur, le hook conclut
+    // « aucun changement », et la bascule nest jamais sauvegardee. Or cest
+    // exactement le geste par lequel un backlog devient backlog-resolu.
     console.log([q("SELECT COUNT(*) c FROM entities"),
                  q("SELECT COUNT(*) c FROM observations"),
                  q("SELECT COUNT(*) c FROM relations"),
-                 q("SELECT COALESCE(SUM(LENGTH(content)),0) c FROM observations")].join("-"));
+                 q("SELECT COALESCE(SUM(LENGTH(content)),0) c FROM observations"),
+                 d.prepare("SELECT entity_type t, COUNT(*) n FROM entities GROUP BY 1 ORDER BY 1")
+                   .all().map((r) => r.t + ":" + r.n).join(",")].join("-"));
   ' "$1" "$VENDOR" 2>/dev/null || return 1
 }
 

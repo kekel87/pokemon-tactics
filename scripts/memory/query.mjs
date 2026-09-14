@@ -23,6 +23,17 @@ if (!args.length || args[0] === "--help" || args[0] === "-h") {
   query.mjs --stats            taille et composition du graphe
   query.mjs --add <type> <nom> <observation> [obs...]     crée ou complète une entité
   query.mjs --link <de> <relation> <vers>                 relie deux entités
+  query.mjs --resolve <nom> <observation> [obs...]        SOLDE une entité : consigne
+      la ou les observations de clôture ET bascule son type (backlog → backlog-résolu,
+      question-ouverte → question-résolue). Un seul geste : c'est de la séparation des
+      deux que venait la dérive — voir --retype.
+  query.mjs --retype <nom> <type>                         change le type d'une entité
+      (bascule brute, sans rien consigner ; préférez --resolve pour solder)
+  query.mjs --forget <nom> <fragment>                     RETIRE une observation
+      (la seule qui contienne <fragment> ; refuse s'il y en a plusieurs, et
+      RÉIMPRIME en entier ce qu'elle retire — c'est le seul geste destructeur)
+  query.mjs --forget-all <nom> <fragment>                 retire TOUTES celles qui
+      contiennent <fragment>, chacune réimprimée
 
 Conseils mesurés le 2026-09-06 :
   · préférez 2-4 mots-clés DISTINCTIFS à une phrase — une requête longue se noie
@@ -58,6 +69,94 @@ if (args[0] === "--add") {
   process.exit(0);
 }
 
+/**
+ * Type d'arrivée quand on solde une entité. Sans cette table, la bascule se faisait
+ * en SQL écrit à la main, hors de l'outil — et elle ne se faisait donc pas : les
+ * entités soldées recevaient bien leur observation « RÉSOLU le … » (un AJOUT, le
+ * seul geste que --add sache faire) mais gardaient leur type. Vingt-quatre entrées
+ * de backlog étaient dans cet état le 2026-09-14.
+ */
+const TYPE_SOLDE = new Map([
+  ["backlog", "backlog-résolu"],
+  ["question-ouverte", "question-résolue"],
+]);
+
+/** Bascule le type ET la ligne `kind='type'` de l'index FTS, que le trigger tient à jour. */
+function retyper(nom, type) {
+  const avant = store.db.prepare("SELECT entity_type t FROM entities WHERE name = ?").get(nom);
+  if (!avant) {
+    console.error(`entité introuvable : ${nom}`);
+    process.exit(1);
+  }
+  if (avant.t === type) {
+    return { inchange: true, avant: avant.t };
+  }
+  store.db.prepare("UPDATE entities SET entity_type = ? WHERE name = ?").run(type, nom);
+  return { inchange: false, avant: avant.t };
+}
+
+if (args[0] === "--retype") {
+  const [nom, type] = args.slice(1);
+  if (!nom || !type) {
+    console.error("usage : --retype <nom> <type>");
+    process.exit(1);
+  }
+  const r = retyper(nom, type);
+  console.log(r.inchange ? `déjà de ce type : ${nom} [${type}]` : `${nom} : ${r.avant} → ${type}`);
+  process.exit(0);
+}
+
+if (args[0] === "--resolve") {
+  // Solder = consigner POURQUOI c'est clos, puis basculer le type. Les deux ensemble,
+  // parce que séparés l'un se fait et l'autre s'oublie.
+  const [nom, ...obs] = args.slice(1);
+  if (!nom || !obs.length) {
+    console.error(
+      "usage : --resolve <nom> <observation> [observation...]\n" +
+        "  l'observation dit ce qui l'a soldée (plan, décision, commit) — elle n'est pas optionnelle.",
+    );
+    process.exit(1);
+  }
+  const actuel = store.db.prepare("SELECT entity_type t FROM entities WHERE name = ?").get(nom);
+  if (!actuel) {
+    console.error(`entité introuvable : ${nom}`);
+    process.exit(1);
+  }
+  const cible = TYPE_SOLDE.get(actuel.t);
+  if (!cible) {
+    // Distinguer « déjà soldée » de « type inconnu » : sur un rejeu après incident,
+    // annoncer un type inconnu et pointer vers --retype enverrait retyper une entité
+    // qui n'a besoin de rien.
+    const dejaSolde = [...TYPE_SOLDE.values()].includes(actuel.t);
+    console.error(
+      dejaSolde
+        ? `${nom} est déjà soldée [${actuel.t}] — rien à faire.`
+        : `type « ${actuel.t} » sans forme soldée connue (attendu : ${[...TYPE_SOLDE.keys()].join(", ")}).\n` +
+            "  Pour une bascule délibérée vers un autre type : --retype.",
+    );
+    process.exit(1);
+  }
+  // UNE SEULE transaction. Séparés, l'ajout pouvait passer et la bascule échouer
+  // (busy_timeout de 5 s, et le hook de sauvegarde fait un wal_checkpoint sur Stop) :
+  // on obtenait une entité portant « RÉSOLU » et toujours typée backlog, c'est-à-dire
+  // le défaut même que cette commande existe pour empêcher.
+  let ajoutees = 0;
+  let saut = 0;
+  store.db.transaction(() => {
+    const r = store.addObservations([{ entityName: nom, contents: obs }]);
+    // Le store REND ce qu'il a ajouté : le lire, plutôt que de le recalculer par
+    // soustraction — la mesure existe, la reconstitution pourrait diverger d'elle.
+    ajoutees = r[0]?.addedObservations?.length ?? 0;
+    saut = r[0]?.skippedAsNearDuplicate?.length ?? 0;
+    store.db.prepare("UPDATE entities SET entity_type = ? WHERE name = ?").run(cible, nom);
+  })();
+  console.log(
+    `soldé : ${nom} — ${actuel.t} → ${cible}` +
+      ` (+${ajoutees} observation(s)${saut ? `, ${saut} quasi-doublon(s) écarté(s)` : ""})`,
+  );
+  process.exit(0);
+}
+
 if (args[0] === "--link") {
   const [de, relation, vers] = args.slice(1);
   if (!de || !relation || !vers) {
@@ -67,6 +166,109 @@ if (args[0] === "--link") {
   const c = store.createRelations([{ from: de, to: vers, relationType: relation }]);
   console.log(
     c.length ? `relation créée : (${de}) --${relation}--> (${vers})` : "relation déjà présente",
+  );
+  process.exit(0);
+}
+
+if (args[0] === "--forget" || args[0] === "--forget-all") {
+  // Le graphe était en AJOUT SEUL : --add complète, rien ne retire. Conséquence
+  // mesurée, agenda-prochaine-etape-courante accumulait ses versions successives au
+  // lieu de les remplacer, et le tri plaçait la PÉRIMÉE avant la bonne — la panne
+  // exacte que ce pointeur au nom stable existait pour éviter.
+  const tout = args[0] === "--forget-all";
+  const reste = args.slice(1);
+  // Refuser les arguments surnuméraires, plutôt que de les jeter en silence : sans
+  // guillemets, « --forget-all agenda le plan 42 » réduisait le fragment à « le » et
+  // vidait l'entité en sortant 0. Le fragment DOIT être un seul argument.
+  if (reste.length !== 2) {
+    console.error(
+      `usage : ${args[0]} <nom> <fragment>\n` +
+        `  le fragment doit être UN seul argument, entre guillemets — reçu ${reste.length}.`,
+    );
+    process.exit(1);
+  }
+  const [nom, fragment] = reste;
+  // Plancher de longueur : un fragment d'un caractère correspond à presque tout.
+  const FRAGMENT_MIN = 10;
+  if (fragment.trim().length < FRAGMENT_MIN) {
+    console.error(
+      `fragment trop court (${fragment.trim().length} caractères utiles, minimum ${FRAGMENT_MIN}).\n` +
+        "  Copiez une phrase entière depuis --open : c'est une sous-chaîne exacte, pas un mot-clé.",
+    );
+    process.exit(1);
+  }
+  const existe = store.db.prepare("SELECT 1 FROM entities WHERE name = ?").get(nom);
+  if (!existe) {
+    console.error(`entité introuvable : ${nom}`);
+    process.exit(1);
+  }
+  const touchees = store.db
+    .prepare("SELECT content FROM observations WHERE entity_name = ? AND instr(content, ?) > 0")
+    .all(nom, fragment)
+    .map((r) => r.content);
+
+  if (!touchees.length) {
+    // Dire POURQUOI ça ne correspond pas : sinon l'appelant élargit son fragment,
+    // et c'est comme ça qu'on retombe sur une sur-suppression.
+    // Code 1 ASSUMÉ, donc non idempotent : rejouer un --forget déjà appliqué échoue.
+    // C'est voulu — sur un geste destructeur, « rien à faire » et « je ne trouve pas
+    // ce que tu visais » se ressemblent trop pour qu'on les confonde en silence.
+    console.error(
+      `aucune observation de ${nom} ne contient : ${fragment}\n` +
+        "  La recherche est une SOUS-CHAÎNE EXACTE, sensible à la casse et aux accents.\n" +
+        "  Copiez le texte depuis --open plutôt que de le retaper.",
+    );
+    process.exit(1);
+  }
+  const total = store.db
+    .prepare("SELECT COUNT(*) c FROM observations WHERE entity_name = ?")
+    .get(nom).c;
+  // Vider une entité doit être un geste NOMMÉ, jamais l'effet de bord d'un fragment
+  // trop large : une entité sans observation reste indexée et continue de sortir au
+  // classement, muette.
+  if (touchees.length === total) {
+    console.error(
+      `refus : ce fragment retirerait les ${total} observations de ${nom}, donc la viderait.\n` +
+        "  Une entité vide reste indexée et ressort en recherche sans rien dire.\n" +
+        "  Précisez le fragment, ou retirez les observations une à une.",
+    );
+    process.exit(1);
+  }
+  const PLAFOND = 5;
+  if (tout && touchees.length > PLAFOND) {
+    console.error(
+      `refus : ${touchees.length} observations correspondent, au-delà du plafond de ${PLAFOND}.\n` +
+        "  Un fragment aussi large est presque toujours une erreur de quotation.\n" +
+        "  Retirez-les par lots avec des fragments plus précis.",
+    );
+    process.exit(1);
+  }
+  if (touchees.length > 1 && !tout) {
+    console.error(`${touchees.length} observations contiennent ce fragment — refus.`);
+    console.error("Précisez le fragment, ou assumez-les toutes avec --forget-all :");
+    for (const o of touchees) {
+      console.error(`  · ${o.slice(0, 160)}${o.length > 160 ? " […]" : ""}`);
+    }
+    process.exit(1);
+  }
+
+  // Réimprimer EN ENTIER avant de retirer. Le graphe lui-même ne garde aucun
+  // historique — mais la BASE est versionnée par le hook memory-git-sync.sh dans un
+  // dépôt privé, donc le geste est rattrapable à la granularité de la sauvegarde.
+  // On imprime la commande de rattrapage ici, au moment où elle sert.
+  console.log(`retiré de ${nom} :`);
+  for (const o of touchees) {
+    console.log(`  --- ${o}`);
+  }
+  store.deleteObservations([{ entityName: nom, observations: touchees }]);
+  const restantes = store.db
+    .prepare("SELECT COUNT(*) c FROM observations WHERE entity_name = ?")
+    .get(nom).c;
+  console.log(`${touchees.length} observation(s) retirée(s) — il en reste ${restantes}.`);
+  console.log(
+    "  rattrapage si c'était une erreur (la base est versionnée par memory-git-sync.sh) :\n" +
+      '    git -C "$CLAUDE_CONFIG_DIR/memory/sync" log --oneline -- memory.db\n' +
+      '    git -C "$CLAUDE_CONFIG_DIR/memory/sync" show <commit>:memory.db > /tmp/avant.db',
   );
   process.exit(0);
 }

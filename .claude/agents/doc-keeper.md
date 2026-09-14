@@ -22,7 +22,19 @@ node scripts/memory/query.mjs --stats
 ```bash
 node scripts/memory/query.mjs --add <type> <nom> "observation" ["autre observation"]
 node scripts/memory/query.mjs --link <de> <relation> <vers>
+node scripts/memory/query.mjs --resolve <nom> <observation de clôture>
+node scripts/memory/query.mjs --forget <nom> <fragment>     # 🔴 DESTRUCTEUR
 ```
+
+🔴 **`--forget` retire des observations — le seul geste destructeur du dispositif.** Le fragment
+est une **sous-chaîne exacte**, sensible à la casse et aux accents : copie-le depuis `--open`, ne
+le retape pas, et **mets-le entre guillemets** (sans elles, les mots suivants deviendraient des
+arguments à part et le fragment se réduirait au premier). L'outil refuse un fragment de moins de
+10 caractères, un fragment qui viderait l'entité, et plus de 5 correspondances d'un coup ; il
+réimprime en entier tout ce qu'il retire. À n'employer que pour **retirer ce qui est périmé** —
+typiquement en réécrivant `agenda-prochaine-etape-courante`. Ne jamais neutraliser une ligne
+fausse par un avertissement au-dessus : la retirer. La base étant versionnée par
+`memory-git-sync.sh`, un retrait regretté se rattrape (commande rappelée dans la sortie).
 (ou les outils `mcp__memory__*`, équivalents, disponibles quand le serveur MCP est chargé)
 
 Types en usage : `decision`, `agenda`, `historique`, `backlog`, `backlog-résolu`, `feedback`,
@@ -33,7 +45,12 @@ Conventions :
   `Décision : …`, `Contexte : …` — le **contexte porte le POURQUOI**, c'est ce qui a de la valeur ;
 - une décision qui en révise une autre se **relie** (`--link decision-913 révise decision-840`),
   elle ne la réécrit pas ;
-- un bug résolu passe du type `backlog` à `backlog-résolu` ; on ne supprime rien.
+- un bug résolu se solde avec **`--resolve`**, qui consigne la clôture ET bascule le type
+  (`backlog` → `backlog-résolu`, `question-ouverte` → `question-résolue`) en un seul geste ;
+  on ne supprime rien. 🔴 **Ne jamais se contenter d'ajouter une observation « ✅ RÉSOLU »** :
+  l'entrée resterait ouverte pour `--stats` et pour toute reprise de session. C'est exactement
+  ce qui est arrivé — le 2026-09-14, **24 entrées de backlog** portaient leur constat de
+  résolution et leur type d'origine, certaines depuis deux mois.
 
 🔴 **`docs/backlog.md` n'existe plus, mais la règle qui le protégeait vaut toujours** : aucune dette
 n'est enregistrée comme « acceptée » sans accord explicite de l'humain. Demander d'abord :
@@ -125,7 +142,7 @@ système EST ; ce qu'il a été est de la mémoire.
 | Un plan se termine | **Graphe** : une entité `plan-<n>` (objectif, contexte, décisions, trouvailles — PAS le découpage en étapes) + `--link plan-<n> cite decision-<m>`. Le fichier du plan est supprimé |
 | Une phase de roadmap se termine | **Graphe** (détail complet) **ET** `docs/roadmap.md` : une ligne dans le tableau « Ce qui est fait » — titre, ce qu'elle a apporté, nom de l'entité. 🔴 Le fichier reste **court et présentable** : c'est le seul document de plan que lise un visiteur |
 | Un bug est découvert | 🔴 **Rien d'automatique.** Demander à l'humain : « je l'ai trouvé — je le corrige, ou je le range ? ». S'il dit ranger → `--add backlog …` |
-| Un bug est résolu | **Graphe** : l'entité passe du type `backlog` à `backlog-résolu`. On ne supprime rien |
+| Un bug est résolu | **Graphe** : `--resolve <nom> "ce qui l'a soldé — plan, décision, commit"`. La commande consigne la clôture ET bascule le type en un seul geste. 🔴 Une observation « ✅ RÉSOLU » seule ne solde RIEN : l'entrée reste comptée ouverte. On ne supprime rien |
 | Une mécanique de jeu est ajoutée | `docs/game-design.md` (+ `docs/architecture.md` si nouveau pattern) — ce sont des **documents**, ils décrivent le jeu tel qu'il est |
 | Un changement structurel du code | `docs/architecture.md` |
 | Un Pokemon / move / talent est ajouté | **Rien à écrire** : la vérité est dans `packages/data`. Ne jamais recréer un inventaire à la main |

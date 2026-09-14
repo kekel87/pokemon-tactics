@@ -85,5 +85,41 @@ export async function ouvrirStore({ avecEnveloppe = true, exigerExistante = true
   const { KnowledgeGraphStore } = await import(
     path.join(vendor, "node_modules/@pepk/mcp-memory-sqlite/dist/store.js")
   );
-  return new KnowledgeGraphStore(dbPath({ exigerExistante }));
+  const store = new KnowledgeGraphStore(dbPath({ exigerExistante }));
+  poserTriggersDeType(store);
+  return store;
+}
+
+/**
+ * Les triggers qui tiennent la ligne `kind = 'type'` de l'index FTS alignée sur
+ * `entities.entity_type`.
+ *
+ * Ils vivent ICI, dans le dépôt, et se reposent à chaque ouverture du store, parce
+ * que le propriétaire du schéma FTS — `memory-fts.mjs` dans l'enveloppe — n'en
+ * déclare que quatre : INSERT et DELETE sur `entities` et sur `observations`, jamais
+ * UPDATE. Une base reconstruite par l'enveloppe repart donc sans eux.
+ *
+ * Et leur absence ne se voit pas : l'auto-réparation de l'enveloppe compare des
+ * NOMBRES de lignes (2 x entités + observations), or retyper une entité n'en change
+ * aucun. L'index mentirait sur le type, définitivement et en silence — la panne
+ * exacte que la bascule de type avait déjà produite le 2026-09-10.
+ *
+ * `IF NOT EXISTS` : l'appel est idempotent, il ne coûte rien sur une base déjà à jour.
+ */
+function poserTriggersDeType(store) {
+  store.db.exec(`
+    CREATE TRIGGER IF NOT EXISTS memory_fts_au_entity
+    AFTER UPDATE OF entity_type ON entities BEGIN
+      DELETE FROM memory_fts WHERE entity_name = old.name AND kind = 'type';
+      INSERT INTO memory_fts(entity_name, kind, text)
+        VALUES (new.name, 'type', new.entity_type);
+    END;
+    CREATE TRIGGER IF NOT EXISTS memory_fts_au_entity_rename
+    AFTER UPDATE OF name ON entities BEGIN
+      UPDATE memory_fts SET entity_name = new.name WHERE entity_name = old.name;
+      DELETE FROM memory_fts WHERE entity_name = new.name AND kind = 'name';
+      INSERT INTO memory_fts(entity_name, kind, text)
+        VALUES (new.name, 'name', REPLACE(new.name, '-', ' '));
+    END;
+  `);
 }
