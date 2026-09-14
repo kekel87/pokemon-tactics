@@ -299,6 +299,14 @@ tenue secrète jusqu'au lancement ; le message `start` publie la carte **résolu
 **Ce qui reste à écrire** : `rematch` et `chat` (hors V1). Le **nom de joueur a été écarté de la V1**
 (#906) : il revient avec le compte et le classement ; la salle d'attente affiche « Joueur 2 ».
 
+🔴 **En attendant `rematch` : « Recommencer » est GARDÉ, pas câblé** (revue du plan 204). Le menu de
+combat et le menu du placement n'offrent l'entrée que hors ligne — son rappel (`onReplay` du chrome)
+remonte le setup en local, ce qui donnerait un hot-seat sur les deux camps avec le salon encore tenu.
+Une option absente (`onRestart?`), jamais un booléen `canReplay` sur l'entrée elle-même : un appelant
+ne peut pas cacher l'entrée en gardant le rappel vivant. Même garde des deux côtés du passage de
+relais (`localPlayerIds === undefined` en combat, `setup.localSeat === undefined` au placement) — le
+dialogue de victoire la portait déjà (`canReplay`), le menu non, d'où l'asymétrie refermée ici.
+
 **Pas de message `timeout`** — c'est délibéré, voir § Chronomètre.
 
 **Le déverrouillage du salon EST le message d'annulation du lancement.** Il n'y en a pas de

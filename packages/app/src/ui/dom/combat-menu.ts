@@ -56,8 +56,20 @@ export interface CombatMenuOptions {
    * de reprise part avec elle). Derrière une confirmation.
    */
   readonly onAbandon: () => void;
-  /** Abandonner et relancer le même combat depuis le placement (le `onReplay` du chrome). */
-  readonly onRestart: () => void;
+  /**
+   * RECOMMENCER : abandonner et relancer le même combat depuis le placement (le `onReplay` du chrome).
+   *
+   * Optionnel, pour la même raison qu'`onQuitKeepingSave` plus bas : l'entrée n'est rendue que là où
+   * recommencer veut dire quelque chose. **Jamais en ligne** — le `onReplay` du chrome remonte le
+   * setup EN LOCAL, ce qui donnerait un hot-seat sur les deux camps pendant que le salon reste tenu
+   * et que l'adversaire attend un tour qui ne viendra jamais.
+   *
+   * 🔴 C'est une ASYMÉTRIE qu'on referme : le dialogue de victoire portait déjà la garde
+   * (`canReplay`, plan 201, revue de code), ce menu non — la même protection n'existait que d'un
+   * côté. Une option absente plutôt qu'un booléen, pour qu'un appelant ne puisse pas cacher l'entrée
+   * tout en gardant le rappel vivant. La revanche en ligne reste hors V1 (docs/multiplayer.md).
+   */
+  readonly onRestart?: () => void;
   /**
    * QUITTER : rendre la main au menu principal **en gardant la partie reprenable**.
    *
@@ -160,11 +172,16 @@ export function createCombatMenu(options: CombatMenuOptions): CombatMenu {
       // doigt, qui n'a ni `Échap` ni B.
       entry("combatMenu.resume", "combat-menu-resume", close),
       entry("combatMenu.settings", "combat-menu-settings", () => push({ kind: "settings" })),
-      // Les actions qui détruisent la partie, chacune derrière une confirmation.
-      entry("combatMenu.restart", "combat-menu-restart", () =>
-        push({ kind: "confirm", action: "restart" }),
-      ),
     );
+    // Les actions qui détruisent la partie, chacune derrière une confirmation. « Recommencer » ne
+    // s'affiche qu'où il a un sens — donc pas en ligne (voir `onRestart`).
+    if (onRestart) {
+      list.append(
+        entry("combatMenu.restart", "combat-menu-restart", () =>
+          push({ kind: "confirm", action: "restart" }),
+        ),
+      );
+    }
     // Au placement, « Quitter » EST la sortie destructrice (voir `variant`) : une seule entrée, qui
     // confirme. En combat, les deux existent et ne font pas la même chose.
     list.append(
@@ -216,7 +233,9 @@ export function createCombatMenu(options: CombatMenuOptions): CombatMenu {
       if (action === "abandon") {
         onAbandon();
       } else {
-        onRestart();
+        // Appel facultatif par construction et non par prudence : ce niveau de confirmation n'est
+        // atteignable que depuis l'entrée « Recommencer », qui n'existe pas sans `onRestart`.
+        onRestart?.();
       }
     });
     confirm.dataset.testid = "combat-menu-confirm";

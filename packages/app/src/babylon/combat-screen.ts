@@ -212,14 +212,15 @@ interface PlacementChrome {
 
 function mountPlacementChrome(options: {
   stage: GameStage;
-  onRestart: () => void;
+  /** Absent en ligne : y recommencer remonterait le setup en local (voir `onRestart` du menu). */
+  onRestart?: () => void;
   onQuit: () => void;
 }): PlacementChrome {
   const { stage, onRestart, onQuit } = options;
   const combatMenu = createCombatMenu({
     host: stage.screenLayer,
     variant: "placement",
-    onRestart,
+    ...(onRestart === undefined ? {} : { onRestart }),
     // Au placement, la sortie destructrice s'appelle « Quitter » et confirme : rien n'est sauvegardé
     // encore, mais les Pokemon déjà posés sont perdus (plan 189, décisions 4 et 5).
     onAbandon: onQuit,
@@ -384,6 +385,12 @@ function runBattle(options: {
    * Places que CETTE machine pilote (plan 201). Absente en local, où elle vaut `humanPlayerIds` :
    * en ligne elle est ce qui distingue mon camp de celui du pair, que le setup rabat tous deux sur
    * `human`.
+   *
+   * 🔴 Sa PRÉSENCE est le drapeau « cette partie est en ligne », et deux gardes en dépendent —
+   * `canReplay` du dialogue de victoire et `onRestart` du menu de combat. Elle n'a qu'une origine,
+   * `setup.localSeat`, salon vivant ou non. La passer pour une raison qui ne serait PAS le réseau
+   * (restreindre le point de vue d'un hot-seat local, par exemple) ferait disparaître
+   * « Recommencer » en silence là où il a un sens.
    */
   localPlayerIds?: readonly string[];
   /** Une action du joueur local, à diffuser aux pairs (plan 201). */
@@ -541,10 +548,21 @@ function runBattle(options: {
       onBattleClosed?.();
       onExit();
     },
-    onRestart: () => {
-      onBattleClosed?.();
-      onReplay();
-    },
+    /*
+     * « Recommencer » n'est offert qu'HORS LIGNE, et c'est exactement la garde `canReplay` du
+     * dialogue de victoire quelques lignes plus haut. Jusqu'ici elle n'existait que d'un côté : le
+     * dialogue était gardé, le menu non, si bien qu'un joueur en ligne pouvait relancer un hot-seat
+     * local sur les deux camps avec le salon toujours tenu et l'adversaire en attente d'un tour qui
+     * ne viendrait jamais (revue du plan 204).
+     */
+    ...(localPlayerIds === undefined
+      ? {
+          onRestart: () => {
+            onBattleClosed?.();
+            onReplay();
+          },
+        }
+      : {}),
     // Quitter, lui, sort SANS purger — la partie reste reprenable depuis le menu principal. Fourni
     // seulement quand une sauvegarde existe : `onBattleClosed` n'est passé que par le vrai combat
     // (`store.clear()`), pas par le studio sandbox. Là-bas, l'entrée ne s'affiche donc pas plutôt
@@ -1803,7 +1821,9 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
      */
     placementChrome = mountPlacementChrome({
       stage: activeStage,
-      onRestart: replay,
+      // Même garde qu'en combat, et elle vaut dès le placement : en ligne les deux camps posent
+      // leurs Pokemon, donc `replay` y remonterait le setup en local sous le salon vivant.
+      ...(setup.localSeat === undefined ? { onRestart: replay } : {}),
       onQuit: () => {
         teardown();
         navigate("main-menu", undefined);

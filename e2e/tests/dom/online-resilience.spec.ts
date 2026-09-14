@@ -64,6 +64,14 @@ test("§11.3 en ligne : le canal tombe, le pair revient, rattrape, et se fait fo
     await expect(host.combatMenu.clockWarning).toContainText(
       "Le temps de votre tour continue de s'écouler",
     );
+    /*
+     * 🔴 Et « Recommencer » n'est PAS là (revue du plan 204) — son contrat complet est en §11.9, mais
+     * il y est joué contre une place d'IA. Ici, et ici seulement, un VRAI adversaire humain attend de
+     * l'autre côté : c'est exactement ce qu'un `onReplay` remontant le setup en local abandonnerait,
+     * salon toujours tenu, en attente d'un tour qui ne viendrait jamais. Une ligne, sur une session
+     * déjà payée.
+     */
+    await expect(host.combatMenu.restart).toHaveCount(0);
     await host.combatMenu.resume.click();
     await expect(host.combatMenu.dialog).toHaveCount(0);
 
