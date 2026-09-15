@@ -49,6 +49,7 @@ const VALID_MESSAGES: Record<NetworkMessageType, object> = {
     seeds: SEEDS,
     seats: [{ seat: 1, controller: "human", selection: SELECTION }],
     battleId: "b47f2c19",
+    formatKey: "2v6",
   },
   start_ack: { type: "start_ack", seat: 2 },
   bye: { type: "bye", seat: 2 },

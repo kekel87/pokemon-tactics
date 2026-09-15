@@ -342,6 +342,23 @@ Trois règles qui ne se voient pas dans la forme du message :
   et le détecteur du Lot B4 tuerait la partie avant le premier tour — le défaut même que ce plan
   répare.
 
+**Ce que la revue de code du plan 211 a ajouté** (2026-09-15, même lot) : le `start` porte un champ
+`formatKey` de plus — **et `NETWORK_VERSION` est passée à 10**.
+
+Chaque pair **redérivait** le format de son côté, à partir du nombre de camps et de la carte de SON
+salon ; en mode carte « Aléatoire », l'invité dérivait donc depuis une carte qui n'est pas celle qui
+sera jouée. L'écran de combat repliait ensuite **en silence** sur le premier format de la carte quand
+il ne retrouvait pas la clé : d'autres zones de départ, une autre taille d'équipe, sans un mot.
+
+Inerte tant que toutes les cartes livrées s'accordent sur la taille d'équipe d'un nombre de camps
+donné — vrai des neuf actuelles, mesuré — mais la portée avait grandi avec le placement à la main :
+ce repli gouvernait désormais les douze poses échangées sur le réseau, là où il ne touchait qu'un
+tirage local. Deux gardes ferment le sujet : `launch()` refuse un format vide comme il refuse déjà la
+sentinelle de tirage, et l'écran de combat **jette** au lieu de replier quand la partie est en ligne.
+
+C'est la même leçon que la carte résolue du plan 208 : **ce que les pairs doivent partager se publie,
+il ne se devine pas.**
+
 🔴 **Leçon des deux derniers incréments** : ni l'un ni l'autre ne touchait la forme d'un message. Le
 réflexe « je n'ai pas changé le protocole, donc pas d'incrément » est faux dès qu'une règle de lecture
 ou un champ de l'état HACHÉ change. La question à se poser n'est pas « ai-je touché `protocol.ts` ? »

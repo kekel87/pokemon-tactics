@@ -254,6 +254,8 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
         ai: freshSeed(),
       },
       createBattleId(),
+      // Le format que l'HÔTE joue, publié plutôt que redeviné par chacun (plan 211, revue de code).
+      formatKey,
       resolvedMapId,
     );
   };
@@ -336,7 +338,16 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
       mapUrl: url,
       setup: {
         teams,
-        formatKey,
+        /*
+         * 🔴 Le format du MESSAGE, jamais celui que cet écran a dérivé (plan 211, revue de code).
+         *
+         * Chacun le reconstituait depuis le nombre de camps et la carte de SON salon — et en mode
+         * « Aléatoire » l'invité dérive depuis une carte qui n'est pas celle qui sera jouée. L'écran
+         * de combat repliait ensuite en silence sur le premier format de la carte : d'autres zones de
+         * départ et une autre taille d'équipe, sans un mot. Même partage que la carte résolue du plan
+         * 208 : ce que les pairs doivent partager se publie, il ne se devine pas.
+         */
+        formatKey: start.formatKey,
         autoPlacement: start.options.autoPlacement,
         damagePreview: start.options.damagePreview,
         seeds: start.seeds,
@@ -1248,6 +1259,12 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
       showNetworkError(NetworkErrorCode.VersionIncompatible);
       return;
     }
+    /*
+     * L'invité dérive un format pour BÂTIR SON ÉCRAN — il lui faut des lignes à afficher. Ce n'est
+     * pas celui qui sera joué : depuis le plan 211, le `start` de l'hôte porte le format résolu, et
+     * `enterNetworkBattle` prend celui-là. Même partage que la carte depuis le plan 208 — ce qu'on
+     * voit avant le lancement est local, ce qu'on joue vient du message.
+     */
     const chosen = pickFormatOption(joined.view.options.teamCount);
     if (!chosen) {
       showNetworkError(NetworkErrorCode.VersionIncompatible);

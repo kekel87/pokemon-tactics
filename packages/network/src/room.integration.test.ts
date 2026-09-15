@@ -50,6 +50,11 @@ const SEEDS: NetworkSeeds = { battle: 11, placement: 22, ai: 33 };
  * valeur figée suffit — sauf là où un test vérifie justement qu'il arrive intact chez l'invité.
  */
 const BATTLE_ID = "b47f2c19";
+/**
+ * Le format publié par le `start` (plan 211). Transporté sans être lu, comme `battleId` : le salon ne
+ * sait pas ce qu'est un format, il empêche seulement qu'il soit vide.
+ */
+const FORMAT_KEY = "2v6";
 
 function options(teamCount: number): NetworkRoomOptions {
   return { mapId: "plaine", teamCount, autoPlacement: true, damagePreview: false };
@@ -276,7 +281,7 @@ describe("Room — un pair ne parle que pour lui-même", () => {
 
     const starts: StartMessage[] = [];
     host.onStart((start) => starts.push(start));
-    const launch = host.launch(SEEDS, BATTLE_ID);
+    const launch = host.launch(SEEDS, BATTLE_ID, FORMAT_KEY);
     await flush();
     vi.advanceTimersByTime(LAUNCH_ACK_TIMEOUT_MS);
     await flush();
@@ -297,7 +302,7 @@ describe("Room — un pair ne parle que pour lui-même", () => {
 
     const starts: StartMessage[] = [];
     host.onStart((start) => starts.push(start));
-    const launch = host.launch(SEEDS, BATTLE_ID);
+    const launch = host.launch(SEEDS, BATTLE_ID, FORMAT_KEY);
     await flush();
 
     // Le menteur accuse pour LUI (légitime) et pour la place 2 (usurpé).
@@ -371,7 +376,7 @@ describe("Room — rejoindre une partie déjà lancée", () => {
     await flush();
     guest.setReady(true);
     await flush();
-    const launch = host.launch(SEEDS, BATTLE_ID);
+    const launch = host.launch(SEEDS, BATTLE_ID, FORMAT_KEY);
     await flush();
     await launch;
     expect(host.view.locked).toBe(true);
@@ -617,7 +622,7 @@ describe("Room — lancement", () => {
     host.onStart((start) => hostStarts.push(start));
     guest.onStart((start) => guestStarts.push(start));
 
-    const launch = host.launch(SEEDS, BATTLE_ID);
+    const launch = host.launch(SEEDS, BATTLE_ID, FORMAT_KEY);
     await flush();
     await launch;
 
@@ -654,7 +659,7 @@ describe("Room — lancement", () => {
 
     const starts: StartMessage[] = [];
     host.onStart((start) => starts.push(start));
-    const launch = host.launch(SEEDS, BATTLE_ID);
+    const launch = host.launch(SEEDS, BATTLE_ID, FORMAT_KEY);
     await flush();
     await launch;
 
@@ -673,7 +678,7 @@ describe("Room — lancement", () => {
     guest.setReady(true);
     await flush();
 
-    const launch = host.launch(SEEDS, BATTLE_ID);
+    const launch = host.launch(SEEDS, BATTLE_ID, FORMAT_KEY);
     await flush();
     await launch;
 
@@ -689,7 +694,7 @@ describe("Room — lancement", () => {
     const starts: StartMessage[] = [];
     host.onStart((start) => starts.push(start));
 
-    await host.launch(SEEDS, BATTLE_ID);
+    await host.launch(SEEDS, BATTLE_ID, FORMAT_KEY);
 
     expect(starts).toHaveLength(1);
     expect(starts[0]?.seats.map((seat) => seat.controller)).toEqual(["human", "ai", "ai", "ai"]);
@@ -704,7 +709,7 @@ describe("Room — lancement", () => {
 
     const starts: StartMessage[] = [];
     host.onStart((start) => starts.push(start));
-    const launch = host.launch(SEEDS, BATTLE_ID);
+    const launch = host.launch(SEEDS, BATTLE_ID, FORMAT_KEY);
     await flush();
     await launch;
 
@@ -729,7 +734,7 @@ describe("Room — la carte publiée par le lancement (plan 208)", () => {
     const guestStarts: StartMessage[] = [];
     guest.onStart((start) => guestStarts.push(start));
 
-    const launch = host.launch(SEEDS, BATTLE_ID);
+    const launch = host.launch(SEEDS, BATTLE_ID, FORMAT_KEY);
     await flush();
     await launch;
 
@@ -755,7 +760,7 @@ describe("Room — la carte publiée par le lancement (plan 208)", () => {
     host.onStart((start) => hostStarts.push(start));
     guest.onStart((start) => guestStarts.push(start));
 
-    const launch = host.launch(SEEDS, BATTLE_ID, "volcano");
+    const launch = host.launch(SEEDS, BATTLE_ID, FORMAT_KEY, "volcano");
     await flush();
     await launch;
 
@@ -768,6 +773,42 @@ describe("Room — la carte publiée par le lancement (plan 208)", () => {
     expect(guestStarts[0]?.options.autoPlacement).toBe(true);
   });
 
+  it("porte le format joué jusqu'aux invités, plutôt que de les laisser le redeviner", async () => {
+    /*
+     * 🔴 Chaque pair reconstituait le format depuis le nombre de camps et la carte de SON salon — et
+     * en mode carte « Aléatoire », l'invité dérivait depuis une carte qui n'est pas celle qui sera
+     * jouée. L'écran de combat repliait ensuite en silence sur le premier format de la carte :
+     * d'autres zones de départ et une autre taille d'équipe, sans un mot. Même remède que la carte
+     * résolue du plan 208 — ce que les pairs doivent partager se publie.
+     */
+    const host = await Room.create(depsFor(directory), options(2));
+    const guest = await Room.join(depsFor(directory), ROOM_CODE);
+    await flush();
+    guest.setReady(true);
+    await flush();
+
+    const guestStarts: StartMessage[] = [];
+    guest.onStart((start) => guestStarts.push(start));
+
+    const launch = host.launch(SEEDS, BATTLE_ID, "4v3");
+    await flush();
+    await launch;
+
+    expect(guestStarts[0]?.formatKey).toBe("4v3");
+  });
+
+  it("refuse un format vide plutôt que de laisser chaque pair replier sur le premier", async () => {
+    const host = await Room.create(depsFor(directory), options(2));
+    const starts: StartMessage[] = [];
+    host.onStart((start) => starts.push(start));
+
+    await expect(host.launch(SEEDS, BATTLE_ID, "")).rejects.toThrow(/format vide/);
+
+    // Fail-fast, comme pour la sentinelle de carte : rien n'est parti, le salon n'est pas verrouillé.
+    expect(starts).toEqual([]);
+    expect(host.view.locked).toBe(false);
+  });
+
   it("refuse la sentinelle de tirage plutôt que de l'envoyer sur le réseau", async () => {
     const host = await Room.create(depsFor(directory), {
       ...options(2),
@@ -776,7 +817,7 @@ describe("Room — la carte publiée par le lancement (plan 208)", () => {
     const starts: StartMessage[] = [];
     host.onStart((start) => starts.push(start));
 
-    await expect(host.launch(SEEDS, BATTLE_ID, RANDOM_MAP_ID)).rejects.toThrow(
+    await expect(host.launch(SEEDS, BATTLE_ID, FORMAT_KEY, RANDOM_MAP_ID)).rejects.toThrow(
       /sentinelle de tirage/,
     );
 
@@ -810,7 +851,7 @@ describe("Room — lancement annulé", () => {
     host.onStart((start) => starts.push(start));
     host.onError((code) => errors.push(code));
 
-    const launch = host.launch(SEEDS, BATTLE_ID);
+    const launch = host.launch(SEEDS, BATTLE_ID, FORMAT_KEY);
     await flush();
     expect(host.view.locked).toBe(true);
     expect(mute.received.some((message) => message.type === "start")).toBe(true);
@@ -835,7 +876,7 @@ describe("Room — lancement annulé", () => {
     const errors: NetworkErrorCode[] = [];
     host.onError((code) => errors.push(code));
 
-    const launch = host.launch(SEEDS, BATTLE_ID);
+    const launch = host.launch(SEEDS, BATTLE_ID, FORMAT_KEY);
     await flush();
     expect(host.view.locked).toBe(true);
 
@@ -859,7 +900,7 @@ describe("Room — lancement annulé", () => {
     host.onStart((start) => starts.push(start));
     host.onError((code) => errors.push(code));
 
-    const launch = host.launch(SEEDS, BATTLE_ID);
+    const launch = host.launch(SEEDS, BATTLE_ID, FORMAT_KEY);
     await flush();
 
     /*
@@ -888,7 +929,7 @@ describe("Room — lancement annulé", () => {
     guest.onLaunchCancelled(() => cancelled.push(true));
     guest.onStart((start) => guestStarts.push(start));
 
-    const launch = host.launch(SEEDS, BATTLE_ID);
+    const launch = host.launch(SEEDS, BATTLE_ID, FORMAT_KEY);
     await flush();
     // L'invité est bien parti en combat : il n'a aucun moyen de savoir où en sont les autres.
     expect(guestStarts).toHaveLength(1);
@@ -1149,7 +1190,7 @@ describe("Room — départs une fois la partie lancée (Lot B3)", () => {
     guest.channel.send({ type: "ready", seat: 2, ready: true });
     await flush();
     host.setSeatSelection(1, { pokemonDefinitionIds: ["venusaur"] });
-    const launch = host.launch(SEEDS, BATTLE_ID);
+    const launch = host.launch(SEEDS, BATTLE_ID, FORMAT_KEY);
     await flush();
     guest.channel.send({ type: "start_ack", seat: 2 });
     await flush();
@@ -1268,7 +1309,7 @@ describe("Room — reconnexion et rattrapage (Lot B3)", () => {
     guest.setSeatSelection(2, { pokemonDefinitionIds: ["charizard"] });
     guest.setReady(true);
     await flush();
-    const launch = host.launch(SEEDS, BATTLE_ID);
+    const launch = host.launch(SEEDS, BATTLE_ID, FORMAT_KEY);
     await flush();
     await launch;
     return { host, guest };
@@ -1360,7 +1401,7 @@ describe("Room — reconnexion et rattrapage (Lot B3)", () => {
     guest.channel.send({ type: "ready", seat: 2, ready: true });
     await flush();
     host.setSeatSelection(1, { pokemonDefinitionIds: ["venusaur"] });
-    const launch = host.launch(SEEDS, BATTLE_ID);
+    const launch = host.launch(SEEDS, BATTLE_ID, FORMAT_KEY);
     await flush();
     guest.channel.send({ type: "start_ack", seat: 2 });
     await flush();
@@ -1401,7 +1442,7 @@ describe("Room — retour de l'hôte (Lot B3)", () => {
     guest.setSeatSelection(2, { pokemonDefinitionIds: ["charizard"] });
     guest.setReady(true);
     await flush();
-    const launch = host.launch(SEEDS, BATTLE_ID);
+    const launch = host.launch(SEEDS, BATTLE_ID, FORMAT_KEY);
     await flush();
     await launch;
     return { host, guest };

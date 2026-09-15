@@ -53,8 +53,12 @@ import {
  * pas. Un pair d'avant ne sait pas l'émettre, donc un pair d'après attendrait indéfiniment un
  * placement qui ne vient jamais — et ne sait pas le lire, donc il le jetterait au bord du réseau et
  * bâtirait son moteur sans le camp d'en face. Les deux sens échouent, aucun ne le dit.
+ *
+ * 9 → 10 dans le même lot, sur retour de revue de code : le `start` porte désormais `formatKey`. Un
+ * pair d'avant ne l'émet pas, donc un pair d'après lirait un format vide et repartirait sur le repli
+ * qu'on vient de fermer — exactement le silence que ce champ existe pour supprimer.
  */
-export const NETWORK_VERSION = 9;
+export const NETWORK_VERSION = 10;
 
 /**
  * Durée d'un tour en ligne (plan 202, Lot B3, décision #946).
@@ -298,6 +302,24 @@ export interface StartMessage {
    * aléatoires, et y glisser une chaîne casserait son sens comme sa validation.
    */
   battleId: string;
+  /**
+   * Le format de partie effectivement joué — « 2v6 », « 4v3 »… (plan 211, revue de code).
+   *
+   * 🔴 **Publié, jamais redérivé.** Chaque pair le reconstituait de son côté à partir du nombre de
+   * camps, sur la carte de SON salon — et en mode carte « Aléatoire », l'invité dérivait depuis une
+   * carte différente de celle qui allait être jouée. L'écran de combat repliait ensuite en silence
+   * sur le premier format de la carte quand il ne retrouvait pas la clé : d'autres zones de départ
+   * et une autre taille d'équipe, sans un mot.
+   *
+   * Inerte tant que toutes les cartes livrées s'accordent sur la taille d'équipe d'un nombre de
+   * camps donné — ce qui est le cas des neuf actuelles, mesuré — mais la portée a grandi avec le
+   * placement à la main : ce repli gouverne désormais les douze poses échangées sur le réseau, là où
+   * il ne touchait qu'un tirage local.
+   *
+   * Même remède que la carte résolue du plan 208, et pour la même raison : ce que les pairs doivent
+   * partager se publie, il ne se devine pas.
+   */
+  formatKey: string;
 }
 
 export interface StartSeat {
@@ -708,6 +730,10 @@ const MESSAGE_VALIDATORS = {
     // indiscernables les unes des autres à l'agrégation (plan 204).
     typeof message.battleId === "string" &&
     message.battleId.length > 0 &&
+    // Non vide, comme `battleId` : une chaîne vide passerait le typage et ferait retomber l'écran de
+    // combat sur le premier format de la carte — le repli silencieux que ce champ existe pour fermer.
+    typeof message.formatKey === "string" &&
+    message.formatKey.length > 0 &&
     isNonEmptyArrayOf(message.seats, isStartSeat) &&
     // 🔴 Places 1..N, croissantes et sans trou. `composeStartSeats` le garantit déjà, mais rien ne le
     // VÉRIFIAIT — et tout l'aval en dépend : l'écran de combat mappe `start.seats` par INDEX sur

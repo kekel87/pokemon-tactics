@@ -840,6 +840,11 @@ export class Room {
    * `battleId` est un identifiant **opaque** que l'appelant tire et que le `start` transporte pour
    * que les deux pairs désignent la même partie (plan 204). Ce paquet ne le lit jamais.
    *
+   * `formatKey` l'est tout autant (plan 211) : le salon ne sait pas ce qu'est un format, il publie ce
+   * que l'hôte lui donne. Il est là pour que les pairs ne le **redevinent** pas chacun de leur côté —
+   * ils le reconstituaient à partir du nombre de camps et de la carte de LEUR salon, et repliaient en
+   * silence sur le premier format quand ils ne le retrouvaient pas.
+   *
    * 🔴 **Le lancement est accusé** (décision #903). Sans accusé, un pair qui manque le `start` reste
    * sur l'écran d'équipe pendant que les autres jouent, et **aucun moment n'existe** où quelqu'un
    * s'en aperçoit : il attend un tour qui n'arrivera jamais.
@@ -852,7 +857,12 @@ export class Room {
    * à la salle d'attente ; c'est le prix d'un protocole sans troisième message, et ça n'arrive que
    * quand un pair a réellement disparu au pire moment.
    */
-  async launch(seeds: NetworkSeeds, battleId: string, resolvedMapId?: string): Promise<void> {
+  async launch(
+    seeds: NetworkSeeds,
+    battleId: string,
+    formatKey: string,
+    resolvedMapId?: string,
+  ): Promise<void> {
     this.assertHost();
     if (this.left || this.locked) {
       return;
@@ -866,6 +876,14 @@ export class Room {
      */
     if (resolvedMapId === RANDOM_MAP_ID) {
       throw new Error("launch() a reçu la sentinelle de tirage : la carte doit être résolue avant");
+    }
+    /*
+     * Même fail-fast pour le format (plan 211, revue de code) : un format vide ferait retomber chaque
+     * pair sur le premier format de la carte, en silence — précisément le repli que publier ce champ
+     * vient fermer. Le refus appartient ici, où l'erreur d'appelant se voit.
+     */
+    if (formatKey.length === 0) {
+      throw new Error("launch() a reçu un format vide : le format doit être résolu avant");
     }
 
     // Verrouillé dès « Lancer » : plus aucune connexion acceptée.
@@ -893,6 +911,7 @@ export class Room {
       seeds,
       seats: this.composeStartSeats(),
       battleId,
+      formatKey,
     };
 
     const awaitedSeats = [...this.channels.keys()];

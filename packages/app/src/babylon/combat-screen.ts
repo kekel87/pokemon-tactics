@@ -344,10 +344,25 @@ async function mountPlacement(
 ): Promise<PlacementFlow> {
   const onlinePlacement = onlinePlacementFor(setup, publishClock);
   const [loaded] = await Promise.all([loadTiledMap(mapUrl), combat.ready]);
-  const format =
-    loaded.map.formats.find(
-      (candidate) => `${candidate.teamCount}v${candidate.maxPokemonPerTeam}` === setup.formatKey,
-    ) ?? loaded.map.formats[0];
+  const requestedFormat = loaded.map.formats.find(
+    (candidate) => `${candidate.teamCount}v${candidate.maxPokemonPerTeam}` === setup.formatKey,
+  );
+  /*
+   * 🔴 EN LIGNE, pas de repli : le format vient du message de lancement, donc ne pas le retrouver
+   * veut dire que cette machine n'a pas la même carte que celle qui a été annoncée. Retomber sur le
+   * premier format donnerait d'autres zones de départ et une autre taille d'équipe — silencieusement,
+   * chez ce pair seul. Mieux vaut échouer ici que jouer une partie dont personne ne verrait qu'elle
+   * n'est pas la même des deux côtés. Relevé en revue de code du plan 211.
+   *
+   * Hors ligne le repli reste : une seule machine, et un format introuvable y vient d'une sauvegarde
+   * ou d'une URL bricolée, où jouer le premier format est plus utile que refuser.
+   */
+  if (requestedFormat === undefined && setup.localSeat !== undefined) {
+    throw new Error(
+      `format "${setup.formatKey}" introuvable sur la carte "${mapUrl}" : les pairs ne jouent pas la même chose`,
+    );
+  }
+  const format = requestedFormat ?? loaded.map.formats[0];
   if (!format) {
     throw new Error(`Map "${mapUrl}" has no formats`);
   }
