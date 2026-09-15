@@ -48,8 +48,13 @@ import {
  * lancer Vœu Soin, et le vote de minorité éliminerait l'un des deux. La règle elle-même change aussi :
  * Vœu Soin sur le mort d'un camp rayé échoue d'un côté et ressuscite de l'autre. Relevé en revue de
  * code (Major 1) — l'incrément avait été oublié, ce qui est exactement le cas que ce commentaire décrit.
+ *
+ * 8 → 9 au plan 211, et pour une fois la forme d'un message change vraiment : `placement` n'existait
+ * pas. Un pair d'avant ne sait pas l'émettre, donc un pair d'après attendrait indéfiniment un
+ * placement qui ne vient jamais — et ne sait pas le lire, donc il le jetterait au bord du réseau et
+ * bâtirait son moteur sans le camp d'en face. Les deux sens échouent, aucun ne le dit.
  */
-export const NETWORK_VERSION = 8;
+export const NETWORK_VERSION = 9;
 
 /**
  * Durée d'un tour en ligne (plan 202, Lot B3, décision #946).
@@ -451,6 +456,40 @@ export interface ChecksumMessage {
   digest: string;
 }
 
+/** Une pose : quel Pokemon, sur quelle case, tourné dans quelle direction. */
+export interface NetworkPlacement {
+  /** Identifiant d'instance du combat (« p1-pikachu »), tel que le core le nomme. */
+  pokemonId: string;
+  position: Position;
+  direction: Direction;
+}
+
+/**
+ * Le placement à la main d'un camp, en un seul envoi (plan 211).
+ *
+ * **Un message par place, émis quand ce joueur a FINI** — pas une pose à la fois. Le placement en
+ * ligne est simultané et CACHÉ jusqu'au lancement : il n'y a rien à montrer aux autres en cours de
+ * route, donc le lot est plus simple, moins bavard, et ne crée aucun ordre d'arrivée à départager
+ * pose par pose. Le repli du chrono emprunte le même chemin : à l'expiration, le client pose lui-même
+ * ce qui reste et envoie ce message-ci.
+ *
+ * 🔴 **L'ordre de réception ne doit JAMAIS devenir l'ordre d'application.** Le récepteur range les
+ * poses par place croissante avant de bâtir son moteur — c'est `getPlacements()` du core qui en porte
+ * la garantie. Deux pairs qui appliqueraient les mêmes poses dans deux ordres différents
+ * construiraient deux états différents, et le détecteur de désynchronisation tuerait la partie avant
+ * le premier tour : exactement le défaut que ce plan répare.
+ *
+ * 🔴 **Ce n'est pas un secret cryptographique.** Le message part en clair dès qu'un joueur a fini,
+ * donc un client modifié peut lire le placement adverse avant la révélation. Assumé, même modèle de
+ * confiance que le fog (décision #863) — mais la fuite y est d'un tout autre ordre de grandeur, voir
+ * le § Fog de `docs/multiplayer.md`.
+ */
+export interface PlacementMessage {
+  type: "placement";
+  seat: number;
+  placements: readonly NetworkPlacement[];
+}
+
 export type NetworkMessage =
   | HelloMessage
   | WelcomeMessage
@@ -465,7 +504,8 @@ export type NetworkMessage =
   | ForfeitMessage
   | ResyncRequestMessage
   | ResyncMessage
-  | ChecksumMessage;
+  | ChecksumMessage
+  | PlacementMessage;
 
 export type NetworkMessageType = NetworkMessage["type"];
 
@@ -517,6 +557,23 @@ function isMemberOf<T extends string>(
 }
 
 const isDirection = isMemberOf(Direction);
+
+/**
+ * Une pose venue du réseau (plan 211).
+ *
+ * L'identifiant non vide est la garde qui compte : une chaîne vide passerait le typage et ne
+ * correspondrait à aucun Pokemon du setup, donc le moteur se bâtirait avec un camp incomplet — sans
+ * erreur, et avec une divergence d'empreinte pour seul symptôme.
+ */
+function isPlacement(value: unknown): value is NetworkPlacement {
+  return (
+    isRecord(value) &&
+    typeof value.pokemonId === "string" &&
+    value.pokemonId.length > 0 &&
+    isPosition(value.position) &&
+    isDirection(value.direction)
+  );
+}
 const isNature = isMemberOf(Nature);
 const isPokemonGender = isMemberOf(PokemonGender);
 const isForfeitReason = isMemberOf(NetworkForfeitReason);
@@ -694,6 +751,7 @@ const MESSAGE_VALIDATORS = {
     // Un pair qui enverrait autre chose n'est pas un pair dont on veut comparer les empreintes.
     typeof message.digest === "string" &&
     /^[0-9a-f]{16}$/.test(message.digest),
+  placement: (message) => isSeat(message.seat) && isArrayOf(message.placements, isPlacement),
 } as const satisfies Record<NetworkMessageType, (message: Record<string, unknown>) => boolean>;
 
 /**

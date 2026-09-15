@@ -331,3 +331,53 @@ describe("LoS sandbox map (plan 047)", () => {
     expect(result.map.tiles[3]?.[1]?.height).toBe(1);
   });
 });
+
+/**
+ * Les zones d'apparition de deux camps ne partagent aucune case, sur toutes les cartes livrées.
+ *
+ * 🔴 Ce n'est pas une coquetterie : le placement simultané en ligne (plan 211) en DÉPEND. Les camps
+ * tenus par l'IA y sont posés au démarrage, sur chaque machine, avec un générateur dérivé de leur
+ * place — et le résultat n'est identique partout que si les cases libres de chaque zone ne dépendent
+ * que de ce camp. Une case partagée entre deux zones rendrait la pose premier-arrivé-premier-servi,
+ * et chaque machine arbitrerait dans son propre ordre : divergence au lancement.
+ *
+ * `buildFormat` ne dédoublonne QUE par camp, et `clampToMap` peut rabattre deux polygones Tiled sur
+ * la même case en bord de carte. `validateMapDefinition` sait détecter le chevauchement, mais n'est
+ * appelée que depuis le studio de test — jamais sur le chemin de chargement d'un combat. D'où ce
+ * garde-fou, relevé en revue de code du plan 211.
+ */
+describe("zones d'apparition — disjointes sur toutes les cartes livrées", () => {
+  const allMaps = [
+    ["simple-arena", simpleArenaPath],
+    ["forest", forestPath],
+    ["cramped-cave", crampedCavePath],
+    ["le-mur", leMurPath],
+    ["volcano", volcanoPath],
+    ["swamp", swampPath],
+    ["desert", desertPath],
+    ["naval-arena", navalArenaPath],
+    ["toundra", toundraPath],
+  ] as const;
+
+  it.each(allMaps)("%s : aucun camp ne partage une case avec un autre", (_name, path) => {
+    const result = parseTiledMap(loadTiledMapSync(path));
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    for (const format of result.map.formats) {
+      const seen = new Map<string, number>();
+      for (const [teamIndex, zone] of format.spawnZones.entries()) {
+        for (const position of zone.positions) {
+          const key = `${position.x},${position.y}`;
+          const owner = seen.get(key);
+          expect(
+            owner === undefined,
+            `format ${format.teamCount}p : la case ${key} est dans la zone du camp ${owner} ET du camp ${teamIndex}`,
+          ).toBe(true);
+          seen.set(key, teamIndex);
+        }
+      }
+    }
+  });
+});

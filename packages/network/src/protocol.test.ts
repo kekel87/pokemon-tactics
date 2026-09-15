@@ -58,6 +58,11 @@ const VALID_MESSAGES: Record<NetworkMessageType, object> = {
     actionIndex: 0,
     action: { kind: "end_turn", pokemonId: "p1-venusaur", direction: "north" },
   },
+  placement: {
+    type: "placement",
+    seat: 2,
+    placements: [{ pokemonId: "p2-venusaur", position: { x: 3, y: 4 }, direction: "west" }],
+  },
   forfeit: { type: "forfeit", seat: 2, forfeitedSeat: 1, reason: "diverged" },
   resync_request: { type: "resync_request", seat: 2, actionIndex: 4 },
   resync: {

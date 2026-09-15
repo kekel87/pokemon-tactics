@@ -315,6 +315,33 @@ pairs de versions différentes divergeraient donc dès la première empreinte, s
 règle de Vœu Soin sur un camp rayé change d'issue de l'un à l'autre. **`NETWORK_VERSION` est passée à
 8.** L'incrément avait été oublié, et c'est la revue de code qui l'a rattrapé.
 
+**Ce que le plan 211 a ajouté** (2026-09-15, le placement à la main en ligne) :
+
+```typescript
+  | { type: "placement"; seat: number; placements: readonly NetworkPlacement[] }
+```
+
+Le placement d'un camp **en un seul envoi**, émis quand ce joueur a fini — pas une pose à la fois. Le
+placement en ligne est **simultané** (chacun pose quand il veut, on démarre quand tous ont fini) et
+**caché** jusqu'au lancement : il n'y a donc rien à montrer aux autres en cours de route, et le lot
+évite d'avoir à départager un ordre d'arrivée pose par pose. Le repli du chrono emprunte le même
+chemin — à l'expiration, le client pose lui-même ce qui reste et envoie ce message-ci. **Et
+`NETWORK_VERSION` est passée à 9.**
+
+Trois règles qui ne se voient pas dans la forme du message :
+
+- **Une place ne pose qu'une fois.** Un deuxième message pour la même place vient d'un revenant qui
+  rediffuse après reconnexion ; le rejouer doublerait ses Pokemon. Le premier reçu fait foi
+  (`placedSeats` dans `room.ts`).
+- **Avec tampon**, comme les actions et contrairement aux empreintes : un placement n'est jamais
+  périmé, et l'écran qui s'abonne tard doit le recevoir. C'est même le cas courant — les écrans ne se
+  montent pas au même instant.
+- 🔴 **L'ordre de réception ne devient JAMAIS l'ordre d'application.** Les poses sont rangées par
+  place croissante avant que le moteur ne soit bâti (`getPlacements()` du core). Deux pairs qui
+  appliqueraient les mêmes poses dans deux ordres différents construiraient deux états différents,
+  et le détecteur du Lot B4 tuerait la partie avant le premier tour — le défaut même que ce plan
+  répare.
+
 🔴 **Leçon des deux derniers incréments** : ni l'un ni l'autre ne touchait la forme d'un message. Le
 réflexe « je n'ai pas changé le protocole, donc pas d'incrément » est faux dès qu'une règle de lecture
 ou un champ de l'état HACHÉ change. La question à se poser n'est pas « ai-je touché `protocol.ts` ? »
@@ -442,6 +469,30 @@ local par le journal de combat et les dégâts flottants, qui gardent leurs chif
 serveur autoritaire écarté en #862. On vise petit : le jeu se joue entre gens qui se sont échangé un
 code, et quelqu'un d'assez motivé pour patcher le client joue contre des amis qui peuvent arrêter de
 jouer avec lui. **À revisiter seulement si une communauté compétitive apparaît.**
+
+### Le placement caché est de la même famille — mais pas du même ordre de grandeur (plan 211)
+
+Le placement en ligne est **caché jusqu'au lancement** : chacun pose à l'aveugle, tout se révèle au
+passage au combat. Comme le fog, ce caché est **un caché d'écran, pas un secret**. Le message
+`placement` part en clair dès qu'un joueur a fini, donc qui termine en 10 s a son placement complet
+dans la mémoire du client d'en face pendant tout le reste de la phase. Un client honnête ne l'affiche
+qu'au lancement ; un client modifié a déjà tout.
+
+**Décision : on assume**, même modèle de confiance que ci-dessus — arbitrage humain du 2026-09-15.
+
+🔴 **Mais ne pas confondre les deux fuites.** Le fog laisse filer des PV exacts, un objet, un talent :
+des détails chiffrés, qui se révèlent de toute façon au combat. Ici, c'est **tout le déploiement
+adverse**, et la fuite ne dégrade pas une information, elle **défait la prémisse entière de la
+phase** — « personne ne peut adapter son placement à celui d'en face » devient faux pour qui triche.
+Même nature de décision, deux ordres de grandeur d'écart. C'est écrit ici pour que le jour où
+quelqu'un relira #863, il ne prenne pas l'un pour l'autre.
+
+**La parade existe et a été écartée sciemment** : envoyer une *empreinte* de son placement en
+finissant, et les positions en clair seulement quand tout le monde est prêt — chacun vérifiant
+ensuite que l'empreinte correspond. Coût : un message de plus et un tour de protocole. Écartée parce
+que le modèle de confiance ne la réclame pas. **À ressortir telle quelle** le jour où le jeu
+s'ouvrirait à des inconnus — compte, classement, mise en relation automatique — c'est-à-dire la même
+condition que celle qui ferait revisiter le fog.
 
 ---
 

@@ -1,4 +1,5 @@
 import {
+  createPrng,
   type Direction,
   directionFromTo,
   type MapDefinition,
@@ -43,6 +44,7 @@ import {
   getWeatherIconUrl,
 } from "../team/asset-paths.js";
 import { getItemIconUrl, getPortraitUrl } from "../team/team-builder-data.js";
+import { playerLabel } from "../ui/team-select/slot-state.js";
 
 const PLACEMENT_UI_CONFIG: UiDomConfig = {
   translate: (key, params) => t(key as TranslationKey, params),
@@ -98,6 +100,58 @@ export interface PlacementFlowOptions {
    */
   openCombatMenu?: () => boolean;
   onComplete: (result: PlacementResult) => void;
+  /**
+   * Le placement EN LIGNE (plan 211). Absent en hot-seat local, qui garde l'alternance en serpentin.
+   *
+   * Sa présence bascule toute la phase : le flux ne pilote plus que le camp local, ne montre rien des
+   * autres, et attend leurs poses par le réseau au lieu de les faire jouer sur cet écran. Le défaut
+   * que ce plan répare venait précisément de son absence — la phase ne savait pas qu'une partie
+   * pouvait être en ligne, donc elle faisait poser les deux camps sur chaque machine.
+   */
+  online?: PlacementNetwork;
+}
+
+/** Les poses d'un camp, telles qu'elles voyagent (plan 211). */
+export interface RemotePlacement {
+  seat: number;
+  placements: readonly PlacementEntry[];
+}
+
+export interface PlacementNetwork {
+  /** Notre place, de 1 à N — l'index dans `teams` vaut `localSeat - 1`. */
+  localSeat: number;
+  /** Diffuse notre placement terminé, en un envoi. */
+  publishPlacement: (placements: readonly PlacementEntry[]) => void;
+  /** S'abonne aux placements des autres camps. Rend le désabonnement. */
+  subscribeToPlacements: (listener: (remote: RemotePlacement) => void) => () => void;
+  /**
+   * Un camp s'est tu et son délai de grâce est écoulé, pendant le placement (plan 211, Lot E4).
+   *
+   * 🔴 Le trou trouvé en écrivant ce lot : le chien de garde du salon TOURNE déjà pendant le
+   * placement (`locked` est posé dès le lancement, et la migration d'hôte avec), mais personne ne
+   * l'écoutait — `wireOnlineBattle` ne se branche qu'une fois le combat monté. Un pair qui partait
+   * pendant le placement laissait donc les autres attendre **indéfiniment** un placement qui ne
+   * viendrait jamais : le chrono ne pose que ses propres Pokemon, jamais ceux d'un absent.
+   */
+  subscribeToPeerAbsent: (listener: (seat: number) => void) => () => void;
+
+  /**
+   * Durée de la fenêtre de placement, pour tout le monde et pour toute la phase.
+   *
+   * 🔴 Une valeur PARTAGÉE, au même titre que `NETWORK_VERSION` : un pair qui compterait 60 s là où
+   * l'autre en compte 90 verrait le sien expirer sans raison.
+   */
+  windowMs: number;
+  /**
+   * Publie le temps restant vers le chrome, qui l'affiche en haut de l'écran (plan 211).
+   *
+   * 🔴 Le compteur doit être visible **pendant qu'on pose**, pas seulement une fois qu'on a fini —
+   * retour humain à la recette du 2026-09-15. Il ne vivait d'abord que dans le récapitulatif
+   * d'attente, donc on ne le découvrait qu'au moment où il ne servait plus à rien.
+   *
+   * `null` le masque, comme en combat.
+   */
+  publishClock: (view: { remainingMs: number; durationMs: number } | null) => void;
 }
 
 export interface PlacementFlow {
@@ -128,13 +182,52 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
     ),
     controller: selection.controller,
   }));
+  const online = options.online;
   const phase = new PlacementPhase(
     map,
     placementTeams,
     format,
-    PlacementMode.Alternating,
+    online === undefined ? PlacementMode.Alternating : PlacementMode.Simultaneous,
     options.randomSeed,
   );
+  /**
+   * Le camp que CETTE machine pilote — `null` en hot-seat, où l'écran les pilote tous à tour de rôle.
+   *
+   * C'est la pièce qui manquait à toute la phase : sans elle, « à qui le tour » et « qui suis-je »
+   * étaient la même question, et en ligne la réponse était « les deux camps » sur chaque écran.
+   */
+  const localPlayerId: PlayerId | null = resolveLocalPlayerId();
+
+  /**
+   * Le camp local, ou `null` en hot-seat.
+   *
+   * 🔴 **Jette plutôt que de dégrader** quand la place ne désigne aucun camp : la phase a déjà été
+   * construite en `Simultaneous`, donc retomber sur `null` ferait repasser `activePlayer()` par le
+   * tour courant et `submitPlacement` accepterait n'importe quel propriétaire — les deux camps
+   * posables sur cet écran, c'est-à-dire le bug d'origine à l'identique. Relevé en revue de code :
+   * un repli silencieux qui réactive le défaut qu'on répare est pire que l'absence de repli.
+   */
+  function resolveLocalPlayerId(): PlayerId | null {
+    if (online === undefined) {
+      return null;
+    }
+    const playerId = placementTeams[online.localSeat - 1]?.playerId;
+    if (playerId === undefined) {
+      throw new Error(
+        `placement en ligne : la place ${online.localSeat} ne désigne aucun camp parmi ${placementTeams.length}`,
+      );
+    }
+    return playerId;
+  }
+  /** Places dont le placement est arrivé et déjà appliqué — sert au récapitulatif. */
+  const seatsDone = new Set<number>();
+  /** Places parties avant d'avoir posé : la partie ne pourra pas commencer (Lot E4). */
+  const seatsLost = new Set<number>();
+  let waitingPanel: HTMLElement | null = null;
+  let windowTimer: ReturnType<typeof setInterval> | null = null;
+  let windowDeadlineMs: number | null = null;
+  let unsubscribeFromPlacements: (() => void) | null = null;
+  let unsubscribeFromPeerAbsent: (() => void) | null = null;
   const gridCenter: Position = { x: Math.floor(map.width / 2), y: Math.floor(map.height / 2) };
 
   const roster = new PlacementRoster(PLACEMENT_UI_CONFIG);
@@ -154,12 +247,53 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
    */
   let keyboardStep: "roster" | "board" = "roster";
 
+  /**
+   * Le camp que l'écran doit faire jouer maintenant, ou `null` s'il n'y a plus rien à poser ICI.
+   *
+   * 🔴 Remplace partout `phase.getNextToPlace()`, et c'est tout le sujet du plan 211. En hot-seat, la
+   * réponse est bien « celui dont c'est le tour ». En ligne, c'est **toujours le camp local**, tant
+   * qu'il n'a pas fini — les autres jouent sur leur propre écran, et rien ne doit les faire poser
+   * ici. Confondre les deux, c'est exactement le défaut qu'on répare.
+   */
+  function activePlayer(): PlayerId | null {
+    if (localPlayerId === null) {
+      return phase.getNextToPlace()?.playerId ?? null;
+    }
+    return phase.isPlayerDone(localPlayerId) ? null : localPlayerId;
+  }
+
+  function teamIndexOfPlayer(playerId: PlayerId): number {
+    return placementTeams.findIndex((candidate) => candidate.playerId === playerId);
+  }
+
+  /**
+   * Les Pokemon de ce camp sont-ils visibles sur le plateau ?
+   *
+   * En ligne, le placement est CACHÉ jusqu'au lancement : on ne montre que son propre camp, et les
+   * autres apparaissent d'un coup à la révélation. Sans ça, les poses reçues par le réseau
+   * s'afficheraient au fur et à mesure et la promesse « personne ne voit le placement d'en face »
+   * serait fausse dès le premier camp qui finit.
+   */
+  function isVisibleTeam(playerId: PlayerId): boolean {
+    return localPlayerId === null || playerId === localPlayerId;
+  }
+
+  function ownerPlayerIdOf(pokemonId: string): PlayerId | null {
+    const teamNumber = ownerTeamNumberOf(pokemonId);
+    return placementTeams[teamNumber - 1]?.playerId ?? null;
+  }
+
   function ownerTeamNumberOf(pokemonId: string): number {
     const match = pokemonId.match(/^p(\d+)-/);
     return match?.[1] ? Number(match[1]) : 1;
   }
 
   function addBillboard(entry: PlacementEntry): void {
+    const owner = ownerPlayerIdOf(entry.pokemonId);
+    if (owner !== null && !isVisibleTeam(owner)) {
+      // Posé dans le moteur, pas à l'écran : il apparaîtra à la révélation (voir `revealAllTeams`).
+      return;
+    }
     const handle = combat.addPokemon({
       pokemonId: definitionIdOf(entry.pokemonId),
       spawn: entry.position,
@@ -170,7 +304,20 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
   }
 
   function refreshSpawnZones(activeTeamIndex: number): void {
-    const occupiedKeys = new Set(phase.getPlacedPositions().map((p) => `${p.x},${p.y}`));
+    /*
+     * 🔴 En ligne, seules MES cases occupées comptent. Mettre en évidence celles des autres dirait
+     * exactement ce que le placement caché s'engage à taire : combien l'adversaire a posé, et où.
+     * Les zones elles-mêmes restent visibles — c'est de la géographie de carte, connue de tous avant
+     * même le lancement.
+     */
+    const visiblePlacements = phase
+      .getPlacements()
+      .filter((entry) => {
+        const owner = ownerPlayerIdOf(entry.pokemonId);
+        return owner === null || isVisibleTeam(owner);
+      })
+      .map((entry) => entry.position);
+    const occupiedKeys = new Set(visiblePlacements.map((p) => `${p.x},${p.y}`));
     const zones: SpawnZoneHighlight[] = [];
     for (let i = 0; i < format.spawnZones.length; i++) {
       const zone = format.spawnZones[i];
@@ -221,22 +368,21 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
    * dédiée à ajouter, c'est l'étape qui décide de ce que la flèche parcourt.
    */
   function cycleRosterSelection(delta: 1 | -1): void {
-    const next = phase.getNextToPlace();
-    if (!placing || !next) {
+    const activeId = activePlayer();
+    if (!placing || activeId === null) {
       return;
     }
-    const unplaced = phase.getUnplacedPokemonIds(next.playerId);
+    const unplaced = phase.getUnplacedPokemonIds(activeId);
     if (unplaced.length === 0) {
       return;
     }
     const index = selectedPokemonId === null ? -1 : unplaced.indexOf(selectedPokemonId);
     selectedPokemonId =
       unplaced[(index + delta + unplaced.length) % unplaced.length] ?? unplaced[0] ?? null;
-    const teamIndex = placementTeams.findIndex((candidate) => candidate.playerId === next.playerId);
     showRoster(
-      next.playerId,
-      teamIndex,
-      placementTeams.find((candidate) => candidate.playerId === next.playerId),
+      activeId,
+      teamIndexOfPlayer(activeId),
+      placementTeams.find((candidate) => candidate.playerId === activeId),
     );
   }
 
@@ -254,37 +400,55 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
     if (!placing) {
       return;
     }
-    const next = phase.getNextToPlace();
-    if (!next) {
-      finish();
+    const activeId = activePlayer();
+    if (activeId === null) {
+      /*
+       * Plus rien à poser ICI. En hot-seat, ça veut dire que la phase est finie. En ligne, ça veut
+       * dire que MOI j'ai fini — les autres posent encore sur leur écran, et on les attend.
+       */
+      if (localPlayerId === null) {
+        finish();
+        return;
+      }
+      publishLocalPlacement();
+      enterWaitingForOthers();
+      /*
+       * 🔴 Indispensable, et trouvé par l'e2e §11.14 : si je suis le DERNIER à finir, tous les
+       * placements distants sont déjà arrivés, donc plus aucun message ne viendra déclencher le
+       * départ. Sans cet appel, le joueur le plus lent restait bloqué sur l'écran d'attente pour
+       * toujours — et les autres avec lui. Le cas ne se voit pas quand les deux finissent presque
+       * ensemble, ce qui est précisément pourquoi il fallait un scénario où l'un finit franchement
+       * après l'autre.
+       */
+      startBattleWhenEveryoneIsDone();
       return;
     }
 
-    const team = placementTeams.find((candidate) => candidate.playerId === next.playerId);
+    const team = placementTeams.find((candidate) => candidate.playerId === activeId);
     if (team?.controller === PlayerController.Ai) {
-      const placed = phase.autoPlaceForPlayer(next.playerId, gridCenter);
+      const placed = phase.autoPlaceForPlayer(activeId, gridCenter);
       for (const entry of placed) {
         addBillboard(entry);
       }
       if (placed.length === 0) {
         // AI ran out of free tiles in its zone — finish it instead of looping.
-        if (!phase.canFinishPlayer(next.playerId)) {
+        if (!phase.canFinishPlayer(activeId)) {
           finish();
           return;
         }
-        phase.finishPlayer(next.playerId);
+        phase.finishPlayer(activeId);
       }
       enterPlacement();
       return;
     }
 
-    const teamIndex = placementTeams.findIndex((candidate) => candidate.playerId === next.playerId);
+    const teamIndex = teamIndexOfPlayer(activeId);
     refreshSpawnZones(teamIndex);
 
-    const unplaced = phase.getUnplacedPokemonIds(next.playerId);
+    const unplaced = phase.getUnplacedPokemonIds(activeId);
     selectedPokemonId = unplaced[0] ?? null;
     enterRosterStep();
-    showRoster(next.playerId, teamIndex, team);
+    showRoster(activeId, teamIndex, team);
   }
 
   function showRoster(
@@ -319,15 +483,15 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
   }
 
   function finishCurrentPlayer(): void {
-    const next = phase.getNextToPlace();
-    if (!next) {
+    const activeId = activePlayer();
+    if (activeId === null) {
       return;
     }
-    const result = phase.finishPlayer(next.playerId);
+    const result = phase.finishPlayer(activeId);
     if (!result.success) {
       return;
     }
-    if (phase.isComplete()) {
+    if (localPlayerId === null && phase.isComplete()) {
       finish();
       return;
     }
@@ -338,11 +502,11 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
     if (!placing || picker !== null || selectedPokemonId === null) {
       return;
     }
-    const next = phase.getNextToPlace();
-    if (!next) {
+    const activeId = activePlayer();
+    if (activeId === null) {
       return;
     }
-    const teamIndex = placementTeams.findIndex((candidate) => candidate.playerId === next.playerId);
+    const teamIndex = teamIndexOfPlayer(activeId);
     const zone = format.spawnZones[teamIndex];
     if (!zone?.positions.some((p) => p.x === x && p.y === y)) {
       return;
@@ -402,10 +566,16 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
   function undoLastPlacement(): boolean {
     // Anti-cheat (core `canUndo`): only undo while the opponent hasn't placed
     // since — i.e. the current player's placement is still the most recent one.
-    if (!phase.canUndo()) {
+    // En ligne la règle tombe d'elle-même : rien n'est visible, donc rien à quoi réagir.
+    if (!phase.canUndo(localPlayerId ?? undefined)) {
       return false;
     }
-    const last = phase.getPlacements().at(-1);
+    /*
+     * 🔴 `getLastPlacement`, JAMAIS `getPlacements().at(-1)` : la seconde rend l'ordre canonique —
+     * groupé par camp — donc son dernier élément appartient toujours au DERNIER camp, pas à celui
+     * qui vient de poser. Annuler est une notion chronologique.
+     */
+    const last = phase.getLastPlacement(localPlayerId ?? undefined);
     if (!last || !phase.removePlacement(last.pokemonId).success) {
       return false;
     }
@@ -418,8 +588,339 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
     return true;
   }
 
+  /**
+   * Le récapitulatif des joueurs prêts (plan 211, demandé par l'humain au cadrage).
+   *
+   * 🔴 Ce n'est pas un ornement : en simultané, **on ne peut pas savoir où en est la phase sans lui**.
+   * Un joueur qui a fini de poser n'a plus rien qui bouge à l'écran ; sans ce panneau il ne sait pas
+   * s'il attend quelqu'un, combien de monde, ni si le jeu est planté.
+   *
+   * Il dit l'ÉTAT, jamais le contenu : « place ses Pokemon » ou « Prêt », jamais une position ni un
+   * nombre de Pokemon posés. « Il en est à 4 sur 6 » dirait déjà quelque chose du rythme d'en face,
+   * et à douze camps ce serait une grille d'information gratuite.
+   */
+  function refreshWaitingPanel(): void {
+    if (waitingPanel === null) {
+      return;
+    }
+    const rows = waitingPanel.querySelector(".pw-seats");
+    if (!(rows instanceof HTMLElement)) {
+      return;
+    }
+    const title = waitingPanel.querySelector(".pw-title");
+    if (title instanceof HTMLElement) {
+      title.textContent =
+        seatsLost.size > 0 ? t("placement.waiting.aborted") : t("placement.waiting.title");
+      title.dataset.state = seatsLost.size > 0 ? "aborted" : "waiting";
+    }
+    rows.replaceChildren();
+    for (const index of placementTeams.keys()) {
+      const seat = index + 1;
+      const done = seatsDone.has(seat);
+      const lost = seatsLost.has(seat);
+      const row = document.createElement("li");
+      row.className = "pw-seat";
+      row.dataset.state = lost ? "lost" : done ? "ready" : "placing";
+      row.dataset.testid = `placement-waiting-seat-${seat}`;
+
+      const dot = document.createElement("span");
+      dot.className = "pw-dot";
+      // Seule exception au « pas de style inline » : la couleur du camp vient de `TEAM_COLORS`, une
+      // valeur par camp jusqu'à douze, que le CSS ne peut pas connaître sans recopier la table.
+      dot.style.setProperty("--pw-team-color", teamColorOf(index));
+
+      const name = document.createElement("span");
+      name.className = "pw-name";
+      const isSelf = online !== undefined && seat === online.localSeat;
+      name.textContent = isSelf
+        ? `${playerLabelOf(seat)} (${t("placement.waiting.you")})`
+        : playerLabelOf(seat);
+
+      const state = document.createElement("span");
+      state.className = "pw-state";
+      state.textContent = lost
+        ? t("placement.waiting.lost")
+        : done
+          ? t("placement.waiting.ready")
+          : t("placement.waiting.placing");
+
+      row.append(dot, name, state);
+      rows.append(row);
+    }
+  }
+
+  /** Le nom du camp, tel que la salle d'attente l'écrit déjà — « Joueur 2 », pas « place 2 ». */
+  function playerLabelOf(seat: number): string {
+    return playerLabel(seat - 1);
+  }
+
+  function teamColorOf(index: number): string {
+    const color = TEAM_COLORS[index] ?? TILE_SPAWN_ZONE_INACTIVE_COLOR;
+    return `#${color.toString(16).padStart(6, "0")}`;
+  }
+
+  /**
+   * L'écran d'attente : j'ai fini, les autres non.
+   *
+   * Le roster disparaît — il n'y a plus rien à poser — mais le menu du placement reste joignable, et
+   * « Quitter » avec lui : attendre ne doit pas être une impasse.
+   */
+  function enterWaitingForOthers(): void {
+    roster.hide();
+    combat.pinCursor(null);
+    combat.setSpawnZoneHighlights([]);
+    if (waitingPanel !== null) {
+      refreshWaitingPanel();
+      return;
+    }
+    const panel = document.createElement("section");
+    panel.className = "placement-waiting";
+    panel.dataset.testid = "placement-waiting";
+
+    const title = document.createElement("h2");
+    title.className = "pw-title";
+    title.textContent = t("placement.waiting.title");
+
+    const seats = document.createElement("ul");
+    seats.className = "pw-seats";
+
+    const timer = document.createElement("p");
+    timer.className = "pw-timer";
+    timer.dataset.testid = "placement-waiting-timer";
+
+    panel.append(title, seats, timer);
+    host.appendChild(panel);
+    waitingPanel = panel;
+    refreshWaitingPanel();
+    refreshWindowTimerLabel();
+  }
+
+  /**
+   * Un battement du compte à rebours : la bannière du haut, et la ligne du récapitulatif s'il existe.
+   *
+   * Les deux, et pas l'un ou l'autre : la bannière sert **pendant** qu'on pose, le récapitulatif
+   * **après**, quand on attend les autres. Ils ne sont jamais utiles au même moment mais ils lisent
+   * la même échéance.
+   */
+  function refreshWindowTimerLabel(): void {
+    if (online === undefined || windowDeadlineMs === null) {
+      return;
+    }
+    const remainingMs = Math.max(0, windowDeadlineMs - Date.now());
+    online.publishClock({ remainingMs, durationMs: online.windowMs });
+    const label = waitingPanel?.querySelector(".pw-timer");
+    if (label instanceof HTMLElement) {
+      label.textContent = t("placement.window.remaining", {
+        seconds: String(Math.ceil(remainingMs / 1000)),
+      });
+    }
+  }
+
+  /**
+   * La fenêtre de placement expire (plan 211) : notre propre client pose ce qui reste, au hasard.
+   *
+   * 🔴 **Local et auto-déclarant**, exactement comme le chrono de combat : personne n'arbitre, chacun
+   * constate l'expiration du sien et diffuse le résultat comme un placement ordinaire. Aucun message
+   * de dépassement, donc aucune question de « qui fait autorité sur l'horloge ».
+   *
+   * Personne n'est éjecté : une coupure réseau ne doit pas coûter la partie.
+   */
+  function onWindowExpired(): void {
+    if (!placing || localPlayerId === null) {
+      return;
+    }
+    if (!phase.isPlayerDone(localPlayerId)) {
+      for (const entry of phase.autoPlaceForPlayer(localPlayerId, gridCenter)) {
+        addBillboard(entry);
+      }
+      if (!phase.isPlayerDone(localPlayerId) && phase.canFinishPlayer(localPlayerId)) {
+        phase.finishPlayer(localPlayerId);
+      }
+      publishLocalPlacement();
+      enterWaitingForOthers();
+    }
+    startBattleWhenEveryoneIsDone();
+  }
+
+  function stopWindowTimer(): void {
+    if (windowTimer !== null) {
+      clearInterval(windowTimer);
+      windowTimer = null;
+    }
+    /*
+     * L'échéance s'efface AUSSI, sans quoi le compteur ressuscitait (revue de code) : à l'expiration,
+     * `onWindowExpired` passe par l'écran d'attente, qui rafraîchit le compteur — et celui-ci
+     * republiait `0:00`, figé et en alerte rouge, jusqu'au départ du combat. C'est exactement ce que
+     * la ligne suivante cherche à empêcher.
+     */
+    windowDeadlineMs = null;
+    // Le compteur disparaît avec la phase : le laisser figé sur son dernier reste ferait croire que
+    // le temps court encore pendant le combat, où c'est l'autre chrono qui prend le relais.
+    online?.publishClock(null);
+  }
+
+  /**
+   * Pose les camps tenus par l'IA, en ligne (plan 211) — **avant que quiconque ne place**.
+   *
+   * 🔴 Sans ça la partie ne démarrait JAMAIS dès qu'une place était en IA : `activePlayer()` ne rend
+   * que le camp local, donc la branche IA de `enterPlacement` est inatteignable en ligne ; une IA
+   * n'émet aucun message, donc son camp n'était jamais compté fini, et le chrono ne sauve rien
+   * puisqu'il ne pose que le camp local. C'est le cas courant « j'ouvre un salon, personne ne vient,
+   * je passe la place en IA ». Trouvé en revue de code, invisible pour les tests en place.
+   *
+   * **Deux conditions rendent la pose identique sur toutes les machines**, et il faut les deux :
+   * - un générateur DÉRIVÉ de la place, tiré dans l'ordre des places croissantes — le générateur de
+   *   la phase avance à chaque tirage, donc son état dépend de ce que cette machine a déjà tiré ;
+   * - une pose faite **au démarrage**, avant la moindre pose humaine, donc à plateau identique
+   *   partout. Poser une IA au milieu du placement laisserait les cases libres dépendre de qui a
+   *   déjà joué de son côté.
+   */
+  function placeOnlineAiSeats(): void {
+    if (online === undefined) {
+      return;
+    }
+    // Même motif que `deriveAiSeedsBySeat` du réseau : une graine par place, tirées dans l'ordre
+    // croissant depuis la graine partagée, donc la même suite chez tout le monde.
+    const seedSource = createPrng(options.randomSeed);
+    for (const [index, team] of placementTeams.entries()) {
+      const seed = seedSource();
+      if (team.controller !== PlayerController.Ai) {
+        continue;
+      }
+      for (const entry of phase.autoPlaceForPlayer(
+        team.playerId,
+        gridCenter,
+        createPrng(Math.floor(seed * 2 ** 31)),
+      )) {
+        addBillboard(entry);
+      }
+      if (!phase.isPlayerDone(team.playerId) && phase.canFinishPlayer(team.playerId)) {
+        phase.finishPlayer(team.playerId);
+      }
+      seatsDone.add(index + 1);
+    }
+  }
+
+  /**
+   * Notre placement part, en un seul envoi (plan 211).
+   *
+   * Émis au moment où NOUS avons fini — à la main, ou parce que le chrono a expiré et que le repli a
+   * posé le reste. Une seule fois : `seatsDone` garde notre propre place comme celle des autres.
+   */
+  function publishLocalPlacement(): void {
+    if (online === undefined || localPlayerId === null || seatsDone.has(online.localSeat)) {
+      return;
+    }
+    seatsDone.add(online.localSeat);
+    const mine = phase
+      .getPlacements()
+      .filter((entry) => ownerPlayerIdOf(entry.pokemonId) === localPlayerId);
+    online.publishPlacement(mine);
+  }
+
+  /**
+   * Les poses d'un camp distant arrivent (plan 211).
+   *
+   * Elles entrent dans le moteur sans rien afficher : le placement est caché jusqu'au lancement. Une
+   * pose refusée est ignorée en silence — ce n'est pas au joueur d'entendre parler d'un pair mal
+   * élevé, et le détecteur d'empreinte du Lot B4 reste le filet en dernier recours.
+   */
+  function applyRemotePlacement(remote: RemotePlacement): void {
+    if (!placing || seatsDone.has(remote.seat)) {
+      return;
+    }
+    // La place est validée AVANT d'être comptée finie : une place inconnue marquée « posée »
+    // laisserait le compte atteindre le nombre de camps sans qu'un camp ait posé.
+    const remotePlayerId = placementTeams[remote.seat - 1]?.playerId;
+    if (remotePlayerId === undefined) {
+      return;
+    }
+    seatsDone.add(remote.seat);
+    let applied = 0;
+    for (const entry of remote.placements) {
+      /*
+       * 🔴 Chaque pose doit appartenir à l'ÉMETTEUR, et le salon ne le vérifie pas : il confronte le
+       * champ `seat` du message au canal, donc il empêche d'usurper une place — pas d'y glisser les
+       * Pokemon d'un autre camp. `submitPlacement` résout le propriétaire depuis le `pokemonId`, si
+       * bien qu'un message de la place 2 contenant des « p1-… » poserait le camp de l'hôte sur son
+       * propre écran. Relevé en revue de code ; même sous le modèle de confiance assumé (#863), un
+       * pair honnête mais bogué corromprait l'état en silence au lieu d'échouer.
+       */
+      if (ownerPlayerIdOf(entry.pokemonId) !== remotePlayerId) {
+        continue;
+      }
+      if (phase.submitPlacement(entry.pokemonId, entry.position, entry.direction).success) {
+        addBillboard(entry);
+        applied += 1;
+      }
+    }
+    if (applied === 0) {
+      /*
+       * Aucune pose n'a survécu : un pair bogué qui n'envoie que des Pokemon d'un autre camp, ou des
+       * cases toutes refusées. Le camp compte comme « fini » avec zéro Pokemon posé, donc
+       * `phase.isComplete()` restera faux POUR TOUJOURS et le combat ne partirait jamais — un
+       * blocage muet là où le filtre voulait un échec franc (revue de code).
+       *
+       * On le traite comme un camp parti : le récapitulatif l'annonce, et « Quitter » reste la
+       * sortie. Mieux vaut un constat lisible qu'une attente sans fin.
+       */
+      seatsLost.add(remote.seat);
+      enterWaitingForOthers();
+      return;
+    }
+    if (!phase.isPlayerDone(remotePlayerId) && phase.canFinishPlayer(remotePlayerId)) {
+      // Un camp qui a posé moins que sa taille d'équipe — chrono expiré sur un roster incomplet.
+      phase.finishPlayer(remotePlayerId);
+    }
+    refreshWaitingPanel();
+    startBattleWhenEveryoneIsDone();
+  }
+
+  function startBattleWhenEveryoneIsDone(): void {
+    if (!placing || online === undefined) {
+      return;
+    }
+    if (seatsDone.size < placementTeams.length || !phase.isComplete()) {
+      return;
+    }
+    finish();
+  }
+
+  /**
+   * La révélation (plan 211) : les camps tenus cachés apparaissent d'un coup, au passage au combat.
+   *
+   * Appelée par `finish` et par elle seule — c'est le seul instant où le pari se dénoue.
+   */
+  function revealAllTeams(): void {
+    if (localPlayerId === null) {
+      return;
+    }
+    for (const entry of phase.getPlacements()) {
+      if (handleByPokemonId.has(entry.pokemonId)) {
+        continue;
+      }
+      const handle = combat.addPokemon({
+        pokemonId: definitionIdOf(entry.pokemonId),
+        spawn: entry.position,
+        team: ownerTeamNumberOf(entry.pokemonId),
+      });
+      handle.setFacing(entry.direction);
+      handleByPokemonId.set(entry.pokemonId, handle);
+    }
+  }
+
   function finish(): void {
     placing = false;
+    stopWindowTimer();
+    // Les écoutes réseau meurent avec la phase : sans ça elles survivaient tout le combat à côté de
+    // celles de `wireOnlineBattle`, et gardaient le salon en mode « quelqu'un écoute les placements ».
+    unsubscribeFromPlacements?.();
+    unsubscribeFromPlacements = null;
+    unsubscribeFromPeerAbsent?.();
+    unsubscribeFromPeerAbsent = null;
+    waitingPanel?.remove();
+    waitingPanel = null;
+    revealAllTeams();
     roster.hide();
     combat.setSpawnZoneHighlights([]);
     unregisterInput?.();
@@ -466,15 +967,13 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
           }
           return false;
         }
-        const next = phase.getNextToPlace();
-        if (!placing || !next || selectedPokemonId === null) {
+        const activeId = activePlayer();
+        if (!placing || activeId === null || selectedPokemonId === null) {
           return false;
         }
         // Pokemon choisi → on passe au plateau, curseur posé sur une case libre de la zone.
         keyboardStep = "board";
-        seedCursorInSpawnZone(
-          placementTeams.findIndex((candidate) => candidate.playerId === next.playerId),
-        );
+        seedCursorInSpawnZone(teamIndexOfPlayer(activeId));
         return true;
       },
       cancel: () => {
@@ -545,18 +1044,64 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
   combat.onTileClick((pick) => handleTileClick(pick.x, pick.y));
 
   if (options.autoPlacement) {
+    /*
+     * Placement automatique : inchangé par le plan 211, en ligne comme en local. Les deux pairs
+     * tirent sur la MÊME graine (`seeds.placement` du message de lancement), donc ils posent aux
+     * mêmes cases sans échanger un octet — c'est le chemin qui marchait déjà, et le défaut réparé ici
+     * ne concernait que l'autre.
+     */
     const placements = phase.autoPlaceAll(gridCenter);
     for (const entry of placements) {
       addBillboard(entry);
     }
     finish();
   } else {
+    if (online !== undefined) {
+      placeOnlineAiSeats();
+      unsubscribeFromPlacements = online.subscribeToPlacements(applyRemotePlacement);
+      // Un premier battement tout de suite : sans lui la bannière resterait vide une seconde entière,
+      // pile au moment où le joueur découvre qu'il est chronométré.
+      windowDeadlineMs = Date.now() + online.windowMs;
+      refreshWindowTimerLabel();
+      unsubscribeFromPeerAbsent = online.subscribeToPeerAbsent((seat) => {
+        // Déjà posé : son placement est arrivé avant qu'il ne parte, la partie peut commencer sans
+        // lui — c'est le combat, et son chien de garde, qui décideront de son sort.
+        if (!placing || seatsDone.has(seat)) {
+          return;
+        }
+        seatsLost.add(seat);
+        /*
+         * On montre le panneau MÊME si je n'ai pas fini de poser : sans lui, rien à l'écran ne dirait
+         * que la partie ne pourra pas commencer, et je continuerais à placer mes Pokemon pour rien.
+         * Poser reste possible — le panneau informe, il ne verrouille pas — et « Quitter » du menu de
+         * placement reste la sortie, donc attendre n'est jamais une impasse.
+         */
+        enterWaitingForOthers();
+      });
+      // Un rafraîchissement par seconde : le compte à rebours n'a pas besoin de plus, et l'échéance
+      // est relue à chaque battement plutôt que décomptée — un onglet mis en arrière-plan ralentit
+      // les minuteurs, et un chrono qui dérive est un chrono qui ment.
+      windowTimer = setInterval(() => {
+        refreshWindowTimerLabel();
+        if (windowDeadlineMs !== null && Date.now() >= windowDeadlineMs) {
+          stopWindowTimer();
+          onWindowExpired();
+        }
+      }, 1000);
+    }
     enterPlacement();
   }
 
   return {
     dispose: () => {
       placing = false;
+      stopWindowTimer();
+      unsubscribeFromPlacements?.();
+      unsubscribeFromPlacements = null;
+      unsubscribeFromPeerAbsent?.();
+      unsubscribeFromPeerAbsent = null;
+      waitingPanel?.remove();
+      waitingPanel = null;
       unregisterInput?.();
       picker?.dispose();
       picker = null;

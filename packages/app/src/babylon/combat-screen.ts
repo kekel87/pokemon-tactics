@@ -12,15 +12,25 @@ import {
   PlayerId,
 } from "@pokemon-tactic/core";
 import { getMoveName, getPokemonName } from "@pokemon-tactic/data";
-import { deriveAiSeedsBySeat, ONLINE_TURN_DURATION_MS } from "@pokemon-tactic/network";
+import {
+  deriveAiSeedsBySeat,
+  ONLINE_PLACEMENT_WINDOW_MS,
+  ONLINE_TURN_DURATION_MS,
+} from "@pokemon-tactic/network";
 import type {
   BattleChrome,
   CombatPokemonHandle,
   CombatScene,
   FieldTerrainSpec,
   PresentationContext,
+  TurnClockView,
 } from "@pokemon-tactic/render-ports";
-import type { ChromeInsetProbe, GameStage, UiDomConfig } from "@pokemon-tactic/ui-dom";
+import type {
+  ChromeInsetProbe,
+  GameStage,
+  TurnClockHud,
+  UiDomConfig,
+} from "@pokemon-tactic/ui-dom";
 import {
   createBattleChrome,
   createBattleLog,
@@ -29,6 +39,7 @@ import {
   createCombatMenuButton,
   createFullscreenButton,
   createKeyHint,
+  createTurnClockHud,
   mountGameStage,
   withKeyHint,
 } from "@pokemon-tactic/ui-dom";
@@ -75,7 +86,7 @@ import { cameraKeyLabels, combatMenuKeyHint, keyHintOf } from "../input/key-lege
 import { LogicalAction } from "../input/logical-action.js";
 import { attachPointerSource, type PointerSource } from "../input/pointer-source.js";
 import { type ConnectionNotice, wireOnlineBattle } from "../network/online-battle.js";
-import { releaseOnlineRoom } from "../network/online-room.js";
+import { getOnlineRoom, releaseOnlineRoom } from "../network/online-room.js";
 import {
   isFullscreen,
   isFullscreenSupported,
@@ -100,7 +111,12 @@ import { createCombatMenu } from "../ui/dom/combat-menu.js";
 import { type LoadingOverlayHandle, showLoadingOverlay } from "../ui/LoadingOverlay.js";
 import { SandboxPanel } from "../ui/SandboxPanel.js";
 import { type BattleInputs, buildBattle, resumeBattle } from "./battle-resume.js";
-import { type PlacementFlow, type PlacementResult, startPlacementFlow } from "./placement-flow.js";
+import {
+  type PlacementFlow,
+  type PlacementNetwork,
+  type PlacementResult,
+  startPlacementFlow,
+} from "./placement-flow.js";
 
 // confirmAttack defaults to true (plan 123 4d-3): a target click locks the
 // target into a confirm step (with preview flash + damage preview); a second
@@ -208,6 +224,8 @@ interface PlacementChrome {
   dispose(): void;
   /** Ouvrir le menu — routé par le flux de placement, qui ne possède pas le menu lui-même. */
   open(): boolean;
+  /** Le compte à rebours de la phase (plan 211). Sans effet hors ligne, où il n'y en a pas. */
+  updateClock(view: TurnClockView | null): void;
 }
 
 function mountPlacementChrome(options: {
@@ -215,6 +233,17 @@ function mountPlacementChrome(options: {
   /** Absent en ligne : y recommencer remonterait le setup en local (voir `onRestart` du menu). */
   onRestart?: () => void;
   onQuit: () => void;
+  /**
+   * Monte le compte à rebours de la phase de placement, en haut de l'écran (plan 211).
+   *
+   * 🔴 Absent hors ligne, comme le chrono de combat : le placement n'est chronométré qu'en réseau,
+   * où tout le monde attend le plus lent (décision #946, même raison).
+   *
+   * Retour humain à la recette du 2026-09-15 : le compteur n'existait que dans le récapitulatif
+   * d'attente, donc on ne le voyait qu'APRÈS avoir fini de poser — c'est-à-dire au moment où il ne
+   * sert plus à rien. Il court pourtant dès la première case.
+   */
+  showClock?: boolean;
 }): PlacementChrome {
   const { stage, onRestart, onQuit } = options;
   const combatMenu = createCombatMenu({
@@ -239,6 +268,30 @@ function mountPlacementChrome(options: {
     label: t("combatMenu.open"),
     onOpen: () => combatMenu.open(),
   });
+  /*
+   * La MÊME bannière qu'en combat, réutilisée telle quelle : `.bc-turn` pour le cadre, la ligne pour
+   * le libellé et le temps, la barre dessous. Réutiliser plutôt que redéclarer, comme le demande la
+   * règle de rationalisation des écrans — et le joueur retrouve au placement le compteur qu'il lira
+   * pendant tout le combat, au même endroit et avec la même alerte sous 10 s.
+   */
+  let clockHud: TurnClockHud | null = null;
+  let clockBox: HTMLElement | null = null;
+  if (options.showClock === true) {
+    clockHud = createTurnClockHud();
+    const line = document.createElement("div");
+    line.className = "bc-turn-line";
+    const label = document.createElement("span");
+    label.className = "bc-turn-owner";
+    label.dataset.testid = "placement-clock-label";
+    label.textContent = t("placement.window.label");
+    line.append(label, clockHud.value);
+    clockBox = document.createElement("div");
+    clockBox.className = "bc-turn pc-clock";
+    clockBox.dataset.testid = "placement-clock";
+    clockBox.append(line, clockHud.bar);
+    stage.screenLayer.append(clockBox);
+  }
+
   const row = createBattleLogRow(
     fullscreenButton.element,
     // Le capuchon de la touche sous le bouton (plan 189, décision 10). Vaut ici comme en combat : la
@@ -253,9 +306,12 @@ function mountPlacementChrome(options: {
     // Exposée pour que le flux de placement puisse router `Start` et `Échap` vers ELLE : le flux ne
     // possède pas le menu, il n'en connaît que l'ouverture.
     open: () => combatMenu.open(),
+    updateClock: (view) => clockHud?.update(view),
     dispose() {
       stopFullscreenWatch.abort();
       combatMenu.dispose();
+      clockHud?.destroy();
+      clockBox?.remove();
       row.remove();
     },
   };
@@ -284,7 +340,9 @@ async function mountPlacement(
   setup: CombatSetup,
   onComplete: (result: PlacementResult, map: MapDefinition) => void,
   openCombatMenu?: () => boolean,
+  publishClock: (view: TurnClockView | null) => void = () => undefined,
 ): Promise<PlacementFlow> {
+  const onlinePlacement = onlinePlacementFor(setup, publishClock);
   const [loaded] = await Promise.all([loadTiledMap(mapUrl), combat.ready]);
   const format =
     loaded.map.formats.find(
@@ -339,7 +397,63 @@ async function mountPlacement(
     openCombatMenu,
     host: stage.screenLayer,
     onComplete: (result) => onComplete(result, loaded.map),
+    ...(onlinePlacement === undefined ? {} : { online: onlinePlacement }),
   });
+}
+
+/**
+ * Le placement à la main EN LIGNE (plan 211) — `undefined` en local, et en ligne quand le placement
+ * est automatique.
+ *
+ * 🔴 Le placement auto ne passe PAS par ici, et c'est délibéré : les deux pairs tirent sur la même
+ * graine (`seeds.placement`), donc ils posent aux mêmes cases sans échanger un octet. C'est le chemin
+ * qui a toujours marché ; brancher le réseau dessus n'ajouterait qu'un aller-retour inutile et un
+ * moyen de le casser.
+ *
+ * `localSeat` est le drapeau « cette partie est en ligne », comme partout ailleurs dans ce fichier.
+ *
+ * 🔴 **Le salon manquant JETTE**, il ne dégrade pas. Retomber sur le hot-seat ferait reposer les deux
+ * camps sur cet écran pendant que le pair d'en face reste en simultané : désynchronisation garantie,
+ * sans un mot — exactement le défaut que ce plan répare. Relevé en revue de code, où la
+ * justification d'origine (« reprise d'une partie dont la session est morte ») décrivait un chemin
+ * qui n'existe pas : rien n'est sauvegardé avant le combat, donc on ne reprend jamais un placement.
+ */
+function onlinePlacementFor(
+  setup: CombatSetup,
+  publishClock: (view: TurnClockView | null) => void,
+): PlacementNetwork | undefined {
+  if (setup.localSeat === undefined || setup.autoPlacement) {
+    return undefined;
+  }
+  const room = getOnlineRoom();
+  if (room === null) {
+    throw new Error(
+      "placement à la main en ligne demandé sans salon : impossible d'échanger les placements",
+    );
+  }
+  return {
+    localSeat: setup.localSeat,
+    publishPlacement: (placements) => room.sendPlacement(placements),
+    subscribeToPlacements: (listener) =>
+      room.onPlacement((message) =>
+        listener({ seat: message.seat, placements: [...message.placements] }),
+      ),
+    /*
+     * 🔴 Le chien de garde TOURNE déjà pendant le placement — le salon est verrouillé dès le
+     * lancement, et la migration d'hôte avec — mais personne ne l'écoutait : `wireOnlineBattle` ne
+     * se branche qu'une fois le combat monté. Un pair qui partait pendant le placement laissait donc
+     * les autres attendre indéfiniment un placement qui ne viendrait jamais.
+     *
+     * Le flux se charge de le DIRE dans son récapitulatif ; il n'y a rien d'autre à faire ici.
+     * Prononcer un forfait demanderait un moteur, qui n'existe pas encore à ce stade.
+     */
+    subscribeToPeerAbsent: (listener) => room.onPeerAbsent(listener),
+    windowMs: ONLINE_PLACEMENT_WINDOW_MS,
+    // `owner: "you"` sans condition : cette fenêtre est la MIENNE. En combat le compteur distingue
+    // mon tour de celui d'en face ; au placement tout le monde court en même temps, et ce qui
+    // s'affiche ici est mon propre temps restant.
+    publishClock: (view) => publishClock(view === null ? null : { ...view, owner: "you" }),
+  };
 }
 
 /**
@@ -1860,36 +1974,64 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
         teardown();
         navigate("main-menu", undefined);
       },
+      // Chronométré seulement en ligne ET en placement à la main : le placement automatique ne dure
+      // pas, et hors ligne personne n'attend personne.
+      showClock: setup.localSeat !== undefined && !setup.autoPlacement,
     });
-    const placementFlow = await mountPlacement(
-      activeCombat,
-      activeStage,
-      params.mapUrl,
-      setup,
-      (result, map) => {
-        // Passage de relais : jamais deux menus vivants, sinon deux registrations se disputeraient
-        // `Start` et le joueur en ouvrirait un au hasard.
-        placementChrome?.dispose();
-        placementChrome = null;
-        orchestrator = startBattleLoop(
-          backend,
-          activeCombat,
-          activeStage,
-          probe,
-          map,
-          params.mapUrl,
-          setup,
-          result,
-          navigate,
-          abort.signal,
-          replay,
-        );
-      },
-      // Le flux route `Start` et `Échap` vers le menu que le chrome ci-dessus possède. Lu à l'appel et
-      // non capturé : `placementChrome` est remis à null au passage de relais, et l'ouverture doit
-      // cesser avec lui plutôt que de rouvrir un menu détruit.
-      () => placementChrome?.open() ?? false,
-    );
+    let placementFlow: PlacementFlow;
+    try {
+      placementFlow = await mountPlacement(
+        activeCombat,
+        activeStage,
+        params.mapUrl,
+        setup,
+        (result, map) => {
+          // Passage de relais : jamais deux menus vivants, sinon deux registrations se disputeraient
+          // `Start` et le joueur en ouvrirait un au hasard.
+          placementChrome?.dispose();
+          placementChrome = null;
+          orchestrator = startBattleLoop(
+            backend,
+            activeCombat,
+            activeStage,
+            probe,
+            map,
+            params.mapUrl,
+            setup,
+            result,
+            navigate,
+            abort.signal,
+            replay,
+          );
+        },
+        // Le flux route `Start` et `Échap` vers le menu que le chrome ci-dessus possède. Lu à l'appel et
+        // non capturé : `placementChrome` est remis à null au passage de relais, et l'ouverture doit
+        // cesser avec lui plutôt que de rouvrir un menu détruit.
+        () => placementChrome?.open() ?? false,
+        // Même lecture différée, et pour la même raison : le chrome meurt au passage de relais, et
+        // le compteur doit cesser avec lui plutôt que d'écrire dans une bannière détruite.
+        (view) => placementChrome?.updateClock(view),
+      );
+    } catch (error) {
+      /*
+       * 🔴 Un échec VISIBLE, jamais un rejet muet (revue de code, 2026-09-15).
+       *
+       * `onlinePlacementFor` et `resolveLocalPlayerId` jettent plutôt que de dégrader — c'est le bon
+       * geste, un repli silencieux rejouerait le défaut que le plan 211 répare. Mais le rejet
+       * remontait jusqu'à `ScreenManager`, qui l'avale et laisse son écran courant à `null` : toute
+       * navigation suivante devenait illégale, donc « Quitter » ne faisait plus rien et le joueur
+       * n'avait que le rechargement de page pour sortir.
+       *
+       * Le chemin réel n'est pas théorique : verrouiller son téléphone pendant le voile de
+       * chargement déclenche `pagehide`, donc `releaseOnlineRoom()`, donc un salon absent au moment
+       * où le placement se monte.
+       */
+      // biome-ignore lint/suspicious/noConsole: seule trace de la cause — le joueur, lui, retourne au menu
+      console.warn("[placement] montage impossible, retour au menu :", error);
+      teardown();
+      navigate("main-menu", undefined);
+      return;
+    }
     /*
      * ⚠️ Le seul `await` de cette fonction qui n'avait pas sa garde, et le seul dont la fenêtre soit
      * devenue ATTEIGNABLE avec ce plan (signalé en revue de code, 2026-08-26).

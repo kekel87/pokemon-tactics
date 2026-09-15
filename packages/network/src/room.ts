@@ -9,11 +9,13 @@ import {
   NetworkErrorCode,
   type NetworkForfeitReason,
   type NetworkMessage,
+  type NetworkPlacement,
   type NetworkRoomOptions,
   NetworkSeatOccupancy,
   type NetworkSeatState,
   type NetworkSeeds,
   type NetworkTeamSelection,
+  type PlacementMessage,
   RANDOM_MAP_ID,
   type ResyncMessage,
   type ResyncRequestMessage,
@@ -133,6 +135,25 @@ export class Room {
   private readonly resyncRequestListeners = new Listeners<[message: ResyncRequestMessage]>();
   private readonly resyncListeners = new Listeners<[message: ResyncMessage]>();
   private readonly checksumListeners = new Listeners<[message: ChecksumMessage]>();
+  private readonly placementListeners = new Listeners<[message: PlacementMessage]>();
+  /**
+   * Les placements arrivés avant que l'écran de placement n'écoute (plan 211).
+   *
+   * Même piège que `bufferedActions`, et il est ici PLUS probable, pas moins : les écrans ne se
+   * montent pas au même instant — carte et atlas à charger, cache froid contre cache chaud — et le
+   * placement est justement le moment où un pair rapide peut avoir fini avant que le lent n'ait
+   * affiché sa grille. Sans tampon, son placement serait perdu et le lent attendrait pour toujours
+   * un camp qui a déjà posé.
+   */
+  private readonly bufferedPlacements: PlacementMessage[] = [];
+  /**
+   * Places dont le placement est déjà enregistré (plan 211).
+   *
+   * 🔴 **Une place ne pose qu'une fois.** Un deuxième message pour la même place arrive après une
+   * reconnexion — le revenant rediffuse ce qu'il avait envoyé — et le rejouer DOUBLERAIT ses Pokemon
+   * chez les autres. Le premier reçu fait foi.
+   */
+  private readonly placedSeats = new Set<number>();
   /**
    * Les rattrapages arrivés avant que le combat n'écoute, comme `bufferedActions` (plan 202).
    *
@@ -501,6 +522,24 @@ export class Room {
   }
 
   /**
+   * Un camp a fini de poser ses Pokemon (plan 211).
+   *
+   * **Avec tampon**, contrairement aux empreintes : un placement n'est jamais périmé. Il vaut jusqu'au
+   * lancement du combat, et l'écran qui s'abonne tard doit le recevoir — c'est même le cas courant.
+   */
+  onPlacement(listener: (message: PlacementMessage) => void): () => void {
+    const unsubscribe = this.placementListeners.subscribe(listener);
+    if (this.bufferedPlacements.length > 0) {
+      const kept = [...this.bufferedPlacements];
+      this.bufferedPlacements.length = 0;
+      for (const message of kept) {
+        listener(message);
+      }
+    }
+    return unsubscribe;
+  }
+
+  /**
    * Une place s'est tue **et son délai de grâce est écoulé**, partie lancée (plan 202, Lot B3).
    *
    * Ce n'est pas un forfait : c'est le constat qu'il n'y a plus personne à cette place. Qui décide
@@ -597,6 +636,17 @@ export class Room {
    */
   sendChecksum(actionIndex: number, digest: string): void {
     this.broadcast({ type: "checksum", seat: this.seat, actionIndex, digest });
+  }
+
+  /**
+   * Notre placement terminé, en un envoi (plan 211).
+   *
+   * Émis quand ce joueur a fini — à la main, ou parce que son chrono a expiré et que son client a
+   * posé le reste. Une seule fois par partie : `placedSeats` ignore un doublon à la réception, et
+   * l'appelant n'a donc pas à se garder lui-même contre une rediffusion après reconnexion.
+   */
+  sendPlacement(placements: readonly NetworkPlacement[]): void {
+    this.broadcast({ type: "placement", seat: this.seat, placements });
   }
 
   /**
@@ -1158,6 +1208,15 @@ export class Room {
       case "resync":
       // Une empreinte ne parle que de l'état de son émetteur (plan 203).
       case "checksum":
+      /*
+       * Un placement s'annonce pour sa propre place (plan 211).
+       *
+       * ⚠️ Ce contrôle établit QUI PARLE, pas de quels Pokemon il parle : le salon ne connaît ni les
+       * équipes ni les camps, donc rien ici n'empêche un message honnêtement signé de contenir les
+       * Pokemon d'un autre camp. C'est l'application qui le vérifie, à la pose
+       * (`applyRemotePlacement`) — même partage que pour `forfeit` et sa place éliminée.
+       */
+      case "placement":
         return message.seat === remoteSeat;
       // Ceux-là font autorité sur le salon entier : l'hôte seul les émet. `kick` y est parce qu'il
       // sort quelqu'un du salon — un invité qui pourrait l'émettre éjecterait les autres.
@@ -1239,6 +1298,18 @@ export class Room {
         return;
       case "checksum":
         this.checksumListeners.emit(message);
+        return;
+      case "placement":
+        // Le premier message d'une place fait foi : voir `placedSeats`.
+        if (this.placedSeats.has(message.seat)) {
+          return;
+        }
+        this.placedSeats.add(message.seat);
+        if (this.placementListeners.size === 0) {
+          this.bufferedPlacements.push(message);
+          return;
+        }
+        this.placementListeners.emit(message);
         return;
       case "welcome":
         // Traité par `waitForWelcome`, qui est le seul moment où il a un sens.

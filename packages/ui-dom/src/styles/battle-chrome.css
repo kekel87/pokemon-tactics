@@ -7,7 +7,18 @@
    * d'être alignés sur la même ligne de base — écart nul sur téléphone mais 24px en 4K, donc
    * invisible à la validation mobile.
    */
-  :where(.bc-root, .bc-left-col) {
+  /*
+   * `.pc-clock` est la bannière de chrono de la PHASE DE PLACEMENT (plan 211). Elle vit hors de
+   * `.bc-root` — le chrome de combat n'existe pas encore à ce moment-là, elle est posée directement
+   * sur le calque d'écran — mais elle réutilise `.bc-turn`, donc elle a besoin de la même famille de
+   * tokens et de la même échelle de police.
+   *
+   * 🔴 Sans elle ici, les `var()` ne résolvaient pas : `padding` et `border-radius` retombaient à 0,
+   * et la police héritait du calque d'écran au lieu de `28px × --ui-scale`. Le même composant
+   * s'affichait donc collé au texte, à coins droits et à une autre taille qu'en combat — c'est-à-dire
+   * tout ce que « réutiliser plutôt que redéclarer » cherchait à éviter. Relevé en revue de code.
+   */
+  :where(.bc-root, .bc-left-col, .pc-clock) {
     --bc-edge: calc(18px * var(--ui-scale));
 
     /*
@@ -108,6 +119,18 @@
     /* Gap/padding scale of this subtree only. Deliberately NOT a local override of the
        global `--spacing-*` tokens: those are inherited by every descendant, and the blast
        radius would reach panels that already own their scaling. */
+    --bc-gap-xs: calc(6px * var(--ui-scale));
+    --bc-gap-sm: calc(9px * var(--ui-scale));
+    line-height: var(--line-height-base);
+  }
+
+  /*
+   * La bannière de chrono du PLACEMENT (plan 211) reprend l'échelle de police et les écarts du
+   * chrome de combat, qu'elle ne peut pas hériter : elle n'est pas dans `.bc-root`. Sans ces trois
+   * lignes, le même `.bc-turn` s'affichait sans garniture, à coins droits et hors échelle.
+   */
+  .pc-clock {
+    font-size: calc(28px * var(--ui-scale));
     --bc-gap-xs: calc(6px * var(--ui-scale));
     --bc-gap-sm: calc(9px * var(--ui-scale));
     line-height: var(--line-height-base);

@@ -60,6 +60,14 @@ export interface Translations {
   "move.ctCost.label": string;
   "placement.instruction": string;
   "placement.counter": string;
+  "placement.waiting.title": string;
+  "placement.waiting.placing": string;
+  "placement.waiting.ready": string;
+  "placement.waiting.lost": string;
+  "placement.waiting.aborted": string;
+  "placement.waiting.you": string;
+  "placement.window.remaining": string;
+  "placement.window.label": string;
   "sandbox.reset": string;
   "sandbox.exportJson": string;
   "sandbox.importJson": string;

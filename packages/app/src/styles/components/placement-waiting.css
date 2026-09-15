@@ -1,0 +1,141 @@
+/*
+ * Le récapitulatif des joueurs prêts, pendant le placement en ligne (plan 211).
+ *
+ * En placement simultané, un joueur qui a fini de poser n'a plus rien qui bouge à l'écran. Sans ce
+ * panneau, il ne sait pas s'il attend quelqu'un, combien de monde, ni si le jeu est planté.
+ *
+ * Il dit l'ÉTAT, jamais le contenu : « place ses Pokemon » ou « Prêt », jamais une position ni un
+ * nombre de Pokemon posés — le placement est caché jusqu'au lancement.
+ */
+@layer components {
+  .placement-waiting {
+    --pw-dot-size: 10px;
+    /* Largeur minimale d'une colonne de camps : `auto-fit` en déduit combien en tiennent. */
+    --pw-col-min: 160px;
+    --pw-seats-max-height: 40vh;
+    position: absolute;
+    inset-inline: 0;
+    bottom: var(--spacing-lg);
+    margin-inline: auto;
+    width: min(420px, calc(100% - 2 * var(--spacing-lg)));
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    border: 1px solid var(--color-border-surface);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-elevated);
+    color: var(--color-text-primary);
+    text-align: center;
+  }
+
+  .placement-waiting .pw-title {
+    margin: 0;
+    font-size: var(--font-size-md);
+    font-weight: 600;
+  }
+
+  /*
+   * 🔴 Jusqu'à DOUZE camps, et le panneau doit rester lisible en 568×320 — le plus petit écran de la
+   * recette multi-entrée. Deux colonnes dès que la place manque plutôt qu'une police rétrécie : une
+   * liste qu'on ne lit plus ne remplit pas son office.
+   */
+  .placement-waiting .pw-seats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(var(--pw-col-min), 1fr));
+    gap: 2px var(--spacing-sm);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    max-height: var(--pw-seats-max-height);
+    overflow-y: auto;
+  }
+
+  /* Téléphone en paysage : douze camps doivent tenir SANS défilement, et la mesure commande.
+     En 568 × 320, deux colonnes donnent six rangées (144 px) pour une liste plafonnée à 40 vh
+     (128 px) — elle défilait. Trois colonnes font quatre rangées, et le plafond relevé laisse la
+     marge : mesuré à 96 px de liste pour 160 disponibles. */
+  @media (height < 500px) {
+    .placement-waiting {
+      --pw-col-min: 118px;
+      --pw-seats-max-height: 50vh;
+    }
+  }
+
+  .placement-waiting .pw-seat {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    /* Cette liste ne se clique pas — le plancher tactile ne s'y applique donc pas comme hit-area —
+       mais elle se lit au doigt sur un téléphone tenu à bout de bras, et une rangée trop serrée s'y
+       confond avec sa voisine. `--target-min` donne la bonne hauteur de rangée sans inventer un
+       nombre, et suit le relèvement de la racine sous `pointer: coarse`. */
+    min-height: var(--target-min);
+    font-size: var(--font-size-sm);
+    text-align: start;
+  }
+
+  /* La pastille porte la couleur du camp, injectée par le JS depuis `TEAM_COLORS` : une valeur par
+     camp, jusqu'à douze, donc impossible à écrire en CSS sans recopier la table du renderer. */
+  .placement-waiting .pw-dot {
+    flex: none;
+    width: var(--pw-dot-size);
+    height: var(--pw-dot-size);
+    border-radius: 50%;
+    background: var(--pw-team-color);
+  }
+
+  .placement-waiting .pw-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .placement-waiting .pw-state {
+    flex: none;
+    color: var(--color-text-muted);
+  }
+
+  .placement-waiting .pw-seat[data-state="ready"] .pw-state {
+    color: var(--color-preview-heal);
+    font-weight: 600;
+  }
+
+  .placement-waiting .pw-seat[data-state="lost"] {
+    opacity: 0.65;
+  }
+
+  .placement-waiting .pw-seat[data-state="lost"] .pw-state {
+    color: var(--color-state-danger);
+  }
+
+  .placement-waiting .pw-title[data-state="aborted"] {
+    color: var(--color-state-danger);
+  }
+
+  /*
+   * Le compte à rebours de la phase de placement (plan 211), en haut et au centre.
+   *
+   * Il réutilise `.bc-turn` du chrome de combat — cadre, ligne « libellé — temps », barre dessous —
+   * pour que le joueur retrouve au placement le compteur qu'il lira pendant tout le combat, au même
+   * endroit. Ce bloc ne fait que l'ANCRER : la phase de placement n'a pas la colonne `.bc-root` qui
+   * place la bannière en combat, elle pose ses morceaux directement sur le calque d'écran.
+   */
+  .pc-clock {
+    position: absolute;
+    inset-block-start: max(var(--spacing-md), env(safe-area-inset-top));
+    inset-inline: 0;
+    margin-inline: auto;
+    inline-size: fit-content;
+    text-align: center;
+  }
+
+  .placement-waiting .pw-timer {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+}

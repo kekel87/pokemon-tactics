@@ -111,3 +111,21 @@ export function graceDelayFor(situation: GraceSituation): number {
   }
   return BATTLE_GRACE_AFTER_SILENCE_MS;
 }
+
+/**
+ * La fenêtre de placement à la main en ligne (plan 211).
+ *
+ * 🔴 **Partagée par tous les pairs**, au même titre que `ONLINE_TURN_DURATION_MS` : un pair qui
+ * compterait 60 s là où l'autre en compte 90 verrait le sien expirer sans raison.
+ *
+ * 90 s pour toute la phase, quel que soit le format — et non 60 s comme un tour de combat, qui ne
+ * couvre qu'UNE unité agissant une fois. Le pire cas est de six poses (position + orientation), au
+ * format à deux camps, soit 15 s par pose : la taille d'équipe vaut `⌊12 / nombre de camps⌋`, donc
+ * la charge par joueur DÉCROÎT quand le nombre de joueurs croît — à douze camps, chacun ne pose
+ * qu'un seul Pokemon. C'est exactement la propriété qu'on veut en simultané, où tout le monde attend
+ * le plus lent, et elle tient sans indexer le chrono sur le format.
+ *
+ * Une SEULE fenêtre pour toute la phase, jamais rejouée entre deux poses — même raison qu'en combat :
+ * un compteur qui repart à chaque étape se gèle en annulant en boucle.
+ */
+export const ONLINE_PLACEMENT_WINDOW_MS = 90_000;

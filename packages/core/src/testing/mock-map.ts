@@ -1,3 +1,5 @@
+import { PlacementPhase } from "../battle/PlacementPhase";
+import { PlacementMode } from "../enums/placement-mode";
 import { PlayerController } from "../enums/player-controller";
 import { PlayerId } from "../enums/player-id";
 import { TerrainType } from "../enums/terrain-type";
@@ -145,6 +147,22 @@ export abstract class MockMap {
   };
 
   static readonly gridCenter6x6 = { x: 3, y: 3 };
+
+  /**
+   * Une phase de placement SIMULTANÉ à deux camps sur la carte 6x6 (plan 211).
+   *
+   * Ici et non dans le fichier de test : la règle du projet range les factories dans `testing/`, et
+   * le placement simultané est désormais un mode à part entière du moteur, pas une curiosité d'un
+   * seul scénario.
+   */
+  static simultaneousPlacement(): PlacementPhase {
+    return new PlacementPhase(
+      MockMap.map6x6,
+      [MockMap.team1, MockMap.team2],
+      MockMap.format2v2,
+      PlacementMode.Simultaneous,
+    );
+  }
 
   static buildFlatTiles(width: number, height: number): TileState[][] {
     return buildFlatTiles(width, height);

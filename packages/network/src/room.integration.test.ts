@@ -10,6 +10,7 @@ import {
   type NetworkRoomOptions,
   NetworkSeatOccupancy,
   type NetworkSeeds,
+  type PlacementMessage,
   RANDOM_MAP_ID,
   type ResyncMessage,
   type StartMessage,
@@ -1084,13 +1085,13 @@ describe("Room — les actions de combat (Lot B2)", () => {
     host.sendAction(0, endTurn("p1-venusaur"));
     await flush();
 
-    const premier: ActionMessage[] = [];
-    const second: ActionMessage[] = [];
-    guest.onAction((message) => premier.push(message));
-    guest.onAction((message) => second.push(message));
+    const firstListener: ActionMessage[] = [];
+    const secondListener: ActionMessage[] = [];
+    guest.onAction((message) => firstListener.push(message));
+    guest.onAction((message) => secondListener.push(message));
 
-    expect(premier).toHaveLength(1);
-    expect(second).toEqual([]);
+    expect(firstListener).toHaveLength(1);
+    expect(secondListener).toEqual([]);
   });
 
   it("livre normalement dès qu'un écouteur existe, sans passer par le tampon", async () => {
@@ -1976,5 +1977,126 @@ describe("Room — maillage et place injoignable", () => {
     await flush();
 
     expect(second.view.seats.find((seat) => seat.seat === 4)?.ready).toBe(true);
+  });
+});
+
+/**
+ * Le placement à la main en ligne (plan 211).
+ *
+ * Le salon ne fait que **transporter** les poses : il ne sait rien des zones, des Pokemon ni du
+ * format. Ce qu'il doit garantir tient en trois points — la pose part et arrive, elle n'est comptée
+ * qu'une fois par place, et elle survit à un écran qui n'écoutait pas encore.
+ */
+describe("Room — placement à la main", () => {
+  let directory: FakeNetworkDirectory;
+
+  const PLACEMENTS = [
+    { pokemonId: "p2-venusaur", position: { x: 3, y: 4 }, direction: Direction.West },
+    { pokemonId: "p2-charizard", position: { x: 4, y: 4 }, direction: Direction.West },
+  ] as const;
+
+  beforeEach(() => {
+    directory = new FakeNetworkDirectory();
+  });
+
+  it("porte le placement d'un camp jusqu'à l'autre, intact", async () => {
+    const host = await Room.create(depsFor(directory), options(2));
+    const guest = await Room.join(depsFor(directory), ROOM_CODE);
+    await flush();
+
+    const received: PlacementMessage[] = [];
+    host.onPlacement((message) => received.push(message));
+
+    guest.sendPlacement(PLACEMENTS);
+    await flush();
+
+    expect(received).toHaveLength(1);
+    expect(received[0]?.seat).toBe(2);
+    expect(received[0]?.placements).toEqual(PLACEMENTS);
+  });
+
+  it("garde le placement arrivé avant que l'écran n'écoute, et le rend au premier abonné", async () => {
+    /*
+     * 🔴 Le cas COURANT, pas le cas tordu : les écrans ne se montent pas au même instant — carte et
+     * atlas à charger — et le placement est justement le moment où un pair rapide finit avant que le
+     * lent n'ait affiché sa grille. Sans tampon, sa pose serait perdue et le lent attendrait pour
+     * toujours un camp qui a déjà posé.
+     */
+    const host = await Room.create(depsFor(directory), options(2));
+    const guest = await Room.join(depsFor(directory), ROOM_CODE);
+    await flush();
+
+    guest.sendPlacement(PLACEMENTS);
+    await flush();
+
+    const received: PlacementMessage[] = [];
+    host.onPlacement((message) => received.push(message));
+
+    expect(received).toHaveLength(1);
+    expect(received[0]?.placements).toEqual(PLACEMENTS);
+  });
+
+  it("ne rend un placement gardé qu'une fois, pas à chaque nouvel abonné", async () => {
+    const host = await Room.create(depsFor(directory), options(2));
+    const guest = await Room.join(depsFor(directory), ROOM_CODE);
+    await flush();
+    guest.sendPlacement(PLACEMENTS);
+    await flush();
+
+    const firstListener: PlacementMessage[] = [];
+    const secondListener: PlacementMessage[] = [];
+    host.onPlacement((message) => firstListener.push(message));
+    host.onPlacement((message) => secondListener.push(message));
+
+    expect(firstListener).toHaveLength(1);
+    expect(secondListener).toHaveLength(0);
+  });
+
+  it("ignore un deuxième placement de la même place", async () => {
+    /*
+     * 🔴 Ce n'est pas un pair malveillant, c'est un REVENANT : après une reconnexion, il rediffuse ce
+     * qu'il avait envoyé. Le rejouer doublerait ses Pokemon chez les autres — six deviendraient
+     * douze, et l'empreinte de lancement ne concorderait plus. Le premier reçu fait foi.
+     */
+    const host = await Room.create(depsFor(directory), options(2));
+    const guest = await Room.join(depsFor(directory), ROOM_CODE);
+    await flush();
+
+    const received: PlacementMessage[] = [];
+    host.onPlacement((message) => received.push(message));
+
+    guest.sendPlacement(PLACEMENTS);
+    await flush();
+    guest.sendPlacement([
+      { pokemonId: "p2-blastoise", position: { x: 5, y: 5 }, direction: Direction.North },
+    ]);
+    await flush();
+
+    expect(received).toHaveLength(1);
+    expect(received[0]?.placements).toEqual(PLACEMENTS);
+  });
+
+  it("refuse un placement annoncé au nom d'une autre place", async () => {
+    /*
+     * La version « avant le combat » de jouer le tour d'un autre : sans la confrontation de
+     * `isSpokenFor`, un pair parlerait au nom de quelqu'un d'autre.
+     *
+     * ⚠️ Ce que ce scénario garde est l'USURPATION DE PLACE, pas la propriété des Pokemon : le salon
+     * ne connaît pas les équipes, donc un message honnêtement signé peut encore contenir les Pokemon
+     * d'un autre camp. C'est `applyRemotePlacement`, côté application, qui filtre ça — la confusion
+     * entre les deux a été relevée en revue de code.
+     */
+    const host = await Room.create(depsFor(directory), options(2));
+    const impostor = await rawGuest(directory, 2);
+    await flush();
+
+    const received: PlacementMessage[] = [];
+    host.onPlacement((message) => received.push(message));
+
+    // Assis en place 2, il pose les Pokemon de la place 1.
+    impostor.channel.send({ type: "placement", seat: 1, placements: [...PLACEMENTS] });
+    await flush();
+
+    expect(received).toEqual([]);
   });
 });

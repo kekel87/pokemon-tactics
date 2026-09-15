@@ -41,7 +41,11 @@ Combat tactique sur grille isométrique :
 ## 2b. Phase de placement
 
 - **Carte porte les zones de spawn** : chaque `MapDefinition` déclare zones spawn par équipe pour chaque format. `Position[]` arbitraires.
-- **Alternance serpent** (défaut) : P1-P2-P2-P1-P1-P2... Plus équitable — avantage informationnel s'inverse à chaque paire.
+- **Alternance serpent** (défaut **en local**) : P1-P2-P2-P1-P1-P2... Plus équitable — avantage informationnel s'inverse à chaque paire.
+- **Simultané et caché** (**en ligne**, plan 211) : chacun pose ses Pokemon quand il veut, sans attendre les autres, et **ne voit rien des camps adverses avant le lancement** ; tout se révèle d'un coup au passage au combat. Le placement devient un pari plutôt qu'une lecture réactive, et l'avantage informationnel disparaît des deux côtés au lieu de circuler.
+  - **Divergence assumée entre les deux modes**, pas un oubli : le hot-seat partage un seul écran, donc on ne peut y cacher une information à personne, ni faire agir deux joueurs en même temps sur une seule manette. La ligne « chaque joueur voit tout le plateau, en permanence » (§ 2) reste vraie **pendant le combat**, jamais du placement en ligne.
+  - **Chrono de 90 s** pour toute la phase, en ligne seulement — tout le monde attend le plus lent. À l'expiration, le client du retardataire pose lui-même ses Pokemon restants en mode random et la partie démarre : personne n'est éjecté, une coupure réseau ne coûte pas la partie. Le pire cas est de 6 poses (format à 2 camps), la taille d'équipe valant `⌊12 / nombre de camps⌋`.
+  - **Annuler** ne touche que ses propres poses, et reste permis même après une pose adverse : rien n'étant visible, il n'y a aucune information à laquelle réagir.
 - **Mode random** : positions tirées sans remise, seed injectable pour replay.
 - **Repositionnement** : uniquement le Pokemon du tour courant (undo).
 - **Direction** : choix obligatoire après chaque placement via `DirectionPicker`. Mode random : direction calculée vers le centre.

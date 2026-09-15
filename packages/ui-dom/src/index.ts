@@ -30,6 +30,7 @@ export * from "./pattern-preview.js";
 export * from "./placement-roster.js";
 export * from "./Stepper.js";
 export * from "./tile-info-panel.js";
+export * from "./turn-clock-hud.js";
 export * from "./turn-timeline.js";
 export * from "./type-chip.js";
 export * from "./weather-hud.js";

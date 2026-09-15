@@ -15,6 +15,7 @@
 @import "./components/edit-panels.css";
 @import "./components/stat-bar.css";
 @import "./components/picker.css";
+@import "./components/placement-waiting.css";
 @import "./components/set-op.css";
 @import "./components/showdown.css";
 @import "./components/team-select.css";

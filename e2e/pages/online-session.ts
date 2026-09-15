@@ -168,6 +168,15 @@ export interface OnlineSessionOptions {
    * Sur le contexte et non sur la page : les onglets d'un pair qui revient sont ouverts plus tard.
    */
   readonly interceptGuest?: (context: BrowserContext) => Promise<void>;
+  /**
+   * Décoche « Placement auto » avant le lancement : les deux pairs posent leurs Pokemon à la main
+   * (plan 211).
+   *
+   * `startBattle` s'arrête alors à la phase de PLACEMENT, pas au combat — c'est au scénario de la
+   * dérouler. Le paramètre appartient à l'hôte et se gèle sur sa propre confirmation, donc il est
+   * décoché avant qu'il ne se déclare prêt.
+   */
+  readonly interactivePlacement?: boolean;
 }
 
 /** Clé du magasin d'équipes de l'app (`packages/app/src/team/team-storage.ts`). */
@@ -236,6 +245,9 @@ export class OnlineSession {
     const { host, guest } = this;
 
     this.roomCode = await host.openRoom();
+    if (this.options.interactivePlacement === true) {
+      await host.teams.autoPlacement.uncheck();
+    }
     await this.pickTeam(host, 0, this.options.hostTeamId);
 
     await guest.joinRoom(this.roomCode);

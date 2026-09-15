@@ -1,5 +1,5 @@
 import type { Direction } from "../enums/direction";
-import type { PlacementMode } from "../enums/placement-mode";
+import { PlacementMode } from "../enums/placement-mode";
 import type { PlayerId } from "../enums/player-id";
 import type { MapDefinition } from "../types/map-definition";
 import type { MapFormat } from "../types/map-format";
@@ -38,15 +38,26 @@ export class PlacementPhase {
   private readonly ownerByPokemonId: Map<string, PlayerId>;
   private readonly donePlayers = new Set<PlayerId>();
   private readonly random: () => number;
+  /**
+   * Vrai en placement SIMULTANÉ (plan 211) : plus de tour de rôle, chaque joueur pose quand il veut.
+   *
+   * Le paramètre `mode` était reçu et jamais lu depuis l'origine de la classe — l'accroche existait,
+   * personne ne s'en était encore servi.
+   */
+  private readonly simultaneous: boolean;
+  /** Index de camp par joueur, dans l'ordre de `teams` — c'est l'ordre canonique des poses. */
+  private readonly teamIndexByPlayer: Map<PlayerId, number>;
 
   constructor(
     _mapDefinition: MapDefinition,
     private readonly teams: PlacementTeam[],
     private readonly format: MapFormat,
-    _mode: PlacementMode,
+    mode: PlacementMode,
     randomSeed?: number,
   ) {
     this.random = randomSeed == null ? Math.random : createPrng(randomSeed);
+    this.simultaneous = mode === PlacementMode.Simultaneous;
+    this.teamIndexByPlayer = new Map(teams.map((team, index) => [team.playerId, index]));
     this.turnQueue = this.buildTurnQueue();
     this.zonesByPlayer = this.buildZonesByPlayer();
     this.availableByPlayer = new Map(
@@ -184,8 +195,94 @@ export class PlacementPhase {
     return true;
   }
 
+  /**
+   * Qui pose ce Pokemon, et a-t-il le droit ?
+   *
+   * En alternance, c'est le tour qui décide : seul le joueur dont c'est le tour peut poser, et il ne
+   * peut poser que les siens. En simultané, c'est le POKEMON qui décide — son propriétaire pose
+   * quand il veut, tant qu'il n'a pas fini.
+   */
+  private resolvePlacingPlayer(
+    pokemonId: string,
+  ): { playerId: PlayerId } | { error: PlacementError } {
+    if (!this.simultaneous) {
+      const next = this.getNextToPlace();
+      if (!next) {
+        return { error: PlacementError.PlacementComplete };
+      }
+      const playerPokemon = this.availableByPlayer.get(next.playerId) ?? [];
+      if (!playerPokemon.includes(pokemonId)) {
+        return { error: PlacementError.WrongPlayer };
+      }
+      return { playerId: next.playerId };
+    }
+
+    const owner = this.ownerByPokemonId.get(pokemonId);
+    if (owner === undefined) {
+      return { error: PlacementError.WrongPlayer };
+    }
+    // `isPlayerDone` couvre les deux façons d'avoir fini : s'être déclaré prêt, ou avoir atteint la
+    // taille d'équipe du format.
+    if (this.isPlayerDone(owner)) {
+      return { error: PlacementError.PlayerAlreadyDone };
+    }
+    return { playerId: owner };
+  }
+
+  /**
+   * Les poses dans leur ORDRE CANONIQUE : par index de camp croissant, puis par ordre de pose à
+   * l'intérieur d'un camp.
+   *
+   * 🔴 Le point le plus important du plan 211. Cette liste fixe l'ordre d'itération de
+   * `createBattleFromPlacements`, donc l'ordre de construction des Pokemon dans le moteur, donc
+   * l'empreinte d'état comparée entre pairs au lancement. En simultané, les poses ARRIVENT dans un
+   * ordre qui dépend du réseau et de la vitesse de chacun : rendre l'ordre d'insertion ferait
+   * diverger deux machines qui ont pourtant reçu exactement les mêmes poses.
+   *
+   * Le tri est stable, donc l'ordre de pose d'un camp est préservé tel quel.
+   *
+   * 🔴 **Simultané SEULEMENT**, et c'est une correction de revue de code. Trier partout changeait
+   * aussi les parties locales : `createBattleFromPlacements` consomme son générateur de création
+   * dans l'ordre de cette liste (genre, nature), donc le serpentin (P1,P2,P2,P1) devenu
+   * (P1,P1,P2,P2) faisait tirer d'autres genres à graine égale — une capture d'intro censée être
+   * reproductible ne l'aurait plus été. Et le tri n'a aucune utilité hors simultané : en hot-seat il
+   * n'y a qu'une machine, et en placement automatique les deux pairs tirent sur la même graine, donc
+   * leur ordre d'insertion est déjà identique. Seul le simultané reçoit les poses dans un ordre qui
+   * dépend du réseau.
+   */
   getPlacements(): PlacementEntry[] {
-    return [...this.placements];
+    if (!this.simultaneous) {
+      return [...this.placements];
+    }
+    return [...this.placements].sort(
+      (a, b) => this.teamIndexOf(a.pokemonId) - this.teamIndexOf(b.pokemonId),
+    );
+  }
+
+  /**
+   * La dernière pose dans l'ordre CHRONOLOGIQUE — celle du joueur nommé quand on en nomme un.
+   *
+   * 🔴 À ne pas confondre avec la dernière entrée de `getPlacements()`, qui rend l'ordre canonique
+   * (groupé par camp) et dont le dernier élément appartient donc toujours au dernier camp. C'est
+   * celle-ci qu'il faut pour annuler : « défaire ce que je viens de faire » est une notion
+   * chronologique, pas un rang dans une liste triée.
+   */
+  getLastPlacement(playerId?: PlayerId): PlacementEntry | null {
+    for (let i = this.placements.length - 1; i >= 0; i--) {
+      const entry = this.placements[i];
+      if (!entry) {
+        continue;
+      }
+      if (playerId === undefined || this.ownerByPokemonId.get(entry.pokemonId) === playerId) {
+        return entry;
+      }
+    }
+    return null;
+  }
+
+  private teamIndexOf(pokemonId: string): number {
+    const owner = this.ownerByPokemonId.get(pokemonId);
+    return owner === undefined ? -1 : (this.teamIndexByPlayer.get(owner) ?? -1);
   }
 
   getPlacedPositions(): Position[] {
@@ -193,24 +290,20 @@ export class PlacementPhase {
   }
 
   submitPlacement(pokemonId: string, position: Position, direction: Direction): PlacementResult {
-    const next = this.getNextToPlace();
-    if (!next) {
-      return { success: false, error: PlacementError.PlacementComplete };
+    const owner = this.resolvePlacingPlayer(pokemonId);
+    if ("error" in owner) {
+      return { success: false, error: owner.error };
     }
-
-    const playerPokemon = this.availableByPlayer.get(next.playerId) ?? [];
-    if (!playerPokemon.includes(pokemonId)) {
-      return { success: false, error: PlacementError.WrongPlayer };
-    }
+    const playerId = owner.playerId;
 
     if (this.placedPokemonIds.has(pokemonId)) {
       return { success: false, error: PlacementError.PokemonAlreadyPlaced };
     }
 
-    const placedForPlayer = this.placedByPlayer.get(next.playerId) ?? [];
+    const placedForPlayer = this.placedByPlayer.get(playerId) ?? [];
 
     const positionKey = `${position.x},${position.y}`;
-    const playerZone = this.zonesByPlayer.get(next.playerId);
+    const playerZone = this.zonesByPlayer.get(playerId);
     if (!playerZone?.has(positionKey)) {
       return { success: false, error: PlacementError.PositionOutOfZone };
     }
@@ -256,12 +349,37 @@ export class PlacementPhase {
     return { success: true };
   }
 
-  undoLastPlacement(): boolean {
+  /**
+   * Annule la dernière pose — celle du joueur nommé quand on en nomme un.
+   *
+   * `playerId` est indispensable en simultané : la dernière pose tout court peut être celle d'un
+   * autre camp, arrivée par le réseau entre deux de mes gestes. Sans lui, annuler défairait la pose
+   * de quelqu'un d'autre. Omis, on retombe sur l'ancien comportement — la dernière pose, quelle
+   * qu'elle soit — qui reste le bon en hot-seat local.
+   */
+  undoLastPlacement(playerId?: PlayerId): boolean {
     if (this.placements.length === 0) {
       return false;
     }
 
-    const last = this.placements.pop();
+    // Boucle à la main plutôt que `findLastIndex` : la cible de compilation du paquet est antérieure
+    // à ES2023, et l'ajouter pour une recherche à rebours ne vaut pas le changement.
+    let index = -1;
+    if (playerId === undefined) {
+      index = this.placements.length - 1;
+    } else {
+      for (let i = this.placements.length - 1; i >= 0; i--) {
+        const entry = this.placements[i];
+        if (entry && this.ownerByPokemonId.get(entry.pokemonId) === playerId) {
+          index = i;
+          break;
+        }
+      }
+    }
+    if (index < 0) {
+      return false;
+    }
+    const [last] = this.placements.splice(index, 1);
     if (!last) {
       return false;
     }
@@ -289,7 +407,22 @@ export class PlacementPhase {
    * an opponent has responded, undoing would let the player react to information
    * they shouldn't have, so it is forbidden.
    */
-  canUndo(): boolean {
+  canUndo(playerId?: PlayerId): boolean {
+    /*
+     * En SIMULTANÉ, la règle anti-réaction ci-dessus n'a plus d'objet : le placement est caché, donc
+     * une pose adverse ne m'apprend rien et ne peut pas me faire changer d'avis. Chacun reste maître
+     * de ses propres poses tant qu'il n'a pas fini.
+     */
+    if (this.simultaneous) {
+      if (playerId === undefined) {
+        return false;
+      }
+      if (this.isPlayerDone(playerId)) {
+        return false;
+      }
+      return (this.placedByPlayer.get(playerId) ?? []).length > 0;
+    }
+
     const next = this.getNextToPlace();
     if (!next) {
       return false;
@@ -328,19 +461,38 @@ export class PlacementPhase {
     return this.getPlacements();
   }
 
-  autoPlaceForPlayer(playerId: PlayerId, gridCenter: Position): PlacementEntry[] {
+  /**
+   * Pose d'office ce qu'il reste à un joueur — l'IA au placement, et le repli du chrono en ligne
+   * (plan 211) quand sa fenêtre expire avec des Pokemon non posés.
+   *
+   * En simultané on ne consulte PAS le tour courant : il n'y en a pas, et un joueur doit pouvoir
+   * être servi sans que ce soit « à lui ».
+   *
+   * 🔴 `random` remplace le générateur de la phase **pour ce seul appel**, et c'est indispensable en
+   * ligne : le générateur interne avance à chaque tirage, donc son état dépend de ce que CETTE
+   * machine a déjà tiré. Deux pairs qui posent le même camp d'IA à des moments différents de leur
+   * propre placement obtiendraient deux dispositions — donc deux états, donc une divergence. Un
+   * générateur dérivé de la place, passé ici, rend la pose reproductible partout.
+   */
+  autoPlaceForPlayer(
+    playerId: PlayerId,
+    gridCenter: Position,
+    random?: () => number,
+  ): PlacementEntry[] {
     const placed: PlacementEntry[] = [];
     while (!this.isPlayerDone(playerId)) {
-      const next = this.getNextToPlace();
-      if (!next || next.playerId !== playerId) {
-        break;
+      if (!this.simultaneous) {
+        const next = this.getNextToPlace();
+        if (!next || next.playerId !== playerId) {
+          break;
+        }
       }
       const unplaced = this.getUnplacedPokemonIds(playerId);
       const firstUnplaced = unplaced[0];
       if (!firstUnplaced) {
         break;
       }
-      const entry = this.autoPlaceOne(playerId, firstUnplaced, gridCenter);
+      const entry = this.autoPlaceOne(playerId, firstUnplaced, gridCenter, random);
       if (entry) {
         placed.push(entry);
       } else {
@@ -354,6 +506,7 @@ export class PlacementPhase {
     playerId: PlayerId,
     pokemonId: string,
     gridCenter: Position,
+    random?: () => number,
   ): PlacementEntry | null {
     const playerZone = this.zonesByPlayer.get(playerId);
     if (!playerZone) {
@@ -372,7 +525,7 @@ export class PlacementPhase {
       return null;
     }
 
-    const index = Math.floor(this.random() * available.length);
+    const index = Math.floor((random ?? this.random)() * available.length);
     const position = available[index];
     if (!position) {
       return null;
