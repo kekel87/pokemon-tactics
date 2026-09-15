@@ -1930,3 +1930,51 @@ describe("Room — patience de la reconnexion (Lot B3)", () => {
     });
   });
 });
+
+/*
+ * Le maillage composé EN PARALLÈLE, et ce qu'il fallait pour y arriver.
+ *
+ * 🔴 Histoire de ce cas, à lire avant d'y toucher. `connectToMesh` joignait ses pairs UN PAR UN. La
+ * mesure du 2026-09-14 (`e2e/tests/bench/mesh-scaling.spec.ts`) l'a montré : à douze camps, les onze
+ * négociations du dernier arrivé s'enchaînaient sans le moindre chevauchement. Invisible sur la
+ * boucle locale, mais `CONNECT_TIMEOUT_MS` vaut 15 s — une place injoignable épuisait son délai
+ * AVANT que la suivante ne soit tentée, donc une place morte retardait les dix autres.
+ *
+ * Une première tentative de `Promise.all` a été ANNULÉE le jour même : `waitForConnectionOpen`
+ * écoutait l'échec sur l'objet `peer` PARTAGÉ, donc un seul pair absent rejetait toutes les
+ * négociations en vol. Le parallélisme n'a été repris qu'après avoir rendu l'échec attribuable à sa
+ * connexion (`peerErrorConcerns`, éprouvé dans `peer-connection.test.ts`).
+ *
+ * Ce que ce cas-ci garde, et que le niveau `peer-connection` ne peut pas garder : qu'une place
+ * morte ne prive pas l'arrivant du RESTE de son maillage.
+ */
+describe("Room — maillage et place injoignable", () => {
+  let directory: FakeNetworkDirectory;
+
+  beforeEach(() => {
+    directory = new FakeNetworkDirectory();
+  });
+
+  it("une place injoignable ne coûte que son propre lien, pas le reste du maillage", async () => {
+    await Room.create(depsFor(directory), options(4));
+    // La place 2 s'assoit, puis disparaît de l'annuaire SANS que l'hôte l'apprenne : son `welcome`
+    // continuera de l'annoncer occupée. C'est exactement une place morte vue par un arrivant.
+    await rawGuest(directory, 2);
+    const second = await Room.join(depsFor(directory), ROOM_CODE);
+    await flush();
+    expect(second.seat).toBe(3);
+
+    directory.release(peerIdForSeat(ROOM_CODE, 2));
+
+    const dernier = await Room.join(depsFor(directory), ROOM_CODE);
+    await flush();
+    expect(dernier.seat).toBe(4);
+
+    // Le lien vers la place 3 EXISTE malgré l'échec sur la place 2 : le dernier arrivé annonce
+    // qu'il est prêt, et la place 3 l'entend.
+    dernier.setReady(true);
+    await flush();
+
+    expect(second.view.seats.find((seat) => seat.seat === 4)?.ready).toBe(true);
+  });
+});

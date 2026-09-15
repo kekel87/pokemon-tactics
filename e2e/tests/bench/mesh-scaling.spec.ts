@@ -224,16 +224,22 @@ for (const teamCount of TEAM_COUNTS) {
        * c'est l'état ATTENDU, pas une anomalie : `connectToMesh` est séquentiel à dessein. La
        * colonne sert à voir le jour où ça changera, dans un sens ou dans l'autre.
        */
-      const derniere = reports.at(-1)?.timeline ?? [];
+      /*
+       * 🔴 On écarte la PREMIÈRE connexion : c'est la poignée de main avec l'hôte
+       * (`handshakeWithHost`), qui précède forcément le maillage et n'a personne avec qui se
+       * chevaucher. La compter faisait dire « sérialisé » à trois camps, où le dernier arrivé n'a
+       * que deux connexions — l'hôte, puis un seul lien de maillage.
+       */
+      const derniere = (reports.at(-1)?.timeline ?? []).slice(1);
       const chevauchements = derniere.filter((entry, index) => {
         const precedente = derniere[index - 1];
         return precedente?.[1] != null && entry[0] < precedente[1];
       }).length;
       const serialisation =
         derniere.length < 2
-          ? "n/a (moins de deux liens)"
+          ? "n/a (moins de deux liens de maillage)"
           : chevauchements === 0
-            ? `OUI — les ${derniere.length} négociations s'enchaînent, aucune en parallèle`
+            ? `🔴 OUI — les ${derniere.length} négociations s'enchaînent, aucune en parallèle`
             : `non — ${chevauchements} des ${derniere.length - 1} se chevauchent`;
 
       const lines = [
@@ -255,9 +261,9 @@ for (const teamCount of TEAM_COUNTS) {
         `│ là où le premier n'avait que l'hôte à joindre. Intervalles [ouverture → connexion],`,
         "│ en ms depuis sa première ouverture. Qui ne se chevauche pas est sérialisé.",
         `│   ${
-          (reports.at(-1)?.timeline ?? [])
+          derniere
             .map(([openedAt, connectedAt]) => `[${openedAt}→${connectedAt ?? "?"}]`)
-            .join(" ") || "aucun lien"
+            .join(" ") || "aucun lien de maillage"
         }`,
         `│ sérialisation                      ${serialisation}`,
         `└${"─".repeat(56)}`,

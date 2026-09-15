@@ -235,8 +235,65 @@ function waitForPeerOpen(peer: Peer): Promise<void> {
 }
 
 /**
+ * Les causes qui condamnent **toute** négociation en vol, et pas seulement la nôtre.
+ *
+ * Elles disent que le pair lui-même, ou son lien à l'annuaire, ne va plus : aucune connexion
+ * sortante n'aboutira. Les rejeter toutes est alors le comportement JUSTE, pas une approximation.
+ *
+ * Ce qui n'est pas dans cette liste : `peer-unavailable`, qui vise UN pair nommé dans son message,
+ * et `webrtc`, que `peerjs` émet sur le pair sans jamais dire de quelle connexion il parle.
+ */
+const FATAL_PEER_ERRORS: ReadonlySet<string> = new Set([
+  "network",
+  "disconnected",
+  "server-error",
+  "socket-error",
+  "socket-closed",
+  "browser-incompatible",
+  "ssl-unavailable",
+  "invalid-id",
+  "invalid-key",
+  "unavailable-id",
+]);
+
+/**
+ * Cette erreur du pair concerne-t-elle CETTE connexion ?
+ *
+ * 🔴 **Sans cette question, plusieurs négociations en vol tombent ensemble.** `peerjs` émet ses
+ * erreurs sur le `Peer` — `emitError` fait `this.emit("error", …)` (`peerjs@1.5.5`,
+ * `bundler.mjs:951`) — donc chaque attente en vol pose son écouteur sur le **même** émetteur. Tant
+ * qu'une seule négociation était en vol à la fois, l'erreur ne pouvait appartenir qu'à elle et la
+ * question ne se posait pas. Elle se pose dès qu'on en lance plusieurs, et la réponse naïve — « elle
+ * est pour moi » — fait tomber onze liens pour un seul pair absent.
+ *
+ * Trois cas, et le dernier est le plus important :
+ *
+ * 1. une cause **globalement fatale** vaut pour tout le monde, on rejette ;
+ * 2. `peer-unavailable` **nomme sa cible**, mais seulement dans le texte du message
+ *    (`Could not connect to peer <id>`, `bundler.mjs:1575`). C'est fragile, et c'est tout ce que la
+ *    bibliothèque offre ; à défaut de message, on ne rejette pas et le minuteur tranchera ;
+ * 3. 🔴 **tout le reste, `webrtc` en tête, n'est attribuable à PERSONNE.** On ne rejette pas : le
+ *    minuteur de {@link withGuard}, lui, est **par promesse**. Une négociation réellement perdue
+ *    attendra donc son délai au lieu d'échouer tout de suite — c'est le prix, et il est payé UNE
+ *    fois pour toutes les négociations en vol, puisqu'elles courent ensemble.
+ */
+function peerErrorConcerns(
+  error: { type: string; message?: string },
+  remotePeerId: string,
+): boolean {
+  if (FATAL_PEER_ERRORS.has(error.type)) {
+    return true;
+  }
+  if (error.type === "peer-unavailable") {
+    return error.message?.includes(remotePeerId) === true;
+  }
+  return false;
+}
+
+/**
  * Attend l'ouverture d'un canal sortant. Écoute les **deux** objets : la connexion pour son
- * ouverture, le pair pour l'échec, que la bibliothèque y émet et non sur la connexion.
+ * ouverture, le pair pour l'échec, que la bibliothèque y émet et non sur la connexion — mais en
+ * ne retenant que les échecs qui la concernent, voir {@link peerErrorConcerns}.
  */
 function waitForConnectionOpen(peer: Peer, connection: DataConnection): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -251,10 +308,14 @@ function waitForConnectionOpen(peer: Peer, connection: DataConnection): Promise<
       settle.reject(
         new NetworkTransportError(NetworkErrorCode.ConnexionImpossible, "canal refermé"),
       );
-    const onPeerError = (error: { type: string; message?: string }) =>
+    const onPeerError = (error: { type: string; message?: string }) => {
+      if (!peerErrorConcerns(error, connection.peer)) {
+        return;
+      }
       settle.reject(
         new NetworkTransportError(networkErrorCodeFromPeerError(error.type), error.message),
       );
+    };
 
     connection.on("open", onOpen);
     connection.on("close", onClose);

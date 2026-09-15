@@ -305,3 +305,83 @@ describe("PeerJsChannel.onHealthChange", () => {
     expect(observed).toEqual([]);
   });
 });
+
+/*
+ * Plusieurs négociations en vol sur le MÊME pair — le défaut que rien ne pouvait voir.
+ *
+ * 🔴 Pourquoi ces cas-là n'existaient pas, et pourquoi ils comptent : `Room.connectToMesh` joignait
+ * ses pairs un par un, donc une seule négociation était en vol à la fois et l'erreur du `Peer` ne
+ * pouvait appartenir qu'à elle. En parallèle, chaque attente pose son écouteur sur le MÊME émetteur
+ * (`peerjs` émet sur le pair, pas sur la connexion) : sans attribution, un seul pair absent
+ * rejetait les onze autres négociations d'un salon à douze, en silence.
+ *
+ * Ni `testing/fake-transport.ts` — qui jette localement, pour le seul appel concerné — ni le banc
+ * de mesure `e2e/tests/bench/` — qui tourne avec douze pairs tous joignables — ne peuvent atteindre
+ * ce chemin. C'est ici, et nulle part ailleurs.
+ */
+describe("PeerJsTransport — plusieurs négociations en vol sur le même pair", () => {
+  const ABSENT_PEER_ID = "salon-place-9";
+  const JOIGNABLE_PEER_ID = "salon-place-4";
+
+  /** Deux `connect()` laissés EN VOL, sur le même pair. */
+  async function twoPendingConnects(): Promise<{
+    absent: Promise<NetworkChannel>;
+    joignable: Promise<NetworkChannel>;
+  }> {
+    const transport = new PeerJsTransport();
+    await transport.claim(OWN_PEER_ID);
+    fakePeerjs.holdOpen();
+    const absent = transport.connect(ABSENT_PEER_ID);
+    const joignable = transport.connect(JOIGNABLE_PEER_ID);
+    // Laisse les écouteurs se poser avant qu'une erreur ne parte.
+    await Promise.resolve();
+    return { absent, joignable };
+  }
+
+  it("un pair absent ne fait tomber QUE sa propre négociation", async () => {
+    const { absent, joignable } = await twoPendingConnects();
+
+    fakePeerjs
+      .lastPeer()
+      .emitError("peer-unavailable", `Could not connect to peer ${ABSENT_PEER_ID}`);
+
+    await expect(absent).rejects.toMatchObject({ code: NetworkErrorCode.CodeIntrouvable });
+
+    const survivante = fakePeerjs.lastPeer().connections[1];
+    survivante?.emitOpen();
+    await expect(joignable).resolves.toBeDefined();
+  });
+
+  it("une cause globalement fatale les fait tomber toutes — c'est le comportement juste", async () => {
+    const { absent, joignable } = await twoPendingConnects();
+
+    fakePeerjs.lastPeer().emitError("network");
+
+    await expect(absent).rejects.toBeDefined();
+    await expect(joignable).rejects.toBeDefined();
+  });
+
+  it("une erreur `webrtc`, que peerjs n'attribue à personne, n'en fait tomber aucune", async () => {
+    const { absent, joignable } = await twoPendingConnects();
+
+    fakePeerjs.lastPeer().emitError("webrtc", "Negotiation of connection failed.");
+
+    const peer = fakePeerjs.lastPeer();
+    peer.connections[0]?.emitOpen();
+    peer.connections[1]?.emitOpen();
+    await expect(absent).resolves.toBeDefined();
+    await expect(joignable).resolves.toBeDefined();
+  });
+
+  it("un `peer-unavailable` sans message ne condamne personne — le minuteur tranchera", async () => {
+    const { absent, joignable } = await twoPendingConnects();
+
+    fakePeerjs.lastPeer().emitError("peer-unavailable");
+
+    const peer = fakePeerjs.lastPeer();
+    peer.connections[0]?.emitOpen();
+    peer.connections[1]?.emitOpen();
+    await expect(absent).resolves.toBeDefined();
+    await expect(joignable).resolves.toBeDefined();
+  });
+});

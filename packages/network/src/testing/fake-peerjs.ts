@@ -26,6 +26,9 @@
 
 type FakeListener = (...payload: unknown[]) => void;
 
+/** Voir {@link fakePeerjs.holdOpen}. Au niveau du module, comme le registre des pairs. */
+let openHeld = false;
+
 class FakeEventEmitter {
   private readonly listeners = new Map<string, Set<FakeListener>>();
 
@@ -99,7 +102,20 @@ export class FakeDataConnection extends FakeEventEmitter {
     readonly options: { reliable?: boolean } | undefined,
   ) {
     super();
-    queueMicrotask(() => this.emit("open"));
+    if (!openHeld) {
+      queueMicrotask(() => this.emit("open"));
+    }
+  }
+
+  /**
+   * Ouvre la connexion à la main, quand `fakePeerjs.holdOpen()` a suspendu l'ouverture d'office.
+   *
+   * Nécessaire pour éprouver PLUSIEURS négociations en vol en même temps : tant qu'elles s'ouvrent
+   * seules dans une micro-tâche, il n'y en a jamais deux en attente, et la diaphonie de l'émetteur
+   * partagé (voir {@link FakePeer.emitError}) est hors d'atteinte.
+   */
+  emitOpen(): void {
+    this.emit("open");
   }
 
   send(data: unknown): void | Promise<void> {
@@ -125,6 +141,20 @@ export class FakeDataConnection extends FakeEventEmitter {
 export class FakePeer extends FakeEventEmitter {
   readonly connections: FakeDataConnection[] = [];
   destroyed = false;
+
+  /**
+   * Une erreur émise sur LE PAIR, et non sur une connexion — c'est là que `peerjs` les met.
+   *
+   * 🔴 Ce trait n'est pas un détail du double, c'est le sujet d'un défaut entier. `emitError` fait
+   * `this.emit("error", …)` sur le `Peer` (`peerjs@1.5.5`, `bundler.mjs:951`), et pour
+   * `peer-unavailable` l'identité de la cible n'existe que dans le TEXTE du message (`:1575`).
+   * Toutes les négociations en vol reçoivent donc la même erreur, y compris celles que rien ne
+   * concerne. Le canal factice de `testing/fake-transport.ts` en est structurellement incapable :
+   * il jette localement, pour le seul appel concerné.
+   */
+  emitError(type: string, message?: string): void {
+    this.emit("error", message === undefined ? { type } : { type, message });
+  }
 
   /**
    * Les options telles que `PeerJsTransport` les a passées, **littéralement**.
@@ -154,9 +184,18 @@ export class FakePeer extends FakeEventEmitter {
 }
 
 export const fakePeerjs = {
-  /** Oublie les pairs construits. Voir l'en-tête : à appeler en `beforeEach`, sans exception. */
+  /** Oublie les pairs construits, et rend leur ouverture d'office aux connexions. */
   reset(): void {
     createdPeers.length = 0;
+    openHeld = false;
+  },
+
+  /**
+   * Suspend l'ouverture d'office : les connexions créées ensuite restent EN VOL jusqu'à un
+   * `emitOpen()` explicite. `reset()` lève la suspension.
+   */
+  holdOpen(): void {
+    openHeld = true;
   },
 
   /** Le dernier pair construit — celui que la prise d'identifiant vient de créer. */
