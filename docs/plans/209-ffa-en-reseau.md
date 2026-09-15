@@ -128,6 +128,14 @@ d'index inférieur est refusée ; le tampon ne grossit pas indéfiniment sur une
 2. **Exclure du quorum les places forfaitées ou éliminées.** Leur empreinte fige à leur dernier index
    pendant que les survivants avancent : comptée, elle fabrique un faux positif à chaque action. C'est
    la limite exacte de #975.
+
+   ⚠️ **Rectificatif du 2026-09-15 (cadrage du plan 210, décision #1045).** Seule la moitié
+   « forfaitées » a été livrée — `forfeitedSeats` n'est alimenté que par des forfaits explicites
+   (`online-battle.ts:476` et `:892`). Et c'est **tant mieux** : le raisonnement ci-dessus est faux
+   pour une élimination. « Leur empreinte fige » est vrai d'un joueur **parti** ; le moteur d'un
+   joueur **éliminé** continue de recevoir et d'appliquer toutes les actions, donc son empreinte
+   avance comme celle des autres. Il reste un témoin **valide**, et un témoin honnête de plus rend le
+   vote de minorité plus sûr. Ne pas « réparer » cet écart.
 3. Ne comparer que des empreintes au **même `actionIndex`** — déjà le cas, à préserver explicitement :
    un revenant qui rattrape son journal émet des empreintes en retard qui pollueraient le vote.
 4. **Le vote, concrètement.** Grouper les places par empreinte à un `actionIndex` donné, puis

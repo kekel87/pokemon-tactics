@@ -43,3 +43,4 @@ Les seuls sur lesquels on travaille.
 | 207 | [Plan 207 — L'écran « Jouer en ligne » rhabillé, et le refus enfin visible](./207-lobby-rhabillage-et-refus.md) | done |
 | 208 | [Plan 208 — La carte en modale, et le bandeau de partie](./208-carte-en-modale.md) | done |
 | 209 | [Plan 209 — Le FFA en réseau, et la fin du multijoueur](./209-ffa-en-reseau.md) | done |
+| 210 | [Plan 210 — Le joueur éliminé, et le mode spectateur](./210-joueur-elimine-et-mode-spectateur.md) | ready |

@@ -1016,9 +1016,11 @@ Move `taunt` (Ténèbres, Statut, Single r3, acc 100, PP 20). Pendant **3 tours*
 
 **0 PV = KO définitif :**
 - Corps reste sur tile et **bloque le passage**
-- Revival : **Second Souffle** — livré via Vœu Soin (`healing-wish`, plan 147, décision #604), réinventé en move de revive ciblé (tuile r3) : ressuscite un allié KO à **50% PV max** ou soigne un vivant à **100%**, self-KO du lanceur en échange — premier et seul move de revive du jeu
+- Revival : **Vœu Soin** (`healing-wish`, plan 147, décision #604), réinventé en move de revive ciblé (tuile r3) : ressuscite un allié KO à **50% PV max** ou soigne un vivant à **100%**, self-KO du lanceur en échange — premier et seul move de revive du jeu.
+  ⚠️ **Ne pas l'appeler « Second Souffle ».** Le code le surnomme ainsi en commentaire, et ce document le faisait aussi jusqu'au 2026-09-15 — c'est faux : **Second Souffle** est `revival-blessing`, un autre move, traduit dans `moves.fr.json` mais **pas implémenté** (absent de `tactical.ts`). Le nom que le jeu affiche est **Vœu Soin**
 - KO instantané (OHKO) : famille **K.O. en un coup** (plan 148, décisions #607–#610) — Abîme/Guillotine/Empal'Korne/Glaciation infligent des dégâts fixes = PV max sur un jet de précision plate dédié (30 %, 20 % pour Glaciation si le lanceur n'est pas de type Glace), ignorant crans/talents/objets/Gravité/météo. Contres canon complets : Fermeté = immunité totale (bypassée par Brise Moule), Baie Ceinture/Ténacité = survie à 1 PV, Protection bloque, Clone absorbe, immunités de type standards (+ type Glace immunisé vs Glaciation).
 - Victoire = tous les Pokemon adverses KO
+- **À 3 camps et plus (FFA)** : un camp perd quand son dernier Pokemon tombe, mais la partie **continue** tant qu'il reste au moins deux camps vivants — perdre son camp n'est pas la fin de la partie pour les autres. En ligne, le joueur éliminé pourra choisir de retourner au menu ou de continuer à regarder en spectateur (à venir, `docs/plans/210-joueur-elimine-et-mode-spectateur.md`)
 
 ---
 

@@ -223,10 +223,15 @@ Tour du joueur B :
 ### 4. Fin de partie
 
 ```
-Les deux moteurs détectent la victoire indépendamment
+Chaque moteur détecte la victoire indépendamment, à N camps comme à deux
   → Affichage de l'écran de victoire
-  → Option : revanche, changer d'équipe, quitter
+  → Option : changer d'équipe, quitter (`rematch` reste hors V1, voir § Protocole de messages)
 ```
+
+⚠️ **Un camp éliminé avant la fin ne ferme rien.** La partie continue tant qu'il reste au moins deux
+camps vivants (`checkVictory`, `playersAlive.size <= 1`). Ce que voit alors le joueur éliminé —
+dialogue retour au menu / mode spectateur — est **cadré, pas livré** :
+`docs/plans/210-joueur-elimine-et-mode-spectateur.md`.
 
 ---
 
@@ -476,6 +481,9 @@ battleStateChecksum(state) chez A === battleStateChecksum(state) chez B, au mêm
   Non → forfeitSeat(..., NetworkForfeitReason.EtatDivergent) — « les parties ne concordent plus »
 ```
 
+⚠️ **Ce modèle à deux pairs est celui du duel.** À 3 camps et plus, la comparaison devient un vote —
+voir § 3+ joueurs, « Le désaccord à N témoins ».
+
 🔴 **Constat et forfait, rien de plus — pas de reconstruction depuis le replay.** Le document
 annonçait ici une reconstruction ; le plan-cadre 195 aussi. **Amendé en implémentant** : en 1v1,
 personne ne peut dire qui s'est écarté (#943), donc « réparer » voudrait dire adopter la version
@@ -528,6 +536,32 @@ Joueur B disparaît
 ```
 
 (Lot B3, plan 202, étapes 2, 4 et 5 — décisions #950-#952, #954-#955, #957, #960, #961)
+
+### Le seuil d'absence à N camps (Lot C3, décision #1028)
+
+Le chien de garde ci-dessus couvre le silence réseau ; **un pair présent sur le fil mais qui laisse
+passer son tour** (écran verrouillé, alt-tab prolongé) est couvert séparément par
+`missedTurnLimitFor(teamCount)` (`online-battle.ts`) : un camp est forfaité au bout de **tours
+manqués consécutifs**, avec un avertissement affiché à l'avant-dernier — même patron que le « 2/3 »
+des refus de divergence.
+
+```
+missedTurnLimitFor(teamCount) = 3 si teamCount <= 2, sinon 2
+```
+
+🔴 **Ce n'est pas une proportion, c'est une marche.** Le seuil compte des **tours**, pas des minutes,
+et l'écart entre deux tours d'un même camp croît avec le nombre de camps : le Charge Time fait
+toujours agir douze combattants par round quel que soit le format (`MAX_POKEMON_PER_BATTLE`), donc à
+60 s par tour, 3 tours manqués valent ~6 min en duel mais ~36 min à douze camps — une place morte
+occuperait sa place plus d'une demi-heure et déciderait du sort des autres. Une vraie proportionnalité
+(« ~6 min quel que soit le format ») donnerait **1 seul tour toléré** dès six camps, donc éliminer sur
+un accident isolé — exactement ce que le mécanisme existe pour éviter. Le plancher de **deux** est un
+compromis assumé : ~6 min en duel, ~24 min à douze, deux fois mieux qu'avant mais pas le même ordre de
+grandeur. ⚠️ Ce que ce n'est pas non plus : les autres camps ne sont pas bloqués pendant ce temps, ils
+jouent — seule l'**occupation de la place** est le problème, pas un temps mort partagé.
+
+La forme définitive reste ouverte (questions du plan 209) : elle attend une mesure de cadence réelle,
+la télémétrie n'ayant jamais observé que du 1v1.
 
 ### Signal précoce, avant le chien de garde (Lot B3, étape 3, décision #956)
 
@@ -860,35 +894,36 @@ seule place morte retardait donc les dix autres, l'une après l'autre — le con
 promet le commentaire du `catch` (« un pair injoignable n'empêche pas d'entrer »). Et le défaut
 grandit avec le nombre de joueurs, c'est-à-dire précisément là où on s'inquiétait.
 
-#### ⚠️ NON corrigé — et la tentative de correction a été annulée le jour même
+#### ✅ Corrigé le 2026-09-15 — mais en deux temps, et l'ordre était tout
 
-`Promise.all` a été essayé le 2026-09-14, mesuré (séquentiel 1 836 / 1 342 / 1 806 ms, parallèle
-1 820 / 1 326 / 1 516 ms — indiscernable sur la boucle locale), puis **remis en arrière** après revue
-de code. Motif, et il est décisif :
+Une première tentative de `Promise.all`, le 2026-09-14, a été **annulée le jour même** après revue de
+code. Elle échangeait un défaut de **dégradation** contre un défaut de **rupture** :
 
-`waitForConnectionOpen` (`peer-connection.ts`) écoute l'échec sur l'objet **`peer` partagé**, pas sur
-la connexion. Ce n'est pas un choix : `peerjs` émet `emitError` par `this.emit("error", …)` sur le
-Peer, et pour `peer-unavailable` l'identité de la cible n'existe que dans le **texte** du message
-(`peerjs@1.5.5`, `bundler.mjs:1575` et `:951`). Onze négociations en vol, c'est onze écouteurs sur le
-même émetteur : **une seule place absente rejette les onze promesses**, et le `catch` les avale en
-silence. Le dernier arrivant se retrouve alors avec le seul canal de l'hôte — or l'hôte ne relaie
-pas, **le maillage EST le transport**. Un maillage vide n'est pas un pair manquant, c'est une partie
-qui se bloque.
+`waitForConnectionOpen` (`peer-connection.ts`) écoutait l'échec sur l'objet **`peer` partagé**, pas
+sur la connexion. Ce n'était pas un choix : `peerjs` émet par `this.emit("error", …)` sur le Peer, et
+pour `peer-unavailable` l'identité de la cible n'existe que dans le **texte** du message
+(`peerjs@1.5.5`, `bundler.mjs:1575` et `:951`). Onze négociations en vol, c'était onze écouteurs sur
+le même émetteur : **une seule place absente rejetait les onze promesses**, et le `catch` les avalait
+en silence. Le dernier arrivant se retrouvait avec le seul canal de l'hôte — or l'hôte ne relaie pas,
+**le maillage EST le transport**.
 
-Le séquentiel n'a pas ce défaut parce qu'une seule négociation est en vol à la fois : l'erreur du
-Peer ne peut appartenir qu'à elle. La boucle est correcte, et ce n'est pas un hasard.
+**La correction s'est donc faite dans l'autre sens**, et c'est l'enseignement à retenir :
 
-Ce qu'il faudra pour paralléliser un jour : rendre l'échec imputable à SA connexion — discriminer
-sur le texte du message, ou ne traiter sur le Peer que les causes globalement fatales (`network`,
-`socket-error`, `server-error`) et laisser les autres au minuteur par promesse. Avec des tests que
-rien ne fournit aujourd'hui : ni le canal factice (`testing/fake-transport.ts`, qui jette localement
-et n'a aucun émetteur partagé) ni le banc de mesure (douze pairs tous joignables) ne peuvent voir
-cette diaphonie.
+1. **D'abord rendre l'échec attribuable à sa connexion** — `peerErrorConcerns`. Trois cas : une cause
+   globalement fatale (`network`, `socket-error`, `server-error`…) vaut pour tout le monde et rejette
+   ; `peer-unavailable` ne rejette que la connexion que son message **nomme** ; tout le reste,
+   `webrtc` en tête, n'est attribuable à personne et ne rejette **rien** — le minuteur de 15 s, lui,
+   est par promesse. Une négociation réellement perdue attend donc son délai, payé **une fois** pour
+   toutes celles qui courent ensemble.
+2. **Ensuite seulement, paralléliser.** `Promise.all` sur des tâches qui avalent leur échec ne rejette
+   jamais : la sémantique d'origine — un pair manquant n'empêche personne d'entrer — est conservée.
 
-**Conséquence pratique, à savoir avant de publier** : une place morte dans un salon à douze retarde
-les autres liens de 15 s chacun, en cascade. Ça dégrade, ça ne casse pas — le maillage finit par se
-composer. C'est la raison pour laquelle ça ne bloque pas la release, et la raison pour laquelle ça ne
-doit pas rester.
+**Le filet, qui n'existait pas** : la diaphonie est éprouvée dans `peer-connection.test.ts`, contre le
+double `FakePeer` qui est un vrai émetteur partagé (quatre cas : pair absent nommé, cause fatale,
+`webrtc` inattribuable, `peer-unavailable` sans message). Elle est **hors d'atteinte** de
+`testing/fake-transport.ts`, qui jette localement pour le seul appel concerné, et du banc de mesure,
+qui tourne avec douze pairs tous joignables. Et `room.integration.test.ts` garde qu'une place morte ne
+coûte que son propre lien.
 
 ⚠️ **Ce qui reste non mesuré, et qui n'a rien à voir avec le montage** : la **cohérence** à douze —
 12 copies du moteur à garder identiques, et **aucune politique définie pour une désync partielle**
@@ -906,6 +941,28 @@ Time (un seul acteur à la fois, donc jamais deux émetteurs légitimes). Ce qui
 l'ordre *logique* mais l'ordre de *livraison* — un tampon de réordonnancement par index suffit, sans
 horloge logique (décision #1024) ni relais. **Le réseau accepte désormais les cinq formats**, et
 l'écran `lobby` **offre** de nouveau le choix, avant la naissance du code.
+
+### Le désaccord à N témoins (Lot C2, décision #1026)
+
+`compareDigests` (§ Détection de désync) devient `evaluateDigests` à 3 camps et plus : au lieu
+d'accuser l'autre pair, on regroupe **toutes** les empreintes connues au même `actionIndex` — la
+mienne comprise — et le groupe minoritaire est forfaité, moi compris s'il y a lieu. Trois issues : un
+groupe strictement majoritaire → les autres groupes sont forfaités ; égalité au sommet → **personne**
+n'est accusé (*Age of Empires*, *Factorio* font pareil : constater la divergence, ne jamais
+réconcilier) ; moins de deux empreintes connues → on attend. Le duel garde son constat symétrique de
+la section ci-dessus : à deux témoins, tout désaccord est une égalité 1-1, la majorité n'y détecterait
+plus rien. Toujours pas un anti-triche (seuil byzantin 3f+1, hors de portée à 3 ou 4 camps) — un outil
+de diagnostic contre la divergence accidentelle, comme la section ci-dessus.
+
+**Le quorum exclut les places forfaitées, pas les places éliminées au combat.** Un pair **parti** fige
+son empreinte à son dernier index pendant que les survivants avancent : compté, il fabriquerait un
+faux positif à chaque action, donc `forfeitedSeats` en sort. Un pair **éliminé au combat** qui
+continue de regarder ne fige rien : son moteur reçoit et applique les mêmes actions que les autres,
+donc son empreinte avance pareil — il reste un témoin **valide**, et un témoin honnête de plus rend le
+vote de minorité plus sûr. ⚠️ **Rectifié au cadrage du plan 210 (décision #1045)** : la rédaction
+initiale du Lot C2 promettait d'exclure « les places forfaitées ou éliminées » sur un raisonnement qui
+ne valait que pour un départ, jamais pour une élimination — voir
+`docs/plans/210-joueur-elimine-et-mode-spectateur.md`.
 
 ---
 
@@ -1025,15 +1082,19 @@ Pas de matchmaking. Les joueurs se trouvent par leurs propres moyens (Discord, S
 partagent **un code**. Pas de lien d'invitation : il serait construit depuis l'origine courante,
 laquelle vaut `html-classic.itch.zone/…` dans l'iframe itch.io.
 
-⚠️ **Le format est annoncé, pas offert** (décision D6, plan 201) : le réseau est restreint au 1v1
-(§ 3+ joueurs), donc l'écran ne porte plus de sélecteur — un contrôle à une seule option serait un
-arrêt de focus mort pour rien.
+⚠️ **Le réseau n'est plus restreint au 1v1** (décision D6/#944, plan 201, **renversée** le 2026-09-14
+par le plan 209, Lot C3 — pas un acquis). Les cinq formats sont ouverts en ligne (2, 3, 4, 6 et 12
+camps), `ONLINE_TEAM_COUNT` a disparu, et le sélecteur de format **est revenu** — mais pas ici :
+l'écran `lobby` ouvre toujours en duel (`OPENING_TEAM_COUNT`) et **ne porte pas de sélecteur**, le
+choix se fait ensuite dans la **salle d'attente** (§ Sélection d'équipe). `Room.setTeamCount`
+recompose les places sans toucher au **code** du salon — l'adresse ne dépend pas du format. Rétrécir
+le format **éjecte les derniers arrivés** (places hautes, jamais la première), prévenus avant que leur
+canal ne se ferme.
 
 ```
 Écran `lobby` :
   ┌───────────────────────────────────────────────┐
   │  Créer une partie                             │
-  │    Format : 1 contre 1                        │
   │    « Créer une partie »                       │
   │                                               │
   │  Rejoindre une partie                         │
