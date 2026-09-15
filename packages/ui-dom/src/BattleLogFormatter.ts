@@ -211,6 +211,20 @@ export function formatBattleEvent(
       return { message, color: BattleLogColors.ko, pokemonIds: [] };
     }
 
+    /*
+     * Un camp tombe au combat (plan 210, lot D1). Même forme que l'abandon juste au-dessus — le
+     * numéro de camp, faute de noms de joueur (décision #906).
+     *
+     * C'est la seule chose que le mode LOCAL reçoit de ce plan, et c'était ce qui lui manquait : en
+     * hot-seat, les joueurs sont dans la même pièce, ils n'ont besoin ni d'un dialogue ni d'un
+     * spectateur (décision #1046) — seulement que l'écran dise qui vient de tomber.
+     */
+    case BattleEventType.PlayerEliminated: {
+      const player = playerNumberOf(event.playerId);
+      const message = translate("battleLog.playerEliminated", { player });
+      return { message, color: BattleLogColors.ko, pokemonIds: [] };
+    }
+
     case BattleEventType.MoveStarted: {
       const name = context.getPokemonName(event.attackerId);
       const moveName = context.getMoveName(event.moveId);

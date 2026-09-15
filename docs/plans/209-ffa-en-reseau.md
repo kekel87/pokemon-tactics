@@ -355,7 +355,8 @@ ne fait que l'exposer entre humains :
   lui : même écran, aucun message, aucune consigne. Le moteur est correct (`checkVictory` ne conclut
   qu'à un survivant), c'est l'interface qui se tait — il n'existe aucune clé i18n entre « abandon » et
   « fin de partie ». Déjà vrai en hot-seat, mais l'isolement en ligne le rend plus dur : personne dans
-  la pièce pour dire « tu peux partir ». → backlog.
+  la pièce pour dire « tu peux partir ». → backlog. ✅ **Soldé par le plan 210** (2026-09-15) : en
+  ligne, dialogue à deux issues (retour au menu / spectateur) ; en local, ligne de journal.
 - **L'attente pendant les tours distants est passive.** Rien n'est offert au joueur qui regarde onze
   adversaires jouer : le rendu est le même que pour une IA en solo. → backlog UX, pas ce plan.
 - **Le ciblage ne corrige pas le tir groupé.** L'IA traite tout camp adverse à égalité, sans

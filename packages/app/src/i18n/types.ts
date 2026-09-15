@@ -20,6 +20,9 @@ export interface Translations {
   "battle.drawMessage": string;
   "battle.restart": string;
   "battle.backToMenu": string;
+  "battle.eliminated": string;
+  "battle.eliminatedMessage": string;
+  "battle.keepWatching": string;
   "battle.summaryTurns": string;
   "battle.summaryTurnsOne": string;
   "battle.summaryDurationMinutes": string;
@@ -990,6 +993,7 @@ export interface Translations {
   "battleLog.playerForfeited.resigned": string;
   "battleLog.playerForfeited.disconnected": string;
   "battleLog.playerForfeited.desynced": string;
+  "battleLog.playerEliminated": string;
   "battleLog.typeChanged.becomes": string;
   "battleLog.typeChanged.burnUp": string;
   "battleLog.typeChanged.typeSeparator": string;

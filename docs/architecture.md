@@ -150,6 +150,9 @@ pokemon-tactics/
 │   │   │   ├── sandbox-config.ts        # SandboxConfig + DEFAULT_SANDBOX_CONFIG
 │   │   │   ├── remote-action.ts         # Projection canonique d'une Action (retreatPosition exclu) pour
 │   │   │   │                            # comparer contre getLegalActions() — tour distant (plan 201, Lot B2)
+│   │   │   ├── local-elimination.ts     # shouldAnnounceLocalElimination : décide si `PlayerEliminated`
+│   │   │   │                            # doit ouvrir le dialogue à deux issues (en ligne, camp local
+│   │   │   │                            # uniquement) — plan 210
 │   │   │   └── constants.ts             # couleurs Champs, symboles aura/charge, durées tween, cluster BATTLE_TEXT
 │   │   ├── tsconfig.json        # lib ["ES2022","WebWorker"] (timers sans DOM) ; dépend core/data/render-ports
 │   │   └── package.json
@@ -300,7 +303,7 @@ pokemon-tactics/
 │   │   │   │                          # emit itère toujours une COPIE — remplace 12 Set + 12 méthodes on*
 │   │   │   │                          # + 13 boucles d'émission qui étaient recopiées dans room.ts
 │   │   │   ├── peer-connection.ts      # Mise en œuvre PeerJS (WebRTC)
-│   │   │   ├── protocol.ts             # NetworkMessage, NETWORK_VERSION (4), causes de refus,
+│   │   │   ├── protocol.ts             # NetworkMessage, NETWORK_VERSION (8), causes de refus,
 │   │   │   │                          # graines (combat/placement/IA), messages action/forfeit (B2)
 │   │   │   ├── room-code.ts            # Alphabet du code (5 caractères), génération, adresses dérivées pkmntac-<CODE>-<place>
 │   │   │   ├── room-config.ts          # Les 7 délais du salon (grâce, redial hôte, accusés) + graceDelayFor,
@@ -819,6 +822,7 @@ Surcouche d'interface sur un combat qui **continue de tourner derrière** — pa
 - **Action logique** `OpenCombatMenu` (`logical-action.ts`), défaut `gamepad: [9, null]` (`Start`), aucun défaut clavier — `Échap` fait déjà le travail via la retombée d'`onEscape()`. Route dans `input-router.ts` comme le reste, donc bloquée par `locked`.
 - **Icônes** : le burger `☰` passe au menu de combat, le journal prend `▤` (décision #825).
 - **La victoire referme le menu** en décorant `showVictory` au seul point où le chrome est remis à l'orchestrateur — le menu n'écoute aucun événement du combat, `view-core` n'apprend pas son existence.
+- **`BattleChrome.showEliminated`** (plan 210) : dialogue à deux issues (« Retour au menu » / « Continuer à regarder ») affiché à un camp local éliminé, en partie en ligne seulement. Rappel `onClosed`, appelé sur l'événement `close` du `<dialog>` quel qu'en soit le déclencheur (l'un des deux boutons, ou `showVictory` qui le referme s'il est encore ouvert à la fin de partie) — sans lui, le bouton « Quitter » du menu de combat restait grisé après « Continuer à regarder ». **Toute modale ouverte force le contexte d'entrée `menu`** dans `combat-screen.ts`, quelle que soit la phase (`watching`/`locked` compris) : sans cette règle, le dialogue n'était atteignable ni aux flèches ni au D-pad pendant un tour distant.
 - **Ce que ce plan ne fait pas** : pas de sauvegardes multiples/créneaux nommés, pas de refonte des Paramètres/Contrôles, pas de drapeau multijoueur pour `Recommencer`. Détail complet : entité `plan-187` du graphe, décisions #819–#826.
 - **Menu pendant la phase de placement** (plan 189) : le trou ci-dessus est comblé par une **seconde instance** de `createCombatMenu`, montée par `mountContent` pour la durée du placement et détruite quand `runBattle` prend la main — jamais deux vivantes à la fois. Entrées **Reprendre / Paramètres / Recommencer / Quitter** (pas d'« Abandonner » : aucune sauvegarde n'existe encore à ce stade) ; « Quitter » demande confirmation (placements perdus). `Échap` ouvre le menu seulement quand `undoLastPlacement` n'a rien à défaire — même règle que `onEscape()` en combat. Décisions #843–#848.
 

@@ -229,8 +229,8 @@ Chaque moteur détecte la victoire indépendamment, à N camps comme à deux
 ```
 
 ⚠️ **Un camp éliminé avant la fin ne ferme rien.** La partie continue tant qu'il reste au moins deux
-camps vivants (`checkVictory`, `playersAlive.size <= 1`). Ce que voit alors le joueur éliminé —
-dialogue retour au menu / mode spectateur — est **cadré, pas livré** :
+camps vivants (`checkVictory`, `playersAlive.size <= 1`). Le joueur éliminé voit un dialogue à deux
+issues — retour au menu / mode spectateur, caméra libre — livré au plan 210 :
 `docs/plans/210-joueur-elimine-et-mode-spectateur.md`.
 
 ---
@@ -300,6 +300,25 @@ camp (plan 201, étape 7), et l'agrégation les cumule toujours sur les deux lig
 modale, § Écrans à ajouter/modifier) : en ligne, l'hôte peut désormais tirer une carte « Aléatoire »
 tenue secrète jusqu'au lancement ; le message `start` publie la carte **résolue**, jamais la sentinelle
 — **et `NETWORK_VERSION` est passée à 6**.
+
+**Ce que le plan 209 a changé** (2026-09-14, le FFA en réseau) : **aucun message n'a changé de forme**,
+mais les **règles de lecture**, oui. Un client d'avant refuse une action dont l'index est en avance là
+où un client d'après la garde (Lot C1), et prononce un forfait bilatéral là où l'autre vote à la
+minorité (Lot C2). Deux pairs de versions différentes élimineraient des joueurs honnêtes sans
+qu'aucun message ne paraisse malformé — **et `NETWORK_VERSION` est passée à 7**. (Consigné ici après
+coup, le 2026-09-15 : le plan 209 avait incrémenté la constante sans l'écrire dans cette liste.)
+
+**Ce que le plan 210 a changé** (2026-09-15, le joueur éliminé) : aucun message non plus, mais la
+**somme de contrôle d'état**. `canonicalize` sérialise tout l'état et n'omet que les `undefined` ; un
+combat en ligne pose désormais `reviveDefeatedCamps: false`, champ qu'un build d'avant ignore. Deux
+pairs de versions différentes divergeraient donc dès la première empreinte, sans même jouer — et la
+règle de Vœu Soin sur un camp rayé change d'issue de l'un à l'autre. **`NETWORK_VERSION` est passée à
+8.** L'incrément avait été oublié, et c'est la revue de code qui l'a rattrapé.
+
+🔴 **Leçon des deux derniers incréments** : ni l'un ni l'autre ne touchait la forme d'un message. Le
+réflexe « je n'ai pas changé le protocole, donc pas d'incrément » est faux dès qu'une règle de lecture
+ou un champ de l'état HACHÉ change. La question à se poser n'est pas « ai-je touché `protocol.ts` ? »
+mais « un pair d'hier et un pair d'aujourd'hui calculeraient-ils la même chose ? ».
 
 **Ce qui reste à écrire** : `rematch` et `chat` (hors V1). Le **nom de joueur a été écarté de la V1**
 (#906) : il revient avec le compte et le classement ; la salle d'attente affiche « Joueur 2 ».

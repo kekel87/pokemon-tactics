@@ -40,8 +40,16 @@ import {
  * vote à la minorité (Lot C2). Deux pairs de versions différentes élimineraient donc des joueurs
  * honnêtes sans qu'aucun message ne paraisse malformé — le pire mode d'échec, celui qui a l'air de
  * marcher.
+ *
+ * 7 → 8 au plan 210, pour une raison qui ne se voit dans aucun message : la somme de contrôle d'état.
+ * `canonicalize` (`core/src/battle/state-checksum.ts`) sérialise TOUT l'état et n'omet que les
+ * `undefined` — or un combat en ligne pose désormais `reviveDefeatedCamps: false`. Un build d'avant
+ * n'a pas ce champ : deux pairs de versions différentes divergeraient DÈS LA PREMIÈRE somme, sans même
+ * lancer Vœu Soin, et le vote de minorité éliminerait l'un des deux. La règle elle-même change aussi :
+ * Vœu Soin sur le mort d'un camp rayé échoue d'un côté et ressuscite de l'autre. Relevé en revue de
+ * code (Major 1) — l'incrément avait été oublié, ce qui est exactement le cas que ce commentaire décrit.
  */
-export const NETWORK_VERSION = 7;
+export const NETWORK_VERSION = 8;
 
 /**
  * Durée d'un tour en ligne (plan 202, Lot B3, décision #946).

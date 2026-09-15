@@ -38,6 +38,12 @@ function traceOf(event: Parameters<typeof formatBattleEvent>[0]): string {
 }
 
 describe("BattleLogFormatter — contrat de clés i18n", () => {
+  it("annonce un camp éliminé par son numéro", () => {
+    expect(traceOf({ type: BattleEventType.PlayerEliminated, playerId: "player-3" })).toBe(
+      "battleLog.playerEliminated|player=3",
+    );
+  });
+
   it("route un événement simple vers sa clé, avec le nom en paramètre", () => {
     expect(traceOf({ type: BattleEventType.TurnStarted, pokemonId: "pika" })).toBe(
       "battleLog.turnStarted|name=Pikachu",

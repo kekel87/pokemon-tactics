@@ -32,6 +32,28 @@ export function handleReviveOrHeal(context: EffectContext): BattleEvent[] {
     return [{ type: BattleEventType.ReviveOrHealFailed, casterId: context.attacker.id }];
   }
 
+  /*
+   * Un camp entièrement à terre ne se fait pas ramener (plan 210, lot D0, décision #1047).
+   *
+   * Le prédicat ne consulte AUCUN état « éliminé » ou « forfaité » : la cible K.O. n'est réanimable
+   * que si son camp compte, hors elle-même, au moins un autre Pokemon vivant. Un camp qui a forfaité
+   * y tombe tout seul — le forfait met déjà tous ses Pokemon à 0 PV — donc rien à mémoriser.
+   *
+   * Réanimer son propre dernier coéquipier reste permis : le lanceur est vivant et compte pour son
+   * camp. Seul le ciblage d'un camp TIERS déjà rayé est fermé, ce qui remet le code en conformité
+   * avec `docs/game-design.md` §9 (« ressuscite un allié KO »), plus étroit que « ally or enemy »
+   * depuis toujours.
+   */
+  if (target.currentHp <= 0 && context.state.reviveDefeatedCamps === false) {
+    const campHasSurvivor = [...context.state.pokemon.values()].some(
+      (pokemon) =>
+        pokemon.playerId === target.playerId && pokemon.id !== target.id && pokemon.currentHp > 0,
+    );
+    if (!campHasSurvivor) {
+      return [{ type: BattleEventType.ReviveOrHealFailed, casterId: context.attacker.id }];
+    }
+  }
+
   const revived = target.currentHp <= 0;
   const percent = revived ? effect.revivePercent : effect.healPercent;
   const newHp = Math.min(target.maxHp, Math.max(1, Math.floor(target.maxHp * percent)));

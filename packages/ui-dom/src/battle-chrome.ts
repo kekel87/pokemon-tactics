@@ -512,9 +512,56 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
     },
     scrollTimeline: (delta) => timeline.scrollByStep(delta),
 
+    showEliminated: (onClosed?: () => void) => {
+      /*
+       * Plan 210, lot D2. Mêmes classes que la victoire juste en dessous, donc même apparence et zéro
+       * CSS : c'est la même famille de moment — un verdict qui tombe sur ce joueur — et le lui
+       * présenter autrement le ferait passer pour un message d'une autre nature.
+       *
+       * `bc-eliminated` en plus, pour que `showVictory` puisse le retrouver et le refermer : la partie
+       * peut se terminer pendant que ce dialogue est encore ouvert, et deux modales empilées
+       * laisseraient le joueur fermer la mauvaise.
+       */
+      const dialog = el("dialog", "bc-victory", "player-eliminated");
+      dialog.classList.add("bc-eliminated");
+      const heading = document.createElement("h2");
+      heading.textContent = config.translate("battle.eliminated");
+      const message = el("p", "bc-victory-message");
+      message.textContent = config.translate("battle.eliminatedMessage");
+      const watch = button(config.translate("battle.keepWatching"), () => {
+        dialog.close();
+        dialog.remove();
+      });
+      // Tout contrôle interactif porte un testid (`.claude/rules/multi-input.md`) : le focus ne
+      // survit au re-rendu que par famille de testid. Et « Retour au menu » est aussi le libellé de
+      // la victoire — un identifiant évite qu'un localisateur e2e les confonde.
+      watch.dataset.testid = "eliminated-keep-watching";
+      const exit = button(config.translate("battle.backToMenu"), () => {
+        dialog.close();
+        dialog.remove();
+        onExit();
+      });
+      exit.dataset.testid = "eliminated-back-to-menu";
+      // Échap déclenche `cancel` sur un dialogue natif, qui se fermerait alors sans que le joueur ait
+      // choisi. Les deux issues sont des choix, et l'une quitte la partie.
+      dialog.addEventListener("cancel", (event) => event.preventDefault());
+      // Sur `close` et non dans chaque bouton : `showVictory` ferme aussi ce dialogue, et l'écran doit
+      // l'apprendre dans ce cas-là comme dans les deux autres.
+      dialog.addEventListener("close", () => onClosed?.(), { once: true });
+      const actions = el("div", "bc-victory-actions");
+      actions.append(watch, exit);
+      dialog.append(heading, message, actions);
+      root.appendChild(dialog);
+      dialog.showModal();
+    },
+
     showVictory: (winnerId: string | null, summary: BattleOutcomeSummary) => {
       // Testid plutôt qu'une classe CSS : le harnais e2e a besoin de savoir « le combat est fini »
       // (plan 194) et la règle interdit de viser une classe, couplée au style.
+      for (const eliminated of root.querySelectorAll<HTMLDialogElement>("dialog.bc-eliminated")) {
+        eliminated.close();
+        eliminated.remove();
+      }
       const dialog = el("dialog", "bc-victory", "battle-over");
       /*
        * Le titre porte le VERDICT, la phrase le DÉTAIL — motif que le cas « match nul » visait déjà

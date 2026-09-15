@@ -208,6 +208,17 @@ export class BattleEngine {
   private battleOver = false;
   /** Verdict de fin retardé, révisable tant que la résolution court (plan 191). */
   private pendingBattleEnd: { winnerId: string | null } | null = null;
+  /**
+   * Les camps déjà annoncés éliminés (plan 210, lot D1), pour ne les annoncer qu'une fois.
+   *
+   * Un camp y entre aussi quand il ABANDONNE, sans être annoncé : `PlayerForfeited` le dit déjà, et
+   * le journal n'a pas à ajouter « éliminé » derrière « quitte la partie ».
+   *
+   * Un camp en SORT s'il redevient vivant — Vœu Soin, là où la réanimation d'un camp rayé reste
+   * permise (en local, décision #1047). Il sera donc réannoncé s'il retombe : l'annonce décrit ce
+   * qui vient d'arriver, pas un statut définitif.
+   */
+  private readonly announcedEliminations = new Set<string>();
   /** Garde-fou de l'invariant « au plus un `BattleEnded` par combat » (plan 191). */
   private battleEndEmitted = false;
   /** Le move en cours de résolution porte un auto-K.O. → les court-circuits le laissent passer. */
@@ -1230,6 +1241,7 @@ export class BattleEngine {
     // Frontière de résolution (plan 191) : le verdict de fin, resté révisable pendant toute la
     // résolution, est émis ici. `applyAction` est son unique appelant, donc c'est le seul endroit à
     // brancher — et les `handleKo` des effets de fin de tour vivent dans son arbre d'appel.
+    this.finalizeEliminations(result.events);
     this.finalizeBattleEnd(result.events);
     // Le drapeau est propre à une résolution : sans cette remise à zéro, un move à auto-K.O. rendrait
     // les court-circuits permissifs pour toutes les actions suivantes.
@@ -1281,6 +1293,9 @@ export class BattleEngine {
       return { success: false, events: [], error: ActionError.InvalidAction };
     }
 
+    // Le camp qui part n'est pas « éliminé » : `PlayerForfeited` le dit, et une seconde ligne de
+    // journal derrière « quitte la partie » n'apprendrait rien.
+    this.announcedEliminations.add(playerId);
     const events: BattleEvent[] = [];
     // En TÊTE, avant les K.O. qu'il entraîne : ce qui observe le flux doit pouvoir les qualifier
     // d'abandon au lieu de les compter comme des dégâts (la télémétrie s'en sert exactement ainsi).
@@ -1319,6 +1334,7 @@ export class BattleEngine {
 
     // Frontière de résolution (plan 191), comme `submitAction` : le verdict resté révisable pendant
     // les cascades est émis ici, une fois.
+    this.finalizeEliminations(events);
     this.finalizeBattleEnd(events);
     return { success: true, events };
   }
@@ -3965,6 +3981,47 @@ export class BattleEngine {
     }
     this.battleOver = true;
     this.pendingBattleEnd = { winnerId };
+  }
+
+  /**
+   * Annonce les camps qui viennent de perdre leur dernier Pokemon (plan 210, lot D1).
+   *
+   * 🔴 **À la frontière de la résolution, et pas dans `checkVictory`**, pour la même raison que le
+   * verdict (plan 191) : `checkVictory` tourne depuis `handleKo`, donc au MILIEU d'une résolution
+   * qu'un effet ultérieur peut encore renverser. Annoncer là, c'était dire « tu as perdu » à un camp
+   * que Vœu Soin ramène trois lignes plus loin — et démentir ensuite. Ici, tout ce qui pouvait
+   * arriver pendant la résolution est arrivé.
+   *
+   * 🔴 **Toujours appelé AVANT `finalizeBattleEnd`**, aux deux frontières : le dernier camp tombé et
+   * le vainqueur sont décidés au même instant, et un ordre inversé ferait annoncer une défaite après
+   * la fin du combat.
+   *
+   * L'ordre des annonces suit l'ordre d'insertion de `state.pokemon`, identique sur tous les pairs
+   * puisque l'état est construit par le même appel : les journaux des douze machines concordent.
+   */
+  private finalizeEliminations(events: BattleEvent[]): void {
+    const standing = new Set<string>();
+    const camps = new Set<string>();
+    for (const pokemon of this.state.pokemon.values()) {
+      camps.add(pokemon.playerId);
+      if (pokemon.currentHp > 0) {
+        standing.add(pokemon.playerId);
+      }
+    }
+    for (const playerId of this.announcedEliminations) {
+      if (standing.has(playerId)) {
+        this.announcedEliminations.delete(playerId);
+      }
+    }
+    for (const playerId of camps) {
+      if (standing.has(playerId) || this.announcedEliminations.has(playerId)) {
+        continue;
+      }
+      this.announcedEliminations.add(playerId);
+      const eliminatedEvent: BattleEvent = { type: BattleEventType.PlayerEliminated, playerId };
+      this.emit(eliminatedEvent);
+      events.push(eliminatedEvent);
+    }
   }
 
   /**

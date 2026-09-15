@@ -253,6 +253,7 @@ function setup(
     activateFocusedMenuItem: () => false,
     scrollTimeline: () => undefined,
     showVictory: () => undefined,
+    showEliminated: () => undefined,
   };
 
   const orchestrator = new BattleOrchestrator(

@@ -15,6 +15,10 @@ const fr: Translations = {
   "battle.drawMessage": "Double K.O. — personne ne l'emporte !",
   "battle.restart": "Rejouer",
   "battle.backToMenu": "Retour au menu",
+  "battle.eliminated": "Vous êtes éliminé",
+  "battle.eliminatedMessage":
+    "La partie continue sans vous. Regardez-la jusqu'au bout, ou retournez au menu.",
+  "battle.keepWatching": "Continuer à regarder",
   "battle.summaryTurns": "{count} tours",
   "battle.summaryTurnsOne": "1 tour",
   "battle.summaryDurationMinutes": "{minutes} min {seconds}",
@@ -999,6 +1003,7 @@ const fr: Translations = {
   "battleLog.playerForfeited.disconnected": "Le Joueur {player} a perdu la connexion.",
   "battleLog.playerForfeited.desynced":
     "Le Joueur {player} quitte la partie — les parties ne concordent plus.",
+  "battleLog.playerEliminated": "Le Joueur {player} est éliminé.",
   "battleLog.typeChanged.becomes": "{name} devient de type {typeLabel} !",
   "battleLog.typeChanged.burnUp": "{name} perd son type Feu !",
   "battleLog.typeChanged.typeSeparator": " / ",

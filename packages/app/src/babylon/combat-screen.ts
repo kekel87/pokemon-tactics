@@ -743,6 +743,18 @@ function runBattle(options: {
       // Après l'ouverture, pour que la règle voie la modale qui vient d'apparaître.
       refreshCombatMenuButton();
     },
+    showEliminated: () => {
+      // Un menu ouvert par-dessous resterait accessible derrière la modale.
+      combatMenu.close();
+      /*
+       * Rafraîchi à la FERMETURE (revue du plan 210, Major 2). Pendant que la modale est ouverte, le
+       * passage du tour distant (`locked` → `watching`) rafraîchit le bouton et le GRISE, puisqu'une
+       * modale est là. Sans rappel à la fermeture, « Continuer à regarder » le laissait grisé jusqu'à
+       * l'action distante suivante — tout un chronomètre de tour, et au doigt c'est le seul accès à
+       * « Quitter ».
+       */
+      chrome.showEliminated(refreshCombatMenuButton);
+    },
   };
   const orchestrator = new BattleOrchestrator(
     battle.engine,
@@ -813,7 +825,33 @@ function runBattle(options: {
   // drive a real board cursor, and the routing between the board and the DOM menu comes from the
   // orchestrator's phase instead of each listener guessing from `event.key`.
   const unregisterInput = inputSystem?.register({
-    context: () => orchestrator.inputContext(),
+    /*
+     * Une modale ouverte présente le contexte `menu`, quelle que soit la phase (plan 210, passe
+     * multi-entrée mesurée).
+     *
+     * 🔴 Sans ça, le dialogue « Vous êtes éliminé » était SOURD au clavier et à la manette. Il apparaît
+     * pendant `waiting_remote`, donc en contexte `watching`, qui ne laisse passer que la vue (caméra,
+     * zoom, journal) et s'arrête avant les flèches, A et Échap — et en `locked` dès qu'une action
+     * distante s'anime, qui coupe tout. Mesuré : quatre pressions de flèche comme de D-pad, le focus
+     * n'a jamais quitté « Continuer à regarder ». Au pad, sans `Tab`, le joueur ne pouvait JAMAIS
+     * quitter, et le menu de combat refuse de s'ouvrir tant qu'une modale est là.
+     *
+     * La victoire n'a jamais eu ce défaut parce que `battle_over` est classé `menu` en dur
+     * (`INPUT_CONTEXT_BY_PHASE`), pour la même raison. Le régler ici plutôt que phase par phase couvre
+     * toute modale qui s'ouvrirait hors d'une phase `menu`. Les gestes de vue restent servis : le
+     * routeur les traite avant la navigation, en `menu` comme en `watching` — le spectateur garde sa
+     * caméra. Et `view-core` n'apprend rien du DOM : c'est l'écran qui sait qu'une modale est ouverte.
+     */
+    /*
+     * Effet assumé, et à connaître : la modale lève aussi `locked`. Pendant qu'une action distante
+     * s'anime derrière le dialogue, la caméra, le zoom et le journal répondent, et A peut activer
+     * « Retour au menu ». Sans risque : le recentrage de la caméra n'a lieu qu'au début d'un tour, et
+     * la souris pouvait déjà cliquer ce bouton pendant une animation.
+     *
+     * Et c'est ce qui rend `board.cancel` aveugle aux modales : il n'est plus jamais atteint pendant
+     * qu'une modale est ouverte, d'où la disparition de son ancien garde `isModalOpen()`.
+     */
+    context: () => (isModalOpen() ? "menu" : orchestrator.inputContext()),
     board: {
       moveCursor: (direction) => {
         // Ordre explicite, du plus spécifique au plus général (retour humain 2026-08-21) :
@@ -851,12 +889,6 @@ function runBattle(options: {
         // The open facing picker gets first refusal, then the phase cancel — the explicit
         // arbitration that replaced `combat-scene.ts`'s `stopImmediatePropagation()`.
         if (combat.cancelDirectionPicker()) {
-          return true;
-        }
-        // Même garde que côté menu : une modale ouverte possède `Échap` (aujourd'hui la victoire est
-        // en contexte `menu`, donc ce chemin ne la voit pas — le garde est là pour que ça reste vrai
-        // si une phase de plateau venait à coexister avec une modale).
-        if (isModalOpen()) {
           return true;
         }
         // Rien à annuler (plateau au repos) → `Échap` ouvre le menu de combat (plan 187 décision 7).

@@ -404,6 +404,23 @@ export interface BattleChrome {
    * récapitulatif affiché sous lui (plan 197) — effectif du vainqueur, tours, durée.
    */
   showVictory(winnerId: string | null, summary: BattleOutcomeSummary): void;
+  /**
+   * Le camp de CE joueur vient de tomber, et la partie continue sans lui (plan 210, lot D2).
+   *
+   * Deux issues, et aucune troisième : « Continuer à regarder » ferme le dialogue — le combat se
+   * poursuit derrière, et le joueur n'a plus aucun Pokemon à qui l'ordonnanceur rendrait la main —
+   * ou « Retour au menu ». Ne se ferme ni par Échap ni par un clic à côté : l'une des deux issues
+   * quitte la partie, ça ne se choisit pas par accident.
+   *
+   * N'est appelé qu'EN LIGNE. En hot-seat l'écran est partagé, et offrir « Retour au menu » à
+   * l'éliminé lui donnerait le pouvoir d'emporter la partie des autres (décision #1046).
+   *
+   * `onClosed` est appelé une fois, quand le dialogue se ferme, QUEL QUE SOIT ce qui l'a fermé — un
+   * de ses deux boutons, ou la victoire qui le referme en arrivant. L'écran s'en sert pour
+   * rafraîchir le bouton du menu de combat, qu'un changement de contexte a grisé pendant que la
+   * modale était ouverte (revue du plan 210, Major 2).
+   */
+  showEliminated(onClosed?: () => void): void;
 }
 
 /** Feedback port. 7b: no-op + console.debug; engine billboards (text) + DOM log land at 4c. */

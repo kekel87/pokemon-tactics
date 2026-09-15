@@ -45,6 +45,23 @@ export interface BattleState {
   /** Current Echoed Voice crescendo step (1..5); ramps while the team chains Echoed Voice. */
   echoStreak?: number;
   /**
+   * Vœu Soin peut-il ramener le dernier mort d'un camp entièrement à terre ? (plan 210, lot D0)
+   *
+   * 🔴 **Porté par l'état, et pas par le constructeur du moteur, à dessein.** `BattleEngine` a déjà
+   * dix paramètres positionnels ; un onzième booléen serait illisible, et passer à un objet
+   * d'options refondrait tous les appelants. Ici, le gestionnaire d'effet lit `context.state` et
+   * n'a rien d'autre à recevoir — et l'option entre dans la somme de contrôle du réseau, donc les
+   * pairs restent d'accord sans un mot de protocole en plus.
+   *
+   * 🔴 **`packages/core` ne sait pas ce qu'est « en ligne », et ne doit pas l'apprendre.** Ce champ
+   * parle de camps vaincus, jamais de réseau. C'est l'application qui le pose : faux en ligne, vrai
+   * en local (décision #1047, arbitrage humain — « en multi local, ça peut être marrant »).
+   *
+   * Défaut `undefined`, lu comme **vrai** : c'est le comportement historique, et le seul chemin qui
+   * a besoin de le restreindre est le combat en ligne, qui le pose explicitement.
+   */
+  reviveDefeatedCamps?: boolean;
+  /**
    * Move id of the most recently executed move by ANY Pokemon on the field (Photocopie / copycat).
    * Records the move actually executed — never a metamove (a call-move source is filtered out).
    */

@@ -15,6 +15,10 @@ const en: Translations = {
   "battle.drawMessage": "Double KO — nobody wins!",
   "battle.restart": "Restart",
   "battle.backToMenu": "Back to menu",
+  "battle.eliminated": "You have been eliminated",
+  "battle.eliminatedMessage":
+    "The battle goes on without you. Watch it to the end, or head back to the menu.",
+  "battle.keepWatching": "Keep watching",
   "battle.summaryTurns": "{count} turns",
   "battle.summaryTurnsOne": "1 turn",
   "battle.summaryDurationMinutes": "{minutes} min {seconds}",
@@ -995,6 +999,7 @@ const en: Translations = {
   "battleLog.playerForfeited.disconnected": "Player {player} lost connection.",
   "battleLog.playerForfeited.desynced":
     "Player {player} left the battle — the games no longer agree.",
+  "battleLog.playerEliminated": "Player {player} has been eliminated.",
   "battleLog.typeChanged.becomes": "{name} became {typeLabel}-type!",
   "battleLog.typeChanged.burnUp": "{name} burned out its Fire type!",
   "battleLog.typeChanged.typeSeparator": "/",

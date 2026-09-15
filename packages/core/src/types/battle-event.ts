@@ -115,6 +115,14 @@ export type BattleEvent =
        */
       reason?: ForfeitReason;
     }
+  /**
+   * Un camp vient de perdre son dernier Pokemon au combat (plan 210, lot D1).
+   *
+   * Émis à la frontière de la résolution, comme le verdict de victoire, et TOUJOURS avant lui : un
+   * camp réanimé avant la frontière n'est jamais annoncé, et le dernier camp tombé l'est avant que
+   * le vainqueur ne soit proclamé.
+   */
+  | { type: typeof BattleEventType.PlayerEliminated; playerId: string }
   | {
       type: typeof BattleEventType.PokemonRevived;
       pokemonId: string;

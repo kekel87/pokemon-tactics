@@ -135,6 +135,14 @@ export interface BattleSetupConfig {
   statSpreadOverrides?: Record<string, StatSpread>;
   moveOverrides?: Record<string, readonly string[]>;
   abilityOverrides?: Record<string, string>;
+  /**
+   * Vœu Soin peut-il ramener le dernier mort d'un camp entièrement à terre ? (plan 210, lot D0)
+   *
+   * Omis → **vrai**, le comportement historique. Le combat **en ligne** le pose à `false` : là-bas,
+   * le camp ressuscité a peut-être déjà quitté le salon, et sa place redeviendrait vivante sans
+   * personne pour la jouer. En local l'humain le garde ouvert (décision #1047).
+   */
+  reviveDefeatedCamps?: boolean;
 }
 
 function loadGameData() {
@@ -256,6 +264,7 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
     fieldGlobalZones: [],
     entryHazards: [],
     pendingStrikes: [],
+    reviveDefeatedCamps: config.reviveDefeatedCamps ?? true,
   };
 
   const turnPipeline = new TurnPipeline();

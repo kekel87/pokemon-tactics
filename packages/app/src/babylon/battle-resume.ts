@@ -47,6 +47,20 @@ export function buildBattle(inputs: BattleInputs, map: MapDefinition): BattleSet
     placements: inputs.placements,
     seed: inputs.seed,
     creationRng: createPrng(inputs.seed),
+    /*
+     * Vœu Soin ne ramène pas un camp entièrement à terre quand la partie est EN LIGNE (plan 210,
+     * lot D0, décision #1047) : là-bas le camp ressuscité a peut-être déjà quitté le salon, et sa
+     * place redeviendrait vivante sans personne pour la jouer. En local l'humain le garde ouvert.
+     *
+     * 🔴 Dérivé ICI, dans le chemin que la partie vive et la reprise PARTAGENT — c'est ce que
+     * promet l'en-tête de cette fonction, et c'est structurel : une reprise qui reconstruirait le
+     * combat avec l'autre règle divergerait de la partie qu'elle prétend restaurer, et en ligne
+     * cette divergence se paierait en forfait sur la somme de contrôle.
+     *
+     * `localSeat` est le drapeau « partie en ligne », salon vivant ou non — même invariant que
+     * `localPlayerIds` côté écran (décision #1038), et il vient de la même source.
+     */
+    reviveDefeatedCamps: inputs.setup.localSeat === undefined,
     ...buildTeamOverrides({ teams: inputs.setup.teams }),
   });
 }

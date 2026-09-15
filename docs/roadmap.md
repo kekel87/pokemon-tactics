@@ -44,9 +44,11 @@ Pour l'ouvrir : `node scripts/memory/query.mjs --open <entité>`. Ci-dessous l'e
 > rendez-vous tiers (C4), la migration d'hôte (C5). Il **renverse** la décision #944 (« le 1v1 seul en
 > ligne »). Le maillage à 6 et 12 camps a été mesuré et tient (`docs/multiplayer.md` § 3+ joueurs) : la
 > release de la Phase 7 **n'a plus de bloquant nommé**.
-> **Le plan 210 est cadré** (2026-09-15, `docs/plans/210-joueur-elimine-et-mode-spectateur.md`, statut
-> `ready`) : le joueur éliminé en ligne pourra choisir de retourner au menu ou de continuer à regarder
-> en spectateur. **Ne bloque pas la release** (décision #1040). Voir entité
+> **Le plan 210 est livré** (2026-09-15, `docs/plans/210-joueur-elimine-et-mode-spectateur.md`, statut
+> `done`) : en ligne, le joueur dont le dernier Pokemon tombe voit un dialogue à deux issues —
+> retourner au menu, ou continuer à regarder en mode spectateur, caméra libre. En local (hot-seat),
+> une ligne de journal suffit. Un camp entièrement à terre ne peut plus être réanimé par Vœu Soin en
+> ligne (`NETWORK_VERSION` 7 → 8). **Ne bloquait pas la release** (décision #1040). Voir entité
 > `agenda-prochaine-etape-courante`.
 > Les autres sections ci-dessous sont ouvertes, dans un ordre qui n'est pas figé.
 

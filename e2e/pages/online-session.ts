@@ -171,7 +171,7 @@ export interface OnlineSessionOptions {
 }
 
 /** Clé du magasin d'équipes de l'app (`packages/app/src/team/team-storage.ts`). */
-const TEAMS_STORAGE_KEY = "pokemon-tactics:teams";
+export const TEAMS_STORAGE_KEY = "pokemon-tactics:teams";
 
 export class OnlineSession {
   private roomCode = "";

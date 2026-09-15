@@ -101,6 +101,7 @@ import type {
   TurnOwner,
 } from "@pokemon-tactic/render-ports";
 import { buildOutcomeSummary } from "./battle-outcome-summary.js";
+import { shouldAnnounceLocalElimination } from "./local-elimination";
 
 export type {
   ActionMenuView,
@@ -2077,6 +2078,15 @@ export class BattleOrchestrator {
       if (ended && ended.type === BattleEventType.BattleEnded) {
         this.enterBattleOver(ended.winnerId);
         return;
+      }
+      /*
+       * Plan 210, lot D2 : APRÈS `applyEvents`, donc après que la chute du dernier Pokemon ait été
+       * jouée en entier — le joueur doit la voir avant qu'on lui dise ce qu'elle signifie. Puis la
+       * file continue : le combat se poursuit derrière le dialogue, c'est ce que « Continuer à
+       * regarder » promet.
+       */
+      if (shouldAnnounceLocalElimination(events, this.config.localPlayerIds)) {
+        this.chrome.showEliminated();
       }
       next();
     });
