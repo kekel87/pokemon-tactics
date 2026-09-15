@@ -241,24 +241,25 @@ test("§11.8 en ligne : deux cartes qui diffèrent d'une case, et les deux joueu
      * (#943), donc le constat n'est jamais une accusation.
      */
     for (const peer of [session.host, session.guest]) {
-      /*
-       * `toBeAttached` et non `toBeVisible`, comme partout où ce projet juge une ligne de journal :
-       * le panneau naît REPLIÉ (`data-collapsed`), et à cet instant la modale de fin de partie rend
-       * de toute façon inerte tout ce qui est derrière elle — le joueur déplie son journal quand il
-       * veut relire. Ce qui est vérifiable ici est que la ligne existe et qu'elle DIT la cause.
-       */
-      await expect(peer.divergence.first()).toBeAttached({ timeout: 30_000 });
-      await expect(peer.divergence.first()).toContainText(/^Le Joueur \d quitte la partie —/);
       // Et la partie s'arrête : le constat n'est pas un avertissement, c'est une fin de partie.
       await expect(peer.battleOver).toBeVisible({ timeout: 30_000 });
-    }
+      await expect(peer.divergence.first()).toBeAttached({ timeout: 30_000 });
+      await expect(peer.divergence.first()).toContainText("Partie interrompue");
 
-    /*
-     * Le verdict n'est PAS asserté, et c'est un choix : les deux pairs prononcent leur constat au
-     * même instant et se le diffusent, donc chacun applique deux forfaits — l'issue dépend de l'ordre
-     * d'arrivée. Ce que le lot promet est que l'écart soit **lisible**, pas qu'il désigne un
-     * gagnant (le plan est explicite : constat et forfait, rien de plus).
-     */
+      /*
+       * 🔴 LE VERDICT EST DÉSORMAIS ASSERTÉ, ET C'EST LE CŒUR DU SCÉNARIO (2026-09-15).
+       *
+       * Il ne l'était pas, faute de pouvoir l'être : les deux pairs prononçaient leur constat au
+       * même instant et se le diffusaient, donc chacun faisait forfaire l'AUTRE et **les deux se
+       * déclaraient vainqueurs de la même partie**. Le test ne pouvait que constater que l'écart
+       * était lisible, en laissant l'issue à l'ordre d'arrivée des messages.
+       *
+       * Sur une désync accidentelle personne n'a tort (#943), donc personne ne gagne : les deux
+       * pairs lisent « Partie interrompue », aucun ne lit « gagne ». L'ordre d'arrivée n'entre plus
+       * dans le résultat — d'où une assertion là où il n'y avait qu'un commentaire.
+       */
+      await expect(peer.victory).toHaveCount(0);
+    }
   } finally {
     await session.close();
   }

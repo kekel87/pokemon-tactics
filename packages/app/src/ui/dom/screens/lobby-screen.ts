@@ -124,7 +124,27 @@ export function createLobbyScreen(navigate: Navigate): Screen<"lobby"> {
     joining = active;
     if (joinButton) {
       joinButton.disabled = active;
-      joinButton.textContent = active ? t("lobby.connecting") : t("lobby.join");
+      /*
+       * 🔴 `replaceChildren` et non `textContent` : le libellé seul ne suffisait pas (retour de
+       * recette du plan 207, tranché le 2026-09-15). La mise en relation passe par un annuaire, donc
+       * un refus — code introuvable, salon plein — met environ SIX SECONDES à s'afficher. Un bouton
+       * grisé portant « Connexion… » est un écran fixe pendant six secondes : rien ne dit que le jeu
+       * travaille encore, et c'est le tout premier contact d'un joueur invité. Le spinner est la
+       * seule chose qui BOUGE pendant ce temps.
+       *
+       * `aria-hidden` sur le disque et `aria-busy` sur le bouton : le mouvement est décoratif, l'état
+       * d'occupation est ce qu'un lecteur d'écran doit entendre — et le libellé le dit déjà.
+       */
+      joinButton.ariaBusy = active ? "true" : "false";
+      if (active) {
+        const spinner = el("span", "lb-join-spinner", "lobby-join-spinner");
+        spinner.ariaHidden = "true";
+        const label = el("span");
+        label.textContent = t("lobby.connecting");
+        joinButton.replaceChildren(spinner, label);
+      } else {
+        joinButton.replaceChildren(t("lobby.join"));
+      }
     }
     if (pasteButton) {
       pasteButton.disabled = active;

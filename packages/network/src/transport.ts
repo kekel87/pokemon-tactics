@@ -78,10 +78,19 @@ export interface NetworkTransport {
    * @throws NetworkTransportError `code_introuvable` si personne n'est à cette adresse,
    * `connexion_impossible` si la traversée de pare-feu échoue, `delai_depasse` sinon.
    */
-  connect(peerId: string): Promise<NetworkChannel>;
+  connect(peerId: string, options?: { timeoutMs?: number }): Promise<NetworkChannel>;
   /** Les canaux entrants. Le maillage veut que tout le monde accepte tout le monde. */
   onIncoming(listener: (channel: NetworkChannel) => void): () => void;
-  destroy(): void;
+  /**
+   * Rend l'identifiant et coupe tout.
+   *
+   * `abandon: true` quand la mise en relation a ÉCHOUÉ, donc qu'il n'y a rien à faire partir : la
+   * temporisation de vidange est alors sautée et l'adresse rendue tout de suite. Voir
+   * `TEARDOWN_DRAIN_MS` — elle existe pour laisser sortir un `bye`, et une tentative qui n'a jamais
+   * abouti n'en a aucun à envoyer. Sans ce drapeau, elle retient notre propre adresse une demi-
+   * seconde de plus, et un joueur qui réessaie dans cette fenêtre entre en collision AVEC LUI-MÊME.
+   */
+  destroy(options?: { abandon?: boolean }): void;
 }
 
 /**
@@ -131,6 +140,40 @@ export const REJOIN_RETRY_DELAYS_MS = [500, 1_500, 3_000, 5_000, 5_000] as const
 
 /** Au-delà, on considère que l'annuaire ou le pair ne répondra pas. */
 export const CONNECT_TIMEOUT_MS = 15_000;
+
+/**
+ * Le budget réduit qu'on accorde à un code que LE REGISTRE DIT INCONNU (2026-09-15).
+ *
+ * 🔴 Il existe parce que l'annuaire public de PeerJS ne tient pas sa promesse de refus. Mesuré à la
+ * recette, sur la même adresse et à quelques centaines de millisecondes d'écart :
+ *
+ * | Tentative | Réponse de l'annuaire à un `OFFER` vers une adresse absente |
+ * |---|---|
+ * | une fois sur deux | `EXPIRE` en **~25 ms** — refus net, on annonce « ce code n'existe pas » |
+ * | l'autre fois | **rien du tout** — sa file de messages en attente est déjà armée pour cette cible |
+ *
+ * Quand il se tait, seul `CONNECT_TIMEOUT_MS` tranche : le joueur attend **15 s** puis lit « Plus de
+ * réponse. Réessayez. », qui est FAUX — le code n'existe toujours pas. Et « Réessayer » est le bouton
+ * principal de la modale, donc il recommence.
+ *
+ * 🔴 8 s, ET C'EST UN COMPROMIS ASSUMÉ, pas un optimum. Il arbitre entre deux torts :
+ *
+ * - **trop long** : le joueur qui recopie mal un code attend pour rien, une fois sur deux. C'est le
+ *   cas ÉCRASANT en pratique, et 15 s y était jugé « beaucoup trop » à la recette ;
+ * - **trop court** : un salon qui existe VRAIMENT sans être inscrit au registre se verrait annoncer
+ *   « ce code n'existe pas ». Ça demande que le registre soit tombé pour l'hôte puis revenu pour
+ *   l'invité — rare, mais pas impossible, et l'ouverture WebRTC via TURN sur mobile dépasse
+ *   facilement 3 s.
+ *
+ * 8 s couvre confortablement une ouverture lente tout en divisant l'attente par deux. Le premier
+ * arbitrage avait retenu 3 s ; l'humain l'a relevé à 8 s le 2026-09-15, après que la revue de code a
+ * montré que la garantie affichée pour le mode dégradé n'en était pas une (voir `Room.join`).
+ *
+ * Le filet qui rend ce compromis tenable est ailleurs : on ne réécrit la cause en `code_introuvable`
+ * que si AUCUN canal ne s'est jamais ouvert. Un salon joignable dont la présentation traîne garde
+ * donc sa vraie cause, quel que soit ce budget.
+ */
+export const UNKNOWN_CODE_CONNECT_TIMEOUT_MS = 8_000;
 
 /**
  * Prend une adresse dont on **s'attend à être le titulaire** : l'hôte qui crée son salon, ou celui

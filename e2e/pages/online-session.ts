@@ -55,9 +55,15 @@ export class OnlinePeer {
    */
   readonly battleOver: Locator;
   /**
-   * Le constat de divergence, tel que le joueur le LIT (plan 203, Lot B4) : la ligne de journal du
-   * forfait `EtatDivergent`, propre à cette raison depuis la recette du plan 202 (une phrase par
-   * raison, donc « quitte la partie » nu ne la désigne plus).
+   * Le constat de divergence, tel que le joueur le LIT — **le verdict de la modale de fin**, depuis
+   * le 2026-09-15.
+   *
+   * 🔴 Il visait la ligne de JOURNAL du forfait `EtatDivergent` (plan 203, Lot B4). Cette ligne
+   * n'existe plus en duel : un duel divergent ne prononce plus aucun forfait — il ARRÊTE la partie
+   * sans résultat, parce que le faire forfaire des deux côtés faisait de chaque pair un vainqueur.
+   * Rien ne passe donc plus par le moteur, et le journal ne s'alimente que d'événements du moteur.
+   * L'explication est désormais portée par la modale, qui la met devant le joueur au lieu de
+   * l'écrire dans un panneau replié.
    *
    * Vide est la seule valeur acceptable sur une partie honnête — c'est l'assertion du lot, et elle
    * porte le risque dominant : une empreinte qui diverge sans raison met fin à un vrai combat par un
@@ -91,7 +97,7 @@ export class OnlinePeer {
     this.wait = page.getByRole("button", { name: "Attendre", exact: true });
     this.victory = page.getByRole("dialog").filter({ hasText: /gagne/ });
     this.battleOver = page.getByTestId("battle-over");
-    this.divergence = this.logEntries.filter({ hasText: "les parties ne concordent plus" });
+    this.divergence = this.battleOver.filter({ hasText: "les parties ne concordent plus" });
     this.anyForfeit = this.logEntries.filter({
       hasText: /quitte la partie|abandonne la partie|a perdu la connexion/,
     });

@@ -43,6 +43,7 @@ import {
   type NetworkChannel,
   NetworkTransportError,
   REJOIN_RETRY_DELAYS_MS,
+  UNKNOWN_CODE_CONNECT_TIMEOUT_MS,
 } from "./transport.js";
 
 /**
@@ -297,10 +298,33 @@ export class Room {
      */
     let hostingSeat = HOST_SEAT;
     let hostingEpoch = 0;
+    /*
+     * 🔴 Le registre a-t-il RÉPONDU que ce code est inconnu ? Trois issues, et il faut les trois —
+     * les confondre est ce qui faisait mentir l'écran de refus (2026-09-15).
+     *
+     * - il répond et nomme une place  → on la suit ;
+     * - il répond « personne »        → `registryReportedUnknown`, voir plus bas ;
+     * - il est INJOIGNABLE (il jette) → on ne sait rien, comportement d'avant le plan 209.
+     *
+     * ⚠️ LA TROISIÈME AIDE LE MODE DÉGRADÉ, ELLE NE LE GARANTIT PAS — formulation corrigée en revue
+     * de code, la première affirmait une sûreté qu'elle n'a pas. Elle couvre le cas où la panne dure
+     * autant que la partie : l'invité tombe alors sur la même panne que l'hôte, donc dans cette
+     * branche-ci. Elle ne couvre PAS une panne qui se TERMINE entre les deux — `Room.create` avale
+     * l'échec d'inscription et garde le salon, donc la partie survit à la panne quand l'inscription,
+     * elle, n'a jamais eu lieu. Le registre répond alors « personne » sur un salon bien vivant.
+     *
+     * Ce qui rend le risque acceptable n'est donc pas cette branche, c'est le garde plus bas : on ne
+     * réécrit la cause que si AUCUN canal ne s'est ouvert. Un hôte joignable reste joignable ; au
+     * pire on lui accorde `UNKNOWN_CODE_CONNECT_TIMEOUT_MS` au lieu du budget plein, ce que ses 8 s
+     * couvrent largement. Risque résiduel assumé, arbitré par l'humain le 2026-09-15.
+     */
+    let registryReportedUnknown = false;
     if (deps.rendezvous !== undefined) {
       try {
         const known = await deps.rendezvous.lookup(code);
-        if (known !== null) {
+        if (known === null) {
+          registryReportedUnknown = true;
+        } else {
           hostingSeat = known.seat;
           hostingEpoch = known.epoch;
         }
@@ -315,9 +339,41 @@ export class Room {
     room.listenIncoming();
 
     try {
-      await room.handshakeWithHost();
+      await room.handshakeWithHost(
+        registryReportedUnknown ? UNKNOWN_CODE_CONNECT_TIMEOUT_MS : undefined,
+      );
     } catch (error) {
-      room.leave();
+      room.leave({ abandon: true });
+      /*
+       * 🔴 ON NE RÉPÈTE PAS « PLUS DE RÉPONSE » QUAND ON SAIT MIEUX.
+       *
+       * L'annuaire public de PeerJS ne refuse proprement qu'une fois sur deux (voir
+       * `UNKNOWN_CODE_CONNECT_TIMEOUT_MS`) : l'autre fois il se tait, le minuteur tranche, et
+       * `delai_depasse` remonte — soit « Plus de réponse. Réessayez. » à l'écran. C'est FAUX, et
+       * c'est la pire des formulations : elle envoie le joueur réessayer un code qui n'existe pas,
+       * et elle fait passer un code mal recopié pour une panne de réseau.
+       *
+       * Le registre, lui, a répondu, et il a dit que personne ne tient ce code. On le croit. Les
+       * autres causes passent telles quelles : une version incompatible ou un salon plein sont des
+       * réponses du VRAI hôte, elles ne se réécrivent pas.
+       */
+      if (
+        registryReportedUnknown &&
+        // 🔴 SEULEMENT si aucun canal ne s'est jamais ouvert. Relevé en revue de code : le `try`
+        // couvre TOUT `handshakeWithHost`, or `waitForWelcome` et `waitForFirstRoomState` rejettent
+        // eux aussi `delai_depasse`. Un canal ouvert PROUVE que quelqu'un tient l'adresse ; annoncer
+        // « ce code n'existe pas » parce que sa présentation traîne serait le mensonge symétrique de
+        // celui qu'on répare, et cette fois sur un salon qui existe vraiment.
+        !room.hostChannelOpened &&
+        error instanceof NetworkTransportError
+      ) {
+        if (
+          error.code === NetworkErrorCode.DelaiDepasse ||
+          error.code === NetworkErrorCode.ConnexionImpossible
+        ) {
+          throw new NetworkTransportError(NetworkErrorCode.CodeIntrouvable, error.message);
+        }
+      }
       throw error;
     }
     return room;
@@ -440,7 +496,9 @@ export class Room {
     try {
       await room.handshakeWithHost();
     } catch (error) {
-      room.leave();
+      // Même raison qu'à `join` : une reprise qui n'aboutit pas doit rendre sa place TOUT DE SUITE,
+      // sinon c'est elle que la tentative suivante trouvera occupée.
+      room.leave({ abandon: true });
       throw error;
     }
     return room;
@@ -942,7 +1000,7 @@ export class Room {
   }
 
   /** Départ volontaire. Le `bye` part **avant** la fermeture : c'est lui qui vaut le délai court. */
-  leave(): void {
+  leave(options?: { abandon?: boolean }): void {
     if (this.left) {
       return;
     }
@@ -963,7 +1021,23 @@ export class Room {
     // Ça coupe aussi le minuteur — `settle` le fait — donc pas de `clearTimeout` ici : les deux sont
     // posés d'un seul geste par `waitForStartAcks` et n'ont aucun moyen d'être désynchronisés.
     this.pendingLaunch?.settle(false);
-    this.deps.transport.destroy();
+    /*
+     * `abandon` remonte jusqu'au transport, qui rend alors son adresse SANS temporisation de vidange
+     * (2026-09-15). Le `bye` diffusé juste au-dessus n'a donc plus le temps de sortir. En échange,
+     * l'adresse est libre tout de suite pour le « Réessayer » qui suit — sans quoi le joueur entre en
+     * collision avec sa propre tentative précédente (decision-1064).
+     *
+     * Les deux appelants le demandent pour des raisons DIFFÉRENTES, et l'arbitrage n'est pas le même :
+     *
+     * - `join` : l'écrasante majorité des échecs est un `connect` qui n'aboutit jamais, donc aucun
+     *   `bye` n'avait de destinataire. ⚠️ Nuance relevée en revue de code : un échec TARDIF (le
+     *   premier `room_state` qui expire après une présentation acceptée) laisse en revanche l'hôte
+     *   avec une place fantôme, qu'il ne rendra qu'au bout de `GRACE_AFTER_SILENCE_MS` (45 s) au lieu
+     *   de `GRACE_AFTER_CLEAN_CLOSE_MS` (10 s). Chemin étroit, coût borné, assumé.
+     * - `rejoin` : perdre le `bye` est ici un MIEUX, pas une concession. On ne veut surtout pas
+     *   annoncer un départ alors qu'on est en train de réessayer de revenir.
+     */
+    this.deps.transport.destroy(options);
     this.channels.clear();
     this.changeListeners.clear();
     this.errorListeners.clear();
@@ -1035,8 +1109,22 @@ export class Room {
    * L'invité se présente à l'hôte. C'est ici que se joue le refus de version : symétrique, avec un
    * message qui n'accuse personne (décision #900).
    */
-  private async handshakeWithHost(): Promise<void> {
-    const channel = await this.deps.transport.connect(peerIdForSeat(this.code, this.hostSeat));
+  /**
+   * Un canal vers l'hôte s'est-il ouvert au moins une fois ? Preuve que l'adresse est TENUE, et donc
+   * que le salon existe — indépendamment de ce qui échoue après (présentation, premier état).
+   */
+  private hostChannelOpened = false;
+
+  private async handshakeWithHost(connectTimeoutMs?: number): Promise<void> {
+    const channel = await this.deps.transport.connect(
+      peerIdForSeat(this.code, this.hostSeat),
+      connectTimeoutMs === undefined ? undefined : { timeoutMs: connectTimeoutMs },
+    );
+    /*
+     * 🔴 Le canal s'est OUVERT : quelqu'un est bel et bien à cette adresse, quoi qu'il arrive ensuite.
+     * `Room.join` s'en sert pour ne PAS réécrire la cause d'un échec tardif — voir là-bas.
+     */
+    this.hostChannelOpened = true;
     this.attachChannel(this.hostSeat, channel);
 
     const welcome = await this.waitForWelcome(channel);

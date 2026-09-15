@@ -13,6 +13,9 @@ const en: Translations = {
   "battle.wins": "{player} wins!",
   "battle.draw": "Draw",
   "battle.drawMessage": "Double KO — nobody wins!",
+  "battle.interrupted": "Game interrupted",
+  "battle.interruptedMessage":
+    "The games no longer agree. There is no way to tell which one is right, so it ends with no winner.",
   "battle.restart": "Restart",
   "battle.backToMenu": "Back to menu",
   "battle.eliminated": "You have been eliminated",

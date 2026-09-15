@@ -11,6 +11,13 @@ export class LobbyScreen {
   readonly title: Locator;
   readonly create: Locator;
   readonly join: Locator;
+  /**
+   * Le disque qui tourne DANS « Rejoindre » pendant la mise en relation (2026-09-15).
+   *
+   * Par testid et non par sa classe : `.claude/rules/e2e.md` bannit le localisateur CSS, et le
+   * disque n'a ni rôle ni texte à offrir — il est `aria-hidden`, le libellé disant déjà l'attente.
+   */
+  readonly joinSpinner: Locator;
   readonly paste: Locator;
   readonly back: Locator;
   readonly error: Locator;
@@ -30,6 +37,7 @@ export class LobbyScreen {
     this.title = page.getByRole("heading", { level: 1, name: "Jouer en ligne" });
     this.create = page.getByRole("button", { name: "Créer une partie", exact: true });
     this.join = page.getByTestId("lobby-join");
+    this.joinSpinner = page.getByTestId("lobby-join-spinner");
     this.paste = page.getByTestId("lobby-paste");
     // Par testid : cet écran est passé au patron « écran plein » au plan 207, donc son retour est
     // celui de l'en-tête PARTAGÉ (« ◀ Retour », en haut) et non plus le dernier bouton d'une pile

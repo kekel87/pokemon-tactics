@@ -57,8 +57,21 @@ import {
  * 9 → 10 dans le même lot, sur retour de revue de code : le `start` porte désormais `formatKey`. Un
  * pair d'avant ne l'émet pas, donc un pair d'après lirait un format vide et repartirait sur le repli
  * qu'on vient de fermer — exactement le silence que ce champ existe pour supprimer.
+ *
+ * 10 → 11 le 2026-09-15, et c'est le MÊME cas que 6 → 7 : aucun message ne change de forme, les
+ * RÈGLES DE LECTURE de `forfeit` changent. Un duel divergent ne prononce plus de forfait bilatéral —
+ * il ARRÊTE la partie sans vainqueur (decision-1060), à l'émission comme à la réception. Deux pairs
+ * de versions différentes se sépareraient donc ainsi : l'ancien reçoit `forfeit(place, diverged)`,
+ * l'applique, et **se déclare vainqueur** ; le nouveau lit « Partie interrompue ». Un seul des deux
+ * gagne, l'autre ne comprend pas — c'est le bug que ce lot éteint, réintroduit en version mixte.
+ *
+ * ⚠️ Aucun build publié n'est concerné, et l'incrément est fait quand même. `packages/network`
+ * n'existe pas dans v2026.8.2 (2026-08-28), la dernière release : le multijoueur n'a jamais été
+ * livré, donc personne ne parle la version 10 hors de nos builds locaux. On ne raisonne pas là-dessus
+ * — c'est précisément ce que la règle en tête de ce commentaire demande d'éviter, et l'incrément
+ * 7 → 8 a déjà été oublié une fois pour une raison de ce genre. Relevé en revue de code.
  */
-export const NETWORK_VERSION = 10;
+export const NETWORK_VERSION = 11;
 
 /**
  * Durée d'un tour en ligne (plan 202, Lot B3, décision #946).

@@ -312,6 +312,30 @@ export interface BattleOutcomeMember {
 }
 
 /**
+ * Comment la partie s'est terminée — le VERDICT, distinct du vainqueur (2026-09-15).
+ *
+ * `winnerId === null` ne suffisait plus à décrire la fin : il couvrait le seul match nul, et on a
+ * désormais deux façons de finir sans vainqueur qui ne se racontent pas pareil. Un double K.O. est
+ * une partie CONCLUE dont le résultat est nul ; une divergence est une partie qui n'a pas de
+ * résultat du tout. Les confondre ferait annoncer « Match nul » à deux joueurs dont les parties ont
+ * cessé de décrire le même combat — un verdict faux sur une partie qui n'en a pas.
+ */
+export const BattleOutcomeKind = {
+  /** Un camp l'emporte. `winnerId` le nomme. */
+  Decided: "decided",
+  /** Double K.O. : la partie est allée à son terme, personne ne l'emporte (plan 191). */
+  Draw: "draw",
+  /**
+   * La partie s'est ARRÊTÉE sans conclure — aujourd'hui la seule divergence d'état en 1v1, où aucun
+   * des deux pairs ne peut savoir lequel s'est écarté (#943). Ni vainqueur ni perdant : le jeu ne
+   * sait plus ce qui s'est passé, et le dire est la seule chose honnête qu'il lui reste à faire.
+   */
+  Interrupted: "interrupted",
+} as const;
+
+export type BattleOutcomeKind = (typeof BattleOutcomeKind)[keyof typeof BattleOutcomeKind];
+
+/**
  * Récapitulatif de fin de partie affiché sous le verdict (plan 197, Lot C de la Phase 7).
  *
  * Volontairement pauvre : ce que l'écran montre est ce qui se dérive de l'état de fin de partie sans
@@ -319,8 +343,14 @@ export interface BattleOutcomeMember {
  */
 export interface BattleOutcomeSummary {
   /**
-   * Effectif du camp vainqueur, ordre d'itération de l'état. **Vide sur un match nul** : il n'y a pas
-   * d'équipe à mettre en avant, et la dialog n'affiche alors aucune rangée de portraits.
+   * Le verdict. C'est LUI qui décide du titre affiché, jamais `winnerId === null` — voir
+   * `BattleOutcomeKind`.
+   */
+  readonly kind: BattleOutcomeKind;
+  /**
+   * Effectif du camp vainqueur, ordre d'itération de l'état. **Vide sans vainqueur** (match nul ou
+   * partie interrompue) : il n'y a pas d'équipe à mettre en avant, et la dialog n'affiche alors
+   * aucune rangée de portraits.
    */
   readonly winnerTeam: readonly BattleOutcomeMember[];
   /** Tours joués — l'horloge d'actions du moteur, immunisée à la reprise (elle est réincrémentée par le rejeu). */

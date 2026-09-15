@@ -93,6 +93,7 @@ export type OnlineBattleOrchestrator = Pick<
   BattleOrchestrator,
   | "submitRemoteAction"
   | "applyForfeit"
+  | "interruptBattle"
   | "isBattleOver"
   | "actionsSince"
   | "currentActorPlayerId"
@@ -449,6 +450,29 @@ export function createWiring(
   };
 
   /**
+   * Un DUEL divergent : deux témoins encore en lice, et c'est l'un d'eux qui sort.
+   *
+   * Les deux moitiés comptent. « Deux témoins » parce que la question « qui s'est écarté ? » n'a de
+   * réponse qu'à partir de trois (#943, #1026) — le format complet peut compter des places IA, elles
+   * ne votent pas et ne changent rien. « Un des deux » parce qu'une place IA éliminée est un
+   * événement de jeu ordinaire, à appliquer comme tel : l'interruption ne vaut que pour la sortie
+   * d'un témoin.
+   *
+   * 🔴 ELLE SE DÉRIVE DE `votingSeats()`, EXACTEMENT COMME LE CONSTAT QUI L'ÉMET, et c'est la seule
+   * façon que les deux moitiés parlent du même duel. Relevé en revue de code : la première version
+   * comptait `humanPlayerIds`, c'est-à-dire les humains DU FORMAT, forfaits compris, là où
+   * `evaluateDigests` compte les humains encore EN LICE. À trois humains dont un déjà éliminé par le
+   * chien de garde du silence, l'émetteur voyait deux témoins et interrompait, le receveur en voyait
+   * trois et appliquait le forfait — donc son moteur concluait, et s'il ne restait que lui, IL
+   * GAGNAIT. Un pair lisait « Partie interrompue », l'autre « gagne » : le défaut même que ce lot
+   * éteint, déplacé d'un cran.
+   */
+  const isDivergentDuelSeat = (seat: number): boolean => {
+    const temoins = votingSeats();
+    return temoins.length === 2 && temoins.includes(seat);
+  };
+
+  /**
    * Éliminer une place, par le seul chemin qui existe (plan 201, réutilisé par le Lot B3).
    *
    * 🔴 **On le DIT avant de l'appliquer.** Un pair absent peut revenir, et un pair divergent peut ne
@@ -556,14 +580,43 @@ export function createWiring(
        * La règle d'égalité (#1026) ne vaut que là où une majorité est POSSIBLE — à trois camps et
        * plus. Ici personne ne peut dire qui s'est écarté, donc chacun prononce le même constat au
        * même instant et la partie s'arrête des deux côtés.
+       *
+       * 🔴 CE QUE LE CONSTAT PRONONCE A CHANGÉ LE 2026-09-15, arbitrage humain à l'inventaire
+       * d'avant-release. Il faisait forfaire la place de l'AUTRE, symétriquement des deux côtés :
+       * rien ne cassait (le moteur refuse le second forfait), mais le résultat OBSERVABLE était que
+       * chaque pair se déclarait VAINQUEUR. Deux joueurs gagnaient la même partie. Sur une désync
+       * accidentelle personne n'a tort (#943) — donc personne ne gagne non plus : la partie
+       * s'arrête sans résultat, par `interruptBattle`, et les deux voient « Partie interrompue ».
+       *
+       * Conséquence à connaître en lisant la télémétrie, et c'est un MIEUX : `forfeit-diverged` ne
+       * monte plus ici. Un incident de duel gonflait ce compteur de DEUX unités, une par pair, pour
+       * des forfaits qui n'éliminaient personne. Seul `checksum-mismatch` compte désormais le duel
+       * divergent.
+       *
+       * ⚠️ Et il le compte **une fois par pair qui a DÉTECTÉ**, pas une fois par incident — corrigé
+       * en revue de code, où le commentaire promettait « toujours deux ». Quand les deux pairs voient
+       * la divergence, l'incident vaut 2 ; quand un seul la voit et que l'autre apprend la nouvelle
+       * par le fil, il vaut 1 — la branche de réception ne compte rien. À savoir avant d'en tirer un
+       * taux.
        */
+      if (attached === null) {
+        // Fail-fast AVANT de muter quoi que ce soit, comme `forfeitSeat` : poser le constat et
+        // envoyer le forfait sans pouvoir arrêter NOTRE partie arrêterait celle du pair, pas la
+        // nôtre. Relevé en revue de code.
+        return;
+      }
       divergencePronounced = true;
       countAction(TelemetryAction.ChecksumMismatch);
-      for (const seat of seats) {
-        if (seat !== localSeat) {
-          forfeitSeat(seat, NetworkForfeitReason.EtatDivergent, TelemetryAction.ForfeitDiverged);
-        }
-      }
+      clearSilenceWatchdog();
+      clearAllNotices();
+      /*
+       * On prévient quand même le pair : notre moteur tranche pour nous, mais si l'autre n'a pas
+       * encore vu la divergence (il lui manque notre somme de contrôle), il doit savoir pourquoi la
+       * partie cesse. Le message reste un forfait sur le FIL — le protocole n'a pas d'autre verbe et
+       * `NETWORK_VERSION` ne bouge pas pour ça —, c'est sa TRADUCTION à l'écran qui change.
+       */
+      room.sendForfeit(localSeat, NetworkForfeitReason.EtatDivergent);
+      attached.interruptBattle();
       return;
     }
     if (largest === undefined || runnerUp === undefined || largest.length === runnerUp.length) {
@@ -881,6 +934,27 @@ export function createWiring(
       const unsubscribeForfeit = room.onForfeit((message) => {
         const playerId = playerIdForSeat(allPlayerIds, message.forfeitedSeat);
         if (playerId === undefined) {
+          return;
+        }
+        /*
+         * 🔴 SYMÉTRIQUE DU CONSTAT DE DIVERGENCE EN DUEL (2026-09-15) — et sans ça, le correctif ne
+         * ferait que changer de camp le joueur qui gagne à tort. L'émetteur, lui, s'interrompt ; si
+         * le receveur appliquait ce forfait, son moteur conclurait « l'adversaire abandonne », donc
+         * « j'ai gagné ». Le duel divergent doit s'arrêter SANS résultat des deux côtés, quel que
+         * soit celui qui a vu la divergence le premier.
+         *
+         * Borné au DUEL exprès : à trois camps et plus, un forfait pour divergence désigne le
+         * MINORITAIRE (#1026), son élimination est légitime et la partie continue entre les autres.
+         * C'est seulement à deux témoins que « qui s'est écarté ? » n'a pas de réponse (#943).
+         */
+        if (
+          message.reason === NetworkForfeitReason.EtatDivergent &&
+          isDivergentDuelSeat(message.forfeitedSeat)
+        ) {
+          divergencePronounced = true;
+          clearSilenceWatchdog();
+          clearAllNotices();
+          orchestrator.interruptBattle();
           return;
         }
         /*

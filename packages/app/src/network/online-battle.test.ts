@@ -219,10 +219,12 @@ function fakeOrchestrator(): {
   received: { seat: number; playerId: string; actionIndex: number }[];
   forfeited: string[];
   emitted: number;
+  /** Combien de fois la partie a été ARRÊTÉE sans résultat (divergence en duel). */
+  interrupted: number;
 } {
   const received: { seat: number; playerId: string; actionIndex: number }[] = [];
   const forfeited: string[] = [];
-  const counters = { emitted: 0 };
+  const counters = { emitted: 0, interrupted: 0 };
   return {
     orchestrator: {
       submitRemoteAction: (envelope) => {
@@ -237,6 +239,10 @@ function fakeOrchestrator(): {
         forfeited.push(playerId);
         return true;
       },
+      interruptBattle: () => {
+        counters.interrupted += 1;
+        return true;
+      },
       isBattleOver: () => false,
       actionsSince: () => [],
       currentActorPlayerId: () => null,
@@ -249,6 +255,9 @@ function fakeOrchestrator(): {
     forfeited,
     get emitted() {
       return counters.emitted;
+    },
+    get interrupted() {
+      return counters.interrupted;
     },
   };
 }
@@ -365,14 +374,56 @@ describe("createWiring — élimination", () => {
   it("applique un constat qui NOUS désigne — c'est ainsi qu'on apprend qu'on est éliminé", () => {
     const { room, orchestrator } = wired();
 
+    /*
+     * Cause `absent`, et le choix compte depuis le 2026-09-15 : `diverged` visant une place humaine
+     * d'un DUEL a désormais un sens à part — il interrompt la partie au lieu d'éliminer (voir le
+     * test dédié plus bas). Ce test-ci porte sur le chemin GÉNÉRIQUE de la décision D5, il lui faut
+     * donc une cause qui reste générique.
+     */
     room.emitForfeit({
       type: "forfeit",
       seat: 2,
       forfeitedSeat: 1,
-      reason: NetworkForfeitReason.EtatDivergent,
+      reason: NetworkForfeitReason.Absent,
     });
 
     expect(orchestrator.forfeited).toEqual(["player-1"]);
+  });
+
+  it("ARRÊTE le duel sans résultat quand le constat de divergence vient du pair", () => {
+    const { room, orchestrator } = wired();
+
+    /*
+     * 🔴 La moitié RÉCEPTION du correctif du 2026-09-15, et sans elle il n'aurait fait que changer
+     * de camp le joueur qui gagne à tort : si on appliquait ce forfait, notre moteur conclurait
+     * « l'adversaire abandonne », donc « j'ai gagné ». Le duel divergent doit s'arrêter sans
+     * résultat des deux côtés, quel que soit celui qui a vu la divergence le premier.
+     */
+    room.emitForfeit({
+      type: "forfeit",
+      seat: 2,
+      forfeitedSeat: 2,
+      reason: NetworkForfeitReason.EtatDivergent,
+    });
+
+    expect(orchestrator.interrupted).toBe(1);
+    expect(orchestrator.forfeited).toEqual([]);
+  });
+
+  it("élimine normalement une place IA, même sur une cause de divergence", () => {
+    const { room, orchestrator } = wired();
+
+    // L'interruption ne vaut que pour la sortie d'un des deux TÉMOINS : une place IA qui tombe est
+    // un événement de jeu ordinaire, la partie continue.
+    room.emitForfeit({
+      type: "forfeit",
+      seat: 2,
+      forfeitedSeat: 3,
+      reason: NetworkForfeitReason.EtatDivergent,
+    });
+
+    expect(orchestrator.forfeited).toEqual(["player-3"]);
+    expect(orchestrator.interrupted).toBe(0);
   });
 
   it("ignore un constat désignant une place hors du format", () => {
@@ -959,12 +1010,18 @@ describe("createWiring — somme de contrôle d'état (plan 203, Lot B4)", () =>
     wiring: ReturnType<typeof createWiring>;
     room: ReturnType<typeof fakeRoom>;
     forfeited: string[];
+    interruptions: () => number;
   } {
     const room = fakeRoom();
-    const { orchestrator, forfeited } = fakeOrchestrator();
+    const fake = fakeOrchestrator();
     const wiring = createWiring(room.room, "player-2", PLAYERS, ["player-1", "player-2"]);
-    wiring.attach(orchestrator, new AbortController().signal);
-    return { wiring, room, forfeited };
+    wiring.attach(fake.orchestrator, new AbortController().signal);
+    return {
+      wiring,
+      room,
+      forfeited: fake.forfeited,
+      interruptions: () => fake.interrupted,
+    };
   }
 
   /** Trois camps humains : places 1, 2 et 3 — nous sommes la 2. */
@@ -972,17 +1029,75 @@ describe("createWiring — somme de contrôle d'état (plan 203, Lot B4)", () =>
     wiring: ReturnType<typeof createWiring>;
     room: ReturnType<typeof fakeRoom>;
     forfeited: string[];
+    interruptions: () => number;
+    orchestrator: ReturnType<typeof fakeOrchestrator>;
   } {
     const room = fakeRoom();
-    const { orchestrator, forfeited } = fakeOrchestrator();
+    const fake = fakeOrchestrator();
     const wiring = createWiring(room.room, "player-2", PLAYERS, [
       "player-1",
       "player-2",
       "player-3",
     ]);
-    wiring.attach(orchestrator, new AbortController().signal);
-    return { wiring, room, forfeited };
+    wiring.attach(fake.orchestrator, new AbortController().signal);
+    return {
+      wiring,
+      room,
+      forfeited: fake.forfeited,
+      interruptions: () => fake.interrupted,
+      orchestrator: fake,
+    };
   }
+
+  /*
+   * 🔴 RÉGRESSION RELEVÉE EN REVUE DE CODE (Major 2), et aucun harnais ne la couvrait : `attachedWiring`
+   * a deux humains, `trioWiring` en a trois dont AUCUN n'est éliminé. Le trou est entre les deux.
+   *
+   * Les deux moitiés du correctif doivent parler du même duel. L'émission compte `votingSeats()` —
+   * les humains encore EN LICE — ; la réception comptait `humanPlayerIds`, les humains DU FORMAT,
+   * forfaits compris. À trois humains dont un déjà éliminé, l'émetteur voyait donc deux témoins et
+   * interrompait, quand le receveur en voyait trois et appliquait le forfait : son moteur concluait,
+   * et s'il ne restait que lui, IL GAGNAIT. Un pair lisait « Partie interrompue », l'autre « gagne ».
+   */
+  it("🔴 un trio dont une place est DÉJÀ sortie est un duel — des deux côtés", () => {
+    const { room, orchestrator } = trioWiring();
+
+    // La place 3 s'en va pour de bon : il ne reste que deux témoins, donc un duel.
+    room.emitForfeit({
+      type: "forfeit",
+      seat: 1,
+      forfeitedSeat: 3,
+      reason: NetworkForfeitReason.Absent,
+    });
+    expect(orchestrator.forfeited).toEqual(["player-3"]);
+
+    // Le pair restant constate la divergence et nous l'annonce : on doit S'ARRÊTER, pas gagner.
+    room.emitForfeit({
+      type: "forfeit",
+      seat: 1,
+      forfeitedSeat: 1,
+      reason: NetworkForfeitReason.EtatDivergent,
+    });
+
+    expect(orchestrator.interrupted).toBe(1);
+    expect(orchestrator.forfeited).toEqual(["player-3"]);
+  });
+
+  it("à trois camps TOUS en lice, un constat de divergence reçu élimine bien la place visée", () => {
+    const { room, orchestrator } = trioWiring();
+
+    // Le pendant du test précédent : tant qu'il reste trois témoins, une majorité est possible, le
+    // minoritaire est identifiable, et son élimination est légitime (#1026). Pas d'interruption.
+    room.emitForfeit({
+      type: "forfeit",
+      seat: 1,
+      forfeitedSeat: 3,
+      reason: NetworkForfeitReason.EtatDivergent,
+    });
+
+    expect(orchestrator.forfeited).toEqual(["player-3"]);
+    expect(orchestrator.interrupted).toBe(0);
+  });
 
   it("à trois camps, accuse le minoritaire et pas celui qui n'est pas d'accord avec nous", () => {
     const { wiring, room, forfeited } = trioWiring();
@@ -1073,26 +1188,33 @@ describe("createWiring — somme de contrôle d'état (plan 203, Lot B4)", () =>
     expect(room.sentForfeits).toEqual([]);
   });
 
-  it("forfeits the diverged seat when the digests differ at the same anchor", () => {
-    const { wiring, room, forfeited } = attachedWiring();
+  it("ARRÊTE le duel sans résultat quand les empreintes diffèrent au même point", () => {
+    const { wiring, room, forfeited, interruptions } = attachedWiring();
 
     wiring.reportChecksum(4, DIGEST_MINE);
     room.emitChecksum(1, 4, DIGEST_THEIRS);
 
-    // Le camp éliminé est le pair divergent : notre moteur est le seul juge dont on dispose. Ce
-    // n'est pas une accusation — l'autre prononce le même constat au même instant (#943).
-    expect(forfeited).toEqual(["player-1"]);
-    expect(room.sentForfeits).toEqual([{ forfeitedSeat: 1, reason: "diverged" }]);
+    /*
+     * 🔴 Régression 2026-09-15 : ce constat éliminait la place de l'AUTRE, symétriquement des deux
+     * côtés — donc chaque pair se déclarait VAINQUEUR de la même partie. Sur une désync accidentelle
+     * personne n'a tort (#943), donc personne ne gagne : la partie s'arrête sans résultat.
+     */
+    expect(interruptions()).toBe(1);
+    expect(forfeited).toEqual([]);
+    // On prévient quand même le pair, au cas où il n'ait pas encore vu la divergence — en annonçant
+    // NOTRE place, pas la sienne : on cesse de jouer, on n'accuse personne.
+    expect(room.sentForfeits).toEqual([{ forfeitedSeat: 2, reason: "diverged" }]);
   });
 
   it("catches a divergence whichever side arrives first", () => {
     // Un pair peut être une action en avance : son empreinte arrive AVANT qu'on atteigne l'index.
-    const { wiring, room, forfeited } = attachedWiring();
+    const { wiring, room, forfeited, interruptions } = attachedWiring();
 
     room.emitChecksum(1, 4, DIGEST_THEIRS);
     wiring.reportChecksum(4, DIGEST_MINE);
 
-    expect(forfeited).toEqual(["player-1"]);
+    expect(interruptions()).toBe(1);
+    expect(forfeited).toEqual([]);
   });
 
   it("never compares two different anchors — that would be a guaranteed false positive", () => {
@@ -1174,7 +1296,8 @@ describe("createWiring — les correctifs de la revue du Lot B4", () => {
     room.emitChecksum(1, 4, DIGEST_THEIRS);
     room.emitChecksum(1, 4, DIGEST_THEIRS);
 
-    expect(room.sentForfeits).toEqual([{ forfeitedSeat: 1, reason: "diverged" }]);
-    expect(orchestrator.forfeited).toEqual(["player-1"]);
+    expect(room.sentForfeits).toEqual([{ forfeitedSeat: 2, reason: "diverged" }]);
+    expect(orchestrator.interrupted).toBe(1);
+    expect(orchestrator.forfeited).toEqual([]);
   });
 });

@@ -21,6 +21,9 @@ const SPECS = [
   "e2e/tests/dom/online-lobby.spec.ts",
   "e2e/tests/dom/online-resilience.spec.ts",
   "e2e/tests/dom/online-determinism.spec.ts",
+  // Famille `online` ET famille `input` : c'est le seul spec des deux, donc le seul qui puisse
+  // manquer à `INPUT_SPEC_NAMES` sans vider une famille (le défaut que `selectionDefects` garde).
+  "e2e/tests/dom/online-watching-cursor.spec.ts",
   "e2e/tests/dom/gamepad-menus.spec.ts",
   "e2e/tests/dom/gamepad-pickers.spec.ts",
   "e2e/tests/dom/screen-keyboard.spec.ts",
@@ -75,6 +78,7 @@ describe("specsByFamily — le détail qui rend une famille muette visible", () 
       "e2e/tests/dom/online-lobby.spec.ts",
       "e2e/tests/dom/online-resilience.spec.ts",
       "e2e/tests/dom/online-determinism.spec.ts",
+      "e2e/tests/dom/online-watching-cursor.spec.ts",
     ]);
     expect(byFamily.get("tour")).toHaveLength(2);
   });
@@ -109,6 +113,7 @@ describe("decide — niveaux et périmètre", () => {
       "e2e/tests/dom/online-determinism.spec.ts",
       "e2e/tests/dom/online-lobby.spec.ts",
       "e2e/tests/dom/online-resilience.spec.ts",
+      "e2e/tests/dom/online-watching-cursor.spec.ts",
       "e2e/tests/smoke/screen-tour.spec.ts",
       "e2e/tests/smoke/splash.spec.ts",
     ]);

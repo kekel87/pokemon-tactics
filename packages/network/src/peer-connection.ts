@@ -127,7 +127,7 @@ export class PeerJsTransport implements NetworkTransport {
     peer.on("connection", (connection) => this.acceptIncoming(connection));
   }
 
-  async connect(peerId: string): Promise<NetworkChannel> {
+  async connect(peerId: string, options?: { timeoutMs?: number }): Promise<NetworkChannel> {
     const peer = this.peer;
     if (this.destroyed || peer === undefined) {
       throw new NetworkTransportError(
@@ -139,7 +139,7 @@ export class PeerJsTransport implements NetworkTransport {
     // `reliable: true` demande un canal ordonné et retransmis : le protocole suppose qu'un
     // `room_state` arrive après le `welcome` qui le précède, et qu'un `start` n'est jamais perdu.
     const connection = peer.connect(peerId, { reliable: true });
-    await waitForConnectionOpen(peer, connection);
+    await waitForConnectionOpen(peer, connection, options?.timeoutMs);
 
     const channel = new PeerJsChannel(connection, () => this.channels.delete(channel));
     this.channels.add(channel);
@@ -172,7 +172,7 @@ export class PeerJsTransport implements NetworkTransport {
    * applicatif du départ, ce qui n'en vaut pas le prix pour un message dont la perte coûte 35 s
    * d'attente à un joueur qui est parti.
    */
-  destroy(): void {
+  destroy(options?: { abandon?: boolean }): void {
     if (this.destroyed) {
       return;
     }
@@ -185,6 +185,24 @@ export class PeerJsTransport implements NetworkTransport {
 
     const peer = this.peer;
     this.peer = undefined;
+    /*
+     * 🔴 UNE MISE EN RELATION RATÉE REND SON ADRESSE TOUT DE SUITE (2026-09-15, trouvé en recette).
+     *
+     * La vidange ci-dessus existe pour laisser sortir un dernier message — le `bye` d'un départ
+     * propre. Une tentative qui n'a jamais abouti n'en a aucun : attendre ne fait que garder NOTRE
+     * adresse occupée une demi-seconde de plus, et c'est nous-mêmes que ça gêne ensuite.
+     *
+     * Mesuré : un joueur qui saisit un code inexistant lit « Ce code ne correspond à aucune partie »
+     * en ~200 ms, appuie sur « Réessayer », et la seconde tentative trouve sa propre place encore
+     * prise. Elle se rabat sur la suivante, la demande vers l'hôte se perd dans le remue-ménage de
+     * sockets, l'annuaire n'envoie plus son `EXPIRE` — et le minuteur de 15 s tranche à sa place, en
+     * annonçant « Plus de réponse » là où la vérité était « ce code n'existe pas ». Une fois sur
+     * deux, avec 350 ms entre deux essais ; jamais avec 3 s.
+     */
+    if (options?.abandon === true) {
+      peer?.destroy();
+      return;
+    }
     setTimeout(() => peer?.destroy(), TEARDOWN_DRAIN_MS);
   }
 
@@ -295,13 +313,22 @@ function peerErrorConcerns(
  * ouverture, le pair pour l'échec, que la bibliothèque y émet et non sur la connexion — mais en
  * ne retenant que les échecs qui la concernent, voir {@link peerErrorConcerns}.
  */
-function waitForConnectionOpen(peer: Peer, connection: DataConnection): Promise<void> {
+function waitForConnectionOpen(
+  peer: Peer,
+  connection: DataConnection,
+  timeoutMs?: number,
+): Promise<void> {
   return new Promise((resolve, reject) => {
-    const settle = withGuard(resolve, reject, () => {
-      connection.off("open", onOpen);
-      connection.off("close", onClose);
-      peer.off("error", onPeerError);
-    });
+    const settle = withGuard(
+      resolve,
+      reject,
+      () => {
+        connection.off("open", onOpen);
+        connection.off("close", onClose);
+        peer.off("error", onPeerError);
+      },
+      timeoutMs,
+    );
 
     const onOpen = () => settle.resolve(undefined);
     const onClose = () =>
@@ -332,6 +359,7 @@ function withGuard(
   resolve: (value: undefined) => void,
   reject: (reason: unknown) => void,
   cleanup: () => void,
+  timeoutMs: number = CONNECT_TIMEOUT_MS,
 ): { resolve: (value: undefined) => void; reject: (reason: unknown) => void } {
   let settled = false;
 
@@ -347,7 +375,7 @@ function withGuard(
 
   const timer = setTimeout(() => {
     finish(() => reject(new NetworkTransportError(NetworkErrorCode.DelaiDepasse)));
-  }, CONNECT_TIMEOUT_MS);
+  }, timeoutMs);
 
   return {
     resolve: (value) => finish(() => resolve(value)),

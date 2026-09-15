@@ -194,6 +194,10 @@ export const INPUT_SPEC_NAMES = new Set([
   "e2e/tests/dom/gamepad-pickers.spec.ts",
   "e2e/tests/dom/screen-keyboard.spec.ts",
   "e2e/tests/dom/controls-remapping.spec.ts",
+  // Famille `online` par son préfixe, famille `input` par son sujet : c'est le seul spec qui garde
+  // ce que le contexte `watching` laisse passer des flèches et du D-pad (2026-09-15). Un changement
+  // de `packages/app/src/input/` ne rejouerait pas la famille en ligne sans cette ligne.
+  "e2e/tests/dom/online-watching-cursor.spec.ts",
 ]);
 
 const isMechanicsSpec = (spec: string) => spec.startsWith(`${COMBAT_GLOB}/mechanics-`);

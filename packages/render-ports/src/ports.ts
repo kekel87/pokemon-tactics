@@ -533,6 +533,19 @@ export interface BattleOrchestratorConfig {
    * file d'animation et **figerait le combat sans un mot** — voir `publishStateChecksum`.
    */
   onStateChecksumFailed?: (error: unknown) => void;
+  /**
+   * La partie s'est ARRÊTÉE sans conclure (2026-09-15) — `interruptBattle`, aujourd'hui la seule
+   * divergence d'état en duel.
+   *
+   * 🔴 Ce rappel existe parce que l'interruption ne passe PAS par le moteur, et que tout ce qui
+   * ferme une partie était accroché à son événement `BattleEnded` : la fin de télémétrie, l'effacement
+   * de la sauvegarde de reprise et la libération du salon en ligne. Sans lui, une partie interrompue
+   * affichait bien son verdict mais ne se refermait jamais — salon retenu, sauvegarde laissée, partie
+   * jamais comptée close. Défaut trouvé en relisant le chemin de fermeture, pas par un test.
+   *
+   * Facultatif au même titre que les autres : seul le vrai combat en ligne le passe.
+   */
+  onBattleInterrupted?: () => void;
 }
 
 /**

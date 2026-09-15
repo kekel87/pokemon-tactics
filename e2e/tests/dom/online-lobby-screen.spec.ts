@@ -80,6 +80,13 @@ test("§6.8 un code introuvable est refusé DANS le lobby, en modale, sans navig
 
   await lobby.typeCode(ORPHAN_CODE);
   expect(await lobby.readCode()).toBe(ORPHAN_CODE);
+
+  // Au repos, le bouton ne dit rien d'autre que ce qu'il fait : pas de disque, pas d'état occupé.
+  // Sans ce relevé AVANT le clic, un spinner resté monté en permanence passerait pour un succès.
+  await expect(lobby.join).toHaveText("Rejoindre");
+  await expect(lobby.joinSpinner).toHaveCount(0);
+  await expect(lobby.join).not.toHaveAttribute("aria-busy", "true");
+
   await lobby.join.click();
 
   /*
@@ -90,6 +97,17 @@ test("§6.8 un code introuvable est refusé DANS le lobby, en modale, sans navig
   await expect(lobby.join).toHaveText("Connexion…");
   await expect(lobby.join).toBeDisabled();
   await expect(lobby.paste).toBeDisabled();
+
+  /*
+   * 🔴 Et l'attente BOUGE (2026-09-15). Le libellé et le grisage ne changent plus pendant les six
+   * secondes que met un refus à revenir : un écran fixe aussi longtemps ne dit pas si le jeu
+   * travaille encore ou s'il a calé. Le disque est la seule chose qui tourne pendant ce temps.
+   *
+   * `aria-busy` est son pendant pour qui ne voit pas l'écran — le disque, lui, est `aria-hidden`,
+   * le libellé disant déjà l'attente. L'animation elle-même reste 👁 (pixel).
+   */
+  await expect(lobby.joinSpinner).toBeVisible();
+  await expect(lobby.join).toHaveAttribute("aria-busy", "true");
 
   // — Acte 1 : la modale, et le bouton « Réessayer » ————————————————————————————————————————————
   await expect(lobby.refusal).toBeVisible({ timeout: 30_000 });
@@ -110,9 +128,13 @@ test("§6.8 un code introuvable est refusé DANS le lobby, en modale, sans navig
   // mal entendu, il ne resaisit pas les cinq.
   expect(await lobby.readCode()).toBe(ORPHAN_CODE);
   await expect(lobby.codeSlots.first()).toBeFocused();
-  // Et « Rejoindre » a repris son libellé : pendant la tentative il disait « Connexion… ».
+  // Et « Rejoindre » a repris son libellé : pendant la tentative il disait « Connexion… ». Le disque
+  // est démonté avec lui — `replaceChildren` reconstruit le bouton, il n'est pas seulement caché —
+  // et le bouton n'est plus annoncé occupé.
   await expect(lobby.join).toHaveText("Rejoindre");
   await expect(lobby.join).toBeEnabled();
+  await expect(lobby.joinSpinner).toHaveCount(0);
+  await expect(lobby.join).toHaveAttribute("aria-busy", "false");
 
   // — Acte 2 : B referme la modale au lieu de quitter l'écran ————————————————————————————————————
   /*

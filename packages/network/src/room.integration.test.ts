@@ -1733,6 +1733,61 @@ describe("Room — migration d'hôte (plan 209, Lot C5)", () => {
     return { ...depsFor(directory), rendezvous: registry };
   }
 
+  /**
+   * Un transport dont la connexion sortante **ne répond jamais autre chose qu'un délai dépassé**.
+   *
+   * C'est le comportement mesuré de l'annuaire public de PeerJS une fois sur deux : sollicité pour
+   * une adresse absente, il envoie `EXPIRE` en ~25 ms… ou se tait, et seul le minuteur tranche. Le
+   * double du dépôt, lui, refuse TOUJOURS proprement — c'est pourquoi aucun test n'avait pu voir ce
+   * cas jusqu'ici (recette du 2026-09-15).
+   */
+  function transportMuet(base: RoomDeps): RoomDeps {
+    return {
+      ...base,
+      transport: {
+        ...base.transport,
+        // `base.transport` est une instance : le spread ne copie pas ses méthodes de prototype, donc
+        // on relie celles qu'on garde et on remplace la seule qui nous intéresse.
+        claim: (peerId: string) => base.transport.claim(peerId),
+        connect: () => Promise.reject(new NetworkTransportError(NetworkErrorCode.DelaiDepasse)),
+        onIncoming: (listener) => base.transport.onIncoming(listener),
+        destroy: (options) => base.transport.destroy(options),
+      },
+    };
+  }
+
+  it("🔴 un code que le REGISTRE dit inconnu s'annonce comme tel, même quand l'annuaire se tait", async () => {
+    /*
+     * La régression que ce test verrouille : quand l'annuaire ne refusait pas, le minuteur rendait
+     * `delai_depasse`, soit « Plus de réponse. Réessayez. » à l'écran — pour un code qui n'existe
+     * pas. Le joueur était envoyé réessayer, et un code mal recopié passait pour une panne réseau.
+     * Or le registre venait de répondre, et il avait dit que personne ne tient ce code.
+     */
+    const registre = fakeRendezvous();
+
+    await expect(Room.join(transportMuet(depsWith(registre)), ROOM_CODE)).rejects.toMatchObject({
+      code: NetworkErrorCode.CodeIntrouvable,
+    });
+  });
+
+  it("ne réécrit PAS la cause quand le registre est injoignable — là, on ne sait rien", async () => {
+    /*
+     * Le pendant du test précédent, et la garde du mode dégradé : un hôte qui a créé son salon
+     * pendant une panne du registre n'y est pas inscrit. Son invité tombe lui aussi sur la panne,
+     * donc dans cette branche — et il ne faut surtout pas lui annoncer « ce code n'existe pas » pour
+     * une partie qui, elle, existe.
+     */
+    const registreEnPanne: RoomRendezvousClient = {
+      claim: () => Promise.reject(new Error("registre injoignable")),
+      lookup: () => Promise.reject(new Error("registre injoignable")),
+      takeOver: () => Promise.reject(new Error("registre injoignable")),
+    };
+
+    await expect(
+      Room.join(transportMuet(depsWith(registreEnPanne)), ROOM_CODE),
+    ).rejects.toMatchObject({ code: NetworkErrorCode.DelaiDepasse });
+  });
+
   it("publie la place qui héberge à l'ouverture du salon", async () => {
     const registry = fakeRendezvous();
 

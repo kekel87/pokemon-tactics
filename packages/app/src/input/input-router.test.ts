@@ -257,12 +257,30 @@ describe("createInputRouter — contexte `watching`", () => {
     expect(board.calls).toEqual(["openCombatMenu"]);
   });
 
-  it("ne laisse toucher ni au curseur, ni au menu, ni à la confirmation", () => {
+  /*
+   * Régression 2026-09-15 : le curseur était coupé ici, ce qui rendait le plateau inspectable à la
+   * SOURIS (le survol repeint le panneau d'info pendant tout le tour distant) et pas au clavier ni
+   * à la manette — une asymétrie multi-entrée sur une attente qui monte à ~11 min à douze camps.
+   */
+  it("laisse déplacer le curseur pour inspecter le plateau, comme la souris le fait déjà", () => {
     const { router, board, menu } = setup("watching");
 
-    expect(router.handle(LogicalAction.CursorUp)).toBe(false);
+    expect(router.handle(LogicalAction.CursorUp)).toBe(true);
+    expect(router.handle(LogicalAction.CursorRight)).toBe(true);
+
+    expect(board.calls).toEqual(["moveCursor:up", "moveCursor:right"]);
+    // Le curseur va au PLATEAU, jamais au menu : une flèche pendant un tour distant ne doit pas
+    // déplacer un focus DOM.
+    expect(menu.calls).toEqual([]);
+  });
+
+  it("ne laisse toucher à aucun geste de jeu — la partie n'est pas à nous", () => {
+    const { router, board, menu } = setup("watching");
+
     expect(router.handle(LogicalAction.Confirm)).toBe(false);
     expect(router.handle(LogicalAction.Cancel)).toBe(false);
+    expect(router.handle(LogicalAction.CycleTargetNext)).toBe(false);
+    expect(router.handle(LogicalAction.CycleTargetPrevious)).toBe(false);
 
     expect(board.calls).toEqual([]);
     expect(menu.calls).toEqual([]);

@@ -20,6 +20,8 @@ import {
   type BattleChrome,
   BattleOrchestrator,
   type BattleOrchestratorConfig,
+  BattleOutcomeKind,
+  type BattleOutcomeSummary,
   type BoardHighlight,
   type BoardView,
   type DirectionPickerCallbacks,
@@ -122,6 +124,10 @@ interface Harness {
   actionMenuShownCount: number;
   state: BattleState;
   turnClockViews: (TurnClockView | null)[];
+  /** Les verdicts passés à `showVictory`, dans l'ordre. */
+  verdicts: { winnerId: string | null; kind: BattleOutcomeSummary["kind"] }[];
+  /** Combien de fois la partie s'est refermée par le chemin de l'interruption. */
+  interruptionClosures: () => number;
 }
 
 function setup(
@@ -145,6 +151,8 @@ function setup(
   const reportedEvents: { type: string }[] = [];
   const forfeited: string[] = [];
   const turnClockViews: (TurnClockView | null)[] = [];
+  const verdicts: { winnerId: string | null; kind: BattleOutcomeSummary["kind"] }[] = [];
+  const closures = { interrupted: 0 };
   const state = fakeState();
   let actionMenuShownCount = 0;
   const highlights: { kind: BoardHighlight; tiles: readonly Position[] }[] = [];
@@ -252,7 +260,9 @@ function setup(
     isMenuFocused: () => false,
     activateFocusedMenuItem: () => false,
     scrollTimeline: () => undefined,
-    showVictory: () => undefined,
+    showVictory: (winnerId: string | null, summary: BattleOutcomeSummary) => {
+      verdicts.push({ winnerId, kind: summary.kind });
+    },
     showEliminated: () => undefined,
   };
 
@@ -270,6 +280,9 @@ function setup(
       ...(options?.localPlayerIds === undefined ? {} : { localPlayerIds: options.localPlayerIds }),
       onLocalAction: (action, actionIndex) => localActions.push({ action, actionIndex }),
       onRemoteActionRejected: (rejection) => rejections.push(rejection),
+      onBattleInterrupted: () => {
+        closures.interrupted += 1;
+      },
       ...(options?.turnClock === undefined ? {} : { turnClock: options.turnClock }),
     },
     {
@@ -301,6 +314,8 @@ function setup(
     forfeited,
     state,
     turnClockViews,
+    verdicts,
+    interruptionClosures: () => closures.interrupted,
     get actionMenuShownCount() {
       return actionMenuShownCount;
     },
@@ -946,6 +961,51 @@ describe("BattleOrchestrator — le forfait passe par la file d'animation", () =
 
     expect(harness.orchestrator.applyForfeit("player-1")).toBe(false);
     expect(harness.reportedEvents).toEqual([]);
+  });
+});
+
+describe("BattleOrchestrator — la partie ARRÊTÉE sans conclure (2026-09-15)", () => {
+  it("annonce un verdict d'interruption, sans vainqueur et sans match nul", () => {
+    const harness = remoteHarness();
+
+    expect(harness.orchestrator.interruptBattle()).toBe(true);
+
+    expect(harness.verdicts).toEqual([{ winnerId: null, kind: BattleOutcomeKind.Interrupted }]);
+    expect(harness.orchestrator.isBattleOver()).toBe(true);
+  });
+
+  it("ne demande RIEN au moteur — c'est justement lui qu'on ne croit plus", () => {
+    const harness = remoteHarness();
+
+    harness.orchestrator.interruptBattle();
+
+    // Ni forfait, ni `battle_ended` : l'état de jeu a cessé d'être digne de confiance, lui faire
+    // prononcer un résultat de plus n'aurait aucun sens.
+    expect(harness.forfeited).toEqual([]);
+    expect(harness.reportedEvents.some((event) => event.type === "battle_ended")).toBe(false);
+  });
+
+  /*
+   * 🔴 Défaut trouvé en relisant le chemin de fermeture, avant tout test : TOUT ce qui referme une
+   * partie était accroché à l'événement `BattleEnded` du moteur — fin de télémétrie, effacement de
+   * la sauvegarde de reprise, libération du salon en ligne. L'interruption ne passant pas par le
+   * moteur, elle affichait son verdict et ne refermait rien.
+   */
+  it("referme bien la partie, alors qu'elle ne passe pas par le moteur", () => {
+    const harness = remoteHarness();
+
+    harness.orchestrator.interruptBattle();
+
+    expect(harness.interruptionClosures()).toBe(1);
+  });
+
+  it("ne prononce rien sur une partie déjà finie, et ne la referme pas deux fois", () => {
+    const harness = remoteHarness();
+    harness.orchestrator.interruptBattle();
+
+    expect(harness.orchestrator.interruptBattle()).toBe(false);
+    expect(harness.verdicts).toHaveLength(1);
+    expect(harness.interruptionClosures()).toBe(1);
   });
 });
 

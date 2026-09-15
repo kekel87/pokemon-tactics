@@ -34,6 +34,7 @@ import {
 } from "@pokemon-tactic/core";
 import { AnimationCategory, moveAnimationCategory } from "@pokemon-tactic/data";
 import {
+  BattleOutcomeKind,
   getTeamColorByPlayerId,
   type StateChecksumDeps,
   type TilePointerSource,
@@ -138,7 +139,7 @@ export type {
 // Ports + chrome/board view-models live in the renderer contract package (plan
 // 125). Re-exported here so existing importers keep resolving while the
 // orchestrator moves to `@pokemon-tactic/view-core` in a later phase.
-export { ConnectionNoticeKind } from "@pokemon-tactic/render-ports";
+export { BattleOutcomeKind, ConnectionNoticeKind } from "@pokemon-tactic/render-ports";
 
 /** Pacing between board-affecting events in the minimal loop (not a tween — a beat to follow the action). */
 const BATTLE_STEP_DELAY_MS = 180;
@@ -2580,7 +2581,33 @@ export class BattleOrchestrator {
     );
   }
 
-  private enterBattleOver(winnerId: string | null): void {
+  /**
+   * ARRÊTER la partie sans la conclure — ni vainqueur, ni perdant, ni match nul (2026-09-15).
+   *
+   * Le seul appelant est la divergence d'état en 1v1 (`online-battle.ts`). Distinct d'`applyForfeit`
+   * et c'est tout l'objet du changement : le forfait passe par le MOTEUR, qui produit un `BattleEnded`
+   * avec un vainqueur — donc, appliqué symétriquement des deux côtés, il faisait de CHAQUE pair un
+   * vainqueur. Ici rien n'est demandé au moteur : l'état de jeu a cessé d'être digne de confiance,
+   * c'est précisément ce qu'on vient de constater, et lui faire prononcer un résultat de plus
+   * n'aurait aucun sens.
+   *
+   * Renvoie false si la partie est déjà finie — un forfait, un K.O. ou une divergence déjà
+   * prononcée ont pu la conclure d'abord.
+   */
+  interruptBattle(): boolean {
+    if (this.disposed || this.inputState.phase === "battle_over") {
+      return false;
+    }
+    this.enterBattleOver(null, BattleOutcomeKind.Interrupted);
+    /*
+     * APRÈS l'écran, comme le fait le chemin du moteur : `onBattleClosed` libère le salon, et le
+     * dire avant couperait le canal dont l'annonce de divergence a encore besoin.
+     */
+    this.config.onBattleInterrupted?.();
+    return true;
+  }
+
+  private enterBattleOver(winnerId: string | null, kind?: BattleOutcomeKind): void {
     this.setInputState({ phase: "battle_over", winnerId });
     // Plus personne n'a de tour à jouer : le compteur doit disparaître, pas se figer sur un reste.
     this.stopTurnClock();
@@ -2601,6 +2628,7 @@ export class BattleOrchestrator {
       buildOutcomeSummary({
         state: this.state,
         winnerId,
+        ...(kind === undefined ? {} : { kind }),
         elapsedMs: this.config.getElapsedMs(),
       }),
     );

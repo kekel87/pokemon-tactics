@@ -902,6 +902,18 @@ function runBattle(options: {
       ...(onRemoteActionGap === undefined ? {} : { onRemoteActionGap }),
       ...(turnClock === undefined ? {} : { turnClock }),
       ...(stateChecksum === undefined ? {} : { stateChecksum }),
+      /*
+       * Une partie ARRÊTÉE sans conclure se referme exactement comme une partie finie (2026-09-15).
+       *
+       * Même corps que la branche `BattleEnded` de `feedback.report` ci-dessus, et c'est tout le
+       * sujet : l'interruption ne passe pas par le moteur, donc elle n'émet aucun `BattleEnded` —
+       * sans ce câblage, elle affichait son verdict mais ne refermait rien. Salon en ligne retenu,
+       * sauvegarde de reprise laissée en place, partie jamais comptée close en télémétrie.
+       */
+      onBattleInterrupted: () => {
+        endBattleTelemetry();
+        onBattleClosed?.();
+      },
       onActionCommitted,
       getElapsedMs,
     },
@@ -928,7 +940,10 @@ function runBattle(options: {
     // donc le curseur s'efface — le laisser sur le Pokemon du tour précédent affichait en plus sa
     // fiche en prévision, comme si on visait encore quelque chose (retour humain 2026-08-21).
     //
-    // `watching` s'y joint (plan 201) : la caméra y bouge, mais le curseur n'y vise rien.
+    // `watching` s'y joint (plan 201), mais pour la seule ENTRÉE dans le contexte : depuis le
+    // 2026-09-15 la flèche et le D-pad y redéplacent le curseur, pour que le clavier et la manette
+    // puissent inspecter le plateau pendant un tour distant comme la souris le fait déjà (voir
+    // input-router.ts). C'est bien le curseur PÉRIMÉ que ce nettoyage vise — pas l'inspection.
     if (context === "locked" || context === "watching") {
       combat.pinCursor(null);
       chrome.updateCursorPanel(null);

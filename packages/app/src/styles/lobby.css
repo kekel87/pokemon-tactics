@@ -129,6 +129,60 @@
     font-size: clamp(13px, 1.8vmin, 24px);
   }
 
+  /*
+   * Le disque qui tourne dans « Rejoindre » pendant la mise en relation (2026-09-15).
+   *
+   * Un refus met environ six secondes — le temps de l'annuaire de rendez-vous — et le bouton grisé
+   * portant « Connexion… » ne bougeait pas de tout ce temps. Le libellé dit ce qui se passe, ce
+   * disque dit que ça se passe ENCORE.
+   *
+   * 🔴 `box-sizing: border-box` EXPLICITE, ET C'EST TOUT LE SUJET. Sans lui le disque mesurait 18 px
+   * là où la ligne de texte en fait 15 : c'est alors LUI qui fixait la hauteur du contenu, et le
+   * bouton sautait de 26,5 px à 29,5 px au moment précis où le joueur venait de cliquer dessus.
+   *
+   * Le reset du projet ne peut pas aider ici : il ne pose `border-box` que sous `.tb-root` et
+   * `.tb-dialog` (`reset.css`), et l'écran de lobby n'est sous aucun des deux — ses éléments sont
+   * donc en `content-box`, où les 2 px de bordure du disque s'AJOUTENT à sa taille. Diagnostiqué au
+   * chrome-devtools en lisant `boxSizing` sur l'élément, après deux corrections d'unité qui
+   * traitaient le symptôme (`1em`, puis `1lh`) sans toucher la cause.
+   *
+   * `1lh` reste le bon calibre une fois la boîte correcte : il colle le disque EXACTEMENT à la boîte
+   * de ligne, donc il ne peut plus dépasser le texte qu'il accompagne, à n'importe quelle taille de
+   * police — là où un `em` aurait redérivé une taille voisine sans jamais l'égaler.
+   *
+   * ⚠️ Une première version de ce bloc déclarait aussi `display`, `align-items` et `justify-content`
+   * sur le bouton. La mesure a montré que `.mn-btn` est DÉJÀ `flex` et centré : il ne restait que le
+   * `gap` à poser. Même leçon que la media query inutile du plan 198 (`.claude/rules/multi-input.md`).
+   */
+  .lb-join-spinner {
+    box-sizing: border-box;
+    inline-size: 1lh;
+    block-size: 1lh;
+    flex: none;
+    border: 2px solid color-mix(in oklch, currentcolor 25%, transparent);
+    border-block-start-color: currentcolor;
+    border-radius: 50%;
+    animation: lb-join-spin 0.8s linear infinite;
+  }
+
+  .mn-btn:has(.lb-join-spinner) {
+    gap: 0.5em;
+  }
+
+  @keyframes lb-join-spin {
+    to {
+      transform: rotate(1turn);
+    }
+  }
+
+  /* Même traitement que l'aperçu de carte : le mouvement disparaît, le disque reste — il garde sa
+     place et continue de signaler l'attente, sans l'animer. */
+  @media (prefers-reduced-motion: reduce) {
+    .lb-join-spinner {
+      animation: none;
+    }
+  }
+
   /* 🔴 **Une seule colonne, à toutes les tailles** — tranché par l'humain le 2026-09-11.
 
      Le plan 207 prévoyait les deux panneaux côte à côte sur écran large ou court, et une grille de

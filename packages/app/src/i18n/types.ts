@@ -18,6 +18,8 @@ export interface Translations {
   "battle.wins": string;
   "battle.draw": string;
   "battle.drawMessage": string;
+  "battle.interrupted": string;
+  "battle.interruptedMessage": string;
   "battle.restart": string;
   "battle.backToMenu": string;
   "battle.eliminated": string;

@@ -178,21 +178,32 @@ export function createInputRouter(options: InputRouterOptions): InputRouter {
       }
 
       /*
-       * `watching` s'arrête ICI : le tour d'un autre joueur laisse regarder — caméra, zoom, journal,
-       * timeline, tout ce que `handleViewAction` vient de traiter — et rien de plus. Ni curseur, ni
-       * menu, ni `Confirmer` : la partie n'est pas à nous.
+       * `watching` — le tour d'un autre joueur — laisse REGARDER, et rien de plus : la vue que
+       * `handleViewAction` vient de traiter (caméra, zoom, journal, timeline) et le curseur de case
+       * juste en dessous. Jamais `Confirmer`, `Annuler`, le cycle de cible ni le menu : la partie
+       * n'est pas à nous.
        *
        * Distinct de `locked`, qui coupe tout : un tour distant dure le temps que l'autre réfléchit,
        * pas la seconde d'une animation, et immobiliser la caméra pendant ce temps rendait le combat
        * en ligne pénible (retour de recette, plan 201).
+       *
+       * 🔴 POURQUOI LE CURSEUR Y EST ADMIS (2026-09-15, inventaire d'avant-release). Le plan 201
+       * avait libéré la vue mais laissé le curseur coupé, ce qui créait une ASYMÉTRIE MULTI-ENTRÉE
+       * mesurée : `onTileHover` ne se bloque qu'en phase `animating`, donc à la SOURIS le survol
+       * repeint le panneau d'info pendant tout le tour distant — au clavier et à la manette, rien.
+       * Le joueur au pad ne pouvait pas inspecter le plateau pendant une attente qui monte à ~11 min
+       * à douze camps. Voir `.claude/rules/multi-input.md`.
+       *
+       * Ça ne contredit pas le grief de 2026-08-21 qui avait fait couper le curseur : celui-ci
+       * visait un curseur PÉRIMÉ, laissé sur le Pokemon du tour précédent et affichant sa fiche
+       * « comme si on visait encore quelque chose ». L'effacement à l'ENTRÉE du contexte reste en
+       * place (`onInputContextChanged`, combat-screen.ts) ; ce qui est rendu, c'est l'inspection
+       * ACTIVE, à la demande. Une flèche repart alors du point de vue de la caméra — le Pokemon qui
+       * joue — puisque `stepCursor` retombe sur `cameraFocusTile` quand le curseur est vide.
        */
-      if (activeContext === "watching") {
-        return false;
-      }
-
       const direction = CURSOR_ACTION_DIRECTION[action as keyof typeof CURSOR_ACTION_DIRECTION];
       if (direction !== undefined) {
-        if (activeContext === "board") {
+        if (activeContext === "board" || activeContext === "watching") {
           if (!boardConsumer) {
             return false;
           }
@@ -205,6 +216,11 @@ export function createInputRouter(options: InputRouterOptions): InputRouter {
         }
         menuConsumer.focusMove(direction);
         return true;
+      }
+
+      // Tout le reste est un geste de JEU : `watching` s'arrête ici.
+      if (activeContext === "watching") {
+        return false;
       }
 
       switch (action) {

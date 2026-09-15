@@ -17,6 +17,7 @@ import type {
   TurnInfoView,
   WeatherView,
 } from "@pokemon-tactic/view-core";
+import { BattleOutcomeKind } from "@pokemon-tactic/view-core";
 import type { ChromeInsetProbe } from "./chrome-insets.js";
 import type { UiDomConfig } from "./config.js";
 import { createConnectionNotice } from "./connection-notice.js";
@@ -575,14 +576,26 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
        * est la seule formulation honnête ici.
        */
       const heading = document.createElement("h2");
+      /*
+       * C'est `summary.kind` qui décide, plus `winnerId === null` (2026-09-15) : deux fins sans
+       * vainqueur se racontent différemment. Un double K.O. conclut la partie sur un nul ; une
+       * divergence d'état l'ARRÊTE sans résultat. Annoncer « Match nul » à deux joueurs dont les
+       * parties ont cessé de décrire le même combat serait un verdict inventé.
+       */
       heading.textContent =
         winnerId === null
-          ? config.translate("battle.draw")
+          ? config.translate(
+              summary.kind === BattleOutcomeKind.Interrupted ? "battle.interrupted" : "battle.draw",
+            )
           : config.translate("battle.wins", { player: playerLabel(winnerId, config) });
-      /* Le détail n'existe que pour le match nul ; sur une victoire il ferait doublon avec le titre. */
+      /* Le détail n'existe que sans vainqueur ; sur une victoire il ferait doublon avec le titre. */
       const message = winnerId === null ? el("p", "bc-victory-message") : null;
       if (message) {
-        message.textContent = config.translate("battle.drawMessage");
+        message.textContent = config.translate(
+          summary.kind === BattleOutcomeKind.Interrupted
+            ? "battle.interruptedMessage"
+            : "battle.drawMessage",
+        );
       }
       const replay =
         options.canReplay === false
