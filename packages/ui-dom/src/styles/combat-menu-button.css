@@ -46,6 +46,6 @@
   .cmb-glyph {
     line-height: 1;
     /* Aligné sur le corps du burger du journal et du glyphe de plein écran. */
-    font-size: calc(21.6px * var(--ui-scale));
+    font-size: var(--bl-header-glyph-size);
   }
 }

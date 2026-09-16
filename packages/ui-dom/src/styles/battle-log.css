@@ -75,25 +75,38 @@
        destinés à la scène (le journal et le bouton réactivent le pointeur pour eux-mêmes). */
     pointer-events: none;
 
+    /*
+     * Plancher de ces boutons carrés, TOUS POINTEURS CONFONDUS (2026-09-16).
+     *
+     * 🔴 Mesuré, pas supposé : `--ui-scale` vaut « largeur de la fenêtre ÷ 1280 », plafonné à 1.
+     * Toute fenêtre plus étroite que 1280px rétrécit donc ces boutons sans limite basse — 23,8px à
+     * 864 de large, 20,3px à 737, 16,5px à 600. Le plancher n'existait QUE sous `pointer: coarse` :
+     * à la souris, rien ne retenait la descente. Relevé par l'humain sur une fenêtre verticale, et
+     * il a raison — ce n'est pas un défaut du tactile, c'est un défaut de toutes les petites
+     * fenêtres.
+     *
+     * 32px plutôt que les 30px du tactile : c'est la valeur qu'on a regardée ensemble à 864 de
+     * large. Au-dessus de 1164px de fenêtre le plancher ne mord plus et l'échelle reprend la main.
+     */
+    --bl-header-floor: 32px;
+
     /* Hauteur d'en-tête du journal, qui sert aussi de côté au carré replié — déclarée ici, sur
        l'ancêtre commun, pour que le bouton plein écran hérite exactement de la même mesure et
-       reste aligné sur l'en-tête du journal au pixel près (plan 180-a). */
-    --bl-header-size: calc(35.2px * var(--ui-scale));
+       reste aligné sur l'en-tête du journal au pixel près (plan 180-a).
+       `--target-min` reste dans le `max` : il vaut 30px sous `pointer: coarse` (plan 206), donc il
+       ne mord plus derrière 32px — mais le garder veut dire qu'un relèvement futur du plancher
+       tactile s'appliquera ici sans qu'on ait à y repenser. */
+    --bl-header-size: max(
+      var(--bl-header-floor),
+      var(--target-min),
+      calc(35.2px * var(--ui-scale))
+    );
 
-    /*
-     * Touch floor (plan 179 §E). Collapsed, the log panel *is* its toggle button, so on a phone
-     * the square measured 13px — well under the 24px WCAG 2.2 SC 2.5.8 minimum and far from
-     * the 44px recommendation. The usual trick (keep the visual small, widen an invisible
-     * hit area with a pseudo-element) does not work here: `overflow: hidden` on the panel would
-     * clip it. So the square itself grows, and only on coarse pointers — mouse users keep the
-     * scaled visual.
-     */
-    @media (pointer: coarse) {
-      /* 44px puis 36px lisaient trop haut sur un vrai téléphone (humain, 2026-08-06) — aligné sur
-         le plancher tactile du projet (`--target-min`, relevé à 30px ici par `tokens.css`) pour que
-         les deux s'accordent, et pour qu'un seul réglage les déplace tous les deux (plan 206). */
-      --bl-header-size: max(var(--target-min), calc(35.2px * var(--ui-scale)));
-    }
+    /* Le glyphe est un POURCENTAGE de la boîte, et c'est ce qui le rend juste à toute taille : lié
+       à `--ui-scale` comme avant, il aurait ignoré le plancher ci-dessus — une boîte remontée à
+       32px aurait gardé un glyphe de 16px, soit exactement le défaut qu'on corrige. Il valait 61 %
+       (21,6px sur 35,2px) et l'humain trouvait les icônes trop petites dans leur cadre. */
+    --bl-header-glyph-size: calc(var(--bl-header-size) * 0.8);
   }
 
   .bl-panel {
@@ -142,6 +155,10 @@
 
   .bl-title {
     padding-inline-start: var(--spacing-sm);
+    /* Garde sa propre taille, et NE SUIT PAS `--bl-header-glyph-size` : c'est le mot « Journal »,
+       pas une icône. Les deux valaient 21,6px, ce qui donnait envie de les confondre — grossir les
+       glyphes au motif qu'ils sont trop petits dans leur cadre n'a aucune raison de grossir un
+       texte qui, lui, n'a pas de cadre. */
     font-size: calc(21.6px * var(--ui-scale));
     font-weight: bold;
   }
@@ -156,7 +173,7 @@
     inline-size: var(--bl-header-size);
     block-size: var(--bl-header-size);
     line-height: 1;
-    font-size: calc(21.6px * var(--ui-scale));
+    font-size: var(--bl-header-glyph-size);
   }
 
   .bl-panel[data-collapsed="true"] .bl-title,

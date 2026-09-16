@@ -45,6 +45,13 @@ const expectedScale = (stage: Box): number =>
 /** Bordure 1px de chaque côté du journal : son `inline-size` est un content-box, la boîte mesurée non. */
 const LOG_PANEL_BORDER = 2;
 
+/**
+ * Plancher des boutons carrés du chrome de combat (`--bl-header-floor`), tous pointeurs confondus.
+ * Recopié plutôt qu'importé : `e2e/` n'importe aucun paquet du monorepo, et de toute façon la
+ * valeur vit dans une feuille CSS. Si elle bouge, c'est ici qu'on le voit tomber.
+ */
+const CHROME_FLOOR = 32;
+
 test.describe("§4.16 référentiel de design du chrome", () => {
   test.use({ viewport: PHONE_LANDSCAPE });
 
@@ -129,10 +136,25 @@ test.describe("§4.16 journal de combat", () => {
     // Échelle LUE, pas déduite du viewport : le studio comprime le stage (voir la note en tête).
     const scale = await responsive.uiScale();
 
-    // Contre-épreuve du plancher tactile : à la souris le bouton replié garde sa taille
-    // homothétique (35,2px × --ui-scale), le plancher ne portant que sur la hit-area.
+    /*
+     * Plancher du chrome de combat, TOUS POINTEURS (2026-09-16). Cette assertion disait l'inverse
+     * jusque-là — « à la souris le bouton garde sa taille homothétique, le plancher ne portant que
+     * sur la hit-area » — et c'est bien la règle qui a changé, pas le test qui s'est cassé.
+     *
+     * Le motif, mesuré : `--ui-scale` vaut « largeur ÷ 1280 » plafonné à 1, donc toute fenêtre plus
+     * étroite rétrécissait ces boutons SANS limite basse — 23,8px à 864 de large, 20,3px à 737.
+     * Relevé par l'humain sur une fenêtre verticale. Le plancher ne concernait que `pointer: coarse`
+     * alors que le défaut n'a rien de tactile.
+     *
+     * ⚠️ Ici l'échelle est minuscule (le studio comprime le plateau, voir la note en tête), donc
+     * c'est le plancher qui gagne : sans lui le bouton mesurerait ~7,7px. C'est exactement ce qu'on
+     * refuse désormais.
+     */
     const toggle = page.getByTestId("battle-log-toggle");
-    expect((await toggle.boundingBox())?.height).toBeCloseTo(35.2 * scale, 0);
+    expect((await toggle.boundingBox())?.height).toBeCloseTo(
+      Math.max(CHROME_FLOOR, 35.2 * scale),
+      0,
+    );
 
     // Replié le panneau se réduit à son carré (`inline-size: auto`) → on l'ouvre pour le mesurer.
     await toggle.click();
