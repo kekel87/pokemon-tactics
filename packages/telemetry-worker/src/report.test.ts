@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { modeOf } from "../../app/src/analytics/battle-mode";
+import { AbandonSource, TelemetryAction } from "../../app/src/analytics/telemetry-contract";
 import { MAPS_REGISTRY } from "../../app/src/maps/maps-registry";
 import {
+  ABANDON_POSTURE_LABELS,
+  ABANDON_SOURCE_LABELS,
+  AbandonPosture,
+  ACTION_LABELS,
   buildReport,
   countryLabel,
   END_REASON_UNKNOWN,
@@ -585,5 +590,185 @@ describe("fins de partie", () => {
 
     expect(report.abandonRate).toBe(0.5);
     expect(report.battlesByEndReason.get("forfeit")).toBe(1);
+  });
+});
+
+/**
+ * Le goût et la force, deux cohortes qui ne s'additionnent jamais (plan 212, Lot E).
+ *
+ * 🔴 **Ce bloc encode une limite posée par l'humain le 2026-09-16** — « je ne veux pas que les
+ * équipes aléatoires apparaissent dans les usages des Pokemon et de leurs attaques ». Elle vaut un
+ * test qui rougit si on la franchit : l'élargissement de la collecte n'est acceptable QUE parce que
+ * le tri à la lecture tient.
+ */
+describe("tri des cohortes goût / force", () => {
+  const ended = (outcomes: unknown[]) =>
+    rowOf({
+      id: 1,
+      kind: "battle_ended",
+      payload: {
+        battleId: "aaaa1111",
+        winnerSide: 0,
+        draw: false,
+        endReason: "combat",
+        durationMs: 60_000,
+        turns: 10,
+        outcomes,
+      },
+    });
+
+  it("🔴 tient les équipes aléatoires HORS des attaques d'usage", () => {
+    const report = buildReport(
+      [
+        ended([
+          { species: "venusaur", source: "human-built", side: 0, moves: { "giga-drain": 2 } },
+          { species: "gengar", source: "human-random", side: 1, moves: { "shadow-ball": 5 } },
+        ]),
+      ],
+      7,
+    );
+
+    // Le bloc du GOÛT ne voit que l'équipe bâtie à la main.
+    expect([...report.movesCast.entries()]).toEqual([["giga-drain", 2]]);
+    // Le bloc de la FORCE voit les deux.
+    expect(report.movesCastAll.get("shadow-ball")).toBe(5);
+    expect(report.movesCastAll.get("giga-drain")).toBe(2);
+  });
+
+  it("range les issues d'avant le plan 212 en équipes bâties à la main", () => {
+    // Le repli est EXACT et non approximatif : avant ce plan, seules les équipes bâties à la main
+    // étaient suivies, donc une issue sans `source` en est forcément une.
+    const report = buildReport([ended([{ species: "venusaur", moves: { "giga-drain": 1 } }])], 7);
+
+    expect(report.movesCast.get("giga-drain")).toBe(1);
+  });
+
+  it("compte les apparitions et les présences dans le camp vainqueur", () => {
+    const report = buildReport(
+      [
+        ended([
+          { species: "venusaur", source: "human-random", side: 0, moves: {}, knockedOutTurn: null },
+          { species: "gengar", source: "human-random", side: 1, moves: {}, knockedOutTurn: 4 },
+        ]),
+      ],
+      7,
+    );
+
+    expect(report.speciesAppearances.get("venusaur")).toBe(1);
+    expect(report.speciesWins.get("venusaur")).toBe(1);
+    expect(report.speciesWins.get("gengar")).toBeUndefined();
+    // Tombé sans avoir lancé une seule attaque : un problème d'initiative, pas de puissance.
+    expect(report.diedWithoutActing.get("gengar")).toBe(1);
+  });
+});
+
+/** L'abandon, enfin mesuré là où il arrive (plan 212, Lot F). */
+describe("abandons", () => {
+  const abandoned = (payload: Record<string, unknown>) =>
+    rowOf({
+      id: 1,
+      kind: "battle_abandoned",
+      payload: { battleId: "bbbb2222", turns: 12, durationMs: 300_000, from: "menu", ...payload },
+    });
+
+  it("🔴 n'entre pas dans les parties terminées", () => {
+    const report = buildReport(
+      [
+        rowOf({
+          id: 1,
+          kind: "battle_started",
+          payload: {
+            battleId: "bbbb2222",
+            mode: "solo",
+            map: "simple-arena",
+            format: "2v6",
+            teams: [],
+          },
+        }),
+        abandoned({ side: 0, healthRatios: { "0": 0.1, "1": 0.9 } }),
+      ],
+      7,
+    );
+
+    // L'ABSENCE de `battle_ended` reste le signal du taux d'abandon : la nouvelle ligne le décrit,
+    // elle ne le requalifie pas en fin. Un `battlesEnded` à 1 ici casserait tout l'invariant.
+    expect(report.battlesEnded).toBe(0);
+    expect(report.abandonRate).toBe(1);
+    expect(report.battlesAbandoned).toBe(1);
+  });
+
+  it("dit dans quel état on lâche", () => {
+    const losing = buildReport([abandoned({ side: 0, healthRatios: { "0": 0.1, "1": 0.9 } })], 7);
+    const winning = buildReport([abandoned({ side: 0, healthRatios: { "0": 0.9, "1": 0.1 } })], 7);
+    const even = buildReport([abandoned({ side: 0, healthRatios: { "0": 0.5, "1": 0.55 } })], 7);
+
+    expect(losing.abandonByPosture.get("losing")).toBe(1);
+    expect(winning.abandonByPosture.get("winning")).toBe(1);
+    expect(even.abandonByPosture.get("even")).toBe(1);
+  });
+
+  it("ne conclut rien quand le camp du partant est inconnu", () => {
+    // Hot-seat : tous les camps sont locaux, « qui abandonne » n'a pas de réponse. En inventer une
+    // serait pire que de n'en compter aucune — c'est ce chiffre qui doit désigner un correctif.
+    const report = buildReport(
+      [abandoned({ side: null, healthRatios: { "0": 0.1, "1": 0.9 } })],
+      7,
+    );
+
+    expect(report.abandonByPosture.size).toBe(0);
+    expect(report.battlesAbandoned).toBe(1);
+  });
+
+  it("ne compte qu'une fois une partie en ligne quittée par les deux pairs", () => {
+    // Les deux pairs émettent chacun leur ligne sous le MÊME `battleId` : c'est lui qui dédoublonne,
+    // exactement comme pour les fins (plan 204).
+    const report = buildReport([abandoned({}), abandoned({})], 7);
+
+    expect(report.battlesAbandoned).toBe(1);
+  });
+
+  it("moyenne le tour et la durée du départ", () => {
+    const report = buildReport(
+      [abandoned({}), abandoned({ battleId: "cccc3333", turns: 20, durationMs: 600_000 })],
+      7,
+    );
+
+    expect(report.averageAbandonTurns).toBe(16);
+    expect(report.averageAbandonDurationMs).toBe(450_000);
+  });
+});
+
+/**
+ * Aucune clé brute dans le rapport (plan 212, Lot D).
+ *
+ * 🔴 Ce test existe parce que trois compteurs bien vivants — `checksum-mismatch`,
+ * `checksum-compared` et `room-failed-format_reduit` — s'affichaient sous leur identifiant anglais,
+ * et que personne ne s'en était aperçu pendant deux plans. Un libellé oublié ne casse rien : il
+ * dégrade juste la lecture, en silence, jusqu'à ce qu'on relise le rapport de près.
+ */
+describe("parité des libellés d'action", () => {
+  it("🔴 nomme chaque compteur déclaré côté application", () => {
+    const declared = Object.values(TelemetryAction);
+    const missing = declared.filter((action) => ACTION_LABELS[action] === undefined);
+
+    expect(missing).toEqual([]);
+  });
+
+  it("🔴 nomme chaque provenance de départ", () => {
+    // Ajouté en revue : la section « D'où on part » passait par ACTION_LABELS, qui ne contient
+    // aucune de ces valeurs — elle s'affichait donc en anglais brut, le défaut exact que ce lot
+    // existe pour tuer, reproduit dans le même commit. Le test le rend impossible à refaire.
+    const declared = Object.values(AbandonSource);
+    const missing = declared.filter((source) => ABANDON_SOURCE_LABELS[source] === undefined);
+
+    expect(missing).toEqual([]);
+  });
+
+  it("🔴 nomme chaque posture d'abandon", () => {
+    const missing = Object.values(AbandonPosture).filter(
+      (posture) => ABANDON_POSTURE_LABELS[posture] === undefined,
+    );
+
+    expect(missing).toEqual([]);
   });
 });

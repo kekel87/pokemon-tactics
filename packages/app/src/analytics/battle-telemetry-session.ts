@@ -13,15 +13,18 @@ import type { BattleEvent, TeamSelection } from "@pokemon-tactic/core";
 import { MAP_ID_UNKNOWN, mapIdFromUrl } from "../maps/map-identity";
 import { modeOf } from "./battle-mode";
 import { type BattleTelemetryCollector, createBattleTelemetryCollector } from "./battle-telemetry";
-import { countControllers, trackedSidesOf } from "./team-telemetry";
+import { countControllers, trackedSourcesOf } from "./team-telemetry";
 import {
+  AbandonSource,
   createBattleId,
   type TelemetryTeam,
+  trackBattleAbandoned,
   trackBattleEnded,
   trackBattleStarted,
 } from "./telemetry";
 
 let collector: BattleTelemetryCollector | null = null;
+let abandonOnPageHideInstalled = false;
 
 /**
  * Ouvre la télémétrie d'une partie et émet `battle_started`.
@@ -69,7 +72,7 @@ export function beginBattleTelemetry(input: {
 
   collector = createBattleTelemetryCollector({
     battleId,
-    trackedSides: trackedSidesOf(input.telemetryTeams),
+    trackedSources: trackedSourcesOf(input.telemetryTeams),
     startedAt: Date.now(),
     now: () => Date.now(),
   });
@@ -90,4 +93,54 @@ export function endBattleTelemetry(): void {
   if (payload) {
     trackBattleEnded(payload);
   }
+}
+
+/**
+ * L'écran de combat confie ce que l'analytique ne peut pas atteindre seule (plans 212, Lots E et F).
+ *
+ * Appelé quand le combat est **monté**, donc après `beginBattleTelemetry` : l'état de combat n'existe
+ * pas encore au moment où le seed est tiré, qui est là où `battle_started` part (décision #857).
+ * Sans effet hors d'une partie mesurée — bac à sable, route `?combat=1`, combat repris.
+ *
+ * Tout ce qu'il reçoit vit sur le COLLECTEUR, qui meurt avec la partie : voir `attachRuntime`.
+ */
+export function attachBattleRuntime(input: {
+  pokemonIds: Iterable<string>;
+  localSide: number | null;
+  readHealthRatios: () => Record<string, number>;
+}): void {
+  collector?.attachRuntime(input);
+  if (collector !== null) {
+    installAbandonOnPageHide();
+  }
+}
+
+/**
+ * Le joueur quitte une partie en cours (plan 212, Lot F).
+ *
+ * 🔴 **Sans effet si le collecteur a déjà servi**, et c'est toute la garantie d'exclusivité :
+ * `endBattleTelemetry` le met à `null`, donc une fermeture d'onglet qui suit une victoire ne produit
+ * aucun abandon fantôme. Le collecteur refuse en plus de bâtir un abandon sur une partie terminée —
+ * deux verrous pour un double comptage qui rendrait le taux faux sans rien casser de visible.
+ */
+export function abandonBattleTelemetry(from: AbandonSource): void {
+  const payload = collector?.buildAbandonedPayload(from);
+  if (!payload) {
+    return;
+  }
+  collector = null;
+  trackBattleAbandoned(payload);
+}
+
+/**
+ * L'onglet se ferme sur une partie en cours. Même choix que la ligne `session` : `pagehide`, qui
+ * part vraiment sur mobile, et `sendBeacon` derrière (décisions #888, #889). Aucun second mécanisme
+ * de départ n'est inventé ici — `send` fait déjà le travail.
+ */
+function installAbandonOnPageHide(): void {
+  if (abandonOnPageHideInstalled || typeof window === "undefined") {
+    return;
+  }
+  abandonOnPageHideInstalled = true;
+  window.addEventListener("pagehide", () => abandonBattleTelemetry(AbandonSource.TabClosed));
 }

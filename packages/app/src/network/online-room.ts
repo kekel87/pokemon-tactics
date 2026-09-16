@@ -1,5 +1,6 @@
 import { REQUIRED_TEAM_COUNTS } from "@pokemon-tactic/data";
-import { PeerJsTransport, type Room, type RoomDeps } from "@pokemon-tactic/network";
+import { PeerJsTransport, type Room, type RoomDeps, RoomRole } from "@pokemon-tactic/network";
+import { countAction, TelemetryAction } from "../analytics/telemetry";
 import { createRendezvousClient } from "./rendezvous-client";
 import { signallingOverride } from "./signalling-override";
 
@@ -46,6 +47,8 @@ export function onlineRoomDeps(): RoomDeps {
 
 let current: Room | null = null;
 let closeOnPageHideInstalled = false;
+/** Se désabonne du salon détenu. `null` quand aucun salon n'est tenu. */
+let stopWatchingRole: (() => void) | null = null;
 
 /**
  * Annonce notre départ quand l'onglet se ferme (plan 202, étape 6).
@@ -70,10 +73,38 @@ function installCloseOnPageHide(): void {
   window.addEventListener("pagehide", () => releaseOnlineRoom());
 }
 
+/**
+ * Compte le moment où ce pair **devient** hôte par migration (plan 212, Lot A).
+ *
+ * 🔴 Ici et pas dans `packages/network` : ce paquet ne connaît pas la télémétrie et ne doit pas
+ * l'apprendre — même frontière que `maxSeats` et `rendezvous`, injectés depuis l'application. Et
+ * ici plutôt que dans un écran : la migration peut survenir en salle d'attente **comme en plein
+ * combat**, et ce fichier est le seul qui détienne le salon des deux côtés de la transition.
+ *
+ * ⚠️ La **transition** et non l'état : `onChange` émet à chaque changement du salon, donc un hôte
+ * compterait à chaque événement si on lisait simplement `role === Host`. D'où le rôle mémorisé.
+ *
+ * L'hôte d'origine ne compte jamais : il est déjà hôte au premier instantané, et c'est
+ * `room-created` qui le dit.
+ */
+function watchHostMigration(room: Room): () => void {
+  let previousRole = room.view.role;
+  return room.onChange((view) => {
+    if (previousRole === RoomRole.Guest && view.role === RoomRole.Host) {
+      countAction(TelemetryAction.HostMigrated);
+    }
+    previousRole = view.role;
+  });
+}
+
 /** Confie le salon à la session. Un salon déjà détenu est fermé — on n'en garde jamais deux. */
 export function holdOnlineRoom(room: Room): void {
   if (current !== null && current !== room) {
     current.leave();
+  }
+  if (current !== room) {
+    stopWatchingRole?.();
+    stopWatchingRole = watchHostMigration(room);
   }
   current = room;
   installCloseOnPageHide();
@@ -98,4 +129,6 @@ export function getOnlineRoom(): Room | null {
 export function releaseOnlineRoom(): void {
   current?.leave();
   current = null;
+  stopWatchingRole?.();
+  stopWatchingRole = null;
 }

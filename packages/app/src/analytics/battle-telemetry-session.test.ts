@@ -6,7 +6,7 @@ import {
 } from "@pokemon-tactic/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createTelemetryStub, type TelemetryStub } from "../testing/telemetry-stub";
-import { TeamSource, type TelemetryTeam } from "./telemetry";
+import { AbandonSource, TeamSource, type TelemetryTeam } from "./telemetry";
 
 /**
  * L'identifiant de partie, du setup jusqu'à l'événement émis (plan 204).
@@ -127,5 +127,158 @@ describe("beginBattleTelemetry", () => {
     const [started, ended] = emittedBattleIds(stub);
     expect(started?.battleId).toMatch(/^[0-9a-f]{8}$/);
     expect(ended?.battleId).toBe(started?.battleId);
+  });
+});
+
+/**
+ * L'exclusivité entre `battle_ended` et `battle_abandoned` (plan 212, Lot F).
+ *
+ * 🔴 Pourquoi ce fichier plutôt que celui du collecteur : le collecteur se garde lui-même (il refuse
+ * de bâtir un abandon sur une partie finie), mais c'est la SESSION qui met la référence à `null`, et
+ * c'est ce second verrou qui empêche l'onglet fermé après une victoire de produire un abandon
+ * fantôme. Un double comptage ici rendrait le taux faux sans que rien n'ait l'air cassé.
+ */
+describe("une partie émet une fin OU un abandon, jamais les deux", () => {
+  it("émet un abandon quand le joueur quitte en cours de partie", async () => {
+    const stub = createTelemetryStub({ hostname: PAGES_HOST });
+    const session = await loadSession(stub);
+    session.beginBattleTelemetry({ ...SETUP, battleId: "aaaa1111" });
+    session.abandonBattleTelemetry(AbandonSource.Menu);
+
+    expect(emittedBattleIds(stub)).toEqual([
+      { kind: "battle_started", battleId: "aaaa1111" },
+      { kind: "battle_abandoned", battleId: "aaaa1111" },
+    ]);
+  });
+
+  it("🔴 ne produit aucun abandon fantôme après une victoire", async () => {
+    const stub = createTelemetryStub({ hostname: PAGES_HOST });
+    const session = await loadSession(stub);
+    session.beginBattleTelemetry({ ...SETUP, battleId: "bbbb2222" });
+    session.observeBattleTelemetry(battleEnded);
+    session.endBattleTelemetry();
+    // L'onglet se ferme juste après : le cas exact que `pagehide` déclenche en production.
+    session.abandonBattleTelemetry(AbandonSource.TabClosed);
+
+    expect(emittedBattleIds(stub)).toEqual([
+      { kind: "battle_started", battleId: "bbbb2222" },
+      { kind: "battle_ended", battleId: "bbbb2222" },
+    ]);
+  });
+
+  it("🔴 ne produit aucune fin après un abandon", async () => {
+    const stub = createTelemetryStub({ hostname: PAGES_HOST });
+    const session = await loadSession(stub);
+    session.beginBattleTelemetry({ ...SETUP, battleId: "cccc3333" });
+    session.abandonBattleTelemetry(AbandonSource.Diverged);
+    session.endBattleTelemetry();
+
+    expect(emittedBattleIds(stub)).toEqual([
+      { kind: "battle_started", battleId: "cccc3333" },
+      { kind: "battle_abandoned", battleId: "cccc3333" },
+    ]);
+  });
+
+  it("reste muet hors d'une partie mesurée — bac à sable, reprise", async () => {
+    const stub = createTelemetryStub({ hostname: PAGES_HOST });
+    const session = await loadSession(stub);
+    session.abandonBattleTelemetry(AbandonSource.Menu);
+
+    expect(stub.beacon.envelopes).toEqual([]);
+  });
+});
+
+/**
+ * Le dernier des trois chemins de départ du Lot F : **l'onglet qu'on ferme**.
+ *
+ * 🔴 Les tests ci-dessus appellent `abandonBattleTelemetry` à la main — ils éprouvent le verrou, pas
+ * le POINT D'ÉMISSION. Or `tab-closed` n'a pas d'appelant dans l'écran de combat : il part d'un
+ * écouteur `pagehide` posé par `attachBattleRuntime`, et un écouteur jamais posé est exactement le
+ * défaut que le plan 212 existe pour trouver — un compteur déclaré et jamais émis donne l'illusion
+ * de la mesure. C'est aussi le seul des six compteurs du plan dont le point d'émission soit
+ * atteignable sans Babylon.
+ */
+describe("l'onglet qui se ferme sur une partie en cours (plan 212, Lot F)", () => {
+  /** Ce que l'écran de combat confie à l'analytique une fois le combat monté. */
+  const RUNTIME = {
+    pokemonIds: ["alakazam"],
+    localSide: 0,
+    readHealthRatios: () => ({ "0": 1, "1": 1 }),
+  } as const;
+
+  it("émet `battle_abandoned` sur `pagehide`, sans qu'aucun appelant ne le demande", async () => {
+    const stub = createTelemetryStub({ hostname: PAGES_HOST });
+    const session = await loadSession(stub);
+    session.beginBattleTelemetry({ ...SETUP, battleId: "dddd4444" });
+    session.attachBattleRuntime({ ...RUNTIME });
+
+    stub.emitPageHide();
+
+    expect(stub.beacon.envelopes.map((envelope) => envelope.kind)).toEqual([
+      "battle_started",
+      "battle_abandoned",
+    ]);
+    expect(stub.beacon.envelopes[1]?.payload).toMatchObject({
+      battleId: "dddd4444",
+      from: AbandonSource.TabClosed,
+      side: 0,
+    });
+  });
+
+  it("🔴 ne produit aucun abandon fantôme quand l'onglet se ferme APRÈS la victoire", async () => {
+    const stub = createTelemetryStub({ hostname: PAGES_HOST });
+    const session = await loadSession(stub);
+    session.beginBattleTelemetry({ ...SETUP, battleId: "eeee5555" });
+    session.attachBattleRuntime({ ...RUNTIME });
+    session.observeBattleTelemetry(battleEnded);
+    session.endBattleTelemetry();
+
+    stub.emitPageHide();
+
+    expect(stub.beacon.envelopes.map((envelope) => envelope.kind)).toEqual([
+      "battle_started",
+      "battle_ended",
+    ]);
+  });
+
+  it("🔴 lit les PV à l'instant du DÉPART, jamais ceux du montage", async () => {
+    const stub = createTelemetryStub({ hostname: PAGES_HOST });
+    const session = await loadSession(stub);
+    session.beginBattleTelemetry({ ...SETUP, battleId: "ffff6666" });
+    // Le combat tourne : ce que la fonction rend change entre le montage et le départ, et c'est
+    // pour ça que l'analytique reçoit une FONCTION et non un instantané.
+    let ratios: Record<string, number> = { "0": 1, "1": 1 };
+    session.attachBattleRuntime({ ...RUNTIME, readHealthRatios: () => ratios });
+    ratios = { "0": 0.15, "1": 0.8 };
+
+    session.abandonBattleTelemetry(AbandonSource.Menu);
+
+    expect(stub.beacon.envelopes[1]?.payload).toMatchObject({
+      from: AbandonSource.Menu,
+      healthRatios: { "0": 0.15, "1": 0.8 },
+    });
+  });
+
+  it("n'installe qu'un seul écouteur de fermeture, quel que soit le nombre de combats montés", async () => {
+    const stub = createTelemetryStub({ hostname: PAGES_HOST });
+    const session = await loadSession(stub);
+    session.beginBattleTelemetry({ ...SETUP, battleId: "aaaa7777" });
+    session.attachBattleRuntime({ ...RUNTIME });
+    session.endBattleTelemetry();
+    session.beginBattleTelemetry({ ...SETUP, battleId: "bbbb8888" });
+    session.attachBattleRuntime({ ...RUNTIME });
+
+    // Deux écouteurs feraient partir deux abandons pour une seule fermeture, donc un taux faux.
+    expect(stub.listenerCount("pagehide")).toBe(1);
+  });
+
+  it("reste muet hors d'une partie mesurée : le bac à sable ne monte aucun collecteur", async () => {
+    const stub = createTelemetryStub({ hostname: PAGES_HOST });
+    const session = await loadSession(stub);
+    session.attachBattleRuntime({ ...RUNTIME });
+
+    stub.emitPageHide();
+
+    expect(stub.beacon.envelopes).toEqual([]);
   });
 });

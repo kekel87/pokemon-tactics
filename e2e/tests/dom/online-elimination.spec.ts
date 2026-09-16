@@ -23,7 +23,7 @@ import type { OnlinePeer } from "../../pages/online-session";
 import { BattleModeScreen, TeamSelectScreen } from "../../pages/screens";
 
 /*
- * Cahier §12.12, §12.13 et §12.14 — le joueur éliminé, et le mode spectateur (plan 210).
+ * Cahier §12.12 à §12.15 — le joueur éliminé, et le mode spectateur (plan 210).
  *
  * Ce que ces scénarios gardent : quand le dernier Pokemon d'un camp tombe et que la partie continue,
  * le moteur le DIT (`PlayerEliminated`, lot D1) — une ligne de journal chez tout le monde — et, EN
@@ -269,4 +269,58 @@ test("§12.14 hot-seat à 3 camps : la ligne de journal, et AUCUN dialogue d'él
   await expect(activePanel.name).not.toContainText(SACRIFICE_NAME, { timeout: 30_000 });
   await expect(view.dialog).toHaveCount(0);
   await expect(page.getByTestId("battle-over")).toHaveCount(0);
+});
+
+test("§12.15 en ligne à 3 camps : la victoire referme le dialogue d'élimination, sans qu'aucune issue soit choisie", async ({
+  browser,
+}) => {
+  /*
+   * La troisième sortie du dialogue du plan 210, et la seule que le joueur ne choisit pas : la
+   * partie se termine pendant qu'il lit encore le verdict, et `showVictory` referme l'élimination
+   * pour ne pas empiler deux modales.
+   *
+   * 🔴 Ce que ce cas garde côté mesure (plan 212, Lot C) : `showEliminated` rapporte alors
+   * `choice === null`, et **rien ne doit être compté**. Compter cette fermeture comme « a continué à
+   * regarder » gonflerait le compteur de tous ceux qui n'ont rien décidé — soit exactement la
+   * population dont on veut la taille. Le compteur lui-même n'est pas lisible ici (la télémétrie est
+   * muette hors des hôtes de publication) ; ce scénario garde le FAIT qui le conditionne : ce
+   * chemin existe, il ferme bien le dialogue, et il le fait sans passer par un bouton.
+   *
+   * Le camp 2 part par « Abandonner » plutôt que le camp 1 : c'est un INVITÉ, donc la partie ne se
+   * met pas en migration d'hôte, qui est un autre sujet (cahier §12.11).
+   */
+  const trio = await OnlineTrio.open(browser);
+  try {
+    await trio.startBattle();
+    await trio.playUntilSacrificedHasHand();
+    await trio.sacrifice();
+
+    const sacrificedView = new EliminationView(trio.sacrificed.page);
+    await expect(sacrificedView.dialog).toBeVisible({ timeout: 30_000 });
+    // Personne n'a touché aux deux issues, et la partie n'est pas finie : l'état de départ du cas.
+    await expect(trio.sacrificed.battleOver).toHaveCount(0);
+
+    /*
+     * Le camp 2 abandonne : il ne reste qu'un camp debout, donc le moteur conclut. La confirmation
+     * est celle de « Abandonner » (§4.20), qui détruit la partie.
+     */
+    const { combatMenu } = trio.survivor;
+    await expect(combatMenu.openButton).toBeEnabled({ timeout: 30_000 });
+    await combatMenu.openByButton();
+    await combatMenu.abandon.click();
+    await combatMenu.confirm.click();
+
+    /*
+     * Chez l'éliminé : le dialogue de fin de partie prend la place, et celui d'élimination a bien
+     * DISPARU — deux modales empilées laisseraient fermer la mauvaise, et le joueur n'aurait de
+     * toute façon rien choisi.
+     */
+    await expect(trio.sacrificed.battleOver).toBeVisible({ timeout: 60_000 });
+    await expect(sacrificedView.dialog).toHaveCount(0);
+
+    // Et le camp 1 conclut de la même façon : la partie est finie pour tout le monde.
+    await expect(trio.host.battleOver).toBeVisible({ timeout: 60_000 });
+  } finally {
+    await trio.close();
+  }
 });

@@ -20,6 +20,19 @@ import type {
 } from "./view-models.js";
 
 /**
+ * Ce que l'éliminé a choisi de faire (plan 212, Lot C) : rester spectateur, ou quitter.
+ *
+ * Le mode spectateur est une fonctionnalité entière livrée « sans une ligne de code » au plan 210.
+ * Si personne ne reste, c'est une information de conception, pas un bug — encore faut-il la
+ * mesurer, et ces deux valeurs sont ce qui la rend mesurable.
+ */
+export const EliminatedChoice = {
+  KeptWatching: "kept-watching",
+  Left: "left",
+} as const;
+export type EliminatedChoice = (typeof EliminatedChoice)[keyof typeof EliminatedChoice];
+
+/**
  * Render-backend ports (plan 125). The presentation layer (orchestrator) drives
  * these imperatively; each backend (Babylon, …) implements them as a humble
  * object that only renders. No backend imports the orchestrator — only this
@@ -419,8 +432,13 @@ export interface BattleChrome {
    * de ses deux boutons, ou la victoire qui le referme en arrivant. L'écran s'en sert pour
    * rafraîchir le bouton du menu de combat, qu'un changement de contexte a grisé pendant que la
    * modale était ouverte (revue du plan 210, Major 2).
+   *
+   * Il reçoit **l'issue choisie**, ou `null` quand personne n'a choisi — c'est la victoire qui a
+   * refermé le dialogue (plan 212, Lot C). Sans cette distinction, la télémétrie compterait comme
+   * « a continué à regarder » un joueur qui n'a rien fait du tout, ce qui est précisément la
+   * question à laquelle le compteur doit répondre.
    */
-  showEliminated(onClosed?: () => void): void;
+  showEliminated(onClosed?: (choice: EliminatedChoice | null) => void): void;
 }
 
 /** Feedback port. 7b: no-op + console.debug; engine billboards (text) + DOM log land at 4c. */

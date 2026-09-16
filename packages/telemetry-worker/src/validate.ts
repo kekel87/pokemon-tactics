@@ -15,6 +15,12 @@ export const EventKind = {
   Session: "session",
   BattleStarted: "battle_started",
   BattleEnded: "battle_ended",
+  /**
+   * Une partie quittée en cours (plan 212, Lot F). **Sans cette entrée le Worker REFUSE la ligne**
+   * à l'entrée (`isEventKind`), et le compteur serait muet sans que rien ne le signale — le mode
+   * d'échec exact que l'audit d'avant-release a trouvé sur trois autres mécaniques.
+   */
+  BattleAbandoned: "battle_abandoned",
 } as const;
 export type EventKind = (typeof EventKind)[keyof typeof EventKind];
 

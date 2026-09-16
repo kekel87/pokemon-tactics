@@ -24,6 +24,7 @@ import {
   type PlacementRosterEntry,
   type UiDomConfig,
 } from "@pokemon-tactic/ui-dom";
+import { countAction, TelemetryAction } from "../analytics/telemetry.js";
 import {
   TEAM_COLORS,
   TILE_SPAWN_ZONE_ALPHA,
@@ -730,6 +731,15 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
       return;
     }
     if (!phase.isPlayerDone(localPlayerId)) {
+      /*
+       * Le chrono a réellement posé à notre place (plan 212, Lot B). Compté ICI, dans la branche du
+       * joueur pas encore prêt : un joueur déjà prêt dont la fenêtre expire n'est pas un dépassement,
+       * et le compter le serait rendrait le chiffre ininterprétable — il monterait à chaque partie.
+       *
+       * Ce que ça répond : **90 s suffisent-ils pour poser son équipe ?** Exactement la question que
+       * `turn-timed-out` pose pour les 60 s du tour. À lire rapporté au nombre de parties en ligne.
+       */
+      countAction(TelemetryAction.PlacementTimedOut);
       for (const entry of phase.autoPlaceForPlayer(localPlayerId, gridCenter)) {
         addBillboard(entry);
       }

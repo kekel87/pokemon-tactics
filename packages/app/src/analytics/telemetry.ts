@@ -13,12 +13,20 @@
 import type { NetworkErrorCode } from "@pokemon-tactic/network";
 import { getLanguage } from "../i18n";
 import {
+  AbandonSource,
   NARROW_SCREEN_BUCKET,
   SCREEN_BUCKETS,
   TELEMETRY_ENDPOINT,
   TELEMETRY_PLATFORM_HOSTS,
+  TelemetryAction,
   VISIT_BEACON_FLAG,
 } from "./telemetry-contract";
+
+/**
+ * Les énumérations vivent dans `telemetry-contract.ts` — voir là-bas pourquoi. Réexportées ici pour
+ * que les appelants existants gardent leur import.
+ */
+export { AbandonSource, TelemetryAction };
 
 /**
  * Plafond partagé par `sendBeacon` et `fetch keepalive`. Nos payloads en sont très loin ; la garde
@@ -37,121 +45,6 @@ export const TelemetryScreen = {
   Controls: "controls",
 } as const;
 export type TelemetryScreen = (typeof TelemetryScreen)[keyof typeof TelemetryScreen];
-
-/**
- * Actions d'interface dont on compte l'usage. Chacune répond à une question qu'on se pose
- * réellement — pas « tous les boutons », ceux dont la réponse changerait quelque chose.
- */
-export const TelemetryAction = {
-  /** Le format d'échange Showdown sert-il, et **les imports échouent-ils** ? Un collage qui ne
-   *  parse pas est aujourd'hui un bug produit totalement invisible. */
-  ShowdownModal: "showdown-modal",
-  ShowdownImportOk: "showdown-import-ok",
-  ShowdownImportFail: "showdown-import-fail",
-  ShowdownExport: "showdown-export",
-  /** Le Team Builder est-il utilisé, ou joue-t-on avec les équipes par défaut ? */
-  TeamSave: "team-save",
-  TeamDelete: "team-delete",
-  TeamGenerate: "team-generate",
-  /** Réglages réellement touchés. */
-  LanguageChange: "language-change",
-  FullscreenToggle: "fullscreen-toggle",
-  /** Ce que le plan 187 a livré sert-il, et par quelle sortie part-on ? */
-  CombatMenuOpen: "combat-menu-open",
-  CombatMenuRestart: "combat-menu-restart",
-  CombatMenuForfeit: "combat-menu-forfeit",
-  CombatMenuQuit: "combat-menu-quit",
-  /** La reprise du plan 181 est-elle voulue ? Le refus n'a pas de compteur : il se déduit de
-   *  l'écart entre « proposée » et « acceptée ». */
-  ResumeOffered: "resume-offered",
-  ResumeAccepted: "resume-accepted",
-  /** L'écran de remapping du plan 186 sert-il ? */
-  RemapBinding: "remap-binding",
-  /*
-   * Le choix de la carte, en modale (plan 208). Ces trois compteurs REMPLACENT l'étape `map-select`
-   * du funnel, et c'est un arbitrage de l'humain, pas une conséquence mécanique.
-   *
-   * 🔴 Pourquoi le compteur d'écran ne pouvait pas survivre : `map-select` était un **passage
-   * obligé** vers le combat. La modale est un **geste volontaire**. Garder le même compteur aurait
-   * laissé une série continue changer de sens en silence — le volume s'effondre sans que rien ne
-   * soit cassé, exactement le genre de faux signal qu'on passe des mois à mal lire. La coupure est
-   * donc assumée et datée dans le graphe de mémoire, plutôt que maquillée.
-   *
-   * Ce que les trois répondent, et qui n'était pas mesurable avant : **le choix de carte
-   * intéresse-t-il vraiment ?** `map-modal-open` dit combien de joueurs vont voir, `map-changed`
-   * combien changent réellement de terrain, et leur écart — lu avec `map-modal-dismissed` — dit
-   * combien ouvrent par curiosité puis s'en tiennent à ce qu'ils avaient. Une modale beaucoup
-   * ouverte et jamais suivie d'un changement voudrait dire que le défaut est bon ; l'inverse, que
-   * la carte retenue d'office tombe mal.
-   */
-  MapModalOpen: "map-modal-open",
-  MapChanged: "map-changed",
-  MapModalDismissed: "map-modal-dismissed",
-  /*
-   * Jeu en ligne (plan 199, étape 7). Deux questions, et une seule vraiment brûlante :
-   *
-   * 1. **Le jeu en ligne aboutit-il ?** L'écart entre « partie créée » et « partie rejointe » dit
-   *    combien de salons n'ont jamais trouvé de second joueur, et « salon abandonné » combien ont
-   *    été quittés avant le lancement.
-   * 2. **La mise en relation échoue-t-elle, et pourquoi ?** C'est le vrai enjeu : la traversée de
-   *    pare-feu est assumée faillible en V1 (NAT symétrique, réseau mobile), et sans compteur par
-   *    cause on ne saurait pas si le pair-à-pair sans relais est tenable. Une cause par compteur
-   *    plutôt qu'une clé construite : l'énumération reste fermée, donc agrégeable.
-   */
-  RoomCreated: "room-created",
-  RoomJoined: "room-joined",
-  RoomAbandoned: "room-abandoned",
-  RoomFailedCodeIntrouvable: "room-failed-code_introuvable",
-  RoomFailedSalonPlein: "room-failed-salon_plein",
-  RoomFailedPartieCommencee: "room-failed-partie_commencee",
-  RoomFailedVersionIncompatible: "room-failed-version_incompatible",
-  RoomFailedConnexionImpossible: "room-failed-connexion_impossible",
-  RoomFailedDelaiDepasse: "room-failed-delai_depasse",
-  RoomFailedFormatReduit: "room-failed-format_reduit",
-  /*
-   * Robustesse du jeu en ligne (plan 202, Lot B3). Ces compteurs existent pour une raison précise :
-   * **les délais du lot sont des paris**, arrêtés à la main faute de terrain — 60 s de chrono, 75 s
-   * de silence, 30 s après une fermeture, trois tours manqués. « On ajustera à l'usage » n'est
-   * tenable que si l'usage se mesure, sinon on devine deux fois.
-   *
-   * Ce que chacun répond :
-   * - `turn-timed-out` : **60 s suffisent-ils ?** Un taux élevé de tours partis au dépassement dit
-   *   que la fenêtre est trop courte pour un tour tactique — c'est la mesure que la revue de design
-   *   réclamait sans pouvoir la faire.
-   * - `reconnect-succeeded` / `reconnect-failed` vs `forfeit-absent` : **le délai de grâce est-il
-   *   bien réglé ?** Beaucoup de forfaits pour absence face à peu de reprises réussies veut dire
-   *   qu'on coupe trop tôt.
-   * - `forfeit-missed-turns` : distinct de `forfeit-absent` **exprès** — l'un est un joueur parti,
-   *   l'autre un joueur présent qui ne joue plus. Les confondre masquerait lequel des deux
-   *   mécanismes tranche vraiment.
-   * - `forfeit-diverged` : **le déterminisme tient-il ?** C'est le chiffre qui dira si le Lot B4
-   *   (somme de contrôle d'état) est urgent ou théorique.
-   * - `connection-uncertain` : **le pair-à-pair sans relais est-il tenable ?** ICE signale une
-   *   dégradation bien avant le chien de garde ; sa fréquence dit si un relais TURN devient
-   *   nécessaire, question laissée ouverte en V1.
-   * - `checksum-mismatch` : **le déterminisme tient-il, pour de vrai ?** Distinct de
-   *   `forfeit-diverged` **exprès** (plan 203, Lot B4) : l'un compte les forfaits pour divergence
-   *   toutes causes, l'autre ceux que la somme de contrôle d'état a trouvés. Les deux montent
-   *   ensemble sur ce chemin, donc c'est leur **écart** qui parle — il dit combien de divergences
-   *   viennent d'actions refusées (le barème du Lot B2) plutôt que d'une désync d'état muette, celle
-   *   qui laisse toutes les actions légales et qu'aucun autre mécanisme ne voit.
-   * - `checksum-compared` : **le dénominateur de `checksum-mismatch`**, compté une fois par combat
-   *   où au moins deux empreintes ont été confrontées. Sans lui, un `checksum-mismatch` à zéro est
-   *   indiscernable de « aucune comparaison n'a jamais eu lieu », et le seul chiffre censé mesurer
-   *   le déterminisme ne prouverait rien. Relevé en revue de code du Lot B4.
-   */
-  TurnTimedOut: "turn-timed-out",
-  ForfeitAbsent: "forfeit-absent",
-  ForfeitMissedTurns: "forfeit-missed-turns",
-  ForfeitDiverged: "forfeit-diverged",
-  ForfeitResigned: "forfeit-resigned",
-  ReconnectSucceeded: "reconnect-succeeded",
-  ReconnectFailed: "reconnect-failed",
-  ConnectionUncertain: "connection-uncertain",
-  ChecksumMismatch: "checksum-mismatch",
-  ChecksumCompared: "checksum-compared",
-} as const;
-export type TelemetryAction = (typeof TelemetryAction)[keyof typeof TelemetryAction];
 
 /**
  * La cause de refus réseau → son compteur. Table exhaustive : `satisfies` fait échouer la
@@ -232,6 +125,34 @@ export interface BattleStartedPayload {
 
 export interface TelemetryMemberOutcome {
   readonly species: string;
+  /**
+   * D'où vient l'équipe de ce Pokemon (plan 212, Lot E). **Le champ qui rend le lot acceptable.**
+   *
+   * 🔴 Deux questions se cachaient sous le mot « usage », et ce drapeau est ce qui les sépare :
+   * - le **goût** — ce que les joueurs choisissent — ne se lit que sur `human-built` ;
+   * - la **force** — ce qui gagne réellement — se lit sur toutes les équipes humaines, et une
+   *   équipe `human-random` y vaut MIEUX qu'une équipe bâtie : le Pokemon y a été distribué et non
+   *   choisi, donc sans biais de sélection ni réputation.
+   *
+   * Sans lui, élargir la collecte mélangerait les deux cohortes de façon irréversible. Avec lui, le
+   * tri se fait à la LECTURE (décision #868), et aucune équipe aléatoire n'entre dans le bloc
+   * d'usage du rapport — limite posée par l'humain le 2026-09-16.
+   */
+  readonly source: TeamSource;
+  /**
+   * Le camp de ce Pokemon, 0-indexé (plan 212, Lot E).
+   *
+   * 🔴 Sans lui, **« taux de présence dans le camp vainqueur » est incalculable** : `winnerSide` vit
+   * au niveau du payload, pas de l'issue, donc rien ne rattache un Pokemon au camp qui a gagné. Et
+   * deux équipes aléatoires tirées sur 150 espèces peuvent parfaitement sortir la même — sans
+   * `side`, on ne pourrait même pas les distinguer après coup.
+   *
+   * Relevé par `game-designer` à la revue du plan 204 puis reporté
+   * (`backlog-telemetrie-victoire-par-espece-matchup`), et retrouvé par la même revue au plan 212.
+   * La conception complète des affrontements reste pour la Phase 8 ; ce champ en est la moitié qui
+   * ne coûte rien et sans laquelle l'autre moitié ne pourra jamais se faire rétroactivement.
+   */
+  readonly side: number;
   /** Attaques réellement lancées, avec leur compte. */
   readonly moves: Readonly<Record<string, number>>;
   /** Tour du K.O., `null` si le Pokemon a survécu. Désambiguïse le signal des attaques mortes :
@@ -269,10 +190,47 @@ export interface BattleEndedPayload {
   readonly outcomes: readonly TelemetryMemberOutcome[];
 }
 
+/**
+ * Une partie quittée en cours (plan 212, Lot F).
+ *
+ * 🔴 **Un événement à CÔTÉ de `battle_ended`, jamais un `battle_ended`.** L'absence de fin reste le
+ * signal de l'abandon — voir `BattleEndedPayload.endReason`, où le plan 201 a failli casser cet
+ * invariant pour le forfait. Requalifier un départ en fin le ferait sortir du taux d'abandon pour
+ * polluer celui des victoires décisives, que la Phase 8 lira pour juger les matchups.
+ *
+ * Ce que ça ajoute : on savait **combien** de parties étaient lâchées (77 % en production sur 14
+ * jours), jamais **quand ni dans quel état**. Un taux sans ces deux-là ne désigne aucun correctif.
+ */
+export interface BattleAbandonedPayload {
+  readonly battleId: string;
+  /** Tour atteint au moment du départ. Lâche-t-on au 3ᵉ tour ou au 50ᵉ ? */
+  readonly turns: number;
+  readonly durationMs: number;
+  readonly from: AbandonSource;
+  /**
+   * Le camp de CELUI QUI PART, 0-indexé, ou `null` quand il n'y en a pas un seul (hot-seat, où tous
+   * les camps sont locaux).
+   *
+   * 🔴 Sans lui, `healthRatios` ne répond pas à la question pour laquelle il existe : on verrait
+   * qu'une partie était déséquilibrée, jamais de quel côté se tenait le partant — donc jamais si
+   * l'abandon relève de l'équilibrage ou du rythme, qui appellent des correctifs opposés.
+   */
+  readonly side: number | null;
+  /**
+   * PV restants sur PV maximum, **par camp** (0 à 1), à l'instant du départ.
+   *
+   * 🔴 Le champ qui distingue deux causes appelant des correctifs OPPOSÉS : abandonner en train de
+   * perdre est un problème d'équilibrage, abandonner en train de gagner un problème de rythme. Sans
+   * lui, les 77 % restent un chiffre dont on ne peut rien faire.
+   */
+  readonly healthRatios: Readonly<Record<string, number>>;
+}
+
 const EventKind = {
   Session: "session",
   BattleStarted: "battle_started",
   BattleEnded: "battle_ended",
+  BattleAbandoned: "battle_abandoned",
 } as const;
 type EventKind = (typeof EventKind)[keyof typeof EventKind];
 
@@ -501,6 +459,18 @@ export function trackBattleStarted(payload: BattleStartedPayload): void {
  */
 export function trackBattleEnded(payload: BattleEndedPayload): void {
   send(EventKind.BattleEnded, { ...payload });
+}
+
+/**
+ * Une partie est quittée en cours (plan 212, Lot F). **Exclusif de `trackBattleEnded`** : une partie
+ * émet l'un ou l'autre, jamais les deux, et c'est l'appelant qui le garantit en ne gardant qu'un
+ * collecteur, mis à `null` dès qu'il a servi.
+ *
+ * Le `battleId` rapproche l'abandon de son `battle_started` (décision #880), donc rend le taux
+ * lisible par carte et par format plutôt qu'en global.
+ */
+export function trackBattleAbandoned(payload: BattleAbandonedPayload): void {
+  send(EventKind.BattleAbandoned, { ...payload });
 }
 
 /**

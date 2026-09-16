@@ -18,6 +18,8 @@
  * 2026-09-02 — la page est un relevé de fréquentation, l'analyse d'usage est un autre sujet.
  */
 
+import type { EventKind } from "./validate.js";
+
 export interface EventRow {
   id: number;
   /**
@@ -27,7 +29,7 @@ export interface EventRow {
    * pour un détail de schéma.
    */
   receivedAt: number;
-  kind: "session" | "battle_started" | "battle_ended";
+  kind: EventKind;
   build: string;
   platform: string;
   visitor: string | null;
@@ -77,9 +79,45 @@ export interface BattleStartedPayload {
 
 export interface MemberOutcomePayload {
   species: string;
+  /**
+   * Provenance de l'équipe (plan 212, Lot E). **Facultatif** : les lignes d'avant ce plan n'en ont
+   * pas — elles ne suivaient que les équipes bâties à la main, donc le repli sur `human-built` est
+   * exact et non approximatif. Rien ne réécrit l'historique (décision #868).
+   */
+  source?: string;
+  /** Camp du Pokemon, 0-indexé. Facultatif pour la même raison que `source`. */
+  side?: number;
   moves: Record<string, number>;
   knockedOutTurn: number | null;
   knockedOutCause: string | null;
+}
+
+/**
+ * Un DÉPART mesuré, et non « une partie abandonnée » (plan 212, Lot F).
+ *
+ * 🔴 **La nuance est réelle, pas cosmétique** (revue de code, 2026-09-16). L'exclusivité que le lot
+ * garantit est « **un pair** émet une fin ou un départ, jamais les deux » — pas « une partie ». En
+ * ligne, un départ produit systématiquement les DEUX lignes sous le même `battleId` : le partant
+ * émet son `battle_abandoned`, et son adversaire, dont le délai de grâce expire, émet un
+ * `battle_ended` par forfait. Les deux ensembles de déduplication ne se croisent jamais.
+ *
+ * Conséquence à connaître avant de lire le rapport : `battlesAbandoned` **n'est pas** le complément
+ * de `battlesEnded`. En solo — 21 parties sur 22 du trafic mesuré — l'invariant est strictement
+ * respecté et la question ne se pose pas.
+ *
+ * Ce qui reste vrai quoi qu'il arrive : `abandonRate` se calcule toujours par ABSENCE de
+ * `battle_ended`, donc il ne bouge pas d'un iota. Cette ligne ne le corrige pas, elle le DÉTAILLE —
+ * à quel tour, après combien de temps, et dans quel état de PV.
+ */
+export interface BattleAbandonedPayload {
+  battleId: string;
+  turns: number;
+  durationMs: number;
+  from?: string;
+  /** Camp de celui qui part, 0-indexé. `null` en hot-seat, où tous les camps sont locaux. */
+  side?: number | null;
+  /** PV restants sur PV maximum, par camp 0-indexé rendu en chaîne, entre 0 et 1. */
+  healthRatios?: Record<string, number>;
 }
 
 export interface BattleEndedPayload {
@@ -207,9 +245,44 @@ export interface Report {
   abilityUsage: Tally;
   itemUsage: Tally;
   movesetUsage: Tally;
-  /** Attaques réellement lancées, tous combats terminés confondus. */
+  /**
+   * Attaques réellement lancées, **équipes bâties à la main SEULEMENT** (plan 212, Lot E).
+   *
+   * 🔴 Reste dans le bloc du GOÛT, et c'est une limite posée par l'humain le 2026-09-16 : lue en
+   * face d'`movesetUsage`, elle révèle les attaques qu'on emporte et qu'on ne lance jamais — un
+   * signal qui n'a de sens que si le joueur a choisi son équipe. Une équipe aléatoire n'y entre
+   * jamais ; c'est `movesCastAll` qui la reçoit.
+   */
   movesCast: Tally;
+  /**
+   * Bloc de la FORCE (plan 212, Lot E) : toutes les équipes tenues par un humain, aléatoires
+   * comprises. **Ne s'additionne JAMAIS avec le bloc d'usage** — ce sont deux questions.
+   */
+  movesCastAll: Tally;
+  /** Combien de fois chaque espèce a été VUE dans la cohorte de force. Le dénominateur, donc le `n`. */
+  speciesAppearances: Tally;
+  /** Combien de fois chaque espèce était dans le camp vainqueur. À lire sur `speciesAppearances`. */
+  speciesWins: Tally;
+  /**
+   * Tombé sans avoir lancé une seule attaque. Signal d'initiative, pas de puissance : un Pokemon qui
+   * meurt avant de jouer n'est pas faible, il est lent. Gratuit à partir de ce qu'on collecte déjà.
+   */
+  diedWithoutActing: Tally;
   knockOutCauses: Tally;
+  /**
+   * DÉPARTS mesurés — pas parties abandonnées. Voir `BattleAbandonedPayload` : en ligne, un départ
+   * coexiste avec la fin par forfait que l'adversaire émet pour la même partie. Ce n'est donc pas le
+   * complément de `battlesEnded`, et `abandonRate` reste la seule mesure du taux.
+   */
+  battlesAbandoned: number;
+  abandonBySource: Tally;
+  /**
+   * Dans quel état on lâche : en perdant, en gagnant, ou au coude à coude. **Le chiffre qui désigne
+   * un correctif** — perdre est un problème d'équilibrage, gagner un problème de rythme.
+   */
+  abandonByPosture: Tally;
+  averageAbandonTurns: number | null;
+  averageAbandonDurationMs: number | null;
   /**
    * Comment les parties se sont terminées : au combat, par forfait, ou sans qu'on le sache pour
    * les lignes d'avant le plan 201 (plan 204). Compté une fois par partie.
@@ -323,7 +396,16 @@ export function buildReport(rows: EventRow[], days: number): Report {
     itemUsage: new Map(),
     movesetUsage: new Map(),
     movesCast: new Map(),
+    movesCastAll: new Map(),
+    speciesAppearances: new Map(),
+    speciesWins: new Map(),
+    diedWithoutActing: new Map(),
     knockOutCauses: new Map(),
+    battlesAbandoned: 0,
+    abandonBySource: new Map(),
+    abandonByPosture: new Map(),
+    averageAbandonTurns: null,
+    averageAbandonDurationMs: null,
     battlesByEndReason: new Map(),
     averageTurns: null,
     averageDurationMs: null,
@@ -353,6 +435,10 @@ export function buildReport(rows: EventRow[], days: number): Report {
   };
   let turnsTotal = 0;
   let durationTotal = 0;
+  let abandonTurnsTotal = 0;
+  let abandonDurationTotal = 0;
+  /** Une partie quittée par les DEUX pairs ne compte qu'une fois, comme les fins (plan 204). */
+  const countedAbandons = new Set<string>();
 
   /*
    * 🔴 PREMIÈRE PASSE — les identifiants des parties EN LIGNE (plan 204).
@@ -506,6 +592,29 @@ export function buildReport(rows: EventRow[], days: number): Report {
       continue;
     }
 
+    if (row.kind === "battle_abandoned") {
+      /*
+       * La partie a été quittée en cours (plan 212, Lot F). Une ligne À CÔTÉ de `battle_ended`,
+       * jamais à sa place : `abandonRate` continue de se lire sur l'ÉCART entre les démarrages et
+       * les fins, et ce bloc n'y touche pas. Il dit seulement ce que ce taux ne pouvait pas dire —
+       * à quel tour, après combien de temps, et dans quel état.
+       */
+      const payload = JSON.parse(row.payload) as BattleAbandonedPayload;
+      if (countedAbandons.has(payload.battleId)) {
+        continue;
+      }
+      countedAbandons.add(payload.battleId);
+      report.battlesAbandoned += 1;
+      bump(report.abandonBySource, payload.from ?? ABANDON_SOURCE_UNKNOWN);
+      abandonTurnsTotal += payload.turns;
+      abandonDurationTotal += payload.durationMs;
+      const posture = postureOf(payload.healthRatios, payload.side);
+      if (posture !== null) {
+        bump(report.abandonByPosture, posture);
+      }
+      continue;
+    }
+
     const payload = JSON.parse(row.payload) as BattleEndedPayload;
     // Même règle qu'au démarrage, avec son propre ensemble (plan 204). La PREMIÈRE ligne vue donne
     // la durée et le nombre de tours : chaque pair mesure depuis son propre `startedAt`, aucune
@@ -527,11 +636,47 @@ export function buildReport(rows: EventRow[], days: number): Report {
     // Les issues par Pokemon se cumulent sur les deux lignes, comme les équipes : `outcomes` suit
     // les camps dont la composition a voyagé, donc un camp par pair en ligne.
     for (const outcome of payload.outcomes) {
-      for (const [move, count] of Object.entries(outcome.moves)) {
-        bump(report.movesCast, move, count);
+      /*
+       * 🔴 LE TRI QUI TIENT LA LIMITE POSÉE PAR L'HUMAIN (plan 212, Lot E), et il se fait ICI, à la
+       * lecture, conformément à la décision #868.
+       *
+       * Deux questions, deux cohortes, jamais additionnées :
+       * - le GOÛT — ce que les joueurs choisissent — ne se lit que sur les équipes bâties à la main ;
+       * - la FORCE — ce qui gagne réellement — se lit sur toutes les équipes humaines, et une équipe
+       *   aléatoire y vaut mieux qu'une équipe bâtie, le Pokemon y ayant été distribué et non choisi.
+       *
+       * Les lignes d'avant ce plan n'ont pas de `source` : elles ne portent que des équipes bâties à
+       * la main, puisque c'étaient les seules suivies. Le repli est donc exact, pas approximatif.
+       */
+      const source = outcome.source ?? TEAM_SOURCE_HUMAN_BUILT;
+      const movesCast = Object.entries(outcome.moves);
+      for (const [move, count] of movesCast) {
+        bump(report.movesCastAll, move, count);
+        if (source === TEAM_SOURCE_HUMAN_BUILT) {
+          bump(report.movesCast, move, count);
+        }
       }
       if (outcome.knockedOutCause) {
         bump(report.knockOutCauses, outcome.knockedOutCause);
+      }
+      /*
+       * Le dénominateur de tout ce qui suit : sans lui, un taux de victoire à 100 % sur une seule
+       * apparition se lirait comme un Pokemon cassé.
+       *
+       * ⚠️ Il mélange deux régimes de collecte, et contrairement au repli sur `source` celui-ci
+       * n'est PAS exact. Avant le plan 212, `outcomes` ne contenait que les Pokemon ayant agi ou
+       * chuté ; depuis le semis du roster, il contient tout le monde. « Était sur le terrain » et
+       * « a fait quelque chose » s'additionnent donc, ce qui gonfle mécaniquement le taux de
+       * victoire des espèces vues AVANT le plan. Volume concerné dérisoire (5 parties terminées,
+       * dont 4 aux issues vides) et le seuil d'affichage le masque largement, mais la fenêtre se
+       * referme d'elle-même à mesure que les nouvelles lignes arrivent.
+       */
+      bump(report.speciesAppearances, outcome.species);
+      if (outcome.side !== undefined && payload.winnerSide === outcome.side && !payload.draw) {
+        bump(report.speciesWins, outcome.species);
+      }
+      if (movesCast.length === 0 && typeof outcome.knockedOutTurn === "number") {
+        bump(report.diedWithoutActing, outcome.species);
       }
     }
   }
@@ -567,6 +712,10 @@ export function buildReport(rows: EventRow[], days: number): Report {
   if (report.battlesEnded > 0) {
     report.averageTurns = turnsTotal / report.battlesEnded;
     report.averageDurationMs = durationTotal / report.battlesEnded;
+  }
+  if (report.battlesAbandoned > 0) {
+    report.averageAbandonTurns = abandonTurnsTotal / report.battlesAbandoned;
+    report.averageAbandonDurationMs = abandonDurationTotal / report.battlesAbandoned;
   }
   return report;
 }
@@ -638,6 +787,7 @@ export const ACTION_LABELS: Record<string, string> = {
   "room-failed-version_incompatible": "Échec en ligne — versions incompatibles",
   "room-failed-connexion_impossible": "Échec en ligne — connexion impossible",
   "room-failed-delai_depasse": "Échec en ligne — délai dépassé",
+  "room-failed-format_reduit": "Échec en ligne — format réduit en cours de route",
   "turn-timed-out": "Tour parti au dépassement du chrono",
   "forfeit-absent": "Forfait — connexion perdue",
   "forfeit-missed-turns": "Forfait — trois tours manqués",
@@ -646,6 +796,12 @@ export const ACTION_LABELS: Record<string, string> = {
   "reconnect-succeeded": "Reprise en ligne réussie",
   "reconnect-failed": "Reprise en ligne ÉCHOUÉE",
   "connection-uncertain": "Connexion dégradée (ICE)",
+  "checksum-compared": "Sommes de contrôle confrontées (le dénominateur)",
+  "checksum-mismatch": "Somme de contrôle divergente",
+  "host-migrated": "Hébergement repris par un autre joueur",
+  "placement-timed-out": "Placement posé d'office au dépassement du chrono",
+  "eliminated-kept-watching": "Éliminé — a continué à regarder",
+  "eliminated-left": "Éliminé — a quitté la partie",
 };
 export const INPUT_LABELS: Record<string, string> = {
   pointer: "Souris",
@@ -659,6 +815,80 @@ export const INPUT_LABELS: Record<string, string> = {
  * retombe sur `battlesEnded` — sans quoi on croirait à une perte.
  */
 export const END_REASON_UNKNOWN = "unknown";
+
+/** Provenance par défaut des issues d'avant le plan 212 — elles ne suivaient que les équipes bâties. */
+const TEAM_SOURCE_HUMAN_BUILT = "human-built";
+/** Une ligne d'abandon sans `from` : possible si un client ancien en émettait, aucun aujourd'hui. */
+const ABANDON_SOURCE_UNKNOWN = "unknown";
+
+/**
+ * Dans quel état le joueur a lâché (plan 212, Lot F). **Le chiffre qui désigne un correctif.**
+ *
+ * Abandonner en train de perdre est un problème d'ÉQUILIBRAGE ; abandonner en train de gagner, un
+ * problème de RYTHME — la partie est jugée trop longue alors qu'elle est déjà acquise. Deux causes
+ * qui appellent des correctifs opposés, et qu'un taux d'abandon global confond.
+ *
+ * Le seuil de 10 points d'écart sépare une partie réellement engagée d'un coude à coude : en deçà,
+ * conclure « il perdait » sur trois points de PV serait une sur-lecture.
+ */
+export const AbandonPosture = {
+  Losing: "losing",
+  Winning: "winning",
+  Even: "even",
+} as const;
+export type AbandonPosture = (typeof AbandonPosture)[keyof typeof AbandonPosture];
+
+export const ABANDON_POSTURE_LABELS: Record<AbandonPosture, string> = {
+  [AbandonPosture.Losing]: "en train de perdre (équilibrage)",
+  [AbandonPosture.Winning]: "en train de gagner (rythme)",
+  [AbandonPosture.Even]: "au coude à coude",
+};
+
+/**
+ * D'où le joueur est parti. Recopié d'`AbandonSource` côté application — ce paquet ne dépend pas de
+ * l'application, et c'est cette table qui empêche les clés brutes d'apparaître au rapport.
+ *
+ * 🔴 Ajoutée en revue de code : la section « D'où on part » passait par `ACTION_LABELS`, qui ne
+ * contient aucune de ces valeurs, et s'affichait donc en anglais brut. C'est le défaut exact que le
+ * lot D de ce même plan existe pour tuer, reproduit dans le même commit.
+ */
+export const ABANDON_SOURCE_LABELS: Record<string, string> = {
+  menu: "« Quitter » depuis le menu",
+  abandon: "« Abandonner » depuis le menu",
+  diverged: "parties devenues divergentes",
+  "tab-closed": "onglet fermé",
+  [ABANDON_SOURCE_UNKNOWN]: "avant la mesure",
+};
+
+const ABANDON_POSTURE_MARGIN = 0.1;
+
+/**
+ * Compare les PV du partant au meilleur de ses adversaires.
+ *
+ * Rend `null` quand il n'y a pas de quoi conclure : pas de camp désigné (hot-seat), camp absent du
+ * relevé, ou un seul camp mesuré. **En inventer une posture serait pire que de n'en compter aucune**
+ * — c'est ce chiffre qui doit désigner un correctif, pas en suggérer un au hasard.
+ */
+function postureOf(
+  healthRatios: Record<string, number> | undefined,
+  side: number | null | undefined,
+): AbandonPosture | null {
+  if (healthRatios === undefined || side === null || side === undefined) {
+    return null;
+  }
+  const own = healthRatios[String(side)];
+  const others = Object.entries(healthRatios)
+    .filter(([key]) => key !== String(side))
+    .map(([, ratio]) => ratio);
+  if (own === undefined || others.length === 0) {
+    return null;
+  }
+  const bestOpponent = Math.max(...others);
+  if (Math.abs(own - bestOpponent) < ABANDON_POSTURE_MARGIN) {
+    return AbandonPosture.Even;
+  }
+  return own < bestOpponent ? AbandonPosture.Losing : AbandonPosture.Winning;
+}
 
 export const END_REASON_LABELS: Record<string, string> = {
   combat: "au combat",

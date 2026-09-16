@@ -12,7 +12,12 @@
  * composition dans le payload, juste sa provenance. Aucun filtre à oublier au moment de lire.
  */
 
-import { PlayerController, type TeamSet, type TeamSlot } from "@pokemon-tactic/core";
+import {
+  type BattleState,
+  PlayerController,
+  type TeamSet,
+  type TeamSlot,
+} from "@pokemon-tactic/core";
 import { t } from "../i18n";
 import type { SlotState } from "../ui/team-select/slot-state";
 import { TeamSource, type TelemetryTeam, type TelemetryTeamMember } from "./telemetry";
@@ -88,9 +93,30 @@ export function buildOnlineTelemetryTeams(
   return [{ side, source: TeamSource.HumanBuilt, members: slots.map(memberOf) }];
 }
 
-/** Camps dont la composition a voyagé — les seuls que `battle_ended` détaillera. */
-export function trackedSidesOf(teams: readonly TelemetryTeam[]): Set<number> {
-  return new Set(teams.filter((team) => team.members !== undefined).map((team) => team.side));
+/**
+ * Les camps que `battle_ended` détaillera, et **d'où vient chacun** (plan 212, Lot E).
+ *
+ * Retenait auparavant les seuls camps dont la composition avait voyagé, c'est-à-dire `human-built`.
+ * La production a montré ce que ça coûtait : sur 44 camps observés en 14 jours, **6** l'étaient, et
+ * le bilan de deux semaines tenait en une attaque lancée et une cause de K.O. — le pari « attaques
+ * emportées ≠ attaques réellement lancées » ne produisait rien.
+ *
+ * 🔴 **Les équipes tenues par un humain, quelle que soit leur provenance**, mais chacune ÉTIQUETÉE.
+ * Une équipe aléatoire ne dit rien du goût du joueur — elle ne doit donc jamais entrer dans les
+ * statistiques d'usage — mais elle dit la **force** mieux qu'une équipe bâtie, parce que le Pokemon
+ * y a été distribué et non choisi. Le drapeau est ce qui permet au rapport de tenir les deux blocs
+ * séparés à la lecture.
+ *
+ * ⚠️ Jamais les camps de l'IA : personne n'y décide rien, ni la composition ni les attaques.
+ */
+export function trackedSourcesOf(teams: readonly TelemetryTeam[]): Map<number, TeamSource> {
+  const tracked = new Map<number, TeamSource>();
+  for (const team of teams) {
+    if (team.source === TeamSource.HumanBuilt || team.source === TeamSource.HumanRandom) {
+      tracked.set(team.side, team.source);
+    }
+  }
+  return tracked;
 }
 
 /**
@@ -104,4 +130,55 @@ export function countControllers(teams: readonly { controller: PlayerController 
 } {
   const humans = teams.filter((team) => team.controller === PlayerController.Human).length;
   return { humans, ai: teams.length - humans };
+}
+
+/**
+ * Les PV restants sur PV maximum, par camp, à l'instant de l'appel (plan 212, Lot F).
+ *
+ * 🔴 Ce que ce ratio sert à distinguer : abandonner **en train de perdre** est un problème
+ * d'équilibrage, abandonner **en train de gagner** un problème de rythme. Deux causes, deux
+ * correctifs opposés, aujourd'hui indiscernables derrière un taux d'abandon de 77 %.
+ *
+ * La clé est l'index de camp 0-indexé rendu en chaîne, comme partout ailleurs dans la télémétrie —
+ * `player-1` est le camp 0. Un camp entièrement à terre rend 0, un camp intact 1.
+ */
+export function healthRatiosBySide(state: BattleState): Record<string, number> {
+  const current = new Map<number, number>();
+  const maximum = new Map<number, number>();
+  for (const pokemon of state.pokemon.values()) {
+    const side = sideOfPlayerId(pokemon.playerId);
+    if (side === null) {
+      continue;
+    }
+    current.set(side, (current.get(side) ?? 0) + pokemon.currentHp);
+    maximum.set(side, (maximum.get(side) ?? 0) + pokemon.maxHp);
+  }
+  const ratios: Record<string, number> = {};
+  for (const [side, total] of maximum) {
+    // Un camp sans un seul PV maximum n'existe pas, mais le rapport ne survivrait pas à un NaN.
+    if (total > 0) {
+      ratios[String(side)] = (current.get(side) ?? 0) / total;
+    }
+  }
+  return ratios;
+}
+
+/** `player-2` → camp 1. Le préfixe est 1-indexé, les camps de la télémétrie 0-indexés. */
+function sideOfPlayerId(playerId: string): number | null {
+  const match = /^player-(\d+)$/.exec(playerId);
+  if (!match?.[1]) {
+    return null;
+  }
+  return Number(match[1]) - 1;
+}
+
+/**
+ * Le camp local, quand il n'y en a qu'un (plan 212, Lot F). `null` sinon — en hot-seat, tous les
+ * camps sont sur cette machine, et désigner un partant y serait une invention.
+ */
+export function soleLocalSide(playerIds: readonly string[]): number | null {
+  if (playerIds.length !== 1 || playerIds[0] === undefined) {
+    return null;
+  }
+  return sideOfPlayerId(playerIds[0]);
 }

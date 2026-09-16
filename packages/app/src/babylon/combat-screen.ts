@@ -25,6 +25,7 @@ import type {
   PresentationContext,
   TurnClockView,
 } from "@pokemon-tactic/render-ports";
+import { EliminatedChoice } from "@pokemon-tactic/render-ports";
 import type {
   ChromeInsetProbe,
   GameStage,
@@ -58,11 +59,14 @@ import {
   sandboxInstanceId,
 } from "@pokemon-tactic/view-core";
 import {
+  abandonBattleTelemetry,
+  attachBattleRuntime,
   beginBattleTelemetry,
   endBattleTelemetry,
   observeBattleTelemetry,
 } from "../analytics/battle-telemetry-session.js";
-import { countAction, TelemetryAction } from "../analytics/telemetry.js";
+import { healthRatiosBySide, soleLocalSide } from "../analytics/team-telemetry.js";
+import { AbandonSource, countAction, TelemetryAction } from "../analytics/telemetry.js";
 import { type BattleResumeSave, battleResumeStore } from "../app/battle-persistence.js";
 import type { Navigate, Screen } from "../app/screen-manager.js";
 import type { CombatSetup, ScreenParamsById } from "../app/screens.js";
@@ -670,6 +674,21 @@ function runBattle(options: {
     // Abandonner et Recommencer détruisent la partie : ils purgent la sauvegarde comme le fait le
     // dialogue de victoire. C'est ce que leur confirmation annonce.
     onAbandon: () => {
+      /*
+       * 🔴 L'abandon compte AUSSI (revue de code, 2026-09-16). En solo — 21 parties sur 22 du
+       * trafic — `onResign` n'existe pas, donc le moteur ne produit aucun `BattleEnded` : le geste
+       * le plus explicite de « j'arrête cette partie » ne laissait AUCUNE trace portant le tour, la
+       * durée et les PV, c'est-à-dire les trois champs pour lesquels le lot F existe.
+       *
+       * Distinct de « Quitter » à dessein : celui-ci purge la sauvegarde, donc c'est un départ
+       * définitif ; l'autre la garde, donc le joueur compte peut-être revenir. Les confondre
+       * mélangerait les hésitants et ceux qui claquent la porte — or ce sont les seconds dont les
+       * 77 % d'abandon parlent.
+       *
+       * Avant `onResign` : en ligne, celui-ci ferme la partie côté moteur, et un abandon bâti après
+       * rendrait `null`.
+       */
+      abandonBattleTelemetry(AbandonSource.Abandon);
       // En ligne, l'adversaire doit apprendre POURQUOI un camp disparaît, et il doit l'apprendre
       // AVANT que `onBattleClosed` ne libère le salon : après, il n'y a plus de canal pour le dire
       // (plan 202, étape 6). Sans effet en local, où `onResign` n'est pas fourni.
@@ -696,7 +715,15 @@ function runBattle(options: {
     // seulement quand une sauvegarde existe : `onBattleClosed` n'est passé que par le vrai combat
     // (`store.clear()`), pas par le studio sandbox. Là-bas, l'entrée ne s'affiche donc pas plutôt
     // que de promettre une reprise sans rien à reprendre.
-    onQuitKeepingSave: onBattleClosed === undefined ? undefined : () => onExit(),
+    onQuitKeepingSave:
+      onBattleClosed === undefined
+        ? undefined
+        : () => {
+            // Un départ délibéré, à distinguer d'une coupure subie (plan 212, Lot F) : ce sont deux
+            // populations différentes, et les confondre rendrait le taux d'abandon illisible.
+            abandonBattleTelemetry(AbandonSource.Menu);
+            onExit();
+          },
     // Un chronomètre tourne dès que la partie est en ligne (plan 202) : le menu grignote alors le
     // temps du joueur, et la dette du plan 187 était de ne pas le dire.
     timeKeepsRunning: turnClock !== undefined,
@@ -833,6 +860,24 @@ function runBattle(options: {
     translate: presentationContext.translate,
     getLanguage: presentationContext.getLanguage,
   });
+  /*
+   * Ce que la télémétrie ne peut pas atteindre seule (plan 212, Lots E et F) : la liste des Pokemon
+   * en lice, et de quoi lire les PV par camp au moment où le joueur s'en va.
+   *
+   * Ici et pas dans `beginBattleTelemetry` : celui-ci part avec le seed, AVANT le placement, donc
+   * avant que `battle.state` n'existe (décision #857). Sans effet hors d'une partie mesurée.
+   */
+  attachBattleRuntime({
+    pokemonIds: battle.state.pokemon.keys(),
+    /*
+     * Le camp de CETTE machine, pour dire de quel côté se tenait un partant. `localPlayerIds` en
+     * ligne, `humanPlayerIds` en local — et `null` dès qu'il y en a plusieurs : en hot-seat tous les
+     * camps sont locaux, donc « qui abandonne » n'a pas de réponse et en inventer une serait pire
+     * que de ne rien compter.
+     */
+    localSide: soleLocalSide(localPlayerIds ?? humanPlayerIds),
+    readHealthRatios: () => healthRatiosBySide(battle.state),
+  });
   // History of a resumed battle: the log alone, and before the live feed starts, so the restored lines
   // sit above whatever happens next.
   for (const event of initialLogEvents ?? []) {
@@ -882,7 +927,19 @@ function runBattle(options: {
        * l'action distante suivante — tout un chronomètre de tour, et au doigt c'est le seul accès à
        * « Quitter ».
        */
-      chrome.showEliminated(refreshCombatMenuButton);
+      chrome.showEliminated((choice) => {
+        /*
+         * Le mode spectateur sert-il à quelqu'un ? (plan 212, Lot C.) `choice` vaut `null` quand
+         * c'est la victoire qui a refermé le dialogue : le joueur n'a rien choisi, et rien n'est
+         * compté — sinon « a continué à regarder » gonflerait de tous ceux qui n'ont rien décidé.
+         */
+        if (choice === EliminatedChoice.KeptWatching) {
+          countAction(TelemetryAction.EliminatedKeptWatching);
+        } else if (choice === EliminatedChoice.Left) {
+          countAction(TelemetryAction.EliminatedLeft);
+        }
+        refreshCombatMenuButton();
+      });
     },
   };
   const orchestrator = new BattleOrchestrator(
@@ -911,6 +968,12 @@ function runBattle(options: {
        * sauvegarde de reprise laissée en place, partie jamais comptée close en télémétrie.
        */
       onBattleInterrupted: () => {
+        /*
+         * L'abandon D'ABORD (plan 212, Lot F) : il ne produit rien si la partie a conclu, et
+         * `endBattleTelemetry` derrière ne produit rien si l'abandon a déjà pris le collecteur.
+         * Les deux se gardent l'un l'autre, et une partie n'émet jamais les deux événements.
+         */
+        abandonBattleTelemetry(AbandonSource.Diverged);
         endBattleTelemetry();
         onBattleClosed?.();
       },

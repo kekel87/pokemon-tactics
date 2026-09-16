@@ -3,7 +3,8 @@ import { OnlinePeer, OnlineSession } from "../../pages/online-session";
 import { PlacementPhase } from "../../pages/placement";
 
 /*
- * Cahier §11.11 à §11.14 — le placement à la main EN LIGNE, à deux VRAIS pairs (plan 211).
+ * Cahier §11.11 à §11.18 — le placement à la main EN LIGNE, à deux VRAIS pairs (plan 211), et le
+ * filet de sa fenêtre de 90 s (§11.18).
  *
  * 🔴 C'est le trou que ce plan solde, et il valait le coût de deux contextes de navigateur. Avant
  * lui, AUCUN test ne couvrait un placement en ligne entre deux joueurs : le seul spec qui décochait
@@ -292,4 +293,63 @@ test("§11.16 en ligne avec une place IA : elle se place toute seule et le comba
     .poll(async () => (await host.scene.spriteStates()).length, { timeout: 60_000 })
     .toBeGreaterThan(placedByHost);
   await expect(host.page.getByTestId("placement-waiting")).toBeHidden({ timeout: 30_000 });
+});
+
+test("§11.18 en ligne : le chrono de placement écoulé pose mon camp d'office et lance le combat", async ({
+  page,
+}) => {
+  /*
+   * Le filet du plan 211, et le seul de ses chemins qui n'était joué par personne : la fenêtre de
+   * 90 s qui expire sur un joueur qui n'a RIEN posé. C'est la branche `!phase.isPlayerDone(...)` de
+   * `onWindowExpired()`, celle qui pose à notre place — et celle où le plan 212 compte
+   * `placement-timed-out`, le pari de délai frère des 60 s du tour.
+   *
+   * ⚠️ **Le compteur lui-même n'est pas observable ici** : la télémétrie est muette hors des hôtes
+   * de publication (`TELEMETRY_PLATFORM_HOSTS`), ce qui est précisément ce qui garantit qu'aucun
+   * test n'écrit en production. Ce scénario garde donc le GESTE — sans lui, le compteur pourrait
+   * rester à zéro parce que la branche est morte, et non parce que 90 s suffisent.
+   *
+   * Un seul contexte de navigateur, comme §11.16 : la partie est « en ligne » dès que `localSeat`
+   * existe, et la place d'en face est tenue par une IA — qui se place toute seule, donc n'a pas
+   * besoin qu'on attende son chrono à elle.
+   */
+  test.setTimeout(240_000);
+
+  const host = new OnlinePeer(page);
+  await host.openRoom();
+  await host.teams.autoPlacement.uncheck();
+  await host.teams.pickRandomTeam(0);
+  await host.teams.giveSlotToAi(1);
+  await expect(host.room.ready).toBeEnabled();
+  await host.room.ready.click();
+  await expect(host.room.launch).toBeEnabled({ timeout: 30_000 });
+  await host.room.launch.click();
+  await host.scene.waitReady(30_000);
+
+  const placement = new PlacementPhase(host.page);
+  await expect(placement.instruction).toBeVisible({ timeout: 30_000 });
+  await expect(host.page.getByTestId("placement-clock")).toBeVisible();
+
+  /*
+   * Rien n'est posé de mon côté, et le camp d'en face ne se voit pas avant le lancement (§11.14) :
+   * le plateau est donc VIDE, et c'est la contre-épreuve de ce qui suit.
+   */
+  expect(await host.scene.spriteStates()).toHaveLength(0);
+
+  /*
+   * Puis on ne fait rien — c'est tout le scénario. La fenêtre de `ONLINE_PLACEMENT_WINDOW_MS`
+   * (90 s) s'écoule pour de vrai : aucune horloge n'est truquée, parce que le délai EST le sujet.
+   */
+  await expect
+    .poll(async () => (await host.scene.spriteStates()).length, {
+      timeout: 150_000,
+      message: "la fenêtre de placement a expiré sans que le camp local soit posé d'office",
+    })
+    .toBeGreaterThan(0);
+
+  // La phase est close, son compteur avec elle, et c'est le chrono de TOUR qui prend le relais.
+  await expect(placement.instruction).toBeHidden();
+  await expect(host.page.getByTestId("placement-waiting")).toBeHidden({ timeout: 30_000 });
+  await expect(host.page.getByTestId("placement-clock")).toBeHidden({ timeout: 30_000 });
+  await expect(host.clock.hud).toBeVisible({ timeout: 60_000 });
 });

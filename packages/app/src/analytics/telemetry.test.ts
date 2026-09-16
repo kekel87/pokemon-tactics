@@ -363,6 +363,8 @@ describe("événements de partie", () => {
       outcomes: [
         {
           species: "venusaur",
+          source: "human-built",
+          side: 0,
           moves: { "giga-drain": 3 },
           knockedOutTurn: null,
           knockedOutCause: null,

@@ -50,6 +50,16 @@ Pour l'ouvrir : `node scripts/memory/query.mjs --open <entité>`. Ci-dessous l'e
 > une ligne de journal suffit. Un camp entièrement à terre ne peut plus être réanimé par Vœu Soin en
 > ligne (`NETWORK_VERSION` 7 → 8). **Ne bloquait pas la release** (décision #1040). Voir entité
 > `agenda-prochaine-etape-courante`.
+> **Le plan 211 est livré** (2026-09-15/16, `docs/plans/211-placement-simultane-en-ligne.md`, statut
+> `done`) : le placement d'équipe se fait à la main en ligne, plus seulement en aléatoire.
+> **Le plan 212 est livré** (2026-09-16, `docs/plans/212-telemetrie-des-mecaniques-de-phase-7.md`,
+> statut `done`) : audit de la télémétrie multijoueur demandé par l'humain avant publication, puis
+> lecture de 14 jours de statistiques de production. Comble trois trous de mesure nés après la
+> conception initiale (migration d'hôte, chrono de placement, joueur éliminé) et deux trouvés en
+> lisant les chiffres (usage biaisé par les équipes aléatoires non suivies, taux d'abandon sans
+> détail). **La Phase 7 n'a plus aucun bloquant nommé pour la release** — reste la décision de
+> version et le passage du `pnpm test:e2e` complet avant publication (décision #924). Voir entité
+> `agenda-prochaine-etape-courante`.
 > Les autres sections ci-dessous sont ouvertes, dans un ordre qui n'est pas figé.
 
 ### Post-Babylon — petits chantiers de rendu
@@ -160,15 +170,28 @@ existe déjà.
 (mise en pause au bout de 7 jours), matchmaking, fog réel en ligne (#863), classement compétitif
 (#870).
 
-- [ ] **Télémétrie de jeu** — Cloudflare Workers + D1, remplace Goatcounter (faussé par les bloqueurs).
+- [x] **Télémétrie de jeu** — Cloudflare Workers + D1, remplace Goatcounter (faussé par les bloqueurs).
       Usages seulement : parties jouées, Pokemon et attaques les plus joués, taux d'abandon.
       **Indépendante du réseau et déjà utile en solo** → première tranche livrable de la phase
-      (#867, #868, #870). **QUASI CLOSE (2026-09-02)** : étapes 0-5, 7, 8/9 du plan 196 livrées —
-      Worker en ligne (collecte `POST /e` vérifiée en production itch.io + GitHub Pages), relevé live
-      protégé par mot de passe (`GET /tableau`), `pnpm stats` pour l'équilibrage Phase 8, Goatcounter
-      retiré du bundle (compte pas encore fermé). Étape 6 (vérification en production) **partielle** :
-      aucune partie menée jusqu'au bout, l'événement `battle_ended` reste non éprouvé — détail dans
-      le graphe, entités `agenda` et `plan-196`
+      (#867, #868, #870). Worker en ligne (collecte `POST /e` vérifiée en production itch.io +
+      GitHub Pages), relevé live protégé par mot de passe (`GET /tableau`), `pnpm stats` pour
+      l'équilibrage Phase 8, Goatcounter retiré du bundle. **Close le 2026-09-16** (plan 212, audit
+      demandé par l'humain avant release + lecture de 14 jours de production) : les treize compteurs
+      en ligne ont chacun un point d'émission réel, trois libellés oubliés ajoutés au rapport
+      (`checksum-mismatch`, `checksum-compared`, `room-failed-format_reduit`), et trois mécaniques
+      nées après la conception initiale sont désormais mesurées (migration d'hôte, chrono de
+      placement à 90 s, joueur éliminé qui regarde ou part). Le rapport se scinde en deux blocs qui ne
+      s'additionnent jamais : usage — équipes bâties à la main seulement, le GOÛT — et déroulé des
+      combats — toutes équipes humaines y compris aléatoires, jamais celles de l'IA, la FORCE — et
+      tait tout taux de victoire sous 10 apparitions. Un nouvel événement `battle_abandoned`, distinct
+      de `battle_ended`, capture où (tour, durée), d'où (menu, déconnexion, onglet fermé) et dans
+      quel état de PV on abandonne. **Ce que 14 jours de production ont montré** : 36 visites, 77 %
+      d'abandon (22 parties commencées, 5 terminées), 36 % de tactile — la passe multi-entrée validée
+      par le terrain — et un trou : 4 des 5 parties terminées avaient un `outcomes` vide, faute de
+      suivre les camps aléatoires. **Réserves à garder pour la Phase 8** : le *build* des équipes
+      aléatoires n'est pas tiré au hasard (`opSets[0]` toujours), 21 parties sur 22 se jouent contre
+      l'IA, et au rythme actuel il faut de l'ordre de 16 mois pour un `n` exploitable par espèce.
+      Détail complet : graphe, entité `plan-212`
 - [x] **Multijoueur réseau P2P** — lobby (`ScreenId` neuf), protocole d'actions, validation,
       détection de désync (sérialisation canonique livrée, plan 203), chronomètre local
       auto-déclarant (#864, #865), reconnexion par le chemin du plan 181. **Lot B1 (transport et

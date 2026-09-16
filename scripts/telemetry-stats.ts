@@ -27,6 +27,8 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  ABANDON_POSTURE_LABELS,
+  ABANDON_SOURCE_LABELS,
   ACTION_LABELS,
   buildReport,
   CAUSE_LABELS,
@@ -173,10 +175,95 @@ function renderTerminal(report: Report): string {
   parts.push(
     section("Attaques réellement lancées", report.movesCast, (k) => nameOf(MOVE_NAMES, k)),
   );
+
+  /*
+   * 🔴 DEUX BLOCS QUI NE S'ADDITIONNENT JAMAIS (plan 212, Lot E).
+   *
+   * Le bloc ci-dessus est celui du GOÛT : ce que les joueurs CHOISISSENT, donc les équipes bâties à
+   * la main et elles seules. Celui-ci est celui de la FORCE : ce qui GAGNE, toutes équipes humaines
+   * confondues — et une équipe aléatoire y vaut mieux qu'une équipe bâtie, le Pokemon y ayant été
+   * distribué et non choisi, donc sans biais de réputation.
+   *
+   * Les mélanger ferait entrer l'aléatoire dans les statistiques d'usage, ce que l'humain a
+   * explicitement refusé le 2026-09-16.
+   */
+  parts.push("\n  ── Déroulé des combats (toutes équipes humaines, aléatoires comprises) ──\n");
   parts.push(section("Causes de K.O.", report.knockOutCauses, (k) => label(CAUSE_LABELS, k)));
+  parts.push(
+    section("Attaques lancées, toutes équipes", report.movesCastAll, (k) => nameOf(MOVE_NAMES, k)),
+  );
+  parts.push(
+    section("Tombés sans avoir agi", report.diedWithoutActing, (k) => nameOf(POKEMON_NAMES, k)),
+  );
+  parts.push(winRateSection(report));
+
+  parts.push(abandonBlock(report));
 
   parts.push(section("Versions du jeu", report.builds));
   return parts.join("\n");
+}
+
+/**
+ * Nombre minimal d'apparitions avant qu'un taux de victoire ne soit montré.
+ *
+ * 🔴 Pourquoi un seuil plutôt qu'un affichage brut : sur 150 espèces et ~1,4 camp humain par jour,
+ * une espèce donnée apparaît environ une fois tous les 17 jours. Sans garde, un « 100 % de
+ * victoires » sur UNE apparition s'afficherait comme un Pokemon cassé. C'est exactement l'erreur que
+ * les chiffres du 2026-09-16 invitaient à faire — « une attaque lancée, une cause de K.O. » lus
+ * comme un signal alors que c'est du bruit à n=1.
+ */
+const MIN_APPEARANCES_FOR_WIN_RATE = 10;
+
+/**
+ * Taux de présence dans le camp vainqueur, par espèce, **avec son `n`**.
+ *
+ * ⚠️ Signal d'appoint, jamais à lire seul : une victoire est un résultat d'ÉQUIPE (six membres, la
+ * qualité de l'adversaire, des synergies non voulues puisque le tirage est aléatoire). L'attribuer à
+ * un membre est intrinsèquement confondu, plus que la mort, le tour de chute ou les attaques
+ * lancées, qui sont directement imputables à l'individu.
+ */
+function winRateSection(report: Report): string {
+  const eligible = [...report.speciesAppearances.entries()]
+    .filter(([, appearances]) => appearances >= MIN_APPEARANCES_FOR_WIN_RATE)
+    .map(([species, appearances]) => {
+      const wins = report.speciesWins.get(species) ?? 0;
+      return { species, appearances, rate: wins / appearances };
+    })
+    .sort((left, right) => right.rate - left.rate);
+  const rows = eligible.slice(0, 12);
+  // Compté AVANT la coupe à douze : mélanger les deux attribuerait à un manque de données des
+  // lignes qui n'ont manqué que de place, et le message deviendrait faux dès la treizième espèce.
+  const held = report.speciesAppearances.size - eligible.length;
+  const footer =
+    held > 0
+      ? `    (${held} espèce(s) sous ${MIN_APPEARANCES_FOR_WIN_RATE} apparition(s), tues plutôt que lues de travers)\n`
+      : "";
+  if (rows.length === 0) {
+    return `  Présence dans le camp vainqueur\n    (pas encore assez d'apparitions)\n${footer}`;
+  }
+  const lines = rows.map(
+    (row) =>
+      `    ${`${(row.rate * 100).toFixed(0)} %`.padStart(5)}  ${nameOf(POKEMON_NAMES, row.species)} (n=${row.appearances})`,
+  );
+  return `  Présence dans le camp vainqueur\n${lines.join("\n")}\n${footer}`;
+}
+
+/** Ce que les 77 % d'abandon ne pouvaient pas dire : quand on lâche, et dans quel état. */
+function abandonBlock(report: Report): string {
+  if (report.battlesAbandoned === 0) {
+    return "\n  ── Abandons ──\n  (aucun départ mesuré sur la période)\n";
+  }
+  const turns = report.averageAbandonTurns === null ? "—" : report.averageAbandonTurns.toFixed(1);
+  const duration =
+    report.averageAbandonDurationMs === null
+      ? "—"
+      : `${(report.averageAbandonDurationMs / 60_000).toFixed(1)} min`;
+  return [
+    "\n  ── Abandons ──\n",
+    `  ${report.battlesAbandoned} départ(s) mesuré(s) · au tour ${turns} en moyenne · après ${duration}\n`,
+    section("D'où on part", report.abandonBySource, (k) => label(ABANDON_SOURCE_LABELS, k)),
+    section("Dans quel état", report.abandonByPosture, (k) => label(ABANDON_POSTURE_LABELS, k)),
+  ].join("\n");
 }
 
 /* --------------------------------------------------------------------- CLI */

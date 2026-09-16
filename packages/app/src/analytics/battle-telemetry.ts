@@ -4,15 +4,21 @@
  * Observe le flux d'événements du moteur et en tire le payload de `battle_ended`. Le calcul vit
  * ICI et pas dans `packages/core` : le core ne connaît pas la télémétrie, et n'a pas à l'apprendre.
  *
- * Ne suit que les camps dont on a la composition — les équipes `human-built`. Sans leur
- * composition, le détail des attaques ne se rattache à rien (§ `battle_ended` du plan).
+ * Suit **tous les camps tenus par un humain**, chacun étiqueté de sa provenance (plan 212, Lot E).
+ * Ne suivre que les équipes bâties à la main affamait la mesure : 6 camps sur 44 en production, donc
+ * une attaque lancée et une cause de K.O. en quatorze jours. Le drapeau porté par chaque issue est ce
+ * qui permet au rapport de garder le **goût** (bâties à la main seules) séparé de la **force**
+ * (toutes), sans jamais les additionner.
  */
 
 import { type BattleEvent, BattleEventType } from "@pokemon-tactic/core";
 import {
+  type AbandonSource,
+  type BattleAbandonedPayload,
   type BattleEndedPayload,
   BattleEndReason,
   KnockOutCause,
+  type TeamSource,
   type TelemetryMemberOutcome,
 } from "./telemetry";
 
@@ -47,21 +53,61 @@ interface KnockOutRecord {
 export interface BattleTelemetryCollector {
   observe(event: BattleEvent): void;
   /**
+   * Ce que l'écran de combat seul peut fournir, une fois le combat MONTÉ (plans 212, Lots E et F).
+   *
+   * 🔴 Porté par le collecteur et non par des variables de module, parce que le collecteur a
+   * exactement la bonne durée de vie : il naît avec la partie et meurt avec elle. Trois variables
+   * de module à côté laissaient le lecteur de PV de la partie PRÉCÉDENTE en place entre l'ouverture
+   * d'une partie et son montage — un abandon tombé dans cette fenêtre rapportait les PV d'un autre
+   * combat. Relevé en revue de code (2026-09-16).
+   *
+   * - `pokemonIds` sème le roster : sans lui, seuls les Pokemon qui agissent ou tombent existent,
+   *   et la survie ne compte que les morts. Les camps non suivis sont ignorés comme partout.
+   * - `localSide` dit de quel côté se tient celui qui partira. `null` en hot-seat.
+   * - `readHealthRatios` est une FONCTION : l'abandon arrive à un moment qu'on ne choisit pas, et
+   *   un instantané pris au montage ne dirait rien de l'état au départ.
+   */
+  attachRuntime(input: {
+    pokemonIds: Iterable<string>;
+    localSide: number | null;
+    readHealthRatios: () => Record<string, number>;
+  }): void;
+  /**
    * Construit le payload final. Rend `null` si le combat ne s'est pas terminé — une partie quittée
    * en cours n'émet **pas** `battle_ended`, et c'est cette absence qui donne le taux d'abandon.
    */
   buildEndedPayload(): BattleEndedPayload | null;
+  /**
+   * Construit le payload d'un départ en cours de partie (plan 212, Lot F). Rend `null` si la partie
+   * s'est **terminée** — c'est alors `battle_ended` qui parle, et les deux ne coexistent jamais.
+   *
+   * Le miroir de `buildEndedPayload` : celui-ci exige que la partie soit finie, celui-là exige
+   * qu'elle ne le soit pas.
+   */
+  buildAbandonedPayload(from: AbandonSource): BattleAbandonedPayload | null;
 }
 
 export function createBattleTelemetryCollector(input: {
   battleId: string;
-  /** Camps dont la composition a été envoyée à `battle_started`. */
-  trackedSides: ReadonlySet<number>;
+  /** Camps tenus par un humain, et la provenance de l'équipe de chacun. */
+  trackedSources: ReadonlyMap<number, TeamSource>;
   startedAt: number;
   now: () => number;
 }): BattleTelemetryCollector {
   const moveCounts = new Map<string, Map<string, number>>();
   const knockOuts = new Map<string, KnockOutRecord>();
+  /**
+   * Les Pokemon suivis, connus dès la pose (plan 212, Lot E).
+   *
+   * 🔴 Sans ce semis, `outcomes` ne contenait que les Pokemon ayant **agi ou chuté** — il se
+   * construisait de `moveCounts` ∪ `knockOuts`. Un Pokemon posé, jamais activé et jamais touché
+   * était donc **absent**, pas compté comme survivant : la statistique de survie ne comptait que
+   * ceux qui étaient morts, ce qui la vidait de son sens. Trouvé par `game-designer` à la revue.
+   */
+  const roster = new Set<string>();
+  /** Ce que l'écran de combat confie au montage — voir `attachRuntime`. */
+  let localSide: number | null = null;
+  let readHealthRatios: (() => Record<string, number>) | null = null;
   /** Dernière cause de dégâts subie, qui qualifie le K.O. qui suit. */
   const pendingCause = new Map<string, KnockOutCause>();
   let turns = 0;
@@ -74,7 +120,7 @@ export function createBattleTelemetryCollector(input: {
 
   function isTracked(pokemonId: string): boolean {
     const side = sideOf(pokemonId);
-    return side !== null && input.trackedSides.has(side);
+    return side !== null && input.trackedSources.has(side);
   }
 
   function recordKnockOut(pokemonId: string, cause: KnockOutCause): void {
@@ -89,6 +135,16 @@ export function createBattleTelemetryCollector(input: {
   }
 
   return {
+    attachRuntime(input): void {
+      for (const pokemonId of input.pokemonIds) {
+        if (isTracked(pokemonId)) {
+          roster.add(pokemonId);
+        }
+      }
+      localSide = input.localSide;
+      readHealthRatios = input.readHealthRatios;
+    },
+
     observe(event: BattleEvent): void {
       switch (event.type) {
         case BattleEventType.TurnStarted:
@@ -160,15 +216,29 @@ export function createBattleTelemetryCollector(input: {
       if (!ended) {
         return null;
       }
-      const trackedIds = new Set([...moveCounts.keys(), ...knockOuts.keys()]);
-      const outcomes: TelemetryMemberOutcome[] = [...trackedIds].map((pokemonId) => {
+      const trackedIds = new Set([...roster, ...moveCounts.keys(), ...knockOuts.keys()]);
+      const outcomes: TelemetryMemberOutcome[] = [...trackedIds].flatMap((pokemonId) => {
+        const side = sideOf(pokemonId);
+        if (side === null) {
+          return [];
+        }
+        const source = input.trackedSources.get(side);
+        // Injoignable — `isTracked` a déjà filtré sur cette même carte — mais une issue sans
+        // provenance entrerait dans le rapport sans cohorte, donc sans bloc où la lire.
+        if (source === undefined) {
+          return [];
+        }
         const knockOut = knockOuts.get(pokemonId);
-        return {
-          species: speciesOf(pokemonId),
-          moves: Object.fromEntries(moveCounts.get(pokemonId) ?? []),
-          knockedOutTurn: knockOut?.turn ?? null,
-          knockedOutCause: knockOut?.cause ?? null,
-        };
+        return [
+          {
+            species: speciesOf(pokemonId),
+            source,
+            side,
+            moves: Object.fromEntries(moveCounts.get(pokemonId) ?? []),
+            knockedOutTurn: knockOut?.turn ?? null,
+            knockedOutCause: knockOut?.cause ?? null,
+          },
+        ];
       });
 
       return {
@@ -179,6 +249,22 @@ export function createBattleTelemetryCollector(input: {
         durationMs: input.now() - input.startedAt,
         turns,
         outcomes,
+      };
+    },
+
+    buildAbandonedPayload(from): BattleAbandonedPayload | null {
+      if (ended) {
+        return null;
+      }
+      return {
+        battleId: input.battleId,
+        turns,
+        durationMs: input.now() - input.startedAt,
+        from,
+        side: localSide,
+        // Un abandon avant le montage part avec un relevé VIDE plutôt que pas du tout : mieux vaut
+        // un champ manquant qu'une mesure perdue.
+        healthRatios: readHealthRatios?.() ?? {},
       };
     },
   };

@@ -45,4 +45,4 @@ Les seuls sur lesquels on travaille.
 | 209 | [Plan 209 — Le FFA en réseau, et la fin du multijoueur](./209-ffa-en-reseau.md) | done |
 | 210 | [Plan 210 — Le joueur éliminé, et le mode spectateur](./210-joueur-elimine-et-mode-spectateur.md) | done |
 | 211 | [Plan 211 — Le placement à la main, en ligne](./211-placement-simultane-en-ligne.md) | done |
-| 212 | [Plan 212 — Mesurer les trois mécaniques de fin de Phase 7](./212-telemetrie-des-mecaniques-de-phase-7.md) | ready |
+| 212 | [Plan 212 — Mesurer les mécaniques de fin de Phase 7, et les deux trous trouvés en lisant les chiffres](./212-telemetrie-des-mecaniques-de-phase-7.md) | done |

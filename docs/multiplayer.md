@@ -800,21 +800,21 @@ dégât, c'est un renoncement. Les cascades de K.O., elles, restent préservées
 
 ## Ce qui reste ouvert
 
-Limites assumées à la clôture du Lot B3 (2026-09-09), chacune avec son entrée de backlog dans le
-graphe de mémoire — aucune n'est une régression, ce sont des choix de V1 :
+Limites assumées, chacune avec son entrée de backlog dans le graphe de mémoire — aucune n'est une
+régression, ce sont des choix de V1.
 
-- **Élection d'un nouvel hôte impossible** — le code de partie **est** l'adresse de l'hôte
-  (§ Connexion, #898) : si l'hôte part pour de bon, il n'y a personne à élire, la partie s'arrête là.
-  Backlog : `backlog-election-nouvel-hote-multijoueur`.
+⚠️ **Liste relue le 2026-09-16, deux puces retirées parce qu'elles étaient devenues fausses** :
+l'élection d'un nouvel hôte (livrée au plan 209, Lot C5 — la place qui héberge est une valeur
+publiée dans le registre, donc remplaçable ; la migration est même comptée depuis le plan 212) et
+`battle_started` non émis en ligne (émis depuis le plan 201, et le plan 204 a réglé le double
+comptage entre pairs). Les deux traînaient depuis la clôture du Lot B3 le 2026-09-09.
+
 - **Sauvegarde partagée entre deux onglets d'un même profil** — deux onglets du même navigateur, sur
   le même profil, se disputent la même clé de sauvegarde de reprise. Backlog :
   `backlog-sauvegarde-partagee-entre-onglets-meme-profil`.
 - **Délai réel de libération d'adresse du cloud PeerJS non mesuré** — observé à l'écriture jusqu'à
   ~1 minute (§ Risques, plan 202), jamais confirmé sur le vrai service public. Backlog :
   `backlog-delai-liberation-peerjs-cloud`.
-- **`battle_started` toujours pas émis en ligne** (décision #962) — la télémétrie compte des
-  `battle_ended` en ligne sans le `battle_started` qui leur correspondrait : les compteurs ont des
-  numérateurs sans dénominateur, un taux d'abandon en ligne ne peut pas se calculer.
 
 ---
 

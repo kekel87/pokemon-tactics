@@ -1,5 +1,6 @@
 import { CT_TEMPO_MAX } from "@pokemon-tactic/core";
 import { getMoveName, getPokemonName, getTypeName } from "@pokemon-tactic/data";
+import { EliminatedChoice } from "@pokemon-tactic/render-ports";
 import type {
   ActionMenuView,
   AttackSubmenuMoveView,
@@ -513,7 +514,7 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
     },
     scrollTimeline: (delta) => timeline.scrollByStep(delta),
 
-    showEliminated: (onClosed?: () => void) => {
+    showEliminated: (onClosed?: (choice: EliminatedChoice | null) => void) => {
       /*
        * Plan 210, lot D2. Mêmes classes que la victoire juste en dessous, donc même apparence et zéro
        * CSS : c'est la même famille de moment — un verdict qui tombe sur ce joueur — et le lui
@@ -529,7 +530,14 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
       heading.textContent = config.translate("battle.eliminated");
       const message = el("p", "bc-victory-message");
       message.textContent = config.translate("battle.eliminatedMessage");
+      /*
+       * L'issue choisie, retenue pour la porter à `close` (plan 212, Lot C). Reste `null` quand la
+       * victoire referme le dialogue : personne n'a choisi, et compter ce cas comme « a continué à
+       * regarder » répondrait faux à la seule question que ces compteurs posent.
+       */
+      let choice: EliminatedChoice | null = null;
       const watch = button(config.translate("battle.keepWatching"), () => {
+        choice = EliminatedChoice.KeptWatching;
         dialog.close();
         dialog.remove();
       });
@@ -538,6 +546,7 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
       // la victoire — un identifiant évite qu'un localisateur e2e les confonde.
       watch.dataset.testid = "eliminated-keep-watching";
       const exit = button(config.translate("battle.backToMenu"), () => {
+        choice = EliminatedChoice.Left;
         dialog.close();
         dialog.remove();
         onExit();
@@ -548,7 +557,7 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
       dialog.addEventListener("cancel", (event) => event.preventDefault());
       // Sur `close` et non dans chaque bouton : `showVictory` ferme aussi ce dialogue, et l'écran doit
       // l'apprendre dans ce cas-là comme dans les deux autres.
-      dialog.addEventListener("close", () => onClosed?.(), { once: true });
+      dialog.addEventListener("close", () => onClosed?.(choice), { once: true });
       const actions = el("div", "bc-victory-actions");
       actions.append(watch, exit);
       dialog.append(heading, message, actions);
