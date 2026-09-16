@@ -20,8 +20,11 @@ Pour l'ouvrir : `node scripts/memory/query.mjs --open <entité>`. Ci-dessous l'e
 
 ## Ce qui vient
 
-> **Où on en est** : la **Phase 7 — Multijoueur** est **close** côté développement (2026-09-10,
-> plan-cadre 195) ; sa **release reste en attente, hors file, jamais tranchée**. La file de sessions
+> **Où on en est** : la **Phase 7 — Multijoueur est SORTIE le 2026-09-16 en `v2026.9.1`**
+> (https://github.com/kekel87/pokemon-tactics/releases/tag/v2026.9.1). Elle était close côté
+> développement depuis le 2026-09-10 (plan-cadre 195) ; les plans 204 à 213 ont soldé la dette
+> d'avant-release. **Prochaine phase : Phase 8 — Équilibrage**, que la télémétrie des plans 196/204/212
+> est là pour nourrir. La file de sessions
 > dédiées qui a suivi la clôture est **VIDE** (5/5 faites) — entité `agenda-2026-09-10-file-de-sessions-dediees` :
 > session 1 (plan 204, télémétrie des parties en ligne), session 2 (sélecteur e2e
 > `scripts/e2e-affected.ts` — cadrage `--since-main` au lieu de `HEAD`, garde contre une famille de
@@ -137,9 +140,14 @@ La carte au centre, une palette de blocs + décorations sur le côté ; on pose 
 
 ---
 
-### Phase 7 — Multijoueur (en cours)
+### Phase 7 — Multijoueur (terminée, PUBLIÉE)
 
 > But : jouer contre de vrais adversaires
+>
+> 🔴 **Sortie le 2026-09-16 en `v2026.9.1`** — https://github.com/kekel87/pokemon-tactics/releases/tag/v2026.9.1
+> Le multijoueur en ligne est entre les mains des joueurs : code à 5 caractères, duel ou mêlée
+> générale de 2 à 12 joueurs, sans compte ni installation. `itch-deploy` vert
+> (run `35078648925`), gate `full` vert, suite e2e verte (run `35075688611`).
 >
 > **Cadrage arrêté le 2026-08-29** (passe de préparation, aucun code écrit) : **P2P WebRTC via PeerJS,
 > zéro backend** — la mention « WebSocket » qui figurait ici contredisait la décision #209 et était un
