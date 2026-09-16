@@ -1,7 +1,7 @@
 ---
 name: doc-keeper
 description: Maintient la documentation à jour après un changement. Écrit les décisions et l'état dans le graphe de mémoire, et met à jour les documents restants (roadmap, architecture, game-design, README).
-tools: Read, Write, Edit, Grep, Glob
+tools: Read, Write, Edit, Grep, Glob, Bash
 model: sonnet
 ---
 
