@@ -53,10 +53,51 @@ Montrer à l'humain les pages à créer/modifier avec un diff clair. Ne pas pous
 
 ### 4. Écrire dans le submodule wiki (après validation)
 
-Le wiki est un git submodule dans `wiki/` à la racine du projet. Pour mettre à jour :
+🔴 `wiki/` N'EST PAS UN SUBMODULE. C'est un clone git ordinaire du dépôt
+`https://github.com/kekel87/pokemon-tactics.wiki.git`, **ignoré** par le dépôt principal
+(`.gitignore`). Rien ne le tient à jour : il peut avoir des mois de retard, ou avoir divergé.
 
-1. Modifier les fichiers `.md` dans `wiki/`
-2. L'humain se charge du commit et push dans le submodule
+**AVANT DE MODIFIER QUOI QUE CE SOIT, vérifie que le clone est aligné sur le distant :**
+
+```bash
+cd wiki && git fetch origin
+git rev-list --left-right --count origin/master...HEAD   # doit afficher "0	0"
+git merge-base HEAD origin/master                        # doit renvoyer un SHA, PAS du vide
+```
+
+Un écart non nul, et pire, une base commune VIDE (aucun ancêtre partagé) veut dire que tu
+t'apprêtes à écrire sur une histoire parallèle : **arrête-toi et signale-le**. Ne propose jamais de
+forcer le push — ça détruirait le wiki en ligne. Le remède est un clone neuf, et il appartient à
+l'humain de remettre `wiki/` d'aplomb (les commandes destructives lui sont réservées).
+
+Origine (2026-09-16, release v2026.9.1) : le clone local avait divergé — 16 commits de chaque côté,
+racines différentes, aucun ancêtre commun, après une réécriture d'historique force-pushée sur le
+wiki. La synchro a été rédigée par-dessus un contenu qui n'était pas celui en ligne, et un « trou »
+dans le changelog a été diagnostiqué puis « comblé » alors que l'entrée existait bel et bien sur le
+wiki réel. Le push n'a été refusé que par chance.
+
+Pour mettre à jour :
+
+1. Vérifier l'alignement du clone (ci-dessus)
+2. Modifier les fichiers `.md` dans `wiki/`
+3. L'humain se charge du commit et du push
+
+## Garde-fou obligatoire — aucune release sans son entrée de changelog
+
+À CHAQUE synchro, ne te contente pas de la version du jour : vérifie que **toutes** les releases
+publiées ont une entrée, et que les deux langues couvrent les mêmes versions.
+
+```bash
+diff <(gh release list --limit 50 --json tagName --jq '.[].tagName' | sort -V) \
+     <(grep -o '^## v[0-9.]*' wiki/Changelog.md | sed 's/^## //' | sort -V)
+
+diff <(grep -o '^## v[0-9.]*' wiki/Changelog.md) \
+     <(grep -o '^## v[0-9.]*' wiki/Changelog-FR.md)
+```
+
+Toute version manquante est signalée à l'humain. ⚠️ Ce contrôle ne vaut QUE sur un clone aligné :
+sur un clone en retard il invente des trous qui n'existent pas. Fais la vérification d'alignement
+d'abord, toujours.
 
 ## Quand se déclencher
 
