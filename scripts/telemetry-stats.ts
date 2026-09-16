@@ -162,6 +162,7 @@ function renderTerminal(report: Report): string {
   parts.push(section("Cartes", report.battlesByMap, (k) => label(MAP_NAMES, k)));
   parts.push(section("Formats", report.battlesByFormat));
   parts.push(section("Modes", report.battlesByMode, (k) => label(MODE_LABELS, k)));
+  parts.push(section("Tablées", report.battlesByParticipants));
   parts.push(
     section("Fins de partie", report.battlesByEndReason, (k) => label(END_REASON_LABELS, k)),
   );

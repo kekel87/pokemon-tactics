@@ -383,6 +383,38 @@ describe("parties en ligne, comptées une fois", () => {
       },
     });
 
+  it("ne compte la tablée QU'UNE fois, malgré les deux pairs", () => {
+    const àDeux = (id: number, side: number, species: string) =>
+      rowOf({
+        id,
+        kind: "battle_started",
+        payload: {
+          battleId: ONLINE_ID,
+          mode: "online",
+          map: "the-wall",
+          format: "2v6",
+          humans: 2,
+          ai: 0,
+          teams: [{ side, source: "human-built", members: [] }],
+        },
+      });
+
+    const report = buildReport([àDeux(1, 0, "venusaur"), àDeux(2, 1, "charizard")], 30);
+
+    // Le piège que ce test garde : compter les participants hors du garde de déduplication
+    // doublerait exactement les parties à plusieurs — celles qu'on cherche à voir.
+    expect(report.battlesByParticipants.get("2 joueurs, sans IA")).toBe(1);
+  });
+
+  it("dit « avant la mesure » plutôt qu'un chiffre faux quand les champs manquent", () => {
+    // `validate.ts` ne contrôle ni `humans` ni `ai` : une ligne d'une version d'avant passe, et le
+    // type qui les déclare obligatoires ne vaut rien sur des données déjà stockées.
+    const report = buildReport([onlineStart(1, 0, "venusaur")], 30);
+
+    expect(report.battlesByParticipants.get("avant la mesure")).toBe(1);
+    expect([...report.battlesByParticipants.keys()].join()).not.toContain("undefined");
+  });
+
   it("compte UNE partie là où deux pairs en déclarent chacun une", () => {
     const report = buildReport([onlineStart(1, 0, "venusaur"), onlineStart(2, 1, "charizard")], 30);
 

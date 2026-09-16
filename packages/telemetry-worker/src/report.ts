@@ -214,6 +214,28 @@ export function bump(tally: Tally, key: string, by = 1): void {
   tally.set(key, (tally.get(key) ?? 0) + by);
 }
 
+/**
+ * Libellé lisible d'une tablée, construit ici plutôt que dans une table de correspondance.
+ *
+ * Une table nommant chaque combinaison serait à compléter à chaque nouveau format — et le plan 212
+ * a montré ce que ça coûte : trois libellés oubliés ont dégradé le rapport en silence pendant deux
+ * plans. Un libellé calculé ne peut pas manquer.
+ */
+export function participantsLabel(humans: unknown, ai: unknown): string {
+  /*
+   * Défensif À DESSEIN, malgré `humans: number` dans le type. Ce type décrit ce que l'émetteur
+   * ACTUEL envoie ; le rapport, lui, relit des lignes stockées, dont certaines ont pu être écrites
+   * par une version d'avant — et `validate.ts` ne contrôle NI `humans` NI `ai`. Faire confiance au
+   * type produirait « undefined joueurs » dans le relevé, c'est-à-dire un chiffre faux présenté
+   * comme un fait.
+   */
+  if (!Number.isFinite(humans) || !Number.isFinite(ai)) {
+    return "avant la mesure";
+  }
+  const gens = humans === 1 ? "1 joueur" : `${humans as number} joueurs`;
+  return ai === 0 ? `${gens}, sans IA` : `${gens} + ${ai as number} IA`;
+}
+
 export function top(tally: Tally, limit = 12): [string, number][] {
   return [...tally].sort((left, right) => right[1] - left[1]).slice(0, limit);
 }
@@ -239,6 +261,16 @@ export interface Report {
   battlesByMap: Tally;
   battlesByFormat: Tally;
   battlesByMode: Tally;
+  /**
+   * Combien de gens et combien d'IA autour d'une partie (demandé par l'humain, 2026-09-16).
+   *
+   * Les champs `humans` et `ai` voyagent depuis le premier jour de la télémétrie ; seul le rendu
+   * les ignorait. `Formats` dit la forme du plateau (2v6 = deux camps de six), `Modes` dit le canal
+   * (solo, même écran, en ligne) — ni l'un ni l'autre ne dit combien de personnes jouaient
+   * réellement. C'est pourtant ce qu'il faut pour lire les statistiques de la Phase 8 : un
+   * équilibrage mesuré sur des parties à un seul humain contre l'IA ne dit rien du jeu à plusieurs.
+   */
+  battlesByParticipants: Tally;
   teamSources: Tally;
   /** Statistiques d'usage à la Showdown : présence dans une équipe bâtie par un humain. */
   speciesUsage: Tally;
@@ -390,6 +422,7 @@ export function buildReport(rows: EventRow[], days: number): Report {
     battlesByMap: new Map(),
     battlesByFormat: new Map(),
     battlesByMode: new Map(),
+    battlesByParticipants: new Map(),
     teamSources: new Map(),
     speciesUsage: new Map(),
     abilityUsage: new Map(),
@@ -570,6 +603,10 @@ export function buildReport(rows: EventRow[], days: number): Report {
         bump(report.battlesByMap, payload.map);
         bump(report.battlesByFormat, payload.format);
         bump(report.battlesByMode, payload.mode);
+        // Dans le MÊME garde que le reste : en ligne, chaque pair déclare la partie, et compter
+        // les participants sur les deux lignes doublerait chaque partie à plusieurs — précisément
+        // celles qu'on cherche à voir.
+        bump(report.battlesByParticipants, participantsLabel(payload.humans, payload.ai));
       }
       // 🔴 Les ÉQUIPES, elles, se cumulent sur les DEUX lignes — hors du garde ci-dessus. Chaque
       // pair ne déclare que son propre camp : les sauter reviendrait à perdre la moitié des
@@ -1342,6 +1379,7 @@ export function renderHtml(report: Report, generatedAt: Date): string {
         "Modes",
         htmlBars(report.battlesByMode, (k) => label(MODE_LABELS, k)),
       )}
+      ${block("Tablées", htmlBars(report.battlesByParticipants))}
       ${block(
         "Fins de partie",
         htmlBars(report.battlesByEndReason, (k) => label(END_REASON_LABELS, k)),

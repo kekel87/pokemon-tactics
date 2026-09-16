@@ -15,11 +15,19 @@ import sys
 
 # (motif, message). Le motif s'applique à la commande Bash complète.
 COMMANDES = [
-    (r"\bgh\s+run\s+watch\b",
+    # Resserré le 2026-09-16 : le motif visait TOUT workflow, alors que la décision #925 ne
+    # parle que de la suite e2e. Surveiller `itch-deploy` pendant une release est légitime, et
+    # l'agent `publisher` a dû sonder `gh run view` à la main faute de pouvoir le faire. Il
+    # bloquait même un `grep` dont la chaîne recherchée contenait la phrase.
+    # ⚠️ Trou assumé : `gh run watch <id>` sur un identifiant nu ne dit pas quel workflow c'est,
+    # donc la suite e2e reste surveillable par son numéro. Le motif ne peut pas le savoir ; ce
+    # qui tient ce cas, c'est le skill /next et `pnpm e2e:status`, pas ce hook.
+    (r"(?s)^(?=.*\bgh\s+run\s+watch\b)(?=.*\be2e\b)",
      "🔴 Décision #925 : on n'attend JAMAIS la suite e2e. Elle est asynchrone sur "
      "GitHub (~5 min) précisément pour ne bloquer personne — rester planté devant "
      "annule tout le bénéfice du chantier qui l'y a mise. Lis son verdict avec "
-     "`pnpm e2e:status` (ou le skill `/e2e-status`) et continue."),
+     "`pnpm e2e:status` (ou le skill `/e2e-status`) et continue. "
+     "(Les AUTRES workflows — itch-deploy par exemple — restent surveillables.)"),
     (r"--update-snapshots|--update-snapshot\b",
      "🔴 Une différence de capture ne se règle JAMAIS en réécrivant la référence : "
      "c'est effacer la régression au lieu de la voir. Ouvre le diff, comprends "
