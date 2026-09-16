@@ -25,6 +25,12 @@ Un subagent ne peut ni poser de question à l'humain ni lancer d'autres agents. 
 
 **Phase 1 — agent `publisher` (préparation)** :
 1. **Compile changelog** depuis `git log <last_tag>..HEAD` + plans associés (format joueur : What's New / Improvements / Bug Fixes — **jamais de section « Distribution »**)
+   🔴 **Le point de comparaison est la DERNIÈRE RELEASE PUBLIÉE** (`gh release view <last_tag>`), pas
+   le code. Ce qui n'existait pas pour le joueur ne peut être ni amélioré, ni refondu, ni corrigé :
+   un bug né et corrigé dans le même cycle est invisible et ne va PAS dans Bug Fixes. Une
+   fonctionnalité neuve = une ligne, celle de la promesse — pas une ligne par rouage (durées,
+   seuils, pixels, filets de sécurité, sous-mécaniques). Doctrine complète et exemples dans
+   `.claude/agents/publisher.md`, règles 1 et 2.
 2. **CI gate full** (`bash .claude/skills/ci-gate/run.sh full`) — BLOQUANT
 3. **Verdict de la suite e2e asynchrone** (`pnpm e2e:status`) — 🔴 **BLOQUANT si rouge.** Depuis le
    2026-09-05 (décisions #924-925), les 531 tests ne tournent plus avant publication : ils tournent

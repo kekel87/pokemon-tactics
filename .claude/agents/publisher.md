@@ -73,6 +73,60 @@ Rédiger une ligne **orientée joueur** (pas développeur) par changement notabl
 - ❌ une sous-puce par Pokemon d'un batch → ✅ `- 12 new Pokemon added to the roster (Gen 1 pre-evolutions)`
 - Ne détailler nommément que les **têtes d'affiche** (feature marquante, move emblématique) ; le reste en agrégat. Vise ~5-10 lignes de changelog max, pas 40.
 
+#### 🔴 RÈGLE 1 — Le contexte du joueur, c'est la DERNIÈRE RELEASE PUBLIÉE, pas le code
+
+Tu n'écris pas pour quelqu'un qui a suivi les commits. Tu écris pour quelqu'un dont la dernière
+expérience du jeu est la version d'avant. **Lis-la avant de rédiger** :
+
+```bash
+LAST_TAG=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')
+gh release view $LAST_TAG          # ce que le joueur connaît déjà — le point de départ
+```
+
+Applique ce test à CHAQUE ligne : *la chose dont je parle existait-elle dans la version publiée ?*
+
+- **Non** → elle ne peut être ni « improved », ni « redesigned », ni « fixed ». Elle fait partie de
+  la nouveauté, ou elle n'existe pas. Fonds-la dans la ligne de la fonctionnalité mère.
+- **Oui** → la ligne est légitime, et décris le delta par rapport à ce que le joueur avait.
+
+Deux conséquences qui coûtent cher quand on les oublie :
+
+1. 🔴 **Un bug dans du code jamais publié n'est PAS un correctif joueur.** Personne n'a pu le
+   rencontrer. Les défauts nés et corrigés à l'intérieur du même cycle sont invisibles : ils ne vont
+   pas dans Bug Fixes. Vérifie que la surface touchée était livrée : `git log $LAST_TAG -1 -- <fichier>`,
+   ou regarde si le paquet/écran concerné est mentionné dans la release précédente.
+2. 🔴 **Pas de « redesigned » sur un écran que personne n'a vu.** Refondre pendant le développement,
+   c'est du développement, pas une amélioration.
+
+Origine (2026-09-16, release de la Phase 7) : un changelog annonçait « The Play Online screen was
+redesigned » alors que jouer en ligne SORTAIT dans cette release — on vantait la refonte d'un écran
+jamais publié — et listait cinq correctifs de multijoueur qu'aucun joueur n'avait pu subir.
+
+#### 🔴 RÈGLE 2 — « Orienté joueur » veut dire CE QU'IL PEUT FAIRE, pas comment c'est fait
+
+Une fonctionnalité neuve = **une ligne**, celle de la promesse. Ses rouages internes ne sont pas des
+lignes de changelog, même quand ils ont coûté trois plans.
+
+Bannis, sauf si le joueur doit agir en conséquence :
+- les **durées, seuils et quantités** de fonctionnement (« a 90-second window », « after 15 seconds ») ;
+- les **unités techniques** (« 30-pixel minimum touch target » → au mieux « reachable with a thumb »,
+  et le plus souvent : rien) ;
+- les **filets de sécurité** que le joueur ne devrait jamais voir (détection de désynchronisation,
+  reprise après perte de l'hôte, garde-fous de protocole) ;
+- l'**instrumentation interne** (télémétrie, statistiques, compteurs) — hors changelog par nature ;
+- les **sous-mécaniques** d'une fonctionnalité qui sort le même jour : placement simultané, mode
+  spectateur, migration d'hôte, reconnexion sont *le multijoueur*, pas cinq nouveautés.
+
+Test de la ligne : **est-ce que ça change quelque chose pour quelqu'un qui joue ?** Si la réponse
+demande d'expliquer un mécanisme, c'est que la ligne n'en est pas une.
+
+- ❌ `Manual placement works online. All players place at the same time, hidden from each other, with a 90-second window that auto-places whatever is left.`
+- ❌ `The game survives a bad connection. Reload, crash or drop out and you can rejoin — and if the host leaves, another player takes over.`
+- ✅ Les deux disparaissent dans la ligne « Play online » : c'est ce qu'on attend d'un jeu en ligne.
+
+Origine : feedback humain du 2026-09-16, « c'est trop de détail pour les joueurs », « ça aussi il
+s'en foute ». Deux fois de suite sur la même release.
+
 Format final (Markdown) — grouper :
 
 ```markdown
