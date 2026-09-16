@@ -12,6 +12,7 @@ import { CombatMenuOverlay } from "./combat-menu";
 import { ConnectionNoticeHud, TurnClockHud } from "./combatHud";
 import { LobbyScreen, WaitingRoom } from "./lobby";
 import { MainMenu } from "./MainMenu";
+import { OnlineDuel } from "./online-duel";
 import { BattleModeScreen, TeamSelectScreen } from "./screens";
 
 /**
@@ -27,6 +28,21 @@ import { BattleModeScreen, TeamSelectScreen } from "./screens";
  * Un salon coûte cher (négociation WebRTC + deux boots Babylon complets), donc un scénario qui l'a
  * payé enchaîne plusieurs faits plutôt que de rouvrir une session pour chacun.
  */
+
+/**
+ * Marge des attentes qui traversent le réseau (plan 213, lot A).
+ *
+ * 🔴 Nommée plutôt que recopiée, parce que c'est sa RECOPIE qui a produit une asymétrie : `joinRoom`
+ * attendait `room.panel` avec trente secondes explicites, `openRoom` attendait **le même
+ * localisateur** sur le défaut de cinq secondes. Même attente, même élément, six fois moins de marge
+ * d'un côté — et c'était justement le côté qui attend la **naissance du code de salon**, donc une
+ * prise d'identifiant chez l'annuaire, sur un serveur PeerJS qui peut démarrer à froid.
+ *
+ * ⚠️ Ce n'est PAS le diagnostic du rouge à froid de `backlog-flaky-famille-online-a-froid` : la
+ * reproduction du 2026-09-16 (20/20 verts, `dist` supprimé, 2 workers) ne l'a pas retrouvé. C'est une
+ * correction de cohérence, et la cause reste ouverte.
+ */
+const NETWORK_WAIT_MS = 30_000;
 export class OnlinePeer {
   readonly menu: MainMenu;
   readonly mode: BattleModeScreen;
@@ -118,7 +134,9 @@ export class OnlinePeer {
     // des préférences de l'hôte, et il la change en modale sans quitter l'écran.
     // Le code naît à l'entrée sur la salle d'attente, jamais avant.
     await this.lobby.create.click();
-    await expect(this.room.panel).toBeVisible();
+    // Même marge que `joinRoom` : c'est ICI qu'on attend la naissance du code, donc le plus long
+    // aller-retour réseau de la traversée. Le laisser sur le défaut était l'asymétrie du lot A.
+    await expect(this.room.panel).toBeVisible({ timeout: NETWORK_WAIT_MS });
     return ((await this.room.code.textContent()) ?? "").trim();
   }
 
@@ -130,7 +148,41 @@ export class OnlinePeer {
     await expect(this.lobby.codeSlots).toHaveCount(5);
     await this.lobby.typeCode(code);
     await this.lobby.join.click();
-    await expect(this.room.panel).toBeVisible({ timeout: 30_000 });
+    await expect(this.room.panel).toBeVisible({ timeout: NETWORK_WAIT_MS });
+  }
+
+  /**
+   * Monte un combat EN LIGNE **seul dans son salon**, en dressant la place libre en IA (plan 213,
+   * lot F).
+   *
+   * 🔴 Pourquoi elle vaut sa place ici : une partie est « en ligne » pour le code dès que
+   * `setup.localSeat` existe, donc dès qu'elle est entrée par le salon — un second joueur n'y est
+   * pour rien. Un hôte seul qui repasse la place libre en IA traverse exactement le même chemin
+   * **sans payer la négociation WebRTC ni un second boot Babylon** : ~3 s, contre ~45 s pour une
+   * session à deux pairs.
+   *
+   * Née dans `online-combat-menu.spec.ts`, remontée parce que le prochain spec qui voudra une partie
+   * en ligne bon marché la recopierait — et que deux copies finissent toujours par diverger.
+   *
+   * ⚠️ Ne prouve PAS qu'un adversaire humain est de l'autre côté du canal. Tout scénario qui en a
+   * besoin passe par {@link OnlineSession.startBattle}.
+   */
+  async launchAlone(options: { interactivePlacement?: boolean } = {}): Promise<void> {
+    await this.openRoom();
+    if (options.interactivePlacement === true) {
+      // Décochée AVANT « Prêt » : les deux paramètres de partie appartiennent à l'hôte et se gèlent
+      // sur sa propre confirmation (recette 2026-09-04). Cochée, la phase de placement n'existe pas.
+      await this.teams.autoPlacement.uncheck();
+    }
+    await this.teams.pickRandomTeam(0);
+    // La place 2 passe en IA : elle est alors prête d'office ET reçoit une équipe séance tenante,
+    // donc « Lancer » s'allume sans qu'un second joueur ait à venir.
+    await this.teams.giveSlotToAi(1);
+    await expect(this.room.ready).toBeEnabled();
+    await this.room.ready.click();
+    await expect(this.room.launch).toBeEnabled({ timeout: NETWORK_WAIT_MS });
+    await this.room.launch.click();
+    await this.scene.waitReady(NETWORK_WAIT_MS);
   }
 
   hasHand(): Promise<boolean> {
@@ -189,6 +241,9 @@ export interface OnlineSessionOptions {
 export const TEAMS_STORAGE_KEY = "pokemon-tactics:teams";
 
 export class OnlineSession {
+  /** Construit à la première demande — voir le getter `duel`. */
+  private duelPilot: OnlineDuel | undefined;
+
   private roomCode = "";
   private hostPeer: OnlinePeer;
   private guestPeer: OnlinePeer;
@@ -243,6 +298,22 @@ export class OnlineSession {
   }
 
   /**
+   * Le pilote de duel de cette session (plan 213, lot B).
+   *
+   * 🔴 Un getter plutôt qu'un `new OnlineDuel(session)` dans le corps des tests : la règle
+   * « POM via fixtures » de `.claude/rules/e2e.md` veut qu'un test reçoive ses objets de page, jamais
+   * qu'il les construise. Construit à la demande et retenu — un duel n'a pas d'état propre, mais en
+   * rendre deux différents pour la même session serait une surprise gratuite.
+   *
+   * L'import est un import de VALEUR dans ce sens-là et un import de TYPE dans l'autre : aucun cycle
+   * à l'exécution, les types étant effacés à la compilation.
+   */
+  get duel(): OnlineDuel {
+    this.duelPilot ??= new OnlineDuel(this);
+    return this.duelPilot;
+  }
+
+  /**
    * Menu → Combat → En ligne → créer / rejoindre → équipes → Prêt ×2 → Lancer, et les deux scènes
    * montées. Les deux pairs passent par l'annuaire de mise en relation LOCAL, jamais par le service
    * public de PeerJS.
@@ -268,12 +339,12 @@ export class OnlineSession {
     // 2026-09-04), donc « Lancer » ne s'allume pas avant.
     await expect(host.room.ready).toBeEnabled();
     await host.room.ready.click();
-    await expect(host.room.launch).toBeEnabled({ timeout: 30_000 });
+    await expect(host.room.launch).toBeEnabled({ timeout: NETWORK_WAIT_MS });
     await host.room.launch.click();
 
     // Le lancement est ACCUSÉ (#903) : voir les DEUX scènes prêtes prouve la boucle complète.
-    await host.scene.waitReady(30_000);
-    await guest.scene.waitReady(30_000);
+    await host.scene.waitReady(NETWORK_WAIT_MS);
+    await guest.scene.waitReady(NETWORK_WAIT_MS);
   }
 
   /** L'équipe demandée pour ce camp, ou le tirage aléatoire à défaut. */
@@ -298,7 +369,7 @@ export class OnlineSession {
   async peerWithHand(): Promise<{ actor: OnlinePeer; observer: OnlinePeer }> {
     await expect
       .poll(async () => (await this.host.hasHand()) || (await this.guest.hasHand()), {
-        timeout: 30_000,
+        timeout: NETWORK_WAIT_MS,
       })
       .toBe(true);
     return (await this.host.hasHand())
@@ -345,7 +416,7 @@ export class OnlineSession {
     const before = (await observer.logTexts()).length;
     await action();
     await expect
-      .poll(async () => (await observer.logTexts()).length, { timeout: 30_000 })
+      .poll(async () => (await observer.logTexts()).length, { timeout: NETWORK_WAIT_MS })
       .toBeGreaterThan(before);
   }
 

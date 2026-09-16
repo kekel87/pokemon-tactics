@@ -1012,7 +1012,7 @@ const fr: Translations = {
   "battleLog.playerForfeited": "Le Joueur {player} quitte la partie.",
   "battleLog.playerForfeited.resigned": "Le Joueur {player} abandonne la partie.",
   "battleLog.playerForfeited.disconnected": "Le Joueur {player} a perdu la connexion.",
-  "battleLog.playerForfeited.desynced":
+  "battleLog.playerForfeited.stateConflict":
     "Le Joueur {player} quitte la partie — les parties ne concordent plus.",
   "battleLog.playerEliminated": "Le Joueur {player} est éliminé.",
   "battleLog.typeChanged.becomes": "{name} devient de type {typeLabel} !",

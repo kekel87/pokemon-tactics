@@ -1,6 +1,10 @@
 import type { Page } from "@playwright/test";
 import { PadButton, tapPadButton, waitForPadPoll } from "../pages/gamepad";
+import { manhattan, type Tile } from "../pages/grid";
 import { type PadDirection, padActivate, traceFocus, traceNote } from "./pad-nav";
+
+/** Réexporté : ce module était la source de `Tile` avant que la géométrie ne soit partagée. */
+export type { Tile };
 
 /*
  * Pilotage du COMBAT à la manette pour la séquence d'intro (plan 194, volet combat).
@@ -54,11 +58,6 @@ export const Instruction = {
   confirm: "Confirm?",
   selectFacing: "Pick a facing",
 } as const;
-
-export interface Tile {
-  readonly x: number;
-  readonly y: number;
-}
 
 export interface SpriteSnapshot {
   readonly pokemonId: string;
@@ -173,10 +172,6 @@ let cursorDeltas: Partial<Record<ScreenDirection, Tile>> = {};
 /** Appelée après toute rotation de caméra : les pas mesurés ne valent plus. */
 function resetCursorCalibration(): void {
   cursorDeltas = {};
-}
-
-function manhattan(from: Tile, to: Tile): number {
-  return Math.abs(from.x - to.x) + Math.abs(from.y - to.y);
 }
 
 /**

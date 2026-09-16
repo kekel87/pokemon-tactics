@@ -1002,7 +1002,7 @@ export interface Translations {
   "battleLog.playerForfeited": string;
   "battleLog.playerForfeited.resigned": string;
   "battleLog.playerForfeited.disconnected": string;
-  "battleLog.playerForfeited.desynced": string;
+  "battleLog.playerForfeited.stateConflict": string;
   "battleLog.playerEliminated": string;
   "battleLog.typeChanged.becomes": string;
   "battleLog.typeChanged.burnUp": string;

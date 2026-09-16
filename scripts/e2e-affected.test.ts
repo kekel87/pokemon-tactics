@@ -7,6 +7,7 @@ import {
   INPUT_SPEC_NAMES,
   type LotRefs,
   parseConstBlocks,
+  parsePatchLineInfo,
   resolveBaseRef,
   route,
   selectionDefects,
@@ -326,5 +327,65 @@ describe("configConstsForId", () => {
 
   it("ne retient rien pour un identifiant absent", () => {
     expect(configConstsForId("attaque-inexistante", blocks())).toEqual([]);
+  });
+});
+
+/**
+ * Le parsing des en-têtes de hunk (plan 213, lot C).
+ *
+ * 🔴 Pourquoi ces tests existent : c'était le seul endroit du sélecteur où une régression ne se
+ * verrait **pas du tout**. Si ce parsing casse, les identifiants ne se résolvent plus, `unmapped` se
+ * remplit, et le sélecteur replie sur `mechanics` + `combat` — donc dans la direction sûre, donc en
+ * silence. On paierait le temps sans jamais savoir pourquoi.
+ */
+describe("parsePatchLineInfo", () => {
+  it("lit les lignes d'un hunk avec compte explicite", () => {
+    const info = parsePatchLineInfo("@@ -10,2 +12,3 @@\n+a\n+b\n+c");
+
+    expect(info.nums).toEqual([12, 13, 14]);
+    expect(info.hasPureDeletion).toBe(false);
+  });
+
+  it("🔴 traite un compte OMIS comme une seule ligne", () => {
+    // `@@ -a,b +c @@` sans virgule vaut `+c,1`. Le lire comme NaN remplirait `nums` d'indices
+    // invalides, et la remontée vers la clé englobante ne trouverait plus rien.
+    const info = parsePatchLineInfo("@@ -5 +7 @@");
+
+    expect(info.nums).toEqual([7]);
+  });
+
+  it("🔴 signale une suppression pure plutôt que de l'ignorer", () => {
+    // Post-image `+c,0` : le contenu retiré n'existe plus dans l'arbre, donc l'identifiant supprimé
+    // est immappable. Le drapeau est ce qui fait escalader en full au lieu de rater le move.
+    const info = parsePatchLineInfo("@@ -20,4 +19,0 @@");
+
+    expect(info.hasPureDeletion).toBe(true);
+    expect(info.nums).toEqual([]);
+  });
+
+  it("accumule plusieurs hunks du même patch", () => {
+    const info = parsePatchLineInfo("@@ -1,1 +1,1 @@\n-x\n+y\n@@ -30,0 +31,2 @@\n+a\n+b");
+
+    expect(info.nums).toEqual([1, 31, 32]);
+  });
+
+  it("ignore tout ce qui n'est pas un en-tête de hunk", () => {
+    const patch = [
+      "diff --git a/packages/data/reference/moves.json b/packages/data/reference/moves.json",
+      "index 1234567..89abcde 100644",
+      "--- a/packages/data/reference/moves.json",
+      "+++ b/packages/data/reference/moves.json",
+      "@@ -100,1 +100,1 @@",
+      '-  "power": 80,',
+      '+  "power": 90,',
+    ].join("\n");
+
+    // Les lignes `---` et `+++` du prologue ressemblent à des lignes de patch : les compter
+    // décalerait tout le mappage.
+    expect(parsePatchLineInfo(patch).nums).toEqual([100]);
+  });
+
+  it("rend un relevé vide sur un patch vide", () => {
+    expect(parsePatchLineInfo("")).toEqual({ nums: [], hasPureDeletion: false });
   });
 });

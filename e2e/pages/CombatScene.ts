@@ -1,4 +1,4 @@
-import type { Locator, Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 
 interface MeshInfo {
   isVisible: boolean;
@@ -140,9 +140,23 @@ export class CombatScene {
     await this.castMove(this.page.getByTestId("move-item").filter({ hasText: name }), x, y);
   }
 
-  /** Shared cast flow: Attaque → le move désigné → cible → confirme. */
+  /**
+   * Shared cast flow: Attaque → le move désigné → cible → confirme.
+   *
+   * 🔴 Les deux attentes d'état vivent ICI et non chez l'appelant (plan 213, lot B). Un clic sur un
+   * bouton grisé ne rate pas : Playwright attend qu'il devienne actionnable, puis **expire sans rien
+   * dire d'utile**. Un spec qui pend une minute sur « timeout » au lieu de dire « l'attaque était
+   * indisponible », c'est une demi-heure perdue à chercher au mauvais endroit.
+   *
+   * Elles étaient jusqu'ici dans un CLONE de cette méthode, côté duel en ligne — et le clone avait
+   * divergé sur `skippedTargeting`. Les remonter ici sert donc deux fois : tous les specs y gagnent
+   * le diagnostic, et le clone disparaît.
+   */
   private async castMove(move: Locator, x: number, y: number): Promise<void> {
-    await this.page.getByRole("button", { name: "Attaque", exact: true }).click();
+    const attack = this.page.getByRole("button", { name: "Attaque", exact: true });
+    await expect(attack).toBeEnabled();
+    await attack.click();
+    await expect(move).toHaveAttribute("data-enabled", "true");
     await move.click();
     if (!(await this.skippedTargeting())) {
       await this.clickTile(x, y);

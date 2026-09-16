@@ -42,6 +42,7 @@ import type { Position } from "../types/position";
 import type { TargetingPattern } from "../types/targeting-pattern";
 import { directionFromTo, getPerpendicularOffsets, stepInDirection } from "../utils/direction";
 import { manhattanDistance } from "../utils/manhattan-distance";
+import { campBiasFactors, campFactorOf } from "./camp-bias";
 import { getMoveMaxReach } from "./move-reach";
 import {
   abilityCopyValue,
@@ -465,7 +466,14 @@ function scoreUseMove(
 
   let damageScore = 0;
   if (getEffectivePowerFloor(move) > 0) {
-    const damage = scoreDamagingMove(currentPokemon, targetsHit, move, engine, weights);
+    const damage = scoreDamagingMove(
+      currentPokemon,
+      targetsHit,
+      move,
+      engine,
+      weights,
+      campBiasFactors(state.pokemon.values(), currentPokemon.playerId),
+    );
     damageScore = damage.score;
     securesKo = damage.securesKo;
   }
@@ -2385,6 +2393,7 @@ function scoreDamagingMove(
   move: MoveDefinition,
   engine: BattleEngine,
   weights: AiProfile["scoringWeights"],
+  campFactors: ReadonlyMap<string, number>,
 ): { score: number; securesKo: boolean } {
   let totalScore = 0;
   let securesKo = false;
@@ -2420,7 +2429,16 @@ function scoreDamagingMove(
       targetScore -= weights.typeAdvantage * 0.5;
     }
 
-    totalScore += targetScore;
+    /*
+     * Pondération de camp en mêlée générale (plan 213, lot G), appliquée au sous-total de CETTE
+     * cible et jamais au score de l'action.
+     *
+     * 🔴 La distinction n'est pas cosmétique : une attaque de zone peut toucher plusieurs camps à la
+     * fois, et multiplier le total fausserait aussi la pénalité de tir ami et le poids CT calculés
+     * plus haut. Carte vide — un seul camp adverse, ou tous à égalité — signifie facteur 1 partout,
+     * donc score rigoureusement inchangé.
+     */
+    totalScore += targetScore * campFactorOf(campFactors, target.playerId);
   }
 
   return { score: totalScore, securesKo };

@@ -111,7 +111,7 @@ import {
 } from "../team/asset-paths.js";
 import { getItemIconUrl, getPortraitUrl } from "../team/team-builder-data.js";
 import type { AiProfileKey, SandboxConfig } from "../types/SandboxConfig.js";
-import { createCombatMenu } from "../ui/dom/combat-menu.js";
+import { CombatMenuVariant, createCombatMenu } from "../ui/dom/combat-menu.js";
 import { type LoadingOverlayHandle, showLoadingOverlay } from "../ui/LoadingOverlay.js";
 import { SandboxPanel } from "../ui/SandboxPanel.js";
 import { type BattleInputs, buildBattle, resumeBattle } from "./battle-resume.js";
@@ -252,7 +252,7 @@ function mountPlacementChrome(options: {
   const { stage, onRestart, onQuit } = options;
   const combatMenu = createCombatMenu({
     host: stage.screenLayer,
-    variant: "placement",
+    variant: CombatMenuVariant.Placement,
     ...(onRestart === undefined ? {} : { onRestart }),
     // Au placement, la sortie destructrice s'appelle « Quitter » et confirme : rien n'est sauvegardé
     // encore, mais les Pokemon déjà posés sont perdus (plan 189, décisions 4 et 5).

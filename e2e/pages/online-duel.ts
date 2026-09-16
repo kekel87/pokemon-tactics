@@ -1,5 +1,20 @@
 import { expect } from "@playwright/test";
+// Chemin relatif et non `@pokemon-tactic/network` : `e2e/` n'est pas un paquet de l'espace de
+// travail, donc aucun spécificateur nu ne s'y résout. `timings.ts` n'a AUCUN import — c'est ce
+// qui rend cette ligne possible sans toucher à la résolution de modules (plan 213).
+import { ONLINE_TURN_DURATION_MS } from "../../packages/network/src/timings";
+import { manhattan, type Tile } from "./grid";
 import type { OnlinePeer, OnlineSession } from "./online-session";
+
+/**
+ * Budget d'attente d'un tour, **dérivé du chronomètre** et non choisi à la main (plan 213, lot A).
+ *
+ * 🔴 Le réglage précédent était 45 s en dur, contre un chronomètre de 60 s : **rien ne disait que
+ * les deux étaient liés**. Les trois quarts du tour laissent au pilote de quoi agir tout en
+ * garantissant qu'il abandonne **avant** le chronomètre, jamais après — c'est la différence entre un
+ * échec qui se lit et un tour silencieusement perdu.
+ */
+const TURN_WAIT_MS = Math.floor(ONLINE_TURN_DURATION_MS * 0.75);
 
 /**
  * Un duel en ligne PILOTÉ jusqu'à l'écran de victoire (plan 203, Lot B4).
@@ -103,11 +118,6 @@ export const DUEL_TEAM_STORAGE = {
   },
 } as const;
 
-interface Tile {
-  readonly x: number;
-  readonly y: number;
-}
-
 /** Les deux combattants, vus depuis la page de `peer`. */
 interface DuelTiles {
   readonly attacker: Tile;
@@ -122,10 +132,6 @@ const TurnState = {
   Defender: "defender",
 } as const;
 type TurnState = (typeof TurnState)[keyof typeof TurnState];
-
-function manhattan(from: Tile, to: Tile): number {
-  return Math.abs(from.x - to.x) + Math.abs(from.y - to.y);
-}
 
 export class OnlineDuel {
   constructor(private readonly session: OnlineSession) {}
@@ -226,6 +232,33 @@ export class OnlineDuel {
         );
       }
     }
+    await this.refuseMissedTurn();
+  }
+
+  /**
+   * Un tour parti au chronomètre pendant un duel PILOTÉ est un échec du pilote (plan 213, lot A).
+   *
+   * 🔴 Sans cette garde, l'échec était SILENCIEUX et c'est tout le problème : le pilote laisse
+   * expirer un tour, le jeu le passe tout seul, le pilote voit la main changer et croit que tout va
+   * bien. Au troisième, le camp est forfaité pour trois tours manqués — et le test se termine sur
+   * une victoire, donc au VERT, en ayant mesuré l'inverse de ce qu'il prétend. C'est le faux vert de
+   * `#981`, vu par l'autre bout : `TURN_WAIT_MS` l'empêche d'arriver, celle-ci le fait DIRE s'il
+   * arrive quand même.
+   *
+   * On lit le journal plutôt qu'un compteur interne : c'est ce que le joueur voit, et ça ne suppose
+   * rien de l'implémentation du chronomètre.
+   */
+  private async refuseMissedTurn(): Promise<void> {
+    for (const peer of [this.attacker, this.defender]) {
+      const missed = peer.logEntries.filter({ hasText: /a manqué \d+ tours? sur/ });
+      if ((await missed.count()) > 0) {
+        throw new Error(
+          "un tour est parti AU CHRONOMÈTRE pendant un duel piloté : le pilote n'a pas joué à " +
+            "temps, et laisser courir mènerait au forfait pour trois tours manqués — donc à un test " +
+            "vert qui aurait mesuré l'inverse de ce qu'il prétend (faux vert #981)",
+        );
+      }
+    }
   }
 
   /**
@@ -241,15 +274,17 @@ export class OnlineDuel {
    * Aucune étape n'est sautée : `Single` comme `Teleport` réclament une case, donc la visée puis la
    * confirmation — deux clics sur la même case, exactement comme `castMove`.
    */
-  private async cast(actor: OnlinePeer, moveName: string, target: Tile): Promise<void> {
-    const attack = actor.page.getByRole("button", { name: "Attaque", exact: true });
-    await expect(attack).toBeEnabled();
-    await attack.click();
-    const move = actor.page.getByTestId("move-item").filter({ hasText: moveName });
-    await expect(move).toHaveAttribute("data-enabled", "true");
-    await move.click();
-    await actor.scene.clickTile(target.x, target.y);
-    await actor.scene.clickTile(target.x, target.y);
+  /**
+   * Lance une attaque, par le MÊME chemin que tous les autres specs (plan 213, lot B).
+   *
+   * 🔴 C'était un CLONE de `CombatScene.castMove`, et les deux avaient divergé : le clone avait perdu
+   * la gestion de `skippedTargeting()` et cliquait la case **deux fois inconditionnellement**.
+   * Inoffensif pour une cible unique et Téléport — donc invisible — mais faux pour tout move qui
+   * saute l'étape de visée. Les deux garde-fous que le clone portait seul sont remontés dans
+   * `castMove`, où ils profitent à tout le monde ; il ne reste rien à dupliquer.
+   */
+  private cast(actor: OnlinePeer, moveName: string, target: Tile): Promise<void> {
+    return actor.scene.castMoveNamed(moveName, target.x, target.y);
   }
 
   /**
@@ -315,7 +350,7 @@ export class OnlineDuel {
           latest = await this.readTurn();
           return latest;
         },
-        { timeout: 45_000, message: "ni la main ni la fin de partie" },
+        { timeout: TURN_WAIT_MS, message: "ni la main ni la fin de partie" },
       )
       .not.toBe(TurnState.Pending);
     return latest;

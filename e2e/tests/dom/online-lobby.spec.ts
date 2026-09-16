@@ -350,7 +350,12 @@ test("§11.2 en ligne : « Humain » sur une place libre laisse le salon jouable
 });
 
 /*
- * §11.3 — la bascule solo → en ligne (plan 208, étape 5).
+ * §11.19 et §11.20 — la bascule solo → en ligne (plan 208, étape 5).
+ *
+ * ⚠️ Portaient §11.3 jusqu'au 2026-09-16, **déjà tenu** par `online-resilience.spec.ts` (« le canal
+ * tombe, le pair revient »). Le cahier de recette S'INDEXE PAR NUMÉRO : trois scénarios sans rapport
+ * répondaient au même appel, et `-g "§11.3"` en lançait trois. Renumérotés ici parce que le §11.3
+ * de la robustesse est l'original — documenté et vérifié rouge-vert au plan 202.
  *
  * UN SEUL contexte de navigateur, comme §11.2 : tout se joue sur l'écran de celui qui bascule, seul
  * dans le salon qu'il vient d'ouvrir. Il ne paie donc pas la négociation WebRTC — seulement
@@ -360,7 +365,7 @@ test("§11.2 en ligne : « Humain » sur une place libre laisse le salon jouable
  * vient de composer**. Sans navigation derrière (la salle d'attente EST cet écran, décision #897),
  * rien ne protège `slots` d'une remise à zéro par mégarde.
  */
-test("§11.3 solo → en ligne : un 1v1 contre l'IA bascule sans rien demander", async ({ page }) => {
+test("§11.19 solo → en ligne : un 1v1 contre l'IA bascule sans rien demander", async ({ page }) => {
   const menu = new MainMenu(page);
   const mode = new BattleModeScreen(page);
   const room = new WaitingRoom(page);
@@ -406,7 +411,7 @@ test("§11.3 solo → en ligne : un 1v1 contre l'IA bascule sans rien demander",
   await expect(teams.teamButton(0)).toContainText("Duel — Alakazam");
 });
 
-test("§11.3 solo → en ligne : « Rester en solo » ne détruit rien", async ({ page }) => {
+test("§11.20 solo → en ligne : « Rester en solo » ne détruit rien", async ({ page }) => {
   const menu = new MainMenu(page);
   const mode = new BattleModeScreen(page);
   const room = new WaitingRoom(page);

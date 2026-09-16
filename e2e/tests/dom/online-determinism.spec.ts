@@ -4,7 +4,6 @@ import {
   DUEL_ATTACKER_TEAM_ID,
   DUEL_DEFENDER_TEAM_ID,
   DUEL_TEAM_STORAGE,
-  OnlineDuel,
 } from "../../pages/online-duel";
 import { OnlineSession } from "../../pages/online-session";
 
@@ -55,7 +54,7 @@ test("§11.6 en ligne : un duel honnête va jusqu'à la victoire sans qu'aucune 
     hostTeamId: DUEL_ATTACKER_TEAM_ID,
     guestTeamId: DUEL_DEFENDER_TEAM_ID,
   });
-  const duel = new OnlineDuel(session);
+  const duel = session.duel;
 
   try {
     await session.startBattle();
@@ -110,7 +109,7 @@ test("§11.7 en ligne : un pair qui reconstruit son état par rejeu ne diverge p
     hostTeamId: DUEL_ATTACKER_TEAM_ID,
     guestTeamId: DUEL_DEFENDER_TEAM_ID,
   });
-  const duel = new OnlineDuel(session);
+  const duel = session.duel;
 
   try {
     await session.startBattle();

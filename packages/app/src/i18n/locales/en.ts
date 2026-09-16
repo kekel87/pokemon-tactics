@@ -1008,7 +1008,7 @@ const en: Translations = {
   "battleLog.playerForfeited": "Player {player} left the battle.",
   "battleLog.playerForfeited.resigned": "Player {player} resigned.",
   "battleLog.playerForfeited.disconnected": "Player {player} lost connection.",
-  "battleLog.playerForfeited.desynced":
+  "battleLog.playerForfeited.stateConflict":
     "Player {player} left the battle — the games no longer agree.",
   "battleLog.playerEliminated": "Player {player} has been eliminated.",
   "battleLog.typeChanged.becomes": "{name} became {typeLabel}-type!",

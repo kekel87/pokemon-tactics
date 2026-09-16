@@ -109,7 +109,7 @@ function playerNumberOf(playerId: string): string {
 const FORFEIT_REASON_LOG_KEY: Record<ForfeitReason, string> = {
   [ForfeitReason.Resigned]: "battleLog.playerForfeited.resigned",
   [ForfeitReason.Disconnected]: "battleLog.playerForfeited.disconnected",
-  [ForfeitReason.Desynced]: "battleLog.playerForfeited.desynced",
+  [ForfeitReason.StateConflict]: "battleLog.playerForfeited.stateConflict",
 };
 
 export const BattleLogColors = {

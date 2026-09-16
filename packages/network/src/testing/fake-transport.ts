@@ -1,3 +1,4 @@
+import { Listeners } from "../listeners.js";
 import { isNetworkMessage, NetworkErrorCode, type NetworkMessage } from "../protocol.js";
 import {
   ChannelHealth,
@@ -107,7 +108,7 @@ export class FakeNetworkDirectory {
 class FakeTransport implements NetworkTransport {
   private peerId: string | undefined;
   private destroyed = false;
-  private readonly incomingListeners = new Set<(channel: NetworkChannel) => void>();
+  private readonly incomingListeners = new Listeners<[channel: NetworkChannel]>();
   private readonly channels = new Set<FakeChannel>();
 
   constructor(private readonly directory: FakeNetworkDirectory) {}
@@ -141,8 +142,7 @@ class FakeTransport implements NetworkTransport {
   }
 
   onIncoming(listener: (channel: NetworkChannel) => void): () => void {
-    this.incomingListeners.add(listener);
-    return () => this.incomingListeners.delete(listener);
+    return this.incomingListeners.subscribe(listener);
   }
 
   destroy(): void {
@@ -167,9 +167,7 @@ class FakeTransport implements NetworkTransport {
       return;
     }
     this.channels.add(channel);
-    for (const listener of [...this.incomingListeners]) {
-      listener(channel);
-    }
+    this.incomingListeners.emit(channel);
   }
 
   private assertAlive(): void {
@@ -183,9 +181,9 @@ class FakeChannel implements NetworkChannel {
   private peer: FakeChannel | undefined;
   private closed = false;
   private closing = false;
-  private readonly messageListeners = new Set<(message: NetworkMessage) => void>();
-  private readonly closeListeners = new Set<() => void>();
-  private readonly healthListeners = new Set<(health: ChannelHealth) => void>();
+  private readonly messageListeners = new Listeners<[message: NetworkMessage]>();
+  private readonly closeListeners = new Listeners();
+  private readonly healthListeners = new Listeners<[health: ChannelHealth]>();
 
   private constructor(readonly remotePeerId: string) {}
 
@@ -211,18 +209,15 @@ class FakeChannel implements NetworkChannel {
   }
 
   onMessage(listener: (message: NetworkMessage) => void): () => void {
-    this.messageListeners.add(listener);
-    return () => this.messageListeners.delete(listener);
+    return this.messageListeners.subscribe(listener);
   }
 
   onClose(listener: () => void): () => void {
-    this.closeListeners.add(listener);
-    return () => this.closeListeners.delete(listener);
+    return this.closeListeners.subscribe(listener);
   }
 
   onHealthChange(listener: (health: ChannelHealth) => void): () => void {
-    this.healthListeners.add(listener);
-    return () => this.healthListeners.delete(listener);
+    return this.healthListeners.subscribe(listener);
   }
 
   /**
@@ -240,9 +235,7 @@ class FakeChannel implements NetworkChannel {
   }
 
   private emitHealth(health: ChannelHealth): void {
-    for (const listener of [...this.healthListeners]) {
-      listener(health);
-    }
+    this.healthListeners.emit(health);
   }
 
   /**
@@ -272,9 +265,7 @@ class FakeChannel implements NetworkChannel {
     // propage déjà au bout distant par `peer.close()` ci-dessous, qui y refera le même constat —
     // croiser les deux chemins annoncerait `Failed` deux fois au même pair.
     this.emitHealth(ChannelHealth.Failed);
-    for (const listener of [...this.closeListeners]) {
-      listener();
-    }
+    this.closeListeners.emit();
     this.closeListeners.clear();
     this.messageListeners.clear();
     this.healthListeners.clear();
@@ -292,8 +283,6 @@ class FakeChannel implements NetworkChannel {
     if (!isNetworkMessage(message)) {
       return;
     }
-    for (const listener of [...this.messageListeners]) {
-      listener(message);
-    }
+    this.messageListeners.emit(message);
   }
 }

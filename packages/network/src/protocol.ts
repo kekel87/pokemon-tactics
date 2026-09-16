@@ -74,19 +74,13 @@ import {
 export const NETWORK_VERSION = 11;
 
 /**
- * Durée d'un tour en ligne (plan 202, Lot B3, décision #946).
+ * Durée d'un tour en ligne — **déplacée dans `timings.ts`**, réexportée ici (plan 213).
  *
- * Ici et pas dans la vue : c'est une valeur que les deux pairs doivent **partager**, au même titre
- * que `NETWORK_VERSION`. Un pair qui compterait 45 s là où l'autre en compte 60 verrait des tours
- * expirer sans raison chez lui seul.
- *
- * 60 s et non les 45 s du VGC : là-bas une décision est le choix d'une attaque, ici un tour est
- * déplacement + sous-menu + choix d'attaque + visée + confirmation + orientation, sur une grille
- * isométrique avec hauteurs, à la manette ou au doigt. Une **seule** fenêtre couvre tout ça
- * (décision #946) — elle ne redémarre pas d'une étape à l'autre, sinon annuler en boucle gèlerait la
- * partie pour toujours.
+ * Elle reste du contrat réseau et se lit donc depuis ce module, comme avant : rien ne change pour
+ * ses consommateurs. Mais elle VIT dans un fichier sans le moindre import, seule façon pour le
+ * harnais e2e de l'importer au lieu de la recopier — voir le commentaire de tête de `timings.ts`.
  */
-export const ONLINE_TURN_DURATION_MS = 60_000;
+export { ONLINE_TURN_DURATION_MS } from "./timings.js";
 
 /**
  * Combien de temps on laisse une action manquante arriver toute seule avant de la réclamer

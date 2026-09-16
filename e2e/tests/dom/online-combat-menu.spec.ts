@@ -36,32 +36,11 @@ import { PlacementPhase } from "../../pages/placement";
 test.setTimeout(120_000);
 
 /** Menu → Combat → En ligne → Créer, la place libre passée à l'IA, jusqu'au lancement. */
-async function launchOnlineBattleAlone(
-  host: OnlinePeer,
-  options: { interactivePlacement?: boolean } = {},
-): Promise<void> {
-  await host.openRoom();
-  if (options.interactivePlacement === true) {
-    // Décochée AVANT « Prêt » : les deux paramètres de partie appartiennent à l'hôte et se gèlent sur
-    // sa propre confirmation (recette 2026-09-04). Cochée, la phase de placement n'existe pas.
-    await host.teams.autoPlacement.uncheck();
-  }
-  await host.teams.pickRandomTeam(0);
-  // La place 2 passe en IA : elle est alors prête d'office ET reçoit une équipe séance tenante, donc
-  // « Lancer » s'allume sans qu'un second joueur ait à venir.
-  await host.teams.giveSlotToAi(1);
-  await expect(host.room.ready).toBeEnabled();
-  await host.room.ready.click();
-  await expect(host.room.launch).toBeEnabled({ timeout: 30_000 });
-  await host.room.launch.click();
-  await host.scene.waitReady(30_000);
-}
-
 test("§11.9 en ligne : le menu de combat n'offre pas « Recommencer », ses autres entrées oui", async ({
   page,
 }) => {
   const host = new OnlinePeer(page);
-  await launchOnlineBattleAlone(host);
+  await host.launchAlone();
 
   // Le bouton `☰` naît grisé tant que le contexte est verrouillé (tour de l'autre camp) : attendre
   // qu'il soit actionnable, sinon le clic partirait dans le vide.
@@ -109,7 +88,7 @@ test("§11.10 en ligne : le menu du PLACEMENT n'offre pas « Recommencer » non 
 }) => {
   const host = new OnlinePeer(page);
   const placement = new PlacementPhase(page);
-  await launchOnlineBattleAlone(host, { interactivePlacement: true });
+  await host.launchAlone({ interactivePlacement: true });
 
   await expect(placement.instruction).toBeVisible({ timeout: 30_000 });
   await host.combatMenu.openByButton();

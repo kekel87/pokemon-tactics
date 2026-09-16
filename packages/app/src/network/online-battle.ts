@@ -58,7 +58,7 @@ function missedTurnLimitFor(teamCount: number): number {
  * annonçait « les parties ne concordent plus » à un joueur qui venait d'appuyer sur « Abandonner ».
  */
 const ENGINE_FORFEIT_REASON: Record<NetworkForfeitReason, ForfeitReason> = {
-  [NetworkForfeitReason.EtatDivergent]: ForfeitReason.Desynced,
+  [NetworkForfeitReason.EtatDivergent]: ForfeitReason.StateConflict,
   [NetworkForfeitReason.Absent]: ForfeitReason.Disconnected,
   [NetworkForfeitReason.Abandon]: ForfeitReason.Resigned,
 };

@@ -15,8 +15,16 @@ export const ForfeitReason = {
   Resigned: "resigned",
   /** Sa connexion s'est perdue et il n'est pas revenu. */
   Disconnected: "disconnected",
-  /** Les deux moteurs ne racontent plus la même partie — sans accuser personne. */
-  Desynced: "desynced",
+  /**
+   * L'état qu'on lui rapporte ne concorde plus avec celui qu'il tient — sans accuser personne.
+   *
+   * 🔴 Nommée `StateConflict` et non `Desynced` depuis le 2026-09-16 (plan 213, lot E) : « désync »
+   * est un mot de RÉSEAU, et un moteur seul ne peut pas se désynchroniser avec lui-même. Le core ne
+   * connaît pas le réseau, et une valeur qui suppose deux machines n'a rien à faire dedans. Les deux
+   * noms que proposait l'entrée de backlog ont été écartés : « violation » accuse, « internal »
+   * suppose une machine unique. « Conflit d'état » dit ce que le moteur constate, et rien de plus.
+   */
+  StateConflict: "state-conflict",
 } as const;
 
 export type ForfeitReason = (typeof ForfeitReason)[keyof typeof ForfeitReason];

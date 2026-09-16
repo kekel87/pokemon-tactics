@@ -152,12 +152,29 @@ const ROOT_NON_CODE = new Set([
 const isNonCode = (f: string) =>
   f.startsWith("docs/") || f.endsWith(".md") || f.startsWith(".claude/") || ROOT_NON_CODE.has(f);
 const isE2e = (f: string) => f.startsWith("e2e/");
+/**
+ * Configuration d'OUTILLAGE : elle ne produit aucun octet livré, donc elle ne peut casser aucun
+ * écran (plan 213, lot C).
+ *
+ * 🔴 Ces fichiers passaient par `isConfigBuild` — donc escaladaient en `tour`, `dom`, `combat` et
+ * `visual` : **64 fichiers de specs, 307 tests, 3,4 min** pour un diff qui ne touche que l'outillage.
+ * Mesuré le 2026-09-10. La règle « outillage » (`scripts/`, `.github/` → aucune famille) ne pouvait
+ * pas les rattraper : les fichiers de configuration sont écartés du routage **avant** `route()`, et
+ * traités en bloc par `configFamilies`.
+ *
+ * C'était de la SUR-couverture : ça coûtait du temps, ça ne mentait pas. D'où le report, et d'où la
+ * prudence ici — on n'exclut que ce qui vit sous ces deux répertoires, jamais une configuration
+ * racine, qui gouverne bien le produit livré.
+ */
+const isToolingConfig = (f: string) => f.startsWith("scripts/") || f.startsWith(".github/");
+
 const isConfigBuild = (f: string) =>
-  /(^|\/)(playwright\.config|vitest\.config|vite\.config)\.[cm]?tsx?$/.test(f) ||
-  /(^|\/)package\.json$/.test(f) ||
-  /(^|\/)pnpm-lock\.yaml$/.test(f) ||
-  /(^|\/)tsconfig[^/]*\.json$/.test(f) ||
-  /(^|\/)biome\.jsonc?$/.test(f);
+  !isToolingConfig(f) &&
+  (/(^|\/)(playwright\.config|vitest\.config|vite\.config)\.[cm]?tsx?$/.test(f) ||
+    /(^|\/)package\.json$/.test(f) ||
+    /(^|\/)pnpm-lock\.yaml$/.test(f) ||
+    /(^|\/)tsconfig[^/]*\.json$/.test(f) ||
+    /(^|\/)biome\.jsonc?$/.test(f));
 /** Data confiné au tuning de move : overrides tactiques + JSON de référence moves/abilities. */
 const isMoveTuningData = (f: string) =>
   f === "packages/data/src/overrides/tactical.ts" ||
@@ -321,7 +338,7 @@ const SOURCE_TO_FAMILIES: ReadonlyArray<{
 
 // --- Heuristique move-id (L2 resserré) --------------------------------------
 
-interface LineChangeInfo {
+export interface LineChangeInfo {
   /** Lignes (1-based, post-image) touchées, pour remonter au move englobant. */
   nums: number[];
   /**
@@ -333,7 +350,18 @@ interface LineChangeInfo {
 
 function changedLineInfo(file: string, baseRef: string | undefined): LineChangeInfo {
   const base = baseRef ?? "HEAD";
-  const patch = git(["diff", base, "-U0", "--no-color", "--", file]);
+  return parsePatchLineInfo(git(["diff", base, "-U0", "--no-color", "--", file]));
+}
+
+/**
+ * Les lignes touchées, lues dans les EN-TÊTES DE HUNK d'un patch `-U0` (plan 213, lot C).
+ *
+ * 🔴 Séparée de `changedLineInfo` pour être testable : celle-là appelle `git`, celle-ci est du pur
+ * texte → texte. C'était le seul endroit du fichier où une régression **ne se verrait pas du tout** —
+ * si ce parsing casse, `unmapped` se remplit et le sélecteur replie sur `mechanics` + `combat`, donc
+ * dans la direction sûre, donc en silence.
+ */
+export function parsePatchLineInfo(patch: string): LineChangeInfo {
   const nums: number[] = [];
   let hasPureDeletion = false;
   for (const line of patch.split("\n")) {

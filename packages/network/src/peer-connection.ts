@@ -1,4 +1,5 @@
 import Peer, { type DataConnection } from "peerjs";
+import { Listeners } from "./listeners.js";
 import { isNetworkMessage, NetworkErrorCode, type NetworkMessage } from "./protocol.js";
 import {
   ChannelHealth,
@@ -53,7 +54,7 @@ export interface PeerJsTransportOptions {
 export class PeerJsTransport implements NetworkTransport {
   private peer: Peer | undefined;
   private destroyed = false;
-  private readonly incomingListeners = new Set<(channel: NetworkChannel) => void>();
+  private readonly incomingListeners = new Listeners<[channel: NetworkChannel]>();
   private readonly channels = new Set<PeerJsChannel>();
 
   constructor(private readonly options: PeerJsTransportOptions = {}) {}
@@ -147,8 +148,7 @@ export class PeerJsTransport implements NetworkTransport {
   }
 
   onIncoming(listener: (channel: NetworkChannel) => void): () => void {
-    this.incomingListeners.add(listener);
-    return () => this.incomingListeners.delete(listener);
+    return this.incomingListeners.subscribe(listener);
   }
 
   /**
@@ -216,9 +216,7 @@ export class PeerJsTransport implements NetworkTransport {
       }
       const channel = new PeerJsChannel(connection, () => this.channels.delete(channel));
       this.channels.add(channel);
-      for (const listener of [...this.incomingListeners]) {
-        listener(channel);
-      }
+      this.incomingListeners.emit(channel);
     };
 
     if (connection.open) {
@@ -419,9 +417,9 @@ function healthFromConnectionState(state: string): ChannelHealth {
 
 class PeerJsChannel implements NetworkChannel {
   private closed = false;
-  private readonly messageListeners = new Set<(message: NetworkMessage) => void>();
-  private readonly closeListeners = new Set<() => void>();
-  private readonly healthListeners = new Set<(health: ChannelHealth) => void>();
+  private readonly messageListeners = new Listeners<[message: NetworkMessage]>();
+  private readonly closeListeners = new Listeners();
+  private readonly healthListeners = new Listeners<[health: ChannelHealth]>();
   /** Ce qui défait l'écoute de l'état ICE. `null` quand il n'y avait rien à écouter. */
   private detachHealthWatch: (() => void) | null = null;
 
@@ -458,9 +456,7 @@ class PeerJsChannel implements NetworkChannel {
   }
 
   private emitHealth(health: ChannelHealth): void {
-    for (const listener of [...this.healthListeners]) {
-      listener(health);
-    }
+    this.healthListeners.emit(health);
   }
 
   get remotePeerId(): string {
@@ -497,18 +493,15 @@ class PeerJsChannel implements NetworkChannel {
   }
 
   onMessage(listener: (message: NetworkMessage) => void): () => void {
-    this.messageListeners.add(listener);
-    return () => this.messageListeners.delete(listener);
+    return this.messageListeners.subscribe(listener);
   }
 
   onClose(listener: () => void): () => void {
-    this.closeListeners.add(listener);
-    return () => this.closeListeners.delete(listener);
+    return this.closeListeners.subscribe(listener);
   }
 
   onHealthChange(listener: (health: ChannelHealth) => void): () => void {
-    this.healthListeners.add(listener);
-    return () => this.healthListeners.delete(listener);
+    return this.healthListeners.subscribe(listener);
   }
 
   close(): void {
@@ -531,9 +524,7 @@ class PeerJsChannel implements NetworkChannel {
     this.emitHealth(ChannelHealth.Failed);
     this.detachHealthWatch?.();
     this.detachHealthWatch = null;
-    for (const listener of [...this.closeListeners]) {
-      listener();
-    }
+    this.closeListeners.emit();
     this.closeListeners.clear();
     this.messageListeners.clear();
     this.healthListeners.clear();
@@ -547,8 +538,6 @@ class PeerJsChannel implements NetworkChannel {
     if (!isNetworkMessage(data)) {
       return;
     }
-    for (const listener of [...this.messageListeners]) {
-      listener(data);
-    }
+    this.messageListeners.emit(data);
   }
 }

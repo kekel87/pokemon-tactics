@@ -50,7 +50,7 @@ export interface CombatMenuOptions {
    * le sont (décisions 4 et 5). C'est la même mécanique qu'« Abandonner » — détruire ce qui est en
    * cours et rendre la main au menu principal — sous le nom qui dit la vérité à ce moment-là.
    */
-  readonly variant?: "battle" | "placement";
+  readonly variant?: CombatMenuVariant;
   /**
    * ABANDONNER : rendre la main au menu principal **et** détruire la partie en cours (la sauvegarde
    * de reprise part avec elle). Derrière une confirmation.
@@ -104,12 +104,43 @@ export interface CombatMenu {
   dispose(): void;
 }
 
+/**
+ * Quelle phase le menu sert. Énumération fermée plutôt qu'union de littéraux : le code BRANCHE
+ * dessus, et c'est la convention du projet pour tout `kind` / `variant` / `status`.
+ */
+export const CombatMenuVariant = {
+  Battle: "battle",
+  Placement: "placement",
+} as const;
+export type CombatMenuVariant = (typeof CombatMenuVariant)[keyof typeof CombatMenuVariant];
+
+/** La sortie destructrice qu'une confirmation garde. */
+export const ConfirmAction = {
+  Abandon: "abandon",
+  Restart: "restart",
+} as const;
+export type ConfirmAction = (typeof ConfirmAction)[keyof typeof ConfirmAction];
+
 /** Les niveaux, du plus superficiel au plus profond. `Annuler` en dépile un. */
 type Level =
   | { readonly kind: "root" }
   | { readonly kind: "settings" }
   | { readonly kind: "controls" }
-  | { readonly kind: "confirm"; readonly action: "abandon" | "restart" };
+  | {
+      readonly kind: "confirm";
+      readonly action: ConfirmAction;
+      /**
+       * Ce que « Confirmer » déclenche, **porté par le niveau** (plan 213, lot F).
+       *
+       * 🔴 Ce que ça change : l'appel de `onRestart` était optionnel — `onRestart?.()` — avec un
+       * commentaire affirmant que ce niveau n'est atteignable que si `onRestart` existe. C'était
+       * vrai, et invérifiable : `onRestart` est déstructuré hors de la fermeture, donc TypeScript ne
+       * propage pas le rétrécissement du `if (onRestart)` jusqu'au gestionnaire. En portant le
+       * rappel ici, l'inatteignabilité devient STRUCTURELLE — le niveau ne peut pas se construire
+       * sans lui, et il n'y a plus rien à affirmer en commentaire.
+       */
+      readonly run: () => void;
+    };
 
 export function createCombatMenu(options: CombatMenuOptions): CombatMenu {
   const {
@@ -117,10 +148,10 @@ export function createCombatMenu(options: CombatMenuOptions): CombatMenu {
     onAbandon,
     onRestart,
     onQuitKeepingSave,
-    variant = "battle",
+    variant = CombatMenuVariant.Battle,
     timeKeepsRunning = false,
   } = options;
-  const isPlacement = variant === "placement";
+  const isPlacement = variant === CombatMenuVariant.Placement;
 
   let dialog: HTMLDialogElement | null = null;
   let body: HTMLElement | null = null;
@@ -178,7 +209,7 @@ export function createCombatMenu(options: CombatMenuOptions): CombatMenu {
     if (onRestart) {
       list.append(
         entry("combatMenu.restart", "combat-menu-restart", () =>
-          push({ kind: "confirm", action: "restart" }),
+          push({ kind: "confirm", action: ConfirmAction.Restart, run: onRestart }),
         ),
       );
     }
@@ -187,10 +218,10 @@ export function createCombatMenu(options: CombatMenuOptions): CombatMenu {
     list.append(
       isPlacement
         ? entry("combatMenu.quit", "combat-menu-quit", () =>
-            push({ kind: "confirm", action: "abandon" }),
+            push({ kind: "confirm", action: ConfirmAction.Abandon, run: onAbandon }),
           )
         : entry("combatMenu.abandon", "combat-menu-abandon", () =>
-            push({ kind: "confirm", action: "abandon" }),
+            push({ kind: "confirm", action: ConfirmAction.Abandon, run: onAbandon }),
           ),
     );
     // La sortie sûre : sans confirmation, et seulement là où il y a une sauvegarde à garder — donc
@@ -207,13 +238,14 @@ export function createCombatMenu(options: CombatMenuOptions): CombatMenu {
     return list;
   };
 
-  const renderConfirm = (action: "abandon" | "restart"): HTMLElement => {
+  const renderConfirm = (level: Extract<Level, { kind: "confirm" }>): HTMLElement => {
+    const { action, run } = level;
     const wrapper = el("div", "cm-confirm");
     const question = el("p", "cm-confirm-text");
     // Un libellé par action (plan 187 décision 17) : « la partie sera perdue » est vrai des deux mais
     // imprécis pour Recommencer — même carte, mêmes équipes, c'est la TENTATIVE qui saute.
     question.textContent = t(
-      action === "restart"
+      action === ConfirmAction.Restart
         ? isPlacement
           ? "combatMenu.confirmRestartPlacement"
           : "combatMenu.confirmRestart"
@@ -225,18 +257,12 @@ export function createCombatMenu(options: CombatMenuOptions): CombatMenu {
       // Compté à la CONFIRMATION et non à l'ouverture de la question : ce qu'on veut savoir est par
       // quelle sortie on part, pas combien de fois on a hésité (plan 196).
       countAction(
-        action === "abandon"
+        action === ConfirmAction.Abandon
           ? TelemetryAction.CombatMenuForfeit
           : TelemetryAction.CombatMenuRestart,
       );
       close();
-      if (action === "abandon") {
-        onAbandon();
-      } else {
-        // Appel facultatif par construction et non par prudence : ce niveau de confirmation n'est
-        // atteignable que depuis l'entrée « Recommencer », qui n'existe pas sans `onRestart`.
-        onRestart?.();
-      }
+      run();
     });
     confirm.dataset.testid = "combat-menu-confirm";
     const cancel = menuButton(t("combatMenu.cancel"), () => pop());
@@ -285,7 +311,7 @@ export function createCombatMenu(options: CombatMenuOptions): CombatMenu {
         content = panel.element;
         break;
       case "confirm":
-        content = renderConfirm(level.action);
+        content = renderConfirm(level);
         break;
     }
     // Les panneaux portent déjà leur propre titre : en ajouter un second le doublerait — on ne le

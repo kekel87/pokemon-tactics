@@ -771,3 +771,139 @@ describe("CT-aware scoring (plan 165)", () => {
     expect(score).toBeGreaterThanOrEqual(EASY_PROFILE.scoringWeights.killPotential);
   });
 });
+
+/**
+ * Le ciblage en mêlée générale, vu depuis le scoreur entier (plan 213, lot G).
+ *
+ * `camp-bias.test.ts` éprouve la pondération elle-même ; ici on vérifie ce qu'elle DEVIENT une fois
+ * composée avec la létalité, l'efficacité de type et le reste du barème — c'est-à-dire ce que
+ * l'arbitrage de l'humain exigeait : un départage, jamais une domination.
+ */
+describe("scoreAction — pondération de camp en mêlée générale", () => {
+  /**
+   * Trois camps, dont deux CIBLES RIGOUREUSEMENT IDENTIQUES.
+   *
+   * 🔴 La vigueur des camps se règle par leur SECOND Pokemon, jamais par la cible elle-même. C'est
+   * la seule façon d'obtenir une « situation tactique équivalente » : baisser les PV de la cible
+   * pour affaiblir son camp la rendrait du même coup plus facile à achever, et on mesurerait la
+   * létalité en croyant mesurer le biais. Un premier jet de ce test est tombé exactement là-dessus.
+   */
+  function buildFreeForAll(secondBackupHp: number, thirdBackupHp: number) {
+    const data = loadData();
+    const moveRegistry = new Map<string, MoveDefinition>();
+    for (const move of data.moves) {
+      moveRegistry.set(move.id, move);
+    }
+
+    const self = MockPokemon.fresh(MockPokemon.charmander, {
+      id: "p1-charmander",
+      playerId: PlayerId.Player1,
+      position: { x: 2, y: 2 },
+    });
+    // Deux cibles RIGOUREUSEMENT équivalentes — même espèce, mêmes PV max, même distance — pour que
+    // le camp soit la seule différence qui reste.
+    const leaderTarget = MockPokemon.fresh(MockPokemon.bulbasaur, {
+      id: "p2-bulbasaur",
+      playerId: PlayerId.Player2,
+      position: { x: 3, y: 2 },
+    });
+    const trailerTarget = MockPokemon.fresh(MockPokemon.bulbasaur, {
+      id: "p3-bulbasaur",
+      playerId: PlayerId.Player3,
+      position: { x: 1, y: 2 },
+    });
+    // Les deux réserves sont hors de portée, au fond de la carte : elles ne pèsent que sur la
+    // VIGUEUR de leur camp, jamais sur le choix de cible.
+    const leaderBackup = MockPokemon.fresh(MockPokemon.bulbasaur, {
+      id: "p2-squirtle",
+      playerId: PlayerId.Player2,
+      position: { x: 5, y: 5 },
+      currentHp: secondBackupHp,
+    });
+    const trailerBackup = MockPokemon.fresh(MockPokemon.bulbasaur, {
+      id: "p3-squirtle",
+      playerId: PlayerId.Player3,
+      position: { x: 0, y: 5 },
+      currentHp: thirdBackupHp,
+    });
+
+    const state = MockBattle.stateFrom(
+      [self, leaderTarget, trailerTarget, leaderBackup, trailerBackup],
+      6,
+      6,
+    );
+    const engine = new BattleEngine(
+      state,
+      moveRegistry,
+      typeChart,
+      loadAllPokemonTypes(),
+      undefined,
+      createPrng(42),
+      42,
+    );
+    return { engine, moveRegistry };
+  }
+
+  /** Le meilleur score d'attaque visant une case donnée. */
+  function bestScoreAgainst(
+    engine: BattleEngine,
+    moveRegistry: Map<string, MoveDefinition>,
+    target: { x: number; y: number },
+  ): number {
+    const state = engine.getGameState(PlayerId.Player1);
+    const scores = engine
+      .getLegalActions(PlayerId.Player1)
+      .filter(
+        (action) =>
+          action.kind === ActionKind.UseMove &&
+          action.targetPosition?.x === target.x &&
+          action.targetPosition?.y === target.y,
+      )
+      .map((action) => scoreAction(action, state, moveRegistry, engine, EASY_PROFILE));
+    return scores.length === 0 ? 0 : Math.max(...scores);
+  }
+
+  it("🔴 préfère la cible du camp qui mène, à situation équivalente", () => {
+    // Réserve du camp 2 intacte, réserve du camp 3 à terre. Les deux CIBLES sont identiques : même
+    // espèce, mêmes PV, même distance. Seule la vigueur de leur camp diffère.
+    const { engine, moveRegistry } = buildFreeForAll(100, 1);
+
+    const againstLeader = bestScoreAgainst(engine, moveRegistry, { x: 3, y: 2 });
+    const againstTrailer = bestScoreAgainst(engine, moveRegistry, { x: 1, y: 2 });
+
+    expect(againstLeader).toBeGreaterThan(againstTrailer);
+  });
+
+  it("🔴 ne départage rien quand les trois camps sont à égalité", () => {
+    // Même montage, réserves identiques : personne ne mène, les deux cibles doivent scorer pareil.
+    // Sinon c'est l'ordre d'itération qui a tranché.
+    const { engine, moveRegistry } = buildFreeForAll(100, 100);
+
+    const left = bestScoreAgainst(engine, moveRegistry, { x: 1, y: 2 });
+    const right = bestScoreAgainst(engine, moveRegistry, { x: 3, y: 2 });
+
+    expect(left).toBe(right);
+  });
+
+  it("🔴 laisse un K.O. garanti l'emporter sur la cible du meneur", () => {
+    /*
+     * La cible du TRAÎNARD est à un point de vie ; celle du MENEUR est intacte. Le biais pousse vers
+     * le meneur, la létalité vers le traînard — et la létalité doit gagner. C'est la contrainte que
+     * l'humain a posée en écartant la version forte du biais.
+     *
+     * Ce cas est né d'un échec : le premier jet du test de départage utilisait ce montage-là en
+     * croyant mesurer autre chose.
+     */
+    const { engine, moveRegistry } = buildFreeForAll(100, 1);
+    const state = engine.getGameState(PlayerId.Player1);
+    const trailerTarget = state.pokemon.get("p3-bulbasaur");
+    if (trailerTarget !== undefined) {
+      trailerTarget.currentHp = 1;
+    }
+
+    const againstLeader = bestScoreAgainst(engine, moveRegistry, { x: 3, y: 2 });
+    const againstLethal = bestScoreAgainst(engine, moveRegistry, { x: 1, y: 2 });
+
+    expect(againstLethal).toBeGreaterThan(againstLeader);
+  });
+});
