@@ -2541,3 +2541,77 @@ export const VICTORY_ROSTER_ALLY_FELL = {
     },
   ],
 } as const;
+
+/**
+ * **Un journal qui déborde**, pour la conservation de l'historique et la position de défilement
+ * (cahier §4.9). Six dummies PASSIFS alignés sur la rangée y=1 de `sandbox-flat` (toutes ses cases
+ * sont `normal`, contrairement aux rangées 2 et 3), chacun jouant **Abri** à son tour.
+ *
+ * Le rendement est ce qui compte ici : un tour du joueur rend la main à six adversaires qui écrivent
+ * trois lignes chacun (« Tour de Dummy », « Dummy utilise Abri ! », « Dummy se protège avec Abri ! »)
+ * plus la bannière du joueur — **19 lignes par tour temporisé**, donc le plafond historique de
+ * 50 lignes est franchi en trois `endTurn()`. Un duel ordinaire en demanderait vingt-cinq.
+ *
+ * **Abri, et pas une attaque** : le générateur doit pouvoir tourner indéfiniment sans changer l'état
+ * du combat. Un dummy qui frappe finirait par mettre K.O., la partie s'arrêterait et le journal avec
+ * elle ; un dummy qui se protège écrit ses lignes sans rien entamer. Florizarre porte Danse-Lames
+ * pour la même raison (rien à viser, aucun dégât possible), mais les tests n'ont pas à le lancer.
+ */
+export const BATTLE_LOG_LONG_HISTORY = {
+  seed: 12345,
+  mapUrl: "assets/maps/dev/sandbox-flat.tmj",
+  teams: [
+    {
+      control: "player",
+      members: [
+        {
+          pokemon: "venusaur",
+          moves: ["swords-dance"],
+          position: { x: 2, y: 4 },
+          direction: "north",
+        },
+      ],
+    },
+    {
+      control: "passive",
+      members: [
+        {
+          pokemon: "dummy",
+          moves: ["protect"],
+          defensiveMove: "protect",
+          position: { x: 0, y: 1 },
+        },
+        {
+          pokemon: "dummy",
+          moves: ["protect"],
+          defensiveMove: "protect",
+          position: { x: 1, y: 1 },
+        },
+        {
+          pokemon: "dummy",
+          moves: ["protect"],
+          defensiveMove: "protect",
+          position: { x: 2, y: 1 },
+        },
+        {
+          pokemon: "dummy",
+          moves: ["protect"],
+          defensiveMove: "protect",
+          position: { x: 3, y: 1 },
+        },
+        {
+          pokemon: "dummy",
+          moves: ["protect"],
+          defensiveMove: "protect",
+          position: { x: 4, y: 1 },
+        },
+        {
+          pokemon: "dummy",
+          moves: ["protect"],
+          defensiveMove: "protect",
+          position: { x: 5, y: 1 },
+        },
+      ],
+    },
+  ],
+} as const;

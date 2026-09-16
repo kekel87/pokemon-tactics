@@ -16,20 +16,23 @@ import { el, scrollByStep } from "./dom-helpers.js";
  * port (`report`), replacing the 4a no-op. Native scroll, `aria-live` polite.
  */
 
-/** Cap the DOM line count. */
-const MAX_LOG_ENTRIES = 50;
+/*
+ * Le journal garde TOUTES les lignes du combat (retour humain 2026-09-16, première partie en ligne :
+ * « faudrait pouvoir remonter le journal depuis le début du combat »).
+ *
+ * Il était plafonné à 50 lignes, et les plus anciennes n'étaient pas masquées mais DÉTRUITES du DOM :
+ * remonter au début était impossible par construction, la donnée n'existait plus. Un combat est borné
+ * en tours — 39 en moyenne sur la télémétrie des 30 derniers jours — donc quelques centaines de
+ * lignes, ce qui ne justifie pas de virtualiser. Si un jour une mêlée à 12 rend la liste coûteuse, on
+ * le MESURERA avant de compliquer.
+ */
 
 /**
- * Replay transport controls (first / rewind / play / forward / last).
- * Disabled for now — placeholders for the future battle replay feature.
+ * Marge sous laquelle on considère la liste « collée en bas ». Non nulle parce qu'un défilement
+ * fractionnaire (zoom navigateur, densité d'écran) laisse un reliquat de moins d'un pixel qui ferait
+ * croire, à tort, que le joueur a remonté.
  */
-const REPLAY_BUTTONS: readonly { label: string; aria: string }[] = [
-  { label: "|◁", aria: "Début" },
-  { label: "◁◁", aria: "Reculer" },
-  { label: "▷", aria: "Lecture" },
-  { label: "▷▷", aria: "Avancer" },
-  { label: "▷|", aria: "Fin" },
-];
+const BOTTOM_STICK_TOLERANCE_PX = 4;
 
 export interface BattleLogOptions {
   /** Name/language resolvers for `formatBattleEvent`. */
@@ -123,17 +126,6 @@ export function createBattleLog(options: BattleLogOptions): BattleLog {
   const list = el("ol", "bl-list");
   list.setAttribute("aria-live", "polite");
 
-  // Replay transport bar (disabled placeholders — future replay feature).
-  const actions = el("div", "bl-actions");
-  for (const { label, aria } of REPLAY_BUTTONS) {
-    const button = el("button", "bl-replay-btn");
-    button.type = "button";
-    button.textContent = label;
-    button.disabled = true;
-    button.setAttribute("aria-label", aria);
-    actions.append(button);
-  }
-
   /*
    * Indices de défilement (plan 189, décision 8) — un à CHAQUE extrémité de la liste, masqués par
    * défaut.
@@ -180,7 +172,7 @@ export function createBattleLog(options: BattleLogOptions): BattleLog {
       : null;
   resizeObserver?.observe(list);
 
-  root.append(header, scrollHintTop, list, scrollHintBottom, actions);
+  root.append(header, scrollHintTop, list, scrollHintBottom);
 
   const setCollapsed = (collapsed: boolean): void => {
     root.dataset.collapsed = String(collapsed);
@@ -206,11 +198,23 @@ export function createBattleLog(options: BattleLogOptions): BattleLog {
     text.textContent = entry.message;
     item.append(text);
 
+    /*
+     * On ne recolle en bas QUE si on y était déjà.
+     *
+     * Garder toutes les lignes ne suffisait pas : recoller inconditionnellement ramenait le joueur
+     * en bas à chaque ligne écrite, donc remonter lire le début du combat était impossible dès que
+     * l'adversaire agissait — or c'est exactement pendant le tour d'en face qu'on a le temps de
+     * lire. Le besoin n'était traité qu'à moitié (revue de code, 2026-09-16).
+     *
+     * Mesuré AVANT l'insertion : après, `scrollHeight` a déjà grandi et la comparaison croit
+     * toujours qu'on a décollé du bas.
+     */
+    const wasAtBottom =
+      list.scrollHeight - list.scrollTop - list.clientHeight <= BOTTOM_STICK_TOLERANCE_PX;
     list.append(item);
-    while (list.childElementCount > MAX_LOG_ENTRIES) {
-      list.firstElementChild?.remove();
+    if (wasAtBottom) {
+      list.scrollTop = list.scrollHeight;
     }
-    list.scrollTop = list.scrollHeight;
     refreshScrollHint();
   }
 

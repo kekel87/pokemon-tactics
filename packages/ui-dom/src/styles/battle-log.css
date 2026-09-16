@@ -161,8 +161,7 @@
 
   .bl-panel[data-collapsed="true"] .bl-title,
   .bl-panel[data-collapsed="true"] .bl-list,
-  .bl-panel[data-collapsed="true"] .bl-scroll-hint,
-  .bl-panel[data-collapsed="true"] .bl-actions {
+  .bl-panel[data-collapsed="true"] .bl-scroll-hint {
     display: none;
   }
 
@@ -185,42 +184,6 @@
       inset 0 7px 6px -7px rgb(0 0 0 / 0.6),
       inset 0 -7px 6px -7px rgb(0 0 0 / 0.6);
     font-size: var(--bl-body-size);
-  }
-
-  /* Replay transport bar (disabled placeholders — future replay feature). */
-  .bl-actions {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    gap: var(--spacing-xs);
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border-block-start: 1px solid var(--color-border-surface);
-    background: color-mix(in oklch, var(--color-bg-base) 40%, transparent);
-  }
-
-  .bl-replay-btn {
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    aspect-ratio: 1;
-    min-inline-size: calc(38.4px * var(--ui-scale));
-    padding: 0;
-    border: 0;
-    border-radius: var(--radius-sm);
-    background: transparent;
-    color: var(--color-text-muted);
-    font: inherit;
-    font-size: calc(22.4px * var(--ui-scale));
-    cursor: pointer;
-    &:hover:not(:disabled) {
-      background: var(--color-bg-elevated-hover);
-      color: var(--color-text-primary);
-    }
-    &:disabled {
-      color: var(--gray-700);
-      cursor: not-allowed;
-    }
   }
 
   .bl-entry {

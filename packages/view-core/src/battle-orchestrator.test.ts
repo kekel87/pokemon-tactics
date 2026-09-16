@@ -71,6 +71,11 @@ function createFakeTurnClock(durationMs: number) {
 
 const ACTIVE_ID = "p1-pikachu";
 const ACTIVE_POSITION: Position = { x: 4, y: 4 };
+/** Ce que le moteur simulé rend pour une portée de déplacement, quelle que soit la cible. */
+const REACHABLE_TILES: readonly Position[] = [
+  { x: 3, y: 4 },
+  { x: 5, y: 4 },
+];
 
 function activePokemon(): PokemonInstance {
   return {
@@ -185,6 +190,7 @@ function setup(
     },
     getEffectiveMove: () => move ?? null,
     getGrid: () => Grid.createFlat(9, 9),
+    getReachableTilesForPokemon: () => REACHABLE_TILES,
     estimateDamage: () => null,
     getPokemonTypes: () => [],
     isAirborneIgnoringGravity: () => false,
@@ -658,8 +664,13 @@ function endTurnAction(direction = Direction.South): Action {
   return { kind: ActionKind.EndTurn, pokemonId: ACTIVE_ID, direction };
 }
 
-function remoteHarness(options?: { engineRefuses?: boolean; forfeitRefused?: boolean }): Harness {
-  const harness = setup([endTurnAction()], undefined, {
+function remoteHarness(options?: {
+  engineRefuses?: boolean;
+  forfeitRefused?: boolean;
+  /** Ce que le moteur juge encore légal pour l'acteur courant — le distant, ici. */
+  legalActions?: Action[];
+}): Harness {
+  const harness = setup(options?.legalActions ?? [endTurnAction()], undefined, {
     humanPlayerIds: ["player-1"],
     localPlayerIds: ["player-2"],
     ...(options?.engineRefuses === undefined ? {} : { engineRefuses: options.engineRefuses }),
@@ -707,6 +718,90 @@ describe("BattleOrchestrator — tour distant", () => {
     expect(applied).toBe("applied");
     expect(harness.submitted).toEqual([endTurnAction()]);
     expect(harness.rejections).toEqual([]);
+  });
+
+  /*
+   * Né de la première partie en ligne réelle, le 2026-09-16 : le pair distant ne voyait rien de la
+   * portée de déplacement de celui qui joue. Rien ne réplique les surbrillances, et la phase
+   * `waiting_remote` était en plus exclue des phases où le survol peint une portée — le pair ne
+   * pouvait donc même pas aller la chercher. Corrigé localement, sans toucher au protocole.
+   */
+  it("peint la portée du Pokemon distant quand on le survole pendant son tour", () => {
+    // Pour celui qui JOUE, les cases viennent des actions encore légales, pas de la prévision : on
+    // montre « où peut-il aller MAINTENANT », déplacement déjà consommé compris.
+    const destination: Position = { x: 5, y: 4 };
+    const harness = remoteHarness({ legalActions: [endTurnAction(), moveAction(destination)] });
+
+    harness.orchestrator.onTileHover(ACTIVE_POSITION);
+
+    expect(harness.highlights.at(-1)).toEqual({ kind: "enemy", tiles: [destination] });
+  });
+
+  it("ne peint rien au Pokemon distant qui a déjà consommé son déplacement", () => {
+    // Le moteur ne lui laisse plus d'action Move : lui peindre une portée serait annoncer à
+    // l'adversaire un déplacement qui ne peut plus arriver.
+    const harness = remoteHarness({ legalActions: [endTurnAction()] });
+
+    harness.orchestrator.onTileHover(ACTIVE_POSITION);
+
+    expect(harness.highlights.at(-1)).toEqual({ kind: "enemy", tiles: [] });
+  });
+
+  it("éteint la portée survolée dès que l'action distante s'anime", () => {
+    const harness = remoteHarness();
+    harness.orchestrator.onTileHover(ACTIVE_POSITION);
+
+    harness.orchestrator.submitRemoteAction({
+      ...REMOTE,
+      actionIndex: 0,
+      action: endTurnAction(),
+    });
+
+    // Sans ça les cases resteraient peintes par-dessus l'animation du déplacement : aucun événement
+    // de survol ne vient les éteindre, c'est une transition de phase.
+    expect(harness.highlights.at(-1)).toEqual({ kind: "enemy", tiles: [] });
+  });
+
+  /*
+   * Le garde-fou du hot-seat, demandé en revue. La garde a changé de SENS — elle portait sur celui
+   * qui AGIT, elle porte maintenant sur celui qui REGARDE. En hot-seat les deux coïncident, donc
+   * rien ne doit bouger ; mais si `viewerPlayerId()` dérive un jour pour une autre raison, c'est ici
+   * que ça se verra, et pas en partie réelle.
+   */
+  it("peint toujours la portée du camp d'en face en hot-seat", () => {
+    const harness = setup([endTurnAction()], undefined, {
+      humanPlayerIds: ["player-1", "player-2"],
+      localPlayerIds: ["player-1", "player-2"],
+    });
+    harness.orchestrator.onTurnReady = () => false;
+    harness.orchestrator.start();
+    // L'état simulé ne porte que l'actif : on ajoute l'adversaire à survoler, sur une case libre.
+    const opponentPosition: Position = { x: 6, y: 6 };
+    harness.state.pokemon.set("p2-bulbasaur", {
+      ...activePokemon(),
+      id: "p2-bulbasaur",
+      playerId: "player-2",
+      position: opponentPosition,
+    });
+
+    harness.orchestrator.onTileHover(opponentPosition);
+
+    expect(harness.highlights.at(-1)).toEqual({ kind: "enemy", tiles: REACHABLE_TILES });
+  });
+
+  it("ne peint jamais la portée de son PROPRE Pokemon actif", () => {
+    const harness = setup([endTurnAction()], undefined, {
+      humanPlayerIds: ["player-1"],
+      localPlayerIds: ["player-1"],
+    });
+    harness.orchestrator.onTurnReady = () => false;
+    harness.orchestrator.start();
+
+    harness.orchestrator.onTileHover(ACTIVE_POSITION);
+
+    // Ses cases sont déjà l'affaire de `setHighlights("move", …)` — les repeindre en « ennemi »
+    // dirait au joueur que son propre Pokemon le menace.
+    expect(harness.highlights.some((h) => h.kind === "enemy" && h.tiles.length > 0)).toBe(false);
   });
 
   it("ne rediffuse jamais une action distante", () => {

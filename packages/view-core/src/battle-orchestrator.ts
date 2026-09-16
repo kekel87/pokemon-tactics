@@ -553,6 +553,11 @@ export class BattleOrchestrator {
     // (retour humain 2026-08-21).
     if (next.phase === "animating") {
       this.hoveredTile = null;
+      // Et la portée peinte au survol avec elle. Aucun événement de survol ne viendra l'éteindre —
+      // c'est une transition de phase, pas un mouvement de souris — et depuis que le survol vit
+      // aussi pendant `waiting_remote` (2026-09-16), la laisser allumée figerait les cases du
+      // Pokemon distant par-dessus l'animation de son propre déplacement.
+      this.clearEnemyRangeHover();
     }
     // Le chrono ne court pas pendant qu'une action se résout (plan 202) : l'animation de l'action
     // précédente n'a pas à manger le temps de réflexion du joueur.
@@ -664,24 +669,40 @@ export class BattleOrchestrator {
   }
 
   /**
-   * Paint a hovered enemy's reachable-tile range (threat preview): only during
-   * the planning phases, only for a living enemy that isn't the active Pokémon.
+   * Paint a hovered Pokémon's reachable-tile range (threat preview): during the planning phases and
+   * while a remote player takes their turn, for any living Pokémon that isn't the viewer's own.
+   *
+   * `waiting_remote` est là depuis le 2026-09-16 (première partie en ligne réelle) : le pair distant
+   * ne voyait RIEN de la portée de celui qui joue. Et il ne pouvait pas non plus aller la chercher,
+   * parce que cette phase était exclue des phases de planification. Rien ne réplique les
+   * surbrillances — `setHighlights("move", …)` n'a qu'un appelant, le clic local sur « Déplacement »
+   * — donc plutôt qu'un message d'intention et un incrément de `NETWORK_VERSION`, on laisse le pair
+   * interroger l'état déterministe qu'il possède déjà. Purement local, rien sur le réseau.
+   *
+   * La garde porte sur le **spectateur** (`viewerPlayerId`) et non plus sur celui qui agit : c'est
+   * la même chose partout sauf pendant un tour distant, où l'ancienne formulation masquait
+   * précisément le Pokemon qu'on veut regarder. La portée d'ATTAQUE, elle, reste cachée — l'humain
+   * a tranché « déplacement seulement » le 2026-09-16, l'effet de surprise fait partie du jeu.
    */
   private updateEnemyRangeHover(hovered: PokemonInstance | null): void {
     const active = this.activePokemon();
-    const activePlayerId = active?.playerId ?? null;
+    const phase = this.inputState.phase;
     const planningPhases: ReadonlySet<InputState["phase"]> = new Set([
       "action_menu",
       "select_move_destination",
       "attack_submenu",
+      "waiting_remote",
     ]);
     if (
-      !activePlayerId ||
-      !planningPhases.has(this.inputState.phase) ||
+      !active ||
+      !planningPhases.has(phase) ||
       !hovered ||
-      hovered.playerId === activePlayerId ||
+      hovered.playerId === this.viewerPlayerId() ||
       hovered.currentHp <= 0 ||
-      hovered.id === active?.id
+      // Le Pokemon actif reste exclu tant qu'il est de NOTRE côté : ses cases sont déjà peintes par
+      // `setHighlights("move", …)`. Pendant un tour distant c'est l'inverse — c'est la seule qu'on
+      // ait à montrer.
+      (hovered.id === active?.id && phase !== "waiting_remote")
     ) {
       this.clearEnemyRangeHover();
       return;
@@ -689,8 +710,43 @@ export class BattleOrchestrator {
     if (hovered.id === this.hoveredEnemyRangePokemonId) {
       return;
     }
-    this.board.setHighlights("enemy", this.engine.getReachableTilesForPokemon(hovered.id));
+    this.board.setHighlights("enemy", this.hoveredRangeTiles(hovered, active));
     this.hoveredEnemyRangePokemonId = hovered.id;
+  }
+
+  /**
+   * Les cases à peindre sous un Pokemon survolé — et il y a DEUX questions différentes derrière.
+   *
+   * Pour un Pokemon qui n'est pas en train de jouer, on montre une PRÉVISION de son prochain tour :
+   * `getReachableTilesForPokemon` est exactement ça, et le fait qu'il ignore ce qui a déjà été
+   * consommé n'a pas de sens à ce moment-là.
+   *
+   * Pour celui qui joue — le cas du tour distant — la question est autre : « où peut-il encore
+   * aller, maintenant ? ». On la pose au moteur, qui la calcule déjà pour l'acteur courant. Sans ça
+   * on peignait, à un Pokemon distant ayant DÉJÀ bougé, une portée qu'il ne pouvait plus emprunter —
+   * de l'information fausse donnée à l'adversaire (relevé en revue de code ET par test-writer,
+   * 2026-09-16).
+   *
+   * ⚠️ Le remède d'abord envisagé, filtrer sur `movedThisTurn`, aurait été FAUX : ce drapeau veut
+   * dire « a changé de position ce tour-ci, déplacement propre, recul ou glissade comprise », et il
+   * existe pour couper le soin de Racines — pas pour autoriser un second déplacement. Un Pokemon
+   * qu'on vient de faire reculer serait apparu immobilisé alors qu'il peut encore bouger.
+   */
+  private hoveredRangeTiles(
+    hovered: PokemonInstance,
+    active: PokemonInstance,
+  ): readonly Position[] {
+    if (hovered.id !== active.id) {
+      return this.engine.getReachableTilesForPokemon(hovered.id);
+    }
+    return this.engine
+      .getLegalActions(hovered.playerId)
+      .filter(
+        (action): action is Extract<Action, { kind: typeof ActionKind.Move }> =>
+          action.kind === ActionKind.Move,
+      )
+      .map((action) => action.path.at(-1))
+      .filter(isPosition);
   }
 
   private clearEnemyRangeHover(): void {
