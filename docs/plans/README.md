@@ -47,3 +47,4 @@ Les seuls sur lesquels on travaille.
 | 211 | [Plan 211 — Le placement à la main, en ligne](./211-placement-simultane-en-ligne.md) | done |
 | 212 | [Plan 212 — Mesurer les mécaniques de fin de Phase 7, et les deux trous trouvés en lisant les chiffres](./212-telemetrie-des-mecaniques-de-phase-7.md) | done |
 | 213 | [Plan 213 — La dette choisie avant la release](./213-dette-choisie-avant-la-release.md) | done |
+| 214 | [Plan 214 — Le niveau de l'IA, choisi place par place](./214-niveau-de-l-ia-par-place.md) | draft |
