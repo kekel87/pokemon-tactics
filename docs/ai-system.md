@@ -246,6 +246,13 @@ poids, mais de la **richesse des considérations**.
 | `riskAwareness` — évalue le danger de la case où elle va | ✗ | ✗ | ✓ |
 | `focusFire` — achève une cible déjà blessée | ✗ | ✓ | ✓ |
 | `ringOutSetup` — se DÉPLACE pour préparer une éjection (volets A3/A4) | ✗ | ✗ | ✓ |
+| `typeBlindChance` — probabilité d'ignorer les tables de types | **0,5** | 0 | 0 |
+
+`typeBlindChance` dégrade ce que l'IA **perçoit**, pas ce qu'elle **choisit** — patron de Freeciv
+(`H_FOG`, `H_MAP`) et d'OpenXcom (`intelligence` = mémoire des cibles). Un poids faible reste
+correctement orienté en moyenne ; une cécité produit des erreurs **visibles** (du Feu sur un Pokemon
+Eau). Le tirage a lieu **une fois par décision**, jamais par action candidate, sinon le classement
+mélangerait des scores incomparables.
 
 Une IA qui ne prépare jamais une éjection se reconnaît **en jouant**. Une IA qui pioche son deuxième
 meilleur coup 15 % du temps, non.
@@ -294,9 +301,16 @@ tour vers la même action.
   hasard pur 60-0, parce que le hasard perd son tour à taper dans le vide. Le bon étalon est un agent
   **cohérent mais borné** (type `MaxBasePowerPlayer` de poke-env : la capacité la plus puissante, sans
   lire les types). **Non implémenté à ce jour.**
-- 🔴 **Rendre Facile faible par du bruit ne marche pas.** Même à 95 % de coups sous-optimaux dans un
-  top 12, il bat encore le hasard 59-1. Freeciv et OpenXcom dégradent la **perception** (brouillard,
-  mémoire des cibles tronquée), pas la décision. Piste non explorée.
+- 🔴 **Rendre Facile assez faible reste un PROBLÈME OUVERT**, et deux tentatives ont échoué.
+  1. *Par le bruit* : même à 95 % de coups sous-optimaux dans un top 12, Facile bat le hasard 59-1.
+  2. *Par la perception* : `typeBlindChance` aide (Facile passe de 14-45 à 12-48 contre Moyenne en
+     miroir) mais ne suffit pas. Même un Facile massacré — 90 % d'erreurs, aveugle aux types,
+     `killPotential` à 1, `positioning` à 0 — bat encore l'étalon MaxPuissance **56-0**.
+- 🔴 **L'étalon MaxPuissance n'est pas non plus un bon analogue d'enfant DANS NOTRE JEU.** Il frappe
+  au plus fort mais **ne navigue pas** : il prend la première action de déplacement venue. Dans
+  Showdown, d'où vient le patron, il n'y a pas de placement ; ici le placement fait la moitié du jeu,
+  donc il se sabote sur un axe qu'un enfant maîtriserait. Un meilleur étalon devrait **avancer
+  sensément vers l'ennemi** tout en frappant naïvement. Non implémenté.
 
 ## Portée max par targeting (`getMoveMaxReach`, `ai/move-reach.ts`)
 

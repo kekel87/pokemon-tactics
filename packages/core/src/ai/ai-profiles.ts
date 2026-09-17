@@ -20,13 +20,22 @@ export const EASY_PROFILE: AiProfile = {
   topN: 4,
   scoringWeights: {
     killPotential: 10,
-    typeAdvantage: 1,
+    // Poids NOMINAL retrouvé : quand Facile lit les types, il les lit juste. Sa faiblesse vient de
+    // `typeBlindChance`, pas d'une lecture systématiquement molle.
+    typeAdvantage: 3,
     positioning: 1,
     statChanges: 1,
   },
   // Facile ne regarde RIEN au-delà du coup immédiat : ni le danger de la case où il va, ni les cibles
   // déjà blessées, ni une éjection à préparer. C'est ce qui le rend reconnaissable en jouant.
-  capabilities: { riskAwareness: false, focusFire: false, ringOutSetup: false },
+  capabilities: {
+    riskAwareness: false,
+    focusFire: false,
+    ringOutSetup: false,
+    // Une décision sur deux ignore les tables de types : l'erreur se VOIT (du Feu sur un Pokemon Eau)
+    // là où un poids faible se contentait de moins bien viser.
+    typeBlindChance: 0.5,
+  },
 };
 
 /**
@@ -45,7 +54,12 @@ export const MEDIUM_PROFILE: AiProfile = {
     statChanges: 1,
   },
   // Moyenne achève ce qui est déjà entamé, mais ne se protège pas et ne prépare rien.
-  capabilities: { riskAwareness: false, focusFire: true, ringOutSetup: false },
+  capabilities: {
+    riskAwareness: false,
+    focusFire: true,
+    ringOutSetup: false,
+    typeBlindChance: 0,
+  },
 };
 
 /**
@@ -71,7 +85,12 @@ export const HARD_PROFILE: AiProfile = {
     statChanges: 0.5,
   },
   // Difficile voit tout : il achève, il se protège, et il prépare ses éjections.
-  capabilities: { riskAwareness: true, focusFire: true, ringOutSetup: true },
+  capabilities: {
+    riskAwareness: true,
+    focusFire: true,
+    ringOutSetup: true,
+    typeBlindChance: 0,
+  },
 };
 
 /**

@@ -55,10 +55,25 @@ export function pickScoredAction(
     );
   }
 
+  /*
+   * Cécité aux types, tirée UNE FOIS pour toute cette décision (plan 214).
+   *
+   * Une fois par décision et non par action candidate : sinon le classement comparerait des actions
+   * notées avec les types à d'autres notées sans, et le tri n'aurait plus de sens.
+   *
+   * Déterministe : le tirage consomme le `random` seedé, donc les deux pairs d'une partie en ligne
+   * sont aveugles aux mêmes tours.
+   */
+  const blindness = profile.capabilities.typeBlindChance;
+  const typeBlindThisTurn = blindness > 0 && random() < blindness;
+  const effectiveProfile = typeBlindThisTurn
+    ? { ...profile, scoringWeights: { ...profile.scoringWeights, typeAdvantage: 0 } }
+    : profile;
+
   const scored = legalActions
     .map((action) => ({
       action,
-      score: scoreAction(action, state, moveRegistry, engine, profile),
+      score: scoreAction(action, state, moveRegistry, engine, effectiveProfile),
     }))
     .sort((a, b) => b.score - a.score);
 

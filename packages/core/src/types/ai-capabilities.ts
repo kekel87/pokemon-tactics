@@ -31,4 +31,22 @@ export interface AiCapabilities {
    * jouer l'éjection que lorsqu'elle tombe toute seule.
    */
   readonly ringOutSetup: boolean;
+  /**
+   * Probabilité, à CHAQUE décision, que l'IA ignore complètement l'efficacité de type — comme si elle
+   * ne connaissait pas les tables. 0 = elle les lit toujours.
+   *
+   * 🔴 On dégrade ce qu'elle PERÇOIT, pas ce qu'elle CHOISIT, et c'est un patron repris de Freeciv
+   * (`H_FOG`, `H_MAP` : l'IA facile ne voit littéralement pas tout) et d'OpenXcom (`intelligence` :
+   * combien de tours elle se souvient d'un ennemi repéré).
+   *
+   * Pourquoi pas un simple poids faible, ce qu'on faisait avant : un poids reste **correctement
+   * orienté en moyenne**, donc l'IA vise toujours un peu mieux que le hasard, elle est juste moins
+   * tranchée. Une cécité, elle, produit des erreurs **systémiques et reconnaissables** — elle envoie
+   * du Feu sur un Pokemon Eau et le joueur le voit. C'est la différence entre « elle est bête » et
+   * « elle a eu un coup de moins bien ».
+   *
+   * Le tirage a lieu **une fois par décision**, jamais par action candidate : sinon le classement
+   * mélangerait des actions notées avec et sans les types, ce qui n'aurait aucun sens.
+   */
+  readonly typeBlindChance: number;
 }
