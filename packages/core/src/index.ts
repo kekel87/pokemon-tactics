@@ -7,6 +7,7 @@ export {
   resolveAiDifficulty,
 } from "./ai/ai-profiles";
 export { pickAggressiveAction, pickRandomAction } from "./ai/index";
+export { createRepetitionGuard, type RepetitionGuard } from "./ai/repetition-guard";
 export { pickScoredAction } from "./ai/scored-ai";
 export { AbilityHandlerRegistry } from "./battle/ability-handler-registry";
 export {

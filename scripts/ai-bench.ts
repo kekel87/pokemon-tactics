@@ -1,4 +1,32 @@
 #!/usr/bin/env tsx
+import {
+  type AiProfile,
+  BattleEngine,
+  BattleEventType,
+  type BattleState,
+  computeCombatStats,
+  computeMovement,
+  createPrng,
+  createRepetitionGuard,
+  Direction,
+  EASY_PROFILE,
+  HARD_PROFILE,
+  MEDIUM_PROFILE,
+  type MoveDefinition,
+  Nature,
+  PlacementMode,
+  PlacementPhase,
+  type PlacementTeam,
+  PlayerId,
+  PokemonGender,
+  type PokemonInstance,
+  type PokemonType,
+  pickScoredAction,
+  StatName,
+  type TileState,
+  TurnPipeline,
+  Weather,
+} from "../packages/core/src/index.js";
 /**
  * ai-bench — fait jouer l'IA contre elle-même et mesure ce que valent RÉELLEMENT les niveaux.
  *
@@ -27,37 +55,9 @@
  * 40 parties, est du BRUIT. Ne rien conclure d'un écart plus petit.
  */
 import { loadData, pocArena, typeChart } from "../packages/data/src/index.js";
-import {
-  type AiProfile,
-  BattleEngine,
-  BattleEventType,
-  type BattleState,
-  computeCombatStats,
-  computeMovement,
-  createPrng,
-  Direction,
-  EASY_PROFILE,
-  HARD_PROFILE,
-  MEDIUM_PROFILE,
-  type MoveDefinition,
-  Nature,
-  pickScoredAction,
-  PlacementMode,
-  PlacementPhase,
-  type PlacementTeam,
-  PlayerId,
-  PokemonGender,
-  type PokemonInstance,
-  type PokemonType,
-  StatName,
-  type TileState,
-  TurnPipeline,
-  Weather,
-} from "../packages/core/src/index.js";
 
 const BATTLE_LEVEL = 50;
 const MAX_ACTIONS = 4000;
-const PARTIES_PAR_AFFRONTEMENT = 40;
 
 const ZERO_STAT_STAGES = {
   [StatName.Hp]: 0,
@@ -207,6 +207,10 @@ function jouerUnePartie(
 
   const random1 = createPrng(graine * 7 + 1);
   const random2 = createPrng(graine * 13 + 2);
+  // Un filet par camp, comme dans le vrai jeu (`AiTeamController`) — sinon le banc ne mesurerait pas
+  // ce que le joueur subit.
+  const filet1 = createRepetitionGuard();
+  const filet2 = createRepetitionGuard();
 
   let actions = 0;
   let vainqueur: string | null = null;
@@ -236,6 +240,7 @@ function jouerUnePartie(
       engine,
       estUn ? profil1 : profil2,
       estUn ? random1 : random2,
+      (estUn ? filet1 : filet2).observe(gameState),
     );
 
     const resultat = engine.submitAction(playerId, action);
@@ -291,9 +296,10 @@ const AFFRONTEMENTS: [string, AiProfile, string, AiProfile][] = [
   ["Difficile", HARD_PROFILE, "Difficile", HARD_PROFILE],
 ];
 
-
 function relever(memeEquipe: boolean, parties: number): void {
-  console.log(`\n=== ÉQUIPES ${memeEquipe ? "IDENTIQUES (miroir)" : "ALÉATOIRES"} — ${parties} parties par affrontement ===`);
+  console.log(
+    `\n=== ÉQUIPES ${memeEquipe ? "IDENTIQUES (miroir)" : "ALÉATOIRES"} — ${parties} parties par affrontement ===`,
+  );
   for (const [nom1, profil1, nom2, profil2] of AFFRONTEMENTS) {
     let v1 = 0;
     let v2 = 0;
@@ -312,11 +318,15 @@ function relever(memeEquipe: boolean, parties: number): void {
       if (issue.vainqueur === "player-1") {
         v1++;
         margesVainqueur.push(issue.survivants1);
-        if (issue.survivants2 === 0 && issue.survivants1 === 6) balayages++;
+        if (issue.survivants2 === 0 && issue.survivants1 === 6) {
+          balayages++;
+        }
       } else if (issue.vainqueur === "player-2") {
         v2++;
         margesVainqueur.push(issue.survivants2);
-        if (issue.survivants1 === 0 && issue.survivants2 === 6) balayages++;
+        if (issue.survivants1 === 0 && issue.survivants2 === 6) {
+          balayages++;
+        }
       }
     }
 

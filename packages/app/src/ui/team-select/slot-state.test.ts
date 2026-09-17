@@ -4,7 +4,8 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("../../team/team-storage", () => ({ loadTeam: () => null }));
 vi.mock("../../team/last-selection", () => ({
   loadLastSelection: () => [],
-  saveLastSelectionEntry: () => {},
+  // Stub muet : le test ne lit jamais ce qui serait écrit, seulement ce qui est composé.
+  saveLastSelectionEntry: () => undefined,
 }));
 
 const { buildTeamSelections, setSlotController } = await import("./slot-state");

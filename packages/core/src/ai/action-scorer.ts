@@ -15,6 +15,7 @@ import { FIELD_GLOBAL_RADIUS, isInFieldGlobalZone } from "../battle/field-global
 import { FIELD_TERRAIN_RADIUS, getFieldTerrainAt } from "../battle/field-terrain-system";
 import { TRANSFERABLE_STATS } from "../battle/handlers/baton-pass-stats";
 import { ohkoAccuracy } from "../battle/ohko";
+import { clampStages } from "../battle/stat-modifier";
 import { isTerrainImmune } from "../battle/terrain-effects";
 import { ActionKind } from "../enums/action-kind";
 import { AuraKind } from "../enums/aura-kind";
@@ -44,6 +45,7 @@ import { directionFromTo, getPerpendicularOffsets, stepInDirection } from "../ut
 import { manhattanDistance } from "../utils/manhattan-distance";
 import { campBiasFactors, campFactorOf } from "./camp-bias";
 import { getMoveMaxReach } from "./move-reach";
+import { BATTLE_STAT_STAGE_NAMES } from "./stat-stage-names";
 import {
   abilityCopyValue,
   abilityNeutralizeValue,
@@ -124,13 +126,7 @@ function applyCtWeight(score: number, securesKo: boolean, move: MoveDefinition):
 }
 
 /** Les 5 crans de stats de combat (hors Précision / Esquive) — base des heuristiques buff/setup. */
-const BATTLE_STAT_STAGES: readonly StatName[] = [
-  StatName.Attack,
-  StatName.Defense,
-  StatName.SpAttack,
-  StatName.SpDefense,
-  StatName.Speed,
-];
+const BATTLE_STAT_STAGES = BATTLE_STAT_STAGE_NAMES;
 
 /**
  * CT "tours du lanceur": weather / field / barrier durations count down on the setter's OWN turns,
@@ -1650,8 +1646,60 @@ function scoreSelfMove(
     return 0;
   }
 
+  /*
+   * 🔴 Un buff AU PLAFOND ne fait RIEN, et c'est ce qui faisait tourner les parties en rond.
+   *
+   * Mesuré au plan 214 (`pnpm ai:bench`) : en miroir — mêmes équipes des deux côtés — jusqu'à
+   * 8 parties sur 40 ne se terminaient JAMAIS, et les paliers montaient à +6 dans les SIX
+   * affrontements, Facile contre Facile compris. Observé en direct : Racaillou à `Déf 120 ➜ 480`,
+   * tout le monde à 100 % de PV, plus personne capable de blesser personne.
+   *
+   * La cause était ici : ce score ne regardait jamais le palier courant, donc relancer Armure
+   * (`clampStages` ne bouge plus d'un cran) valait autant qu'au premier lancer. L'IA rejouait
+   * indéfiniment un coup sans effet.
+   *
+   * `-1` et non `0` : le score doit être NÉGATIF pour que `pickScoredAction` écarte l'action de son
+   * `topN` (il filtre sur `score >= 0`). À 0, elle restait candidate et pouvait être piochée.
+   */
+  const marge = selfBuffHeadroom(currentPokemon, move);
+  if (marge <= 0) {
+    return -1;
+  }
+
   const nearestEnemyDist = closestEnemyManhattanDistance(currentPokemon.position, enemies);
-  return nearestEnemyDist > 2 ? weights.statChanges * 3 : weights.statChanges;
+  const base = nearestEnemyDist > 2 ? weights.statChanges * 3 : weights.statChanges;
+  // Courbe de saturation : un buff vaut d'autant moins que la stat est déjà haute. Sans elle, le
+  // score reste plein de 0 à +5 puis tombe d'un coup — l'IA empilerait jusqu'à l'avant-dernier cran.
+  return base * marge;
+}
+
+/**
+ * Part des crans encore GAGNABLES par ce move sur son lanceur, entre 0 et 1.
+ *
+ * 0 = toutes les stats visées sont au plafond, donc le move est un tour perdu. La moyenne sur les
+ * stats visées plutôt que le maximum : un move qui monte deux stats dont une saturée vaut à peu près
+ * la moitié de ce qu'il vaudrait sur deux stats fraîches, ce qui est exactement ce qu'il fait.
+ */
+function selfBuffHeadroom(caster: PokemonInstance, move: MoveDefinition): number {
+  const montees = move.effects.filter(
+    (effect) =>
+      effect.kind === EffectKind.StatChange &&
+      effect.target === EffectTarget.Self &&
+      effect.stages > 0,
+  );
+  if (montees.length === 0) {
+    return 1;
+  }
+  let total = 0;
+  for (const montee of montees) {
+    if (montee.kind !== EffectKind.StatChange) {
+      continue;
+    }
+    const actuel = caster.statStages[montee.stat];
+    const gagnes = clampStages(actuel, montee.stages) - actuel;
+    total += gagnes / montee.stages;
+  }
+  return total / montees.length;
 }
 
 function findAt(list: readonly PokemonInstance[], position: Position): PokemonInstance | undefined {

@@ -11,6 +11,15 @@ import type { RandomFn } from "../utils/prng";
 import { scoreAction } from "./action-scorer";
 import { pickAiHitAndRunRetreat } from "./pick-hit-and-run-retreat";
 
+/**
+ * Nombre de passages par la MÊME position toléré avant que le filet ne dévie le choix.
+ *
+ * 2 et non 1 : repasser une fois par une position est banal — deux Pokemon qui se croisent, un tour
+ * de recharge. C'est la TROISIÈME occurrence qui dit qu'on tourne, et c'est aussi le seuil des échecs
+ * (triple répétition).
+ */
+const REPETITIONS_TOLEREES = 2;
+
 export function pickScoredAction(
   legalActions: Action[],
   state: BattleState,
@@ -18,6 +27,12 @@ export function pickScoredAction(
   engine: BattleEngine,
   profile: AiProfile,
   random: RandomFn,
+  /**
+   * Combien de fois cette position a DÉJÀ été vue (`RepetitionGuard.observe`). Au-delà de
+   * `REPETITIONS_TOLEREES`, le choix se décale dans le classement — l'IA joue autre chose au lieu de
+   * rejouer l'optimum qui l'a ramenée ici. Omis : aucun filet, comportement d'avant le plan 214.
+   */
+  repetitions = 0,
 ): Action {
   const first = legalActions[0];
   if (!first) {
@@ -45,7 +60,25 @@ export function pickScoredAction(
   const topN = (viable.length > 0 ? viable : scored).slice(0, Math.max(1, profile.topN));
 
   let picked: Action;
-  if (profile.randomWeight <= 0) {
+  if (repetitions > REPETITIONS_TOLEREES) {
+    /*
+     * 🔴 On tourne en rond : on DÉVIE, au lieu de rejouer l'optimum qui nous a ramenés ici.
+     *
+     * Le décalage se prend sur le classement COMPLET et non sur `topN` : à Difficile `topN` vaut 1,
+     * donc dévier à l'intérieur n'aurait aucun effet — or c'est justement Difficile contre Difficile
+     * qui bouclait le plus (7 parties sur 40 après le correctif de cause, mesuré au banc).
+     *
+     * Le décalage CROÎT avec le nombre de répétitions : si le deuxième choix ramène lui aussi à une
+     * position connue, on descend au troisième, et ainsi de suite. C'est ce qui garantit d'en sortir
+     * plutôt que d'osciller entre deux boucles.
+     *
+     * Déterministe de bout en bout : aucun appel à `random`, un simple index dans une liste triée.
+     * Les deux pairs d'une partie en ligne dévient donc au même tour, vers la même action.
+     */
+    const classement = viable.length > 0 ? viable : scored;
+    const decalage = Math.min(repetitions - REPETITIONS_TOLEREES, classement.length - 1);
+    picked = classement[decalage]?.action ?? first;
+  } else if (profile.randomWeight <= 0) {
     picked = topN[0]?.action ?? first;
   } else if (random() < profile.randomWeight) {
     const index = Math.floor(random() * topN.length);

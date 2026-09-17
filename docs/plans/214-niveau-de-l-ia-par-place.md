@@ -318,6 +318,68 @@ telle quelle pour que l'on voie ce qui a été cru au départ, et ce que la mesu
 
 ---
 
+## Ce que la RECHERCHE a dit (agent `best-practices`, 2026-09-17)
+
+Demandée par l'humain avant de coder. Elle a **contredit une des quatre pistes retenues**, ce qui est
+exactement ce à quoi elle servait.
+
+### 🔴 « Anticiper le tour d'après » est écarté
+
+Dans le genre tactique de référence, **aucun jeu n'utilise de minimax ou de MCTS multi-coups pour
+l'IA ennemie en jeu réel**, malgré des budgets AAA :
+
+- **XCOM** (GDC 2013, Firaxis) — *utility scoring* à un coup par unité, séquentiel.
+- **Wargroove** — ils ont **délibérément évité** la simulation hypothétique pour rester réactifs ;
+  leur IA reste un scoring à un coup sur des cartes de menace riches.
+- **Into the Breach** — pas de recherche adverse du tout : elle planifie son tour et le télégraphie.
+- **GameAIPro 3, ch. 28** (*Xenonauts 2*) — le mur est l'explosion combinatoire (jusqu'à 12¹⁶
+  combinaisons par tour), pas le coût CPU. Leurs concessions pour rendre MCTS praticable (modèle de
+  simulation abstrait, unités réduites à force + position) sacrifient l'exactitude.
+
+Le consensus : mettre l'effort dans une **meilleure évaluation statique à un coup**, pas dans la
+profondeur. C'est déjà l'arbitrage du **plan 165**, que la recherche confirme rétroactivement.
+
+Ce qui reste défendable, et qui n'est PAS du minimax : un lookahead **très restreint** — cloner
+l'état, appliquer l'action candidate, appeler le scorer pour prédire la réplique du **seul** ennemi
+le plus menaçant. C'est la généralisation du patron A3/A4 qu'on a déjà pour le ring-out. ⚠️ La
+recherche le signale comme une **extrapolation, non documentée ailleurs** — à valider par mesure
+avant d'investir. **Décision en attente de l'humain.**
+
+### 🔴 Le vrai levier de difficulté : la richesse des considérations, pas les poids
+
+`docs/ai-system.md` liste **~19 volets de scoring** (ring-out A3/A4, sacrifice, lock-in, priorité,
+manip de talent, phazing, copie de move…) qui tournent **à l'identique pour les trois profils**. Seuls
+quatre poids et le duo `randomWeight`/`topN` varient. **C'est l'explication de la mesure** : la partie
+du pipeline qui fait la différence tactique est la même pour Facile et Difficile.
+
+Le patron établi (XCOM, *A Better ADVENT*) est d'**activer des volets par palier** plutôt que de
+pondérer : Facile ne prépare jamais un ring-out, Difficile le fait exprès. C'est une différence de
+**comportement observable**, pas de probabilité — largement plus perceptible.
+
+Wargroove, cité tel quel : *« having smarter AI doesn't necessarily make a game better »*.
+
+Contre-point utile : Into the Breach **révèle tout** et n'est pas perçue comme facile, mais comme
+juste. Donc **cacher de l'information au joueur n'est pas le bon levier** ici ; cacher des
+*capacités* à l'IA, si.
+
+### Les trois autres pistes, confirmées
+
+| Piste | Ce que dit la recherche |
+|---|---|
+| **Préserver** | Le patron dominant est une **carte de menace statique**, pas de la simulation (Wargroove « Threat Assessment », XCOM `MoveWeightProfiles`). Fire Emblem est moqué pour ne jamais évaluer son propre danger — notre trou exact. On a déjà la primitive : `bestEnemyDamageAgainst` (`threat-detection.ts`), utilisée seulement pour le recul (A4). La généraliser à **chaque destination candidate**, pondérée par une courbe non linéaire du ratio de PV. |
+| **Concentrer le feu** | Bonne nouvelle : l'état **séquentiel et mutable** le produit déjà en partie — une cible blessée par un allié a moins de PV quand l'unité suivante calcule. Le manque est que `killPotential` est un quasi-tout-ou-rien : le crédit d'une cible presque morte est noyé. Généraliser `isHealthyTarget` en **bonus explicite « cible blessée »** dans `scoreDamagingMove`. |
+| **Statu quo** | Deux précédents : les **échecs** (triple répétition + 50 coups, règle purement mécanique découplée du scoring) et **Pokemon Showdown** (*Endless Battle Clause*, réponse rodée à **notre pathologie exacte** — stalling par soin/buff répété). Philosophie commune : un filet **formel**, séparé de l'intelligence de l'IA. |
+
+Sources principales : [Wargroove — The AI of War](https://wargroove.com/the-ai-of-war/) ·
+[GDC 2013 — AI Postmortems](https://www.gdcvault.com/play/1018058/AI-Postmortems-Assassin-s-Creedm) ·
+[GameAIPro3 ch.28](http://www.gameaipro.com/GameAIPro3/GameAIPro3_Chapter28_Pitfalls_and_Solutions_When_Using_Monte_Carlo_Tree_Search_for_Strategy_and_Tactical_Games.pdf) ·
+[Chess Programming — Repetitions](https://chessprogramming.org/Repetitions) ·
+[Showdown — Endless Battle Clause](https://pokemonshowdown.com/news/5780) ·
+[Fire Emblem AI Analysis](https://jchuong.github.io/fire-emblem-ai-analysis) ·
+[Advance Wars: Deep Difficulty Design](https://critical-gaming.squarespace.com/blog/2009/5/14/advance-wars-deep-difficulty-design.html)
+
+---
+
 ## Lot E — Les IA ne tournent plus en rond
 
 **But** : supprimer la cause, puis poser un filet. L'humain a demandé les deux.
@@ -338,17 +400,24 @@ tout.
 Conception **à arrêter après le retour de la recherche** (agent `best-practices`, lancé le
 2026-09-17). Les quatre pistes retenues par l'humain :
 
-1. **Préserver ses Pokemon** — rien ne pénalise aujourd'hui l'exposition d'un Pokemon blessé. Un poids
-   de risque, propre à Difficile. C'est ce que l'humain attend en premier : « le difficile est censé
-   planifier / optimiser / préserver ».
-2. **Anticiper le tour d'après** — le lookahead existe mais il est identique aux trois niveaux. Donner
-   à Difficile une profondeur supérieure. ⚠️ Contrainte dure : ça tourne dans un navigateur pendant le
-   tour du joueur, et le **déterminisme est obligatoire** (le multijoueur P2P rejoue l'IA à
-   l'identique chez chaque pair depuis une graine partagée).
-3. **Concentrer le feu** — achever une cible affaiblie plutôt que répartir les dégâts. Un Pokemon K.O.
-   ne riposte plus : c'est le levier qui transforme un 6-3 en 6-0.
-4. **Revoir les poids** — y compris baisser `killPotential` pour les niveaux inférieurs, pour créer
-   l'écart par le bas autant que par le haut.
+**Conception arrêtée après la recherche**, qui a réordonné les priorités :
+
+1. 🔴 **Des volets activés par palier** — LE levier, d'après la recherche, et celui qui explique la
+   mesure. `AiProfile` gagne des **capacités** à côté de ses poids. Facile n'accède pas au
+   positionnement ring-out préparatoire (A3/A4), ni au bonus « cible blessée », ni à la pénalité
+   d'exposition ; Difficile a tout. Différence de **comportement**, pas de probabilité.
+2. **Préserver ses Pokemon** — généraliser `bestEnemyDamageAgainst` du seul cas de recul à **chaque
+   destination candidate**, pondéré par une courbe non linéaire du ratio de PV. Capacité réservée aux
+   paliers hauts. C'est ce que l'humain attend en premier : « le difficile est censé planifier /
+   optimiser / préserver ».
+3. **Concentrer le feu** — bonus « cible blessée » dans `scoreDamagingMove`, proportionnel à l'inverse
+   du ratio de PV restants. Amplifie l'effet de mutation séquentielle déjà présent.
+4. **Revoir les poids** — en dernier, et seulement si la mesure montre qu'il reste un écart à créer.
+   La recherche dit que les poids sont le levier le plus faible.
+
+⏸️ **Écarté par la recherche : le lookahead multi-coups.** Voir la section recherche. Un lookahead
+**restreint** (une action, une réplique du seul ennemi le plus menaçant) reste possible, mais la
+recherche le donne comme non documenté ailleurs. **Décision en attente de l'humain.**
 
 **Critère de réussite, mesuré** : `pnpm ai:bench 200` doit montrer une marge qui **croît avec le
 niveau**, là où elle est plate aujourd'hui (3,2 / 3,3 / 3,5 indifféremment). Chiffre cible à fixer

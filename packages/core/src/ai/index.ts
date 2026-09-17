@@ -8,4 +8,5 @@ export {
   resolveAiDifficulty,
 } from "./ai-profiles";
 export { pickRandomAction } from "./random-ai";
+export { createRepetitionGuard, type RepetitionGuard } from "./repetition-guard";
 export { pickScoredAction } from "./scored-ai";
