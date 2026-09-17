@@ -48,21 +48,27 @@ function registryWith(...moves: MoveDefinition[]): Map<string, MoveDefinition> {
   return registry;
 }
 
-function scoreSelfBuff(move: MoveDefinition, casterStage: number): number {
+function scoreSelfBuff(
+  move: MoveDefinition,
+  casterStage: number,
+  enemyHp?: number,
+  enemyDistance = 4,
+): number {
   const caster = MockPokemon.fresh(MockPokemon.base, {
     id: "caster",
     playerId: PlayerId.Player1,
     position: { x: 0, y: 0 },
-    moveIds: [move.id],
+    moveIds: [move.id, MockMove.physical.id],
     statStages: { ...ZERO_STAT_STAGES, [StatName.Defense]: casterStage },
   });
   const enemy = MockPokemon.fresh(MockPokemon.base, {
     id: "enemy",
     playerId: PlayerId.Player2,
-    position: { x: 4, y: 4 },
+    position: { x: 0, y: enemyDistance },
+    ...(enemyHp === undefined ? {} : { currentHp: enemyHp }),
   });
   const { engine, state } = buildMoveTestEngine([caster, enemy], { activePokemonId: caster.id });
-  const registry = registryWith(move);
+  const registry = registryWith(move, MockMove.physical);
 
   return scoreAction(
     {
@@ -134,5 +140,19 @@ describe("enemy-debuff scoring saturates toward the floor", () => {
 
   it("keeps a one-stage drop at full price until the last reachable stage", () => {
     expect(scoreEnemyDebuff(-5)).toBe(scoreEnemyDebuff(0));
+  });
+});
+
+describe("self-buff is refused whenever a knockout is on the table", () => {
+  it("scores normally against a healthy enemy in range", () => {
+    expect(scoreSelfBuff(IRON_DEFENSE, 0, undefined, 1)).toBeGreaterThan(0);
+  });
+
+  it("is refused outright when a damaging move would secure the knockout", () => {
+    expect(scoreSelfBuff(IRON_DEFENSE, 0, 1, 1)).toBeLessThan(0);
+  });
+
+  it("still scores when the dying enemy is out of reach", () => {
+    expect(scoreSelfBuff(IRON_DEFENSE, 0, 1, 5)).toBeGreaterThan(0);
   });
 });

@@ -136,6 +136,20 @@ function applyCtWeight(score: number, securesKo: boolean, move: MoveDefinition):
 const FOCUS_FIRE_SHARE = 0.4;
 
 /**
+ * Multiplicateur d'un setup quand une attaque porte déjà : on renonce à frapper pour se préparer.
+ *
+ * 0,4 — assez bas pour qu'une attaque même médiocre passe devant, assez haut pour qu'un setup
+ * vraiment décisif (Danse-Lames sur un balayeur) reste jouable.
+ */
+const SETUP_WITH_OPENING = 0.4;
+
+/**
+ * Multiplicateur d'un setup quand aucune attaque ne porte : le tour serait perdu de toute façon, donc
+ * autant s'armer. C'est le cas où la préparation est gratuite.
+ */
+const SETUP_FREE_TURN = 3;
+
+/**
  * Portée en cases au-delà de laquelle un ennemi n'est plus compté comme une menace pour la case visée.
  *
  * 6 : la portée maximale d'une capacité du roster plus un déplacement ordinaire. Au-delà, l'ennemi ne
@@ -369,7 +383,7 @@ function scoreUseMove(
   }
 
   if (isSelfTargeting && !hasDamageFloor) {
-    return scoreSelfMove(currentPokemon, enemies, move, moveRegistry, weights, state);
+    return scoreSelfMove(currentPokemon, enemies, move, moveRegistry, engine, weights, state);
   }
 
   if (move.targetsAlly === true || move.targetsAllyOrSelf === true) {
@@ -1343,6 +1357,7 @@ function scoreSelfMove(
   enemies: PokemonInstance[],
   move: MoveDefinition,
   moveRegistry: Map<string, MoveDefinition>,
+  engine: BattleEngine,
   weights: AiProfile["scoringWeights"],
   state?: BattleState,
 ): number {
@@ -1701,11 +1716,110 @@ function scoreSelfMove(
     return -1;
   }
 
-  const nearestEnemyDist = closestEnemyManhattanDistance(currentPokemon.position, enemies);
-  const base = nearestEnemyDist > 2 ? weights.statChanges * 3 : weights.statChanges;
+  /*
+   * 🔴 GARDE, et non un poids : on ne se renforce JAMAIS quand on peut mettre K.O. maintenant.
+   *
+   * Retour de l'humain après avoir joué contre Difficile (2026-09-17) : « il cherche encore à se setup
+   * alors qu'il avait des ouvertures ». La cause est structurelle, pas numérique — `statChanges` et
+   * `killPotential` vivent dans la MÊME somme, donc tout réglage qui rend le buff correct « en
+   * moyenne » peut, sur un cas précis, dépasser une attaque qui aurait dû être imbattable.
+   *
+   * Baisser `statChanges` (ce qu'on avait fait) est un colmatage : il tient aujourd'hui et se
+   * recassera au prochain ajustement de poids, sans que rien ne le signale avant le prochain banc.
+   * Une garde, elle, survit à tous les réglages futurs parce qu'elle n'est plus une question
+   * d'équilibrage.
+   *
+   * Le patron vient de `SimpleHeuristicsPlayer` (poke-env, la bibliothèque de référence des IA
+   * Pokemon) : le buff n'y est pas mis en concurrence avec les attaques dans un score commun, il est
+   * **conditionné** en amont — PV pleins ET matchup favorable, sinon on ne l'envisage même pas.
+   */
+  if (canSecureKoNow(currentPokemon, enemies, moveRegistry, engine)) {
+    return -1;
+  }
+
+  /*
+   * 🔴 COÛT D'OPPORTUNITÉ : se préparer coûte un tour, et ce tour vaut ce qu'on aurait pu en faire.
+   *
+   * Le scorer note chaque action ISOLÉMENT — c'est son principe, et c'est aussi son angle mort. Un
+   * buff valait donc autant qu'une ouverture soit disponible ou non. Retour de l'humain après avoir
+   * joué contre Difficile (2026-09-17) : « il cherche encore à se setup alors qu'il avait des
+   * ouvertures ».
+   *
+   * L'ancien critère — « aucun ennemi à moins de 2 cases » — mesurait la mauvaise chose : un Pokemon
+   * porteur d'une capacité de portée 4 posté à 3 cases touchait le bonus de préparation ALORS QU'IL
+   * POUVAIT FRAPPER. On demande maintenant ce qui compte vraiment : ai-je une attaque qui porte, tout
+   * de suite ?
+   */
+  const base = hasOpeningToAttack(currentPokemon, enemies, moveRegistry)
+    ? weights.statChanges * SETUP_WITH_OPENING
+    : weights.statChanges * SETUP_FREE_TURN;
   // Le score suit le gain RÉEL : un move à +2 vaut moitié prix à +5, un move à +1 vaut plein tarif
   // jusqu'à +5 puis plus rien. Voir `selfBuffHeadroom`.
   return base * headroom;
+}
+
+/**
+ * Peut-on mettre un ennemi K.O. dès ce tour, depuis là où on est ?
+ *
+ * `estimate.min` et non `max` : on ne renonce à se renforcer que pour un K.O. GARANTI, jamais pour un
+ * coup qui pourrait passer. Le même seuil que `scoreDamagingMove` emploie pour créditer un K.O., donc
+ * la garde et le score parlent de la même chose.
+ */
+function canSecureKoNow(
+  caster: PokemonInstance,
+  enemies: readonly PokemonInstance[],
+  moveRegistry: Map<string, MoveDefinition>,
+  engine: BattleEngine,
+): boolean {
+  for (const moveId of effectiveMoveIds(caster)) {
+    const candidate = moveRegistry.get(moveId);
+    if (candidate === undefined || getEffectivePowerFloor(candidate) <= 0) {
+      continue;
+    }
+    if (candidate.cannotKo === true) {
+      continue;
+    }
+    const reach = getMoveMaxReach(candidate.targeting);
+    for (const enemy of enemies) {
+      if (manhattanDistance(caster.position, enemy.position) > reach) {
+        continue;
+      }
+      if (survivesLethalHit(enemy)) {
+        continue;
+      }
+      const estimate = engine.estimateDamage(caster.id, moveId, enemy.id);
+      if (estimate && estimate.min >= enemy.currentHp) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * Y a-t-il, MAINTENANT, une attaque qui atteint un ennemi depuis là où on est ?
+ *
+ * Approximation assumée : on compare la portée maximale du move à la distance de Manhattan, sans
+ * vérifier la ligne de vue ni la forme exacte du patron. Une approximation généreuse est le bon sens
+ * ici — elle fait renoncer à un setup dans quelques cas où l'attaque n'aurait pas porté, ce qui coûte
+ * un tour ; l'inverse fait passer à côté d'une ouverture, ce que l'humain a vu en jouant.
+ */
+function hasOpeningToAttack(
+  caster: PokemonInstance,
+  enemies: readonly PokemonInstance[],
+  moveRegistry: Map<string, MoveDefinition>,
+): boolean {
+  const nearest = closestEnemyManhattanDistance(caster.position, enemies as PokemonInstance[]);
+  if (!Number.isFinite(nearest)) {
+    return false;
+  }
+  return effectiveMoveIds(caster).some((moveId) => {
+    const candidate = moveRegistry.get(moveId);
+    if (candidate === undefined || getEffectivePowerFloor(candidate) <= 0) {
+      return false;
+    }
+    return getMoveMaxReach(candidate.targeting) >= nearest;
+  });
 }
 
 /**
