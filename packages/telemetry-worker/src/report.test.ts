@@ -16,6 +16,8 @@ import {
   MAP_NAMES,
   MODE_LABELS,
   ONLINE_MODE,
+  type Report,
+  renderHtml,
 } from "./report";
 import { createEventRow as rowOf } from "./testing/mock-telemetry";
 
@@ -84,6 +86,20 @@ describe("buildReport", () => {
     );
 
     expect(report.uniqueVisitors).toBe(2);
+  });
+
+  it("rend les visiteurs par jour en moyenne, jamais le total des journées-visiteur", () => {
+    const report = buildReport(
+      [
+        rowOf({ id: 1, visitor: "abc", payload: { first: true } }),
+        rowOf({ id: 2, visitor: "def", payload: { first: true } }),
+        rowOf({ id: 3, visitor: "ghi", payload: { first: true } }),
+      ],
+      30,
+    );
+
+    expect(report.uniqueVisitors).toBe(3);
+    expect(report.visitorsPerDay).toBeCloseTo(0.1);
   });
 
   it("regroupe les navigateurs sans leur version", () => {
@@ -802,5 +818,67 @@ describe("parité des libellés d'action", () => {
     );
 
     expect(missing).toEqual([]);
+  });
+});
+
+describe("barre de chiffres", () => {
+  const reportOf = (overrides: Partial<Report>): Report => ({
+    ...buildReport([], overrides.days ?? 30),
+    ...overrides,
+  });
+
+  it("🔴 refuse d'afficher un taux d'abandon négatif", () => {
+    // Possible dès qu'une partie en ligne a ses départs hors fenêtre et ses fins dedans.
+    const html = renderHtml(reportOf({ abandonRate: -0.12 }), new Date("2026-09-17T12:00:00Z"));
+
+    expect(html).toContain("<b>\u2014</b><span>Abandon</span>");
+  });
+
+  it("rend les visiteurs par jour, jamais le total des journées-visiteur", () => {
+    const html = renderHtml(
+      reportOf({ uniqueVisitors: 41, visitorsPerDay: 41 / 30 }),
+      new Date("2026-09-17T12:00:00Z"),
+    );
+
+    expect(html).toContain("<b>1.4</b><span>Visiteurs / jour</span>");
+    expect(html).not.toContain("<b>41</b><span>Visiteurs / jour</span>");
+  });
+
+  it("attache ses précisions à un bouton, jamais à la seule infobulle native", () => {
+    const html = renderHtml(reportOf({}), new Date("2026-09-17T12:00:00Z"));
+
+    // `title` ne s'atteint ni au doigt ni au clavier, et le relevé se lit au téléphone : il ne
+    // reste qu'en repli sur le bouton, pour les navigateurs sans `:has()`.
+    expect(html).not.toContain("title=");
+    expect(html).toContain('class="q"');
+    expect(html).toContain(":has(#bouton-precision-1:focus) #precision-1 { display: block; }");
+  });
+
+  it("🔴 pend ses bulles à la barre entière, jamais à une tuile", () => {
+    // Ancrées sur la tuile, elles sortaient du cadre à droite et ouvraient une barre de
+    // défilement horizontale (mesuré : 48 px de débordement à 578 px de large).
+    const html = renderHtml(reportOf({}), new Date("2026-09-17T12:00:00Z"));
+    const start = html.indexOf('<div class="rail">');
+    const end = html.indexOf('<section class="charts">');
+
+    // Sans ces deux gardes, un `indexOf` à -1 découperait une tranche silencieusement fausse et
+    // le test passerait en ne vérifiant plus rien.
+    expect(start).toBeGreaterThan(-1);
+    expect(end).toBeGreaterThan(start);
+
+    const rail = html.slice(start, end);
+
+    expect(rail).toContain('<p class="hint" id="precision-1"');
+    expect(rail.indexOf('<p class="hint"')).toBeGreaterThan(
+      rail.lastIndexOf("<span>Durée moyenne</span>"),
+    );
+  });
+
+  it("ne met en garde sur les parties comptées double que si la fenêtre remonte avant le battleId partagé", () => {
+    const avant = renderHtml(reportOf({ days: 30 }), new Date("2026-09-17T12:00:00Z"));
+    const apres = renderHtml(reportOf({ days: 7 }), new Date("2026-10-20T12:00:00Z"));
+
+    expect(avant).toContain("comptées double");
+    expect(apres).not.toContain("comptées double");
   });
 });

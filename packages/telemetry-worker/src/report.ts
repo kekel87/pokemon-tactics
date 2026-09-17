@@ -244,7 +244,10 @@ export interface Report {
   days: number;
   rows: number;
   visits: number;
+  /** Somme des uniques journaliers sur la période : le sel tourne chaque jour, donc jamais dédupliqué d'un jour à l'autre. */
   uniqueVisitors: number;
+  /** `uniqueVisitors / days` — la seule lecture honnête du précédent, et celle qu'affiche la barre. */
+  visitorsPerDay: number | null;
   visitsByPlatform: Tally;
   countries: Tally;
   browsers: Tally;
@@ -400,12 +403,20 @@ const FUNNEL_STAGES: readonly string[] = ["main-menu", "battle-mode", "team-sele
  */
 export const ONLINE_MODE = "online";
 
+/**
+ * Date à partir de laquelle une partie en ligne porte un `battleId` commun aux deux pairs (plan
+ * 204). Avant elle, les deux déclarations restent comptées double et la page doit le dire — mais
+ * seulement tant qu'une fenêtre la contient encore, sinon la mise en garde survit au problème.
+ */
+const SHARED_BATTLE_ID_SINCE = Date.UTC(2026, 8, 10);
+
 export function buildReport(rows: EventRow[], days: number): Report {
   const report: Report = {
     days,
     rows: rows.length,
     visits: 0,
     uniqueVisitors: 0,
+    visitorsPerDay: null,
     visitsByPlatform: new Map(),
     countries: new Map(),
     browsers: new Map(),
@@ -719,6 +730,14 @@ export function buildReport(rows: EventRow[], days: number): Report {
   }
 
   report.uniqueVisitors = visitors.size;
+  /*
+   * 🔴 Le total brut ne se montre JAMAIS tel quel. Le sel du haché tourne chaque jour
+   * (`visitor.ts`), donc `visitors.size` compte des couples (visiteur, jour) et non des personnes :
+   * affiché sous « Visiteurs / jour », il se lisait comme « 41 visiteurs chaque jour » alors qu'il
+   * valait 41 journées-visiteur sur 30 jours (relevé par l'humain le 2026-09-17). La moyenne, elle,
+   * dit exactement ce que le libellé promet.
+   */
+  report.visitorsPerDay = days > 0 ? visitors.size / days : null;
   // Axe CONTINU, seaux vides compris : un trou dans la fréquentation est une information, et une
   // série qui saute les périodes creuses déforme la lecture du rythme.
   //
@@ -1165,15 +1184,104 @@ function renderFunnel(report: Report): string {
 }
 
 export function renderHtml(report: Report, generatedAt: Date): string {
-  const abandon = report.abandonRate === null ? "—" : `${(report.abandonRate * 100).toFixed(0)} %`;
+  /*
+   * 🔴 Un taux NÉGATIF est possible, et ce n'est pas théorique : une partie en ligne dont les
+   * `battle_started` tombent avant la borne et les fins dedans fait passer `battlesEnded` au-dessus
+   * de `battlesStarted` (limite documentée plus haut, non réparable sans changer le payload). La
+   * valeur brute reste dans le rapport pour le diagnostic ; c'est l'AFFICHAGE qui refuse, parce
+   * qu'« abandon : -12 % » ne veut rien dire pour qui lit la page.
+   */
+  const abandon =
+    report.abandonRate === null || report.abandonRate < 0
+      ? "—"
+      : `${(report.abandonRate * 100).toFixed(0)} %`;
   const turns = report.averageTurns === null ? "—" : report.averageTurns.toFixed(1);
+  const visitorsPerDay = report.visitorsPerDay === null ? "—" : report.visitorsPerDay.toFixed(1);
   const duration =
     report.averageDurationMs === null ? "—" : `${(report.averageDurationMs / 60_000).toFixed(1)}`;
+
+  /*
+   * Les précisions ne vivent plus en pied de page (elles en ont été retirées le 2026-09-17, à la
+   * demande de l'humain) : chacune pend désormais à la tuile qu'elle explique. Un attribut `title`
+   * ne suffisait pas — l'infobulle native ne s'atteint ni au doigt ni au clavier, et ce relevé se
+   * consulte au téléphone. D'où un VRAI bouton : le survol, le focus clavier et le tap l'ouvrent,
+   * sans une ligne de script.
+   */
+  const hints: { id: string; text: string }[] = [];
+  // `valueHtml` et non `value` : la tuile « Durée moyenne » passe son unité en balisage, donc ce
+  // paramètre-là sort tel quel. Tous ses appelants sont des nombres mis en forme ici même.
+  const tile = (valueHtml: string, caption: string, hint?: string): string => {
+    const head = `<b>${valueHtml}</b><span>${escapeHtml(caption)}</span>`;
+    if (!hint) {
+      return `<div>${head}</div>`;
+    }
+    const id = `precision-${hints.length + 1}`;
+    hints.push({ id, text: hint });
+    /*
+     * 🔴 La bulle N'EST PAS dans la tuile, et ce n'est pas un détail de style. Posée dans la tuile,
+     * elle s'ancrait sur elle : sur les tuiles de droite elle sortait du cadre et ouvrait une barre
+     * de défilement horizontale — mesuré à 578 px de large, 48 px de débordement. Enfant direct de
+     * la barre et tendue d'un bord à l'autre, elle ne peut plus déborder à aucune taille.
+     *
+     * Pas de `title` en plus : là où `:has()` fonctionne — partout depuis fin 2023 — l'infobulle
+     * native se serait ajoutée à la bulle une seconde plus tard, avec exactement le même texte.
+     * `aria-describedby` porte déjà la précision aux lecteurs d'écran.
+     */
+    return `<div>${head}<button type="button" id="bouton-${id}" class="q" aria-describedby="${id}" aria-label="Précision sur ${escapeHtml(caption)}">?</button></div>`;
+  };
+
+  /*
+   * La mise en garde du plan 204 ne s'affiche QUE si la fenêtre demandée remonte avant l'arrivée du
+   * `battleId` partagé. Sans ce test, elle survivrait au problème : sur 7 ou 30 jours, elle est
+   * déjà fausse aujourd'hui, et une page qui met en garde contre un défaut disparu apprend à ne
+   * plus lire ses propres notes.
+   */
+  const windowStart = generatedAt.getTime() - report.days * 86_400_000;
+  const startedHint =
+    windowStart < SHARED_BATTLE_ID_SINCE
+      ? "Une partie en ligne compte pour une, bien que ses deux joueurs déclarent chacun la leur. Celles d'avant le 10/09/2026 n'ont pas d'identifiant commun et restent comptées double."
+      : "Une partie en ligne compte pour une, bien que ses deux joueurs déclarent chacun la leur.";
 
   const block = (title: string, body: string): string =>
     `<section class="block"><h3>${escapeHtml(title)}</h3>${body}</section>`;
 
+  const rail = `<div class="rail">
+    ${tile(String(report.visits), "Visites")}
+    ${tile(
+      visitorsPerDay,
+      "Visiteurs / jour",
+      `Moyenne sur la période : ${report.uniqueVisitors} journée(s)-visiteur sur ${report.days} jours. Un visiteur ne se reconnaît pas d'un jour à l'autre, les journées ne s'additionnent donc pas.`,
+    )}
+    ${tile(String(report.battlesStarted), "Parties lancées", startedHint)}
+    ${tile(String(report.battlesEnded), "Parties finies")}
+    ${tile(
+      abandon,
+      "Abandon",
+      "Parties lancées dont la fin n'est jamais parvenue — onglet fermé, jeu quitté en cours. Un forfait, lui, annonce sa fin : il compte parmi les parties finies, et c'est la table « Fins de partie » qui dit combien ne sont pas allées à leur terme.",
+    )}
+    ${tile(turns, "Tours moyens")}
+    ${tile(`${duration}<em> min</em>`, "Durée moyenne")}
+  ${hints
+    .map((hint) => `<p class="hint" id="${hint.id}" role="note">${escapeHtml(hint.text)}</p>`)
+    .join("")}
+  </div>`;
+
+  /*
+   * Une règle par bulle, engendrée ici : le lien entre un bouton et sa bulle ne peut plus passer par
+   * un sélecteur de frère adjacent, puisqu'ils ne sont plus voisins dans l'arbre. `:has()` le
+   * rétablit, et `:focus` — pas `:focus-visible` — pour que le tap au doigt ouvre la bulle lui aussi.
+   * ⚠️ Mesuré sur Chromium (tap réel, le bouton reçoit le focus). WebKit a longtemps refusé le focus
+   * aux `<button>` au clic : sur iOS, la bulle pourrait ne pas s'ouvrir. Non vérifié faute d'appareil.
+   */
+  const hintStyles = hints
+    .map(
+      (hint) =>
+        `.rail:has(#bouton-${hint.id}:hover) #${hint.id}, .rail:has(#bouton-${hint.id}:focus) #${hint.id} { display: block; }`,
+    )
+    .join("\n  ");
+
   return `<title>Pokemon Tactics · Télémétrie</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -1243,12 +1351,20 @@ export function renderHtml(report: Report, generatedAt: Date): string {
   .ranges a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
   .ranges b { color: var(--panel); background: var(--accent); font-weight: 500; }
 
-  .rail { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); background: var(--panel); border: 1px solid var(--line); border-block-start: none; }
-  .rail div { padding: 1rem 1.1rem; border-inline-start: 1px solid var(--line-soft); }
+  .rail { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); background: var(--panel); border: 1px solid var(--line); border-block-start: none; position: relative; }
+  .rail div { padding: 1rem 1.1rem; border-inline-start: 1px solid var(--line-soft); position: relative; }
   .rail div:first-child { border-inline-start: none; }
   .rail b { display: block; font-family: var(--data); font-size: 1.75rem; font-weight: 500; line-height: 1.05; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
   .rail span { display: block; font-size: .7rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-block-start: .35rem; }
   .rail em { font-style: normal; color: var(--muted); font-size: 1rem; font-family: var(--data); }
+
+  /* Le repère de précision : discret tant qu'on ne le cherche pas, atteignable dès qu'on le cherche. */
+  .q { position: absolute; inset-block-start: .5rem; inset-inline-end: .5rem; inline-size: 1.35rem; block-size: 1.35rem; padding: 0; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: none; color: var(--muted); font: 500 .72rem/1 var(--data); cursor: pointer; }
+  .q:hover, .q:focus-visible { color: var(--ink); border-color: var(--accent); }
+  /* Au doigt, la cible fait 40,8 px (1,35rem + 2 × 0,6rem) sans que le repère grossisse à l'œil. */
+  @media (pointer: coarse) { .q::after { content: ""; position: absolute; inset: -.6rem; } }
+  .hint { display: none; position: absolute; z-index: 5; inset-block-start: 100%; inset-inline: 0; margin: 0; padding: .6rem .75rem; background: var(--ground); border: 1px solid var(--line); color: var(--muted); font-size: .78rem; line-height: 1.5; box-shadow: 0 .5rem 1.5rem rgb(0 0 0 / .28); }
+  ${hintStyles}
 
   /* --- graphiques --- */
   /* Deux colonnes EXPLICITES : auto-fit en créait trois sur écran large, ce qui comprimait
@@ -1307,9 +1423,6 @@ export function renderHtml(report: Report, generatedAt: Date): string {
   .v { font-family: var(--data); font-weight: 500; font-size: .85rem; font-variant-numeric: tabular-nums; color: var(--muted); min-inline-size: 2.2rem; text-align: end; }
   .empty { color: var(--muted); font-size: .85rem; margin: 0; font-style: italic; }
 
-  footer { margin-block-start: 2.75rem; padding-block-start: 1rem; border-block-start: 1px solid var(--line); color: var(--muted); font-size: .8rem; display: grid; gap: .5rem; max-inline-size: 62ch; }
-  footer code { font-family: var(--data); font-size: .95em; }
-  footer strong { color: var(--ink); font-weight: 600; }
 </style>
 <div class="sheet">
   <header>
@@ -1317,15 +1430,7 @@ export function renderHtml(report: Report, generatedAt: Date): string {
     <p class="stamp">${report.days} derniers jours · relevé le ${escapeHtml(STAMP_FORMAT.format(generatedAt))}</p>
   </header>
 
-  <div class="rail">
-    <div><b>${report.visits}</b><span>Visites</span></div>
-    <div><b>${report.uniqueVisitors}</b><span>Visiteurs / jour</span></div>
-    <div><b>${report.battlesStarted}</b><span>Parties lancées</span></div>
-    <div><b>${report.battlesEnded}</b><span>Parties finies</span></div>
-    <div><b>${abandon}</b><span>Abandon</span></div>
-    <div><b>${turns}</b><span>Tours moyens</span></div>
-    <div><b>${duration}<em> min</em></b><span>Durée moyenne</span></div>
-  </div>
+  ${rail}
 
   <section class="charts">
     <div class="chartbox">
@@ -1390,18 +1495,6 @@ export function renderHtml(report: Report, generatedAt: Date): string {
       )}
     </div>
   </div>
-
-  <footer>
-    <p><strong>${report.rows}</strong> ligne(s) lues sur la période. Les visiteurs uniques se
-    comptent <strong>par jour</strong> et ne s'additionnent pas d'une journée à l'autre.</p>
-    <p><strong>Abandon</strong> mesure les parties lancées dont la fin n'est jamais parvenue —
-    onglet fermé, jeu quitté en cours. Un <strong>forfait</strong> annonce sa fin : il compte donc
-    parmi les parties finies, pas ici. C'est la table <strong>Fins de partie</strong> qui dit
-    combien de parties ne sont pas allées à leur terme.</p>
-    <p>Une partie <strong>en ligne</strong> compte pour <strong>une</strong>, bien que ses deux
-    joueurs déclarent chacun la leur. Les parties d'avant le 10/09/2026 font exception : elles n'ont
-    pas d'identifiant commun et restent comptées double.</p>
-  </footer>
 </div>
 <script>
   // Couche de survol : un graphique HTML est interactif par nature. Une seule délégation par cadre,

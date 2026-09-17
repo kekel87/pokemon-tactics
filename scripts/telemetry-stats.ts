@@ -130,7 +130,12 @@ function section(
 function renderTerminal(report: Report): string {
   const parts: string[] = [];
   parts.push(`\n═══ Télémétrie — ${report.days} derniers jours ═══\n`);
-  parts.push(`  ${report.visits} visite(s) · ${report.uniqueVisitors} visiteur(s) unique(s)`);
+  // Le total brut de visiteurs compte des couples (visiteur, jour) — voir `visitorsPerDay`. Seule
+  // la moyenne se présente, comme dans la page HTML.
+  const visitorsPerDay = report.visitorsPerDay === null ? "—" : report.visitorsPerDay.toFixed(1);
+  parts.push(
+    `  ${report.visits} visite(s) · ${visitorsPerDay} visiteur(s) par jour en moyenne (${report.uniqueVisitors} journée(s)-visiteur)`,
+  );
   parts.push(`  ${report.rows} ligne(s) brutes (jamais à présenter comme une fréquentation)\n`);
 
   parts.push(
