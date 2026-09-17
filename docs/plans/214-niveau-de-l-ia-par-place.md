@@ -480,6 +480,62 @@ recherche le donne comme non documenté ailleurs. **Décision en attente de l'hu
 niveau**, là où elle est plate aujourd'hui (3,2 / 3,3 / 3,5 indifféremment). Chiffre cible à fixer
 avec l'humain quand la recherche aura dit ce qui est atteignable.
 
+### Lot F — ce qui a été livré, et ce qui a échoué
+
+**Livré** : les capacités par palier (`AiCapabilities`), les poids de Difficile recalibrés sur mesure,
+la garde « pas de setup quand un K.O. est disponible », le coût d'opportunité du setup, la cécité aux
+types de Facile, et l'étalon MaxPuissance au banc.
+
+**L'échelle existe désormais**, là où les trois niveaux étaient à 50 % les uns contre les autres :
+
+| Miroir | Taux du plus fort |
+|---|---|
+| Facile / Moyenne | 80 % |
+| Facile / Difficile | 82 % |
+| Moyenne / Difficile | 59 % |
+
+🔴 **Ce qui a échoué, et c'est le résultat le plus important du lot : la MARGE ne bouge pas.** Le
+gagnant finit avec 3,2 à 3,5 Pokemon debout sur 6, dans **toutes** les configurations essayées —
+~2000 parties, sept jeux de poids, huit combinaisons de capacités. Le 6-0 attendu par l'humain
+n'apparaît jamais entre deux paliers.
+
+### Deux erreurs de méthode, consignées pour ne pas les refaire
+
+1. **Un seuil « mesuré » calibré sur la mauvaise unité.** Le compteur de stagnation comptait **par
+   camp** ; la distribution qui a servi à fixer son seuil avait été relevée en **actions globales**.
+   Résultat : branche morte, jamais déclenchée. Trouvée en revue de code — alors que le banc disait
+   déjà « 4 avant, 4 après », lu à tort comme « neutre » au lieu de « inexistant ».
+2. **Deux étalons successifs qui ne mesuraient rien.**
+   - *Contre une IA aléatoire* : toute heuristique cohérente l'écrase 60-0, parce que le hasard perd
+     son tour à taper dans le vide. Même un Facile à 95 % de coups sous-optimaux le bat 59-1.
+   - *Contre MaxPuissance* (le patron `MaxBasePowerPlayer` de poke-env) : meilleur, mais **il ne
+     navigue pas**. Dans Showdown il n'y a pas de placement ; ici le placement fait la moitié du jeu.
+     Même un Facile massacré le bat **56-0**. Un étalon crédible devrait **avancer sensément** vers
+     l'ennemi tout en frappant naïvement. Non implémenté.
+
+### 🔴 La piste la plus prometteuse, ouverte par l'humain le 2026-09-17
+
+L'IA lit `heldItemId` et le talent adverse à **17 endroits** du scorer. Elle connaît donc l'objet
+tenu, le talent et les PV exacts des Pokemon du joueur — **des informations que le joueur ne voit
+pas** (plan 176 : `???` jusqu'à révélation à l'usage, décision #762 « information cachée »).
+
+**L'asymétrie existe déjà, et elle est à l'envers.** D'où le levier, symétrique de `typeBlindChance` :
+une capacité `seesHiddenInfo`, vraie pour Difficile seul. Facile et Moyenne joueraient alors avec
+**la même information que l'humain**.
+
+Ce qui rend cette piste supérieure à tout ce qui a été essayé aujourd'hui :
+- elle est **déjà modélisée** dans les données (`revealedItem`, `revealedAbility`, `revealedTopMove`) ;
+- elle produit des erreurs **systémiques et explicables**, pas de l'imprécision ;
+- elle s'énonce au joueur en une phrase : « Difficile connaît ton équipe, Moyenne la découvre comme
+  toi » ;
+- c'est le patron de **Freeciv**, où l'IA facile ne voit pas à travers le brouillard et l'IA difficile
+  triche ouvertement.
+
+⚠️ Périmètre à cadrer : les 17 lectures du scorer sont traitables ; `estimateDamage` tient compte du
+talent et de l'objet **côté moteur**, et l'en priver demanderait une variante « au su de l'IA ». À
+arbitrer — une première tranche limitée aux heuristiques du scorer est probablement suffisante pour
+mesurer si le levier mord.
+
 ## Outil — `scripts/ai-bench.ts`
 
 Écrit pour ce plan, gardé comme instrument permanent. `pnpm ai:bench [N]` (défaut 40). **Hors de la
