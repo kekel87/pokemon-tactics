@@ -359,7 +359,36 @@ sentinelle de tirage, et l'écran de combat **jette** au lieu de replier quand l
 C'est la même leçon que la carte résolue du plan 208 : **ce que les pairs doivent partager se publie,
 il ne se devine pas.**
 
-🔴 **Leçon des deux derniers incréments** : ni l'un ni l'autre ne touchait la forme d'un message. Le
+**Plan 202, Lot final** (2026-09-15) : le duel divergent ne prononce plus de forfait bilatéral, il
+ARRÊTE la partie sans vainqueur — **et `NETWORK_VERSION` est passée à 11**. Aucun message ne change de
+forme ; ce sont les RÈGLES DE LECTURE de `forfeit` qui changent, à l'émission comme à la réception. Un
+pair resté en 10 reçoit `forfeit(place, diverged)`, l'applique, et **se déclare vainqueur**, pendant
+que le neuf lit « Partie interrompue » : un seul des deux gagne, l'autre ne comprend pas.
+
+**Plan 214, Lot A** (2026-09-16) : le niveau de l'IA se choisit place par place, donc `NetworkSeatState`
+et `StartSeat` portent un champ `aiDifficulty` optionnel de plus — **et `NETWORK_VERSION` est passée à
+12**. Premier incrément de la série à toucher vraiment la forme d'un message. Piège rencontré au
+passage, consigné parce qu'il ne se devine pas : la sérialisation **BinaryPack** de PeerJS transforme
+un `undefined` en `null` sur le fil, et le garde de type rejetait alors le `room_state` en entier. On
+ne pose donc pas la clé plutôt que de l'écrire à `undefined`.
+
+**Plan 214, Lots B à F** (2026-09-17) : **`NETWORK_VERSION` est passée à 13**, et cette fois AUCUN
+message ne change — c'est **l'IA qui décide autrement**. Elle est rejouée à l'identique chez chaque
+pair depuis une graine partagée, donc son verdict fait partie du contrat au même titre qu'un champ de
+trame. Trois causes cumulées : le palier Facile n'estime plus les dégâts (`ai/naive-damage.ts`), Facile
+et Moyenne ne lisent plus l'objet ni le talent qu'un joueur ne verrait pas (`ai/hidden-info.ts`), et
+surtout le tirage `typeBlindChance` a DISPARU — le flux du générateur pseudo-aléatoire est donc décalé
+d'un cran à chaque décision, ce qui suffit à lui seul à faire jouer deux coups différents.
+
+⚠️ Un seul incrément couvre les cinq commits d'IA de ce plan, dont quatre l'avaient oublié. La version
+dit « ces deux builds ne jouent pas la même partie », pas « voici combien de fois on l'a touchée ».
+
+⚠️ Ces trois entrées ont été écrites **après coup**, le 2026-09-17 : le journal s'était arrêté à 10
+alors que la constante était passée à 12. L'explication vivait dans `protocol.ts` et nulle part
+ailleurs. Tenir la constante à jour ne suffit pas — ce journal est le seul endroit qui dise POURQUOI un
+vieux build ne peut plus jouer avec un neuf.
+
+🔴 **Leçon des incréments 9 et 10** : ni l'un ni l'autre ne touchait la forme d'un message. Le
 réflexe « je n'ai pas changé le protocole, donc pas d'incrément » est faux dès qu'une règle de lecture
 ou un champ de l'état HACHÉ change. La question à se poser n'est pas « ai-je touché `protocol.ts` ? »
 mais « un pair d'hier et un pair d'aujourd'hui calculeraient-ils la même chose ? ».
