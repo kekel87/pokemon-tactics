@@ -294,23 +294,31 @@ tour vers la même action.
 
 ### Limites connues, mesurées au plan 214
 
-- 🔴 **La marge ne suit pas le niveau.** Le gagnant finit avec 3,2 à 3,5 Pokemon debout sur 6, quel que
-  soit l'affrontement, sur ~2000 parties et sept jeux de poids. Le 6-0 n'apparaît que face à un
-  adversaire *très* faible. Un écrasement ne viendra pas de meilleurs choix.
+- **La marge ne sépare pas les paliers ENTRE EUX** : le gagnant finit avec 3,2 à 3,5 Pokemon debout
+  quel que soit l'affrontement Facile/Moyenne/Difficile. Les trois sont collés au plafond du scorer.
+  ✅ **Mais elle s'ordonne face à un adversaire faible** — contre l'étalon MaxPuissance : 3,3 (Facile)
+  → 3,8 (Moyenne) → **4,3 (Difficile)** en miroir. L'écart existe donc bien ; il ne se voit
+  simplement pas en opposant deux IA également fortes.
 - 🔴 **Le baseline « contre une IA aléatoire » ne mesure rien.** Toute heuristique cohérente écrase le
   hasard pur 60-0, parce que le hasard perd son tour à taper dans le vide. Le bon étalon est un agent
   **cohérent mais borné** (type `MaxBasePowerPlayer` de poke-env : la capacité la plus puissante, sans
   lire les types). **Non implémenté à ce jour.**
-- 🔴 **Rendre Facile assez faible reste un PROBLÈME OUVERT**, et deux tentatives ont échoué.
-  1. *Par le bruit* : même à 95 % de coups sous-optimaux dans un top 12, Facile bat le hasard 59-1.
-  2. *Par la perception* : `typeBlindChance` aide (Facile passe de 14-45 à 12-48 contre Moyenne en
-     miroir) mais ne suffit pas. Même un Facile massacré — 90 % d'erreurs, aveugle aux types,
-     `killPotential` à 1, `positioning` à 0 — bat encore l'étalon MaxPuissance **56-0**.
-- 🔴 **L'étalon MaxPuissance n'est pas non plus un bon analogue d'enfant DANS NOTRE JEU.** Il frappe
-  au plus fort mais **ne navigue pas** : il prend la première action de déplacement venue. Dans
-  Showdown, d'où vient le patron, il n'y a pas de placement ; ici le placement fait la moitié du jeu,
-  donc il se sabote sur un axe qu'un enfant maîtriserait. Un meilleur étalon devrait **avancer
-  sensément vers l'ennemi** tout en frappant naïvement. Non implémenté.
+- ✅ **L'étalon MaxPuissance a demandé TROIS itérations**, et les deux premières ne mesuraient rien.
+  C'est la leçon de méthode du plan 214 : un étalon qui se saborde sur un axe que l'adversaire
+  maîtrise ne mesure pas la force, il mesure son propre défaut.
+  1. *Version 1* — la capacité la plus puissante, premier déplacement venu. **Ne navigue pas.** Dans
+     Showdown, d'où vient le patron `MaxBasePowerPlayer`, il n'y a aucun placement ; ici le placement
+     fait la moitié du jeu.
+  2. *Version 2* — avance vers l'ennemi le plus proche. Mieux, mais **ne visait toujours pas** : il
+     prenait la capacité la plus puissante sans regarder QUI elle touche, donc tirait dans le vide ou
+     sur ses alliés. Notre IA la plus dégradée le battait encore **58-2**.
+  3. *Version 3, actuelle* — frappe le plus fort **sur un ennemi**, avance vers le plus proche sinon.
+     Il gagne enfin : **15 parties sur 60** contre Facile en équipes différentes. Ce qu'il ne fait
+     toujours pas, et c'est voulu : lire les types, choisir entre plusieurs ennemis, évaluer le
+     terrain, se protéger.
+- **Rendre Facile assez faible** : `typeBlindChance` aide (12-48 contre Moyenne en miroir, contre
+  14-45 avant), et Facile perd désormais 15 sur 60 face à MaxPuissance. Reste à valider par l'humain
+  en jouant — aucune mesure IA contre IA ne dira si « un enfant le bat ».
 
 ## Portée max par targeting (`getMoveMaxReach`, `ai/move-reach.ts`)
 

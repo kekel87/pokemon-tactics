@@ -238,7 +238,7 @@ function playOneBattle(
     const profile = isSideOne ? profileOne : profileTwo;
     const action =
       profile === MAX_POWER
-        ? pickMaxPowerAction(legalActions, moveRegistry)
+        ? pickMaxPowerAction(legalActions, moveRegistry, gameState, activeId)
         : pickScoredAction(
             legalActions,
             gameState,
@@ -313,15 +313,42 @@ const MAX_POWER = "max-power" as const;
 function pickMaxPowerAction(
   legalActions: Action[],
   moveRegistry: Map<string, MoveDefinition>,
+  state: BattleState,
+  selfId: string,
 ): Action {
   const first = legalActions[0];
   if (first === undefined) {
     throw new Error("Aucune action légale");
   }
+
+  /*
+   * 🔴 Il VISE un ennemi. Deuxième correction de cet étalon, et la plus décisive.
+   *
+   * La version précédente prenait la capacité la plus puissante sans regarder QUI elle touchait : elle
+   * tirait donc dans le vide ou sur ses propres alliés. C'est sous le niveau d'un enfant, qui vise au
+   * moins l'adversaire — et ça faussait toute la mesure, notre IA la plus dégradée le battant encore
+   * 58-2.
+   *
+   * Ce qu'il ne fait toujours pas, et c'est voulu : lire l'efficacité de type, choisir entre plusieurs
+   * ennemis, évaluer le terrain, se protéger. Il frappe le plus fort sur quelqu'un d'en face.
+   */
+  const self = state.pokemon.get(selfId);
+  const enemyAt = (position: { x: number; y: number }): boolean =>
+    [...state.pokemon.values()].some(
+      (mon) =>
+        mon.currentHp > 0 &&
+        mon.playerId !== self?.playerId &&
+        mon.position.x === position.x &&
+        mon.position.y === position.y,
+    );
+
   let best: Action | undefined;
   let bestPower = 0;
   for (const action of legalActions) {
     if (action.kind !== ActionKind.UseMove) {
+      continue;
+    }
+    if (!enemyAt(action.targetPosition)) {
       continue;
     }
     const power = moveRegistry.get(action.moveId)?.power ?? 0;
@@ -333,9 +360,53 @@ function pickMaxPowerAction(
   if (best !== undefined) {
     return best;
   }
-  // Rien à frapper : on avance, et à défaut on passe. Jamais d'action absurde — c'est ce qui le
-  // sépare du hasard.
-  return legalActions.find((action) => action.kind === ActionKind.Move) ?? first;
+
+  /*
+   * 🔴 Rien à portée : il AVANCE vers l'ennemi le plus proche, il ne se contente pas de bouger.
+   *
+   * C'est la correction qui rend cet étalon crédible. La première version prenait la première action
+   * de déplacement venue — et se sabordait donc sur le placement, qui fait la moitié d'un jeu
+   * tactique. Résultat : même un Facile massacré le battait 56-0, ce qui ne mesurait plus rien.
+   *
+   * Le patron d'origine (`MaxBasePowerPlayer`, poke-env) vient de Showdown, où il n'y a AUCUN
+   * placement — il n'avait donc pas ce problème. Un enfant, lui, sait avancer vers l'adversaire même
+   * s'il ne calcule ni les types ni le terrain.
+   */
+  const moves = legalActions.filter((action) => action.kind === ActionKind.Move);
+  if (moves.length === 0) {
+    return first;
+  }
+  const enemies = [...state.pokemon.values()].filter(
+    (mon) => mon.currentHp > 0 && mon.playerId !== state.pokemon.get(selfId)?.playerId,
+  );
+  if (enemies.length === 0) {
+    return moves[0] ?? first;
+  }
+  const distanceToNearestEnemy = (position: { x: number; y: number }): number =>
+    Math.min(
+      ...enemies.map(
+        (enemy) =>
+          Math.abs(enemy.position.x - position.x) + Math.abs(enemy.position.y - position.y),
+      ),
+    );
+
+  let closest = moves[0] as Extract<Action, { kind: typeof ActionKind.Move }>;
+  let closestDistance = Number.POSITIVE_INFINITY;
+  for (const action of moves) {
+    if (action.kind !== ActionKind.Move) {
+      continue;
+    }
+    const destination = action.path.at(-1);
+    if (destination === undefined) {
+      continue;
+    }
+    const distance = distanceToNearestEnemy(destination);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closest = action;
+    }
+  }
+  return closest;
 }
 
 const MATCHUPS: [string, AiProfile | typeof MAX_POWER, string, AiProfile | typeof MAX_POWER][] = [
