@@ -42,6 +42,7 @@ describe("garde-fou local", () => {
         ai: 1,
         autoPlacement: true,
         damagePreview: true,
+        aiDifficulties: "",
         teams: [],
       });
 
@@ -342,6 +343,7 @@ describe("événements de partie", () => {
       ai: 1,
       autoPlacement: false,
       damagePreview: false,
+      aiDifficulties: "",
       teams: [{ side: 0, source: telemetry.TeamSource.HumanBuilt, members: [] }],
     });
 

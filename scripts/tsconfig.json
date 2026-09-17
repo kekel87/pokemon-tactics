@@ -18,6 +18,7 @@
     "verbatimModuleSyntax": true
   },
   "files": [
+    "ai-bench.ts",
     "intro-beats.ts",
     "trailer-icons.ts",
     "build-intro-video.ts",

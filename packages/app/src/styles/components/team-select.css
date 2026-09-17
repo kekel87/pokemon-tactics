@@ -168,14 +168,18 @@
      centre tombait à droite de celui du bouton d'équipe, donc ← depuis « Humain » trouvait l'équipe
      comme « voisin de gauche ». Aligné sur la même bande horizontale, ← → restent dans le segment et
      ↑ ↓ traversent la carte. */
-  /* Colonnes AUTOMATIQUES et non `repeat(2, …)` : la rangée porte deux boutons (Humain / IA) en
-     local, mais **un seul état** en ligne quand la place est tenue (« 👑 Joueur hôte », « 🎮 Vous »,
-     « 🌐 Joueur distant »). Figée à deux colonnes, la puce seule n'en occupait qu'une — elle
-     s'arrêtait au milieu de la carte, et on cherchait le bouton manquant (recette 2026-09-04). */
   .ts-player-cell-controller {
     display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(0, 1fr);
+    /* QUATRE choix depuis le plan 214 (Humain + les trois niveaux d'IA) là où il y en avait deux, et
+       les libellés sont en `white-space: nowrap`. Sur une carte étroite — 568×320, et les cartes se
+       resserrent déjà à 12 camps — quatre colonnes égales faisaient déborder le texte hors du liseré.
+
+       `auto-fit` plutôt que des colonnes automatiques : la rangée se replie d'elle-même en 2×2 quand
+       la carte se resserre, et les pistes vides étant effondrées, le cas d'UN seul élément garde la
+       propriété acquise à la recette du 2026-09-04 — la puce d'état d'une place tenue (« 👑 Joueur
+       hôte », « 🌐 Joueur distant ») occupe toujours TOUTE la largeur, au lieu de s'arrêter au
+       milieu et de faire chercher un bouton manquant. */
+    grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
     width: 100%;
 
     /* `width: 100%` compte la LARGEUR DE CONTENU par défaut, et `.ts-segments` ajoute par-dessus son

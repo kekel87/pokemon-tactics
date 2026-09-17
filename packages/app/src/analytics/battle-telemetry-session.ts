@@ -13,7 +13,7 @@ import type { BattleEvent, TeamSelection } from "@pokemon-tactic/core";
 import { MAP_ID_UNKNOWN, mapIdFromUrl } from "../maps/map-identity";
 import { modeOf } from "./battle-mode";
 import { type BattleTelemetryCollector, createBattleTelemetryCollector } from "./battle-telemetry";
-import { countControllers, trackedSourcesOf } from "./team-telemetry";
+import { aiDifficultiesOf, countControllers, trackedSourcesOf } from "./team-telemetry";
 import {
   AbandonSource,
   createBattleId,
@@ -67,6 +67,7 @@ export function beginBattleTelemetry(input: {
     ai,
     autoPlacement: input.autoPlacement,
     damagePreview: input.damagePreview,
+    aiDifficulties: aiDifficultiesOf(input.teams),
     teams: input.telemetryTeams,
   });
 

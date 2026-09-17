@@ -1,9 +1,11 @@
-import { PlayerController, type TeamSet } from "@pokemon-tactic/core";
+import { AiDifficulty, PlayerController, type TeamSet } from "@pokemon-tactic/core";
 import { createTeamPortraitsElement } from "./TeamPortraits";
 
 export interface PlayerCellLabels {
   controllerHuman: string;
-  controllerAi: string;
+  controllerAiEasy: string;
+  controllerAiMedium: string;
+  controllerAiHard: string;
   chooseTeam: string;
   /** Réseau seulement — les états de ligne propres au salon (plan 199). */
   controllerRemote?: string;
@@ -23,6 +25,8 @@ export interface PlayerCellProps {
   shortLabel: string;
   colorHex: string;
   controller: PlayerController;
+  /** Le niveau de l'IA de ce camp — sert à surligner le bon des trois boutons IA (plan 214). */
+  aiDifficulty: AiDifficulty;
   assignedTeam: TeamSet | null;
   ephemeral: boolean;
   labels: PlayerCellLabels;
@@ -74,7 +78,7 @@ export interface PlayerCellProps {
 export interface PlayerCellCallbacks {
   /** Ouvre le sélecteur d'équipe de ce camp (décision #832). */
   onChooseTeam: () => void;
-  onSetController: (controller: PlayerController) => void;
+  onSetController: (controller: PlayerController, aiDifficulty?: AiDifficulty) => void;
 }
 
 /**
@@ -111,6 +115,27 @@ const CONTROLLER_GLYPH = {
   [PlayerController.Human]: "🎮",
   [PlayerController.Ai]: "🤖",
 } as const satisfies Record<PlayerController, string>;
+
+/**
+ * Les choix du segment (plan 214). Un humain, puis **un par niveau d'IA** : le niveau se règle là où
+ * on donne la place à l'ordinateur, et nulle part ailleurs.
+ *
+ * ⚠️ `data-controller` continue de porter la valeur de `PlayerController` — c'est le contrat de test
+ * existant, et il reste vrai. Ce qui distingue les trois boutons IA entre eux est `data-ai-difficulty`.
+ * Le POM e2e vise l'IA de défaut quand il ne précise rien.
+ */
+const CONTROLLER_CHOICES = [
+  { controller: PlayerController.Human },
+  { controller: PlayerController.Ai, difficulty: AiDifficulty.Easy },
+  { controller: PlayerController.Ai, difficulty: AiDifficulty.Medium },
+  { controller: PlayerController.Ai, difficulty: AiDifficulty.Hard },
+] as const satisfies readonly { controller: PlayerController; difficulty?: AiDifficulty }[];
+
+const AI_DIFFICULTY_LABEL = {
+  [AiDifficulty.Easy]: (labels: PlayerCellLabels) => labels.controllerAiEasy,
+  [AiDifficulty.Medium]: (labels: PlayerCellLabels) => labels.controllerAiMedium,
+  [AiDifficulty.Hard]: (labels: PlayerCellLabels) => labels.controllerAiHard,
+} as const satisfies Record<AiDifficulty, (labels: PlayerCellLabels) => string>;
 
 /**
  * Une carte de camp : son numéro, le segment Humain / IA, et l'équipe assignée.
@@ -227,6 +252,36 @@ function buildControllerSegment(
    * par un invité**, qui n'a pas à en décider. Deux boutons grisés y posaient la même question que
    * partout ailleurs — « pourquoi je ne peux pas ? » — alors que l'en-tête dit déjà « Place libre ».
    */
+  /*
+   * 🔴 Une place IA que le spectateur ne règle PAS montre quand même son niveau (plan 214).
+   *
+   * Sans cette puce, l'invité d'un salon en ligne ne voyait **rien du tout** sur une place tenue par
+   * l'ordinateur : le niveau traversait bien le réseau dans `NetworkSeatState`, mais personne ne
+   * l'affichait chez lui — on découvrait la difficulté de l'adversaire en entrant en combat, ce qui
+   * est précisément ce que le Lot C voulait éviter. Trouvé en préparant la recette, avant de faire
+   * tester l'humain.
+   *
+   * Une puce et non un segment grisé : il n'y a rien à choisir ici, et quatre boutons éteints
+   * poseraient la question « pourquoi je ne peux pas ? » — même raisonnement que les rôles verrouillés
+   * ci-dessous (recette 2026-09-04).
+   */
+  if (
+    props.lockedRole === undefined &&
+    props.controllerEditable === false &&
+    props.controller === PlayerController.Ai &&
+    props.seatStatus !== "open"
+  ) {
+    const chip = document.createElement("span");
+    chip.className = "ts-segment ts-player-cell-role";
+    chip.dataset.testid = "player-ai-level";
+    chip.dataset.slotIndex = String(props.slotIndex);
+    chip.dataset.aiDifficulty = props.aiDifficulty;
+    chip.dataset.state = "active";
+    chip.textContent = `${CONTROLLER_GLYPH[PlayerController.Ai]} ${AI_DIFFICULTY_LABEL[props.aiDifficulty](props.labels)}`;
+    segment.appendChild(chip);
+    return segment;
+  }
+
   if (props.lockedRole === undefined && props.controllerEditable === false) {
     return segment;
   }
@@ -243,7 +298,9 @@ function buildControllerSegment(
     return segment;
   }
 
-  for (const controller of [PlayerController.Human, PlayerController.Ai]) {
+  for (const choice of CONTROLLER_CHOICES) {
+    const { controller } = choice;
+    const difficulty = "difficulty" in choice ? choice.difficulty : undefined;
     const button = document.createElement("button");
     button.type = "button";
     button.className = "ts-segment";
@@ -252,6 +309,9 @@ function buildControllerSegment(
     button.dataset.testid = "player-controller";
     // `PlayerController.Human === "human"` : l'enum porte déjà la valeur du contrat de test.
     button.dataset.controller = controller;
+    if (difficulty !== undefined) {
+      button.dataset.aiDifficulty = difficulty;
+    }
     button.dataset.slotIndex = String(props.slotIndex);
     /*
      * Une place **libre** ne surligne ni l'un ni l'autre : rien n'y est décidé, et l'en-tête dit
@@ -259,7 +319,11 @@ function buildControllerSegment(
      * repli — contredisait l'en-tête à côté (recette 2026-09-04). Le repli en IA reste vrai au
      * lancement ; il n'a simplement pas à s'annoncer comme un choix de l'hôte.
      */
-    if (props.controller === controller && props.seatStatus !== "open") {
+    const chosen =
+      controller === PlayerController.Ai
+        ? props.controller === controller && props.aiDifficulty === difficulty
+        : props.controller === controller;
+    if (chosen && props.seatStatus !== "open") {
       button.dataset.state = "active";
     }
     // L'invité ne bascule aucune ligne : seul l'hôte le fait. `disabled` plutôt qu'un bouton absent,
@@ -269,11 +333,11 @@ function buildControllerSegment(
       button.disabled = true;
     }
     button.textContent = `${CONTROLLER_GLYPH[controller]} ${
-      controller === PlayerController.Human
+      difficulty === undefined
         ? props.labels.controllerHuman
-        : props.labels.controllerAi
+        : AI_DIFFICULTY_LABEL[difficulty](props.labels)
     }`;
-    button.addEventListener("click", () => callbacks.onSetController(controller));
+    button.addEventListener("click", () => callbacks.onSetController(controller, difficulty));
     segment.appendChild(button);
   }
 

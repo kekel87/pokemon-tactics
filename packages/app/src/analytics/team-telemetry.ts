@@ -13,8 +13,10 @@
  */
 
 import {
+  type AiDifficulty,
   type BattleState,
   PlayerController,
+  resolveAiDifficulty,
   type TeamSet,
   type TeamSlot,
 } from "@pokemon-tactic/core";
@@ -130,6 +132,25 @@ export function countControllers(teams: readonly { controller: PlayerController 
 } {
   const humans = teams.filter((team) => team.controller === PlayerController.Human).length;
   return { humans, ai: teams.length - humans };
+}
+
+/**
+ * Les niveaux d'IA d'une partie, triés et dédoublonnés en une chaîne (plan 214). Vide quand aucune
+ * place n'est tenue par l'ordinateur.
+ *
+ * `resolveAiDifficulty` et non le champ brut : une place IA d'une partie d'avant le plan 214 n'a pas
+ * de niveau, et la compter comme « rien » ferait croire que ces parties n'avaient pas d'IA — alors
+ * qu'elles en avaient une, au défaut. Le relevé doit dire ce qui a été JOUÉ.
+ */
+export function aiDifficultiesOf(
+  teams: readonly { controller: PlayerController; aiDifficulty?: AiDifficulty }[],
+): string {
+  const levels = new Set(
+    teams
+      .filter((team) => team.controller === PlayerController.Ai)
+      .map((team) => resolveAiDifficulty(team.aiDifficulty)),
+  );
+  return [...levels].sort().join(",");
 }
 
 /**

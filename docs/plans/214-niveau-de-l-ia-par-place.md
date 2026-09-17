@@ -254,6 +254,114 @@ utile même si C attend. C est le seul lot qui touche au réseau.
 | Moyenne et Difficile perçus comme identiques | Connu et accepté (section « Ce que valent réellement les trois niveaux »). Pas de libellé promettant trois écarts égaux |
 | Une sauvegarde d'avant ce plan n'a pas le champ | `aiDifficulty` optionnel → défaut Moyenne, la partie reprend |
 
+## 🔴 Ce que la MESURE a révélé, et qui change la portée du plan (2026-09-17)
+
+Le plan disait « on ne touche pas au scoring, on branche un choix sur trois profils qui existent ».
+**Cette prémisse était fausse, et c'est l'humain qui l'a fait tomber** en jouant une partie Facile
+contre Difficile, même équipe des deux côtés : elle ne s'est jamais terminée.
+
+Un banc de mesure a été écrit pour trancher — `scripts/ai-bench.ts`, `pnpm ai:bench [N]`. **480
+parties, IA contre IA**, six affrontements, deux conditions.
+
+### Résultat 1 — les trois niveaux sont cosmétiques
+
+La colonne qui compte n'est pas le taux de victoire, c'est la **marge** : combien de Pokemon le
+gagnant a encore debout sur 6.
+
+| Affrontement (équipes différentes) | Victoires | Survivants du gagnant | 6-0 |
+|---|---|---|---|
+| Facile / Moyenne | 16-24 | **3,2**/6 | 3 / 40 |
+| Facile / Difficile | 16-22 | **3,3**/6 | 3 / 38 |
+| Moyenne / Difficile | 20-20 | **3,4**/6 | 2 / 40 |
+| Facile / Facile | 20-20 | **3,2**/6 | 3 / 40 |
+| Difficile / Difficile | 19-19 | **3,5**/6 | 1 / 38 |
+
+**La marge ne dépend pas du niveau.** Difficile qui bat Facile finit à 3,3 survivants ; Facile qui bat
+Facile, à 3,2. Sur ~38 parties l'incertitude est de ±0,3 : ces chiffres sont le même chiffre.
+L'attente de l'humain — « Facile contre Difficile, ça doit être presque tout le temps 6-0 » — est
+démentie : **3 fois sur 38**, et **0 fois sur 34** en miroir.
+
+Lecture de la cause : `killPotential` vaut **10 pour les trois profils** et écrase tout. Les poids que
+Difficile relève (type 3→5, position 2→3, stats 1→2) ne départagent que des choix déjà serrés. Le seul
+levier réel — `randomWeight` / `topN` — ne change QUE lequel des 2-3 meilleurs candidats on prend, or
+ils se valent presque toujours. D'où : même IA, trois étiquettes.
+
+### Résultat 2 — le statu quo, et il est fréquent
+
+| Miroir (équipes identiques) | Jamais finies |
+|---|---|
+| Facile / Moyenne | 4 / 40 |
+| Facile / Difficile | 6 / 40 |
+| Moyenne / Difficile | 7 / 40 |
+| **Difficile / Difficile** | **8 / 40** |
+
+Contre 0 à 2 sur 40 à équipes différentes. **C'est le miroir qui déclenche**, et c'est exactement la
+partie qu'a jouée l'humain. Mécanisme observé en direct : `Racaillou`, `Def 120 ➜ 480` (+6, le
+plafond), tout le monde à 100 % de PV. Les paliers atteignent **+6 dans les six affrontements**, y
+compris Facile contre Facile — ce n'est donc pas un travers de Difficile, c'est le scorer qui
+surévalue les montées de stats en général.
+
+Le moteur n'a **aucune limite de tours** : le match nul ne couvre que les K.O. simultanés (plan 191).
+Rien n'arrête une partie qui tourne en rond.
+
+### Ce que l'humain a tranché là-dessus
+
+| Question | Réponse |
+|---|---|
+| Limite de tours, ou corriger l'IA ? | **Corriger l'IA** — « on peut pas faire en sorte que les IA ne tournent pas en boucle plutôt ? ». Plus un filet anti-répétition : **les deux**. |
+| Où traiter ? | **Dans le plan 214**, pas dans un plan à part. |
+| Pistes retenues pour Difficile | **Les quatre** : préserver ses Pokemon, anticiper le tour d'après, concentrer le feu, et revoir les poids. |
+| Avant de coder | **Session de recherche web** — bonnes pratiques, papiers, jeux similaires, projets indés et ROM hacks Pokemon. |
+
+⚠️ **La ligne « ce plan ne touche pas au scoring » plus haut est donc CADUQUE.** Elle est conservée
+telle quelle pour que l'on voie ce qui a été cru au départ, et ce que la mesure a corrigé.
+
+---
+
+## Lot E — Les IA ne tournent plus en rond
+
+**But** : supprimer la cause, puis poser un filet. L'humain a demandé les deux.
+
+1. **Ne plus valoriser un buff à vide.** Le scorer crédite une montée de stat même au plafond (+6) ou
+   sans ennemi à portée. La dévaluer dans ces deux cas. C'est la cause directe : paliers à +6 dans
+   les six affrontements.
+2. **Filet anti-répétition.** Si l'état de jeu — positions et PV de tous — est inchangé depuis N
+   tours, forcer un autre choix. Traite le symptôme quelle qu'en soit la cause.
+3. **Critère de réussite, mesuré** : `pnpm ai:bench 200` doit ramener « jamais finies » à **0** en
+   miroir, sans dégrader la durée médiane. Le banc est l'arbitre, pas l'impression.
+
+## Lot F — « Difficile » mérite son nom
+
+**But** : que la marge de victoire sépare enfin les niveaux. Aujourd'hui elle ne les sépare pas du
+tout.
+
+Conception **à arrêter après le retour de la recherche** (agent `best-practices`, lancé le
+2026-09-17). Les quatre pistes retenues par l'humain :
+
+1. **Préserver ses Pokemon** — rien ne pénalise aujourd'hui l'exposition d'un Pokemon blessé. Un poids
+   de risque, propre à Difficile. C'est ce que l'humain attend en premier : « le difficile est censé
+   planifier / optimiser / préserver ».
+2. **Anticiper le tour d'après** — le lookahead existe mais il est identique aux trois niveaux. Donner
+   à Difficile une profondeur supérieure. ⚠️ Contrainte dure : ça tourne dans un navigateur pendant le
+   tour du joueur, et le **déterminisme est obligatoire** (le multijoueur P2P rejoue l'IA à
+   l'identique chez chaque pair depuis une graine partagée).
+3. **Concentrer le feu** — achever une cible affaiblie plutôt que répartir les dégâts. Un Pokemon K.O.
+   ne riposte plus : c'est le levier qui transforme un 6-3 en 6-0.
+4. **Revoir les poids** — y compris baisser `killPotential` pour les niveaux inférieurs, pour créer
+   l'écart par le bas autant que par le haut.
+
+**Critère de réussite, mesuré** : `pnpm ai:bench 200` doit montrer une marge qui **croît avec le
+niveau**, là où elle est plate aujourd'hui (3,2 / 3,3 / 3,5 indifféremment). Chiffre cible à fixer
+avec l'humain quand la recherche aura dit ce qui est atteignable.
+
+## Outil — `scripts/ai-bench.ts`
+
+Écrit pour ce plan, gardé comme instrument permanent. `pnpm ai:bench [N]` (défaut 40). **Hors de la
+suite de tests à dessein** : 480 parties prennent des minutes, le gate doit rester rapide.
+
+Règle de lecture, écrite dans son en-tête : à 40 parties, un écart de moins de **±8 points** de
+victoire ou de **±0,3** survivant est du **bruit**. Ne rien conclure en dessous.
+
 ## Critère de sortie, à ne pas oublier
 
 Ce plan change le comportement livré **à l'aveugle** : on ne sait pas encore pourquoi 77 % des parties

@@ -1,4 +1,6 @@
 import {
+  type AiDifficulty,
+  DEFAULT_AI_DIFFICULTY,
   type MapFormat,
   PlayerController,
   PlayerId,
@@ -21,6 +23,13 @@ import { loadTeam } from "../../team/team-storage";
  */
 export interface SlotState {
   controller: PlayerController;
+  /**
+   * Le niveau de l'IA de ce camp (plan 214). **Toujours renseigné ici**, contrairement au champ
+   * optionnel de `TeamSelection` : l'état local sait toujours ce qu'il montrerait si la place
+   * passait à l'IA, alors que le contrat sérialisé doit rester lisible pour une sauvegarde d'avant
+   * le plan. `buildTeamSelections` est la frontière entre les deux.
+   */
+  aiDifficulty: AiDifficulty;
   assignedTeam: TeamSet | null;
   assignedTeamId: string | null;
   ephemeral: boolean;
@@ -54,6 +63,9 @@ export function buildTeamSelections(slots: readonly SlotState[]): TeamSelection[
       playerId,
       pokemonDefinitionIds: slot.assignedTeam.slots.map((s) => s.pokemonId),
       controller: slot.controller,
+      // Seule une place IA porte un niveau : sur une place humaine le champ n'aurait aucun sens, et
+      // le laisser traîner ferait croire à un réglage qui ne s'applique pas.
+      ...(slot.controller === PlayerController.Ai ? { aiDifficulty: slot.aiDifficulty } : {}),
       slots: [...slot.assignedTeam.slots],
     });
   }
@@ -103,6 +115,7 @@ export function buildInitialSlots(format: MapFormat, humanIndex = 0): SlotState[
     const controller = i === humanIndex ? PlayerController.Human : PlayerController.Ai;
     const slot: SlotState = {
       controller,
+      aiDifficulty: DEFAULT_AI_DIFFICULTY,
       assignedTeam: null,
       assignedTeamId: null,
       ephemeral: false,
@@ -136,11 +149,23 @@ export function buildInitialSlots(format: MapFormat, humanIndex = 0): SlotState[
  * « Humain » sur un camp déjà humain le donnerait à l'IA, et c'est exactement le contresens que le
  * bouton unique produisait.
  */
-export function setSlotController(slot: SlotState, controller: PlayerController): boolean {
+export function setSlotController(
+  slot: SlotState,
+  controller: PlayerController,
+  aiDifficulty?: AiDifficulty,
+): boolean {
+  const nextDifficulty = aiDifficulty ?? slot.aiDifficulty;
+  // Changer le seul NIVEAU d'une place déjà tenue par l'IA est un vrai changement — et il ne doit
+  // surtout pas retirer l'équipe déjà tirée, ce que ferait le chemin complet ci-dessous.
   if (slot.controller === controller) {
-    return false;
+    if (controller !== PlayerController.Ai || slot.aiDifficulty === nextDifficulty) {
+      return false;
+    }
+    slot.aiDifficulty = nextDifficulty;
+    return true;
   }
   slot.controller = controller;
+  slot.aiDifficulty = nextDifficulty;
   if (controller === PlayerController.Ai) {
     slot.assignedTeam = generateRandomTeam({ name: ephemeralTeamName() });
     slot.assignedTeamId = null;

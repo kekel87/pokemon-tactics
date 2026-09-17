@@ -120,6 +120,19 @@ export interface BattleStartedPayload {
    * comme celui qui les voit avant de frapper.
    */
   readonly damagePreview: boolean;
+  /**
+   * Les niveaux d'IA de la partie, triés et dédoublonnés (plan 214) — `"easy,medium"` pour une partie
+   * qui mêle les deux, la chaîne vide quand aucune place n'est tenue par l'ordinateur.
+   *
+   * 🔴 **C'est le champ qui rendra lisible le changement de défaut.** Le plan 214 fait passer le
+   * défaut de Facile à Moyenne alors que 77 % des parties sont abandonnées et qu'on ignore pourquoi.
+   * Les deux hypothèses sont symétriques : si on abandonne par frustration de perdre, resserrer l'IA
+   * aggrave ; si on abandonne d'ennui, ça améliore. Croisé avec `battle_abandoned`, ce champ
+   * tranche. Sans lui, la lecture ne dira rien — et il sera trop tard pour l'ajouter.
+   *
+   * Une chaîne et non un tableau : le relevé est plat, et l'agrégation groupe par valeur.
+   */
+  readonly aiDifficulties: string;
   readonly teams: readonly TelemetryTeam[];
 }
 

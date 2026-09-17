@@ -1,6 +1,7 @@
 import {
   type Action,
   ActionKind,
+  AiDifficulty,
   Direction,
   Nature,
   PlayerController,
@@ -71,7 +72,7 @@ import {
  * — c'est précisément ce que la règle en tête de ce commentaire demande d'éviter, et l'incrément
  * 7 → 8 a déjà été oublié une fois pour une raison de ce genre. Relevé en revue de code.
  */
-export const NETWORK_VERSION = 11;
+export const NETWORK_VERSION = 12;
 
 /**
  * Durée d'un tour en ligne — **déplacée dans `timings.ts`**, réexportée ici (plan 213).
@@ -185,6 +186,15 @@ export interface NetworkSeatState {
    * setup, ce qui garde le salon **jouable même si personne ne vient**.
    */
   occupancy: NetworkSeatOccupancy;
+  /**
+   * Le niveau de l'IA qui tient cette place (plan 214), réglé par l'hôte. Absent sur une place
+   * humaine ou distante.
+   *
+   * 🔴 Il est dans l'état de salon — donc **diffusé en direct** — et pas seulement dans le `start` :
+   * sans ça on découvrirait la difficulté de l'adversaire en entrant en combat, alors que c'est
+   * précisément ce qu'on veut savoir avant de dire « Prêt ».
+   */
+  aiDifficulty?: AiDifficulty;
   /** Vrai quand ce joueur a confirmé sa sélection d'équipe. Une place IA est prête d'office. */
   ready: boolean;
 }
@@ -333,6 +343,15 @@ export interface StartSeat {
   seat: number;
   /** `human` ou `ai` seulement : `remote` est un état de salon, le moteur ne le connaît pas. */
   controller: PlayerController;
+  /**
+   * Le niveau de l'IA de cette place (plan 214), **toujours renseigné sur une place IA** : l'hôte y
+   * applique `DEFAULT_AI_DIFFICULTY` au moment de graver la partie.
+   *
+   * 🔴 C'est ce qui rend la divergence IMPOSSIBLE et pas seulement improbable : les pairs reçoivent
+   * une valeur explicite et n'appliquent jamais de défaut eux-mêmes. Deux pairs qui répliqueraient
+   * chacun leur propre repli monteraient deux IA différentes **sans erreur et sans trace**.
+   */
+  aiDifficulty?: AiDifficulty;
   selection: NetworkTeamSelection;
 }
 
@@ -608,6 +627,10 @@ const isPokemonGender = isMemberOf(PokemonGender);
 const isForfeitReason = isMemberOf(NetworkForfeitReason);
 const isErrorCode = isMemberOf(NetworkErrorCode);
 const isSeatOccupancy = isMemberOf(NetworkSeatOccupancy);
+const isAiDifficulty = isMemberOf(AiDifficulty);
+/** Facultatif des deux côtés du fil : absent sur une place humaine, absent d'un pair d'avant le plan 214. */
+const isOptionalAiDifficulty = (value: unknown): value is AiDifficulty | undefined =>
+  value === undefined || isAiDifficulty(value);
 /** Une place de `start` : `human` ou `ai` seulement — `remote` est un état de salon. */
 const isStartController = isMemberOf(PlayerController);
 
@@ -685,6 +708,7 @@ function isSeatState(value: unknown): value is NetworkSeatState {
     isRecord(value) &&
     isSeat(value.seat) &&
     isSeatOccupancy(value.occupancy) &&
+    isOptionalAiDifficulty(value.aiDifficulty) &&
     typeof value.ready === "boolean"
   );
 }
@@ -704,6 +728,7 @@ function isStartSeat(value: unknown): value is StartSeat {
     isRecord(value) &&
     isSeat(value.seat) &&
     isStartController(value.controller) &&
+    isOptionalAiDifficulty(value.aiDifficulty) &&
     isTeamSelection(value.selection)
   );
 }

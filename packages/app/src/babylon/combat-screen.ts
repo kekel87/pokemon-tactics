@@ -1,15 +1,16 @@
 import {
+  AiDifficulty,
   type BattleEvent,
   BattleEventType,
   type BattleState,
   createPrng,
   Direction,
-  EASY_PROFILE,
-  HARD_PROFILE,
   type MapDefinition,
-  MEDIUM_PROFILE,
+  type PlacementTeam,
   PlayerController,
   PlayerId,
+  profileForDifficulty,
+  resolveAiDifficulty,
 } from "@pokemon-tactic/core";
 import { getMoveName, getPokemonName } from "@pokemon-tactic/data";
 import {
@@ -1171,7 +1172,14 @@ function runBattle(options: {
 }
 
 /**
- * EASY AI (seeded) for the given AI-controlled player ids (placement path).
+ * IA par score (graine déterministe) pour les places tenues par l'ordinateur (chemin placement).
+ *
+ * Le PROFIL vient de chaque place (plan 214) : `aiDifficulty` porté par sa `TeamSelection`. Une place
+ * sans niveau — sauvegarde d'avant le plan 214, place « libre » partie en IA — prend
+ * `DEFAULT_AI_DIFFICULTY` via `resolveAiDifficulty`, et c'est le SEUL repli du chemin.
+ *
+ * Avant le plan 214, cette fonction imposait `EASY_PROFILE` à tout le monde, en dur : `MEDIUM_PROFILE`
+ * et `HARD_PROFILE` existaient depuis le plan 029 et n'étaient atteignables que par le studio sandbox.
  *
  * @param aiRootSeed graine d'IA d'une partie en ligne (plan 199). Présente, chaque place en dérive
  * la sienne dans l'**ordre croissant des places**, ce qui rend l'IA identique sur les deux pairs sans
@@ -1179,11 +1187,11 @@ function runBattle(options: {
  */
 function wireScoredAi(
   battle: BattleSetupResult,
-  aiPlayerIds: readonly PlayerId[],
+  aiTeams: readonly PlacementTeam[],
   allPlayerIds: readonly PlayerId[],
   aiRootSeed: number | undefined,
 ): BattleOrchestrator["onTurnReady"] {
-  if (aiPlayerIds.length === 0) {
+  if (aiTeams.length === 0) {
     return null;
   }
   // Toutes les places sont dérivées, pas seulement celles tenues par l'IA : dériver à la demande
@@ -1198,7 +1206,8 @@ function wireScoredAi(
         );
 
   const aiControllers = new Map<string, AiTeamController>();
-  for (const playerId of aiPlayerIds) {
+  for (const team of aiTeams) {
+    const playerId = team.playerId;
     const seat = allPlayerIds.indexOf(playerId) + 1;
     const seed = seedBySeat?.get(seat);
     /*
@@ -1221,7 +1230,7 @@ function wireScoredAi(
       new AiTeamController(
         battle.engine,
         playerId,
-        EASY_PROFILE,
+        profileForDifficulty(resolveAiDifficulty(team.aiDifficulty)),
         createPrng(seed ?? Date.now()),
         battle.moveDefinitions,
       ),
@@ -1348,9 +1357,7 @@ function runResolvedBattle(options: {
   // Saved before the first action too: a reload right after placement should resume the battle that was
   // just set up, not send the player back through team-select.
   persist();
-  const aiPlayerIds = inputs.placementTeams
-    .filter((team) => team.controller === PlayerController.Ai)
-    .map((team) => team.playerId);
+  const aiTeams = inputs.placementTeams.filter((team) => team.controller === PlayerController.Ai);
   const humanPlayerIds = inputs.placementTeams
     .filter((team) => team.controller === PlayerController.Human)
     .map((team) => team.playerId);
@@ -1399,7 +1406,7 @@ function runResolvedBattle(options: {
     initialLogEvents: options.initialLogEvents,
     onExit: () => navigate("main-menu", undefined),
     wireTurnReady: (built) => {
-      const ai = wireScoredAi(built, aiPlayerIds, allPlayerIds, inputs.setup.seeds?.ai);
+      const ai = wireScoredAi(built, aiTeams, allPlayerIds, inputs.setup.seeds?.ai);
       if (online === null) {
         return ai;
       }
@@ -1599,14 +1606,13 @@ function randomSeed(): number {
   return crypto.getRandomValues(new Uint32Array(1))[0] ?? 0;
 }
 
-const AI_PROFILE_BY_KEY = {
-  easy: EASY_PROFILE,
-  medium: MEDIUM_PROFILE,
-  hard: HARD_PROFILE,
-} as const;
-
+/**
+ * Profil d'une équipe du STUDIO SANDBOX. Le repli sur `"hard"` est propre au studio et reste ici,
+ * **explicite au site d'appel** : c'est un outil de développement avec son propre contrat, pas le
+ * défaut du jeu. Le défaut du jeu est `DEFAULT_AI_DIFFICULTY` (Moyenne), et il vit dans le core.
+ */
 function profileForKey(key: AiProfileKey | undefined) {
-  return AI_PROFILE_BY_KEY[key ?? "hard"];
+  return profileForDifficulty(key ?? AiDifficulty.Hard);
 }
 
 /** Sandbox team index → engine player id (Équipe 1 = Player1, Équipe 2 = Player2). */

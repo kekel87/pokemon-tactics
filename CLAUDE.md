@@ -110,6 +110,23 @@ tu le fais en entier, point » pour interdire les interruptions **par étape**. 
 ne s'opposent pas : **pas d'interruption pendant le dev, menu obligatoire à la fin.** Le menu n'est
 jamais annulé par une consigne d'autonomie.
 
+🔴 **OÙ S'ARRÊTE « IMPLÉMENTER » — la seconde méprise, symétrique de la première
+(2026-09-17, plan 214).** « Aller au bout du dev » a été lu comme « aller jusqu'à ce que tout soit
+vert ». Claude a donc enchaîné, de son propre chef et **avant** de faire tester l'humain : `lint`,
+`typecheck`, `build`, les 5254 tests, puis 125 e2e ciblés. Retour de l'humain : *« encore une fois tu
+es parti dans les tests et les e2e sans me faire tester »*. Ce n'était pas du zèle inoffensif —
+l'ordre d'exécution place `human-testing` **avant** le commit WIP, donc très avant le gate.
+
+| Ce que Claude fait seul, sans s'arrêter | Ce qui déclenche l'arrêt | Ce qui n'arrive **qu'après** le menu |
+|---|---|---|
+| Écrire le code, les tests unitaires, `typecheck`, la passe multi-entrée **mesurée** | **Résumé + menu** | `/ci-gate`, `pnpm build`, e2e (ciblés **ou** complets), lint de finition, commits |
+
+**La règle en une ligne : dès que le code compile et que les tests unitaires passent, Claude
+s'arrête.** Il ne lance de lui-même ni gate, ni build, ni e2e — ce sont des **cases du menu**, pas
+des étapes d'implémentation, et elles viennent après la recette humaine. Lancer le gate en avance
+n'est pas « prendre de l'avance » : ça consomme le tour de l'humain et ça fait passer la chaîne de
+finalisation sur du code qu'il n'a pas encore vu.
+
 **Raccourci** : l'humain peut afficher ce menu à tout moment (même mid-session, hors fin d'impl) via `/menu` ou en envoyant le mot **`menu`** seul. Traiter "menu" nu comme un appel au skill `/menu`.
 
 **Pas optionnel. Pas négociable.** Même si tu penses "le changement est petit". Même si tu as confiance. L'humain coche/décoche.

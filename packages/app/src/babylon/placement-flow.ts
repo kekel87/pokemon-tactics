@@ -182,6 +182,9 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
       (definitionId) => `p${index + 1}-${definitionId}`,
     ),
     controller: selection.controller,
+    // Le niveau suit la place jusqu'au moteur (plan 214). `undefined` sur une place humaine, et sur
+    // une partie d'avant le plan — `resolveAiDifficulty` tranche au bout de la chaîne, pas ici.
+    ...(selection.aiDifficulty === undefined ? {} : { aiDifficulty: selection.aiDifficulty }),
   }));
   const online = options.online;
   const phase = new PlacementPhase(

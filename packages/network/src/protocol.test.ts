@@ -419,3 +419,33 @@ describe("identifiant de partie du lancement", () => {
     expect(isNetworkMessage({ ...VALID_MESSAGES.start, battleId: 42 })).toBe(false);
   });
 });
+
+describe("🔴 aucun champ facultatif n'est écrit à `undefined` (plan 214)", () => {
+  /*
+   * Le transport de PeerJS sérialise en BinaryPack, PAS en JSON : `pack({a: 1, b: undefined})` fait
+   * l'aller-retour en `{a: 1, b: null}`. Un garde qui accepte `undefined` mais refuse `null` rejette
+   * alors le message ENTIER, et le pair distant le jette **en silence** — les messages suivants
+   * passent, donc rien n'a l'air cassé.
+   *
+   * Symptôme réel qui a coûté sa découverte (e2e §11.24) : l'hôte rouvrait à un joueur une place
+   * tenue par l'IA ; sa ligne redevenait « Place libre » chez lui et restait « Prêt · Difficile »
+   * chez l'invité, pour toujours.
+   *
+   * Ces deux tests tiennent la RÈGLE, pas le seul champ : ils tomberaient de la même façon pour
+   * n'importe quel futur champ facultatif composé à `{ champ: undefined }` au lieu de `...{}`.
+   */
+  const seatState = (extra: object) => ({
+    ...(VALID_MESSAGES.room_state as { seats: unknown[] }),
+    seats: [{ seat: 1, occupancy: "ai", ready: true, ...extra }],
+  });
+
+  it("accepte une place IA sans niveau, et une avec un niveau connu", () => {
+    expect(isNetworkMessage(seatState({}))).toBe(true);
+    expect(isNetworkMessage(seatState({ aiDifficulty: "hard" }))).toBe(true);
+  });
+
+  it("refuse `null` — ce qu'un `undefined` sérialisé devient sur le fil", () => {
+    expect(isNetworkMessage(seatState({ aiDifficulty: null }))).toBe(false);
+    expect(isNetworkMessage(seatState({ aiDifficulty: "impossible" }))).toBe(false);
+  });
+});

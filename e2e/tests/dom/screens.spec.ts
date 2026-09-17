@@ -369,3 +369,124 @@ test("§6.4 sélection d'équipe : les flèches atteignent les 2 paramètres, Es
   await expect(teams.damagePreview).not.toBeChecked();
   expect(await focusedTestId()).toBe("team-select-damage-preview");
 });
+
+/*
+ * §6.4 — le NIVEAU de l'IA, choisi place par place (plan 214).
+ *
+ * Le segment Humain / IA passe de deux à quatre boutons : un humain, puis un par niveau. Les trois
+ * boutons IA gardent `data-controller="ai"` — c'est le contrat de test posé au plan 188, et il reste
+ * vrai — et ne se distinguent que par `data-ai-difficulty`. Les tests visent donc les ATTRIBUTS,
+ * jamais les libellés (« Facile », « Moyenne », « Difficile » se traduisent et portent un glyphe).
+ *
+ * 🔴 Ce que ces trois scénarios gardent, et que rien d'autre ne garde : jusqu'à ce plan, la vraie
+ * partie était câblée en dur sur le profil le plus faible (`combat-screen.ts`, `wireScoredAi`).
+ * Les trois profils existaient, étaient testés et documentés, et n'étaient atteignables que par le
+ * studio sandbox. Un choix qui redeviendrait muet ne casserait AUCUN test unitaire : l'état local
+ * changerait, l'écran ne le montrerait pas, et l'IA jouerait autre chose que ce qui est affiché.
+ */
+
+test("§6.4 sélection d'équipe : le segment offre quatre choix, et le camp IA s'ouvre sur Moyenne", async ({
+  page,
+}) => {
+  const menu = new MainMenu(page);
+  const mode = new BattleModeScreen(page);
+  const teams = new TeamSelectScreen(page);
+
+  await menu.goto();
+  await menu.combat.click();
+  await mode.local.click();
+  await expect(teams.title).toBeVisible();
+
+  // (a) Quatre boutons par camp, pas deux. Le compte est asserté avant tout le reste : un segment
+  // vide rendrait toutes les assertions d'absence qui suivent vertes sans rien démontrer.
+  await expect(teams.controllerSegment(0)).toHaveCount(4);
+  await expect(teams.controllerSegment(1)).toHaveCount(4);
+
+  // (b) Le camp 1 est celui du joueur : « Humain » marqué, aucun niveau d'IA marqué.
+  await expect(teams.controllerButton(0, "human")).toHaveAttribute("data-state", "active");
+  expect(await teams.activeAiDifficulty(0)).toBeNull();
+
+  /*
+   * (c) 🔴 Le camp d'en face s'ouvre sur **Moyenne**, et c'est le changement de comportement livré
+   * par ce plan : le défaut était Facile, câblé en dur et injoignable. `DEFAULT_AI_DIFFICULTY` vaut
+   * `medium` dans le core, en un seul endroit — une main distraite qui le changerait se verrait ici.
+   */
+  expect(await teams.activeAiDifficulty(1)).toBe("medium");
+  await expect(teams.controllerButton(1, "human")).not.toHaveAttribute("data-state", "active");
+});
+
+test("§6.4 sélection d'équipe : choisir un niveau d'IA déplace la marque, et une seule à la fois", async ({
+  page,
+}) => {
+  const menu = new MainMenu(page);
+  const mode = new BattleModeScreen(page);
+  const teams = new TeamSelectScreen(page);
+
+  await menu.goto();
+  await menu.combat.click();
+  await mode.local.click();
+  await expect(teams.title).toBeVisible();
+
+  /*
+   * Moyenne → Difficile. Le camp est DÉJÀ tenu par l'IA : c'est le geste que l'ancienne garde
+   * « le contrôleur n'a pas changé » rendait muet, donc celui qui régresserait en silence.
+   */
+  await teams.controllerButton(1, "ai", "hard").click();
+  await expect(teams.controllerButton(1, "ai", "hard")).toHaveAttribute("data-state", "active");
+  // Et la marque a QUITTÉ l'ancien niveau : une marque qui s'ajoute sans partir laisserait deux
+  // boutons allumés, donc un écran qui ne dit plus ce qui est retenu.
+  expect(await teams.activeAiDifficulty(1)).toBe("hard");
+
+  // Difficile → Facile : le parcours se fait dans les deux sens, il n'y a pas de cran privilégié.
+  await teams.controllerButton(1, "ai", "easy").click();
+  expect(await teams.activeAiDifficulty(1)).toBe("easy");
+
+  // Et « Humain » éteint les trois d'un coup : un camp humain n'a pas de niveau.
+  await teams.controllerButton(1, "human").click();
+  await expect(teams.controllerButton(1, "human")).toHaveAttribute("data-state", "active");
+  expect(await teams.activeAiDifficulty(1)).toBeNull();
+});
+
+test("§6.4 sélection d'équipe : changer le seul NIVEAU d'une place IA ne retire pas son équipe", async ({
+  page,
+}) => {
+  /*
+   * 🔴 Le scénario qui régresserait en silence, et il se lit en deux temps.
+   *
+   * Avant le plan, `setSlotController` sortait sur `slot.controller === controller` : presser
+   * « Difficile » sur une place déjà tenue par l'IA ne faisait **rien**. La garde a dû s'ouvrir — et
+   * la sortie naïve est de la supprimer, ce qui fait retomber le geste dans le chemin complet de
+   * bascule : celui-ci **tire une équipe aléatoire**. L'hôte qui affine le niveau d'une place IA
+   * dont il vient de composer l'équipe la perdrait sans un mot.
+   *
+   * Les deux moitiés sont donc assertées ensemble : le niveau change VRAIMENT, et l'équipe reste.
+   * Une équipe SAUVEGARDÉE et nommée, parce que deux tirages portent tous deux « 🎲 Aléatoire » :
+   * une équipe re-tirée serait indiscernable de celle qu'on voulait garder.
+   */
+  await seedSavedTeams(page, DUEL_TEAM_STORAGE);
+
+  const menu = new MainMenu(page);
+  const mode = new BattleModeScreen(page);
+  const teams = new TeamSelectScreen(page);
+
+  await menu.goto();
+  await menu.combat.click();
+  await mode.local.click();
+  await expect(teams.title).toBeVisible();
+
+  // Le camp 2 est tenu par l'IA d'office, et on lui compose une équipe précise.
+  expect(await teams.activeAiDifficulty(1)).toBe("medium");
+  await teams.pickSavedTeam(1, DUEL_ATTACKER_TEAM_ID);
+  await expect(teams.teamButton(1)).toHaveAttribute("data-state", "saved");
+  await expect(teams.teamButton(1)).toContainText("Duel — Alakazam");
+
+  // — Le geste : Moyenne → Difficile, et rien d'autre ————————————————————————————————————————————
+  await teams.controllerButton(1, "ai", "hard").click();
+
+  // (a) Le niveau a bien changé — sans cette moitié, le test passerait au vert sur le défaut muet.
+  expect(await teams.activeAiDifficulty(1)).toBe("hard");
+
+  // (b) Et l'équipe est intacte, nom compris. Un tirage l'aurait repassée en « ephemeral ».
+  await expect(teams.teamButton(1)).toHaveAttribute("data-state", "saved");
+  await expect(teams.teamButton(1)).toContainText("Duel — Alakazam");
+});

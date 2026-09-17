@@ -186,11 +186,67 @@ export class TeamSelectScreen {
    * Visé par `data-controller`, qui porte la valeur de `PlayerController` (« human » / « ai ») : le
    * libellé, lui, commence par un glyphe et se traduit. En ligne, ce segment n'existe que chez l'hôte,
    * et seulement sur les lignes que personne ne tient.
+   *
+   * Depuis le plan 214 le segment porte TROIS boutons « ai », un par niveau, distingués par
+   * `data-ai-difficulty`. Sans niveau demandé, on vise **celui du défaut** : c'est ce que « le bouton
+   * IA » veut dire pour un test qui ne s'intéresse pas à la difficulté, et ça garde le sens des
+   * scénarios écrits avant le plan.
    */
-  controllerButton(slotIndex: number, controller: "human" | "ai"): Locator {
+  controllerButton(
+    slotIndex: number,
+    controller: "human" | "ai",
+    aiDifficulty: "easy" | "medium" | "hard" = "medium",
+  ): Locator {
+    const difficulty = controller === "ai" ? `[data-ai-difficulty="${aiDifficulty}"]` : "";
     return this.page
       .getByTestId("player-controller")
-      .and(this.page.locator(`[data-slot-index="${slotIndex}"][data-controller="${controller}"]`));
+      .and(
+        this.page.locator(
+          `[data-slot-index="${slotIndex}"][data-controller="${controller}"]${difficulty}`,
+        ),
+      );
+  }
+
+  /**
+   * TOUS les boutons du segment Humain / IA d'un camp, dans l'ordre du DOM — quatre depuis le plan
+   * 214 (Humain, puis un par niveau d'IA).
+   *
+   * Sert à compter, et à lire d'un coup lequel des quatre porte `data-state="active"`. Le compte
+   * vaut d'être asserté : un segment vide est ce que rend une ligne que ce joueur ne décide pas, et
+   * `not.toHaveAttribute("data-state", …)` passe au vert sur un bouton ABSENT.
+   */
+  controllerSegment(slotIndex: number): Locator {
+    return this.page
+      .getByTestId("player-controller")
+      .and(this.page.locator(`[data-slot-index="${slotIndex}"]`));
+  }
+
+  /**
+   * La PUCE de niveau d'IA d'un camp (plan 214) — ce qu'un joueur qui ne décide PAS de cette place y
+   * lit : « 🤖 Difficile », non interactif.
+   *
+   * Distincte de {@link controllerButton} : le segment à quatre boutons n'existe que chez celui qui
+   * règle la place (l'hôte en ligne, tout le monde en solo). Chez les autres, la place IA n'affichait
+   * RIEN avant ce plan — on découvrait la difficulté de l'adversaire en entrant en combat.
+   */
+  aiLevelChip(slotIndex: number): Locator {
+    return this.page
+      .getByTestId("player-ai-level")
+      .and(this.page.locator(`[data-slot-index="${slotIndex}"]`));
+  }
+
+  /**
+   * Le niveau d'IA RETENU sur ce camp, tel que l'écran le montre — `null` quand rien n'est marqué
+   * (place humaine, ou place libre dont personne n'a encore décidé).
+   *
+   * Lu sur l'attribut plutôt que sur le libellé : « Moyenne » se traduit, et le glyphe qui le
+   * précède n'appartient pas au niveau.
+   */
+  async activeAiDifficulty(slotIndex: number): Promise<string | null> {
+    const active = this.controllerSegment(slotIndex).and(
+      this.page.locator('[data-state="active"][data-ai-difficulty]'),
+    );
+    return (await active.count()) === 0 ? null : await active.getAttribute("data-ai-difficulty");
   }
 
   /**

@@ -1,4 +1,9 @@
-import { type Action, PlayerController } from "@pokemon-tactic/core";
+import {
+  type Action,
+  type AiDifficulty,
+  PlayerController,
+  resolveAiDifficulty,
+} from "@pokemon-tactic/core";
 import { Listeners } from "./listeners.js";
 import {
   type ActionMessage,
@@ -871,7 +876,11 @@ export class Room {
    * `Human` ne décrit qu'une place tenue par celui qui est devant l'écran, ce que `setSeatOccupancy`
    * ne vise jamais : sa propre place est déjà refusée deux lignes plus haut.
    */
-  setSeatOccupancy(seat: number, occupancy: NetworkSeatOccupancy): void {
+  setSeatOccupancy(
+    seat: number,
+    occupancy: NetworkSeatOccupancy,
+    aiDifficulty?: AiDifficulty,
+  ): void {
     this.assertHost();
     const seatState = this.seats.get(seat);
     if (this.left || seatState === undefined || seat === this.hostSeat) {
@@ -887,7 +896,33 @@ export class Room {
     }
     // Une place IA **ou libre** est prête d'office : il n'y a personne dont on attendrait la
     // confirmation, et l'exiger bloquerait le lancement pour toujours.
-    this.seats.set(seat, { ...seatState, occupancy, ready: true });
+    //
+    // Le niveau ne survit PAS à un retour en « place libre » : la garder marquée « Difficile » alors
+    // qu'elle attend un humain afficherait un réglage que personne n'a demandé, et qui reparaîtrait
+    // au lancement si personne ne vient. Une place qu'on rouvre repart du défaut, comme une neuve.
+    /*
+     * 🔴 On RETIRE la clé, on ne l'écrit JAMAIS à `undefined` — et ce n'est pas du style.
+     *
+     * Le transport de PeerJS sérialise en **BinaryPack, pas en JSON** : `pack({a: 1, b: undefined})`
+     * revient en `{a: 1, b: null}`. Or `isSeatState` refuse `null` sur ce champ, donc le `room_state`
+     * ENTIER échouait à la validation et le pair distant le jetait **en silence**. Symptôme observé
+     * (e2e §11.24) : l'hôte rouvre une place IA à un joueur, sa ligne redevient « Place libre » chez
+     * lui, et reste « Prêt · 🤖 Difficile » chez l'invité pour toujours. Les messages suivants
+     * passent, donc rien n'a l'air cassé — c'est ce qui rend le défaut illisible.
+     *
+     * Règle générale du fichier : un champ facultatif d'un message se compose par
+     * `...(condition ? { champ } : {})`. Tous les autres constructeurs le font déjà,
+     * `composeStartSeats` compris.
+     */
+    const { aiDifficulty: _efface, ...reste } = seatState;
+    this.seats.set(seat, {
+      ...reste,
+      occupancy,
+      ...(occupancy === NetworkSeatOccupancy.Ai && aiDifficulty !== undefined
+        ? { aiDifficulty }
+        : {}),
+      ready: true,
+    });
     this.broadcastRoomState();
     this.notifyChange();
   }
@@ -1894,6 +1929,18 @@ export class Room {
           seatState.occupancy === NetworkSeatOccupancy.Waiting
             ? PlayerController.Ai
             : PlayerController.Human,
+        /*
+         * 🔴 Le défaut est appliqué ICI, chez l'hôte, et le résultat est GRAVÉ dans le `start`.
+         *
+         * Les pairs reçoivent donc une valeur explicite et n'appliquent jamais de repli eux-mêmes —
+         * c'est ce qui rend la divergence impossible plutôt que simplement improbable. Une place
+         * « libre » que personne n'a réglée passe en IA au lancement : elle prend le défaut, comme
+         * une place IA dont l'hôte n'aurait pas touché le niveau.
+         */
+        ...(seatState.occupancy === NetworkSeatOccupancy.Ai ||
+        seatState.occupancy === NetworkSeatOccupancy.Waiting
+          ? { aiDifficulty: resolveAiDifficulty(seatState.aiDifficulty) }
+          : {}),
         selection: this.selections.get(seatState.seat) ?? { pokemonDefinitionIds: [] },
       }));
   }

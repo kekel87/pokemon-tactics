@@ -1,4 +1,4 @@
-import { type Action, ActionKind, Direction } from "@pokemon-tactic/core";
+import { type Action, ActionKind, AiDifficulty, Direction } from "@pokemon-tactic/core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   type ActionMessage,
@@ -464,6 +464,27 @@ describe("Room — paramètres de partie", () => {
       occupancy: NetworkSeatOccupancy.Waiting,
       ready: true,
     });
+  });
+
+  it("🔴 rouvrir une place IA RETIRE le niveau, au lieu de l'écrire à `undefined`", async () => {
+    const host = await Room.create(depsFor(directory), options(4));
+
+    host.setSeatOccupancy(3, NetworkSeatOccupancy.Ai, AiDifficulty.Hard);
+    expect(host.view.seats[2]?.aiDifficulty).toBe(AiDifficulty.Hard);
+
+    host.setSeatOccupancy(3, NetworkSeatOccupancy.Waiting);
+
+    /*
+     * `Object.hasOwn` et NON `toEqual` / `toBeUndefined`, et c'est tout l'intérêt du test : `toEqual`
+     * ignore les propriétés valant `undefined`, donc le test voisin ci-dessus restait VERT avec la
+     * version fautive qui posait `{ aiDifficulty: undefined }`. C'est exactement comme ça que le
+     * défaut est passé.
+     *
+     * Pourquoi la clé ne doit pas exister : PeerJS sérialise en BinaryPack, pas en JSON, et
+     * `undefined` y revient en `null` — que `isSeatState` refuse. Le `room_state` entier était alors
+     * jeté **en silence** par le pair distant (e2e §11.24).
+     */
+    expect(Object.hasOwn(host.view.seats[2] as object, "aiDifficulty")).toBe(false);
   });
 
   it("refuse de poser « humain » sur une place que personne ne tient — c'était une impasse", async () => {

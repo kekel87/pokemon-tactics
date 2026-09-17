@@ -1,4 +1,11 @@
-export { EASY_PROFILE, HARD_PROFILE, MEDIUM_PROFILE } from "./ai/ai-profiles";
+export {
+  DEFAULT_AI_DIFFICULTY,
+  EASY_PROFILE,
+  HARD_PROFILE,
+  MEDIUM_PROFILE,
+  profileForDifficulty,
+  resolveAiDifficulty,
+} from "./ai/ai-profiles";
 export { pickAggressiveAction, pickRandomAction } from "./ai/index";
 export { pickScoredAction } from "./ai/scored-ai";
 export { AbilityHandlerRegistry } from "./battle/ability-handler-registry";

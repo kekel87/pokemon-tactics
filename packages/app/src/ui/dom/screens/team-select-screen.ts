@@ -1,4 +1,9 @@
-import { type MapFormat, PlayerController, type TeamSelection } from "@pokemon-tactic/core";
+import {
+  type AiDifficulty,
+  type MapFormat,
+  PlayerController,
+  type TeamSelection,
+} from "@pokemon-tactic/core";
 import {
   HOST_SEAT,
   NetworkErrorCode,
@@ -330,6 +335,12 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
         playerId,
         pokemonDefinitionIds: [...seat.selection.pokemonDefinitionIds],
         controller: seat.controller,
+        /*
+         * Le niveau d'IA vient du MESSAGE, jamais d'un repli local (plan 214) : l'hôte l'a résolu
+         * dans `composeStartSeats` et gravé dans le `start`. Répliquer un défaut ici ferait monter
+         * deux IA différentes aux deux pairs, sans erreur et sans trace.
+         */
+        ...(seat.aiDifficulty === undefined ? {} : { aiDifficulty: seat.aiDifficulty }),
         ...(seat.selection.slots === undefined ? {} : { slots: [...seat.selection.slots] }),
       });
     }
@@ -599,9 +610,40 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     return crypto.getRandomValues(new Uint32Array(1))[0] ?? 0;
   }
 
-  const setController = (slotIndex: number, controller: PlayerController): void => {
+  /** L'occupation que le SALON déclare pour ce camp, ou `undefined` hors ligne. */
+  const seatOccupancyFor = (slotIndex: number): NetworkSeatOccupancy | undefined =>
+    roomView?.seats.find((candidate) => candidate.seat === slotIndex + 1)?.occupancy;
+
+  const setController = (
+    slotIndex: number,
+    controller: PlayerController,
+    aiDifficulty?: AiDifficulty,
+  ): void => {
     const slot = slots[slotIndex];
-    if (!slot || !setSlotController(slot, controller)) {
+    if (!slot) {
+      return;
+    }
+    /*
+     * 🔴 L'état LOCAL peut déjà être à sa cible sans que la place du SALON le soit.
+     *
+     * Cas réel, trouvé en recette e2e : sur une place **libre** en ligne, presser « Moyenne » ne
+     * faisait rien. `buildInitialSlots` pose déjà `Ai` + `DEFAULT_AI_DIFFICULTY` en repli local, donc
+     * `setSlotController` répond « rien n'a changé » et on sortait ici — alors que le salon, lui, dit
+     * `waiting`. Facile et Difficile marchaient, le DÉFAUT seul était muet, ce qui est le pire des
+     * symptômes : deux boutons sur trois répondent.
+     *
+     * L'angle mort est plus ancien que le plan 214 — le bouton unique « IA » l'avait déjà, et c'est
+     * pourquoi l'e2e §11.2 presse « Humain » d'abord. Il était simplement invisible tant que personne
+     * ne désignait un niveau précis.
+     */
+    const localAChange = setSlotController(slot, controller, aiDifficulty);
+    const salonDoitSuivre =
+      room !== null &&
+      seatOccupancyFor(slotIndex) !==
+        (controller === PlayerController.Ai
+          ? NetworkSeatOccupancy.Ai
+          : NetworkSeatOccupancy.Waiting);
+    if (!localAChange && !salonDoitSuivre) {
       return;
     }
     /*
@@ -616,6 +658,9 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     room?.setSeatOccupancy(
       slotIndex + 1,
       controller === PlayerController.Ai ? NetworkSeatOccupancy.Ai : NetworkSeatOccupancy.Waiting,
+      // Le niveau part avec la bascule (plan 214) : sinon les autres pairs verraient « IA » sans
+      // savoir laquelle, et ne le découvriraient qu'en entrant en combat.
+      controller === PlayerController.Ai ? slot.aiDifficulty : undefined,
     );
     /*
      * 🔴 En ligne, une place libre **garde une équipe**. C'est déjà ce que le reste de l'écran
@@ -861,11 +906,22 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
         shortLabel: playerShortLabel(slotIndex),
         colorHex: teamColorToHex(slotIndex),
         controller: slot.controller,
+        /*
+         * 🔴 Le SALON fait foi quand il en dit quelque chose (plan 214).
+         *
+         * L'état local d'un invité n'a jamais reçu le choix de l'hôte : il afficherait son propre
+         * défaut, donc « Moyenne » face à une place que l'hôte a mise en « Difficile » — un écran qui
+         * ment sans erreur, et qu'on ne démentirait qu'en entrant en combat. Hors ligne, `seatState`
+         * est absent et c'est l'état local qui décide, comme avant.
+         */
+        aiDifficulty: seatState?.aiDifficulty ?? slot.aiDifficulty,
         assignedTeam: slot.assignedTeam,
         ephemeral: slot.ephemeral,
         labels: {
           controllerHuman: t("teamSelect.controller.human"),
-          controllerAi: t("teamSelect.controller.ai"),
+          controllerAiEasy: t("teamSelect.controller.aiEasy"),
+          controllerAiMedium: t("teamSelect.controller.aiMedium"),
+          controllerAiHard: t("teamSelect.controller.aiHard"),
           chooseTeam: t("teamSelect.players.choose"),
           controllerRemote: t("room.remotePlayer"),
           controllerHost: t("room.hostPlayer"),
@@ -920,7 +976,8 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
       },
       callbacks: {
         onChooseTeam: () => chooseTeam(slotIndex),
-        onSetController: (controller) => setController(slotIndex, controller),
+        onSetController: (controller, aiDifficulty) =>
+          setController(slotIndex, controller, aiDifficulty),
       },
     };
   };

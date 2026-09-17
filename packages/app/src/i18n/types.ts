@@ -183,7 +183,9 @@ export interface Translations {
   "teamSelect.format.option": string;
   "teamSelect.players.choose": string;
   "teamSelect.controller.human": string;
-  "teamSelect.controller.ai": string;
+  "teamSelect.controller.aiEasy": string;
+  "teamSelect.controller.aiHard": string;
+  "teamSelect.controller.aiMedium": string;
   "teamSelect.teams.random": string;
   "teamSelect.teams.pickerTitle": string;
   "teamSelect.teams.empty.title": string;

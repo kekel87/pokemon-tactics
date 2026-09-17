@@ -106,6 +106,32 @@ export class BattleResumeStore {
     return typeof battleId === "string" ? battleId : null;
   }
 
+  /**
+   * Le niveau d'IA de chaque camp du setup sauvegardé, dans l'ordre des camps — `null` sur un camp
+   * humain, qui n'en porte pas (plan 214). Rend un tableau vide quand il n'y a pas de sauvegarde,
+   * donc utilisable en `expect.poll` sans jamais lever.
+   *
+   * 🔴 **Le seul signal observable de l'extérieur pour la difficulté réellement montée**, et c'est
+   * le même raisonnement que pour {@link battleId} : le profil d'IA vit dans une fermeture de
+   * `combat-screen.ts`, le hook de scène ne décrit que des meshes, et la télémétrie est muette sur
+   * `localhost`. La sauvegarde de reprise, elle, sérialise le `CombatSetup` ENTIER — donc la valeur
+   * que ce pair a reçue dans le `start`, telle quelle. Deux pairs qui montent la même partie doivent
+   * en lire exactement la même liste ; deux listes différentes, ce sont deux IA différentes jouées
+   * sans erreur et sans trace.
+   */
+  async aiDifficulties(): Promise<(string | null)[]> {
+    const stored = await this.raw();
+    if (stored === null) {
+      return [];
+    }
+    const parsed = JSON.parse(stored) as {
+      setup?: { teams?: { aiDifficulty?: unknown }[] };
+    };
+    return (parsed.setup?.teams ?? []).map((team) =>
+      typeof team.aiDifficulty === "string" ? team.aiDifficulty : null,
+    );
+  }
+
   raw(): Promise<string | null> {
     return this.page.evaluate((key) => localStorage.getItem(key), BattleResumeStore.KEY);
   }
