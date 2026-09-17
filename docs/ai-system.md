@@ -22,7 +22,9 @@ BattleEngine.submitAction()        ← exécute l'action choisie
 Le `AiTeamController` (renderer) orchestre le tour complet : il boucle sur ce pipeline
 jusqu'à `EndTurn`.
 
-**Tout le pipeline est commun à tous les niveaux de difficulté.** Seul l'`AiProfile` change.
+⚠️ **Ce n'est plus vrai depuis le plan 214** : le pipeline n'est plus entièrement commun. Certains
+volets sont désormais des **capacités** activées par palier (`AiCapabilities`), et un **filet
+anti-boucle** (`repetition-guard.ts`) peut dévier le choix final. Voir « Niveaux de difficulté ».
 
 ## Pipeline de scoring
 
@@ -184,46 +186,117 @@ Les 8 primitives supplémentaires (plan 160) alimentent la passe groupée Phase 
 5. Selon randomWeight : prendre le meilleur OU piocher dans le top-N
 ```
 
-C'est ici que la difficulté intervient. **Le scoring est identique** — seul le choix final change.
+C'est ici que la difficulté intervient.
 
 ## Niveaux de difficulté
 
-La difficulté est définie par un `AiProfile` :
+🔴 **Tout ce qui suit est MESURÉ.** Le banc `pnpm ai:bench` (`scripts/ai-bench.ts`) fait jouer l'IA
+contre elle-même et compte les victoires, les survivants du gagnant et les parties qui ne finissent
+pas. **Ne changez aucun chiffre de cette section sans relancer le banc** : le plan 214 a montré que
+l'intuition se trompe systématiquement ici.
 
 ```typescript
 interface AiProfile {
-  difficulty: AiDifficulty;    // easy | medium | hard
-  randomWeight: number;        // 0-1, proba de choisir sous-optimal
-  topN: number;                // nombre de candidats considérés
+  difficulty: AiDifficulty;      // easy | medium | hard
+  randomWeight: number;          // 0-1, proba de choisir sous-optimal
+  topN: number;                  // nombre de candidats considérés
   scoringWeights: ScoringWeights;
+  capabilities: AiCapabilities;  // ce que l'IA SAIT regarder (plan 214)
 }
 ```
 
-### Ce qui change entre les niveaux
+### Ce que vise chaque palier
 
-| Paramètre | Easy | Medium | Hard |
-|-----------|------|--------|------|
-| `randomWeight` | 0.4 (40% sous-optimal) | 0.15 (15%) | 0 (toujours optimal) |
-| `topN` | 3 | 2 | 1 |
-| `killPotential` | 10 | 10 | 10 |
-| `typeAdvantage` | 3 | 3 | 5 |
-| `positioning` | 2 | 2 | 3 |
-| `statChanges` | 1 | 1 | 2 |
+Objectifs posés par l'humain, et ce sont eux qui arbitrent, pas les chiffres :
 
-### Effet concret
+| Palier | Objectif |
+|---|---|
+| **Facile** | « Un enfant doit pouvoir la battre » |
+| **Moyenne** | « Quelqu'un qui connaît les types, qui fait un peu attention au placement, aux talents, aux objets doit la battre » |
+| **Difficile** | « Doit donner du challenge tactique et stratégique » |
 
-- **Easy** : voit les bonnes actions mais en choisit une sous-optimale 40% du temps dans le top 3.
-  Rate parfois un KO, se déplace un peu au hasard, ne maximise pas toujours le type advantage.
-- **Medium** : plus cohérente, pioche rarement en dehors du meilleur. Quasi toujours le bon move.
-- **Hard** : joue toujours le coup optimal. Mêmes poids que Medium mais `typeAdvantage` et `positioning` comptent plus — elle optimise chaque tile, chaque matchup.
+### Poids et sélection
 
-### Ce qui est commun à tous les niveaux
+| Paramètre | Facile | Moyenne | Difficile |
+|---|---|---|---|
+| `randomWeight` | 0,55 | 0,2 | 0 |
+| `topN` | 4 | 2 | 1 |
+| `killPotential` | 10 | 10 | **20** |
+| `typeAdvantage` | **1** | 3 | 5 |
+| `positioning` | 1 | 2 | 3 |
+| `statChanges` | 1 | 1 | **0,5** |
 
-- Le pipeline de scoring (collecte, tiles affectées, estimateDamage, lookahead)
+🔴 **Pourquoi `statChanges` est PLUS BAS chez Difficile que chez Facile**, ce qui est contre-intuitif :
+avec l'ancien réglage (`statChanges: 2`, le double de Moyenne), Difficile lançait 474 capacités de
+statut pour 486 de dégâts là où Moyenne en lançait 388 pour 583. **Il se préparait au lieu de
+frapper, et PERDAIT contre Moyenne** (25 victoires sur 60). Mesuré, pas supposé.
+
+⚠️ Supprimer complètement les montées de stats (`statChanges: 0`) donne le **pire** résultat de tous
+les réglages essayés — 15 victoires sur 60. Ce n'est pas le buff qui nuit, c'est sa surpondération.
+
+### Capacités (`AiCapabilities`) — le vrai levier
+
+Le plan 214 a mesuré que les trois niveaux étaient **indiscernables** : la marge de victoire valait
+3,2/6 quand Facile battait Facile et 3,3/6 quand Difficile battait Facile. La recherche
+(XCOM, *A Better ADVENT*, Wargroove) dit pourquoi : la difficulté perçue ne vient ni du bruit ni des
+poids, mais de la **richesse des considérations**.
+
+| Capacité | Facile | Moyenne | Difficile |
+|---|---|---|---|
+| `riskAwareness` — évalue le danger de la case où elle va | ✗ | ✗ | ✓ |
+| `focusFire` — achève une cible déjà blessée | ✗ | ✓ | ✓ |
+| `ringOutSetup` — se DÉPLACE pour préparer une éjection (volets A3/A4) | ✗ | ✗ | ✓ |
+
+Une IA qui ne prépare jamais une éjection se reconnaît **en jouant**. Une IA qui pioche son deuxième
+meilleur coup 15 % du temps, non.
+
+### Gardes structurelles, qui ne sont pas des poids
+
+Deux règles échappent au score et lui survivent :
+
+1. **Aucun self-buff quand un K.O. est disponible** (`canSecureKoNow`). Née d'un retour de l'humain en
+   jouant : « il cherche encore à se setup alors qu'il avait des ouvertures ». Un poids se recasse au
+   prochain réglage ; une règle, non. Patron repris de `SimpleHeuristicsPlayer` (poke-env), où le buff
+   est conditionné en amont plutôt que mis en concurrence dans un score commun.
+2. **Un buff au plafond (+6) ou un malus au plancher (-6) vaut un score NÉGATIF**, donc n'est même
+   plus candidat. C'est ce qui rendait des parties interminables : l'IA relançait indéfiniment des
+   montées de Défense sans effet.
+
+### Coût d'opportunité du setup
+
+Un self-buff vaut **0,4×** quand une attaque porte déjà, **3×** quand aucune ne porte. L'ancien
+critère — « aucun ennemi à moins de 2 cases » — mesurait la mauvaise chose : un porteur d'une capacité
+de portée 4 posté à 3 cases touchait le bonus de préparation **alors qu'il pouvait frapper**.
+
+### Filet anti-boucle (`repetition-guard.ts`)
+
+Une signature de position (qui est où, à combien de PV, avec quels crans) et un compteur. À la
+troisième occurrence — le seuil des échecs — l'IA **dévie dans son classement**, décalage **borné à
+3**. Elle ne met jamais fin à la partie : aucun verdict n'est prononcé par une horloge.
+
+Déterminisme obligatoire : aucun appel au hasard, les deux pairs d'une partie en ligne dévient au même
+tour vers la même action.
+
+### Ce qui reste commun à tous les niveaux
+
+- Le pipeline de scoring (collecte, tuiles affectées, `estimateDamage`, lookahead)
 - Le filtrage des scores négatifs
-- L'orientation EndTurn vers l'ennemi
-- La gestion du friendly fire
+- L'orientation `EndTurn` vers l'ennemi
+- La gestion du tir allié
 - Le `AiTeamController` (boucle Move → UseMove → EndTurn)
+
+### Limites connues, mesurées au plan 214
+
+- 🔴 **La marge ne suit pas le niveau.** Le gagnant finit avec 3,2 à 3,5 Pokemon debout sur 6, quel que
+  soit l'affrontement, sur ~2000 parties et sept jeux de poids. Le 6-0 n'apparaît que face à un
+  adversaire *très* faible. Un écrasement ne viendra pas de meilleurs choix.
+- 🔴 **Le baseline « contre une IA aléatoire » ne mesure rien.** Toute heuristique cohérente écrase le
+  hasard pur 60-0, parce que le hasard perd son tour à taper dans le vide. Le bon étalon est un agent
+  **cohérent mais borné** (type `MaxBasePowerPlayer` de poke-env : la capacité la plus puissante, sans
+  lire les types). **Non implémenté à ce jour.**
+- 🔴 **Rendre Facile faible par du bruit ne marche pas.** Même à 95 % de coups sous-optimaux dans un
+  top 12, il bat encore le hasard 59-1. Freeciv et OpenXcom dégradent la **perception** (brouillard,
+  mémoire des cibles tronquée), pas la décision. Piste non explorée.
 
 ## Portée max par targeting (`getMoveMaxReach`, `ai/move-reach.ts`)
 
@@ -244,7 +317,14 @@ interface AiProfile {
 - **Pas de mémoire** : l'IA n'apprend pas des tours précédents (pas de tracking des moves adverses)
 - **Pas de prédiction** : ne prédit pas les actions du joueur au tour suivant
 - ~~estimateDamage approximatif~~ **résolu (plan 159, 2026-07-14)** : `attackerPosition?` sur `estimateDamage` calcule hauteur/terrain/facing depuis la position candidate (plus depuis `attacker.position`), et `evaluateAttacksFromPosition` vérifie la ligne de vue (`hasLineOfSightFrom`) — plus de « sniper fantôme » à travers un mur. Reste une approximation résiduelle : le lookahead utilise toujours la **portée max** (`getMoveMaxReach`), pas la forme exacte du targeting (cône/ligne/zone).
-- **Pas de coordination d'équipe** : chaque Pokemon joue indépendamment
+- **Pas de coordination d'équipe** : chaque Pokemon joue indépendamment. ⚠️ Nuance mesurée au plan
+  214 : l'état étant **séquentiel et mutable**, une cible blessée par un allié a réellement moins de
+  PV quand l'unité suivante calcule — la concentration du feu émerge donc en partie sans coordination,
+  et la capacité `focusFire` l'amplifie.
+- 🔴 **Le plafond du scorer** (plan 214) : ~2000 parties et sept jeux de poids n'ont jamais fait bouger
+  la marge de victoire (3,2 à 3,5 survivants sur 6, tous affrontements confondus). Rendre l'IA « plus
+  intelligente » à un coup semble épuisé. Pistes non explorées : dégrader la **perception** des
+  paliers bas (Freeciv, OpenXcom), ou donner un avantage mécanique au camp ordinateur (Wargroove).
 - ~~**Pas de positionnement préparatoire pour le ring-out**~~ **résolu (plan 172, 2026-07-24)** : voir § Positionnement ring-out (A3/A4) ci-dessus — l'IA manœuvre désormais exprès pour aligner un ring-out offensif et évite les cases exposées à un ring-out adverse létal.
 - **Movement = 3 pour tous** : hardcodé, pas lié aux stats du Pokemon (à corriger)
 - ~~CT non intégré au scoring~~ **résolu (plan 165, 2026-07-21)** : heuristique KO-protégé — voir § Pondération CT ci-dessus. Reste hors périmètre v1 : les branches à `return` anticipé (OHKO, Explosion/Destruction, Tout ou Rien, Souvenir, Vœu Soin, Croc Fatal, Balance/Effort, Transform, Buée Noire, stat-manip, self-buffs, moves alliés) ne sont pas pondérées par le CT — leur scoring bespoke reflète déjà l'engagement. Un lookahead multi-tour (approche B envisagée puis écartée, voir plan 165) resterait un levier futur optionnel pour l'anticipation de l'IA difficile, à rouvrir seulement si un playtest le réclame.
@@ -258,9 +338,12 @@ interface AiProfile {
 | `core/src/ai/action-scorer.ts` | Scoring de chaque action (terrain penalty, path distance, ring-out, heuristiques haut-impact, passe groupée Phase 2, pondération CT KO-protégé plan 165) |
 | `core/src/ai/threat-detection.ts` | Primitives de menace partagées (`highestThreatEnemy`, `wouldKoUs`, `isHealthyTarget`, `bestEnemyDamageAgainst`, + 8 primitives plan 160) |
 | `core/src/ai/move-reach.ts` | `getMoveMaxReach` — portée max par targeting (extrait de `action-scorer.ts`, plan 160) |
-| `core/src/ai/scored-ai.ts` | Sélection pondérée top-N |
-| `core/src/ai/ai-profiles.ts` | Profils Easy / Medium / Hard |
-| `core/src/types/ai-profile.ts` | Interface `AiProfile` + `ScoringWeights` |
+| `core/src/ai/scored-ai.ts` | Sélection pondérée top-N + déviation du filet anti-boucle (plan 214) |
+| `core/src/ai/ai-profiles.ts` | Profils Facile / Moyenne / Difficile — **chiffres mesurés, voir § Niveaux** |
+| `core/src/ai/repetition-guard.ts` | Filet anti-boucle : signature de position + compteur (plan 214) |
+| `core/src/ai/stat-stage-names.ts` | Les 5 crans de stats de combat, partagés scorer ↔ filet |
+| `core/src/types/ai-profile.ts` | Interfaces `AiProfile`, `ScoringWeights`, `AiCapabilities` |
+| `scripts/ai-bench.ts` | **Banc de mesure** — `pnpm ai:bench [N]`, hors suite de tests (des minutes) |
 | `core/src/enums/ai-difficulty.ts` | Enum `AiDifficulty` |
 | `core/src/battle/knockback-prediction.ts` | Prédicteur pur du recul (déplacement/glissade/chute/terrain létal), source unique partagée avec `handle-knockback.ts` |
 | `core/src/battle/BattleEngine.ts` | `getTileAt`, `getPokemonTypes`, `computePathDistance`, `estimateDamage` (param `attackerPosition?`), `hasLineOfSightFrom`, `predictKnockback` (API publique pour le scorer) |

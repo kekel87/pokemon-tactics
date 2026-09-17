@@ -1,5 +1,7 @@
 #!/usr/bin/env tsx
 import {
+  type Action,
+  ActionKind,
   type AiProfile,
   BattleEngine,
   BattleEventType,
@@ -32,15 +34,15 @@ import {
  *
  * 🔴 Né du plan 214, d'un constat que personne n'avait mesuré : les trois profils d'IA
  * (`EASY_PROFILE`, `MEDIUM_PROFILE`, `HARD_PROFILE`) existent depuis le plan 029 et **se valent en
- * pratique**. La margin de victoire — les Pokemon encore debout chez le gagnant — est la même partout :
+ * pratique**. La marge de victoire — les Pokemon encore debout chez le gagnant — est la même partout :
  * 3,2/6 quand Facile bat Facile, 3,3/6 quand Difficile bat Facile. Le taux de victoire seul cachait
  * ça : c'est la MARGE qui le révèle, et c'est pourquoi elle est la colonne centrale de ce relevé.
  *
  * Deuxième chose qu'il mesure, et qui a confirmé un bug rapporté par l'humain : en **miroir**
- * (équipes identiques des deux côtés) jusqu'à 8 battles sur 40 **ne se terminent jamais**. Les
+ * (équipes identiques des deux côtés) jusqu'à 8 parties sur 40 **ne se terminent jamais**. Les
  * paliers de stats atteignent +6 partout et plus personne ne peut blesser personne.
  *
- * ⚠️ **Pas dans la suite de tests, et c'est délibéré** : 480 battles prennent des minutes. Le gate
+ * ⚠️ **Pas dans la suite de tests, et c'est délibéré** : 480 parties prennent des minutes. Le gate
  * doit rester rapide. On lance ce banc à la main quand on touche au scorer ou aux profils.
  *
  * Imports RELATIFS vers les sources, et non `@pokemon-tactic/core` : `scripts/tsconfig.json` ne
@@ -52,7 +54,7 @@ import {
  *   pnpm ai:bench 200        # plus de parties = moins de bruit (±8 points à 40, ±4 à 200)
  *
  * Lecture : une différence de moins de ~0,3 survivant, ou de moins de ~8 points de victoire à
- * 40 battles, est du BRUIT. Ne rien conclure d'un écart plus petit.
+ * 40 parties, est du BRUIT. Ne rien conclure d'un écart plus petit.
  */
 import { loadData, pocArena, typeChart } from "../packages/data/src/index.js";
 
@@ -98,8 +100,8 @@ function drawTeam(random: () => number): string[] {
 }
 
 function playOneBattle(
-  profileOne: AiProfile,
-  profileTwo: AiProfile,
+  profileOne: AiProfile | typeof MAX_POWER,
+  profileTwo: AiProfile | typeof MAX_POWER,
   seed: number,
   mirrorTeams: boolean,
 ): Outcome {
@@ -233,15 +235,19 @@ function playOneBattle(
     }
 
     const isSideOne = playerId === PlayerId.Player1;
-    const action = pickScoredAction(
-      legalActions,
-      gameState,
-      moveRegistry,
-      engine,
-      isSideOne ? profileOne : profileTwo,
-      isSideOne ? randomOne : randomTwo,
-      (isSideOne ? guardOne : guardTwo).observe(gameState),
-    );
+    const profile = isSideOne ? profileOne : profileTwo;
+    const action =
+      profile === MAX_POWER
+        ? pickMaxPowerAction(legalActions, moveRegistry)
+        : pickScoredAction(
+            legalActions,
+            gameState,
+            moveRegistry,
+            engine,
+            profile,
+            isSideOne ? randomOne : randomTwo,
+            (isSideOne ? guardOne : guardTwo).observe(gameState),
+          );
 
     const result = engine.submitAction(playerId, action);
     actions++;
@@ -287,7 +293,55 @@ function median(values: number[]): number {
   return sorted[Math.floor(sorted.length / 2)] ?? 0;
 }
 
-const MATCHUPS: [string, AiProfile, string, AiProfile][] = [
+/**
+ * 🔴 L'ÉTALON, et il vaut mieux que « une IA qui joue au hasard ».
+ *
+ * Mesure du plan 214 : **toute** heuristique cohérente écrase le hasard pur 60-0, parce que le hasard
+ * perd son tour à taper dans le vide. Même une IA réglée à 95 % de coups sous-optimaux dans un top 12
+ * le battait encore 59-1. Ce baseline ne mesurait donc RIEN.
+ *
+ * Celui-ci est **cohérent mais borné** — il frappe toujours le plus fort qu'il peut, sans jamais lire
+ * l'efficacité de type, sans se repositionner, sans rien d'autre. C'est le patron
+ * `MaxBasePowerPlayer` de `poke-env`, la bibliothèque de référence des IA Pokemon, où la hiérarchie
+ * admise est Hasard < MaxPuissance < Heuristique simple < entraîné.
+ *
+ * Et c'est bien plus proche de « un enfant » que du hasard : un enfant voit le plateau, comprend
+ * « tape le plus fort », mais ne calcule ni les types ni le placement.
+ */
+const MAX_POWER = "max-power" as const;
+
+function pickMaxPowerAction(
+  legalActions: Action[],
+  moveRegistry: Map<string, MoveDefinition>,
+): Action {
+  const first = legalActions[0];
+  if (first === undefined) {
+    throw new Error("Aucune action légale");
+  }
+  let best: Action | undefined;
+  let bestPower = 0;
+  for (const action of legalActions) {
+    if (action.kind !== ActionKind.UseMove) {
+      continue;
+    }
+    const power = moveRegistry.get(action.moveId)?.power ?? 0;
+    if (power > bestPower) {
+      bestPower = power;
+      best = action;
+    }
+  }
+  if (best !== undefined) {
+    return best;
+  }
+  // Rien à frapper : on avance, et à défaut on passe. Jamais d'action absurde — c'est ce qui le
+  // sépare du hasard.
+  return legalActions.find((action) => action.kind === ActionKind.Move) ?? first;
+}
+
+const MATCHUPS: [string, AiProfile | typeof MAX_POWER, string, AiProfile | typeof MAX_POWER][] = [
+  ["MaxPuiss", MAX_POWER, "Facile", EASY_PROFILE],
+  ["MaxPuiss", MAX_POWER, "Moyenne", MEDIUM_PROFILE],
+  ["MaxPuiss", MAX_POWER, "Difficile", HARD_PROFILE],
   ["Facile", EASY_PROFILE, "Moyenne", MEDIUM_PROFILE],
   ["Facile", EASY_PROFILE, "Difficile", HARD_PROFILE],
   ["Moyenne", MEDIUM_PROFILE, "Difficile", HARD_PROFILE],
