@@ -45,7 +45,9 @@ import type { TargetingPattern } from "../types/targeting-pattern";
 import { directionFromTo, getPerpendicularOffsets, stepInDirection } from "../utils/direction";
 import { manhattanDistance } from "../utils/manhattan-distance";
 import { campBiasFactors, campFactorOf } from "./camp-bias";
+import { knownAbilityId, knownHeldItemId } from "./hidden-info";
 import { getMoveMaxReach } from "./move-reach";
+import { readNaiveDamage } from "./naive-damage";
 import { BATTLE_STAT_STAGE_NAMES } from "./stat-stage-names";
 import {
   abilityCopyValue,
@@ -228,6 +230,7 @@ function scoreUseMove(
   }
 
   const weights = profile.scoringWeights;
+  const capabilities = profile.capabilities;
   const isSelfTargeting = move.targeting.kind === TargetingKind.Self;
   const hasDamageFloor = getEffectivePowerFloor(move) > 0;
 
@@ -284,7 +287,15 @@ function scoreUseMove(
       effect.kind === EffectKind.SwapAbility,
   );
   if (abilityManip !== undefined) {
-    return scoreAbilityManip(action, currentPokemon, enemies, abilityManip.kind, engine, weights);
+    return scoreAbilityManip(
+      action,
+      currentPokemon,
+      enemies,
+      abilityManip.kind,
+      engine,
+      weights,
+      capabilities,
+    );
   }
 
   // Bâillement (yawn, plan 154) : sommeil différé sur un ennemi.
@@ -309,7 +320,7 @@ function scoreUseMove(
 
   // Tout ou Rien (final-gambit, plan 147) : dégâts = PV du lanceur × efficacité, self-KO à la connexion.
   if (move.effects.some((effect) => effect.kind === EffectKind.FinalGambit)) {
-    return scoreFinalGambit(action, currentPokemon, enemies, engine, weights);
+    return scoreFinalGambit(action, currentPokemon, enemies, engine, weights, capabilities);
   }
 
   // Vœu Soin (healing-wish → ReviveOrHeal, plan 147) : cible une tuile alliée (KO → revive, blessé →
@@ -336,7 +347,16 @@ function scoreUseMove(
   // Explosion / Destruction / Explo-Brume (isExplosion, plan 147) : le générique compte les KO mais
   // jamais le suicide du lanceur.
   if (move.isExplosion === true) {
-    return scoreExplosion(action, currentPokemon, enemies, allies, move, engine, weights);
+    return scoreExplosion(
+      action,
+      currentPokemon,
+      enemies,
+      allies,
+      move,
+      engine,
+      weights,
+      capabilities,
+    );
   }
 
   // Vol Magnétik (magnet-rise, plan 154) : lévitation temporaire — ne vaut que face à une menace Sol.
@@ -368,6 +388,7 @@ function scoreUseMove(
       state,
       engine,
       weights,
+      capabilities,
     );
   }
 
@@ -383,7 +404,16 @@ function scoreUseMove(
   }
 
   if (isSelfTargeting && !hasDamageFloor) {
-    return scoreSelfMove(currentPokemon, enemies, move, moveRegistry, engine, weights, state);
+    return scoreSelfMove(
+      currentPokemon,
+      enemies,
+      move,
+      moveRegistry,
+      engine,
+      weights,
+      capabilities,
+      state,
+    );
   }
 
   if (move.targetsAlly === true || move.targetsAllyOrSelf === true) {
@@ -672,12 +702,13 @@ function scoreUseMove(
   );
   if (hasItemManip) {
     for (const target of targetsHit) {
-      if (target.heldItemId !== undefined) {
+      // Un palier aveuglé ne sait pas si la cible tient quoi que ce soit : pour lui, voler un objet
+      // n'a pas de valeur identifiable tant qu'il n'en a pas vu un agir.
+      const heldItemId = knownHeldItemId(target, capabilities);
+      if (heldItemId !== undefined) {
         // Heuristique fine (plan 142) : priver l'ennemi d'un objet à fort impact (survie / Choix /
         // Orbe Vie / Restes / baie réactive) vaut davantage que virer un stat-stick passif.
-        const multiplier = isHighValueManipTarget(target.heldItemId)
-          ? HIGH_VALUE_MANIP_MULTIPLIER
-          : 1;
+        const multiplier = isHighValueManipTarget(heldItemId) ? HIGH_VALUE_MANIP_MULTIPLIER : 1;
         score += weights.statChanges * multiplier;
       }
     }
@@ -1359,6 +1390,7 @@ function scoreSelfMove(
   moveRegistry: Map<string, MoveDefinition>,
   engine: BattleEngine,
   weights: AiProfile["scoringWeights"],
+  capabilities: AiProfile["capabilities"],
   state?: BattleState,
 ): number {
   const hasSelfBuff = move.effects.some(
@@ -1733,7 +1765,7 @@ function scoreSelfMove(
    * Pokemon) : le buff n'y est pas mis en concurrence avec les attaques dans un score commun, il est
    * **conditionné** en amont — PV pleins ET matchup favorable, sinon on ne l'envisage même pas.
    */
-  if (canSecureKoNow(currentPokemon, enemies, moveRegistry, engine)) {
+  if (canSecureKoNow(currentPokemon, enemies, moveRegistry, engine, capabilities)) {
     return -1;
   }
 
@@ -1770,6 +1802,7 @@ function canSecureKoNow(
   enemies: readonly PokemonInstance[],
   moveRegistry: Map<string, MoveDefinition>,
   engine: BattleEngine,
+  capabilities: AiProfile["capabilities"],
 ): boolean {
   for (const moveId of effectiveMoveIds(caster)) {
     const candidate = moveRegistry.get(moveId);
@@ -1784,10 +1817,12 @@ function canSecureKoNow(
       if (manhattanDistance(caster.position, enemy.position) > reach) {
         continue;
       }
-      if (survivesLethalHit(enemy)) {
+      if (survivesLethalHit(enemy, capabilities)) {
         continue;
       }
-      const estimate = engine.estimateDamage(caster.id, moveId, enemy.id);
+      const estimate = capabilities.readsDamage
+        ? engine.estimateDamage(caster.id, moveId, enemy.id)
+        : readNaiveDamage(candidate);
       if (estimate && estimate.min >= enemy.currentHp) {
         return true;
       }
@@ -1984,12 +2019,15 @@ function scoreAbilityManip(
   kind: (typeof EffectKind)[keyof typeof EffectKind],
   engine: BattleEngine,
   weights: AiProfile["scoringWeights"],
+  capabilities: AiProfile["capabilities"],
 ): number {
   const target = findAt(enemies, action.targetPosition);
   if (!target) {
     return -1;
   }
-  const targetAbility = effectiveAbilityId(target);
+  // Aveuglé, le palier ne sait pas quel talent il neutraliserait ou copierait : les branches
+  // `SetAbility` / `CopyAbility` retombent alors sur leur cas « rien à y gagner ».
+  const targetAbility = knownAbilityId(target, capabilities);
   const isThreat = highestThreatEnemy(enemies, caster, engine)?.id === target.id;
   const threatMult = isThreat ? 1.5 : 1;
 
@@ -2191,14 +2229,19 @@ function scoreFinalGambit(
   enemies: readonly PokemonInstance[],
   engine: BattleEngine,
   weights: AiProfile["scoringWeights"],
+  capabilities: AiProfile["capabilities"],
 ): number {
   const target = findAt(enemies, action.targetPosition);
   if (!target) {
     return -1;
   }
-  const estimate = engine.estimateDamage(caster.id, action.moveId, target.id);
+  // Un palier qui n'estime pas les dégâts ne lit aucune efficacité : il jouera Tout ou Rien sur un
+  // Spectre. Garder la garde ici aurait trahi, sur ce move précis, qu'il sait lire la table des types.
+  const estimate = capabilities.readsDamage
+    ? engine.estimateDamage(caster.id, action.moveId, target.id)
+    : undefined;
   const effectiveness = estimate?.effectiveness ?? 1;
-  if (effectiveness === 0) {
+  if (capabilities.readsDamage && effectiveness === 0) {
     return -1;
   }
   const predicted = Math.floor(caster.currentHp * effectiveness);
@@ -2294,6 +2337,7 @@ function scoreExplosion(
   move: MoveDefinition,
   engine: BattleEngine,
   weights: AiProfile["scoringWeights"],
+  capabilities: AiProfile["capabilities"],
 ): number {
   const tiles = estimateAffectedTiles(move.targeting, caster.position, action.targetPosition);
   const targetsHit = enemies.filter((enemy) => isOnTiles(enemy.position, tiles));
@@ -2304,7 +2348,7 @@ function scoreExplosion(
   let koCount = 0;
   for (const target of targetsHit) {
     const estimate = engine.estimateDamage(caster.id, move.id, target.id);
-    if (estimate && estimate.min >= target.currentHp && !survivesLethalHit(target)) {
+    if (estimate && estimate.min >= target.currentHp && !survivesLethalHit(target, capabilities)) {
       koCount += 1;
       koScore += weights.killPotential * (threat?.id === target.id ? 1.5 : 1);
     }
@@ -2375,6 +2419,7 @@ function scorePostFieldGlobal(
   state: BattleState | undefined,
   engine: BattleEngine,
   weights: AiProfile["scoringWeights"],
+  capabilities: AiProfile["capabilities"],
 ): number {
   if (state && isInFieldGlobalZone(state, caster.position, kind)) {
     return -1;
@@ -2396,7 +2441,7 @@ function scorePostFieldGlobal(
         beneficiaries += 1;
       }
     } else if (kind === FieldGlobalKind.MagicRoom) {
-      if (enemy.heldItemId !== undefined) {
+      if (knownHeldItemId(enemy, capabilities) !== undefined) {
         beneficiaries += 1;
       }
     }
@@ -2639,11 +2684,14 @@ function scoreDamagingMove(
   let securesKo = false;
 
   for (const target of targetsHit) {
-    // Immunité de type non vue par estimateDamage (Sol vs aéroporté) → aucun crédit.
-    if (isImmuneToMoveType(target, move, engine)) {
+    // Immunité de type non vue par estimateDamage (Sol vs aéroporté) → aucun crédit. Sautée pour un
+    // palier qui n'estime pas les dégâts : il ne lit aucune table, donc il frappe dans le vide.
+    if (capabilities.readsDamage && isImmuneToMoveType(target, move, engine)) {
       continue;
     }
-    const estimate = engine.estimateDamage(currentPokemon.id, move.id, target.id);
+    const estimate = capabilities.readsDamage
+      ? engine.estimateDamage(currentPokemon.id, move.id, target.id)
+      : readNaiveDamage(move);
     if (!estimate) {
       continue;
     }
@@ -2653,7 +2701,7 @@ function scoreDamagingMove(
     // Faux-KO : un porteur Ceinture Force / Bandeau / Baie Sitrus / Fermeté survit à 1 PV, et Faux-Chage
     // (cannotKo) plafonne à 1 PV par conception. Ne pas créditer un KO plein (estimateDamage ignore ces
     // clamps) — dégât partiel plafonné à currentHp-1.
-    const cannotKo = move.cannotKo === true || survivesLethalHit(target);
+    const cannotKo = move.cannotKo === true || survivesLethalHit(target, capabilities);
     if (estimate.min >= target.currentHp && !cannotKo) {
       targetScore += weights.killPotential;
       securesKo = true;
@@ -2839,6 +2887,7 @@ function scoreMove(
     moveRegistry,
     engine,
     weights,
+    profile.capabilities,
   );
   score += attackBonus;
 
@@ -2925,6 +2974,7 @@ function evaluateAttacksFromPosition(
   moveRegistry: Map<string, MoveDefinition>,
   engine: BattleEngine,
   weights: AiProfile["scoringWeights"],
+  capabilities: AiProfile["capabilities"],
 ): number {
   let bestAttackScore = 0;
 
@@ -2955,17 +3005,21 @@ function evaluateAttacksFromPosition(
         continue;
       }
 
-      if (isImmuneToMoveType(enemy, move, engine)) {
+      // L'immunité de type est une lecture de la table : un palier qui n'estime pas les dégâts ne la
+      // voit pas, et ira donc frapper dans le vide — exprès (voir `readNaiveDamage`).
+      if (capabilities.readsDamage && isImmuneToMoveType(enemy, move, engine)) {
         continue;
       }
 
       // Estimate damage AS IF the mon stood on `fromPosition` (height / terrain from the destination).
-      const estimate = engine.estimateDamage(pokemon.id, moveId, enemy.id, undefined, fromPosition);
+      const estimate = capabilities.readsDamage
+        ? engine.estimateDamage(pokemon.id, moveId, enemy.id, undefined, fromPosition)
+        : readNaiveDamage(move);
       if (!estimate) {
         continue;
       }
 
-      const cannotKo = move.cannotKo === true || survivesLethalHit(enemy);
+      const cannotKo = move.cannotKo === true || survivesLethalHit(enemy, capabilities);
       let attackScore = 0;
       if (estimate.min >= enemy.currentHp && !cannotKo) {
         attackScore = weights.killPotential;

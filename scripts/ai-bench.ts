@@ -13,6 +13,7 @@ import {
   Direction,
   EASY_PROFILE,
   HARD_PROFILE,
+  type HeldItemId,
   MEDIUM_PROFILE,
   type MoveDefinition,
   Nature,
@@ -88,6 +89,47 @@ const pokemonTypesMap = new Map<string, PokemonType[]>(donnees.pokemon.map((p) =
 const pokemonDefs = new Map(donnees.pokemon.map((p) => [p.id, p]));
 const roster = donnees.pokemon.map((p) => p.id);
 
+/**
+ * Objets tenus mis en circulation par le banc.
+ *
+ * 🔴 **Pourquoi cette liste et pas une autre** : ce sont les objets que les heuristiques de l'IA
+ * savent lire. Ceinture Force et Baie Sitrus font survivre à 1 PV — c'est précisément ce que les
+ * paliers aveuglés ne voient plus (`ai/hidden-info.ts`) ; Restes, Orbe Vie, Bandeau Choix et Casque
+ * Brut valent d'être volés ou détruits, donc ils alimentent le score de manipulation d'objet. Un
+ * roster d'objets purement décoratifs ne mesurerait rien.
+ */
+const BENCH_HELD_ITEMS: readonly HeldItemId[] = [
+  "focus-sash",
+  "sitrus-berry",
+  "leftovers",
+  "life-orb",
+  "choice-band",
+  "rocky-helmet",
+];
+
+/** Un Pokemon sur deux tient un objet — assez pour que ça compte, pas au point d'en faire la règle. */
+const HELD_ITEM_SHARE = 0.5;
+
+/**
+ * Objet tenu par une espèce dans CETTE partie.
+ *
+ * 🔴 Tiré depuis l'espèce et la graine, et surtout PAS depuis un flux d'aléas commun aux deux camps :
+ * en miroir, les deux équipes portent la même liste d'espèces et doivent donc porter les mêmes objets,
+ * sinon le miroir n'en est plus un et le banc mesure un déséquilibre de matériel au lieu de mesurer
+ * l'IA.
+ */
+function heldItemFor(definitionId: string, seed: number): HeldItemId | undefined {
+  let hash = 0;
+  for (let i = 0; i < definitionId.length; i++) {
+    hash = (hash * 31 + definitionId.charCodeAt(i)) % 1_000_003;
+  }
+  const random = createPrng(seed * 31 + hash);
+  if (random() >= HELD_ITEM_SHARE) {
+    return undefined;
+  }
+  return BENCH_HELD_ITEMS[Math.floor(random() * BENCH_HELD_ITEMS.length)];
+}
+
 function drawTeam(random: () => number): string[] {
   const picked: string[] = [];
   while (picked.length < 6) {
@@ -148,6 +190,7 @@ function playOneBattle(
       throw new Error(`introuvable : ${placement.pokemonId}`);
     }
     const combatStats = computeCombatStats(definition.baseStats, BATTLE_LEVEL);
+    const heldItemId = heldItemFor(definition.id, seed);
     const instance: PokemonInstance = {
       id: placement.pokemonId,
       definitionId: definition.id,
@@ -167,6 +210,12 @@ function playOneBattle(
       position: placement.position,
       orientation: Direction.South,
       moveIds: definition.movepool.slice(0, 4),
+      // 🔴 Talent et objet sont arrivés au plan 214, et leur ABSENCE était un défaut de l'instrument :
+      // le banc faisait jouer un jeu sans talents ni objets, donc il était structurellement incapable
+      // de mesurer l'écart entre un palier qui les lit et un palier qu'on en a aveuglé. Les chiffres
+      // d'avant ce changement ne sont pas comparables à ceux d'après.
+      ...(definition.abilityId === undefined ? {} : { abilityId: definition.abilityId }),
+      ...(heldItemId === undefined ? {} : { heldItemId }),
       activeDefense: null,
       toxicCounter: 0,
       volatileStatuses: [],
@@ -205,6 +254,11 @@ function playOneBattle(
     new TurnPipeline(),
     createPrng(seed),
     seed,
+    undefined, // statusRules : on garde le défaut du moteur
+    // Registres de talents et d'objets : sans eux le moteur les ignore, et le banc mesurerait encore
+    // un jeu que personne ne joue.
+    donnees.abilityRegistry,
+    donnees.itemRegistry,
   );
 
   const randomOne = createPrng(seed * 7 + 1);

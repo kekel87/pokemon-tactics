@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { PlayerId } from "../enums/player-id";
 import { buildMoveRegistry, MockPokemon } from "../testing";
 import { MockBattle } from "../testing/mock-battle";
+import { HARD_PROFILE, MEDIUM_PROFILE } from "./ai-profiles";
 import {
   abilityCopyValue,
   abilityNeutralizeValue,
@@ -217,7 +218,7 @@ describe("threat-detection — survivesLethalHit", () => {
       maxHp: 100,
       heldItemId: "focus-sash",
     });
-    expect(survivesLethalHit(target)).toBe(true);
+    expect(survivesLethalHit(target, HARD_PROFILE.capabilities)).toBe(true);
   });
 
   it("Ceinture Force does not save below full HP", () => {
@@ -226,7 +227,7 @@ describe("threat-detection — survivesLethalHit", () => {
       maxHp: 100,
       heldItemId: "focus-sash",
     });
-    expect(survivesLethalHit(target)).toBe(false);
+    expect(survivesLethalHit(target, HARD_PROFILE.capabilities)).toBe(false);
   });
 
   it("Bandeau saves at any HP", () => {
@@ -235,7 +236,7 @@ describe("threat-detection — survivesLethalHit", () => {
       maxHp: 100,
       heldItemId: "focus-band",
     });
-    expect(survivesLethalHit(target)).toBe(true);
+    expect(survivesLethalHit(target, HARD_PROFILE.capabilities)).toBe(true);
   });
 
   it("Baie Sitrus already consumed no longer saves", () => {
@@ -245,7 +246,7 @@ describe("threat-detection — survivesLethalHit", () => {
       heldItemId: "sitrus-berry",
       consumedItemId: "sitrus-berry",
     });
-    expect(survivesLethalHit(target)).toBe(false);
+    expect(survivesLethalHit(target, HARD_PROFILE.capabilities)).toBe(false);
   });
 
   it("Fermeté saves at full HP", () => {
@@ -254,12 +255,50 @@ describe("threat-detection — survivesLethalHit", () => {
       maxHp: 100,
       abilityId: "sturdy",
     });
-    expect(survivesLethalHit(target)).toBe(true);
+    expect(survivesLethalHit(target, HARD_PROFILE.capabilities)).toBe(true);
   });
 
   it("returns false for a plain target", () => {
     const target = MockPokemon.fresh(MockPokemon.base, { currentHp: 100, maxHp: 100 });
-    expect(survivesLethalHit(target)).toBe(false);
+    expect(survivesLethalHit(target, HARD_PROFILE.capabilities)).toBe(false);
+  });
+
+  it("misses an unrevealed Ceinture Force for a palier blinded by the fog", () => {
+    const target = MockPokemon.fresh(MockPokemon.base, {
+      currentHp: 100,
+      maxHp: 100,
+      heldItemId: "focus-sash",
+    });
+
+    expect(survivesLethalHit(target, MEDIUM_PROFILE.capabilities)).toBe(false);
+  });
+
+  it("sees the same Ceinture Force once it has been revealed", () => {
+    const target = MockPokemon.fresh(MockPokemon.base, {
+      currentHp: 100,
+      maxHp: 100,
+      heldItemId: "focus-sash",
+      revealedItem: true,
+    });
+
+    expect(survivesLethalHit(target, MEDIUM_PROFILE.capabilities)).toBe(true);
+  });
+
+  it("misses an unrevealed Fermete for a blinded palier, and sees it once revealed", () => {
+    const hidden = MockPokemon.fresh(MockPokemon.base, {
+      currentHp: 100,
+      maxHp: 100,
+      abilityId: "sturdy",
+    });
+    const shown = MockPokemon.fresh(MockPokemon.base, {
+      currentHp: 100,
+      maxHp: 100,
+      abilityId: "sturdy",
+      revealedAbility: true,
+    });
+
+    expect(survivesLethalHit(hidden, MEDIUM_PROFILE.capabilities)).toBe(false);
+    expect(survivesLethalHit(shown, MEDIUM_PROFILE.capabilities)).toBe(true);
   });
 });
 

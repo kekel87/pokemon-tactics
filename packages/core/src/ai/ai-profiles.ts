@@ -9,10 +9,12 @@ import type { AiProfile } from "../types/ai-profile";
  * réglage les trois niveaux tournaient tous autour de 50 % les uns contre les autres.
  *
  * Trois leviers, et aucun n'est un poids « au hasard » :
+ * - `readsDamage` faux — elle N'ESTIME PAS les dégâts. Elle classe ses attaques par leur puissance de
+ *   base et rien d'autre : ni type, ni Défense adverse, ni talent, ni objet, ni cran de stat. Arbitrage
+ *   de l'humain (2026-09-17) : « un gamin, c'est plutôt *Dracaufeu, il faut des grosses flammes*, même
+ *   contre un Onix » ;
  * - `randomWeight` 0,55 — plus d'une action sur deux est sous-optimale ;
- * - `topN` 4 — et quand elle se trompe, elle pioche plus bas dans le classement ;
- * - `typeAdvantage` 1 — elle lit à peine les tables de types, ce qui laisse exactement la prise qu'un
- *   enfant qui les connaît saura exploiter.
+ * - `topN` 4 — et quand elle se trompe, elle pioche plus bas dans le classement.
  */
 export const EASY_PROFILE: AiProfile = {
   difficulty: AiDifficulty.Easy,
@@ -20,8 +22,9 @@ export const EASY_PROFILE: AiProfile = {
   topN: 4,
   scoringWeights: {
     killPotential: 10,
-    // Poids NOMINAL retrouvé : quand Facile lit les types, il les lit juste. Sa faiblesse vient de
-    // `typeBlindChance`, pas d'une lecture systématiquement molle.
+    // INERTE à ce palier, et gardé à sa valeur nominale exprès : sans estimation de dégâts il n'y a
+    // pas d'`effectiveness`, donc le terme d'avantage de type ne se déclenche jamais. Le mettre à 0
+    // laisserait croire que la faiblesse vient d'un poids, alors qu'elle est structurelle.
     typeAdvantage: 3,
     positioning: 1,
     statChanges: 1,
@@ -32,9 +35,10 @@ export const EASY_PROFILE: AiProfile = {
     riskAwareness: false,
     focusFire: false,
     ringOutSetup: false,
-    // Une décision sur deux ignore les tables de types : l'erreur se VOIT (du Feu sur un Pokemon Eau)
-    // là où un poids faible se contentait de moins bien viser.
-    typeBlindChance: 0.5,
+    // L'erreur se VOIT : du Feu sur un Pokemon Eau, du Sol sur un Pokemon Vol. Elle ne « vise pas
+    // moins bien », elle ne regarde pas.
+    readsDamage: false,
+    seesHiddenInfo: false,
   },
 };
 
@@ -58,7 +62,8 @@ export const MEDIUM_PROFILE: AiProfile = {
     riskAwareness: false,
     focusFire: true,
     ringOutSetup: false,
-    typeBlindChance: 0,
+    readsDamage: true,
+    seesHiddenInfo: false,
   },
 };
 
@@ -89,7 +94,10 @@ export const HARD_PROFILE: AiProfile = {
     riskAwareness: true,
     focusFire: true,
     ringOutSetup: true,
-    typeBlindChance: 0,
+    readsDamage: true,
+    // Difficile SEULE voit ce que le brouillard cache au joueur (objet, talent). Voir
+    // `ai/hidden-info.ts` : les deux autres paliers jouent avec les mêmes `???` que lui.
+    seesHiddenInfo: true,
   },
 };
 

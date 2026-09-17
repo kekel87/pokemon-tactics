@@ -71,8 +71,21 @@ import {
  * livré, donc personne ne parle la version 10 hors de nos builds locaux. On ne raisonne pas là-dessus
  * — c'est précisément ce que la règle en tête de ce commentaire demande d'éviter, et l'incrément
  * 7 → 8 a déjà été oublié une fois pour une raison de ce genre. Relevé en revue de code.
+ *
+ * 12 → 13 le 2026-09-17, et cette fois AUCUN message ne change : c'est **l'IA qui décide autrement**.
+ * Elle est rejouée à l'identique chez chaque pair depuis une graine partagée, donc son verdict fait
+ * partie du contrat au même titre qu'un champ de trame. Trois changements du plan 214 la font diverger
+ * entre deux builds : le palier Facile n'estime plus les dégâts (`ai/naive-damage.ts`), Facile et
+ * Moyenne ne lisent plus l'objet ni le talent qu'un joueur ne verrait pas (`ai/hidden-info.ts`), et
+ * surtout le tirage `typeBlindChance` a DISPARU — donc le flux du générateur pseudo-aléatoire est
+ * décalé d'un cran à chaque décision, ce qui suffit à lui seul à faire jouer deux coups différents.
+ *
+ * ⚠️ L'incrément couvre AUSSI les quatre commits d'IA du même plan déjà poussés (`24d1b175`,
+ * `aee05658`, `e2c753ea`, `b00ea3e8`, `6c2dbd54`), qui auraient dû le porter et ne l'ont pas fait.
+ * Un seul incrément suffit pour toute la série : la version dit « ces deux builds ne jouent pas la
+ * même partie », pas « voici combien de fois on l'a touchée ».
  */
-export const NETWORK_VERSION = 12;
+export const NETWORK_VERSION = 13;
 
 /**
  * Durée d'un tour en ligne — **déplacée dans `timings.ts`**, réexportée ici (plan 213).

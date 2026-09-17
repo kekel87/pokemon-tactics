@@ -536,6 +536,54 @@ talent et de l'objet **côté moteur**, et l'en priver demanderait une variante 
 arbitrer — une première tranche limitée aux heuristiques du scorer est probablement suffisante pour
 mesurer si le levier mord.
 
+### Lot F — suite du 2026-09-17 après-midi : la piste est LIVRÉE
+
+**Ce qui est livré** :
+
+1. `typeBlindChance` (une cécité tirée au hasard, une décision sur deux) est **retirée**. L'humain l'a
+   jugée trop douce : « c'est déjà plus que ce que j'attends du niveau facile ». Remplacée par une
+   capacité **structurelle**, `readsDamage` (fausse pour Facile seule) : à faux, l'IA ne consulte plus
+   `estimateDamage`, elle lit `readNaiveDamage` (`ai/naive-damage.ts`) — la formule du jeu au niveau
+   50 (`0,44 × puissance + 2`), rapport Attaque/Défense figé à 1, `effectiveness` toujours 1. Plus
+   d'avantage de type ni de garde « immunité → refus » : Facile envoie du Sol sur un Pokemon Vol au vu
+   du joueur. Branchée sur les chemins génériques (`scoreDamagingMove`, `evaluateAttacksFromPosition`,
+   `canSecureKoNow`, `scoreFinalGambit`) ; les scorers spécialisés et `threat-detection` gardent
+   l'estimation exacte.
+2. `seesHiddenInfo` (`ai/hidden-info.ts`), vraie pour Difficile seule : Facile et Moyenne ne lisent
+   plus `heldItemId` ni le talent effectif d'un adversaire tant qu'ils ne sont pas révélés
+   (`revealedItem` / `revealedAbility`) — la règle du panneau d'info du joueur (plan 176). Les PV
+   exacts restent hors périmètre (la prévisualisation des dégâts montre déjà le verdict K.O. au
+   joueur).
+3. `scoreFinalGambit` (Tout ou Rien) gardait la garde « immunité → refus » même pour Facile —
+   incohérence corrigée en revue de code.
+4. `NETWORK_VERSION` **12 → 13** — le retrait du tirage `typeBlindChance` décale le flux du générateur
+   pseudo-aléatoire d'un cran par décision, donc le verdict de l'IA diverge entre deux builds. Couvre
+   aussi les quatre commits d'IA du plan déjà poussés qui l'avaient oublié.
+5. `scripts/ai-bench.ts` **changeait de nature** : il construisait ses Pokemon sans talent ni objet
+   tenu, et ne passait aucun registre au moteur. Corrigé — chaque Pokemon reçoit son talent, la moitié
+   un objet tenu (Ceinture Force, Baie Sitrus, Restes, Orbe Vie, Bandeau Choix, Casque Brut), tiré
+   déterministe depuis l'espèce et la graine.
+
+**Ce que la mesure a dit, banc réparé, 60 parties par affrontement** (détail chiffré :
+`docs/ai-system.md` § Limites connues) :
+
+- **Facile est descendue au plancher** : l'étalon MaxPuissance lui prend 25 parties sur 60 en équipes
+  au hasard, contre 15 avant la journée.
+- **L'écart Moyenne / Difficile ne s'est PAS creusé** (30-30 en équipes au hasard, 27-29 en miroir) :
+  aveugler Moyenne sur l'objet et le talent touche trop peu de décisions dans un movepool pour
+  déplacer un taux de victoire. Le plafond Moyenne/Difficile reste le scorer glouton à un coup, pas un
+  problème d'information.
+- **Les parties interminables en miroir passent de 6 à 18** sur l'ensemble du bloc — les Restes
+  régénèrent chaque tour, deux encaisseurs qui se soignent ne se départagent plus. Pathologie du vrai
+  jeu que l'ancien banc était structurellement incapable de voir, pas une régression ; recoupe le
+  retour de l'humain sur les fins de partie à deux tanks en miroir.
+
+🔴 **Verdict sur la piste** : correcte sur le fond — Facile est désormais nettement plus faible, et
+l'asymétrie d'information disparaît pour Moyenne comme le voulait le joueur — mais **sans effet
+mesurable sur l'écart Moyenne/Difficile**, qui reste le vrai trou du plan. Le plafond du scorer
+glouton à un coup n'est pas résolu par l'information ; il faudrait soit un avantage mécanique
+(Wargroove), soit rouvrir le lookahead restreint écarté par la recherche.
+
 ## Outil — `scripts/ai-bench.ts`
 
 Écrit pour ce plan, gardé comme instrument permanent. `pnpm ai:bench [N]` (défaut 40). **Hors de la

@@ -32,21 +32,33 @@ export interface AiCapabilities {
    */
   readonly ringOutSetup: boolean;
   /**
-   * Probabilité, à CHAQUE décision, que l'IA ignore complètement l'efficacité de type — comme si elle
-   * ne connaissait pas les tables. 0 = elle les lit toujours.
+   * Estime-t-elle vraiment les dégâts ? Fausse = elle lit `readNaiveDamage`, c'est-à-dire la formule du
+   * jeu avec un adversaire moyen : rien d'autre que la puissance du move.
    *
    * 🔴 On dégrade ce qu'elle PERÇOIT, pas ce qu'elle CHOISIT, et c'est un patron repris de Freeciv
    * (`H_FOG`, `H_MAP` : l'IA facile ne voit littéralement pas tout) et d'OpenXcom (`intelligence` :
    * combien de tours elle se souvient d'un ennemi repéré).
    *
-   * Pourquoi pas un simple poids faible, ce qu'on faisait avant : un poids reste **correctement
-   * orienté en moyenne**, donc l'IA vise toujours un peu mieux que le hasard, elle est juste moins
-   * tranchée. Une cécité, elle, produit des erreurs **systémiques et reconnaissables** — elle envoie
-   * du Feu sur un Pokemon Eau et le joueur le voit. C'est la différence entre « elle est bête » et
-   * « elle a eu un coup de moins bien ».
+   * Pourquoi pas un simple poids faible sur l'avantage de type, ce qu'on faisait avant : un poids reste
+   * **correctement orienté en moyenne**, donc l'IA vise toujours un peu mieux que le hasard, elle est
+   * juste moins tranchée. Une cécité, elle, produit des erreurs **systémiques et reconnaissables** —
+   * elle envoie du Feu sur un Pokemon Eau et le joueur le voit. C'est la différence entre « elle est
+   * bête » et « elle a eu un coup de moins bien ».
    *
-   * Le tirage a lieu **une fois par décision**, jamais par action candidate : sinon le classement
-   * mélangerait des actions notées avec et sans les types, ce qui n'aurait aucun sens.
+   * ⚠️ Remplace `typeBlindChance` (une cécité TIRÉE au hasard une fois par décision), jugée trop douce
+   * par l'humain : « c'est déjà plus que ce que j'attends du niveau facile ». La cécité n'est plus un
+   * tirage, elle est structurelle — sans estimation de dégâts, l'efficacité de type n'existe tout
+   * simplement plus, puisqu'elle sortait de `estimateDamage`.
    */
-  readonly typeBlindChance: number;
+  readonly readsDamage: boolean;
+  /**
+   * Voit-elle ce que le brouillard cache au joueur — objet tenu et talent d'un adversaire, tant qu'ils
+   * n'ont pas été révélés ?
+   *
+   * 🔴 **Vraie pour Difficile SEULE**, et c'est une remise à niveau, pas un cadeau : avant le plan 214
+   * les trois paliers lisaient `heldItemId` et le talent effectif directement dans l'état, alors que le
+   * joueur voyait `???`. L'IA basse ne jouait donc pas la même partie que lui. Détail et périmètre :
+   * `ai/hidden-info.ts`.
+   */
+  readonly seesHiddenInfo: boolean;
 }

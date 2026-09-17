@@ -1,14 +1,15 @@
 import type { BattleEngine } from "../battle/BattleEngine";
 import { getEffectivePowerFloor } from "../battle/dynamic-power-system";
-import { effectiveAbilityId } from "../battle/effective-ability";
 import { effectiveMoveIds } from "../battle/effective-move-ids";
 import { Category } from "../enums/category";
 import { PokemonType } from "../enums/pokemon-type";
+import type { AiCapabilities } from "../types/ai-capabilities";
 import type { BattleState } from "../types/battle-state";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
 import { manhattanDistance } from "../utils/manhattan-distance";
+import { knownAbilityId, knownHeldItemId } from "./hidden-info";
 import { getMoveMaxReach } from "./move-reach";
 
 const ENEMY_STAT_DECREASE_MOVES: ReadonlySet<string> = new Set([
@@ -384,10 +385,14 @@ export function bestGroundThreatFraction(
 /**
  * La cible survit-elle à un coup létal grâce à un objet / talent de survie à 1 PV ? `estimateDamage`
  * ignore ces clamps → sans ce garde-fou l'IA « croit tuer » et gâche son meilleur move. O(1).
+ *
+ * Ce que l'IA a le droit de lire ici dépend de son palier (plan 214) : voir `hidden-info.ts`.
  */
-export function survivesLethalHit(target: PokemonInstance): boolean {
+export function survivesLethalHit(target: PokemonInstance, capabilities: AiCapabilities): boolean {
   const atFullHp = target.currentHp >= target.maxHp;
-  const item = target.heldItemId;
+  // Objet et talent passent par le filtre du brouillard : un palier qui ne les connaît pas « croit
+  // tuer » et gâche son meilleur move sur une Ceinture Force — exactement ce qui arrive au joueur.
+  const item = knownHeldItemId(target, capabilities);
   if (item === "focus-sash" && atFullHp) {
     return true;
   }
@@ -397,7 +402,7 @@ export function survivesLethalHit(target: PokemonInstance): boolean {
   if (item === "sitrus-berry" && target.consumedItemId !== "sitrus-berry") {
     return true;
   }
-  return atFullHp && effectiveAbilityId(target) === "sturdy";
+  return atFullHp && knownAbilityId(target, capabilities) === "sturdy";
 }
 
 /**

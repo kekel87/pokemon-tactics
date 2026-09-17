@@ -213,24 +213,21 @@ describe("pickScoredAction", () => {
     expect(legalActions).toContainEqual(wayPastCap);
   });
 
-  it("stays deterministic when the profile can go type-blind", () => {
-    const blind = {
-      ...EASY_PROFILE,
-      capabilities: { ...EASY_PROFILE.capabilities, typeBlindChance: 0.5 },
-    };
+  it("stays deterministic when the profile does not estimate damage", () => {
     const run = () => {
       const { engine, moveRegistry } = buildEngine();
       const legalActions = engine.getLegalActions(PlayerId.Player1);
       const state = engine.getGameState(PlayerId.Player1);
       return [0, 1, 2, 3, 4].map(() =>
-        pickScoredAction(legalActions, state, moveRegistry, engine, blind, createPrng(7)),
+        pickScoredAction(legalActions, state, moveRegistry, engine, EASY_PROFILE, createPrng(7)),
       );
     };
 
+    expect(EASY_PROFILE.capabilities.readsDamage).toBe(false);
     expect(run()).toEqual(run());
   });
 
-  it("never goes type-blind when the chance is zero", () => {
+  it("picks a legal action for a profile that does estimate damage", () => {
     const { engine, moveRegistry } = buildEngine();
     const legalActions = engine.getLegalActions(PlayerId.Player1);
     const state = engine.getGameState(PlayerId.Player1);
@@ -244,6 +241,6 @@ describe("pickScoredAction", () => {
     );
 
     expect(legalActions).toContainEqual(sighted);
-    expect(HARD_PROFILE.capabilities.typeBlindChance).toBe(0);
+    expect(HARD_PROFILE.capabilities.readsDamage).toBe(true);
   });
 });

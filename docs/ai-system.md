@@ -246,16 +246,30 @@ poids, mais de la **richesse des considérations**.
 | `riskAwareness` — évalue le danger de la case où elle va | ✗ | ✗ | ✓ |
 | `focusFire` — achève une cible déjà blessée | ✗ | ✓ | ✓ |
 | `ringOutSetup` — se DÉPLACE pour préparer une éjection (volets A3/A4) | ✗ | ✗ | ✓ |
-| `typeBlindChance` — probabilité d'ignorer les tables de types | **0,5** | 0 | 0 |
+| `readsDamage` — estime vraiment ses dégâts (type, talent, objet, stats) | **✗** | ✓ | ✓ |
+| `seesHiddenInfo` — connaît l'objet et le talent d'un adversaire avant révélation | ✗ | ✗ | **✓** |
 
-`typeBlindChance` dégrade ce que l'IA **perçoit**, pas ce qu'elle **choisit** — patron de Freeciv
-(`H_FOG`, `H_MAP`) et d'OpenXcom (`intelligence` = mémoire des cibles). Un poids faible reste
-correctement orienté en moyenne ; une cécité produit des erreurs **visibles** (du Feu sur un Pokemon
-Eau). Le tirage a lieu **une fois par décision**, jamais par action candidate, sinon le classement
-mélangerait des scores incomparables.
+**`readsDamage`** remplace `typeBlindChance` (abandonnée le 2026-09-17 : une cécité tirée au hasard
+une fois par décision, jugée « trop douce » par l'humain — « c'est déjà plus que ce que j'attends du
+niveau facile »). À faux, Facile ne consulte plus `estimateDamage` : elle lit `readNaiveDamage`
+(`ai/naive-damage.ts`), la formule du jeu au niveau 50 (`0,44 × puissance + 2`) avec un rapport
+Attaque/Défense figé à 1 et aucun modificateur — ni type, ni talent, ni objet, ni cran de stat.
+`effectiveness` vaut toujours 1 : plus d'avantage de type, et plus de garde « immunité → action
+rejetée », donc Facile enverra du Sol sur un Pokemon Vol au vu du joueur. Arbitrage de l'humain :
+« un gamin, c'est plutôt *Dracaufeu, il faut des grosses flammes*, même contre un Onix ». Périmètre
+assumé : branché sur les chemins génériques (`scoreDamagingMove`, `evaluateAttacksFromPosition`,
+`canSecureKoNow`, `scoreFinalGambit`) ; les scorers spécialisés de moves rares (Poursuite, Explosion,
+éjection par recul, valeur de frappe d'un allié) et `threat-detection` gardent l'estimation exacte.
 
-Une IA qui ne prépare jamais une éjection se reconnaît **en jouant**. Une IA qui pioche son deuxième
-meilleur coup 15 % du temps, non.
+**`seesHiddenInfo`**, vraie pour Difficile seule, dégrade ce que l'IA **perçoit** — patron de Freeciv
+(`H_FOG`, `H_MAP`). Facile et Moyenne ne lisent plus l'objet tenu ni le talent d'un adversaire tant
+qu'ils ne sont pas révélés (`revealedItem` / `revealedAbility`, `ai/hidden-info.ts`) — exactement la
+règle du panneau d'info du joueur (plan 176). Les PV exacts restent volontairement HORS périmètre : la
+prévisualisation des dégâts affiche le verdict « K.O. » au joueur, donc l'aveugler là-dessus mettrait
+l'IA EN DESSOUS de lui.
+
+Une IA qui ne prépare jamais une éjection se reconnaît **en jouant**. Une IA qui n'estime plus ses
+dégâts, aussi — elle envoie du Feu sur un Pokemon Eau au vu et au su du joueur.
 
 ### Gardes structurelles, qui ne sont pas des poids
 
@@ -313,12 +327,43 @@ tour vers la même action.
      prenait la capacité la plus puissante sans regarder QUI elle touche, donc tirait dans le vide ou
      sur ses alliés. Notre IA la plus dégradée le battait encore **58-2**.
   3. *Version 3, actuelle* — frappe le plus fort **sur un ennemi**, avance vers le plus proche sinon.
-     Il gagne enfin : **15 parties sur 60** contre Facile en équipes différentes. Ce qu'il ne fait
-     toujours pas, et c'est voulu : lire les types, choisir entre plusieurs ennemis, évaluer le
-     terrain, se protéger.
-- **Rendre Facile assez faible** : `typeBlindChance` aide (12-48 contre Moyenne en miroir, contre
-  14-45 avant), et Facile perd désormais 15 sur 60 face à MaxPuissance. Reste à valider par l'humain
-  en jouant — aucune mesure IA contre IA ne dira si « un enfant le bat ».
+     Il gagne enfin : **15 parties sur 60** contre Facile en équipes différentes (mesure du
+     2026-09-17 matin, avant que le banc reçoive talents et objets tenus — voir le bullet suivant).
+     Ce qu'il ne fait toujours pas, et c'est voulu : lire les types, choisir entre plusieurs ennemis,
+     évaluer le terrain, se protéger.
+- 🔴 **Le banc a changé de nature le 2026-09-17 après-midi.** `scripts/ai-bench.ts` construisait ses
+  Pokemon **sans talent et sans objet tenu**, et ne passait aucun registre de talents/objets au
+  moteur — il mesurait un jeu que personne ne joue. Corrigé : chaque Pokemon reçoit son talent, la
+  moitié reçoit un objet tenu (Ceinture Force, Baie Sitrus, Restes, Orbe Vie, Bandeau Choix, Casque
+  Brut — ceux que les heuristiques savent lire), tiré de façon déterministe depuis l'espèce et la
+  graine pour que le miroir reste un miroir. **Toute mesure antérieure à cette date est à considérer
+  comme portant sur un autre jeu.**
+
+  Mesure de référence, banc réparé, 60 parties par affrontement :
+
+  | Affrontement | Équipes au hasard | Miroir |
+  |---|---|---|
+  | MaxPuissance / Facile | 25-34 | 16-44 |
+  | MaxPuissance / Moyenne | 12-48 | 3-56 |
+  | MaxPuissance / Difficile | 15-44 | 2-57 |
+  | Facile / Moyenne | 18-42 | 7-52 |
+  | Facile / Difficile | 17-43 | 8-51 |
+  | Moyenne / Difficile | 30-30 | 27-29 |
+
+  Trois conclusions :
+  - **Facile est descendue au plancher** : l'étalon bête (MaxPuissance) lui prend 25 parties sur 60
+    en équipes au hasard, contre 15 avant la journée.
+  - **L'écart Moyenne / Difficile ne s'est PAS creusé** (30-30 et 27-29, à égalité) : aveugler
+    Moyenne sur l'objet et le talent touche trop peu de décisions pour déplacer un taux de victoire —
+    les moves de vol d'objet et de manipulation de talent sont rares dans les movepools. Le plafond
+    Moyenne/Difficile reste le scorer glouton à un coup, pas un problème d'information.
+  - **Les parties interminables en miroir passent de 6 à 18** sur l'ensemble du bloc. Cause : les
+    Restes régénèrent chaque tour, et deux encaisseurs qui se soignent ne se départagent plus. Ce
+    n'est PAS une régression introduite : c'est une pathologie du vrai jeu que le banc était
+    structurellement incapable de voir, et elle recoupe le retour de l'humain sur les fins de partie
+    à deux tanks en miroir.
+- **Rendre Facile assez faible** : reste à valider par l'humain en jouant — aucune mesure IA contre
+  IA ne dira si « un enfant le bat ».
 
 ## Portée max par targeting (`getMoveMaxReach`, `ai/move-reach.ts`)
 
@@ -345,8 +390,11 @@ tour vers la même action.
   et la capacité `focusFire` l'amplifie.
 - 🔴 **Le plafond du scorer** (plan 214) : ~2000 parties et sept jeux de poids n'ont jamais fait bouger
   la marge de victoire (3,2 à 3,5 survivants sur 6, tous affrontements confondus). Rendre l'IA « plus
-  intelligente » à un coup semble épuisé. Pistes non explorées : dégrader la **perception** des
-  paliers bas (Freeciv, OpenXcom), ou donner un avantage mécanique au camp ordinateur (Wargroove).
+  intelligente » à un coup semble épuisé. **Piste explorée depuis** : dégrader la **perception** des
+  paliers bas (`readsDamage`, `seesHiddenInfo` — § Capacités ci-dessus) sépare bien Facile du reste,
+  mais ne creuse PAS l'écart Moyenne/Difficile (mesuré, voir § Limites connues) — le plafond du
+  scorer, lui, reste entier. Reste non exploré : donner un avantage mécanique au camp ordinateur
+  (Wargroove) — voir `backlog-6-0-demande-avantage-mecanique`.
 - ~~**Pas de positionnement préparatoire pour le ring-out**~~ **résolu (plan 172, 2026-07-24)** : voir § Positionnement ring-out (A3/A4) ci-dessus — l'IA manœuvre désormais exprès pour aligner un ring-out offensif et évite les cases exposées à un ring-out adverse létal.
 - **Movement = 3 pour tous** : hardcodé, pas lié aux stats du Pokemon (à corriger)
 - ~~CT non intégré au scoring~~ **résolu (plan 165, 2026-07-21)** : heuristique KO-protégé — voir § Pondération CT ci-dessus. Reste hors périmètre v1 : les branches à `return` anticipé (OHKO, Explosion/Destruction, Tout ou Rien, Souvenir, Vœu Soin, Croc Fatal, Balance/Effort, Transform, Buée Noire, stat-manip, self-buffs, moves alliés) ne sont pas pondérées par le CT — leur scoring bespoke reflète déjà l'engagement. Un lookahead multi-tour (approche B envisagée puis écartée, voir plan 165) resterait un levier futur optionnel pour l'anticipation de l'IA difficile, à rouvrir seulement si un playtest le réclame.
@@ -363,8 +411,11 @@ tour vers la même action.
 | `core/src/ai/scored-ai.ts` | Sélection pondérée top-N + déviation du filet anti-boucle (plan 214) |
 | `core/src/ai/ai-profiles.ts` | Profils Facile / Moyenne / Difficile — **chiffres mesurés, voir § Niveaux** |
 | `core/src/ai/repetition-guard.ts` | Filet anti-boucle : signature de position + compteur (plan 214) |
+| `core/src/ai/naive-damage.ts` | `readNaiveDamage` — estimation de dégâts au niveau `readsDamage: false` (Facile), formule niveau 50 sans type/talent/objet/stat (plan 214) |
+| `core/src/ai/hidden-info.ts` | `knownHeldItemId`, `knownAbilityId` — ce qu'un palier a le droit de savoir d'un adversaire (`seesHiddenInfo`, plan 214) |
 | `core/src/ai/stat-stage-names.ts` | Les 5 crans de stats de combat, partagés scorer ↔ filet |
-| `core/src/types/ai-profile.ts` | Interfaces `AiProfile`, `ScoringWeights`, `AiCapabilities` |
+| `core/src/types/ai-profile.ts` | Interfaces `AiProfile`, `ScoringWeights` |
+| `core/src/types/ai-capabilities.ts` | Interface `AiCapabilities` (extrait de `ai-profile.ts`, plan 214) |
 | `scripts/ai-bench.ts` | **Banc de mesure** — `pnpm ai:bench [N]`, hors suite de tests (des minutes) |
 | `core/src/enums/ai-difficulty.ts` | Enum `AiDifficulty` |
 | `core/src/battle/knockback-prediction.ts` | Prédicteur pur du recul (déplacement/glissade/chute/terrain létal), source unique partagée avec `handle-knockback.ts` |

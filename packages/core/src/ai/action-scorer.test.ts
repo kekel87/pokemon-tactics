@@ -547,18 +547,34 @@ describe("scoreAction — grouped AI pass (plan 160)", () => {
     expect(scoreMoveOn("yawn", {}, { drowsyTurns: 1, currentHp: 100, maxHp: 100 })).toBeLessThan(0);
   });
 
-  it("Suc Digestif scores positively against a defensive ability", () => {
-    expect(scoreMoveOn("gastro-acid", {}, { abilityId: "levitate" })).toBeGreaterThan(0);
+  it("Suc Digestif scores positively against a REVEALED defensive ability", () => {
+    expect(
+      scoreMoveOn("gastro-acid", {}, { abilityId: "levitate", revealedAbility: true }),
+    ).toBeGreaterThan(0);
   });
 
-  it("faux-KO: a lethal hit scores lower against a Ceinture Force holder at full HP", () => {
+  it("Suc Digestif is not worth playing against an ability the fog still hides", () => {
+    expect(scoreMoveOn("gastro-acid", {}, { abilityId: "levitate" })).toBeLessThanOrEqual(0);
+  });
+
+  it("faux-KO: a lethal hit scores lower against a REVEALED Ceinture Force at full HP", () => {
     const withSash = scoreMoveOn(
+      "fire-blast",
+      {},
+      { currentHp: 10, maxHp: 10, heldItemId: "focus-sash", revealedItem: true },
+    );
+    const without = scoreMoveOn("fire-blast", {}, { currentHp: 10, maxHp: 10 });
+    expect(withSash).toBeLessThan(without);
+  });
+
+  it("faux-KO: an UNREVEALED Ceinture Force fools a palier blinded by the fog", () => {
+    const hidden = scoreMoveOn(
       "fire-blast",
       {},
       { currentHp: 10, maxHp: 10, heldItemId: "focus-sash" },
     );
     const without = scoreMoveOn("fire-blast", {}, { currentHp: 10, maxHp: 10 });
-    expect(withSash).toBeLessThan(without);
+    expect(hidden).toBe(without);
   });
 });
 
