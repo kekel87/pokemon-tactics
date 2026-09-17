@@ -536,7 +536,18 @@ function scoreUseMove(
   const isSpiteApplication = move.effects.some((effect) => effect.kind === EffectKind.SpiteCtTax);
 
   if (hasEnemyDebuff) {
-    score += weights.statChanges * 1.5;
+    /*
+     * 🔴 Symétrique du buff au plafond : un MALUS AU PLANCHER ne fait rien non plus.
+     *
+     * Trouvé en instrumentant les parties sans fin qui restaient après le premier correctif (plan
+     * 214). Miroir de Lamantine : les deux camps à pleine vie, `Attaque = -6` des deux côtés. Ils
+     * s'étaient mutuellement baissé l'Attaque jusqu'au plancher, plus personne ne pouvait infliger de
+     * dégâts, et l'IA continuait de relancer des baisses d'Attaque qui ne changeaient plus rien.
+     *
+     * La marge est prise sur les cibles réellement touchées : baisser la Défense d'un ennemi déjà à
+     * -6 vaut zéro, mais la baisser chez son voisin intact vaut plein tarif.
+     */
+    score += weights.statChanges * 1.5 * enemyDebuffHeadroom(targetsHit, move);
   }
   if (isDisableApplication) {
     score += scoreDisableApplication(targetsHit, moveRegistry, weights);
@@ -1680,6 +1691,39 @@ function scoreSelfMove(
  * stats visées plutôt que le maximum : un move qui monte deux stats dont une saturée vaut à peu près
  * la moitié de ce qu'il vaudrait sur deux stats fraîches, ce qui est exactement ce qu'il fait.
  */
+/**
+ * Part des crans encore PERDABLES par les cibles, entre 0 et 1. 0 = tout le monde est au plancher sur
+ * les stats visées, donc le move ne changerait rien.
+ *
+ * Moyenne sur les couples (cible × stat visée) : un move qui vise deux ennemis dont un saturé vaut à
+ * peu près la moitié, ce qui est exactement ce qu'il fait.
+ */
+function enemyDebuffHeadroom(targets: readonly PokemonInstance[], move: MoveDefinition): number {
+  const baisses = move.effects.filter(
+    (effect) =>
+      effect.kind === EffectKind.StatChange &&
+      effect.target === EffectTarget.Targets &&
+      effect.stages < 0,
+  );
+  if (baisses.length === 0 || targets.length === 0) {
+    return 1;
+  }
+  let total = 0;
+  let comptes = 0;
+  for (const baisse of baisses) {
+    if (baisse.kind !== EffectKind.StatChange) {
+      continue;
+    }
+    for (const cible of targets) {
+      const actuel = cible.statStages[baisse.stat];
+      const perdus = actuel - clampStages(actuel, baisse.stages);
+      total += perdus / -baisse.stages;
+      comptes++;
+    }
+  }
+  return comptes === 0 ? 1 : total / comptes;
+}
+
 function selfBuffHeadroom(caster: PokemonInstance, move: MoveDefinition): number {
   const montees = move.effects.filter(
     (effect) =>

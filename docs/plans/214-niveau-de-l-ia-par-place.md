@@ -392,6 +392,63 @@ Sources principales : [Wargroove — The AI of War](https://wargroove.com/the-ai
 3. **Critère de réussite, mesuré** : `pnpm ai:bench 200` doit ramener « jamais finies » à **0** en
    miroir, sans dégrader la durée médiane. Le banc est l'arbitre, pas l'impression.
 
+### Lot E — ce qui a été fait, et ce que la mesure a dit à chaque pas
+
+| Étape | Parties sans fin (miroir, /240) | Équipes différentes |
+|---|---|---|
+| Départ | **34** | 3 |
+| Buff au plafond dévalué | 14 | 3 |
+| Filet de répétition | **4** | 0 |
+| Malus au plancher dévalué + détecteur de stagnation | **4** | **0** |
+
+**Trois correctifs, tous nés d'une mesure, aucun d'une intuition.**
+
+1. **Buff sur soi au plafond** — score négatif, donc l'action n'est même plus candidate (`pickScoredAction`
+   filtre sur `score >= 0` ; à 0 elle restait piochable). Plus une courbe de saturation, sans quoi l'IA
+   empilerait jusqu'à l'avant-dernier cran.
+2. **Filet de répétition** — signature de position (qui est où, à combien de PV, avec quels crans) et
+   compteur. À la 3ᵉ occurrence — le seuil des échecs — l'IA **dévie dans son classement**. Aucun appel
+   au hasard : les deux pairs d'une partie en ligne dévient au même tour vers la même action.
+3. **Malus chez l'ennemi au plancher** — le symétrique du 1, trouvé en **instrumentant** les parties
+   restantes : deux Lamantine s'étaient mutuellement baissé l'Attaque à -6 et relançaient des baisses
+   sans effet.
+
+🔴 **Le seuil de stagnation a été MESURÉ, après une régression.** Première tentative à 40 actions sans
+perte de PV : les parties sans fin sont passées de 4 à **17** — le filet déviait l'IA pendant des
+phases normales et l'empêchait de conclure. La distribution relevée sur 480 parties :
+
+| | médiane | p90 | p99 | max |
+|---|---|---|---|---|
+| parties qui FINISSENT (n=476) | 35 | 46 | **395** | 1826 |
+| parties BLOQUÉES (n=4) | **3847** | — | — | 3862 |
+
+40 tapait **sous le p90** : une partie saine sur dix était sabotée. Seuil porté à **1000**, et le
+décalage **borné à 3** — non borné, il poussait l'IA de plus en plus bas dans son classement jusqu'à
+jouer n'importe quoi, ce qui allongeait les parties au lieu de les conclure.
+
+### 🔴 Les 4 dernières ne sont PAS un défaut d'IA
+
+Instrumentées une par une. Toutes le même cas : **fin de partie en 1 contre 1, même espèce, miroir
+parfait**.
+
+| Graine | Survivants | Blocage |
+|---|---|---|
+| 1999 (×2) | 2 × Lamantine | `Atk = -6` des deux côtés (Onde Boréale), **Repos** soigne à fond |
+| 1666 | 2 × Artikodin | Pleine vie, **Atterrissage** compense exactement Blizzard |
+| 1777 | 2 × Gravalanch | `Déf = +6` (Boul'Armure), et seuls Charge et Roulade en face |
+
+Aucun choix ne gagne : ce ne sont pas de mauvais coups, c'est une position où **personne ne PEUT**
+l'emporter. Le filet dévie bien de 3 rangs, mais avec quatre capacités également impuissantes, dévier
+ne change rien.
+
+**Conclusion, et elle valide l'arbitrage de l'humain** : corriger l'IA plutôt que poser une limite de
+tours a réglé **89 %** des cas (37 → 4) sans toucher aux règles du jeu. Le reliquat relève d'une autre
+nature — c'est exactement pour ça que les échecs ont la règle des 50 coups et Showdown son
+*Endless Battle Clause*. **Décision en attente de l'humain** : accepter 4/240 en miroir (0/240 en
+équipes différentes, donc invisible en partie réelle), ou ajouter un match nul formel.
+
+---
+
 ## Lot F — « Difficile » mérite son nom
 
 **But** : que la marge de victoire sépare enfin les niveaux. Aujourd'hui elle ne les sépare pas du

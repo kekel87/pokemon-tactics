@@ -8,6 +8,7 @@ import { EffectTarget } from "../enums/effect-target";
 import { PlayerId } from "../enums/player-id";
 import type { PokemonType } from "../enums/pokemon-type";
 import { StatName } from "../enums/stat-name";
+import { TargetingKind } from "../enums/targeting-kind";
 import { MockBattle } from "../testing/mock-battle";
 import { MockMove } from "../testing/mock-move";
 import { MockPokemon, ZERO_STAT_STAGES } from "../testing/mock-pokemon";
@@ -16,6 +17,20 @@ import type { MoveDefinition } from "../types/move-definition";
 import { createPrng } from "../utils/prng";
 import { scoreAction } from "./action-scorer";
 import { HARD_PROFILE } from "./ai-profiles";
+
+const ONDE_BOREALE: MoveDefinition = MockMove.fresh(MockMove.physical, {
+  id: "aurora-beam",
+  name: "Aurora Beam",
+  effects: [
+    {
+      kind: EffectKind.StatChange,
+      stat: StatName.Attack,
+      stages: -1,
+      target: EffectTarget.Targets,
+    },
+  ],
+  targeting: { kind: TargetingKind.Single, range: { min: 1, max: 4 } },
+});
 
 const ARMURE: MoveDefinition = MockMove.fresh(MockMove.status, {
   id: "iron-defense",
@@ -112,6 +127,75 @@ describe("montée de stat sur soi — la valeur décroît vers le plafond (plan 
 
   it("décroît de façon monotone à mesure que la stat monte", () => {
     const scores = [0, 2, 4, 5].map(noterArmure);
+    for (let i = 1; i < scores.length; i++) {
+      expect(scores[i]).toBeLessThanOrEqual(scores[i - 1] as number);
+    }
+  });
+});
+
+function noterOndeBoreale(cranAttaqueEnnemi: number): number {
+  const lanceur = MockPokemon.fresh(MockPokemon.base, {
+    id: "lanceur",
+    playerId: PlayerId.Player1,
+    position: { x: 0, y: 0 },
+    moveIds: [ONDE_BOREALE.id],
+  });
+  const ennemi = MockPokemon.fresh(MockPokemon.base, {
+    id: "ennemi",
+    playerId: PlayerId.Player2,
+    position: { x: 0, y: 2 },
+    statStages: { ...ZERO_STAT_STAGES, [StatName.Attack]: cranAttaqueEnnemi },
+  });
+
+  const state: BattleState = MockBattle.stateFrom([lanceur, ennemi]);
+
+  const donnees = loadData();
+  const registry = new Map<string, MoveDefinition>(donnees.moves.map((move) => [move.id, move]));
+  registry.set(ONDE_BOREALE.id, ONDE_BOREALE);
+  const types = new Map<string, PokemonType[]>(donnees.pokemon.map((p) => [p.id, p.types]));
+
+  const engine = new BattleEngine(
+    state,
+    registry,
+    typeChart,
+    types,
+    new TurnPipeline(),
+    createPrng(1),
+    1,
+  );
+  state.activePokemonId = lanceur.id;
+
+  return scoreAction(
+    {
+      kind: ActionKind.UseMove,
+      pokemonId: lanceur.id,
+      moveId: ONDE_BOREALE.id,
+      targetPosition: { x: 0, y: 2 },
+    },
+    state,
+    registry,
+    engine,
+    HARD_PROFILE,
+  );
+}
+
+describe("baisse de stat chez l'ennemi — la valeur décroît vers le plancher (plan 214)", () => {
+  /*
+   * 🔴 Le symétrique du plafond, trouvé en INSTRUMENTANT les parties sans fin qui restaient.
+   *
+   * Deux Lamantine en miroir, tous deux à pleine vie et à `Attaque = -6` : ils s'étaient mutuellement
+   * baissé l'Attaque jusqu'au plancher avec Onde Boréale, plus personne ne pouvait blesser personne,
+   * et l'IA continuait de relancer des baisses qui ne changeaient plus rien.
+   *
+   * Les dégâts du move restent crédités à part : seul le bonus de MALUS est annulé, donc Onde Boréale
+   * reste jouable sur une cible saturée — simplement plus pour son malus.
+   */
+  it("vaut plus contre une cible à Attaque neutre que contre une cible au plancher", () => {
+    expect(noterOndeBoreale(-6)).toBeLessThan(noterOndeBoreale(0));
+  });
+
+  it("décroît de façon monotone à mesure que la cible descend", () => {
+    const scores = [0, -2, -4, -6].map(noterOndeBoreale);
     for (let i = 1; i < scores.length; i++) {
       expect(scores[i]).toBeLessThanOrEqual(scores[i - 1] as number);
     }

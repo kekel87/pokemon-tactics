@@ -384,7 +384,7 @@ describe("parties en ligne, comptées une fois", () => {
     });
 
   it("ne compte la tablée QU'UNE fois, malgré les deux pairs", () => {
-    const àDeux = (id: number, side: number, species: string) =>
+    const twoPeerRow = (id: number, side: number) =>
       rowOf({
         id,
         kind: "battle_started",
@@ -399,7 +399,7 @@ describe("parties en ligne, comptées une fois", () => {
         },
       });
 
-    const report = buildReport([àDeux(1, 0, "venusaur"), àDeux(2, 1, "charizard")], 30);
+    const report = buildReport([twoPeerRow(1, 0), twoPeerRow(2, 1)], 30);
 
     // Le piège que ce test garde : compter les participants hors du garde de déduplication
     // doublerait exactement les parties à plusieurs — celles qu'on cherche à voir.
