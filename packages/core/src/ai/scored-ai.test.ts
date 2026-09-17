@@ -9,7 +9,8 @@ import type { AiProfile } from "../types/ai-profile";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import { createPrng } from "../utils/prng";
-import { EASY_PROFILE } from "./ai-profiles";
+import { EASY_PROFILE, HARD_PROFILE } from "./ai-profiles";
+import { MAX_REPETITION_SIGNAL } from "./repetition-guard";
 import { pickScoredAction } from "./scored-ai";
 
 function fresh(base: PokemonInstance, overrides: Partial<PokemonInstance>): PokemonInstance {
@@ -129,5 +130,86 @@ describe("pickScoredAction", () => {
     expect(() => pickScoredAction([], state, moveRegistry, engine, EASY_PROFILE, random)).toThrow(
       "No legal actions",
     );
+  });
+
+  it("keeps its usual pick while the loop signal stays tolerable", () => {
+    const { engine, moveRegistry, random } = buildEngine();
+    const legalActions = engine.getLegalActions(PlayerId.Player1);
+    const state = engine.getGameState(PlayerId.Player1);
+    const pick = (repetitions: number) =>
+      pickScoredAction(
+        legalActions,
+        state,
+        moveRegistry,
+        engine,
+        HARD_PROFILE,
+        random,
+        repetitions,
+      );
+
+    expect(pick(2)).toEqual(pick(0));
+  });
+
+  it("plays something else once the loop signal passes the tolerance", () => {
+    const { engine, moveRegistry, random } = buildEngine();
+    const legalActions = engine.getLegalActions(PlayerId.Player1);
+    const state = engine.getGameState(PlayerId.Player1);
+    const pick = (repetitions: number) =>
+      pickScoredAction(
+        legalActions,
+        state,
+        moveRegistry,
+        engine,
+        HARD_PROFILE,
+        random,
+        repetitions,
+      );
+
+    expect(pick(3)).not.toEqual(pick(0));
+    expect(legalActions).toContainEqual(pick(3));
+  });
+
+  it("stays deterministic: the same signal always yields the same action", () => {
+    const first = (() => {
+      const { engine, moveRegistry, random } = buildEngine();
+      const legalActions = engine.getLegalActions(PlayerId.Player1);
+      const state = engine.getGameState(PlayerId.Player1);
+      return pickScoredAction(legalActions, state, moveRegistry, engine, HARD_PROFILE, random, 3);
+    })();
+    const second = (() => {
+      const { engine, moveRegistry, random } = buildEngine();
+      const legalActions = engine.getLegalActions(PlayerId.Player1);
+      const state = engine.getGameState(PlayerId.Player1);
+      return pickScoredAction(legalActions, state, moveRegistry, engine, HARD_PROFILE, random, 3);
+    })();
+
+    expect(first).toEqual(second);
+  });
+
+  it("ignores anything past the cap, so a raw counter cannot push it further", () => {
+    const { engine, moveRegistry, random } = buildEngine();
+    const legalActions = engine.getLegalActions(PlayerId.Player1);
+    const state = engine.getGameState(PlayerId.Player1);
+    const atCap = pickScoredAction(
+      legalActions,
+      state,
+      moveRegistry,
+      engine,
+      HARD_PROFILE,
+      random,
+      MAX_REPETITION_SIGNAL,
+    );
+    const wayPastCap = pickScoredAction(
+      legalActions,
+      state,
+      moveRegistry,
+      engine,
+      HARD_PROFILE,
+      random,
+      MAX_REPETITION_SIGNAL + 100,
+    );
+
+    expect(wayPastCap).toEqual(atCap);
+    expect(legalActions).toContainEqual(wayPastCap);
   });
 });

@@ -32,15 +32,15 @@ import {
  *
  * 🔴 Né du plan 214, d'un constat que personne n'avait mesuré : les trois profils d'IA
  * (`EASY_PROFILE`, `MEDIUM_PROFILE`, `HARD_PROFILE`) existent depuis le plan 029 et **se valent en
- * pratique**. La marge de victoire — les Pokemon encore debout chez le gagnant — est la même partout :
+ * pratique**. La margin de victoire — les Pokemon encore debout chez le gagnant — est la même partout :
  * 3,2/6 quand Facile bat Facile, 3,3/6 quand Difficile bat Facile. Le taux de victoire seul cachait
  * ça : c'est la MARGE qui le révèle, et c'est pourquoi elle est la colonne centrale de ce relevé.
  *
  * Deuxième chose qu'il mesure, et qui a confirmé un bug rapporté par l'humain : en **miroir**
- * (équipes identiques des deux côtés) jusqu'à 8 parties sur 40 **ne se terminent jamais**. Les
+ * (équipes identiques des deux côtés) jusqu'à 8 battles sur 40 **ne se terminent jamais**. Les
  * paliers de stats atteignent +6 partout et plus personne ne peut blesser personne.
  *
- * ⚠️ **Pas dans la suite de tests, et c'est délibéré** : 480 parties prennent des minutes. Le gate
+ * ⚠️ **Pas dans la suite de tests, et c'est délibéré** : 480 battles prennent des minutes. Le gate
  * doit rester rapide. On lance ce banc à la main quand on touche au scorer ou aux profils.
  *
  * Imports RELATIFS vers les sources, et non `@pokemon-tactic/core` : `scripts/tsconfig.json` ne
@@ -52,7 +52,7 @@ import {
  *   pnpm ai:bench 200        # plus de parties = moins de bruit (±8 points à 40, ±4 à 200)
  *
  * Lecture : une différence de moins de ~0,3 survivant, ou de moins de ~8 points de victoire à
- * 40 parties, est du BRUIT. Ne rien conclure d'un écart plus petit.
+ * 40 battles, est du BRUIT. Ne rien conclure d'un écart plus petit.
  */
 import { loadData, pocArena, typeChart } from "../packages/data/src/index.js";
 
@@ -70,14 +70,14 @@ const ZERO_STAT_STAGES = {
   [StatName.Evasion]: 0,
 };
 
-interface Issue {
-  vainqueur: string | null;
+interface Outcome {
+  winner: string | null;
   actions: number;
-  statuQuo: boolean;
-  paliersMax: number;
-  /** Pokemon encore debout dans chaque camp à la fin — c'est la MARGE, pas le simple verdict. */
-  survivants1: number;
-  survivants2: number;
+  stalled: boolean;
+  highestStage: number;
+  /** Pokemon encore debout dans chaque camp à la ended — c'est la MARGE, pas le simple verdict. */
+  survivorsOne: number;
+  survivorsTwo: number;
 }
 
 const donnees = loadData();
@@ -86,36 +86,36 @@ const pokemonTypesMap = new Map<string, PokemonType[]>(donnees.pokemon.map((p) =
 const pokemonDefs = new Map(donnees.pokemon.map((p) => [p.id, p]));
 const roster = donnees.pokemon.map((p) => p.id);
 
-function tirerEquipe(random: () => number): string[] {
-  const choisis: string[] = [];
-  while (choisis.length < 6) {
-    const candidat = roster[Math.floor(random() * roster.length)];
-    if (candidat !== undefined && !choisis.includes(candidat)) {
-      choisis.push(candidat);
+function drawTeam(random: () => number): string[] {
+  const picked: string[] = [];
+  while (picked.length < 6) {
+    const candidate = roster[Math.floor(random() * roster.length)];
+    if (candidate !== undefined && !picked.includes(candidate)) {
+      picked.push(candidate);
     }
   }
-  return choisis;
+  return picked;
 }
 
-function jouerUnePartie(
-  profil1: AiProfile,
-  profil2: AiProfile,
-  graine: number,
-  memeEquipe: boolean,
-): Issue {
-  const tirage = createPrng(graine);
-  const equipe1 = tirerEquipe(tirage);
-  const equipe2 = memeEquipe ? equipe1 : tirerEquipe(tirage);
+function playOneBattle(
+  profileOne: AiProfile,
+  profileTwo: AiProfile,
+  seed: number,
+  mirrorTeams: boolean,
+): Outcome {
+  const draw = createPrng(seed);
+  const teamOne = drawTeam(draw);
+  const teamTwo = mirrorTeams ? teamOne : drawTeam(draw);
 
   const teams: PlacementTeam[] = [
     {
       playerId: PlayerId.Player1,
-      availablePokemonIds: equipe1.map((id) => `p1-${id}`),
+      availablePokemonIds: teamOne.map((id) => `p1-${id}`),
       controller: "ai" as const,
     },
     {
       playerId: PlayerId.Player2,
-      availablePokemonIds: equipe2.map((id) => `p2-${id}`),
+      availablePokemonIds: teamTwo.map((id) => `p2-${id}`),
       controller: "ai" as const,
     },
   ];
@@ -125,14 +125,14 @@ function jouerUnePartie(
   if (!format) {
     throw new Error("pas de format");
   }
-  const centre = { x: Math.floor(map.width / 2), y: Math.floor(map.height / 2) };
+  const gridCentre = { x: Math.floor(map.width / 2), y: Math.floor(map.height / 2) };
   const placements = new PlacementPhase(
     map,
     teams,
     format,
     PlacementMode.Random,
-    graine,
-  ).autoPlaceAll(centre);
+    seed,
+  ).autoPlaceAll(gridCentre);
 
   const grid: TileState[][] = map.tiles.map((row) =>
     row.map((tile) => ({ ...tile, occupantId: null })),
@@ -201,93 +201,93 @@ function jouerUnePartie(
     typeChart,
     pokemonTypesMap,
     new TurnPipeline(),
-    createPrng(graine),
-    graine,
+    createPrng(seed),
+    seed,
   );
 
-  const random1 = createPrng(graine * 7 + 1);
-  const random2 = createPrng(graine * 13 + 2);
+  const randomOne = createPrng(seed * 7 + 1);
+  const randomTwo = createPrng(seed * 13 + 2);
   // Un filet par camp, comme dans le vrai jeu (`AiTeamController`) — sinon le banc ne mesurerait pas
   // ce que le joueur subit.
-  const filet1 = createRepetitionGuard();
-  const filet2 = createRepetitionGuard();
+  const guardOne = createRepetitionGuard();
+  const guardTwo = createRepetitionGuard();
 
   let actions = 0;
-  let vainqueur: string | null = null;
-  let paliersMax = 0;
+  let winner: string | null = null;
+  let highestStage = 0;
 
   while (actions < MAX_ACTIONS) {
     const gameState = engine.getGameState(PlayerId.Player1);
-    const actifId = gameState.activePokemonId;
-    if (!actifId) {
+    const activeId = gameState.activePokemonId;
+    if (!activeId) {
       break;
     }
-    const actif = gameState.pokemon.get(actifId);
-    if (!actif) {
+    const active = gameState.pokemon.get(activeId);
+    if (!active) {
       break;
     }
-    const playerId = actif.playerId;
-    const legales = engine.getLegalActions(playerId);
-    if (legales.length === 0) {
+    const playerId = active.playerId;
+    const legalActions = engine.getLegalActions(playerId);
+    if (legalActions.length === 0) {
       break;
     }
 
-    const estUn = playerId === PlayerId.Player1;
+    const isSideOne = playerId === PlayerId.Player1;
     const action = pickScoredAction(
-      legales,
+      legalActions,
       gameState,
       moveRegistry,
       engine,
-      estUn ? profil1 : profil2,
-      estUn ? random1 : random2,
-      (estUn ? filet1 : filet2).observe(gameState),
+      isSideOne ? profileOne : profileTwo,
+      isSideOne ? randomOne : randomTwo,
+      (isSideOne ? guardOne : guardTwo).observe(gameState),
     );
 
-    const resultat = engine.submitAction(playerId, action);
+    const result = engine.submitAction(playerId, action);
     actions++;
 
     for (const mon of gameState.pokemon.values()) {
       for (const palier of Object.values(mon.statStages)) {
-        paliersMax = Math.max(paliersMax, palier);
+        highestStage = Math.max(highestStage, palier);
       }
     }
 
-    const fin = resultat.events.find((e) => e.type === BattleEventType.BattleEnded);
-    if (fin && fin.type === BattleEventType.BattleEnded) {
-      vainqueur = fin.winnerId;
+    const ended = result.events.find((e) => e.type === BattleEventType.BattleEnded);
+    if (ended && ended.type === BattleEventType.BattleEnded) {
+      winner = ended.winnerId;
       break;
     }
   }
 
-  let survivants1 = 0;
-  let survivants2 = 0;
+  let survivorsOne = 0;
+  let survivorsTwo = 0;
   for (const mon of state.pokemon.values()) {
     if (mon.currentHp <= 0) {
       continue;
     }
     if (mon.playerId === PlayerId.Player1) {
-      survivants1++;
+      survivorsOne++;
     } else {
-      survivants2++;
+      survivorsTwo++;
     }
   }
 
   return {
-    vainqueur,
+    winner,
     actions,
-    statuQuo: actions >= MAX_ACTIONS,
-    paliersMax,
-    survivants1,
-    survivants2,
+    stalled: actions >= MAX_ACTIONS,
+    highestStage,
+    survivorsOne,
+    survivorsTwo,
   };
 }
 
-function mediane(valeurs: number[]): number {
-  const tri = [...valeurs].sort((a, b) => a - b);
-  return tri[Math.floor(tri.length / 2)] ?? 0;
+function median(values: number[]): number {
+  const sorted = [...values].sort((a, b) => a - b);
+  return sorted[Math.floor(sorted.length / 2)] ?? 0;
 }
 
-const AFFRONTEMENTS: [string, AiProfile, string, AiProfile][] = [
+const MATCHUPS: [string, AiProfile, string, AiProfile][] = [
   ["Facile", EASY_PROFILE, "Moyenne", MEDIUM_PROFILE],
   ["Facile", EASY_PROFILE, "Difficile", HARD_PROFILE],
   ["Moyenne", MEDIUM_PROFILE, "Difficile", HARD_PROFILE],
@@ -296,59 +296,59 @@ const AFFRONTEMENTS: [string, AiProfile, string, AiProfile][] = [
   ["Difficile", HARD_PROFILE, "Difficile", HARD_PROFILE],
 ];
 
-function relever(memeEquipe: boolean, parties: number): void {
+function report(mirrorTeams: boolean, battles: number): void {
   console.log(
-    `\n=== ÉQUIPES ${memeEquipe ? "IDENTIQUES (miroir)" : "ALÉATOIRES"} — ${parties} parties par affrontement ===`,
+    `\n=== ÉQUIPES ${mirrorTeams ? "IDENTIQUES (miroir)" : "ALÉATOIRES"} — ${battles} parties par affrontement ===`,
   );
-  for (const [nom1, profil1, nom2, profil2] of AFFRONTEMENTS) {
+  for (const [nameOne, profileOne, nameTwo, profileTwo] of MATCHUPS) {
     let v1 = 0;
     let v2 = 0;
-    let statuQuo = 0;
-    const durees: number[] = [];
-    const margesVainqueur: number[] = [];
-    let balayages = 0;
+    let stalled = 0;
+    const durations: number[] = [];
+    const winnerMargins: number[] = [];
+    let sweeps = 0;
 
-    for (let i = 0; i < parties; i++) {
-      const issue = jouerUnePartie(profil1, profil2, 1000 + i * 37, memeEquipe);
-      durees.push(issue.actions);
-      if (issue.statuQuo) {
-        statuQuo++;
+    for (let i = 0; i < battles; i++) {
+      const outcome = playOneBattle(profileOne, profileTwo, 1000 + i * 37, mirrorTeams);
+      durations.push(outcome.actions);
+      if (outcome.stalled) {
+        stalled++;
         continue;
       }
-      if (issue.vainqueur === "player-1") {
+      if (outcome.winner === "player-1") {
         v1++;
-        margesVainqueur.push(issue.survivants1);
-        if (issue.survivants2 === 0 && issue.survivants1 === 6) {
-          balayages++;
+        winnerMargins.push(outcome.survivorsOne);
+        if (outcome.survivorsTwo === 0 && outcome.survivorsOne === 6) {
+          sweeps++;
         }
-      } else if (issue.vainqueur === "player-2") {
+      } else if (outcome.winner === "player-2") {
         v2++;
-        margesVainqueur.push(issue.survivants2);
-        if (issue.survivants1 === 0 && issue.survivants2 === 6) {
-          balayages++;
+        winnerMargins.push(outcome.survivorsTwo);
+        if (outcome.survivorsOne === 0 && outcome.survivorsTwo === 6) {
+          sweeps++;
         }
       }
     }
 
-    const decides = v1 + v2;
-    const marge =
-      margesVainqueur.length > 0
-        ? (margesVainqueur.reduce((a, b) => a + b, 0) / margesVainqueur.length).toFixed(1)
+    const decided = v1 + v2;
+    const margin =
+      winnerMargins.length > 0
+        ? (winnerMargins.reduce((a, b) => a + b, 0) / winnerMargins.length).toFixed(1)
         : "-";
     console.log(
-      `${nom1.padEnd(9)} vs ${nom2.padEnd(9)} | victoires ${String(v1).padStart(3)}-${String(v2).padStart(3)}` +
-        ` | survivants du gagnant ${marge}/6` +
-        ` | 6-0 : ${String(balayages).padStart(3)}/${String(decides).padStart(3)}` +
-        ` | jamais finies ${String(statuQuo).padStart(3)}/${parties}` +
-        ` | médiane ${String(mediane(durees)).padStart(4)} actions`,
+      `${nameOne.padEnd(9)} vs ${nameTwo.padEnd(9)} | victoires ${String(v1).padStart(3)}-${String(v2).padStart(3)}` +
+        ` | survivants du gagnant ${margin}/6` +
+        ` | 6-0 : ${String(sweeps).padStart(3)}/${String(decided).padStart(3)}` +
+        ` | jamais finies ${String(stalled).padStart(3)}/${battles}` +
+        ` | médiane ${String(median(durations)).padStart(4)} actions`,
     );
   }
 }
 
-const parties = Number(process.argv[2] ?? "40");
-if (!Number.isInteger(parties) || parties < 1) {
+const battles = Number(process.argv[2] ?? "40");
+if (!Number.isInteger(battles) || battles < 1) {
   console.error("Usage : pnpm ai:bench [nombre de parties par affrontement]");
   process.exit(1);
 }
-relever(false, parties);
-relever(true, parties);
+report(false, battles);
+report(true, battles);

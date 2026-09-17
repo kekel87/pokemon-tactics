@@ -14,7 +14,7 @@ import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import { createPrng } from "../utils/prng";
 import { scoreAction } from "./action-scorer";
-import { EASY_PROFILE } from "./ai-profiles";
+import { EASY_PROFILE, HARD_PROFILE } from "./ai-profiles";
 
 function buildEngine(
   attackerOverrides: Partial<PokemonInstance> = {},
@@ -400,6 +400,16 @@ describe("scoreAction", () => {
   });
 });
 
+/*
+ * 🔴 Ces tests passent en HARD_PROFILE au plan 214, et ce n'est pas un ajustement de confort.
+ *
+ * Le positionnement préparatoire de l'éjection (volets A3/A4) est devenu une CAPACITÉ de palier
+ * (`AiCapabilities.ringOutSetup`) et non plus un comportement commun : la mesure avait montré que les
+ * trois niveaux étaient indiscernables parce que tous les volets tactiques tournaient à l'identique.
+ * Facile et Moyenne jouent désormais l'éjection quand elle tombe, sans la CHERCHER — c'est
+ * précisément ce qui doit se voir en jouant. Ces deux tests vérifient la capacité, donc le palier qui
+ * la porte.
+ */
 describe("ring-out positioning (plan 172)", () => {
   it("A3: scores moving to an aligning tile higher when the knockback would ring a foe out", () => {
     const data = loadData();
@@ -434,7 +444,7 @@ describe("ring-out positioning (plan 172)", () => {
         gameState,
         moveRegistry,
         engine,
-        EASY_PROFILE,
+        HARD_PROFILE,
       );
     }
 
@@ -474,7 +484,7 @@ describe("ring-out positioning (plan 172)", () => {
         gameState,
         moveRegistry,
         engine,
-        EASY_PROFILE,
+        HARD_PROFILE,
       );
     }
 

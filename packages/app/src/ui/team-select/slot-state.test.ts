@@ -4,7 +4,6 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("../../team/team-storage", () => ({ loadTeam: () => null }));
 vi.mock("../../team/last-selection", () => ({
   loadLastSelection: () => [],
-  // Stub muet : le test ne lit jamais ce qui serait écrit, seulement ce qui est composé.
   saveLastSelectionEntry: () => undefined,
 }));
 
@@ -35,11 +34,6 @@ describe("setSlotController — le niveau d'IA (plan 214)", () => {
     expect(slot.aiDifficulty).toBe(AiDifficulty.Hard);
   });
 
-  /*
-   * 🔴 Le cas qui casserait l'écran sans ce test : le segment du plan 214 porte TROIS boutons IA.
-   * Passer de « IA Moyenne » à « IA Difficile » ne change pas le contrôleur — l'ancienne garde
-   * `slot.controller === controller` rendait donc `false` et la bascule était MUETTE.
-   */
   it("change le seul niveau d'une place déjà tenue par l'IA", () => {
     const slot = aiSlot(AiDifficulty.Medium);
 
@@ -47,10 +41,6 @@ describe("setSlotController — le niveau d'IA (plan 214)", () => {
     expect(slot.aiDifficulty).toBe(AiDifficulty.Hard);
   });
 
-  /*
-   * L'équipe aléatoire déjà tirée pour cette place ne doit PAS être re-tirée en changeant le niveau :
-   * l'humain verrait son adversaire changer d'équipe sous ses yeux pour avoir touché la difficulté.
-   */
   it("garde l'équipe déjà tirée en changeant le niveau", () => {
     const slot = aiSlot(AiDifficulty.Easy);
     slot.assignedTeam = { name: "Équipe éphémère", slots: [] } as never;

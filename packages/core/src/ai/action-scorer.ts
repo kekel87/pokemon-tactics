@@ -37,6 +37,7 @@ import { TerrainType } from "../enums/terrain-type";
 import type { Action } from "../types/action";
 import type { AiProfile } from "../types/ai-profile";
 import type { BattleState } from "../types/battle-state";
+import type { Effect } from "../types/effect";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
@@ -125,8 +126,30 @@ function applyCtWeight(score: number, securesKo: boolean, move: MoveDefinition):
   return score * ctFactor;
 }
 
-/** Les 5 crans de stats de combat (hors Précision / Esquive) — base des heuristiques buff/setup. */
-const BATTLE_STAT_STAGES = BATTLE_STAT_STAGE_NAMES;
+/**
+ * Part de `killPotential` que vaut une cible à l'agonie, pour la capacité `focusFire`.
+ *
+ * 0,4 : assez pour départager deux cibles à dégâts comparables — ce qui est le but — sans approcher
+ * le crédit d'un K.O. réel (`killPotential` plein), qui doit rester le choix dominant quand il est
+ * disponible.
+ */
+const FOCUS_FIRE_SHARE = 0.4;
+
+/**
+ * Portée en cases au-delà de laquelle un ennemi n'est plus compté comme une menace pour la case visée.
+ *
+ * 6 : la portée maximale d'une capacité du roster plus un déplacement ordinaire. Au-delà, l'ennemi ne
+ * peut pas nous atteindre au prochain tour, et l'inclure ferait fuir des cases parfaitement sûres.
+ */
+const EXPOSURE_REACH = 6;
+
+/**
+ * Part de `killPotential` que pèse une case parfaitement mortelle.
+ *
+ * 0,6 : sensible — assez pour écarter une case qui nous tue — sans jamais dépasser le crédit d'un
+ * K.O. qu'on infligerait nous-même, sinon l'IA fuirait au lieu d'achever.
+ */
+const EXPOSURE_SHARE = 0.6;
 
 /**
  * CT "tours du lanceur": weather / field / barrier durations count down on the setter's OWN turns,
@@ -469,6 +492,7 @@ function scoreUseMove(
       engine,
       weights,
       campBiasFactors(state.pokemon.values(), currentPokemon.playerId),
+      profile.capabilities,
     );
     damageScore = damage.score;
     securesKo = damage.securesKo;
@@ -1672,78 +1696,87 @@ function scoreSelfMove(
    * `-1` et non `0` : le score doit être NÉGATIF pour que `pickScoredAction` écarte l'action de son
    * `topN` (il filtre sur `score >= 0`). À 0, elle restait candidate et pouvait être piochée.
    */
-  const marge = selfBuffHeadroom(currentPokemon, move);
-  if (marge <= 0) {
+  const headroom = selfBuffHeadroom(currentPokemon, move);
+  if (headroom <= 0) {
     return -1;
   }
 
   const nearestEnemyDist = closestEnemyManhattanDistance(currentPokemon.position, enemies);
   const base = nearestEnemyDist > 2 ? weights.statChanges * 3 : weights.statChanges;
-  // Courbe de saturation : un buff vaut d'autant moins que la stat est déjà haute. Sans elle, le
-  // score reste plein de 0 à +5 puis tombe d'un coup — l'IA empilerait jusqu'à l'avant-dernier cran.
-  return base * marge;
+  // Le score suit le gain RÉEL : un move à +2 vaut moitié prix à +5, un move à +1 vaut plein tarif
+  // jusqu'à +5 puis plus rien. Voir `selfBuffHeadroom`.
+  return base * headroom;
+}
+
+/**
+ * Extrait les changements de stat d'un move vers une cible donnée, dans le bon sens.
+ *
+ * Prédicat de TYPE et non filtre nu : sans lui, `Array.filter` ne rétrécit pas le type de l'union
+ * d'effets, et chaque appelant devait rouvrir un `if (effect.kind !== …) continue` que le runtime
+ * n'atteignait jamais — trois branches mortes relevées en revue de code.
+ */
+function statChangesToward(
+  move: MoveDefinition,
+  target: EffectTarget,
+  direction: "raise" | "lower",
+): Extract<Effect, { kind: typeof EffectKind.StatChange }>[] {
+  return move.effects.filter(
+    (effect): effect is Extract<Effect, { kind: typeof EffectKind.StatChange }> =>
+      effect.kind === EffectKind.StatChange &&
+      effect.target === target &&
+      (direction === "raise" ? effect.stages > 0 : effect.stages < 0),
+  );
+}
+
+/**
+ * Part des crans encore PERDABLES par les cibles, entre 0 et 1.
+ *
+ * 0 = tout le monde est déjà au plancher sur les stats visées, donc le move ne changerait rien.
+ * Moyenne sur les couples (cible × stat visée) : un move qui vise deux ennemis dont un saturé vaut à
+ * peu près la moitié, ce qui est exactement ce qu'il fait.
+ *
+ * Aucune cible touchée rend 0 et non 1 : un malus qui n'atteint personne ne vaut rien non plus.
+ */
+function enemyDebuffHeadroom(targets: readonly PokemonInstance[], move: MoveDefinition): number {
+  const drops = statChangesToward(move, EffectTarget.Targets, "lower");
+  if (drops.length === 0) {
+    return 1;
+  }
+  if (targets.length === 0) {
+    return 0;
+  }
+  let total = 0;
+  for (const drop of drops) {
+    for (const target of targets) {
+      const current = target.statStages[drop.stat];
+      total += (current - clampStages(current, drop.stages)) / -drop.stages;
+    }
+  }
+  return total / (drops.length * targets.length);
 }
 
 /**
  * Part des crans encore GAGNABLES par ce move sur son lanceur, entre 0 et 1.
  *
- * 0 = toutes les stats visées sont au plafond, donc le move est un tour perdu. La moyenne sur les
- * stats visées plutôt que le maximum : un move qui monte deux stats dont une saturée vaut à peu près
- * la moitié de ce qu'il vaudrait sur deux stats fraîches, ce qui est exactement ce qu'il fait.
- */
-/**
- * Part des crans encore PERDABLES par les cibles, entre 0 et 1. 0 = tout le monde est au plancher sur
- * les stats visées, donc le move ne changerait rien.
+ * 0 = toutes les stats visées sont au plafond, donc le move est un tour perdu. Moyenne sur les stats
+ * visées plutôt que maximum : un move qui monte deux stats dont une saturée vaut à peu près la moitié
+ * de ce qu'il vaudrait sur deux stats fraîches, ce qui est exactement ce qu'il fait.
  *
- * Moyenne sur les couples (cible × stat visée) : un move qui vise deux ennemis dont un saturé vaut à
- * peu près la moitié, ce qui est exactement ce qu'il fait.
+ * ⚠️ **La décroissance n'est PROGRESSIVE que pour les moves à plus d'un cran**, relevé en revue de
+ * code. Un move à +1 vaut plein tarif de 0 à +5 puis bascule à 0 : il n'y a pas de demi-cran à
+ * gagner, donc rien à interpoler. La courbe n'est pas un lissage esthétique, c'est le gain réel.
  */
-function enemyDebuffHeadroom(targets: readonly PokemonInstance[], move: MoveDefinition): number {
-  const baisses = move.effects.filter(
-    (effect) =>
-      effect.kind === EffectKind.StatChange &&
-      effect.target === EffectTarget.Targets &&
-      effect.stages < 0,
-  );
-  if (baisses.length === 0 || targets.length === 0) {
-    return 1;
-  }
-  let total = 0;
-  let comptes = 0;
-  for (const baisse of baisses) {
-    if (baisse.kind !== EffectKind.StatChange) {
-      continue;
-    }
-    for (const cible of targets) {
-      const actuel = cible.statStages[baisse.stat];
-      const perdus = actuel - clampStages(actuel, baisse.stages);
-      total += perdus / -baisse.stages;
-      comptes++;
-    }
-  }
-  return comptes === 0 ? 1 : total / comptes;
-}
-
 function selfBuffHeadroom(caster: PokemonInstance, move: MoveDefinition): number {
-  const montees = move.effects.filter(
-    (effect) =>
-      effect.kind === EffectKind.StatChange &&
-      effect.target === EffectTarget.Self &&
-      effect.stages > 0,
-  );
-  if (montees.length === 0) {
+  const raises = statChangesToward(move, EffectTarget.Self, "raise");
+  if (raises.length === 0) {
     return 1;
   }
   let total = 0;
-  for (const montee of montees) {
-    if (montee.kind !== EffectKind.StatChange) {
-      continue;
-    }
-    const actuel = caster.statStages[montee.stat];
-    const gagnes = clampStages(actuel, montee.stages) - actuel;
-    total += gagnes / montee.stages;
+  for (const raise of raises) {
+    const current = caster.statStages[raise.stat];
+    total += (clampStages(current, raise.stages) - current) / raise.stages;
   }
-  return total / montees.length;
+  return total / raises.length;
 }
 
 function findAt(list: readonly PokemonInstance[], position: Position): PokemonInstance | undefined {
@@ -1766,7 +1799,7 @@ function sacrificeCost(
 /** Somme des crans de stats de combat POSITIFS d'un mon (déni de setup). */
 function positiveStatStageSum(mon: PokemonInstance): number {
   let total = 0;
-  for (const stat of BATTLE_STAT_STAGES) {
+  for (const stat of BATTLE_STAT_STAGE_NAMES) {
     const stage = mon.statStages[stat];
     if (stage > 0) {
       total += stage;
@@ -1926,7 +1959,7 @@ function scoreAcupressure(
   if (!target) {
     return -1;
   }
-  const stages = sumStatStages(target, BATTLE_STAT_STAGES);
+  const stages = sumStatStages(target, BATTLE_STAT_STAGE_NAMES);
   if (stages >= 30) {
     return -1;
   }
@@ -2486,6 +2519,7 @@ function scoreDamagingMove(
   engine: BattleEngine,
   weights: AiProfile["scoringWeights"],
   campFactors: ReadonlyMap<string, number>,
+  capabilities: AiProfile["capabilities"],
 ): { score: number; securesKo: boolean } {
   let totalScore = 0;
   let securesKo = false;
@@ -2519,6 +2553,22 @@ function scoreDamagingMove(
       targetScore += weights.typeAdvantage;
     } else if (estimate.effectiveness < 1 && estimate.effectiveness > 0) {
       targetScore -= weights.typeAdvantage * 0.5;
+    }
+
+    /*
+     * CONCENTRATION DU FEU (plan 214, capacité `focusFire`) : achever ce qui est déjà entamé.
+     *
+     * Pourquoi ça manquait alors que l'état est séquentiel — donc qu'une cible blessée par un allié a
+     * déjà moins de PV quand l'unité suivante calcule : parce que `killPotential` est un quasi-
+     * tout-ou-rien. Au-dessus du seuil de K.O. il donne 10 ; en dessous, un ratio de dégâts que
+     * `typeAdvantage` et `positioning`, de magnitude comparable, noient aussitôt. Une cible à 15 % de
+     * PV qu'on ne peut pas finir CE tour ne pesait donc pas plus qu'une cible intacte.
+     *
+     * Le bonus croît quand les PV restants descendent, et il est nul sur une cible intacte.
+     */
+    if (capabilities.focusFire) {
+      const partManquante = 1 - target.currentHp / Math.max(1, target.maxHp);
+      targetScore += partManquante * weights.killPotential * FOCUS_FIRE_SHARE;
     }
 
     /*
@@ -2678,18 +2728,80 @@ function scoreMove(
   );
   score += attackBonus;
 
-  // Sécurité défensive du ring-out (plan 172, volet A4) : fuir une case d'où un ennemi à recul
-  // m'éjecterait fatalement. Coût borné (cf. JSDoc de la fonction).
-  score += evaluateKnockbackVulnerability(
-    currentPokemon,
-    destination,
-    enemies,
-    moveRegistry,
-    engine,
-    weights,
-  );
+  /*
+   * PRÉPARATION DE L'ÉJECTION (volets A3/A4, plan 172) — désormais une CAPACITÉ (plan 214).
+   *
+   * Se déplacer pour préparer, ou pour fuir, une éjection fatale par recul est un raisonnement
+   * avancé : c'est exactement le genre de considération qui rend une IA reconnaissable en jouant.
+   * Facile et Moyenne ne l'ont plus ; elles jouent l'éjection quand elle tombe, sans la chercher.
+   */
+  if (profile.capabilities.ringOutSetup) {
+    // Sécurité défensive du ring-out (plan 172, volet A4) : fuir une case d'où un ennemi à recul
+    // m'éjecterait fatalement. Coût borné (cf. JSDoc de la fonction).
+    score += evaluateKnockbackVulnerability(
+      currentPokemon,
+      destination,
+      enemies,
+      moveRegistry,
+      engine,
+      weights,
+    );
+  }
+
+  /*
+   * CONSCIENCE DU RISQUE (plan 214, capacité `riskAwareness`) : ne pas avancer sur une case d'où
+   * l'adversaire nous met K.O.
+   *
+   * Le patron dominant du genre est une CARTE DE MENACE statique, pas une simulation : Wargroove
+   * (« Threat Assessment »), XCOM (`MoveWeightProfiles`). La primitive existait déjà chez nous —
+   * `bestEnemyDamageAgainst` — mais n'était lue que pour le cas du recul. À l'inverse, l'IA de Fire
+   * Emblem est connue et moquée pour ne JAMAIS évaluer son propre danger : elle attaque à dégât nul
+   * en se faisant tuer au contre. C'était notre trou exact.
+   *
+   * La pénalité est NON LINÉAIRE en PV restants (« response curve ») : à pleine vie, encaisser un
+   * coup est un coût ordinaire ; à 20 % de PV, la même case est mortelle. Un facteur linéaire
+   * sous-pondérerait la panique quand elle est justifiée.
+   */
+  if (profile.capabilities.riskAwareness) {
+    score -= exposurePenalty(currentPokemon, destination, enemies, engine, weights);
+  }
 
   return score;
+}
+
+/**
+ * Coût d'aller se poser sur `destination` : ce que le plus dangereux des ennemis peut y infliger,
+ * amplifié quand il ne nous reste plus grand-chose.
+ *
+ * Lit l'état courant, ne simule rien — même classe de coût que le reste du scorer. La position des
+ * ennemis n'est pas projetée : c'est une approximation assumée, celle que le genre emploie.
+ */
+function exposurePenalty(
+  pokemon: PokemonInstance,
+  destination: Position,
+  enemies: readonly PokemonInstance[],
+  engine: BattleEngine,
+  weights: AiProfile["scoringWeights"],
+): number {
+  let pireDegat = 0;
+  for (const enemy of enemies) {
+    const distance = manhattanDistance(enemy.position, destination);
+    // Hors de portée de tout : une menace qui ne peut pas nous atteindre depuis là n'en est pas une.
+    if (distance > EXPOSURE_REACH) {
+      continue;
+    }
+    const degat = bestEnemyDamageAgainst(enemy, pokemon, engine);
+    if (degat > pireDegat) {
+      pireDegat = degat;
+    }
+  }
+  if (pireDegat <= 0) {
+    return 0;
+  }
+  const partSubie = Math.min(1, pireDegat / Math.max(1, pokemon.currentHp));
+  // Carré et non linéaire : une case qui nous coûte la moitié de nos PV restants est gênante, une
+  // case qui nous en coûte la totalité est à fuir — l'écart entre les deux doit être franc.
+  return partSubie * partSubie * weights.killPotential * EXPOSURE_SHARE;
 }
 
 function evaluateAttacksFromPosition(

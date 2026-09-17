@@ -10,15 +10,20 @@ import type { PokemonInstance } from "../types/pokemon-instance";
 import type { RandomFn } from "../utils/prng";
 import { scoreAction } from "./action-scorer";
 import { pickAiHitAndRunRetreat } from "./pick-hit-and-run-retreat";
+import { MAX_REPETITION_SIGNAL } from "./repetition-guard";
 
 /**
  * Nombre de passages par la MÊME position toléré avant que le filet ne dévie le choix.
  *
- * 2 et non 1 : repasser une fois par une position est banal — deux Pokemon qui se croisent, un tour
- * de recharge. C'est la TROISIÈME occurrence qui dit qu'on tourne, et c'est aussi le seuil des échecs
- * (triple répétition).
+ * 2 et non 1 : repasser une fois par une position est banal — deux Pokemon qui se croisent, un tour de
+ * recharge. C'est la TROISIÈME occurrence qui dit qu'on tourne, et c'est le seuil des échecs (triple
+ * répétition).
+ *
+ * ⚠️ Doit rester STRICTEMENT inférieur à `MAX_REPETITION_SIGNAL`, sinon le filet ne dévie jamais —
+ * son signal plafonné n'atteindrait pas ce seuil. Un test tient ce contrat : les deux constantes
+ * vivent dans des fichiers différents et rien d'autre ne les relie.
  */
-const REPETITIONS_TOLEREES = 2;
+const TOLERATED_REPEATS = 2;
 
 export function pickScoredAction(
   legalActions: Action[],
@@ -28,9 +33,10 @@ export function pickScoredAction(
   profile: AiProfile,
   random: RandomFn,
   /**
-   * Combien de fois cette position a DÉJÀ été vue (`RepetitionGuard.observe`). Au-delà de
-   * `REPETITIONS_TOLEREES`, le choix se décale dans le classement — l'IA joue autre chose au lieu de
-   * rejouer l'optimum qui l'a ramenée ici. Omis : aucun filet, comportement d'avant le plan 214.
+   * Signal du filet anti-boucle (`RepetitionGuard.observe`), déjà plafonné à
+   * `MAX_REPETITION_SIGNAL`. Au-delà de `TOLERATED_REPEATS`, le choix se décale dans le classement :
+   * l'IA joue autre chose au lieu de rejouer l'optimum qui l'a ramenée ici. Omis : aucun filet,
+   * comportement d'avant le plan 214.
    */
   repetitions = 0,
 ): Action {
@@ -60,24 +66,32 @@ export function pickScoredAction(
   const topN = (viable.length > 0 ? viable : scored).slice(0, Math.max(1, profile.topN));
 
   let picked: Action;
-  if (repetitions > REPETITIONS_TOLEREES) {
+  if (repetitions > TOLERATED_REPEATS) {
     /*
      * 🔴 On tourne en rond : on DÉVIE, au lieu de rejouer l'optimum qui nous a ramenés ici.
      *
      * Le décalage se prend sur le classement COMPLET et non sur `topN` : à Difficile `topN` vaut 1,
      * donc dévier à l'intérieur n'aurait aucun effet — or c'est justement Difficile contre Difficile
-     * qui bouclait le plus (7 parties sur 40 après le correctif de cause, mesuré au banc).
+     * qui bouclait le plus.
      *
-     * Le décalage CROÎT avec le nombre de répétitions : si le deuxième choix ramène lui aussi à une
-     * position connue, on descend au troisième, et ainsi de suite. C'est ce qui garantit d'en sortir
-     * plutôt que d'osciller entre deux boucles.
+     * 🔴 **Il est BORNÉ**, parce que la première version ne l'était pas : le signal brut montait à 10
+     * et poussait le choix jusqu'à 8 rangs plus bas, sur 341 actions d'une même partie — sans la
+     * débloquer. Une IA qui joue de plus en plus mal ALLONGE les parties. Le plafond vit sur
+     * `MAX_REPETITION_SIGNAL`, du côté du filet, donc un seul endroit le fixe.
      *
      * Déterministe de bout en bout : aucun appel à `random`, un simple index dans une liste triée.
      * Les deux pairs d'une partie en ligne dévient donc au même tour, vers la même action.
      */
-    const classement = viable.length > 0 ? viable : scored;
-    const decalage = Math.min(repetitions - REPETITIONS_TOLEREES, classement.length - 1);
-    picked = classement[decalage]?.action ?? first;
+    const ranking = viable.length > 0 ? viable : scored;
+    /*
+     * Re-plafonné ICI et pas seulement dans le filet, et ce n'est pas de la redondance : la signature
+     * accepte n'importe quel entier, donc un appelant qui passerait un compteur brut contournerait la
+     * borne. Le contrat « on ne descend jamais de plus de N rangs » doit tenir depuis cette fonction,
+     * seule responsable du choix.
+     */
+    const signal = Math.min(repetitions, MAX_REPETITION_SIGNAL);
+    const shift = Math.min(signal - TOLERATED_REPEATS, ranking.length - 1);
+    picked = ranking[shift]?.action ?? first;
   } else if (profile.randomWeight <= 0) {
     picked = topN[0]?.action ?? first;
   } else if (random() < profile.randomWeight) {

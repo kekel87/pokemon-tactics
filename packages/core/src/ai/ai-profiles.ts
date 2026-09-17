@@ -11,6 +11,9 @@ export const EASY_PROFILE: AiProfile = {
     positioning: 2,
     statChanges: 1,
   },
+  // Facile ne regarde RIEN au-delà du coup immédiat : ni le danger de la case où il va, ni les cibles
+  // déjà blessées, ni une éjection à préparer. C'est ce qui le rend reconnaissable en jouant.
+  capabilities: { riskAwareness: false, focusFire: false, ringOutSetup: false },
 };
 
 export const MEDIUM_PROFILE: AiProfile = {
@@ -23,6 +26,8 @@ export const MEDIUM_PROFILE: AiProfile = {
     positioning: 2,
     statChanges: 1,
   },
+  // Moyenne achève ce qui est déjà entamé, mais ne se protège pas et ne prépare rien.
+  capabilities: { riskAwareness: false, focusFire: true, ringOutSetup: false },
 };
 
 export const HARD_PROFILE: AiProfile = {
@@ -35,6 +40,8 @@ export const HARD_PROFILE: AiProfile = {
     positioning: 3,
     statChanges: 2,
   },
+  // Difficile voit tout : il achève, il se protège, et il prépare ses éjections.
+  capabilities: { riskAwareness: true, focusFire: true, ringOutSetup: true },
 };
 
 /**
