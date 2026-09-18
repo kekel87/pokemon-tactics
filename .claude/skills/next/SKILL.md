@@ -74,5 +74,9 @@ suite est la même : **plan rédigé** (`docs/plans/xxx-name.md`), puis le menu 
 (`plan-reviewer` coché, `game-designer` si mécaniques jeu — **jamais** d'option « commiter le plan »).
 Ne jamais partir coder directement après une discussion.
 
-Ensuite : dev **d'un trait**, sans arrêt de phase, jusqu'à l'arrêt 1 (« Tu testes ? »). Détail :
-section « Le workflow — DEUX arrêts » de `CLAUDE.md`.
+Le plan porte en tête **3 à 5 lignes de « ce que tu verras à l'écran »** — le résultat observable,
+lisible en 30 s. C'est le seul point de contrôle pas cher avant que tout soit codé.
+
+Ensuite : dev **d'un trait**, sans arrêt de phase, jusqu'à l'arrêt 1 (« Tu testes ? »). Une seule
+exception : le **coupe-circuit de dérive de plan**. Détail : section « Le workflow — DEUX arrêts »
+de `CLAUDE.md`.

@@ -112,7 +112,13 @@ d'un échange est une décision comme une autre → on enchaîne sur le plan.
 
 #### 2. Plan
 
-Plan rédigé (`docs/plans/xxx-name.md`), puis **un seul** `AskUserQuestion` :
+Plan rédigé (`docs/plans/xxx-name.md`). 🔴 **En tête, avant tout le reste : 3 à 5 lignes en français
+de « ce que tu verras à l'écran »** — le résultat observable, pas l'architecture, lisible en 30
+secondes. Le dev se faisant désormais d'un trait, c'est le **seul point de contrôle pas cher** : le
+coût d'une erreur de cadrage a été transféré du milieu du chantier vers son début. Ces lignes sont
+l'endroit où l'humain dit « non, pas ça » pour le prix d'une phrase.
+
+Puis **un seul** `AskUserQuestion` :
 
 | Option | Pré-coché si |
 |--------|--------------|
@@ -145,6 +151,15 @@ Claude ne fait **pas** : `/ci-gate`, `pnpm build`, e2e (ciblés ou complets), te
 core, lint de finition, commits. Ce sont des **cases du menu final**, elles viennent **après** la
 recette humaine.
 
+🔴 **Coupe-circuit de dérive de plan — la SEULE exception au dev d'un trait.** Si l'exécution
+s'écarte sérieusement du plan validé — dépendance nouvelle, fichier hors périmètre, mécanique non
+prévue, hypothèse du plan démentie par le code — Claude **s'arrête et remonte**, au lieu de finir sur
+sa lancée. Fondement (Reinertsen, *Principles of Product Development Flow*) : le gros lot n'est un
+bon calcul économique que tant que le plan reste une **bonne prédiction du travail réel**. Dès qu'il
+cesse de l'être, le gros lot perd sa justification et on dérive loin avant que quiconque le voie.
+Ce n'est pas un point d'étape déguisé : une gêne, une idée d'amélioration ou une hésitation de style
+ne déclenchent rien.
+
 ⚠️ Deux méprises historiques, symétriques, à ne pas rejouer :
 - 2026-09-10 (plan 203) : « fais le plan en entier » lu comme « n'affiche plus le menu du tout ».
   Non — le menu final reste obligatoire.
@@ -157,7 +172,10 @@ recette humaine.
 Code écrit, typecheck vert. Claude :
 1. `git status --porcelain`
 2. **Résume ce qu'il a fait** (court).
-3. Pose **une seule question**, `AskUserQuestion` : **« Tu testes ? »** → `oui` / `non`.
+3. Pose **une seule question**, `AskUserQuestion` : **« Tu testes ? »** → `oui` / `non`, en
+   annonçant le **nombre de scénarios** prévus, pour que l'humain arbitre en connaissance de cause
+   (et puisse répondre « juste le premier »). 🔴 **Jamais d'estimation de durée** — les modèles sont
+   mauvais à ça, un chiffre inventé vaut moins que pas de chiffre (règle donnée le 2026-09-18).
 
 🔴 **Rien d'autre à cet arrêt.** Pas de menu de chaîne, pas de gate, pas d'e2e. Une question.
 
@@ -194,17 +212,20 @@ demande). Fin de session (« fin », `/status`) → ajouter `session-closer` (4e
 
 #### Ordre d'exécution du menu
 
-`commit WIP → core-guardian → code-reviewer → /code-review → [MENU] → tests (test-writer) → /simplify (sur les tests) → doc-keeper → [re-test humain, conditionnel] → /ci-gate full → commit + push (amende le WIP)`
+`commit WIP → core-guardian → code-reviewer → /code-review → [MENU] → tests (test-writer) → /simplify (sur les tests) → doc-keeper → [résumé du diff WIP→final] → /ci-gate full → commit + push (amende le WIP)`
 
 Stop sur fail bloquant (`core-guardian` UI-dep, `code-reviewer` ou `/code-review` Critical, `/ci-gate` rouge, contrôle
 injoignable au clavier ou au pad).
 
-🔴 **Re-test humain — conditionnel.** On ne redemande à l'humain de tester **que si la chaîne a
-retouché du code hors tests unitaires / e2e** (correction de review, standardisation, refacto
-doc-keeper). Si la chaîne n'a ajouté que des tests, on va droit au gate et au commit.
+🔴 **Résumé du diff WIP→final — à la place du re-test systématique.** Si la chaîne a retouché du
+code **hors tests unitaires / e2e** (correction de review, standardisation, refacto doc-keeper),
+Claude montre en **3 lignes ce qu'elle a changé** (`git diff <commit WIP>..` résumé en français) et
+**l'humain décide** si ça mérite un coup d'œil. Un aller-retour complet remplacé par une phrase.
+Si la chaîne n'a ajouté que des tests, rien à montrer : droit au gate et au commit.
 Origine du garde-fou : plan 166, une « standardisation » post-validation auto-vérifiée à tort a
-écrasé le rendu et fut poussée (mémoire `feedback_wip_commit_retest_before_final`). La condition
-ci-dessus le garde là où il sert, sans imposer un aller-retour quand rien de visible n'a bougé.
+écrasé le rendu et fut poussée (mémoire `feedback_wip_commit_retest_before_final`). 🔴 **Le jugement
+revient à l'humain, pas à Claude** — c'est précisément sur une auto-évaluation de Claude que le plan
+166 a dérapé.
 
 #### Commits — sans validation de message
 
@@ -220,6 +241,9 @@ Un truc découvert pendant le dev :
 
 🔴 **Zéro « reste à faire » ajouté de ma propre initiative.** Pas de TODO, pas de section « suites
 possibles », **rien au backlog ni à l'agenda du graphe sans accord explicite de l'humain.**
+Appliqué par le hook `block-backlog-write.py`, qui refuse `--add backlog` **et** `--add agenda`.
+Seule sortie, déclarative : la clôture de session (`PT_CLOTURE=1` en préfixe), quand l'humain a
+lui-même dit « fin » ou lancé `/status`.
 
 #### `human-testing` — mode interactif
 
@@ -250,6 +274,15 @@ Je ne dump pas tout, je déroule **un scénario à la fois**, je lance, tu regar
 - **Gate local** : `/ci-gate fast` (~43 s) = boucle d'itération, **tour des 10 écrans compris** ; `/ci-gate full` (~80 s sur un diff normal) = **BLOQUANT avant commit**, avec l'e2e ciblé par `scripts/e2e-affected.ts`. `slow` = filet exhaustif local (recours hors ligne)
 - **Suite e2e complète = sur GitHub, asynchrone** (`.github/workflows/e2e.yml`, 531 tests en 8 tranches, **~5 min**, sur `push` vers `main` + chaque nuit). Elle **ne bloque jamais**. Verdict : `pnpm e2e:status` / skill `/e2e-status`, lu en tête de `/next`. 🔴 **On ne l'attend JAMAIS** (ni `gh run watch`, ni boucle de sondage) — décision #925. 🔴 **Pas de `/publish` sur un rouge** — décision #924
 - Reporté → graphe de mémoire, entités `agenda`
+- 🔴 **Vocabulaire des rapports de revue** : jamais « ✅ tout est bon ». Dire **« aucune anomalie
+  détectée par les règles connues, non exhaustif »**. Un verdict absolu pousse au tampon automatique ;
+  un libellé qui rappelle les limites de l'outil réduit mécaniquement la sur-confiance (littérature
+  sur l'*approval fatigue* et le biais d'automatisation, recherche du 2026-09-18). Vaut pour
+  `code-reviewer`, `/code-review`, `core-guardian`, le gate et les agents de test
+- **Métriques de calibrage des lots** — `doc-keeper` consigne au graphe, à chaque lot : le **nombre
+  de retours de l'humain en recette** et le **nombre de correctifs dans les 24-48 h suivant le
+  commit**. Ce sont les deux proxies de « le lot était-il bien calibré ». Au bout de quelques lots,
+  on ajuste la taille des lots sur des chiffres au lieu du ressenti
 
 ## Skills
 

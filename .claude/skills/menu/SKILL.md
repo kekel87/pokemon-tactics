@@ -9,7 +9,8 @@ Pop le menu de finalisation **maintenant**, sans attendre la fin d'une impl.
 **Déclencheurs** : `/menu`, ou le mot **`menu`** seul envoyé en message (même mid-session, hors run).
 
 ⚠️ Ce menu est l'**arrêt 2** du workflow. L'arrêt 1 (« Tu testes ? ») est une question séparée, une
-seule option oui/non, posée dès que le code est écrit et que `/simplify` est passé dessus. Si la recette humaine n'a pas encore eu lieu
+seule option oui/non, posée dès que le code est écrit et que `/simplify` est passé dessus — en
+annonçant le **nombre de scénarios**, jamais une durée. Si la recette humaine n'a pas encore eu lieu
 et que le changement est observable, pose d'abord cette question-là — sauf si l'humain demande
 explicitement le menu.
 
@@ -43,15 +44,24 @@ explicitement le menu.
    - `visual-tester` n'est **jamais** dans le menu auto (≥2 min Playwright) — l'humain le demande.
 
 4. Attends la sélection humaine. Exécute en **ordre fixe** :
-   `tests (test-writer) → /simplify (sur les tests) → doc-keeper → [re-test humain, conditionnel] → /ci-gate full → commit + push (amende le WIP)`
+   `tests (test-writer) → /simplify (sur les tests) → doc-keeper → [résumé du diff WIP→final] → /ci-gate full → commit + push (amende le WIP)`
 5. **Stop sur fail bloquant** (`core-guardian` UI-dep, `code-reviewer` ou `/code-review` Critical, `/ci-gate` rouge,
    contrôle injoignable au clavier ou au pad).
 
-## Re-test humain — conditionnel
+## Résumé du diff WIP→final — à la place du re-test systématique
 
-Ne redemande à l'humain de tester **que si la chaîne a retouché du code hors tests unitaires / e2e**
-(correction de review, standardisation, refacto doc-keeper). Si la chaîne n'a ajouté que des tests →
-droit au gate et au commit.
+Si la chaîne a retouché du code **hors tests unitaires / e2e** (correction de review,
+standardisation, refacto doc-keeper), montrer en **3 lignes en français ce qu'elle a changé**
+(`git diff <commit WIP>..`) et **laisser l'humain décider** si ça mérite un coup d'œil. Si elle n'a
+ajouté que des tests → droit au gate et au commit.
+
+🔴 Le jugement revient à l'humain, pas à Claude : c'est sur une auto-évaluation de Claude que le
+plan 166 a dérapé.
+
+## Vocabulaire des rapports
+
+Jamais « ✅ tout est bon ». Dire **« aucune anomalie détectée par les règles connues, non
+exhaustif »** — contre-mesure au tampon automatique.
 
 ## Règles
 

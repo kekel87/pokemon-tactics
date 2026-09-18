@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""PreToolUse : interdit toute écriture dans docs/backlog.md sans accord explicite.
+"""PreToolUse : interdit d'inscrire un reste-à-faire (backlog, agenda) sans accord.
 
 Origine : le 2026-09-05, un défaut PRÉ-EXISTANT (segments de format à 26 px) a été
 inscrit au backlog puis signalé à l'humain APRÈS. Signaler après n'est pas demander.
@@ -23,6 +23,17 @@ CIBLE = "docs/backlog.md"
 # Écriture d'une dette dans le graphe, par le client ou par l'outil MCP.
 ECRITURE_GRAPHE = re.compile(
     r"query\.mjs\b.*--add\s+backlog\b|--add\s+backlog\b.*query\.mjs", re.IGNORECASE)
+# 2026-09-18 : l'humain a étendu la règle — « arrête d'ajouter des restes à faire ».
+# L'agenda était le contournement restant : `--add agenda` rangeait un reste-à-faire
+# sans le moindre frottement, exactement ce que `--add backlog` ne pouvait plus faire.
+ECRITURE_AGENDA = re.compile(
+    r"query\.mjs\b.*--add\s+agenda\b|--add\s+agenda\b.*query\.mjs", re.IGNORECASE)
+# Seule sortie : la CLÔTURE de session, où l'humain a lui-même dit « fin » ou lancé
+# `/status`. `session-closer` doit alors réécrire le pointeur d'agenda. Le hook ne
+# peut pas reconnaître l'agent appelant, donc l'exception est déclarative :
+# `PT_CLOTURE=1 node scripts/memory/query.mjs --add agenda …`. C'est un ralentisseur,
+# pas un verrou — il force à nommer l'intention, il n'empêche personne de mentir.
+EXEMPTION_CLOTURE = re.compile(r"\bPT_CLOTURE=1\b")
 MESSAGE = (
     "Enregistrement d'une dette bloqué : le backlog est la liste de dette ACCEPTÉE "
     "par l'humain. Y ajouter une entrée revient à décider à sa place qu'un défaut "
@@ -35,11 +46,22 @@ MESSAGE = (
 )
 
 
-def refuse():
+MESSAGE_AGENDA = (
+    "Enregistrement d'un reste-à-faire bloqué. Règle de l'humain (2026-09-18) : "
+    "« arrête d'ajouter des restes à faire ; si tu trouves un truc en route, on en "
+    "discute ». Rien au backlog NI à l'agenda sans son accord explicite.\n\n"
+    "Le geste attendu, en chat, AVANT toute écriture : « j'ai trouvé <le défaut> — "
+    "besoin de ta décision, ou j'avance ? »\n\n"
+    "Exception unique — la CLÔTURE de session, quand l'humain a dit « fin » ou lancé "
+    "`/status` : relancer la commande préfixée de `PT_CLOTURE=1`."
+)
+
+
+def refuse(message=None):
     print(json.dumps({"hookSpecificOutput": {
         "hookEventName": "PreToolUse",
         "permissionDecision": "deny",
-        "permissionDecisionReason": MESSAGE,
+        "permissionDecisionReason": message or MESSAGE,
     }}))
 
 
@@ -49,8 +71,11 @@ def main():
     entree = charge.get("tool_input") or {}
 
     if outil == "Bash":
-        if ECRITURE_GRAPHE.search(str(entree.get("command", ""))):
+        commande = str(entree.get("command", ""))
+        if ECRITURE_GRAPHE.search(commande):
             refuse()
+        elif ECRITURE_AGENDA.search(commande) and not EXEMPTION_CLOTURE.search(commande):
+            refuse(MESSAGE_AGENDA)
         return
     if outil.startswith("mcp__memory__") and "backlog" in json.dumps(entree).lower():
         refuse()
