@@ -31,8 +31,13 @@ fi
 # Merge : seul le fast-forward (--ff-only) est autorise (non destructif, refuse
 # proprement si divergence). Tout autre merge (merge-commit, --no-ff, --squash,
 # merge nu) reste interdit => l'humain le fait dans son GUI. Voir skill /worktree.
+#
+# ($|[^-[:alnum:]]) et NON \b : '-' n'est pas un caractere de mot, donc 'merge\b'
+# matchait aussi 'merge-base' -- une commande de LECTURE, qui sert a verifier qu'un
+# clone n'a pas diverge avant d'ecrire. Faux positif constate le 2026-09-18, sur la
+# synchro du wiki de la v2026.9.2. La sous-commande exacte est seule visee.
 
-if echo "$COMMAND" | grep -qE '\bg[i]t\s+merge\b'; then
+if echo "$COMMAND" | grep -qE '\bg[i]t\s+merge($|[^-[:alnum:]])'; then
   if ! echo "$COMMAND" | grep -qE '[-][-]ff-only\b'; then
     echo "BLOQUE : seul 'git merge --ff-only' est autorise (non destructif). Pour un merge divergent, l'humain le fait dans son GUI." >&2
     exit 2
