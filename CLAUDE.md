@@ -112,11 +112,16 @@ d'un échange est une décision comme une autre → on enchaîne sur le plan.
 
 #### 2. Plan
 
-Plan rédigé (`docs/plans/xxx-name.md`). 🔴 **En tête, avant tout le reste : 3 à 5 lignes en français
-de « ce que tu verras à l'écran »** — le résultat observable, pas l'architecture, lisible en 30
-secondes. Le dev se faisant désormais d'un trait, c'est le **seul point de contrôle pas cher** : le
-coût d'une erreur de cadrage a été transféré du milieu du chantier vers son début. Ces lignes sont
-l'endroit où l'humain dit « non, pas ça » pour le prix d'une phrase.
+Plan rédigé (`docs/plans/xxx-name.md`), qui porte en tête une section **« Ce que tu verras à
+l'écran »** : 3 à 5 lignes en français du résultat observable, pas de l'architecture.
+
+🔴 **Ces 3-5 lignes s'affichent EN CHAT, avec la question du menu de plan.** L'humain **ne lit jamais
+le plan** — le fichier est un support pour Claude, `plan-reviewer`, `game-designer` et l'agent qui
+exécutera. Un critère d'acceptation enterré dans un fichier qu'il n'ouvre pas ne vaut rien.
+
+Le dev se faisant désormais d'un trait, ces lignes sont le **seul point de contrôle pas cher** : le
+coût d'une erreur de cadrage a été transféré du milieu du chantier vers son début. C'est là que
+l'humain dit « non, pas ça » pour le prix d'une phrase — encore faut-il qu'il les ait sous les yeux.
 
 Puis **un seul** `AskUserQuestion` :
 
