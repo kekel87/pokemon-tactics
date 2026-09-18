@@ -161,27 +161,28 @@ L'humain teste, remonte des retours, on itère jusqu'à ce qu'il valide.
 
 Seulement **après** la validation de la recette (ou un `non` à l'arrêt 1).
 
-D'abord, **sans demander** : **commit WIP** (point de restauration propre avant que la chaîne touche
-au code) et `core-guardian` si `git diff --name-only HEAD` matche `packages/core/`.
+D'abord, **sans rien demander**, dans cet ordre :
+1. **commit WIP** — point de restauration propre avant que la chaîne touche au code.
+2. **`core-guardian`** si `git diff --name-only HEAD` matche `packages/core/`.
+3. **`code-reviewer`** — **toujours**, plus au menu. Les bloquants se corrigent avant de continuer.
 
-Puis **un seul** `AskUserQuestion`, **une seule question multi-select**, 4 options :
+Puis **un seul** `AskUserQuestion`, **une seule question multi-select**, 3 options :
 
 | Option | Pré-coché si |
 |--------|--------------|
 | `tests (test-writer)` | changement observable automatisable → tests unitaires restants + scénario e2e + cahier de recette (graphe, entités `recette`). Décoché si purement pixel/anim |
-| `code-reviewer` | >50 lignes changées OU nouveau fichier source |
 | `doc-keeper` | documents `docs/` impactés, fait à consigner au graphe, nouvelle mécanique, nouveau Pokemon/move/talent |
 | `gate + commit` | **toujours** — `/ci-gate full` puis commit + push |
 
 Spéciaux : `visual-tester` n'est **jamais** dans le menu auto (≥2 min Playwright, l'humain le
-demande). Fin de session (« fin », `/status`) → ajouter `session-closer` à la place de l'option la
-moins pertinente.
+demande). Fin de session (« fin », `/status`) → ajouter `session-closer` (4e option, plafond
+`AskUserQuestion`).
 
 **Raccourci** : l'humain peut appeler ce menu à tout moment via `/menu` ou le mot **`menu`** seul.
 
 #### Ordre d'exécution du menu
 
-`tests (test-writer) → code-reviewer → doc-keeper → [re-test humain, conditionnel] → /ci-gate full → commit + push (amende le WIP)`
+`commit WIP → core-guardian → code-reviewer → [MENU] → tests (test-writer) → doc-keeper → [re-test humain, conditionnel] → /ci-gate full → commit + push (amende le WIP)`
 
 Stop sur fail bloquant (`core-guardian` UI-dep, `code-reviewer` Critical, `/ci-gate` rouge, contrôle
 injoignable au clavier ou au pad).
@@ -229,7 +230,7 @@ Je ne dump pas tout, je déroule **un scénario à la fois**, je lance, tu regar
 #### Exceptions
 
 - Changes purement config (`.claude/`, doc seule) sans code TS → pas d'arrêt recette, menu réduit (commit direct).
-- Bug fix 1 ligne sans test → arrêt recette normal, `code-reviewer` décoché par défaut.
+- Bug fix 1 ligne sans test → arrêt recette normal, `code-reviewer` sauté (il tourne sur du code, pas sur une ligne triviale).
 
 ### Règles fond
 
@@ -243,7 +244,7 @@ Je ne dump pas tout, je déroule **un scénario à la fois**, je lance, tu regar
 | Cmd | Action |
 |-----|--------|
 | `/next` | Résumé court + 2-3 candidats + recommandation |
-| `/menu` (ou mot `menu`) | Affiche le menu interactif post-impl multi-select à la demande, même mid-session |
+| `/menu` (ou mot `menu`) | Affiche le menu de finalisation (arrêt 2) à la demande, même mid-session |
 | `/review-local` | Review code changements locaux |
 | `/ci-gate [fast\|full\|slow]` | Gate CI local (lint, typecheck, build, test, integration). BLOQUANT avant commit |
 | `/commit` | Génère message commit conventional court via agent `commit-message`, puis commit + push directement. Pas de validation du message |

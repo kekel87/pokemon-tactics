@@ -18,16 +18,16 @@ explicitement le menu.
 1. Calcule le contexte de pré-cochage :
    - `git status --porcelain` (fichiers modifiés ; rien → préviens et propose quand même le menu réduit).
    - `git diff --name-only HEAD` (détecte `packages/core/`, nouveaux fichiers, nb lignes).
-2. **Sans demander**, avant le menu :
+2. **Sans rien demander**, avant le menu, dans cet ordre :
    - **commit WIP** si des changements non commités existent (point de restauration propre avant que
      la chaîne touche au code — origine plan 166).
    - `core-guardian` si le diff matche `packages/core/`.
-3. Présente **un seul** `AskUserQuestion`, **une seule question multiSelect**, 4 options :
+   - `code-reviewer` — **toujours**, plus au menu. Corriger les bloquants avant de continuer.
+3. Présente **un seul** `AskUserQuestion`, **une seule question multiSelect**, 3 options :
 
    | Option | Pré-coché si |
    |--------|--------------|
    | `tests (test-writer)` | changement observable automatisable → tests unitaires restants (hors core, déjà faits pendant le dev) + scénario e2e + cahier de recette (graphe, entités `recette`). Décoché si purement pixel/anim |
-   | `code-reviewer` | >50 lignes changées OU nouveau fichier source |
    | `doc-keeper` | documents `docs/` impactés, fait à consigner au graphe, nouvelle mécanique, nouveau Pokemon/move/talent |
    | `gate + commit` | **toujours coché** — `/ci-gate full` puis commit + push |
 
@@ -35,12 +35,11 @@ explicitement le menu.
    - **Plan en rédaction** (`docs/plans/*.md` draft non commit) : menu remplacé par `[x] plan-reviewer`,
      `[ ] game-designer` (si mécaniques jeu). 🔴 **Jamais d'option « commiter le plan »** — on ne le
      fait jamais.
-   - **Session fin** (« fin », `/status`) : ajoute `session-closer` à la place de l'option la moins
-     pertinente (plafond de 4 options).
+   - **Session fin** (« fin », `/status`) : ajoute `session-closer` en 4e option (plafond `AskUserQuestion`).
    - `visual-tester` n'est **jamais** dans le menu auto (≥2 min Playwright) — l'humain le demande.
 
 4. Attends la sélection humaine. Exécute en **ordre fixe** :
-   `tests (test-writer) → code-reviewer → doc-keeper → [re-test humain, conditionnel] → /ci-gate full → commit + push (amende le WIP)`
+   `tests (test-writer) → doc-keeper → [re-test humain, conditionnel] → /ci-gate full → commit + push (amende le WIP)`
 5. **Stop sur fail bloquant** (`core-guardian` UI-dep, `code-reviewer` Critical, `/ci-gate` rouge,
    contrôle injoignable au clavier ou au pad).
 
