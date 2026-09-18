@@ -21,13 +21,19 @@ import sys
 # recrée le fichier, il est protégé — et on ajoute le vrai chemin d'écriture.
 CIBLE = "docs/backlog.md"
 # Écriture d'une dette dans le graphe, par le client ou par l'outil MCP.
+# 🔴 `(?![-\w])` et NON `\b` : `-` n'est pas un caractère de mot, donc `backlog\b`
+# matchait aussi `--add backlog-résolu` — SOLDER une dette était bloqué comme si on en
+# inscrivait une neuve. Faux positif constaté le 2026-09-18, pendant la release v2026.9.2.
 ECRITURE_GRAPHE = re.compile(
-    r"query\.mjs\b.*--add\s+backlog\b|--add\s+backlog\b.*query\.mjs", re.IGNORECASE)
+    r"query\.mjs\b.*--add\s+backlog(?![-\w])|--add\s+backlog(?![-\w]).*query\.mjs",
+    re.IGNORECASE)
 # 2026-09-18 : l'humain a étendu la règle — « arrête d'ajouter des restes à faire ».
 # L'agenda était le contournement restant : `--add agenda` rangeait un reste-à-faire
 # sans le moindre frottement, exactement ce que `--add backlog` ne pouvait plus faire.
+# Même garde que ci-dessus : le type exact, jamais un type dérivé.
 ECRITURE_AGENDA = re.compile(
-    r"query\.mjs\b.*--add\s+agenda\b|--add\s+agenda\b.*query\.mjs", re.IGNORECASE)
+    r"query\.mjs\b.*--add\s+agenda(?![-\w])|--add\s+agenda(?![-\w]).*query\.mjs",
+    re.IGNORECASE)
 # Seule sortie : la CLÔTURE de session, où l'humain a lui-même dit « fin » ou lancé
 # `/status`. `session-closer` doit alors réécrire le pointeur d'agenda. Le hook ne
 # peut pas reconnaître l'agent appelant, donc l'exception est déclarative :
