@@ -35,6 +35,13 @@ export interface SandboxMemberConfig {
   ability?: string;
   /** Nature override. Omitted → rolled from the creation seed (random). */
   nature?: Nature;
+  /**
+   * Niveau de CE Pokemon, 1 à 100. Omis → `DEFAULT_BATTLE_LEVEL` (50).
+   *
+   * Le niveau appartient au Pokemon : une équipe peut mélanger les niveaux. C'est le format de
+   * partie qui les normalise quand il le décide (plan 215).
+   */
+  level?: number;
   /** Explicit spawn tile. Omitted → resolved from the format's spawn zone (+ cascade fallback). */
   position?: Position2D;
   direction?: Direction;
@@ -144,6 +151,17 @@ interface LegacySandboxConfig {
   weather?: Weather;
   weatherTurns?: number;
   fogOfWar?: boolean;
+  /**
+   * Niveau du joueur, et {@link LegacySandboxConfig.dummyLevel} celui de la cible — la forme à plat
+   * n'ayant qu'un Pokemon par camp, un niveau par camp suffit à la couvrir.
+   *
+   * 🔴 Ce normaliseur recopie champ par champ, et les fixtures e2e sont TOUTES écrites à plat : un
+   * champ que cette forme oublie est jeté EN SILENCE, donc intestable de bout en bout — la
+   * configuration paraît acceptée et n'agit jamais. Le piège est déjà tombé une fois sur ce champ.
+   */
+  level?: number;
+  /** Voir {@link LegacySandboxConfig.level}. */
+  dummyLevel?: number;
 }
 
 const LEGACY_DEFAULTS: LegacySandboxConfig = {
@@ -189,6 +207,7 @@ function fromLegacy(raw: Partial<LegacySandboxConfig>): SandboxConfig {
     heldItem: flat.heldItem,
     ability: flat.playerAbility,
     nature: flat.playerNature,
+    level: flat.level,
     position: flat.playerPosition,
     direction: flat.playerDirection,
   });
@@ -204,6 +223,7 @@ function fromLegacy(raw: Partial<LegacySandboxConfig>): SandboxConfig {
     heldItem: flat.dummyHeldItem,
     ability: flat.dummyAbility,
     nature: flat.dummyNature,
+    level: flat.dummyLevel,
     position: flat.dummyPosition,
     direction: flat.dummyDirection,
     defensiveMove: flat.dummyMove,

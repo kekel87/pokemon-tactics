@@ -27,6 +27,7 @@ pnpm dev:sandbox '{ ... }'
 | `status` | Statut du joueur | `null` | `burned`, `paralyzed`, `poisoned`, `badly_poisoned`, `frozen`, `asleep` |
 | `volatileStatus` | Statut volatil | `null` | `confused`, `seeded`, `trapped` |
 | `statStages` | Stat stages | `{}` | Objet `{"attack": 2, "defense": -1}` — valeurs -6 à +6 |
+| `level` | Niveau du joueur | `50` | 1-100 — entier, sinon le combat refuse de démarrer |
 
 ### Pokemon adversaire (Dummy)
 
@@ -36,11 +37,22 @@ pnpm dev:sandbox '{ ... }'
 | `dummyMove` | Move unique du dummy | `null` | ID de move |
 | `dummyDirection` | Direction du dummy | `south` | `north`, `south`, `east`, `west` |
 | `dummyHp` | HP du dummy en % | `100` | 1-100 |
-| `dummyLevel` | Niveau du dummy | `50` | 1-100 |
-| `dummyBaseStats` | Stats custom | `null` | Objet `{"hp":100,"attack":100,...}` |
+| `dummyLevel` | Niveau du dummy | `50` | 1-100 — entier, sinon le combat refuse de démarrer |
 | `dummyStatus` | Statut du dummy | `null` | mêmes valeurs que `status` |
 | `dummyVolatileStatus` | Statut volatil dummy | `null` | mêmes valeurs que `volatileStatus` |
 | `dummyStatStages` | Stat stages du dummy | `null` | même format que `statStages` |
+
+🔴 **Le niveau est PAR POKEMON** (plan 215, 2026-09-18) : `level` pour le joueur, `dummyLevel` pour
+la cible. Dans la forme par équipes (`teams`), il se pose sur chaque membre, à côté de `nature` et
+`heldItem` — une équipe peut donc mélanger les niveaux. Le mode Combat du jeu, lui, ramène tout le
+monde à 50 ; le bac à sable ne le fait pas, c'est ce qui permet de tester des niveaux hétérogènes.
+
+⚠️ **Deux champs de ce tableau étaient FANTÔMES**, constaté le 2026-09-18 : ils étaient documentés
+ici et le code les ignorait en silence. `dummyLevel` existe depuis le plan 215 seulement (il était
+donc faux jusque-là) ; `dummyBaseStats` n'a JAMAIS existé et vient d'être retiré. Leçon : ce tableau
+sert à fabriquer des configurations pour la recette humaine — un champ inventé fait croire à un
+scénario testé alors que le réglage n'a rien fait. Vérifier dans
+`packages/view-core/src/sandbox-config.ts` avant d'ajouter une ligne ici.
 
 ## Ce que tu fais
 

@@ -602,3 +602,47 @@ describe("calculateDamage — attackStatSource", () => {
     expect(burned).toBeLessThan(healthy);
   });
 });
+
+describe("calculateDamage — le niveau vient de l'attaquant", () => {
+  const hit = (atk: PokemonInstance): number =>
+    calculateDamage(
+      atk,
+      defender(),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
+      1.0,
+    );
+
+  it("fait moins mal au niveau 30 qu'au niveau 50, à statistiques ÉGALES", () => {
+    expect(hit(attacker({ level: 30 }))).toBeLessThan(hit(attacker({ level: 50 })));
+  });
+
+  it("fait plus mal au niveau 100 qu'au niveau 50, à statistiques égales", () => {
+    expect(hit(attacker({ level: 100 }))).toBeGreaterThan(hit(attacker({ level: 50 })));
+  });
+
+  it("ne lit PAS le niveau du défenseur", () => {
+    const contre30 = calculateDamage(
+      attacker(),
+      defender({ level: 30 }),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
+      1.0,
+    );
+    const contre50 = calculateDamage(
+      attacker(),
+      defender({ level: 50 }),
+      baseMove,
+      simpleChart,
+      [PokemonType.Normal],
+      [PokemonType.Normal],
+      1.0,
+    );
+
+    expect(contre30).toBe(contre50);
+  });
+});

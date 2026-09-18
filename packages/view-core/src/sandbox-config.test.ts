@@ -123,6 +123,55 @@ describe("normalizeSandboxConfig", () => {
     expect(normalizeSandboxConfig({ pokemon: "venusaur", fogOfWar: true }).fogOfWar).toBe(true);
   });
 
+  it("laisse le niveau absent par défaut et le pose sur le MEMBRE quand on le demande", () => {
+    expect(normalizeSandboxConfig({}).teams[0].members[0]?.level).toBeUndefined();
+    expect(
+      normalizeSandboxConfig({
+        teams: [
+          { control: "player", members: [{ pokemon: "venusaur", level: 30 }] },
+          { control: "passive", members: [{ pokemon: "dummy" }] },
+        ],
+      }).teams[0].members[0]?.level,
+    ).toBe(30);
+  });
+
+  it("garde des niveaux DIFFÉRENTS entre membres d'une même équipe", () => {
+    const config = normalizeSandboxConfig({
+      teams: [
+        {
+          control: "player",
+          members: [
+            { pokemon: "venusaur", level: 10 },
+            { pokemon: "charizard", level: 80 },
+            { pokemon: "blastoise" },
+          ],
+        },
+        { control: "passive", members: [{ pokemon: "dummy" }] },
+      ],
+    });
+
+    expect(config.teams[0].members.map((member) => member.level)).toEqual([10, 80, undefined]);
+  });
+
+  it("transmet le niveau de chaque camp depuis la forme à plat", () => {
+    const config = normalizeSandboxConfig({
+      pokemon: "venusaur",
+      level: 10,
+      dummyPokemon: "dummy",
+      dummyLevel: 80,
+    });
+
+    expect(config.teams[0].members[0]?.level).toBe(10);
+    expect(config.teams[1].members[0]?.level).toBe(80);
+  });
+
+  it("n'invente aucun niveau quand la forme à plat n'en donne pas", () => {
+    const config = normalizeSandboxConfig({ pokemon: "venusaur" });
+
+    expect(config.teams[0].members[0]?.level).toBeUndefined();
+    expect(config.teams[1].members[0]?.level).toBeUndefined();
+  });
+
   it("preserves an explicit member direction", () => {
     const config = normalizeSandboxConfig({
       pokemon: "venusaur",

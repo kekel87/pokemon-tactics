@@ -226,6 +226,7 @@ export function createSandboxBattle(
   const abilityOverrides: Record<string, string> = {};
   const natureOverrides: Record<string, Nature> = {};
   const moveOverrides: Record<string, readonly string[]> = {};
+  const levelOverrides: Record<string, number> = {};
   const occupied = new Set<string>();
 
   // Applied after creation so HP%/status/stages layer onto the built instance.
@@ -258,6 +259,9 @@ export function createSandboxBattle(
       if (member.nature) {
         natureOverrides[id] = member.nature;
       }
+      if (member.level !== undefined) {
+        levelOverrides[id] = member.level;
+      }
       if (member.moves && member.moves.length > 0) {
         moveOverrides[id] = [...member.moves];
       }
@@ -273,6 +277,7 @@ export function createSandboxBattle(
     abilityOverrides,
     natureOverrides,
     moveOverrides,
+    levelOverrides,
     seed: config.seed,
     // Seed instance creation too (nature/gender), so a fixed seed reproduces the same stat spread
     // and damage — not just combat RNG. Makes "same seed → same damage" assertable in e2e. (A member

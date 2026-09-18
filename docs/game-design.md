@@ -81,7 +81,7 @@ Combat tactique sur grille isométrique :
 | Attribut | Description |
 |----------|-------------|
 | **Stats de base** | PV, Attaque, Défense, Atk Spé, Déf Spé, Vitesse — stats officielles Pokemon |
-| **Niveau de combat** | Fixé à **50**. Stats calculées avec formule Pokemon Gen 5+ au niveau 50 (sans IV/EV pour le POC). |
+| **Niveau de combat** | **Appartient au Pokemon**, 1 à 100 ; c'est le **format de partie** qui le normalise. Le mode Combat ramène tout le monde à **50** (`adjustLevel`, modèle VGC), l'Aventure laissera chacun au sien. Stats calculées avec la formule Pokemon Gen 5+ (sans IV/EV pour le POC). Détail : plan 215. |
 | **Stats dérivées** | Mouvement, Saut, Initiative — voir [section 6b](#6b-mouvement--formule-de-portée-de-déplacement) |
 | **Types** | 18 types, faiblesses/résistances |
 | **Movepool** | Réservoir complet des moves apprenables par l'espèce — source pour le futur Team Builder (sélection des 4 actifs) |

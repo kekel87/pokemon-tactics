@@ -585,6 +585,7 @@ interface SandboxTeamMemberConfig {
   heldItem?: string;
   ability?: string;
   nature?: string;           // omis → roll aléatoire depuis le seed de création
+  level?: number;            // 1..100, omis → DEFAULT_BATTLE_LEVEL (50) — le niveau est PAR Pokemon
   position?: { x: number; y: number };
   direction?: string;
   defensiveMove?: string | null; // mode "passive" : move joué par ce membre
@@ -602,9 +603,16 @@ interface SandboxConfig {
   mapUrl?: string;
   weather?: string;
   weatherTurns?: number;
+  fogOfWar?: boolean;        // plan 176 — absent = false (le studio veut les chiffres exacts)
   teams: [SandboxTeamConfig, SandboxTeamConfig];
+  debugTiles?: SandboxDebugTiles; // plan 177 — harnais e2e uniquement
 }
 ```
+
+🔴 **Le niveau se pose PAR MEMBRE, jamais à la racine** (plan 215) : il appartient au Pokemon, et
+c'est le *format de partie* (`BattleFormatRules.adjustLevel`) qui le normalise quand il le décide —
+le mode Combat ramène tout le monde à 50. Schéma plat : `level` (joueur) et `dummyLevel` (cible),
+un par camp, la forme à plat n'ayant qu'un Pokemon de chaque côté.
 
 - **`normalizeSandboxConfig(raw)`** (`packages/view-core/src/sandbox-config.ts`) : adaptateur rétro-compat — tout schéma plat legacy (détecté via `raw.pokemon`) est mappé vers `teams` ; **tous** les fixtures e2e existants et toute URL sandbox déjà en circulation restent valides sans migration. Appelé aux 3 points de parsing (`babylon-boot.ts`, `sandbox-boot.ts`, `e2e/pages/CombatScene.ts`). Schéma plat : `playerNature`/`dummyNature` (mappés sur `members[0].nature`).
 

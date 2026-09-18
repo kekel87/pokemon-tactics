@@ -2615,3 +2615,34 @@ export const BATTLE_LOG_LONG_HISTORY = {
     },
   ],
 } as const;
+
+/**
+ * Duel témoin du niveau de combat (§5.47) : l'ATTAQUANT seul change de niveau, la cible reste au
+ * défaut (50).
+ *
+ * 🔴 C'est le point de la manœuvre. Une première version baissait le niveau du combat ENTIER, donc
+ * la cible aussi — qui défendait alors moins bien et poussait les dégâts vers le haut, à rebours de
+ * ce qu'on mesure. L'écart se creusait malgré ce contre-effet, mais l'assertion était brouillée.
+ * Le niveau appartenant au Pokemon (plan 215), on ne baisse plus que l'attaquant.
+ */
+export const BATTLE_LEVEL_FIFTY = { ...DUEL, level: 50 } as const;
+
+/** Le témoin bas. 10 plutôt que 30 : l'écart de dégâts y est franc, donc l'assertion ne dépend pas
+ *  de la variance de jet (85-100 %). */
+export const BATTLE_LEVEL_TEN = { ...DUEL, level: 10 } as const;
+
+/** Équipe aux niveaux MÉLANGÉS dans un même camp — le cas que le niveau par Pokemon débloque, et
+ *  qu'aucun réglage global ne pouvait exprimer. */
+export const BATTLE_LEVEL_MIXED = {
+  seed: 12345,
+  teams: [
+    {
+      control: "player",
+      members: [
+        { pokemon: "venusaur", level: 10, moves: ["scratch"], position: { x: 2, y: 3 } },
+        { pokemon: "charizard", level: 80, position: { x: 3, y: 3 } },
+      ],
+    },
+    { control: "passive", members: [{ pokemon: "dummy", position: { x: 2, y: 2 } }] },
+  ],
+} as const;

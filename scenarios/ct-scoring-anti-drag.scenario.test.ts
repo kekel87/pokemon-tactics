@@ -75,7 +75,18 @@ describe("scenario — CT-aware scorer stays anti-drag (plan 165)", () => {
       const phase = new PlacementPhase(map, teams, format, PlacementMode.Random, seed);
       const placements = phase.autoPlaceAll(gridCenter);
 
-      const { engine, state } = buildTestEngineFromPlacements(placements, teams);
+      /*
+       * 🔴 Le moteur reçoit SA graine, et c'est le correctif d'une instabilité réelle : sans elle
+       * il retombait sur le vrai `Math.random()` pour les jets de dégâts, les critiques et la
+       * précision, pendant que ce test assérait un plafond précis (`totalActions < 1000`). Il
+       * échouait environ une fois sur quatre en suite complète et passait toujours lancé seul.
+       * La graine du titre ne couvrait que le placement et les décisions de l'IA — pas le combat.
+       */
+      const { engine, state } = buildTestEngineFromPlacements(
+        placements,
+        teams,
+        createPrng(seed + 2),
+      );
 
       const player1Random = createPrng(seed);
       const player2Random = createPrng(seed + 1);

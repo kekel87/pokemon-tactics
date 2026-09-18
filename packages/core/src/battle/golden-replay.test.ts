@@ -17,10 +17,8 @@ import type { PokemonInstance } from "../types/pokemon-instance";
 import { createPrng } from "../utils/prng";
 import { BattleEngine } from "./BattleEngine";
 import { runReplay } from "./replay-runner";
-import { computeCombatStats } from "./stat-calculator";
+import { computeCombatStats, DEFAULT_BATTLE_LEVEL } from "./stat-calculator";
 import { computeMovement } from "./stat-modifier";
-
-const BATTLE_LEVEL = 50;
 
 const ZERO_STAT_STAGES = {
   [StatName.Hp]: 0,
@@ -82,12 +80,12 @@ function buildGoldenEngine(seed: number): BattleEngine {
     }
     const id = `p${playerId === PlayerId.Player1 ? "1" : "2"}-${defId}`;
     const moveset = GOLDEN_MOVESETS[defId] ?? definition.movepool;
-    const combatStats = computeCombatStats(definition.baseStats, BATTLE_LEVEL);
+    const combatStats = computeCombatStats(definition.baseStats, DEFAULT_BATTLE_LEVEL);
     const instance: PokemonInstance = {
       id,
       definitionId: definition.id,
       playerId,
-      level: BATTLE_LEVEL,
+      level: DEFAULT_BATTLE_LEVEL,
       currentHp: combatStats.hp,
       maxHp: combatStats.hp,
       baseStats: { ...definition.baseStats },

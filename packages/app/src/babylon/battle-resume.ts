@@ -17,7 +17,7 @@ import type {
   PlacementEntry,
   PlacementTeam,
 } from "@pokemon-tactic/core";
-import { BattleEventType, createPrng, runReplay } from "@pokemon-tactic/core";
+import { BattleEventType, createPrng, DEFAULT_BATTLE_LEVEL, runReplay } from "@pokemon-tactic/core";
 import { type BattleSetupResult, createBattleFromPlacements } from "@pokemon-tactic/view-core";
 import type { CombatSetup } from "../app/screens";
 import { buildTeamOverrides } from "../team/build-overrides.js";
@@ -61,6 +61,18 @@ export function buildBattle(inputs: BattleInputs, map: MapDefinition): BattleSet
      * `localPlayerIds` côté écran (décision #1038), et il vient de la même source.
      */
     reviveDefeatedCamps: inputs.setup.localSeat === undefined,
+    /*
+     * Le mode Combat ramène tout le monde au niveau 50 — le « parité 50 » façon VGC, dit ici
+     * explicitement au lieu d'être une constante recopiée dans la formule de dégâts (plan 215).
+     * Le jour où l'Aventure arrivera, c'est ce champ qu'elle omettra pour laisser chaque Pokemon
+     * à son niveau.
+     *
+     * 🔴 Posé ICI pour la même raison structurelle que `reviveDefeatedCamps` juste au-dessus :
+     * c'est le chemin que la partie vive et la reprise PARTAGENT. Une reprise qui reconstruirait
+     * le combat sans cette règle rebâtirait des niveaux différents et divergerait du journal
+     * qu'elle rejoue — en ligne, ça se paierait en forfait sur la somme de contrôle.
+     */
+    formatRules: { adjustLevel: DEFAULT_BATTLE_LEVEL },
     ...buildTeamOverrides({ teams: inputs.setup.teams }),
   });
 }

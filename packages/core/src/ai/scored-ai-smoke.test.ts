@@ -2,7 +2,7 @@ import { loadData, pocArena, typeChart } from "@pokemon-tactic/data";
 import { describe, expect, it } from "vitest";
 import { BattleEngine } from "../battle/BattleEngine";
 import { PlacementPhase } from "../battle/PlacementPhase";
-import { computeCombatStats } from "../battle/stat-calculator";
+import { computeCombatStats, DEFAULT_BATTLE_LEVEL } from "../battle/stat-calculator";
 import { computeMovement } from "../battle/stat-modifier";
 import { TurnPipeline } from "../battle/turn-pipeline";
 import { BattleEventType } from "../enums/battle-event-type";
@@ -25,7 +25,6 @@ import { pickAggressiveAction } from "./aggressive-ai";
 import { EASY_PROFILE } from "./ai-profiles";
 import { pickScoredAction } from "./scored-ai";
 
-const BATTLE_LEVEL = 50;
 const ZERO_STAT_STAGES = {
   [StatName.Hp]: 0,
   [StatName.Attack]: 0,
@@ -100,13 +99,13 @@ describe("Smoke test: Aggressive AI vs Easy AI (6v6)", () => {
       if (!team) {
         throw new Error(`No team for: ${placement.pokemonId}`);
       }
-      const combatStats = computeCombatStats(definition.baseStats, BATTLE_LEVEL);
+      const combatStats = computeCombatStats(definition.baseStats, DEFAULT_BATTLE_LEVEL);
       const activeMoveIds = definition.movepool.slice(0, 4);
       const instance: PokemonInstance = {
         id: placement.pokemonId,
         definitionId: definition.id,
         playerId: team.playerId,
-        level: BATTLE_LEVEL,
+        level: DEFAULT_BATTLE_LEVEL,
         currentHp: combatStats.hp,
         maxHp: combatStats.hp,
         baseStats: { ...definition.baseStats },

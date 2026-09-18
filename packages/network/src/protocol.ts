@@ -85,7 +85,18 @@ import {
  * Un seul incrément suffit pour toute la série : la version dit « ces deux builds ne jouent pas la
  * même partie », pas « voici combien de fois on l'a touchée ».
  */
-export const NETWORK_VERSION = 13;
+/**
+ * 13 → 14 (2026-09-18) : la formule de dégâts lit désormais le niveau de l'ATTAQUANT au lieu d'une
+ * constante 50 recopiée, et `PendingStrike.frozenOffense` gagne un champ `level` gelé au lancement.
+ *
+ * ⚠️ Aucun dégât ne change **aujourd'hui** — tout le roster est au niveau 50, donc la constante et
+ * `attacker.level` donnent le même nombre. Ce qui change, c'est la FORME de l'état : un
+ * `frozenOffense` porte une clé de plus, donc deux pairs de builds différents calculent deux sommes
+ * de contrôle différentes dès qu'une Prescience est en vol. C'est exactement le cas que la version
+ * réseau existe pour refuser à l'entrée, plutôt que de le laisser finir en divergence en plein
+ * combat.
+ */
+export const NETWORK_VERSION = 14;
 
 /**
  * Durée d'un tour en ligne — **déplacée dans `timings.ts`**, réexportée ici (plan 213).

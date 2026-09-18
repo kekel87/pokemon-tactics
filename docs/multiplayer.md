@@ -1272,3 +1272,22 @@ boucle locale, et attendre la résolution de `*.turn.peerjs.com` faisait dépass
 ⚠️ **Coût machine** : la suite complète est à ~520 tests et tourne sous plafond CPU
 (`scripts/with-cpu-cap.sh`). D'où **un seul** scénario à deux contextes (mesuré ~9 s isolé) ; tout ce
 qui se teste sans réseau reste en intégration, qui ne coûte rien.
+
+**Plan 215** (2026-09-18) : **`NETWORK_VERSION` est passée à 14** — le niveau de combat cesse d'être
+une constante. La formule de dégâts lit désormais le niveau de l'**attaquant** (`attacker.level`) au
+lieu d'un `BATTLE_LEVEL = 50` recopié dans sept fichiers, et `PendingStrike.frozenOffense` gagne un
+champ `level`, gelé au lancement de Prescience comme le reste du côté offensif (le lanceur peut être
+K.O. à l'impact).
+
+⚠️ **Aucun dégât ne change aujourd'hui** : tout le roster se joue au niveau 50, donc la constante et
+`attacker.level` donnent le même nombre. Ce qui change est la **forme de l'état** — un `frozenOffense`
+porte une clé de plus, donc deux pairs de builds différents calculent deux sommes de contrôle
+différentes dès qu'une Prescience est en vol. C'est exactement le cas que la version réseau existe
+pour refuser à l'entrée, plutôt que de le laisser finir en divergence au milieu d'un combat.
+
+Le niveau appartient désormais au **Pokemon** (`BattleSetupConfig.levelOverrides`, par emplacement),
+et c'est le **format de partie** qui le normalise : `BattleFormatRules.adjustLevel`, posé à 50 par le
+mode Combat dans `buildBattle` — le chemin que la partie vive et la reprise partagent, pour la même
+raison structurelle que `reviveDefeatedCamps`. Le vocabulaire (`adjustLevel` qui réécrit, par
+opposition à `maxLevel` qui refuserait une équipe) est repris de Pokemon Showdown, vérifié dans
+`sim/dex-formats.ts`.

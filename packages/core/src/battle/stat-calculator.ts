@@ -5,6 +5,20 @@ import { applyNatureModifier } from "./nature-modifier";
 
 const FIXED_IV = 31;
 
+/**
+ * Le niveau d'un Pokemon quand personne n'en demande un autre — la parité 50 du mode Combat.
+ *
+ * 🔴 **Une seule déclaration, et c'est le but** : elle a vécu recopiée dans sept fichiers, toutes
+ * d'accord sur 50, donc muettes — pendant que la formule de dégâts lisait la constante au lieu du
+ * niveau de l'attaquant (récit complet au graphe, `backlog-champ-level-mort-et-battle-level-en-dur`).
+ *
+ * 🔴 **Ne PAS y brancher le déplacement ni le temps de charge.** Ils reposent sur `baseSpeed` :
+ * `docs/game-design.md` veut un « mouvement constant quel que soit le niveau », pour qu'un joueur
+ * qui apprend au niveau 5 ne réapprenne rien au niveau 50. Seuls les dégâts et les PV changent
+ * d'échelle.
+ */
+export const DEFAULT_BATTLE_LEVEL = 50;
+
 export function computeStatAtLevel(base: number, level: number, isHp: boolean): number {
   const common = Math.floor(((2 * base + FIXED_IV) * level) / 100);
   return isHp ? common + level + 10 : common + 5;

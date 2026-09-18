@@ -1,6 +1,6 @@
 import { loadAllPokemonTypes, loadData, pocArena } from "@pokemon-tactic/data";
 import { BattleEngine } from "../battle/BattleEngine";
-import { computeCombatStats } from "../battle/stat-calculator";
+import { computeCombatStats, DEFAULT_BATTLE_LEVEL } from "../battle/stat-calculator";
 import { computeMovement } from "../battle/stat-modifier";
 import { Nature } from "../enums/nature";
 import { PokemonGender } from "../enums/pokemon-gender";
@@ -12,8 +12,7 @@ import type { PlacementEntry } from "../types/placement-entry";
 import type { PlacementTeam } from "../types/placement-team";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { TileState } from "../types/tile-state";
-
-const BATTLE_LEVEL = 50;
+import type { RandomFn } from "../utils/prng";
 
 const ZERO_STAT_STAGES = {
   [StatName.Hp]: 0,
@@ -26,9 +25,22 @@ const ZERO_STAT_STAGES = {
   [StatName.Evasion]: 0,
 };
 
+/**
+ * 🔴 `random` : à FOURNIR dès que le test affirme un résultat dépendant d'un jet.
+ *
+ * Omis, le moteur retombe sur le vrai `Math.random()` — un seam de test délibéré
+ * (`.claude/rules/core.md`), mais qui rend instable tout test qui assère un nombre, un plafond ou
+ * une durée de combat. Le cas s'est produit : `scenarios/ct-scoring-anti-drag.scenario.test.ts`
+ * échouait environ une fois sur quatre en suite complète, alors que son titre annonçait une graine
+ * — laquelle ne couvrait que le placement et les décisions de l'IA, PAS les jets de dégâts.
+ *
+ * Le paramètre est optionnel pour ne pas décaler les nombres des tests qui ne dépendent d'aucun
+ * jet ; ceux-là gardent le comportement d'avant.
+ */
 export function buildTestEngineFromPlacements(
   placements: PlacementEntry[],
   teams: PlacementTeam[],
+  random?: RandomFn,
 ): { engine: BattleEngine; state: ReturnType<typeof buildState> } {
   const data = loadData();
   const moveRegistry = new Map<string, MoveDefinition>();
@@ -58,13 +70,13 @@ export function buildTestEngineFromPlacements(
       throw new Error(`Unknown definition: ${definitionId}`);
     }
 
-    const combatStats = computeCombatStats(definition.baseStats, BATTLE_LEVEL);
+    const combatStats = computeCombatStats(definition.baseStats, DEFAULT_BATTLE_LEVEL);
 
     const instance: PokemonInstance = {
       id: placement.pokemonId,
       definitionId: definition.id,
       playerId: team.playerId,
-      level: BATTLE_LEVEL,
+      level: DEFAULT_BATTLE_LEVEL,
       currentHp: combatStats.hp,
       maxHp: combatStats.hp,
       baseStats: { ...definition.baseStats },
@@ -100,7 +112,16 @@ export function buildTestEngineFromPlacements(
   }
 
   const state = buildState(grid, pokemonMap);
-  const engine = new BattleEngine(state, moveRegistry, undefined, pokemonTypesMap);
+  // `random` est le 6ᵉ paramètre, pas le 3ᵉ (le 3ᵉ est la table des types, laissée vide ici) : les
+  // `undefined` intercalés retombent sur les valeurs par défaut du constructeur.
+  const engine = new BattleEngine(
+    state,
+    moveRegistry,
+    undefined,
+    pokemonTypesMap,
+    undefined,
+    random,
+  );
   return { engine, state };
 }
 

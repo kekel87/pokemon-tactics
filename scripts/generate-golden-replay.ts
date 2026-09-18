@@ -11,6 +11,7 @@ import {
   computeCombatStats,
   computeMovement,
   createPrng,
+  DEFAULT_BATTLE_LEVEL,
   Direction,
   PlayerId,
   pickAggressiveAction,
@@ -20,7 +21,6 @@ import { loadData, pocArena, typeChart } from "@pokemon-tactic/data";
 
 const SEED = 12345;
 const MAX_ROUNDS = 200;
-const BATTLE_LEVEL = 50;
 
 const ZERO_STAT_STAGES = {
   [StatName.Hp]: 0,
@@ -79,12 +79,12 @@ function buildGoldenEngine(seed: number): {
       const move = moveRegistry.get(moveId);
       currentPp[moveId] = move?.pp ?? 0;
     }
-    const combatStats = computeCombatStats(definition.baseStats, BATTLE_LEVEL);
+    const combatStats = computeCombatStats(definition.baseStats, DEFAULT_BATTLE_LEVEL);
     const instance: PokemonInstance = {
       id,
       definitionId: definition.id,
       playerId,
-      level: BATTLE_LEVEL,
+      level: DEFAULT_BATTLE_LEVEL,
       currentHp: combatStats.hp,
       maxHp: combatStats.hp,
       baseStats: { ...definition.baseStats },

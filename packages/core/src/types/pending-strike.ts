@@ -20,6 +20,11 @@ export interface PendingStrike {
   radius: number;
   /** Caster offense frozen at cast time. Damage is computed against each defender's live defense. */
   frozenOffense: {
+    /**
+     * Caster level at cast. Frozen like the rest of the offensive side, and for the same reason:
+     * the caster may be KO'd by the time the strike lands, so it cannot be read back then.
+     */
+    level: number;
     /** Effective Special Attack (base stat with stages applied) at cast. */
     specialAttack: number;
     /** Move base power. */

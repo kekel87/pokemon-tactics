@@ -10,6 +10,7 @@ import {
   computeMovement,
   createPrng,
   createRepetitionGuard,
+  DEFAULT_BATTLE_LEVEL,
   Direction,
   EASY_PROFILE,
   HARD_PROFILE,
@@ -59,7 +60,6 @@ import {
  */
 import { loadData, pocArena, typeChart } from "../packages/data/src/index.js";
 
-const BATTLE_LEVEL = 50;
 const MAX_ACTIONS = 4000;
 
 const ZERO_STAT_STAGES = {
@@ -189,13 +189,13 @@ function playOneBattle(
     if (!definition || !team) {
       throw new Error(`introuvable : ${placement.pokemonId}`);
     }
-    const combatStats = computeCombatStats(definition.baseStats, BATTLE_LEVEL);
+    const combatStats = computeCombatStats(definition.baseStats, DEFAULT_BATTLE_LEVEL);
     const heldItemId = heldItemFor(definition.id, seed);
     const instance: PokemonInstance = {
       id: placement.pokemonId,
       definitionId: definition.id,
       playerId: team.playerId,
-      level: BATTLE_LEVEL,
+      level: DEFAULT_BATTLE_LEVEL,
       currentHp: combatStats.hp,
       maxHp: combatStats.hp,
       baseStats: { ...definition.baseStats },

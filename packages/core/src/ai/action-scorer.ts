@@ -1822,7 +1822,7 @@ function canSecureKoNow(
       }
       const estimate = capabilities.readsDamage
         ? engine.estimateDamage(caster.id, moveId, enemy.id)
-        : readNaiveDamage(candidate);
+        : readNaiveDamage(candidate, caster.level);
       if (estimate && estimate.min >= enemy.currentHp) {
         return true;
       }
@@ -2691,7 +2691,7 @@ function scoreDamagingMove(
     }
     const estimate = capabilities.readsDamage
       ? engine.estimateDamage(currentPokemon.id, move.id, target.id)
-      : readNaiveDamage(move);
+      : readNaiveDamage(move, currentPokemon.level);
     if (!estimate) {
       continue;
     }
@@ -3014,7 +3014,7 @@ function evaluateAttacksFromPosition(
       // Estimate damage AS IF the mon stood on `fromPosition` (height / terrain from the destination).
       const estimate = capabilities.readsDamage
         ? engine.estimateDamage(pokemon.id, moveId, enemy.id, undefined, fromPosition)
-        : readNaiveDamage(move);
+        : readNaiveDamage(move, pokemon.level);
       if (!estimate) {
         continue;
       }

@@ -12,9 +12,6 @@ import { effectiveCombatStats } from "./effective-combat-stats";
 import { resolveBaseTypes } from "./effective-flying";
 import { getEffectiveStat } from "./stat-modifier";
 
-/** Level is fixed at 50 across the project (Champions style), matching the damage calculator. */
-const BATTLE_LEVEL = 50;
-
 export interface FutureSightOffenseSnapshot {
   attacker: PokemonInstance;
   attackerTypes: PokemonType[];
@@ -36,6 +33,7 @@ export function freezeOffense(
     snapshot.attacker.statStages[StatName.SpAttack] ?? 0,
   );
   return {
+    level: snapshot.attacker.level,
     specialAttack,
     power: snapshot.power,
     moveType: snapshot.moveType,
@@ -52,8 +50,8 @@ export function hasStrikeOnTile(state: BattleState, tile: Position): boolean {
 
 /**
  * Computes the special damage a frozen-offense strike deals to a single defender. Mirrors the core
- * of the damage calculator (level 50, special split, STAB, type effectiveness, fixed roll) but with
- * the attacker side frozen and no item/ability/crit modifiers. Returns 0 on an immune defender.
+ * of the damage calculator (caster level, special split, STAB, type effectiveness, fixed roll) but
+ * with the attacker side frozen and no item/ability/crit modifiers. Returns 0 on an immune defender.
  */
 export function computeStrikeDamage(
   frozenOffense: PendingStrike["frozenOffense"],
@@ -72,7 +70,7 @@ export function computeStrikeDamage(
   );
   const adjustedPower = Math.max(1, frozenOffense.power);
   const baseDamage = Math.floor(
-    (((2 * BATTLE_LEVEL) / 5 + 2) * adjustedPower * frozenOffense.specialAttack) /
+    (((2 * frozenOffense.level) / 5 + 2) * adjustedPower * frozenOffense.specialAttack) /
       effectiveDefense /
       50 +
       2,

@@ -15,8 +15,6 @@ import { effectiveCombatStats } from "./effective-combat-stats";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 import { getEffectiveStat } from "./stat-modifier";
 
-const BATTLE_LEVEL = 50;
-
 type TypeChart = Record<PokemonType, Record<PokemonType, number>>;
 
 export interface DamageResult {
@@ -194,7 +192,7 @@ export function calculateDamageWithCrit(
     Math.floor(move.power * weatherBpMultiplier * fieldTerrainBpMultiplier),
   );
   const baseDamage = Math.floor(
-    (((2 * BATTLE_LEVEL) / 5 + 2) * adjustedPower * effectiveAttack) / effectiveDefense / 50 + 2,
+    (((2 * attacker.level) / 5 + 2) * adjustedPower * effectiveAttack) / effectiveDefense / 50 + 2,
   );
 
   const stab = getStab(move.type, attackerTypes, attackerAbility?.id);

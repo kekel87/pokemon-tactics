@@ -1,4 +1,5 @@
 import type {
+  BattleFormatRules,
   Direction,
   HeldItemId,
   MapDefinition,
@@ -19,6 +20,7 @@ import {
   computeCombatStats,
   computeMovement,
   createPrng,
+  DEFAULT_BATTLE_LEVEL,
   type HeldItemHandlerRegistry,
   PlacementMode,
   PlacementPhase,
@@ -46,9 +48,8 @@ const ZERO_STAT_STAGES = {
   [StatName.Evasion]: 0,
 };
 
-const BATTLE_LEVEL = 50;
-
 interface CreateInstanceOverrides {
+  level?: number;
   gender?: PokemonGender;
   nature?: Nature;
   heldItemId?: HeldItemId;
@@ -71,18 +72,22 @@ function createPokemonInstance(
     overrides.moveIds && overrides.moveIds.length > 0 ? [...overrides.moveIds] : movepoolHead;
   const gender = overrides.gender ?? rollGender(definition.genderRatio, rng);
   const nature = overrides.nature ?? rollNature(rng);
-  const combatStats = computeCombatStats(
-    definition.baseStats,
-    BATTLE_LEVEL,
-    nature,
-    overrides.statSpread,
-  );
+  const level = overrides.level ?? DEFAULT_BATTLE_LEVEL;
+  // Échouer fort plutôt que produire des statistiques absurdes en silence : le niveau traverse
+  // depuis un JSON non validé, et c'est le premier champ de cette forme dont une valeur folle
+  // change les DÉGÂTS. Un `0` ou un `"30"` texte y arriverait sans un mot.
+  if (!Number.isInteger(level) || level < 1 || level > 100) {
+    throw new Error(
+      `Niveau invalide pour ${instanceId} : ${String(level)} (attendu : entier de 1 à 100)`,
+    );
+  }
+  const combatStats = computeCombatStats(definition.baseStats, level, nature, overrides.statSpread);
   const abilityId = overrides.abilityId ?? definition.abilityId;
   return {
     id: instanceId,
     definitionId: definition.id,
     playerId,
-    level: BATTLE_LEVEL,
+    level,
     currentHp: combatStats.hp,
     maxHp: combatStats.hp,
     baseStats: { ...definition.baseStats },
@@ -143,6 +148,27 @@ export interface BattleSetupConfig {
    * personne pour la jouer. En local l'humain le garde ouvert (décision #1047).
    */
   reviveDefeatedCamps?: boolean;
+  /**
+   * Le niveau de CHAQUE Pokemon, par identifiant d'emplacement, 1 à 100. Un emplacement absent →
+   * `DEFAULT_BATTLE_LEVEL` (50).
+   *
+   * 🔴 Le niveau appartient au Pokemon, pas au combat : une équipe d'Aventure mélange les niveaux.
+   * C'est le FORMAT de partie qui les normalise quand il le décide (mode Combat → tout le monde à
+   * 50), et ce forçage-là n'existe pas encore — plan 215, lot B.
+   *
+   * ⚠️ `battle-resume.ts` ne transporte PAS ces niveaux : une reprise d'un combat hors niveau 50 se
+   * reconstruirait à 50 et divergerait de son journal. Sans conséquence tant que seul le bac à
+   * sable les pose ; bloquant dès que le forçage par format arrive (plan 215, lot B).
+   */
+  levelOverrides?: Record<string, number>;
+  /**
+   * Les règles que le FORMAT de partie impose, indépendamment de la carte — voir
+   * {@link BattleFormatRules}. Omis → aucune règle, chaque Pokemon garde son niveau.
+   *
+   * Le mode Combat pose `{ adjustLevel: DEFAULT_BATTLE_LEVEL }` : c'est ce qui rend explicite la
+   * parité 50 qui était jusqu'ici une constante recopiée.
+   */
+  formatRules?: BattleFormatRules;
 }
 
 function loadGameData() {
@@ -208,6 +234,13 @@ export function createBattleFromPlacements(config: BattleSetupConfig): BattleSet
     }
 
     const overrides: CreateInstanceOverrides = {};
+    // `adjustLevel` RÉÉCRIT, il ne refuse pas : il l'emporte donc sur le niveau propre du Pokemon,
+    // par définition (modèle Showdown, cf. BattleFormatRules). Un format qui ne l'impose pas laisse
+    // chacun au sien.
+    const level = config.formatRules?.adjustLevel ?? config.levelOverrides?.[placement.pokemonId];
+    if (level !== undefined) {
+      overrides.level = level;
+    }
     const gender = config.genderOverrides?.[placement.pokemonId];
     if (gender !== undefined) {
       overrides.gender = gender;

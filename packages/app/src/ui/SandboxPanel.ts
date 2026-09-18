@@ -150,6 +150,13 @@ interface MemberUiState {
   abilitySelect: HTMLSelectElement;
   /** `null` = tirée au hasard. Portée par l'état depuis que la nature se choisit en modale. */
   nature: Nature | null;
+  /**
+   * Niveau du Pokemon, porté sans être éditable : aucun contrôle du studio ne l'expose, il vient du
+   * JSON de boot. `readMember()` reconstruit le membre champ par champ et le combat est remonté
+   * dessus à chaque changement — un champ non porté ici serait donc silencieusement perdu au
+   * premier réglage touché. Absent → niveau par défaut.
+   */
+  level: number | undefined;
   statStageGetters: Map<StatName, () => number>;
   position: { x: number; y: number };
   positionSetters: { x: (v: number) => void; y: (v: number) => void };
@@ -407,6 +414,7 @@ export class SandboxPanel {
       directionSelect: undefined as unknown as HTMLSelectElement,
       abilitySelect: undefined as unknown as HTMLSelectElement,
       nature: member.nature ?? null,
+      level: member.level,
       statStageGetters: new Map(),
       position: { x: member.position?.x ?? 0, y: member.position?.y ?? 0 },
       // Real setters are wired below once the position row is built.
@@ -926,6 +934,9 @@ export class SandboxPanel {
     }
     if (member.nature !== null) {
       result.nature = member.nature;
+    }
+    if (member.level !== undefined) {
+      result.level = member.level;
     }
     if (member.defensiveMoveSelect) {
       result.defensiveMove = member.defensiveMoveSelect.value || null;

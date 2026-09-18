@@ -13,18 +13,25 @@ import type { MoveDefinition } from "../types/move-definition";
 export type DamageReading = Pick<DamageEstimate, "min" | "max" | "effectiveness">;
 
 /**
- * Coefficient de la formule de dégâts du jeu au niveau 50 : `(2 × 50 / 5 + 2) / 50 = 0,44`, appliqué à
- * la puissance. Il vit ici en double de `damage-calculator.ts` À DESSEIN : le modèle naïf n'est pas un
- * appel au moteur qu'on aurait dégradé, c'est une formule à part, et les deux doivent pouvoir bouger
- * indépendamment.
+ * Coefficient de la formule de dégâts du jeu, appliqué à la puissance : `(2 × niveau / 5 + 2) / 50`.
+ * Au niveau 50 il vaut `0,44`, la valeur qui était écrite en dur ici jusqu'au plan 215.
+ *
+ * Il vit en double de `damage-calculator.ts` À DESSEIN : le modèle naïf n'est pas un appel au moteur
+ * qu'on aurait dégradé, c'est une formule à part, et les deux doivent pouvoir bouger indépendamment.
+ * Mais le NIVEAU, lui, ne peut pas diverger — une estimation figée à 50 mentirait dès qu'un palier
+ * d'IA joue un Pokemon d'un autre niveau, ce que le niveau par Pokemon rend possible.
  */
-const LEVEL_50_POWER_COEFFICIENT = 0.44;
+function powerCoefficientAtLevel(level: number): number {
+  return ((2 * level) / 5 + 2) / 50;
+}
 
 /** Terme constant de la même formule. */
 const FLAT_TERM = 2;
 
 /**
  * Dégâts tels que les estime une IA qui ne sait rien de sa cible (plan 214, palier Facile).
+ *
+ * `level` est celui de l'ATTAQUANT : l'IA ignore tout de sa cible, pas d'elle-même.
  *
  * 🔴 **C'est la formule du jeu avec un adversaire MOYEN** : rapport Attaque/Défense figé à 1, aucun
  * STAB, aucune efficacité de type, aucun talent, aucun objet, aucun cran de stat, aucun modificateur
@@ -56,12 +63,12 @@ const FLAT_TERM = 2;
  * le calcul exact. Savoir QUI fait peur est une autre faculté qu'estimer SON PROPRE coup, et ça
  * n'oriente que des multiplicateurs, jamais le choix affiché.
  */
-export function readNaiveDamage(move: MoveDefinition): DamageReading | null {
+export function readNaiveDamage(move: MoveDefinition, level: number): DamageReading | null {
   const power = getEffectivePowerFloor(move);
   if (power <= 0) {
     return null;
   }
-  const guess = Math.round(LEVEL_50_POWER_COEFFICIENT * power + FLAT_TERM);
+  const guess = Math.round(powerCoefficientAtLevel(level) * power + FLAT_TERM);
   // `min` et `max` confondus : une fourchette supposerait une lecture du jet de dégâts, que ce palier
   // n'a pas. Le scorer s'en sert pour le K.O. (`min`) et pour le dégât partiel (`max`) — un seul
   // nombre pour les deux, qui est bien tout ce que l'IA « sait ».
