@@ -84,10 +84,6 @@ d'apparition n'indique une priorité.
 > Le mode réellement joué, et celui qui n'a **aucune structure** : une équipe, une carte, un combat,
 > fin. Pas de progression, pas de raison de revenir. Domaine ouvert le 2026-09-16.
 
-- [ ] **Choisir le niveau de l'IA.** 🔴 Sorti de l'équilibrage, où il était rangé à tort : le
-      reporting attend du volume, **choisir sa difficulté est une fonctionnalité solo livrable sans
-      aucune donnée**. Voir `docs/ai-system.md`. Cf. décision #699 (studio sandbox : un dropdown,
-      5 niveaux Joueur / Auto passif / Facile / Moyen / Difficile).
 - [ ] **Mode aventure / overworld FFTA** (vision, 2026-06-19) — carte d'exploration façon FFT/FFTA,
       distincte du combat. Déplacement overworld, rivaux mobiles, rencontres aléatoires sur les
       sections de route, villes (arènes, boutiques, events). Départ : **Kanto**, sans fermer la porte
@@ -244,7 +240,11 @@ ouvertes).
 
 **Livrés ailleurs — ne pas reproposer comme neufs** : support manette, UI revamps et tooltips type
 chart (Phase 6.5) ; CSS modulaire + `<dialog>` natif (plan 085) ; roster Gen 1 complet, 150 espèces
-(plan 135).
+(plan 135) ; **choisir le niveau de l'IA** — livré par le plan 214 le
+2026-09-17, un jour après que la décision #1075 l'ait rangé dans « Le solo », d'où la ligne restée
+ouverte à tort jusqu'au 2026-09-18 : l'écran de sélection d'équipe porte **un bouton par niveau**
+(Facile / Moyenne / Difficile) sur chaque place, défaut Moyenne. Les 5 niveaux de la décision #699
+sont ceux du **studio sandbox**, pas de l'écran joueur.
 
 🔴 **Règles de release** (décisions #924, #925) : `pnpm test:e2e` **complet** avant de publier —
 l'affected ne suffit pas —, **pas de `/publish` sur un `pnpm e2e:status` rouge**, et on **n'attend

@@ -1,7 +1,6 @@
 # Plan 215 — Le niveau appartient au Pokemon, le mode le normalise
 
-**Statut** : in-progress — les quatre lots sont écrits, la recette humaine est passée sur deux
-scénarios (niveaux mélangés, non-régression du mode Combat + reprise) ; reste le gate et le commit
+**Statut** : done — livré et commité (`0d0bed38`)
 **Ouvert le** : 2026-09-18, en cours de route — correction de cadrage demandée par l'humain pendant
 l'exécution de l'entrée `backlog-champ-level-mort-et-battle-level-en-dur`
 **Bloque la release ?** : non
