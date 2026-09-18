@@ -19,7 +19,7 @@ Applique tes conventions habituelles (CLAUDE.md, TypeScript strict, `.claude/rul
 
 **Si des fichiers `packages/core/` ont changé** : fais aussi la passe core-guardian dans ce run — vérifie zéro dépendance UI/rendu dans le core (imports Phaser/Babylon/DOM, types renderer). Règles : `.claude/rules/core.md`. Violation = finding **Critical**.
 
-(La vérification visuelle renderer n'est PAS ton rôle : `visual-tester` se coche dans le menu post-impl.)
+(La vérification visuelle renderer n'est PAS ton rôle : `visual-tester` se demande à la main, hors menu.)
 
 ## Rapport final
 

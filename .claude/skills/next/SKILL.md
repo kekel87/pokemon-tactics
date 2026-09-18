@@ -1,6 +1,6 @@
 ---
 name: next
-description: Reconstitue l'état du projet depuis le graphe de mémoire et propose la prochaine étape.
+description: Reconstitue l'état du projet depuis le graphe de mémoire, propose 2-3 candidats et une recommandation.
 ---
 
 **D'abord** : `pnpm e2e:status` — la suite e2e complète tourne en asynchrone sur GitHub et ne
@@ -54,8 +54,8 @@ Lis ensuite, seulement si le sujet l'exige : `docs/roadmap.md` (phases), `docs/p
 
 ## Présente
 
-**1. À faire maintenant** — l'item principal de l'agenda, croisé avec la roadmap et le plan en cours.
-Recommande l'action prioritaire.
+**1. À faire maintenant** — **2-3 candidats** tirés de l'agenda, croisés avec la roadmap et le plan
+en cours, puis **une recommandation** claire parmi eux. Une ligne par candidat.
 
 **2. Reporté / à refaire** — les entités `agenda` et `backlog` encore ouvertes. Si rien, le dire.
 
@@ -67,5 +67,12 @@ Concis : 10-15 lignes au total.
 
 ---
 
-**Note** : le menu post-impl multi-select est déclenché par la règle `## Après impl` de `CLAUDE.md`,
-pas par ce skill. Pas besoin de retaper `/next` après du code.
+## Après le choix
+
+🔴 Que l'humain confirme un candidat **directement** ou qu'un choix sorte d'une **discussion**, la
+suite est la même : **plan rédigé** (`docs/plans/xxx-name.md`), puis le menu de plan
+(`plan-reviewer` coché, `game-designer` si mécaniques jeu — **jamais** d'option « commiter le plan »).
+Ne jamais partir coder directement après une discussion.
+
+Ensuite : dev **d'un trait**, sans arrêt de phase, jusqu'à l'arrêt 1 (« Tu testes ? »). Détail :
+section « Le workflow — DEUX arrêts » de `CLAUDE.md`.

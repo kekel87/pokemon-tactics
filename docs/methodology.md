@@ -75,18 +75,25 @@ Dans les deux cas : la doc est en **français**, le code en **anglais**.
 
 ## 3. Workflow de développement
 
-### Pour une nouvelle feature :
-1. **Discussion** — on en parle, on clarifie le besoin
-2. **Plan** — Claude Code propose un plan d'implémentation
-3. **Core d'abord** — logique pure + tests
-4. **Renderer ensuite** — affichage visuel
-5. **Review** — tu valides (code + visuellement via Playwright screenshots)
-6. **Commit** — conventional commit, feature branch si besoin
+### Pour une nouvelle feature — deux arrêts, pas un de plus :
+1. **`/next`** — résumé court, 2-3 candidats, une recommandation. Confirmation directe **ou**
+   discussion : même suite dans les deux cas.
+2. **Plan** — `docs/plans/xxx-name.md`, puis menu de plan (`plan-reviewer`, `game-designer` si
+   mécaniques jeu). Jamais d'option « commiter le plan ».
+3. **Dev d'un trait** — core puis renderer, sans arrêt de phase, sans point d'étape. Tests
+   unitaires du core pendant le dev ; ni gate, ni build, ni e2e.
+4. **Arrêt 1 — recette** — résumé + une seule question : « Tu testes ? ». L'humain teste en
+   interactif, remonte des retours, on itère.
+5. **Arrêt 2 — menu de finalisation** — commit WIP automatique, puis une question multi-select :
+   tests (`test-writer`), `code-reviewer`, `doc-keeper`, gate + commit.
+6. **Commit** — conventional commit, sans validation du message.
+
+Détail complet : `CLAUDE.md` § « Le workflow — DEUX arrêts ».
 
 ### Orchestration automatique des agents :
 Après chaque étape significative, les agents pertinents sont lancés sans attendre qu'on le demande :
 - Modif dans `packages/core/` → `core-guardian` (+ `test-writer` si nouvelle mécanique)
-- Avant un commit → `code-reviewer` (qui propose le titre de commit si pas de bloquant)
+- Avant un commit → `code-reviewer` (coché au menu de finalisation)
 - Après un ensemble de changements → `doc-keeper`
 
 Voir `CLAUDE.md` pour la table complète des déclencheurs.
@@ -143,7 +150,7 @@ Garde-fou : `move-test-coverage.test.ts` énumère `loadData().moves` et **écho
 - **Branches** : `main` (stable) + feature branches (`feat/aoe-patterns`, `fix/damage-calc`)
 - **Pas de force push** sur main
 - **Un commit = un changement cohérent**
-- **Titre de commit proposé automatiquement** par le code-reviewer après chaque review sans bloquant — une seule ligne, format conventional commits
+- **Titre de commit généré par l'agent `commit-message`**, puis commit + push directement — une seule ligne, format conventional commits, pas de validation humaine
 
 ### Workflow worktrees — sessions parallèles
 

@@ -20,7 +20,7 @@ viewport le plus étroit).
 **Où ça s'exécute** : ce n'est **pas** une étape de menu à part, c'est l'**étape 0 de
 `human-testing`** — la passe que Claude fait seul, au chrome-devtools sur Chromium, *avant* de
 dérouler les scénarios à l'humain. Ce qu'elle trouve se corrige ou se remonte avant, pour ne pas
-faire tester un écran injoignable au pad. Voir `CLAUDE.md` § « Après impl » et
+faire tester un écran injoignable au pad. Voir `CLAUDE.md` § « Le workflow — DEUX arrêts » et
 `.claude/skills/menu/SKILL.md`.
 
 ## 1. Clavier
