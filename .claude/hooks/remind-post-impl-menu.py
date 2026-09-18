@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Stop : rappelle le menu post-implémentation quand du travail reste non validé.
+"""Stop : rappelle les deux arrêts du workflow quand du travail reste non validé.
 
-Pourquoi ce hook existe : la règle « Après impl » de CLAUDE.md est OBLIGATOIRE et
+Pourquoi ce hook existe : la règle de workflow de CLAUDE.md est OBLIGATOIRE et
 pourtant elle s'érode — sur la session du 2026-09-06, une dizaine de scripts écrits,
 36 fichiers modifiés, 214 supprimés, et le menu n'a **pas été proposé une seule
 fois**. Même mode de panne que la règle du backlog : de la prose dans un fichier de
@@ -30,11 +30,15 @@ ETAT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".state", 
 SURVEILLE = ("packages/", "scripts/", ".claude/", "e2e/", "scenarios/")
 
 MESSAGE = (
-    "Du travail est modifié et n'a pas passé la chaîne de validation. La règle "
-    "« Après impl » de CLAUDE.md est OBLIGATOIRE : avant de dire « fait » ou de "
-    "proposer la suite, appeler AskUserQuestion avec le menu multi-select en "
-    "3 questions (Tests ? / Validations locales ? / Finalisation ?), pré-cochées "
-    "selon le contexte.\n\n"
+    "Du travail est modifié et n'a pas passé la chaîne de validation. La section "
+    "« Le workflow — DEUX arrêts » de CLAUDE.md est OBLIGATOIRE. Selon où on en est :\n"
+    "  · recette humaine PAS encore faite → ARRÊT 1 : résumé court, puis "
+    "AskUserQuestion avec UNE SEULE question, « Tu testes ? » (oui / non). Rien "
+    "d'autre : ni gate, ni e2e, ni menu de chaîne ;\n"
+    "  · recette faite (ou refusée) → ARRÊT 2 : lancer sans demander commit WIP, "
+    "core-guardian si le core a bougé, code-reviewer puis /code-review, PUIS "
+    "AskUserQuestion avec UNE question multi-select de 3 options (tests (test-writer) "
+    "/ doc-keeper / gate + commit).\n\n"
     "Fichiers concernés :\n{fichiers}\n\n"
     "Si l'humain a déjà tranché la suite dans cette conversation, dis-le-lui en une "
     "ligne et termine — ce rappel ne se répétera pas dans cette session."
