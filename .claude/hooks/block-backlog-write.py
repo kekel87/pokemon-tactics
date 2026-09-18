@@ -40,6 +40,28 @@ ECRITURE_AGENDA = re.compile(
 # `PT_CLOTURE=1 node scripts/memory/query.mjs --add agenda …`. C'est un ralentisseur,
 # pas un verrou — il force à nommer l'intention, il n'empêche personne de mentir.
 EXEMPTION_CLOTURE = re.compile(r"\bPT_CLOTURE=1\b")
+# Outils MCP mémoire qui ne peuvent RIEN inscrire. Les refuser sur la simple présence
+# du mot « backlog » empêchait de RELIRE une dette, y compris une dette déjà soldée —
+# un garde d'écriture qui bloquait une lecture. Faux positif constaté le 2026-09-18.
+MCP_LECTURE_SEULE = ("open_nodes", "search_nodes", "read_graph")
+# Le type exact d'une entité inscrite par un outil MCP.
+TYPE_ENTITE = re.compile(r'"entityType"\s*:\s*"([^"]*)"')
+TYPES_INTERDITS = ("backlog", "agenda")
+
+
+def inscrit_une_dette(entree):
+    """Vrai si l'entrée crée une entité typée EXACTEMENT `backlog` ou `agenda`.
+
+    `backlog-résolu` n'en est pas une : solder une dette est le geste inverse de
+    l'inscrire, et c'est ce que l'ancienne recherche de sous-chaîne confondait.
+    """
+    charge = json.dumps(entree, ensure_ascii=False)
+    types = TYPE_ENTITE.findall(charge)
+    if types:
+        return any(t.lower() in TYPES_INTERDITS for t in types)
+    # Forme inattendue : on ne sait pas lire, donc on refuse. Le garde prime sur le
+    # confort — c'est un oubli de garde qui a motivé ce hook, pas un excès.
+    return "backlog" in charge.lower()
 MESSAGE = (
     "Enregistrement d'une dette bloqué : le backlog est la liste de dette ACCEPTÉE "
     "par l'humain. Y ajouter une entrée revient à décider à sa place qu'un défaut "
@@ -83,8 +105,11 @@ def main():
         elif ECRITURE_AGENDA.search(commande) and not EXEMPTION_CLOTURE.search(commande):
             refuse(MESSAGE_AGENDA)
         return
-    if outil.startswith("mcp__memory__") and "backlog" in json.dumps(entree).lower():
-        refuse()
+    if outil.startswith("mcp__memory__"):
+        if outil.endswith(MCP_LECTURE_SEULE):
+            return
+        if inscrit_une_dette(entree):
+            refuse()
         return
 
     chemins = [str(entree.get(c, "")) for c in ("file_path", "path", "notebook_path")]
