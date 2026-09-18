@@ -22,12 +22,11 @@ explicitement le menu.
 2. **Sans rien demander**, avant le menu, dans cet ordre :
    - **commit WIP** si des changements non commités existent (point de restauration propre avant que
      la chaîne touche au code — origine plan 166).
-   - `core-guardian` si le diff matche `packages/core/`.
-   - `code-reviewer` (agent maison) — **toujours**. Conventions projet. Il ne lance plus lint /
-     typecheck / tests : le gate s'en charge.
-   - `/code-review` (skill intégré) — **toujours**. Les bugs de correction, axe que le nôtre ne
-     couvre pas.
-   Corriger les bloquants des deux avant de continuer.
+   - Les trois vérifications **EN PARALLÈLE** (aucune dépendance, toutes en lecture seule) :
+     `core-guardian` en arrière-plan si le diff matche `packages/core/` ; `code-reviewer` en
+     arrière-plan — toujours, conventions projet, il ne lance plus lint / typecheck / tests ;
+     `/code-review` dans le tour — toujours, les bugs de correction.
+   Corriger les bloquants des trois avant de continuer.
 3. Présente **un seul** `AskUserQuestion`, **une seule question multiSelect**, 3 options :
 
    | Option | Pré-coché si |
@@ -44,7 +43,8 @@ explicitement le menu.
    - `visual-tester` n'est **jamais** dans le menu auto (≥2 min Playwright) — l'humain le demande.
 
 4. Attends la sélection humaine. Exécute en **ordre fixe** :
-   `tests (test-writer) → /simplify (sur les tests) → doc-keeper → [résumé du diff WIP→final] → /ci-gate full → commit + push (amende le WIP)`
+   `{test-writer → /simplify (sur les tests)} ∥ doc-keeper → [résumé du diff WIP→final] → /ci-gate full → commit + push (amende le WIP)`
+   (`∥` = en parallèle : tests vs `docs/`, ensembles d'écriture disjoints. Borner chaque prompt.)
 5. **Stop sur fail bloquant** (`core-guardian` UI-dep, `code-reviewer` ou `/code-review` Critical, `/ci-gate` rouge,
    contrôle injoignable au clavier ou au pad).
 

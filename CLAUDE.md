@@ -86,9 +86,36 @@ TypeScript strict ESM · Babylon.js 9 · Vitest · Playwright (`visual-tester` +
 
 **Tu lances, humain demande pas.** Besoin asset → `asset-manager`. Données → `data-miner`. Tests → `test-writer`.
 
-**Auto sans demander** : majorité. **Proposer avant** : `visual-tester` (Playwright ≥2 min), `debugger` (opus), `best-practices` (Web*), `balancer`, `performance-profiler`, `publisher`, `wiki-keeper`.
+**Auto sans demander** : majorité. **Proposer avant** : `visual-tester` (Playwright ≥2 min), `debugger` (opus), `best-practices` (Web*), `performance-profiler`, `publisher`, `wiki-keeper`.
 
 Détails : graphe de mémoire, entités `orchestration`.
+
+#### Parallélisme — ce qui peut tourner ensemble
+
+🔴 **Règle unique : deux agents ne tournent en parallèle que si leurs ensembles d'écriture sont
+DISJOINTS.** Jamais deux agents sur le même sous-arbre. La lecture seule est toujours parallélisable.
+
+| Peuvent tourner ensemble | Écrivent dans |
+|---|---|
+| `core-guardian` + `code-reviewer` + `/code-review` | rien (lecture seule) — les deux agents en arrière-plan pendant que `/code-review` tourne dans le tour |
+| `test-writer` + `doc-keeper` | tests (`*.test.ts`, `e2e/`) vs `docs/` + graphe |
+| `data-miner` + `asset-manager` | `packages/data/` vs les assets |
+| `game-designer` + n'importe quel agent d'écriture | rien (lecture seule) |
+
+**Jamais ensemble** : `doc-keeper` + `session-closer` (tous deux écrivent au graphe) ·
+`doc-keeper` + `wiki-keeper` (le wiki se construit **après** la doc, dépendance d'ordre) ·
+`doc-keeper` + `plan-reviewer` (tous deux sous `docs/`).
+
+🔴 **Bornage obligatoire dès 2 agents en parallèle** : le prompt de chacun dit explicitement **ce
+qu'il ne doit PAS traiter** (« ne touche pas aux tests, c'est le rôle de l'autre agent »). C'est le
+correctif documenté par Anthropic contre leur mode d'échec le plus fréquent — des agents aveugles
+l'un à l'autre qui dupliquent le travail.
+
+**Ne pas créer d'agents « par étape »** (un qui planifie, un qui code, un qui teste la même feature) :
+anti-pattern nommé, ces étapes partagent trop de contexte mutable. Le principal porte
+l'implémentation de bout en bout ; les sous-agents sont des délégations jetables (recherche, revue,
+données), jamais les maillons d'un pipeline de feature. La fiabilité se compose mal : un agent fiable
+à 95 % chaîné 5 fois tombe à ~77 %.
 
 ### Le workflow — DEUX arrêts, pas un de plus
 
@@ -191,15 +218,17 @@ L'humain teste, remonte des retours, on itère jusqu'à ce qu'il valide.
 
 Seulement **après** la validation de la recette (ou un `non` à l'arrêt 1).
 
-D'abord, **sans rien demander**, dans cet ordre :
+D'abord, **sans rien demander** :
 1. **commit WIP** — point de restauration propre avant que la chaîne touche au code.
-2. **`core-guardian`** si `git diff --name-only HEAD` matche `packages/core/`.
-3. **`code-reviewer`** (agent maison) — **toujours**. Conventions projet. Il **ne lance plus** lint /
-   typecheck / tests : le gate s'en charge.
-4. **`/code-review`** (skill intégré) — **toujours**. Axe complémentaire : les **bugs de correction**,
-   que le `code-reviewer` maison ne cherche pas.
+2. Puis les trois vérifications **EN PARALLÈLE** — aucune ne dépend des autres, toutes en lecture
+   seule, et c'est le temps d'attente de l'humain qui paie la mise en série :
+   - **`core-guardian`** (arrière-plan) si `git diff --name-only HEAD` matche `packages/core/` ;
+   - **`code-reviewer`** (arrière-plan) — **toujours**. Conventions projet. Il **ne lance plus** lint
+     / typecheck / tests : le gate s'en charge ;
+   - **`/code-review`** (skill intégré, dans le tour) — **toujours**. Axe complémentaire : les **bugs
+     de correction**, que le `code-reviewer` maison ne cherche pas.
 
-Les bloquants des deux se corrigent avant de continuer.
+Les bloquants des trois se corrigent avant de continuer.
 
 Puis **un seul** `AskUserQuestion`, **une seule question multi-select**, 3 options :
 
@@ -217,7 +246,9 @@ demande). Fin de session (« fin », `/status`) → ajouter `session-closer` (4e
 
 #### Ordre d'exécution du menu
 
-`commit WIP → core-guardian → code-reviewer → /code-review → [MENU] → tests (test-writer) → /simplify (sur les tests) → doc-keeper → [résumé du diff WIP→final] → /ci-gate full → commit + push (amende le WIP)`
+`commit WIP → {core-guardian ∥ code-reviewer ∥ /code-review} → [MENU] → {test-writer → /simplify (sur les tests)} ∥ doc-keeper → [résumé du diff WIP→final] → /ci-gate full → commit + push (amende le WIP)`
+
+(`∥` = en parallèle, ensembles d'écriture disjoints — voir § Parallélisme.)
 
 Stop sur fail bloquant (`core-guardian` UI-dep, `code-reviewer` ou `/code-review` Critical, `/ci-gate` rouge, contrôle
 injoignable au clavier ou au pad).
