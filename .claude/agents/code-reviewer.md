@@ -110,9 +110,8 @@ S'applique dès que le diff touche `packages/app/src/ui/**`, `packages/app/src/s
 3. Pour chaque fichier `.test.ts` modifié, faire ces greps ciblés :
    - `grep -n "function valid\|function create\|function make\|function build"` → factory functions interdites dans les tests
    - `grep -n '"[a-z_]*"' ` dans les `return` et les objets d'erreur → string literals qui devraient être des const enums
-4. **Lancer `pnpm lint`** (Biome) — **OBLIGATOIRE**. Si des erreurs existent, les lister comme BLOQUANT.
-5. **Lancer `pnpm typecheck`** — **OBLIGATOIRE**. Si des erreurs TypeScript existent, les lister comme BLOQUANT.
-6. **Lancer `pnpm test && pnpm test:integration`** — **OBLIGATOIRE**. Si des tests échouent, les lister comme BLOQUANT.
+🔴 **Ne lance ni `pnpm lint`, ni `pnpm typecheck`, ni `pnpm test`.** `/ci-gate full` les joue juste
+après toi, et les payer deux fois coûtait ~80 s par cycle. Tu **reviews** ; le gate **valide**.
 
 ## Rapport
 

@@ -9,7 +9,7 @@ Pop le menu de finalisation **maintenant**, sans attendre la fin d'une impl.
 **Déclencheurs** : `/menu`, ou le mot **`menu`** seul envoyé en message (même mid-session, hors run).
 
 ⚠️ Ce menu est l'**arrêt 2** du workflow. L'arrêt 1 (« Tu testes ? ») est une question séparée, une
-seule option oui/non, posée dès que le code est écrit. Si la recette humaine n'a pas encore eu lieu
+seule option oui/non, posée dès que le code est écrit et que `/simplify` est passé dessus. Si la recette humaine n'a pas encore eu lieu
 et que le changement est observable, pose d'abord cette question-là — sauf si l'humain demande
 explicitement le menu.
 
@@ -22,12 +22,16 @@ explicitement le menu.
    - **commit WIP** si des changements non commités existent (point de restauration propre avant que
      la chaîne touche au code — origine plan 166).
    - `core-guardian` si le diff matche `packages/core/`.
-   - `code-reviewer` — **toujours**, plus au menu. Corriger les bloquants avant de continuer.
+   - `code-reviewer` (agent maison) — **toujours**. Conventions projet. Il ne lance plus lint /
+     typecheck / tests : le gate s'en charge.
+   - `/code-review` (skill intégré) — **toujours**. Les bugs de correction, axe que le nôtre ne
+     couvre pas.
+   Corriger les bloquants des deux avant de continuer.
 3. Présente **un seul** `AskUserQuestion`, **une seule question multiSelect**, 3 options :
 
    | Option | Pré-coché si |
    |--------|--------------|
-   | `tests (test-writer)` | changement observable automatisable → tests unitaires restants (hors core, déjà faits pendant le dev) + scénario e2e + cahier de recette (graphe, entités `recette`). Décoché si purement pixel/anim |
+   | `tests (test-writer)` | changement observable automatisable → tests unitaires restants (hors core, déjà faits pendant le dev) + scénario e2e + cahier de recette (graphe, entités `recette`), **puis `/simplify` sur ce code de test**. Décoché si purement pixel/anim |
    | `doc-keeper` | documents `docs/` impactés, fait à consigner au graphe, nouvelle mécanique, nouveau Pokemon/move/talent |
    | `gate + commit` | **toujours coché** — `/ci-gate full` puis commit + push |
 
@@ -39,8 +43,8 @@ explicitement le menu.
    - `visual-tester` n'est **jamais** dans le menu auto (≥2 min Playwright) — l'humain le demande.
 
 4. Attends la sélection humaine. Exécute en **ordre fixe** :
-   `tests (test-writer) → doc-keeper → [re-test humain, conditionnel] → /ci-gate full → commit + push (amende le WIP)`
-5. **Stop sur fail bloquant** (`core-guardian` UI-dep, `code-reviewer` Critical, `/ci-gate` rouge,
+   `tests (test-writer) → /simplify (sur les tests) → doc-keeper → [re-test humain, conditionnel] → /ci-gate full → commit + push (amende le WIP)`
+5. **Stop sur fail bloquant** (`core-guardian` UI-dep, `code-reviewer` ou `/code-review` Critical, `/ci-gate` rouge,
    contrôle injoignable au clavier ou au pad).
 
 ## Re-test humain — conditionnel

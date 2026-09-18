@@ -130,9 +130,16 @@ Plan validé → Claude implémente **tout**, sans reprendre la parole.
 pas phase par phase, il s'en moque. Pas de « Phase 1 terminée, je passe à la 2 ? ». Pas de commit
 intermédiaire proposé. Pas de point d'étape.
 
-Pendant le dev, Claude fait seul : écrire le code, `typecheck`, les **tests unitaires du core**
-(mécanique pure : dégâts, règles, traversée — seul moyen de savoir que ça marche), la **passe
-multi-entrée mesurée** si le diff touche un contrôle d'interface.
+Pendant le dev, Claude fait seul : écrire le code, `/simplify` (voir ci-dessous), `typecheck`, les
+**tests unitaires du core** (mécanique pure : dégâts, règles, traversée — seul moyen de savoir que ça
+marche), la **passe multi-entrée mesurée** si le diff touche un contrôle d'interface.
+
+🔴 **`/simplify` tourne en fin de dev, AVANT la recette — automatiquement.** Il réécrit le code
+(réutilisation, simplification, efficacité), donc il doit passer **avant** que l'humain valide, pas
+après : ce qu'il change est alors couvert par la recette, et n'impose aucun aller-retour
+supplémentaire. Le faire tourner après la recette, ce serait rejouer le plan 166. Une **seconde
+passe** de `/simplify` a lieu plus tard, sur les tests unitaires et e2e écrits au menu (§ arrêt 2) —
+ce code-là n'est jamais testé à la main, donc le moment ne pose pas de problème.
 
 Claude ne fait **pas** : `/ci-gate`, `pnpm build`, e2e (ciblés ou complets), tests unitaires hors
 core, lint de finition, commits. Ce sont des **cases du menu final**, elles viennent **après** la
@@ -164,13 +171,18 @@ Seulement **après** la validation de la recette (ou un `non` à l'arrêt 1).
 D'abord, **sans rien demander**, dans cet ordre :
 1. **commit WIP** — point de restauration propre avant que la chaîne touche au code.
 2. **`core-guardian`** si `git diff --name-only HEAD` matche `packages/core/`.
-3. **`code-reviewer`** — **toujours**, plus au menu. Les bloquants se corrigent avant de continuer.
+3. **`code-reviewer`** (agent maison) — **toujours**. Conventions projet. Il **ne lance plus** lint /
+   typecheck / tests : le gate s'en charge.
+4. **`/code-review`** (skill intégré) — **toujours**. Axe complémentaire : les **bugs de correction**,
+   que le `code-reviewer` maison ne cherche pas.
+
+Les bloquants des deux se corrigent avant de continuer.
 
 Puis **un seul** `AskUserQuestion`, **une seule question multi-select**, 3 options :
 
 | Option | Pré-coché si |
 |--------|--------------|
-| `tests (test-writer)` | changement observable automatisable → tests unitaires restants + scénario e2e + cahier de recette (graphe, entités `recette`). Décoché si purement pixel/anim |
+| `tests (test-writer)` | changement observable automatisable → tests unitaires restants + scénario e2e + cahier de recette (graphe, entités `recette`), **puis `/simplify` sur ce code de test**. Décoché si purement pixel/anim |
 | `doc-keeper` | documents `docs/` impactés, fait à consigner au graphe, nouvelle mécanique, nouveau Pokemon/move/talent |
 | `gate + commit` | **toujours** — `/ci-gate full` puis commit + push |
 
@@ -182,9 +194,9 @@ demande). Fin de session (« fin », `/status`) → ajouter `session-closer` (4e
 
 #### Ordre d'exécution du menu
 
-`commit WIP → core-guardian → code-reviewer → [MENU] → tests (test-writer) → doc-keeper → [re-test humain, conditionnel] → /ci-gate full → commit + push (amende le WIP)`
+`commit WIP → core-guardian → code-reviewer → /code-review → [MENU] → tests (test-writer) → /simplify (sur les tests) → doc-keeper → [re-test humain, conditionnel] → /ci-gate full → commit + push (amende le WIP)`
 
-Stop sur fail bloquant (`core-guardian` UI-dep, `code-reviewer` Critical, `/ci-gate` rouge, contrôle
+Stop sur fail bloquant (`core-guardian` UI-dep, `code-reviewer` ou `/code-review` Critical, `/ci-gate` rouge, contrôle
 injoignable au clavier ou au pad).
 
 🔴 **Re-test humain — conditionnel.** On ne redemande à l'humain de tester **que si la chaîne a
