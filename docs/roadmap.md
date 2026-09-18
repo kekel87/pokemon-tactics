@@ -231,7 +231,7 @@ Détail complet dans le graphe : `node scripts/memory/query.mjs --open <entité>
 | **4 — Gameplay Pokemon complet** | météo, champs, Distorsion, toutes les mécaniques | `roadmap-phase-4-gameplay-pokemon-complet-terminée-cont` |
 | **5 — Renderer 2D-HD (Babylon.js)** | terrain 3D + sprites billboardés | `roadmap-phase-5-migration-renderer-2d-hd-babylonjs-ter` |
 | **6.5 — Client jouable** | doigt, clavier, manette — le seul retour joueur était « injouable sur mobile » | `roadmap-phase-65-client-jouable-contrôles-ui-terminée` |
-| **7 — Multijoueur & télémétrie** | P2P WebRTC 2-12 joueurs, télémétrie Worker — **publiée `v2026.9.1`** | `release-v2026.9.1`, `plan-195` |
+| **7 — Multijoueur & télémétrie** | P2P WebRTC 2-12 joueurs, télémétrie Worker — **publiée `v2026.9.1`**, puis **`v2026.9.2`** (niveau de l'IA par place, journal de combat complet, portée visible pendant un tour distant) | `release-v2026.9.1`, `release-v2026.9.2`, `plan-195` |
 | **Post-Babylon** | props voxel, liquides, auras, Vitest ×10-15, TypeScript 6, Babylon 9.12 | décisions #690-#707, #753-#757 |
 
 **Écarté, ne reviendra pas sans nouvelle décision** : serveur autoritaire, Supabase (#862), fog réel
@@ -241,7 +241,7 @@ ouvertes).
 **Livrés ailleurs — ne pas reproposer comme neufs** : support manette, UI revamps et tooltips type
 chart (Phase 6.5) ; CSS modulaire + `<dialog>` natif (plan 085) ; roster Gen 1 complet, 150 espèces
 (plan 135) ; **choisir le niveau de l'IA** — livré par le plan 214 le
-2026-09-17, un jour après que la décision #1075 l'ait rangé dans « Le solo », d'où la ligne restée
+2026-09-17 et **publié dans la `v2026.9.2`**, un jour après que la décision #1075 l'ait rangé dans « Le solo », d'où la ligne restée
 ouverte à tort jusqu'au 2026-09-18 : l'écran de sélection d'équipe porte **un bouton par niveau**
 (Facile / Moyenne / Difficile) sur chaque place, défaut Moyenne. Les 5 niveaux de la décision #699
 sont ceux du **studio sandbox**, pas de l'écran joueur.
