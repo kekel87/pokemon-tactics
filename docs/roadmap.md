@@ -186,7 +186,7 @@ d'apparition n'indique une priorité.
       `stylelint-plugin-use-baseline`.
 - [x] **Relais NAT** sur Durable Object (#869, plan 216) — déclenché : les TURN gratuits de `peerjs`
       ont disparu le 2026-09-19, coupant le jeu en NAT symétrique/CGNAT. `RoomRelay` (WebSocket +
-      Hibernation) relaie en secours, jamais en premier.
+      Hibernation) relaie en secours, jamais en premier. **Publié dans la `v2026.9.3`.**
 - [ ] **Signaling maison** sur Durable Object (#869) — *si besoin après la V1*. Non déclenché ; le
       registre des salons (`RoomRendezvous`, plan 209) reste optionnel, les canaux passent toujours
       par PeerJS quand il fonctionne.
@@ -235,7 +235,7 @@ Détail complet dans le graphe : `node scripts/memory/query.mjs --open <entité>
 | **4 — Gameplay Pokemon complet** | météo, champs, Distorsion, toutes les mécaniques | `roadmap-phase-4-gameplay-pokemon-complet-terminée-cont` |
 | **5 — Renderer 2D-HD (Babylon.js)** | terrain 3D + sprites billboardés | `roadmap-phase-5-migration-renderer-2d-hd-babylonjs-ter` |
 | **6.5 — Client jouable** | doigt, clavier, manette — le seul retour joueur était « injouable sur mobile » | `roadmap-phase-65-client-jouable-contrôles-ui-terminée` |
-| **7 — Multijoueur & télémétrie** | P2P WebRTC 2-12 joueurs, télémétrie Worker — **publiée `v2026.9.1`**, puis **`v2026.9.2`** (niveau de l'IA par place, journal de combat complet, portée visible pendant un tour distant) | `release-v2026.9.1`, `release-v2026.9.2`, `plan-195` |
+| **7 — Multijoueur & télémétrie** | P2P WebRTC 2-12 joueurs, télémétrie Worker — **publiée `v2026.9.1`**, puis **`v2026.9.2`** (niveau de l'IA par place, journal de combat complet, portée visible pendant un tour distant) et **`v2026.9.3`** (relais de secours NAT : le jeu en ligne redevient joignable en données mobiles et wifi public) | `release-v2026.9.1`, `release-v2026.9.2`, `release-v2026.9.3`, `plan-195` |
 | **Post-Babylon** | props voxel, liquides, auras, Vitest ×10-15, TypeScript 6, Babylon 9.12 | décisions #690-#707, #753-#757 |
 
 **Écarté, ne reviendra pas sans nouvelle décision** : serveur autoritaire, Supabase (#862), fog réel
