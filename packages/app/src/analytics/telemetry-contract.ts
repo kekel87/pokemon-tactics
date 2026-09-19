@@ -130,6 +130,16 @@ export const TelemetryAction = {
   RoomFailedConnexionImpossible: "room-failed-connexion_impossible",
   RoomFailedDelaiDepasse: "room-failed-delai_depasse",
   RoomFailedFormatReduit: "room-failed-format_reduit",
+  /**
+   * Un canal a dû passer par le relais de secours (plan 216, bug 1).
+   *
+   * 🔴 C'est le chiffre qui dit si la traversée de pare-feu tient ses promesses. Avant ce plan, un
+   * joueur en NAT symétrique comptait simplement en `room-failed-connexion_impossible` et ne jouait
+   * pas. Maintenant il joue — mais il faut savoir COMBIEN de parties en dépendent, parce que c'est
+   * ce nombre qui dimensionne le garde-fou de quota, et que la seule estimation qu'on en ait
+   * aujourd'hui a été posée à la louche.
+   */
+  RoomRelayUsed: "room-relay-used",
   /*
    * Robustesse du jeu en ligne (plan 202, Lot B3). Ces compteurs existent pour une raison précise :
    * **les délais du lot sont des paris**, arrêtés à la main faute de terrain — 60 s de chrono, 75 s

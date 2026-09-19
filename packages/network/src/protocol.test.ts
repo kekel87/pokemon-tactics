@@ -28,7 +28,7 @@ describe("isCompatibleVersion", () => {
 });
 
 const OPTIONS = { mapId: "plains", teamCount: 2, autoPlacement: true, damagePreview: false };
-const SEEDS = { battle: 1, placement: 2, ai: 3 };
+const SEEDS = { battle: 1, placement: 2, ai: 3, team: 4 };
 const SELECTION = { pokemonDefinitionIds: ["venusaur"] };
 
 const VALID_MESSAGES: Record<NetworkMessageType, object> = {

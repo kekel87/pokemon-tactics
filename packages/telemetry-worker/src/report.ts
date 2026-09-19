@@ -844,6 +844,7 @@ export const ACTION_LABELS: Record<string, string> = {
   "room-failed-connexion_impossible": "Échec en ligne — connexion impossible",
   "room-failed-delai_depasse": "Échec en ligne — délai dépassé",
   "room-failed-format_reduit": "Échec en ligne — format réduit en cours de route",
+  "room-relay-used": "En ligne — passé par le relais (traversée directe impossible)",
   "turn-timed-out": "Tour parti au dépassement du chrono",
   "forfeit-absent": "Forfait — connexion perdue",
   "forfeit-missed-turns": "Forfait — trois tours manqués",

@@ -1,16 +1,18 @@
 import {
   type AiDifficulty,
+  createPrng,
   DEFAULT_AI_DIFFICULTY,
   type MapFormat,
   PlayerController,
   PlayerId,
   type TeamSelection,
   type TeamSet,
+  type TeamSlot,
 } from "@pokemon-tactic/core";
 import { t } from "../../i18n";
 import type { TranslationKey } from "../../i18n/types";
 import { loadLastSelection, saveLastSelectionEntry } from "../../team/last-selection";
-import { generateRandomTeam } from "../../team/team-generator";
+import { generateRandomTeamSlots } from "../../team/team-generator";
 import { loadTeam } from "../../team/team-storage";
 
 /**
@@ -51,25 +53,72 @@ export const PLAYER_IDS: readonly PlayerId[] = [
 ];
 
 /** Slots → battle TeamSelection list, or null while any slot is missing a team. */
-export function buildTeamSelections(slots: readonly SlotState[]): TeamSelection[] | null {
+export function buildTeamSelections(
+  slots: readonly SlotState[],
+  /**
+   * La graine de tirage de chaque camp, par index de camp (plan 216, bug 2).
+   *
+   * 🔴 **Obligatoire, et sans repli sur `Math.random`.** Une première version la rendait optionnelle
+   * et retombait silencieusement sur un aléa non déterministe — sur exactement le champ dont une
+   * divergence « éliminerait un joueur honnête pour un horodatage ». Une garantie tenue par un
+   * commentaire (« jamais emprunté par une partie en ligne ») au lieu de l'être par le type.
+   *
+   * Une table sans entrée pour un camp aléatoire fait échouer la composition, ce qui est le
+   * comportement voulu : mieux vaut refuser de lancer que lancer deux parties différentes.
+   */
+  randomSeeds: ReadonlyMap<number, number>,
+): TeamSelection[] | null {
   const teams: TeamSelection[] = [];
   for (let i = 0; i < slots.length; i++) {
     const slot = slots[i];
     const playerId = PLAYER_IDS[i];
-    if (!slot || !playerId || slot.assignedTeam === null) {
+    if (!slot || !playerId) {
       return null;
     }
-    teams.push({
-      playerId,
-      pokemonDefinitionIds: slot.assignedTeam.slots.map((s) => s.pokemonId),
-      controller: slot.controller,
-      // Seule une place IA porte un niveau : sur une place humaine le champ n'aurait aucun sens, et
-      // le laisser traîner ferait croire à un réglage qui ne s'applique pas.
-      ...(slot.controller === PlayerController.Ai ? { aiDifficulty: slot.aiDifficulty } : {}),
-      slots: [...slot.assignedTeam.slots],
-    });
+    /*
+     * 🔴 C'est ICI que « Aléatoire » devient six Pokemon, et nulle part ailleurs (plan 216, bug 2).
+     *
+     * Le tirage était fait dans le salon, à l'instant du choix : on voyait donc son équipe, et on
+     * pouvait la relancer jusqu'à ce qu'elle plaise. Le différer au lancement supprime la vitrine
+     * sans rien interdire — il n'y a plus rien à comparer parce qu'il n'y a encore rien à voir.
+     */
+    if (slot.assignedTeam !== null) {
+      teams.push(teamSelectionOf(slot, playerId, slot.assignedTeam.slots));
+      continue;
+    }
+    const seed = randomSeeds.get(i);
+    // Camp vide, ou camp aléatoire sans graine : dans les deux cas il n'y a pas de partie à monter.
+    // Pas de repli sur un aléa non déterministe — c'est le champ dont une divergence éliminerait un
+    // joueur honnête.
+    if (!slot.ephemeral || seed === undefined) {
+      return null;
+    }
+    teams.push(teamSelectionOf(slot, playerId, generateRandomTeamSlots(createPrng(seed))));
   }
   return teams;
+}
+
+/**
+ * L'assemblage d'une `TeamSelection`, **partagé par les deux chemins** (plan 216, bug 2).
+ *
+ * 🔴 Le chemin solo et le chemin en ligne doivent produire la même sélection pour la même équipe —
+ * une divergence entre les deux assemblages serait exactement le scénario de désync que ce lot
+ * ferme. Ils l'écrivaient chacun de leur côté.
+ */
+export function teamSelectionOf(
+  slot: Pick<SlotState, "controller" | "aiDifficulty">,
+  playerId: PlayerId,
+  slots: readonly TeamSlot[],
+): TeamSelection {
+  return {
+    playerId,
+    pokemonDefinitionIds: slots.map((entry) => entry.pokemonId),
+    // Seule une place IA porte un niveau : sur une place humaine le champ n'aurait aucun sens, et
+    // le laisser traîner ferait croire à un réglage qui ne s'applique pas.
+    ...(slot.controller === PlayerController.Ai ? { aiDifficulty: slot.aiDifficulty } : {}),
+    controller: slot.controller,
+    slots: [...slots],
+  };
 }
 
 export { teamColorToHex } from "@pokemon-tactic/render-ports";
@@ -81,10 +130,6 @@ export function playerLabel(slotIndex: number): string {
 
 export function playerShortLabel(slotIndex: number): string {
   return `J${slotIndex + 1}`;
-}
-
-export function ephemeralTeamName(): string {
-  return t("teamSelect.teams.random");
 }
 
 /**
@@ -121,7 +166,8 @@ export function buildInitialSlots(format: MapFormat, humanIndex = 0): SlotState[
       ephemeral: false,
     };
     if (controller === PlayerController.Ai) {
-      slot.assignedTeam = generateRandomTeam({ name: ephemeralTeamName() });
+      // Intention, pas équipe : le tirage descend au lancement (plan 216, bug 2).
+      slot.assignedTeam = null;
       slot.assignedTeamId = null;
       slot.ephemeral = true;
     } else {
@@ -167,7 +213,7 @@ export function setSlotController(
   slot.controller = controller;
   slot.aiDifficulty = nextDifficulty;
   if (controller === PlayerController.Ai) {
-    slot.assignedTeam = generateRandomTeam({ name: ephemeralTeamName() });
+    slot.assignedTeam = null;
     slot.assignedTeamId = null;
     slot.ephemeral = true;
   } else {
@@ -193,7 +239,7 @@ export function assignTeamToSlot(
   humanIndex = 0,
 ): boolean {
   if (teamId === null) {
-    slot.assignedTeam = generateRandomTeam({ name: ephemeralTeamName() });
+    slot.assignedTeam = null;
     slot.assignedTeamId = null;
     slot.ephemeral = true;
     return true;

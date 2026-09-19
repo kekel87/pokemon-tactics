@@ -142,11 +142,22 @@ export function createTelemetryEnv(options: { failWrite?: Error; secret?: string
     },
   } as unknown as Env["rendezvous"];
 
+  /** Même parti pris que le registre : branché nulle part, et qui le dit franchement s'il est touché. */
+  const relay = {
+    idFromName: () => {
+      throw new Error("mock-telemetry : le relais de salon n'est pas branché dans ces tests");
+    },
+    get: () => {
+      throw new Error("mock-telemetry : le relais de salon n'est pas branché dans ces tests");
+    },
+  } as unknown as Env["relay"];
+
   return {
     env: {
       database,
       rateLimiter,
       rendezvous,
+      relay,
       visitorSecret: options.secret ?? "secret-de-test",
     },
     spy: { rows, statements },

@@ -45,6 +45,18 @@ export const ChannelHealth = {
 
 export type ChannelHealth = (typeof ChannelHealth)[keyof typeof ChannelHealth];
 
+/**
+ * Ce qu'un appelant peut préciser en joignant un pair.
+ *
+ * `relay` est passé à `false` par le salon quand le **registre a déjà répondu que personne ne tient
+ * ce code** : aucun transport ne peut faire apparaître un pair qui n'existe pas, et insister par le
+ * relais ajouterait une seconde attente à une faute de frappe (plan 216, bug 1).
+ */
+export interface ConnectOptions {
+  timeoutMs?: number;
+  relay?: boolean;
+}
+
 /** Un canal ouvert vers un pair. Bidirectionnel, ordonné, fiable. */
 export interface NetworkChannel {
   readonly remotePeerId: string;
@@ -78,7 +90,7 @@ export interface NetworkTransport {
    * @throws NetworkTransportError `code_introuvable` si personne n'est à cette adresse,
    * `connexion_impossible` si la traversée de pare-feu échoue, `delai_depasse` sinon.
    */
-  connect(peerId: string, options?: { timeoutMs?: number }): Promise<NetworkChannel>;
+  connect(peerId: string, options?: ConnectOptions): Promise<NetworkChannel>;
   /** Les canaux entrants. Le maillage veut que tout le monde accepte tout le monde. */
   onIncoming(listener: (channel: NetworkChannel) => void): () => void;
   /**

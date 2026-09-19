@@ -2,6 +2,7 @@ import type { Page } from "@playwright/test";
 import { expect, localSignalling, test } from "../../fixtures";
 import {
   connectPad,
+  focusedDataValue,
   focusedTestId,
   PadButton,
   tapPadButton,
@@ -124,10 +125,17 @@ test("§6.8 un code introuvable est refusé DANS le lobby, en modale, sans navig
 
   await lobby.refusalDismiss.click();
   await expect(lobby.refusal).toHaveCount(0);
-  // Le code est CONSERVÉ, et le focus revient sur la roue : le joueur corrige le caractère qu'il a
-  // mal entendu, il ne resaisit pas les cinq.
+  /*
+   * Le code est CONSERVÉ, et le focus revient DANS la roue : le joueur corrige le caractère qu'il a
+   * mal entendu, il ne resaisit pas les cinq.
+   *
+   * ⚠️ « dans la roue », et plus « au premier emplacement », depuis le plan 216 : le retour passe
+   * par `focusActiveSlot()` et vise donc l'emplacement COURANT — ici le dernier, puisque cinq
+   * caractères viennent d'être frappés. C'était le défaut à corriger (revenir au premier écrasait le
+   * caractère déjà saisi, voir le scénario dédié plus bas), pas une propriété à figer.
+   */
   expect(await lobby.readCode()).toBe(ORPHAN_CODE);
-  await expect(lobby.codeSlots.first()).toBeFocused();
+  expect(await focusedTestId(page)).toBe("code-slot");
   // Et « Rejoindre » a repris son libellé : pendant la tentative il disait « Connexion… ». Le disque
   // est démonté avec lui — `replaceChildren` reconstruit le bouton, il n'est pas seulement caché —
   // et le bouton n'est plus annoncé occupé.
@@ -204,8 +212,9 @@ test.describe("le presse-papier", () => {
     await expect.poll(() => lobby.readCode()).toBe("XKQ4M");
     await expect(lobby.error).toBeEmpty();
     // Le focus retombe dans la roue : le geste suivant est « corriger » ou « Rejoindre », pas
-    // « retrouver où j'en étais ».
-    await expect(lobby.codeSlots.first()).toBeFocused();
+    // « retrouver où j'en étais ». Sur l'emplacement COURANT depuis le plan 216 — un code collé
+    // remplit les cinq cases, donc le curseur finit sur la dernière.
+    expect(await focusedTestId(page)).toBe("code-slot");
   });
 
   test("§6.8 un presse-papier sans code le dit, et ne touche pas à la roue", async ({ page }) => {
@@ -287,4 +296,101 @@ test("§6.8 la roue se fait glisser, et le relâchement ne vole pas de lettre", 
   // glissement, serait avalée à son tour.
   await lobby.codeSlots.first().click({ position: { x: box.width / 2, y: 4 } });
   expect((await lobby.readCode())[0]).toBe(oneStep);
+});
+
+/*
+ * §6.8 — la saisie du code **sans avoir cliqué une case d'abord** (plan 216, bug 3).
+ *
+ * Le défaut remonté par l'humain : la roue écoutait `paste` et les frappes **sur son propre
+ * élément**, or l'écran donne le focus de départ à `focusableControls()[0]` — le premier bouton.
+ * Tant qu'on n'avait pas cliqué une case, `Ctrl+V` et les lettres tombaient dans le vide, **sans que
+ * rien ne le dise**. Le bouton « Coller » couvrait la souris, pas le réflexe clavier, et c'est
+ * précisément le geste qui a été tenté.
+ */
+test("§6.8 taper le code remplit la roue sans qu'on ait cliqué une case", async ({ page }) => {
+  const lobby = await gotoLobby(page);
+
+  // Le point de départ EST le défaut : le focus est sur un bouton, pas dans la roue. C'est ce que le
+  // correctif rattrape — et on ne le pose pas nous-même, sans quoi le test ne prouverait rien.
+  expect(await focusedTestId(page)).not.toBe("code-slot");
+
+  for (const character of "XKQ4M") {
+    await page.keyboard.press(character);
+  }
+
+  expect(await lobby.readCode()).toBe("XKQ4M");
+  // La main est rendue à la roue : le geste suivant est « corriger » ou « Rejoindre ».
+  expect(await focusedTestId(page)).toBe("code-slot");
+});
+
+test("§6.8 🔴 revenir à la roue ne réécrit pas le caractère déjà saisi", async ({ page }) => {
+  /*
+   * Le second défaut, mesuré au chrome-devtools : le retour à la roue visait `[data-slot]`, donc
+   * toujours l'emplacement **0** — et l'emplacement focalisé devient l'emplacement actif. Taper une
+   * lettre après être sorti de la roue écrasait donc le premier caractère : « K7 » devenait « M7 ».
+   */
+  const lobby = await gotoLobby(page);
+  await page.keyboard.press("K");
+  expect(await lobby.readCode()).toBe("KAAAA");
+  // L'INDEX, pas le testid : `code-slot` est posé sur les cinq emplacements, donc une régression
+  // vers l'emplacement 0 le laisserait vert. C'est pourtant tout le sujet de ce correctif.
+  expect(await focusedDataValue(page, "slot")).toBe("1");
+
+  /*
+   * On sort de la roue SANS la traverser — c'est le geste du joueur qui va voir ailleurs puis
+   * revient taper. Traverser ses emplacements aux flèches déplacerait l'emplacement actif au
+   * passage (chaque case focalisée devient la case active), et le test ne parlerait plus du défaut.
+   */
+  await lobby.back.focus();
+
+  await page.keyboard.press("7");
+
+  expect(await lobby.readCode()).toBe("K7AAA");
+  expect(await focusedDataValue(page, "slot")).toBe("2");
+});
+
+test("§6.8 les touches de navigation ne sont pas volées par la roue", async ({ page }) => {
+  /*
+   * Le rattrapage ne consomme QUE l'alphabet des codes (`ROOM_CODE_ALPHABET`, qui exclut déjà `I`,
+   * `O`, `0` et `1`). Pas d'espace, pas d'`Entrée`, pas de flèches : ce sont les touches de la
+   * navigation et de l'activation, les voler casserait le parcours au clavier — et l'espace
+   * activerait « Créer une partie », donc partirait créer un salon pour de vrai.
+   */
+  const lobby = await gotoLobby(page);
+  await lobby.create.focus();
+
+  await page.keyboard.press("0");
+  await page.keyboard.press("1");
+
+  expect(await lobby.readCode()).toBe("AAAAA");
+  expect(await focusedTestId(page)).not.toBe("code-slot");
+});
+
+test.describe("le presse-papier, au clavier", () => {
+  test.use({ permissions: ["clipboard-read", "clipboard-write"] });
+
+  test("§6.8 Ctrl+V remplit la roue sans passer par le bouton « Coller »", async ({ page }) => {
+    const lobby = await gotoLobby(page);
+    await page.evaluate(() => navigator.clipboard.writeText("  pkmntac-xkq4m  "));
+
+    // Le focus est resté sur le premier bouton de l'écran : c'est de LÀ que le réflexe `Ctrl+V` part.
+    expect(await focusedTestId(page)).not.toBe("code-slot");
+    await page.keyboard.press("Control+V");
+
+    await expect.poll(() => lobby.readCode()).toBe("XKQ4M");
+    await expect(lobby.error).toBeEmpty();
+    expect(await focusedTestId(page)).toBe("code-slot");
+  });
+
+  test("§6.8 un Ctrl+V sans code le dit, et ne touche pas à la roue", async ({ page }) => {
+    const lobby = await gotoLobby(page);
+    // `0` et `1` sont les deux chiffres ABSENTS de l'alphabet des codes : après nettoyage il ne reste
+    // rien, et le message doit venir du rattrapage au niveau de l'écran comme du bouton.
+    await page.evaluate(() => navigator.clipboard.writeText("0101"));
+
+    await page.keyboard.press("Control+V");
+
+    await expect(lobby.error).toHaveText("Le presse-papier ne contient pas de code.");
+    expect(await lobby.readCode()).toBe("AAAAA");
+  });
 });

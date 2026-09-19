@@ -12,6 +12,7 @@ import {
   activateFocusedControl,
   focusableControls,
   focusInDirection,
+  isModalOpen,
 } from "../../../input/focus-navigation";
 import { InputSource } from "../../../input/input-source";
 import { getInputSystem } from "../../../input/input-system";
@@ -50,6 +51,8 @@ export function createLobbyScreen(navigate: Navigate): Screen<"lobby"> {
   let pasteButton: HTMLButtonElement | null = null;
   /** Une seule tentative de connexion à la fois : le bouton se rappuie, la roue se re-valide. */
   let joining = false;
+  /** Coupe d'un coup les écoutes posées à l'échelle de l'écran. Voir `captureCodeEntry`. */
+  let screenListeners: AbortController | null = null;
 
   const goBack = (): void => navigate("battle-mode", undefined);
 
@@ -196,8 +199,106 @@ export function createLobbyScreen(navigate: Navigate): Screen<"lobby"> {
     });
   };
 
+  /**
+   * Rend la main à la roue, sur l'emplacement **courant**.
+   *
+   * 🔴 Visait `[data-slot]`, donc toujours l'emplacement 0 : revenir à la roue après en être sorti
+   * écrasait le premier caractère déjà saisi. Mesuré au chrome-devtools le 2026-09-19 — « K7 »
+   * devenait « M7 » en tapant une lettre depuis « Rejoindre ».
+   */
   const focusWheel = (): void => {
-    wheel?.element.querySelector<HTMLElement>("[data-slot]")?.focus();
+    wheel?.focusActiveSlot();
+  };
+
+  /**
+   * Le geste de saisie est-il à nous, là, maintenant ?
+   *
+   * Le refus qui compte est celui de la **modale de refus** : elle piège le focus dans son
+   * `<dialog>`, et y taper une lettre du code ne doit pas la traverser pour aller remplir la roue
+   * derrière. Les deux autres écartent les moments où la roue n'a rien à recevoir — pas encore
+   * montée, ou connexion déjà en cours.
+   */
+  const codeEntryBelongsToWheel = (): boolean => {
+    if (wheel === null || joining) {
+      return false;
+    }
+    // Une modale ouverte détient le geste — elle est montée sur `<body>`, hors de notre arbre.
+    // `isModalOpen` et non un `dialog[open]` maison : `focus-navigation.ts` documente pourquoi cette
+    // définition doit rester unique (revue de code 2026-08-26, deux définitions divergentes).
+    return !isModalOpen();
+  };
+
+  /**
+   * Rattrape la saisie du code quand le focus n'est PAS dans la roue (plan 216, bug 3).
+   *
+   * 🔴 Le défaut corrigé, remonté par l'humain : « la saisie du code ne chope pas bien le focus
+   * quand on veut coller ou écrire ». La roue écoute `paste` et les frappes **sur son propre
+   * élément**, or l'écran donne le focus de départ à `focusableControls()[0]` — le premier bouton.
+   * Tant qu'on n'avait pas cliqué une case, `Ctrl+V` et les lettres tombaient dans le vide, **sans
+   * que rien ne le dise**. Le bouton « Coller » couvrait la souris, pas le réflexe clavier.
+   *
+   * 🔴 **On ne prend PAS le focus d'office au montage.** Ce serait détourner l'ordre de tabulation
+   * d'un écran dont le premier geste peut tout aussi bien être « Créer une partie », et mentir au
+   * lecteur d'écran sur ce qui est actif. On rattrape l'intention quand elle se manifeste, on ne la
+   * présume pas.
+   */
+  const captureCodeEntry = (signal: AbortSignal): void => {
+    /*
+     * `paste` au niveau du document : c'est l'événement qui porte le presse-papier sans permission,
+     * et il couvre `Ctrl+V` comme le clic droit → Coller. La roue garde le sien — quand elle a déjà
+     * le focus, elle a traité l'événement et il ne remonte pas ici.
+     */
+    document.addEventListener(
+      "paste",
+      (event) => {
+        if (wheel === null || wheel.holdsFocus() || !codeEntryBelongsToWheel()) {
+          return;
+        }
+        const pasted = event.clipboardData?.getData("text") ?? "";
+        if (pasted === "") {
+          return;
+        }
+        event.preventDefault();
+        if (!wheel.paste(pasted)) {
+          showError(t("lobby.pasteEmpty"));
+          return;
+        }
+        showError("");
+        focusWheel();
+      },
+      { signal },
+    );
+
+    /*
+     * Une lettre de l'alphabet du code, frappée ailleurs que dans la roue : on donne le focus à la
+     * roue et on lui laisse jouer la touche, au lieu de la perdre.
+     *
+     * ⚠️ On ne consomme QUE l'alphabet du code (`ROOM_CODE_ALPHABET`, qui exclut déjà `I`, `O`, `0`
+     * et `1`). Pas d'espace, pas de `Entrée`, pas de flèches : ce sont les touches de la navigation
+     * et de l'activation, les voler casserait le parcours au clavier.
+     */
+    document.addEventListener(
+      "keydown",
+      (event) => {
+        if (event.ctrlKey || event.metaKey || event.altKey || event.key.length !== 1) {
+          return;
+        }
+        const current = wheel;
+        if (current === null || current.holdsFocus() || !codeEntryBelongsToWheel()) {
+          return;
+        }
+        /*
+         * C'est la ROUE qui dit si le caractère lui appartient : l'alphabet du code vit dans son
+         * modèle, et le redéclarer ici en ferait une seconde source de vérité. Les flèches, `Entrée`
+         * et l'espace n'en font pas partie, donc ils poursuivent leur route vers la navigation.
+         */
+        if (!current.type(event.key)) {
+          return;
+        }
+        event.preventDefault();
+      },
+      { signal },
+    );
   };
 
   const showError = (message: string): void => {
@@ -366,6 +467,11 @@ export function createLobbyScreen(navigate: Navigate): Screen<"lobby"> {
         focusableControls()[0]?.focus();
       }
 
+      // Le rattrapage de la saisie du code (plan 216, bug 3). Posé APRÈS le focus de départ : il
+      // ne le remplace pas, il rattrape ce qui serait perdu ailleurs.
+      screenListeners = new AbortController();
+      captureCodeEntry(screenListeners.signal);
+
       // Écran à consommateur propre, comme l'écran de terrain : haut/bas appartient à la ROUE quand
       // le focus y est, pas à la navigation spatiale, qui sortirait de la roue par le haut.
       unregisterInput = getInputSystem()?.register({
@@ -429,6 +535,10 @@ export function createLobbyScreen(navigate: Navigate): Screen<"lobby"> {
     dispose() {
       unregisterInput?.();
       unregisterInput = undefined;
+      // Les écoutes du document survivraient à l'écran : elles sont posées hors de son arbre, donc
+      // les retirer du DOM ne les coupe pas.
+      screenListeners?.abort();
+      screenListeners = null;
       wheel?.dispose();
       wheel = null;
       errorText = null;

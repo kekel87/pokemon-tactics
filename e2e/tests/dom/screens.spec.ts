@@ -490,3 +490,73 @@ test("§6.4 sélection d'équipe : changer le seul NIVEAU d'une place IA ne reti
   await expect(teams.teamButton(1)).toHaveAttribute("data-state", "saved");
   await expect(teams.teamButton(1)).toContainText("Duel — Alakazam");
 });
+
+/*
+ * §6.4 — un camp « Aléatoire » n'a **plus rien à montrer** (plan 216, bug 2).
+ *
+ * Le tirage descend au lancement : dans le salon, « Aléatoire » n'est plus qu'une intention portée
+ * par le camp. Le défaut d'origine était une vitrine — on voyait les six Pokemon tirés, donc on
+ * relançait jusqu'à ce qu'ils plaisent, et en ligne ça faisait perdre du temps à quelqu'un d'autre.
+ *
+ * 🔴 Arbitrage humain du 2026-09-19 : on **retire la rangée**, on ne la remplace pas par six
+ * silhouettes. Le nom « Aléatoire » dit déjà tout ; des cases vides occuperaient de la hauteur pour
+ * ne rien apprendre. C'est pour ça que le test compte les enfants du bouton, et qu'il le fait en
+ * COMPARANT à un camp dont l'équipe est choisie — sans ce témoin, « zéro rangée » passerait au vert
+ * sur un écran qui n'en affiche plus nulle part.
+ */
+test("§6.4 un camp « Aléatoire » n'affiche aucune rangée de Pokemon, un camp composé en affiche une", async ({
+  page,
+}) => {
+  await seedSavedTeams(page, DUEL_TEAM_STORAGE);
+
+  const menu = new MainMenu(page);
+  const mode = new BattleModeScreen(page);
+  const teams = new TeamSelectScreen(page);
+
+  await menu.goto();
+  await menu.combat.click();
+  await mode.local.click();
+  await expect(teams.title).toBeVisible();
+
+  // Le camp 2 est tenu par l'IA d'office : son équipe n'existe pas encore, et il le dit par son nom.
+  await expect(teams.teamButton(1)).toHaveAttribute("data-state", "ephemeral");
+  await expect(teams.teamButton(1)).toHaveText("🎲 Aléatoire");
+
+  // Le camp 1 est humain et vide — un troisième état, à ne pas confondre avec « aléatoire ».
+  await expect(teams.teamButton(0)).toHaveAttribute("data-state", "empty");
+  await expect(teams.teamButton(0)).toHaveText("— choisir —");
+
+  // Le témoin : une équipe choisie, elle, montre ses portraits sous son nom.
+  await teams.pickSavedTeam(0, DUEL_ATTACKER_TEAM_ID);
+  await expect(teams.teamButton(0)).toHaveAttribute("data-state", "saved");
+  expect(await teams.teamButton(0).evaluate((button) => button.childElementCount)).toBe(2);
+
+  // Et le camp aléatoire, lui, n'a que son nom — ni portraits, ni silhouettes.
+  expect(await teams.teamButton(1).evaluate((button) => button.childElementCount)).toBe(1);
+});
+
+/*
+ * §6.4 — et le camp aléatoire reste LANÇABLE. Sans cette moitié, différer le tirage aurait rendu
+ * toute partie aléatoire impossible à démarrer : `assignedTeam === null` ne veut plus dire « camp
+ * incomplet » depuis que la paire `(null, éphémère)` porte une intention.
+ */
+test("§6.4 choisir « Aléatoire » retire la rangée de Pokemon et laisse la partie lançable", async ({
+  page,
+}) => {
+  const menu = new MainMenu(page);
+  const mode = new BattleModeScreen(page);
+  const teams = new TeamSelectScreen(page);
+
+  await menu.goto();
+  await menu.combat.click();
+  await mode.local.click();
+  await expect(teams.title).toBeVisible();
+  await expect(teams.launch).toBeDisabled();
+
+  await teams.pickRandomTeam(0);
+
+  await expect(teams.teamButton(0)).toHaveAttribute("data-state", "ephemeral");
+  await expect(teams.teamButton(0)).toHaveText("🎲 Aléatoire");
+  expect(await teams.teamButton(0).evaluate((button) => button.childElementCount)).toBe(1);
+  await expect(teams.launch).toBeEnabled();
+});

@@ -1151,9 +1151,15 @@ export class Room {
   private hostChannelOpened = false;
 
   private async handshakeWithHost(connectTimeoutMs?: number): Promise<void> {
+    /*
+     * 🔴 `relay: false` QUAND le registre a dit « personne » — c'est le même signal que le budget
+     * raccourci (plan 216). Un Durable Object de relais existe pour n'importe quel code valide, donc
+     * il accepterait la connexion et le silence durerait 10 s de plus. Une faute de frappe doit
+     * coûter les 8 s arbitrées le 2026-09-15, pas 18.
+     */
     const channel = await this.deps.transport.connect(
       peerIdForSeat(this.code, this.hostSeat),
-      connectTimeoutMs === undefined ? undefined : { timeoutMs: connectTimeoutMs },
+      connectTimeoutMs === undefined ? undefined : { timeoutMs: connectTimeoutMs, relay: false },
     );
     /*
      * 🔴 Le canal s'est OUVERT : quelqu'un est bel et bien à cette adresse, quoi qu'il arrive ensuite.

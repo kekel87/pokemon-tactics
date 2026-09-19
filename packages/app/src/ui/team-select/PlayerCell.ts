@@ -7,6 +7,8 @@ export interface PlayerCellLabels {
   controllerAiMedium: string;
   controllerAiHard: string;
   chooseTeam: string;
+  /** « Aléatoire » — un camp qui tirera son équipe au lancement (plan 216, bug 2). */
+  randomTeam: string;
   /** Réseau seulement — les états de ligne propres au salon (plan 199). */
   controllerRemote?: string;
   /** La ligne de l'hôte, telle que tout le monde la voit — la sienne comprise. */
@@ -210,7 +212,16 @@ export function createPlayerCellElement(
   teamButton.dataset.slotIndex = String(props.slotIndex);
   const teamName = document.createElement("span");
   teamName.className = "ts-player-cell-team-name";
-  if (props.assignedTeam === null) {
+  /*
+   * 🔴 Trois états, et non deux (plan 216, bug 2). `assignedTeam === null` ne veut plus dire « vide » :
+   * un camp **aléatoire** est désormais lui aussi sans équipe, parce que le tirage est différé au
+   * lancement. Le confondre avec un camp vide afficherait « Choisir une équipe » sur un camp
+   * parfaitement réglé, et le rendrait injouable à l'œil.
+   */
+  if (props.assignedTeam === null && props.ephemeral) {
+    teamName.textContent = props.labels.randomTeam;
+    teamButton.dataset.state = "ephemeral";
+  } else if (props.assignedTeam === null) {
     teamName.textContent = props.labels.chooseTeam;
     teamButton.dataset.state = "empty";
   } else {

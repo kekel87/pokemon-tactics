@@ -8,6 +8,7 @@
  */
 
 import { handleDashboard } from "./dashboard";
+import { RELAY_PATH, RoomRelay } from "./relay";
 import {
   isRendezvousOrigin,
   isValidRendezvousCode,
@@ -32,6 +33,8 @@ export interface Env {
   rateLimiter: RateLimit;
   /** Le registre des salons : un objet par code de partie (plan 209, Lot C4). */
   rendezvous: DurableObjectNamespace;
+  /** Le relais de secours : un objet par code de partie (plan 216, bug 1). */
+  relay: DurableObjectNamespace;
   /** Sel du haché de visiteur. Posé par `wrangler secret put visitorSecret`, absent du dépôt. */
   visitorSecret?: string;
   /** Mot de passe du relevé live. Posé par `wrangler secret put dashboardPassword`. Sans lui, la
@@ -74,6 +77,17 @@ function respond(status: number, origin: string | null, corsFor = isAllowedOrigi
   return new Response(null, { status, headers });
 }
 
+/**
+ * Le code de partie porté par un chemin, ou `null` s'il n'en est pas un.
+ *
+ * Partagé par le registre et le relais : le découpage et la validation étaient écrits deux fois dans
+ * le même `fetch`, donc un durcissement (longueur, normalisation) n'aurait porté que sur une route.
+ */
+function roomCodeFromPath(pathname: string, prefix: string): string | null {
+  const code = pathname.slice(prefix.length + 1).toUpperCase();
+  return isValidRendezvousCode(code) ? code : null;
+}
+
 export default {
   async fetch(request: Request<unknown, IncomingRequestCfProperties>, env: Env): Promise<Response> {
     const origin = request.headers.get("Origin");
@@ -95,6 +109,36 @@ export default {
      * donné tombe toujours sur la même instance, où qu'elle vive. C'est cette correspondance, et le
      * mono-thread par objet qu'elle implique, qui rend le compare-and-swap fiable.
      */
+    /*
+     * Le relais de secours des salons (plan 216, bug 1). Comme le relevé et le registre, ce n'est pas
+     * une collecte : ni le limiteur ni la validation d'enveloppe ne le concernent.
+     *
+     * 🔴 **Le limiteur DOIT rester hors de ce chemin.** `[[ratelimits]]` est calibré pour la
+     * télémétrie (30 requêtes / 60 s) ; appliqué au relais, il étranglerait un combat au deuxième
+     * tour. C'est l'ordre des branches de ce routeur qui l'en tient à l'écart, comme pour `/salon` —
+     * ne pas déplacer ce bloc sous le limiteur.
+     *
+     * Le code voyage dans le CHEMIN et sert de nom d'objet : `idFromName` garantit qu'un code donné
+     * tombe toujours sur la même instance, donc que les joueurs d'une même partie s'y retrouvent.
+     */
+    if (pathname.startsWith(`${RELAY_PATH}/`)) {
+      // La MÊME liste d'origines que le registre, appelée directement : un alias n'aurait ajouté
+      // qu'un nom à tenir synchronisé. Le jour où les deux doivent différer, il faudra le vouloir.
+      if (!isRendezvousOrigin(origin)) {
+        return respond(403, origin, isRendezvousOrigin);
+      }
+      const relayCode = roomCodeFromPath(pathname, RELAY_PATH);
+      if (relayCode === null) {
+        return respond(400, origin, isRendezvousOrigin);
+      }
+      /*
+       * ⚠️ Pas de préflight CORS ici, et il n'en faut pas : une poignée de main WebSocket n'est pas
+       * une requête `fetch` ordinaire, le navigateur n'envoie aucun OPTIONS pour elle. L'origine
+       * reste vérifiée ci-dessus — c'est la seule garde qui ait un sens sur ce chemin.
+       */
+      return env.relay.get(env.relay.idFromName(relayCode)).fetch(request);
+    }
+
     if (pathname.startsWith(`${RENDEZVOUS_PATH}/`)) {
       // Liste PROPRE au registre : le développement local y est admis, contrairement à la collecte.
       if (!isRendezvousOrigin(origin)) {
@@ -118,8 +162,8 @@ export default {
       if (request.method !== "POST") {
         return respond(405, origin, isRendezvousOrigin);
       }
-      const code = pathname.slice(RENDEZVOUS_PATH.length + 1).toUpperCase();
-      if (!isValidRendezvousCode(code)) {
+      const code = roomCodeFromPath(pathname, RENDEZVOUS_PATH);
+      if (code === null) {
         return respond(400, origin, isRendezvousOrigin);
       }
       const stub = env.rendezvous.get(env.rendezvous.idFromName(code));
@@ -243,4 +287,4 @@ export default {
   },
 } satisfies ExportedHandler<Env>;
 
-export { RoomRendezvous };
+export { RoomRelay, RoomRendezvous };

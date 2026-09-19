@@ -315,6 +315,10 @@ pokemon-tactics/
 │   │   │   │                          # (B2) — la machine à états ; réglages et vocabulaire sortis en
 │   │   │   │                          # modules dédiés
 │   │   │   ├── transport.ts            # Contrat commun de transport + prise d'identifiant à réessais
+│   │   │   ├── fallback-transport.ts   # LIVRÉ (plan 216) — cascade direct → relais : compose
+│   │   │   │                          # PeerJsTransport (tenté en premier) et RelayTransport, transparente pour room.ts
+│   │   │   ├── relay-connection.ts     # LIVRÉ (plan 216) — transport WebSocket vers le Durable Object
+│   │   │   │                          # de relais, en face de peer-connection.ts
 │   │   │   ├── testing/
 │   │   │   │   └── fake-transport.ts   # Canal en mémoire — rend le salon testable sans réseau (plusieurs Room dans le même processus)
 │   │   │   └── index.ts                # Barrel export
@@ -334,9 +338,12 @@ pokemon-tactics/
 │       │   │                    # (terminal) : un seul générateur, deux consommateurs
 │       │   ├── validate.ts      # Validation du payload (fonctions pures)
 │       │   ├── visitor.ts       # Hash visiteur HMAC(secret ⊕ date du jour, IP+agent) (fonctions pures)
+│       │   ├── relay.ts         # LIVRÉ (plan 216) — Durable Object RoomRelay : un objet par code de
+│       │   │                    # partie, relais WebSocket de secours (API Hibernation), garde-fou de quota
 │       │   └── testing/mock-telemetry.ts  # Fixtures de test partagées
 │       ├── migrations/
-│       │   └── 0001_init.sql    # Schéma D1 (base distante `pokemon-tactics-events`, région WEUR)
+│       │   ├── 0001_init.sql    # Schéma D1 (base distante `pokemon-tactics-events`, région WEUR)
+│       │   └── 0002_relay_usage.sql  # LIVRÉ (plan 216) — consommation journalière du relais (UTC)
 │       ├── wrangler.toml
 │       ├── tsconfig.json
 │       └── package.json

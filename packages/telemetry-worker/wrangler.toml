@@ -24,6 +24,18 @@ class_name = "RoomRendezvous"
 tag = "v1"
 new_sqlite_classes = ["RoomRendezvous"]
 
+# Le relais de secours des salons — un objet par code de partie (plan 216, bug 1).
+# 🔴 `new_sqlite_classes` pour la même raison que ci-dessus, et une de plus : ce relais tient son
+# compteur de consommation DANS le stockage de l'objet, parce que c'est le seul état qui survive à
+# l'hibernation. Sans backend SQLite, pas de stockage sur le plan gratuit, donc pas de garde-fou.
+[[durable_objects.bindings]]
+name = "relay"               # ce que le Worker voit : env.relay
+class_name = "RoomRelay"
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["RoomRelay"]
+
 # Filet anti-rafale. Le WAF et les Rate Limiting Rules gratuits opèrent au niveau zone,
 # ce qui exige un domaine personnalisé — indisponible sur *.workers.dev (décisions #871, #877).
 # `period` n'accepte que 10 ou 60 secondes. Volontairement approximatif (eventually consistent) :

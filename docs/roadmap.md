@@ -184,8 +184,12 @@ d'apparition n'indique une priorité.
 - [ ] **Biome HTML/CSS lint** — étendre `files.includes` += `**/*.{css,html}`. A11y **non activée**
       (décision #752, lecteur d'écran abandonné, `a11y.preset: "none"`). Optionnel :
       `stylelint-plugin-use-baseline`.
-- [ ] **Signaling maison + relais NAT** sur Durable Object (#869) — *si besoin après la V1*. Non
-      déclenché.
+- [x] **Relais NAT** sur Durable Object (#869, plan 216) — déclenché : les TURN gratuits de `peerjs`
+      ont disparu le 2026-09-19, coupant le jeu en NAT symétrique/CGNAT. `RoomRelay` (WebSocket +
+      Hibernation) relaie en secours, jamais en premier.
+- [ ] **Signaling maison** sur Durable Object (#869) — *si besoin après la V1*. Non déclenché ; le
+      registre des salons (`RoomRendezvous`, plan 209) reste optionnel, les canaux passent toujours
+      par PeerJS quand il fonctionne.
 
 ---
 

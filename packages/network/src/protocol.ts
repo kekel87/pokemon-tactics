@@ -55,6 +55,13 @@ import {
  * placement qui ne vient jamais — et ne sait pas le lire, donc il le jetterait au bord du réseau et
  * bâtirait son moteur sans le camp d'en face. Les deux sens échouent, aucun ne le dit.
  *
+ * 14 → 15 au plan 216 (bug 2), et la forme des messages change dans les DEUX sens. Le `start` porte
+ * une quatrième graine, `team`, sans laquelle un pair d'après ne saurait pas tirer les équipes
+ * aléatoires ; et `team_select` peut désormais ne porter qu'une INTENTION (`random: true`) au lieu
+ * de six Pokemon. Un pair d'avant lirait donc une équipe vide là où un pair d'après en tire une —
+ * deux rosters différents pour la même place, c'est-à-dire une divergence dès le premier tour, que
+ * la somme de contrôle du Lot B4 transformerait en forfait pour quelqu'un qui n'a rien fait.
+ *
  * 9 → 10 dans le même lot, sur retour de revue de code : le `start` porte désormais `formatKey`. Un
  * pair d'avant ne l'émet pas, donc un pair d'après lirait un format vide et repartirait sur le repli
  * qu'on vient de fermer — exactement le silence que ce champ existe pour supprimer.
@@ -96,7 +103,7 @@ import {
  * réseau existe pour refuser à l'entrée, plutôt que de le laisser finir en divergence en plein
  * combat.
  */
-export const NETWORK_VERSION = 14;
+export const NETWORK_VERSION = 15;
 
 /**
  * Durée d'un tour en ligne — **déplacée dans `timings.ts`**, réexportée ici (plan 213).
@@ -195,6 +202,16 @@ export interface NetworkSeeds {
    * consommation compterait alors, et il n'est pas garanti entre pairs.
    */
   ai: number;
+  /**
+   * Tirage des équipes ALÉATOIRES (plan 216, bug 2). Semence **racine**, dérivée par place comme
+   * `ai`.
+   *
+   * 🔴 Elle existe parce que « Aléatoire » n'est plus tiré dans le salon mais au lancement : sans
+   * graine partagée, chaque pair tirerait six Pokemon différents pour la même place et le combat
+   * divergerait avant le tour 1. C'est aussi ce qui permet de ne RIEN transmettre de l'équipe
+   * elle-même — une graine pèse moins qu'une liste de six Pokemon complets.
+   */
+  team: number;
 }
 
 /** Une place du salon, telle que tout le monde la voit. */
@@ -248,6 +265,15 @@ export interface NetworkTeamSelection {
   pokemonDefinitionIds: readonly string[];
   /** Les emplacements complets quand le joueur vient du Team Builder ; absents pour une équipe brute. */
   slots?: readonly TeamSlot[];
+  /**
+   * « Aléatoire, pas encore tirée » (plan 216, bug 2).
+   *
+   * 🔴 Une INTENTION, pas une équipe. Quand il vaut `true`, les deux autres champs sont vides et
+   * n'ont rien à dire : l'équipe n'existe pas encore, elle sera tirée au lancement depuis
+   * `NetworkSeeds.team`. Ce n'est donc pas de l'information cachée — il n'y a rien à cacher, et
+   * c'est précisément ce qui ferme la vitrine à relances du salon.
+   */
+  random?: boolean;
 }
 
 /**
@@ -324,7 +350,7 @@ export interface ReadyMessage {
 /**
  * L'hôte grave la partie. Porte tout ce dont un pair a besoin pour monter le même combat sans
  * échanger un mot de plus : la carte par identifiant stable, le format, les options, la composition
- * de **chaque** place, et les trois graines.
+ * de **chaque** place, et les quatre graines.
  */
 export interface StartMessage {
   type: "start";
@@ -711,7 +737,8 @@ function isTeamSelection(value: unknown): value is NetworkTeamSelection {
   return (
     isRecord(value) &&
     isArrayOf(value.pokemonDefinitionIds, isNonEmptyString) &&
-    (value.slots === undefined || isArrayOf(value.slots, isTeamSlot))
+    (value.slots === undefined || isArrayOf(value.slots, isTeamSlot)) &&
+    (value.random === undefined || typeof value.random === "boolean")
   );
 }
 
@@ -737,13 +764,14 @@ function isSeatState(value: unknown): value is NetworkSeatState {
   );
 }
 
-/** Trois graines, ou aucune partie : une seule manquante et les pairs divergent avant le tour 1. */
+/** Quatre graines, ou aucune partie : une seule manquante et les pairs divergent avant le tour 1. */
 function isSeeds(value: unknown): value is NetworkSeeds {
   return (
     isRecord(value) &&
     Number.isFinite(value.battle) &&
     Number.isFinite(value.placement) &&
-    Number.isFinite(value.ai)
+    Number.isFinite(value.ai) &&
+    Number.isFinite(value.team)
   );
 }
 
@@ -866,23 +894,66 @@ export function isCompatibleVersion(remoteVersion: number): boolean {
 }
 
 /**
- * Dérive la graine d'IA de chaque place depuis la graine racine du setup (décision #901).
+ * Dérive une graine par place depuis une graine racine du setup.
  *
- * Consomme le générateur **une fois par place, dans l'ordre croissant des places**, et rend la table
- * complète. L'ordre des places étant le même partout, la dérivation l'est aussi — ce qui ne serait
- * pas vrai d'une dérivation par identifiant de joueur, dont l'ordre d'itération n'est pas garanti.
+ * 🔴 **Consomme le générateur une fois par place, dans l'ORDRE CROISSANT des places, et rend la
+ * table complète** — y compris les places que l'appelant ne compte pas utiliser.
  *
- * Toutes les places sont dérivées d'un coup, y compris les humaines : dériver à la demande ferait
- * dépendre les valeurs de **qui** demande, donc du nombre d'IA de la partie — deux pairs qui
- * n'interrogent pas les mêmes places obtiendraient des graines différentes pour la même place.
+ * C'est tout le contrat, et c'est un invariant de déterminisme réseau : dériver à la demande ferait
+ * dépendre les valeurs de **qui** demande, donc du nombre de places concernées, et deux pairs qui
+ * n'interrogent pas les mêmes places obtiendraient des graines différentes pour la même place. Le
+ * tri croissant, lui, rend la dérivation insensible à l'ordre dans lequel les places arrivent — ce
+ * qui ne serait pas vrai d'une dérivation par identifiant de joueur.
  *
- * @param nextRandom générateur semé sur `seeds.ai`, fourni par l'appelant (`createPrng` du core) —
- * le paquet réseau ne dépend d'aucune implémentation d'aléa.
+ * 🔴 **Un seul corps pour les deux usages** (IA et équipes). Ils ont d'abord été écrits en double,
+ * avec un commentaire qui demandait de « garder les jumelles exactes » — c'est-à-dire un invariant
+ * de déterminisme confié à la vigilance d'un lecteur. Une correction appliquée à une seule des deux
+ * aurait fait diverger les pairs sur un seul des deux tirages, en silence.
+ *
+ * @param nextRandom générateur semé sur la graine racine, fourni par l'appelant (`createPrng` du
+ * core) — le paquet réseau ne dépend d'aucune implémentation d'aléa.
  */
-export function deriveAiSeedsBySeat(
+function deriveSeedsBySeat(
   seats: readonly number[],
   nextRandom: () => number,
 ): ReadonlyMap<number, number> {
   const ascending = [...seats].sort((left, right) => left - right);
   return new Map(ascending.map((seat) => [seat, nextRandom()]));
+}
+
+/**
+ * La graine d'IA de chaque place, depuis `seeds.ai` (décision #901).
+ *
+ * Deux noms plutôt qu'un seul appel direct à {@link deriveSeedsBySeat} : ils disent quelle graine
+ * racine alimente quel tirage, ce qu'un appelant doit savoir et qu'un nom générique cacherait.
+ */
+export function deriveAiSeedsBySeat(
+  seats: readonly number[],
+  nextRandom: () => number,
+): ReadonlyMap<number, number> {
+  return deriveSeedsBySeat(seats, nextRandom);
+}
+
+/**
+ * La graine de tirage d'équipe de chaque place, depuis `seeds.team` (plan 216, bug 2).
+ *
+ * 🔴 **Rend des ENTIERS, et c'est indispensable.** `createPrng` (`core/src/utils/prng.ts`) commence
+ * par `let state = seed | 0` : une graine flottante de `[0, 1)` s'y écrase donc à **zéro**. Sans
+ * cette mise à l'échelle, toutes les places tiraient le même état de générateur, donc **les six
+ * mêmes Pokemon pour tous les camps aléatoires**, et `seeds.team` n'avait aucun effet.
+ *
+ * Le défaut ne produit aucune désync — tous les pairs se trompent pareil — donc rien ne l'aurait
+ * signalé : c'est un test qui comparait deux `createPrng(0)` entre eux qui l'a laissé passer.
+ * Même mise à l'échelle que `placement-flow.ts`, qui avait déjà rencontré le piège.
+ */
+export function deriveTeamSeedsBySeat(
+  seats: readonly number[],
+  nextRandom: () => number,
+): ReadonlyMap<number, number> {
+  return new Map(
+    [...deriveSeedsBySeat(seats, nextRandom)].map(([seat, unit]) => [
+      seat,
+      Math.floor(unit * 2 ** 31),
+    ]),
+  );
 }

@@ -13,6 +13,15 @@ import { HOST_SEAT } from "@pokemon-tactic/network";
  */
 export const RENDEZVOUS_ENDPOINT = "https://pokemon-tactics-telemetry.kekel87.workers.dev/salon";
 
+/**
+ * Le relais de secours des salons (plan 216, bug 1) — même Worker, autre chemin.
+ *
+ * `wss://` et non `https://` : c'est une WebSocket. Le Worker est le même service, avec le même
+ * compte et la même étape de déploiement — la marche coûteuse était franchie depuis le plan 196, et
+ * ce chemin ne la refranchit pas.
+ */
+export const RELAY_ENDPOINT = "wss://pokemon-tactics-telemetry.kekel87.workers.dev/relais";
+
 interface HostAnswer {
   ok?: boolean;
   absent?: boolean;

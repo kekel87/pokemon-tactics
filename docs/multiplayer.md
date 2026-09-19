@@ -866,14 +866,27 @@ fixe**, pas la 4G.
 **TURN** est l'abandon : un relais que les deux joignent en sortant. Marche toujours, coûte de la
 bande passante, donc quasi jamais gratuit sérieusement.
 
+🔴 **Les TURN gratuits de `peerjs` sont morts — mesuré le 2026-09-19** (plan 216, bug 1) :
+`eu-0.turn.peerjs.com` et `us-0.turn.peerjs.com` n'ont plus d'enregistrement DNS `A`, vérifié sur
+trois résolveurs indépendants (`1.1.1.1`, `8.8.8.8`, `9.9.9.9`), et un vrai Chromium ne gather plus
+aucun candidat ICE `relay` (`701 TURN host lookup received error`). Sans TURN il ne restait que le
+STUN — qui ne franchit ni le NAT symétrique ni le CGNAT, exactement le cas ci-dessus — d'où un jeu en
+ligne devenu inutilisable depuis des données mobiles ou un wifi d'hôtel. Le repli tiers évident,
+`openrelay.metered.ca`, a été mesuré mort aussi (`400 TURN allocate error`) : le free tier public a
+fermé, ce qui confirme la remarque plus bas — un TURN tiers gratuit est le composant le plus fragile
+de la chaîne.
+
 **Bonne nouvelle** : en **IPv6 il n'y a pas de NAT du tout**. L'IPv6 mondial a franchi 50 % en mars
 2026 et l'Arcep classe la France parmi les leaders, en notant que les clients sans IPv6 sont
 désormais sur des réseaux en fin de vie (cuivre éteint en 2030). Deux joueurs français sur fibre ont
 de bonnes chances de se connecter en direct. Le « ~10 % de connexions nécessitant un TURN » cité en
 avril est une moyenne mondiale, pessimiste pour notre cas réel.
 
-**Position V1** : on assume. Certaines paires ne se connecteront pas, message clair et « réessayez
-depuis une connexion fixe ». Le vrai correctif est le relais de secours ci-dessous.
+✅ **LIVRÉ (plan 216)** : le relais de secours ci-dessous (§ Cloudflare Workers) remplace le besoin
+d'un TURN — c'est lui, et non plus une résignation, qui traite les paires en NAT symétrique ou en
+CGNAT. Les hôtes TURN morts ont en outre été retirés de la configuration ICE (`ice-servers.ts`), qui
+ne passe plus que deux STUN vivants (`stun.cloudflare.com`, `stun.l.google.com`) — un gain de
+latence même sur les paires qui n'ont jamais besoin du relais.
 
 ---
 
@@ -891,11 +904,31 @@ Pas un arbitre du combat. Trois usages, **dans cet ordre** :
    canaux passent toujours par PeerJS — mais il découple le code de salon de l'identité de l'hôte,
    ce qui était le vrai blocage de la migration d'hôte (#904). Il est **optionnel** : injoignable,
    le jeu retombe sur le comportement d'avant, place 1 et pas de migration.
-3. **Relais de secours quand le NAT gagne** — le DO relaie les actions par WebSocket quand WebRTC
-   échoue. Tour par tour, ~100 octets par action : charge négligeable, et **cela supprime le besoin
-   d'un TURN tiers**. L'API Hibernation garde les clients connectés au réseau Cloudflare sans
-   facturer la durée d'inactivité — exactement le profil d'un jeu où rien ne se passe pendant 60 s
-   entre deux coups.
+3. **Relais de secours quand le NAT gagne — ✅ LIVRÉ (plan 216, bug 1).** Un second Durable Object,
+   `RoomRelay`, un objet par code de partie. Une seule WebSocket par joueur ; les canaux vers chaque
+   pair sont multiplexés dessus, adressés par une trame `<to>|<from>|<charge utile JSON>` — l'adresse
+   HORS du JSON, pour que le relais n'ait jamais à désérialiser la charge, même pour la router.
+
+   Jamais tenté en premier : le direct (PeerJS) reste la règle, gratuit et plus rapide. Le relais
+   n'est essayé que quand `connect()` échoue en `ConnexionImpossible` ou `DelaiDepasse`, et **par
+   pair, pas par salon** — seuls les canaux qui échouent basculent. `claim()`, et non `connect()`,
+   ouvre la socket : côté salon, seul l'invité appelle `connect`, un relais qui n'apparaîtrait qu'au
+   premier repli n'aurait donc jamais existé côté hôte.
+
+   L'API Hibernation garde les clients connectés au réseau Cloudflare sans facturer la durée
+   d'inactivité — exactement le profil d'un jeu où rien ne se passe pendant 60 s entre deux coups —
+   et **cela supprime le besoin d'un TURN tiers**. Un garde-fou de quota (`RELAY_DAILY_LIMIT`, ~60 %
+   du palier gratuit de requêtes) refuse l'ouverture d'un salon **neuf** une fois ce seuil atteint —
+   jamais une partie déjà en cours — pour protéger le registre des salons et la télémétrie, qui
+   partagent le même compte. Le compteur vit dans le stockage SQLite de l'objet (une écriture D1 par
+   salon, à sa fermeture, jamais une par message) ; `pnpm stats` affiche la consommation du jour en
+   pourcentage du palier.
+
+   🔴 **Le TURN Cloudflare a été écarté (arbitrage humain, 2026-09-19)**, pas retenu comme
+   alternative au relais WebSocket : il exige un profil de facturation même pour son palier gratuit,
+   et surtout poser une carte ferait sortir le compte du projet du régime « ça s'arrête au lieu de
+   facturer » pour un régime où le dépassement se paie, sans plafond dur en retour. Le compte reste
+   sans carte.
 
 Limites du plan gratuit vérifiées le 2026-08-29 : Workers 100 000 requêtes/jour et 10 ms de CPU par
 invocation (**temps CPU**, l'attente I/O n'est pas comptée) ; Durable Objects 100 000 requêtes/jour,
@@ -1095,9 +1128,14 @@ ne valait que pour un départ, jamais pour une élimination — voir
 
 ### STUN / TURN
 
-- **STUN** — découvre l'IP publique. Gratuit (Google, Twilio fournissent des serveurs)
-- **TURN** — relaye le trafic si la connexion directe échoue. Voir § Le NAT : à remplacer par notre
-  propre relais Cloudflare plutôt que par un free tier tiers, qui sont les plus fragiles de tous.
+- **STUN** — découvre l'IP publique. Gratuit (Google, Twilio fournissent des serveurs). Le jeu passe
+  désormais une liste explicite (`ice-servers.ts`) qui écrase les défauts de `peerjs` : deux STUN
+  vivants, et rien d'autre.
+- **TURN** — relayait le trafic si la connexion directe échouait. Les TURN gratuits de `peerjs` ont
+  disparu (mesuré le 2026-09-19, § Le NAT). **Remplacé par notre propre relais WebSocket sur Durable
+  Object** (plan 216, § Cloudflare Workers), livré, plutôt que par un TURN tiers — Cloudflare exige
+  une carte bancaire même en palier gratuit, et les free tier publics (`peerjs`, `openrelay.metered.ca`)
+  sont les plus fragiles de tous, ce qu'ils viennent de démontrer.
 
 ---
 
@@ -1132,9 +1170,11 @@ et reprise sans vérification par le document d'avril, est **annulée** par #901
 ```
 packages/network/src/
   protocol.ts            LIVRÉ — messages, NETWORK_VERSION, causes de refus, graines
-  room-code.ts           LIVRÉ — alphabet, génération, adresses dérivées du code
+  room-code.ts           LIVRÉ — alphabet, génération, adresses dérivées du code, parsePeerId
   transport.ts           LIVRÉ — le contrat commun + la prise d'identifiant à réessais
   peer-connection.ts     LIVRÉ — la mise en œuvre PeerJS
+  fallback-transport.ts  LIVRÉ (plan 216) — la cascade direct → relais, transparente pour room.ts
+  relay-connection.ts    LIVRÉ (plan 216) — le transport WebSocket vers le Durable Object de relais
   fake-transport.ts      LIVRÉ — canal en mémoire : c'est lui qui rend le salon testable sans réseau
   room.ts                LIVRÉ — état de salon, arrivées, départs, lancement accusé,
                          routage action/forfeit/checksum/resync (B2, B3, B4 — pas de
@@ -1291,3 +1331,41 @@ mode Combat dans `buildBattle` — le chemin que la partie vive et la reprise pa
 raison structurelle que `reviveDefeatedCamps`. Le vocabulaire (`adjustLevel` qui réécrit, par
 opposition à `maxLevel` qui refuserait une équipe) est repris de Pokemon Showdown, vérifié dans
 `sim/dex-formats.ts`.
+
+---
+
+**Plan 216** (2026-09-19) : **`NETWORK_VERSION` est passée à 15.** Deux raisons indépendantes, une
+seule version — le bug 1 (relais WebSocket, ci-dessus) ne touche à aucun message du protocole et
+n'en aurait pas exigé.
+
+- Le tirage d'une équipe « Aléatoire » descend au lancement (bug 2) : le salon n'affiche plus la
+  ligne de portraits tant que le camp n'a pas été tiré, pour fermer la vitrine à relances. `Aléatoire`
+  n'est donc plus qu'une **intention** portée par `NetworkTeamSelection.random`, et l'équipe elle-même
+  ne transite jamais — chaque pair la dérive localement.
+- `NetworkSeeds` gagne une **quatrième graine**, `team`, dérivée par place comme `ai` (décision #901)
+  via `deriveTeamSeedsBySeat`, copie conforme de `deriveAiSeedsBySeat` (même corps, `deriveSeedsBySeat`,
+  pour ne pas dupliquer l'invariant : toutes les places sont dérivées d'un coup, dans l'ordre croissant,
+  jamais à la demande). Un pair d'avant la version 15 n'émet ni ne lit `random` ni `seeds.team` : il
+  composerait une équipe vide ou différente, et les deux pairs divergeraient sans qu'aucun message ne
+  paraisse malformé — le mode d'échec exact que la version protège.
+- 🔴 **Piège trouvé après la recette, pas avant** : `deriveTeamSeedsBySeat` doit rendre des **entiers**.
+  `createPrng` (`packages/core/src/utils/prng.ts`) commence par `let state = seed | 0` ; une graine
+  flottante de `[0, 1)`, ce qu'une dérivation naïve aurait produit, s'y écrase à **zéro**. Sans la
+  mise à l'échelle (`Math.floor(unit * 2 ** 31)`), toutes les places auraient tiré le même état de
+  générateur — donc les six mêmes Pokemon pour tous les camps aléatoires. Le défaut ne produit aucune
+  désync (tous les pairs se trompent pareil), donc rien ne l'aurait signalé en jeu ; seul un test qui
+  compare deux graines dérivées entre elles l'attrape.
+- `id` et `createdAt` d'une équipe tirée (non déterministes) restent **hors** de ce qui alimente le
+  `BattleState` : `generateRandomTeamSlots` ne rend que les six emplacements, jamais l'enveloppe
+  `TeamSet`. Sans cette séparation, la somme de contrôle du Lot B4 aurait divergé à la première
+  vérification pour un horodatage.
+- Le différé s'applique à **tous les camps aléatoires, IA comprise, et en solo comme en ligne**
+  (arbitrage humain, 2026-09-19) : une équipe aléatoire non tirée n'est pas cachée, elle n'existe pas
+  encore — ce qui laisse intacte la décision #729 (« les lignes IA restent visibles de tous »), qui ne
+  parlait que de ce qui existe déjà.
+
+⚠️ **Bug structurel trouvé par la revue, pas prévu au plan** : la première version de la cascade
+direct → relais n'ouvrait la socket du relais qu'en repli d'un `connect()` en échec — or côté salon,
+seul l'invité appelle `connect`, l'hôte est passif. Un relais qui ne naîtrait que d'un repli
+n'existerait donc **jamais côté hôte**, et les enveloppes de l'invité tomberaient dans le vide.
+Corrigé en ouvrant la socket de relais dès `claim()`, le seul point que les deux bouts traversent.

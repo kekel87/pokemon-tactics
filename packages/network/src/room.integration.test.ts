@@ -44,7 +44,7 @@ import {
 const ROOM_CODE = "A7K2M";
 const MAX_SEATS = 12;
 
-const SEEDS: NetworkSeeds = { battle: 11, placement: 22, ai: 33 };
+const SEEDS: NetworkSeeds = { battle: 11, placement: 22, ai: 33, team: 44 };
 /**
  * Identifiant de partie du `start` (plan 204). Le paquet le transporte sans le lire, donc une
  * valeur figée suffit — sauf là où un test vérifie justement qu'il arrive intact chez l'invité.

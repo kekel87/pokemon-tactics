@@ -73,6 +73,27 @@ export interface CodeWheel {
    * dépendre de la géométrie du viewport (voir `lobby-screen.ts`).
    */
   holdsFocus(): boolean;
+  /**
+   * Joue un caractère dans l'emplacement courant, comme si le joueur l'avait frappé.
+   *
+   * 🔴 Jumeau exact de {@link paste}, et pour le même besoin : accueillir une saisie qui n'est pas
+   * arrivée par l'écouteur de la roue. Sans lui, l'écran rattrapait la frappe en **fabriquant un
+   * faux `KeyboardEvent`** qu'il rejouait sur `document.activeElement` — un contournement qui
+   * dépendait du focus, remontait jusqu'à son propre écouteur, et obligeait l'écran à redéclarer
+   * l'alphabet acceptable que {@link typeCharacter} connaît déjà.
+   *
+   * @returns `false` si le caractère n'appartient pas à l'alphabet du code.
+   */
+  type(character: string): boolean;
+  /**
+   * Donne le focus à l'emplacement COURANT — pas au premier (plan 216, bug 3).
+   *
+   * 🔴 La nuance n'est pas cosmétique : l'appelant qui rendait la main à la roue visait
+   * `[data-slot]`, donc l'emplacement **0**. Revenir à la roue après en être sorti réécrivait
+   * silencieusement le premier caractère déjà saisi — mesuré au chrome-devtools : un code « K7 »
+   * devenait « M7 » en tapant une lettre depuis « Rejoindre ».
+   */
+  focusActiveSlot(): void;
   dispose(): void;
 }
 
@@ -389,7 +410,17 @@ export function createCodeWheel(callbacks: CodeWheelCallbacks = {}): CodeWheel {
       focusActiveSlot();
       return true;
     },
+    type(character) {
+      const typed = typeCharacter(state, character);
+      if (typed === undefined) {
+        return false;
+      }
+      applyState(typed);
+      focusActiveSlot();
+      return true;
+    },
     holdsFocus,
+    focusActiveSlot,
     dispose() {
       listeners.abort();
       element.remove();

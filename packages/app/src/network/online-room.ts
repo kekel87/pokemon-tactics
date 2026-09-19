@@ -1,7 +1,15 @@
 import { REQUIRED_TEAM_COUNTS } from "@pokemon-tactic/data";
-import { PeerJsTransport, type Room, type RoomDeps, RoomRole } from "@pokemon-tactic/network";
+import {
+  FallbackTransport,
+  PeerJsTransport,
+  RelayTransport,
+  type Room,
+  type RoomDeps,
+  RoomRole,
+} from "@pokemon-tactic/network";
 import { countAction, TelemetryAction } from "../analytics/telemetry";
-import { createRendezvousClient } from "./rendezvous-client";
+import { DEFAULT_ICE_SERVERS } from "./ice-servers";
+import { createRendezvousClient, RELAY_ENDPOINT } from "./rendezvous-client";
 import { signallingOverride } from "./signalling-override";
 
 /**
@@ -34,7 +42,7 @@ import { signallingOverride } from "./signalling-override";
  */
 export function onlineRoomDeps(): RoomDeps {
   return {
-    transport: new PeerJsTransport(signallingOverride()),
+    transport: buildTransport(),
     maxSeats: Math.max(...REQUIRED_TEAM_COUNTS),
     /*
      * Le registre des salons (plan 209, Lot C4) : il dit quelle place héberge, ce qui rend la
@@ -43,6 +51,36 @@ export function onlineRoomDeps(): RoomDeps {
      */
     rendezvous: createRendezvousClient(),
   };
+}
+
+/**
+ * Le transport du salon : le direct, doublé d'un relais de secours (plan 216, bug 1).
+ *
+ * 🔴 **L'ordre n'est pas négociable.** `peerjs` est tenté en premier, toujours : le pair-à-pair est
+ * gratuit, plus rapide, et ne fait transiter les actions par aucun tiers. Le relais ne s'allume que
+ * quand la traversée a échoué — ce qui, avant ce plan, était simplement la fin de la partie.
+ *
+ * ⚠️ **L'e2e n'a pas de relais**, et c'est la même règle que `signalling-override.ts` : une suite de
+ * tests ne doit rien demander à Internet. Quand l'annuaire est surchargé (`?peerPort`), on rend un
+ * transport direct nu — exactement ce qui tournait avant ce lot.
+ */
+function buildTransport(): RoomDeps["transport"] {
+  const override = signallingOverride();
+  const direct = new PeerJsTransport({
+    ...override,
+    // Les serveurs par défaut de `peerjs` portent deux hôtes TURN morts : voir `ice-servers.ts`.
+    ...(override?.iceServers === undefined ? { iceServers: DEFAULT_ICE_SERVERS } : {}),
+  });
+  if (override !== undefined) {
+    return direct;
+  }
+  return new FallbackTransport({
+    direct,
+    // Le relais apprend qui il est par `claim()`, comme le direct : il n'a besoin que de l'adresse
+    // du Worker, le code de partie et la place lui viennent de l'identifiant qu'on prend.
+    relay: new RelayTransport({ endpoint: RELAY_ENDPOINT }),
+    onRelayUsed: () => countAction(TelemetryAction.RoomRelayUsed),
+  });
 }
 
 let current: Room | null = null;

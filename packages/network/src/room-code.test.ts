@@ -6,6 +6,7 @@ import {
   isValidRoomCode,
   normalizeRoomCode,
   PEER_ID_PREFIX,
+  parsePeerId,
   peerIdForSeat,
   peerIdsForRoom,
   ROOM_CODE_ALPHABET,
@@ -135,5 +136,39 @@ describe("seatFromPeerId", () => {
     expect(seatFromPeerId(`${PEER_ID_PREFIX}-A7K2M-abc`, "A7K2M")).toBeUndefined();
     expect(seatFromPeerId(`${PEER_ID_PREFIX}-A7K2M-0`, "A7K2M")).toBeUndefined();
     expect(seatFromPeerId(`${PEER_ID_PREFIX}-A7K2M-2x`, "A7K2M")).toBeUndefined();
+  });
+});
+
+/*
+ * `parsePeerId` (plan 216) : relire le code de partie ET la place sans connaître le code d'avance.
+ * C'est le besoin du transport de repli, qui apprend qui il est par `claim(peerId)` et doit en
+ * déduire à quel objet de relais se connecter.
+ */
+describe("parsePeerId", () => {
+  it("relit la partie et la place d'une adresse de ce jeu", () => {
+    expect(parsePeerId(`${PEER_ID_PREFIX}-A7K2M-4`)).toEqual({ roomCode: "A7K2M", seat: 4 });
+  });
+
+  it("relit une place à deux chiffres — le format à 12 en a", () => {
+    expect(parsePeerId(`${PEER_ID_PREFIX}-A7K2M-12`)).toEqual({ roomCode: "A7K2M", seat: 12 });
+  });
+
+  it.each([
+    ["une autre application", "autrejeu-A7K2M-2"],
+    ["un code hors de l'alphabet", `${PEER_ID_PREFIX}-A7K2O-2`],
+    ["un code trop court", `${PEER_ID_PREFIX}-A7K2-2`],
+    ["une place absente", `${PEER_ID_PREFIX}-A7K2M-`],
+    ["une place non numérique", `${PEER_ID_PREFIX}-A7K2M-abc`],
+    ["une place nulle", `${PEER_ID_PREFIX}-A7K2M-0`],
+    ["un segment de trop", `${PEER_ID_PREFIX}-A7K2M-2-3`],
+    ["aucune place", `${PEER_ID_PREFIX}-A7K2M`],
+  ])("ignore %s plutôt que d'en faire une erreur d'interface", (_label, peerId) => {
+    expect(parsePeerId(peerId)).toBeUndefined();
+  });
+
+  it("lit la même place que `seatFromPeerId`, qui délègue à elle", () => {
+    const peerId = peerIdForSeat("A7K2M", 3);
+
+    expect(parsePeerId(peerId)?.seat).toBe(seatFromPeerId(peerId, "A7K2M"));
   });
 });

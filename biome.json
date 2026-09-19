@@ -236,6 +236,9 @@
     },
     {
       "includes": ["packages/telemetry-worker/**"],
+      "javascript": {
+        "globals": ["WebSocketPair"]
+      },
       "linter": {
         "rules": {
           "suspicious": {

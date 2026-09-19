@@ -48,15 +48,32 @@ function applyOpSetIfAvailable(
   return slot;
 }
 
+/**
+ * Les six emplacements d'une équipe aléatoire, et **rien d'autre** (plan 216, bug 2).
+ *
+ * 🔴 **Séparé de `generateRandomTeam` pour une raison de déterminisme, pas d'élégance.** Une
+ * `TeamSet` porte `id` (tiré au hasard) et `createdAt` (`Date.now()`), tous deux **non
+ * déterministes**. Depuis que le tirage aléatoire est différé au lancement et rejoué à l'identique
+ * par chaque pair, ces deux champs ne doivent jamais atteindre le `BattleState` : la somme de
+ * contrôle du Lot B4 sérialise TOUT l'état, donc deux pairs divergeraient à la première
+ * vérification — et le vote de minorité éliminerait un joueur honnête, pour un horodatage.
+ *
+ * Ce qui doit être partagé se dérive de la graine ; l'identité et l'horodatage restent locaux.
+ */
+export function generateRandomTeamSlots(rng: () => number): TeamSlot[] {
+  return pickWithoutReplacement(getPlayablePokemon(), 6, rng).map((pokemon) =>
+    applyOpSetIfAvailable(
+      pokemon.id,
+      pokemon.abilities.primary ?? pokemon.definition.abilityId ?? "",
+      rng,
+    ),
+  );
+}
+
 export function generateRandomTeam(options: RandomGeneratorOptions): TeamSet {
   const rng = options.rng ?? Math.random;
-  const playable = getPlayablePokemon();
-  const picked = pickWithoutReplacement(playable, 6, rng);
   const now = Date.now();
-  const slots: TeamSlot[] = picked.map((p) => {
-    const fallbackAbility = p.abilities.primary ?? p.definition.abilityId ?? "";
-    return applyOpSetIfAvailable(p.id, fallbackAbility, rng);
-  });
+  const slots = generateRandomTeamSlots(rng);
   return {
     id: generateTeamId(),
     name: options.name,

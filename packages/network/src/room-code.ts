@@ -110,13 +110,40 @@ export function peerIdsForRoom(roomCode: string, teamCount: number): readonly st
  * avec une adresse illisible n'est pas une erreur à remonter à l'interface, c'est un pair à ignorer.
  */
 export function seatFromPeerId(peerId: string, roomCode: string): number | undefined {
-  const expectedPrefix = `${PEER_ID_PREFIX}-${normalizeRoomCode(roomCode)}-`;
-  if (!peerId.startsWith(expectedPrefix)) {
+  // Délègue : la forme d'une adresse n'est connue que de `parsePeerId`, sinon les deux lectures
+  // divergent en silence — elles avaient déjà commencé, l'une validant l'alphabet du code, l'autre non.
+  const parsed = parsePeerId(peerId);
+  return parsed?.roomCode === normalizeRoomCode(roomCode) ? parsed.seat : undefined;
+}
+
+/** Ce qu'une adresse de pair encode : la partie, et la place qu'on y tient. */
+export interface PeerIdentity {
+  roomCode: string;
+  seat: number;
+}
+
+/**
+ * Relit le code de partie ET la place depuis une adresse (plan 216).
+ *
+ * `seatFromPeerId` demande de connaître le code d'avance ; ici on ne le connaît pas. C'est le besoin
+ * du transport de repli : il apprend qui il est par `claim(peerId)`, et doit en déduire à quel objet
+ * de relais se connecter. Le préfixe reste vérifié, donc une adresse d'une autre application ne
+ * passe pas.
+ *
+ * Rend `undefined` pour tout ce qui n'est pas une adresse de ce jeu — même position que
+ * `seatFromPeerId` : ce n'est pas une erreur à remonter, c'est une adresse à ignorer.
+ */
+export function parsePeerId(peerId: string): PeerIdentity | undefined {
+  const prefix = `${PEER_ID_PREFIX}-`;
+  if (!peerId.startsWith(prefix)) {
     return undefined;
   }
-  const seatPart = peerId.slice(expectedPrefix.length);
-  if (!/^[1-9][0-9]*$/.test(seatPart)) {
+  const [roomCode, seatPart, ...extra] = peerId.slice(prefix.length).split("-");
+  if (roomCode === undefined || seatPart === undefined || extra.length > 0) {
     return undefined;
   }
-  return Number(seatPart);
+  if (!isValidRoomCode(roomCode) || !/^[1-9][0-9]*$/.test(seatPart)) {
+    return undefined;
+  }
+  return { roomCode, seat: Number(seatPart) };
 }

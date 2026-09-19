@@ -1,10 +1,14 @@
 import {
   type AiDifficulty,
+  createPrng,
+  DEFAULT_AI_DIFFICULTY,
   type MapFormat,
   PlayerController,
   type TeamSelection,
+  type TeamSlot,
 } from "@pokemon-tactic/core";
 import {
+  deriveTeamSeedsBySeat,
   HOST_SEAT,
   NetworkErrorCode,
   NetworkSeatOccupancy,
@@ -39,6 +43,7 @@ import {
   releaseOnlineRoom,
 } from "../../../network/online-room";
 import { getSettings, updateSettings } from "../../../settings";
+import { generateRandomTeamSlots } from "../../../team/team-generator";
 import { openMapPickerModal } from "../../map-select/MapPickerModal";
 import {
   buildFormatKey,
@@ -62,6 +67,7 @@ import {
   type SlotState,
   setSlotController,
   teamColorToHex,
+  teamSelectionOf,
 } from "../../team-select/slot-state";
 import { openTeamPickerModal } from "../../team-select/TeamPickerModal";
 import { renderPreservingFocus } from "../preserve-focus";
@@ -193,13 +199,26 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     return option.format;
   };
 
-  const isLaunchable = (): boolean => slots.every((slot) => slot.assignedTeam !== null);
+  /**
+   * Un camp est prêt quand il a une équipe **ou** l'intention d'en tirer une (plan 216, bug 2).
+   *
+   * 🔴 `ephemeral` avec `assignedTeam === null` n'est PAS un camp incomplet : c'est « Aléatoire, pas
+   * encore tiré ». Sans cette lecture, différer le tirage aurait rendu toute partie aléatoire
+   * impossible à lancer.
+   */
+  const isLaunchable = (): boolean =>
+    slots.every((slot) => slot.assignedTeam !== null || slot.ephemeral);
 
   const onLaunch = (): void => {
     if (!isLaunchable()) {
       return;
     }
-    const teams = buildTeamSelections(slots);
+    // Le tirage des camps aléatoires a lieu ICI, pas au choix (plan 216, bug 2). Graine locale : en
+    // solo il n'y a personne avec qui s'accorder, seulement « Recommencer » à ne pas re-tirer.
+    const teams = buildTeamSelections(
+      slots,
+      new Map(slots.map((_, index) => [index, freshSeed()])),
+    );
     if (teams === null) {
       return;
     }
@@ -257,6 +276,9 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
         battle: freshSeed(),
         placement: freshSeed(),
         ai: freshSeed(),
+        // Le tirage des équipes aléatoires, différé au lancement (plan 216, bug 2). Partagée pour
+        // que tous les pairs tirent les MÊMES six Pokemon pour une même place.
+        team: freshSeed(),
       },
       createBattleId(),
       // Le format que l'HÔTE joue, publié plutôt que redeviné par chacun (plan 211, revue de code).
@@ -325,24 +347,57 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
       return;
     }
 
+    /*
+     * 🔴 Les graines d'équipe, dérivées **pour TOUTES les places d'un coup** (plan 216, bug 2).
+     *
+     * Jumelle exacte de la dérivation des IA (décision #901), et pour la même raison : dériver à la
+     * demande ferait dépendre les valeurs de QUI demande, donc du nombre de camps aléatoires, et
+     * deux pairs qui n'interrogent pas les mêmes places obtiendraient des graines différentes pour
+     * la même place. Six Pokemon différents de chaque côté, c'est une divergence dès le tour 1.
+     */
+    const teamSeeds = deriveTeamSeedsBySeat(
+      start.seats.map((seat) => seat.seat),
+      createPrng(start.seeds.team),
+    );
+
     const teams: TeamSelection[] = [];
     for (const [index, seat] of start.seats.entries()) {
       const playerId = PLAYER_IDS[index];
       if (playerId === undefined) {
         return;
       }
-      teams.push({
-        playerId,
-        pokemonDefinitionIds: [...seat.selection.pokemonDefinitionIds],
-        controller: seat.controller,
+      let resolved: readonly TeamSlot[];
+      if (seat.selection.random === true) {
         /*
-         * Le niveau d'IA vient du MESSAGE, jamais d'un repli local (plan 214) : l'hôte l'a résolu
-         * dans `composeStartSeats` et gravé dans le `start`. Répliquer un défaut ici ferait monter
-         * deux IA différentes aux deux pairs, sans erreur et sans trace.
+         * Le camp a annoncé « aléatoire » : on tire ici, depuis la graine partagée. Tous les pairs
+         * exécutent cette même ligne avec la même graine, donc obtiennent la même équipe.
          */
-        ...(seat.aiDifficulty === undefined ? {} : { aiDifficulty: seat.aiDifficulty }),
-        ...(seat.selection.slots === undefined ? {} : { slots: [...seat.selection.slots] }),
-      });
+        const teamSeed = teamSeeds.get(seat.seat);
+        if (teamSeed === undefined) {
+          // `deriveTeamSeedsBySeat` est construit sur `start.seats` : une place sans graine est une
+          // incohérence du message, pas un cas à rattraper par une valeur plausible.
+          showNetworkError(NetworkErrorCode.VersionIncompatible);
+          return;
+        }
+        resolved = generateRandomTeamSlots(createPrng(teamSeed));
+      } else {
+        resolved = seat.selection.slots ?? [];
+      }
+      /*
+       * 🔴 Le MÊME assembleur que le chemin solo. Les deux le construisaient chacun de leur côté ;
+       * une divergence entre les deux aurait produit deux `TeamSelection` différentes pour la même
+       * équipe, c'est-à-dire exactement la désync que ce lot ferme.
+       *
+       * Le niveau d'IA vient du MESSAGE, jamais d'un repli local (plan 214) : l'hôte l'a résolu dans
+       * `composeStartSeats` et gravé dans le `start`.
+       */
+      teams.push(
+        teamSelectionOf(
+          { controller: seat.controller, aiDifficulty: seat.aiDifficulty ?? DEFAULT_AI_DIFFICULTY },
+          playerId,
+          resolved,
+        ),
+      );
     }
 
     navigate("combat", {
@@ -715,7 +770,19 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
    * place jusqu'aux autres pairs.
    */
   const announceSelection = (slotIndex: number, slot: SlotState): void => {
-    if (room === null || slot.assignedTeam === null) {
+    if (room === null) {
+      return;
+    }
+    /*
+     * 🔴 Un camp aléatoire annonce une INTENTION, pas une équipe (plan 216, bug 2). Elle ne sera
+     * tirée qu'au lancement, par chaque pair, depuis `NetworkSeeds.team` — donc il n'y a rien à
+     * transmettre ici, et rien à montrer à personne.
+     */
+    if (slot.ephemeral && slot.assignedTeam === null) {
+      room.setSeatSelection(slotIndex + 1, { pokemonDefinitionIds: [], random: true });
+      return;
+    }
+    if (slot.assignedTeam === null) {
       return;
     }
     room.setSeatSelection(slotIndex + 1, {
@@ -742,7 +809,10 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
    */
   const focusNextUnassigned = (fromSlotIndex: number): void => {
     const nextIndex = slots.findIndex(
-      (slot, index) => index > fromSlotIndex && slot.assignedTeam === null,
+      // 🔴 `assignedTeam === null` ne veut plus dire « sans équipe » depuis que « Aléatoire » est une
+      // intention (plan 216, bug 2) : sans `!slot.ephemeral`, le focus sautait sur un camp IA
+      // parfaitement réglé au lieu de rester là où le joueur a encore quelque chose à choisir.
+      (slot, index) => index > fromSlotIndex && slot.assignedTeam === null && !slot.ephemeral,
     );
     const targetIndex = nextIndex === -1 ? fromSlotIndex : nextIndex;
     root
@@ -923,6 +993,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
           controllerAiMedium: t("teamSelect.controller.aiMedium"),
           controllerAiHard: t("teamSelect.controller.aiHard"),
           chooseTeam: t("teamSelect.players.choose"),
+          randomTeam: t("teamSelect.teams.random"),
           controllerRemote: t("room.remotePlayer"),
           controllerHost: t("room.hostPlayer"),
           controllerSelf: t("room.selfPlayer"),

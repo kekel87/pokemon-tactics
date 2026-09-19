@@ -10,8 +10,10 @@
  * l'application, où il n'a rien à faire.
  */
 
+export * from "./fallback-transport.js";
 export * from "./peer-connection.js";
 export * from "./protocol.js";
+export * from "./relay-connection.js";
 export * from "./room.js";
 export * from "./room-code.js";
 export * from "./room-config.js";
