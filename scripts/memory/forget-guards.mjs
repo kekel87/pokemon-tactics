@@ -58,6 +58,24 @@ export const MotifRefus = Object.freeze({
 });
 
 /**
+ * Le message de refus d'un fragment sous le plancher, ou `null` s'il passe. Partagé avec
+ * `--invalidate` (invalidation.mjs) : les deux gestes visent une observation par sous-chaîne.
+ *
+ * @param {string} fragment
+ * @returns {string | null}
+ */
+export function refusFragmentCourt(fragment) {
+  const utiles = fragment.trim().length;
+  if (utiles >= FRAGMENT_MIN) {
+    return null;
+  }
+  return (
+    `fragment trop court (${utiles} caractères utiles, minimum ${FRAGMENT_MIN}).\n` +
+    "  Copiez une phrase entière depuis --open : c'est une sous-chaîne exacte, pas un mot-clé."
+  );
+}
+
+/**
  * Décide ce qu'un `--forget` / `--forget-all` doit faire, sans rien faire.
  *
  * @param {object} demande
@@ -86,14 +104,9 @@ export function planifierOubli({ tout, arguments: bruts, observations }) {
   }
   const [nom, fragment] = bruts;
 
-  if (fragment.trim().length < FRAGMENT_MIN) {
-    return {
-      ok: false,
-      motif: MotifRefus.FragmentCourt,
-      message:
-        `fragment trop court (${fragment.trim().length} caractères utiles, minimum ${FRAGMENT_MIN}).\n` +
-        "  Copiez une phrase entière depuis --open : c'est une sous-chaîne exacte, pas un mot-clé.",
-    };
+  const tropCourt = refusFragmentCourt(fragment);
+  if (tropCourt) {
+    return { ok: false, motif: MotifRefus.FragmentCourt, message: tropCourt };
   }
 
   if (observations === null) {

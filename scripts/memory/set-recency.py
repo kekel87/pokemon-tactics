@@ -3,7 +3,7 @@
 
 Le classement BM25 ignore le temps. Sur un corpus de decisions ou l'une supersede
 l'autre, c'est un defaut : la plus verbeuse remonte, pas la plus recente. Cette
-table donne au classement un bonus borne (voir memory-fts.mjs).
+table donne au classement un bonus borne (voir fts.mjs).
 
 Une entite sans date ne recoit aucun bonus — pas de date inventee.
 """

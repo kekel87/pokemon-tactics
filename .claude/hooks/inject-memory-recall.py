@@ -24,11 +24,21 @@ import os
 import re
 import sqlite3
 import sys
+import time
 import unicodedata
 
 CONFIG = os.environ.get("CLAUDE_CONFIG_DIR") or os.path.expanduser("~/.claude")
-DB = os.path.join(CONFIG, "memory", "pokemon-tactics", ".claude", "memory.db")
-STATE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".state", "session-memory")
+# Mêmes surcharges que scripts/memory/paths.mjs : PT_MEMORY_HOME désigne la racine du
+# graphe. PT_MEMORY_STATE déplace l'état de session et le log d'usage — c'est ce qui
+# permet au harnais (eval-search.mjs) de rejouer les sondes sans polluer l'état réel.
+HOME = os.environ.get("PT_MEMORY_HOME") or os.path.join(CONFIG, "memory", "pokemon-tactics")
+DB = os.path.join(HOME, ".claude", "memory.db")
+STATE_ROOT = os.environ.get("PT_MEMORY_STATE") or os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", ".state")
+STATE = os.path.join(STATE_ROOT, "session-memory")
+# Une ligne par injection ; memory-usage-log.py y ajoute les ouvertures (--open).
+# Le rapport « injecté puis ouvert » se lit par `eval-search.mjs --usage`.
+USAGE_LOG = os.path.join(STATE_ROOT, "memory-usage.jsonl")
 
 MAX_ENTITIES = 4
 MAX_OBS_CHARS = 240
@@ -38,17 +48,36 @@ MAX_OBS_CHARS = 240
 # « pourquoi llvmpipe a été écarté pour la CI e2e » score 1.7, « tu peux continuer »
 # score 27.9. Aucun seuil ne les sépare. Le seuil 30 du montage professionnel vaut
 # pour SON corpus, pas pour celui-ci.
-# Critère retenu : la RARETÉ. On n'injecte que si le message nomme quelque chose de
-# spécifique au projet — un terme présent dans au plus RARETE_MAX % des entités.
-RARETE_MAX = float(os.environ.get("PT_MEMORY_RARETE_MAX", "0.01"))
+#
+# Critère retenu (plan 217) : le message doit nommer quelque chose du PROJET, et le
+# vocabulaire du projet, c'est celui des NOMS d'entités. Un terme ne compte que s'il
+# figure dans le nom de 1 à NOM_MAX entités ET dans au plus DF_MAX des entités. Seuls
+# ces termes servent ensuite à la recherche.
+# Mesuré le 2026-10-02 sur hook-probes.tsv et 254 prompts réels hors sondes. L'ancien
+# critère (un terme rare, n'importe où) se taisait sur 0 des 20 prompts
+# conversationnels : « vasi », « parfait », « demain » sont rares dans le graphe
+# parce que les fiches feedback citent l'humain mot pour mot. Le nouveau : 20/20
+# silences, 11/13 positifs (12/13 avant), déclenchement réel 62 % -> 34 %.
+NOM_MAX = 5
 REL_FLOOR = 0.5
 RE_INJECT_AFTER = 15
-# Même contrat que l'enveloppe de recherche — les deux moitiés du système DOIVENT
+# Même contrat que scripts/memory/fts.mjs — les deux moitiés du système DOIVENT
 # chercher pareil. Mesuré le 2026-09-06 : l'enveloppe ne repliait pas les accents
 # alors que ce hook le faisait, donc « mémoire » y devenait « m » + « moire ». Une
 # divergence de tokenisation entre les deux est invisible et coûte la moitié du
 # vocabulaire français. Valeur calibrée au harnais (12/15 à 0,02 sur 1984 entités).
 DF_MAX = 0.02
+# Résidus de la migration des fichiers (plan 200) : des titres de section sans
+# contenu propre (« backlog-suivi »), dont le nom porte des mots courants. Jamais
+# servis, ni en entrée ni en voisin — exclus dans le SQL même.
+TYPE_MUET = "bruit-import"
+# Ligne de voisins (plan 217) : NOMS seulement, jamais leur contenu. La littérature
+# (GraphRAG-Bench) mesure que le graphe aide sur les questions à plusieurs sauts mais
+# coûte en précision sur une recherche simple : on montre le chemin, le lecteur décide
+# d'ouvrir. Mêmes verbes, même ordre que VERBES_SUIVIS de scripts/memory/relations.mjs —
+# fts.test.ts le vérifie. `cite` et `voir-aussi` ne sont jamais suivis.
+VERBES_SUIVIS = ("contredit", "remplace", "résout", "découle-de", "révise", "ouvre")
+MAX_VOISINS = 3
 
 # Le graphe est en FRANÇAIS et les questions aussi — l'inverse du montage
 # professionnel, où le graphe est anglais. Ces mots sont donc FRÉQUENTS ici, et
@@ -63,29 +92,50 @@ marche mieux moi moins mon montre non nos not notre nous of oh ok on ont ou oui 
 perdu plus plutot pour pourquoi pourtant quand sinon que quel quelle quelque qui quoi sa sais sait sans se ses
 si son sont sous suis super sur ta tant te tel the this to ton toujours tous tout tres trop truc tu
 un une va vais vas vers veut veux via voila voir vos votre vous vraiment vu was with y yes
+fou parfait
 """.split())
 
 TOKEN = re.compile(r"[A-Za-z0-9_-]+")
+# Même règle que ecarterNombresIsoles (scripts/memory/fts.mjs) : un nombre seul ne compte
+# que derrière un mot qui numérote (« plan 209 ») ou écrit « #924 ». Sinon il touche le
+# NOM de decision-212 ou plan-212 et injecte une entité sans rapport.
+NUMEROTANTS = {"plan", "plans", "decision", "decisions", "reflexion", "revision", "recette", "lot", "phase"}
+
+# Même contrat que scripts/memory/fts.mjs (plan 217) : une observation « INVALID
+# AAAA-MM-JJ: » est un fait périmé, jamais servi ; une entité qui porte un fait
+# « CONFIRMED » par l'humain gagne BONUS_CONFIRME. fts.test.ts vérifie que ce fichier
+# garde les mêmes clauses — une divergence entre les deux moitiés est invisible.
+BONUS_CONFIRME = 1.5
 
 # bm25() est illégal dans un agrégat au même niveau, et SQLite réaplatit une
 # sous-requête simple : MATERIALIZED est ce qui rend la requête légale.
-SEARCH_SQL = """
+SEARCH_SQL = f"""
   WITH m AS MATERIALIZED (
     SELECT entity_name AS n, kind AS k, -bm25(memory_fts) AS r
-    FROM memory_fts WHERE memory_fts MATCH ?),
-  best AS (SELECT n, k, MAX(r) AS r FROM m GROUP BY n, k)
-  SELECT n, SUM(CASE k WHEN 'name' THEN 3.0 WHEN 'type' THEN 0.5 ELSE 1.0 END * r) AS score
-  FROM best GROUP BY n ORDER BY score DESC LIMIT 12"""
+    FROM memory_fts WHERE memory_fts MATCH ?
+      AND NOT (kind = 'obs' AND text GLOB 'INVALID *')),
+  best AS (SELECT n, k, MAX(r) AS r FROM m GROUP BY n, k),
+  brut AS (SELECT n, SUM(CASE k WHEN 'name' THEN 3.0 WHEN 'type' THEN 0.5 ELSE 1.0 END * r) AS s
+           FROM best GROUP BY n)
+  SELECT brut.n, brut.s * CASE WHEN EXISTS (
+           SELECT 1 FROM observations o WHERE o.entity_name = brut.n
+             AND o.content GLOB 'CONFIRMED *') THEN {BONUS_CONFIRME} ELSE 1.0 END AS score
+  FROM brut JOIN entities en ON en.name = brut.n AND en.entity_type != '{TYPE_MUET}'
+  ORDER BY score DESC LIMIT 12"""
 
 
 def terms(text):
     """Prompt -> termes FTS. Les accents sont repliés pour que « développer »
     atteigne la liste d'arrêt sous la forme « developper » au lieu de survivre en
     fragment. Les composés sont émis entiers ET éclatés : « ci-gate » cherche
-    « ci-gate », et le filtre de fréquence jette ensuite « ci » et « gate »."""
+    « ci-gate », et la porte des noms écarte ensuite « ci » et « gate » s'ils sont
+    trop communs."""
     plie = "".join(c for c in unicodedata.normalize("NFD", text.lower())
                    if not unicodedata.combining(c))
+    diese = set(re.findall(r"#(\d+)", plie))
     bruts = TOKEN.findall(plie)
+    bruts = [t for i, t in enumerate(bruts)
+             if not t.isdigit() or t in diese or (i and bruts[i - 1] in NUMEROTANTS)]
     eclate = []
     for t in bruts:
         eclate.append(t)
@@ -94,30 +144,63 @@ def terms(text):
     return [t for t in dict.fromkeys(eclate) if len(t) > 2 and t not in STOP]
 
 
-def frequences(con, tokens, total):
-    """Fréquence documentaire de chaque terme, entre 0 et 1."""
-    out = []
+def comptes(con, terme):
+    """(entités où le terme apparaît, entités dont le NOM le porte) — un seul parcours."""
+    try:
+        return con.execute(
+            "SELECT COUNT(DISTINCT entity_name), "
+            "COUNT(DISTINCT CASE WHEN kind = 'name' THEN entity_name END) "
+            "FROM memory_fts WHERE memory_fts MATCH ?", (f'"{terme}"',)).fetchone()
+    except sqlite3.Error:
+        return (0, 0)
+
+
+# Un mot ÉCRIT comme du code : camelCase, snake_case, fichier.ext, ou entre backticks.
+# Seconde voie de la porte : ces identifiants vivent souvent dans les observations
+# seules (`setSeatOccupancy`, `battle_started`), jamais dans un nom d'entité.
+IDENTIFIANT = re.compile(r"`([^`\s]+)`|\b([a-z]+[A-Z]\w*|\w+_\w+|\w+\.[a-z]{2,4})\b")
+
+
+def identifiants(prompt):
+    """Les identifiants de code du prompt, repliés comme `terms` les replie."""
+    vus = set()
+    for brut in IDENTIFIANT.finditer(prompt):
+        for t in terms(brut.group(1) or brut.group(2)):
+            vus.add(t)
+    return vus
+
+
+def termes_du_projet(con, tokens, total, codes):
+    """Les termes qui nomment quelque chose du projet, rares dans le graphe (au plus
+    DF_MAX des entités) : présents dans le nom de 1 à NOM_MAX entités, ou écrits comme
+    un identifiant de code et présents quelque part."""
+    retenus = []
     for t in tokens:
-        try:
-            c = con.execute("SELECT COUNT(DISTINCT entity_name) FROM memory_fts "
-                            "WHERE memory_fts MATCH ?", (f'"{t}"',)).fetchone()[0]
-        except sqlite3.Error:
-            c = total
-        out.append((t, c / total if total else 1.0))
-    return out
+        frequence, dans_noms = comptes(con, t)
+        if frequence == 0 or frequence > DF_MAX * total:
+            continue
+        if t in codes or 1 <= dans_noms <= NOM_MAX:
+            retenus.append(t)
+    return retenus
 
 
-def filtre_frequence(con, tokens, total):
-    """Un terme présent dans plus de DF_MAX % des entités ne discrimine rien et
-    NOIE le terme rare qui porte la question. Mesuré : « llvmpipe rasteriseur
-    WebGL CI » ne trouvait rien, « llvmpipe » seul trouvait du premier coup."""
-    if len(tokens) < 2 or total < 20:
-        return tokens
-    notes = frequences(con, tokens, total)
-    rares = [t for t, r in notes if r <= DF_MAX]
-    if rares:
-        return rares
-    return [t for t, _ in sorted(notes, key=lambda x: x[1])[:2]]
+def voisins(con, nom):
+    """La ligne « ↳ → verbe x, ← verbe y » : les liens forts d'une entité, du plus fort
+    au plus faible. Une flèche sortante se lit « nom verbe x », entrante « y verbe nom »."""
+    trous = ",".join("?" * len(VERBES_SUIVIS))
+    liens = con.execute(
+        f"""SELECT l.* FROM (
+              SELECT '→', relation_type, to_entity AS autre FROM relations
+                WHERE from_entity = ? AND relation_type IN ({trous})
+              UNION ALL
+              SELECT '←', relation_type, from_entity FROM relations
+                WHERE to_entity = ? AND relation_type IN ({trous})) l
+            JOIN entities en ON en.name = l.autre AND en.entity_type != ?""",
+        (nom, *VERBES_SUIVIS, nom, *VERBES_SUIVIS, TYPE_MUET)).fetchall()
+    liens = sorted(liens, key=lambda lien: (VERBES_SUIVIS.index(lien[1]), lien[2]))[:MAX_VOISINS]
+    if not liens:
+        return None
+    return "  ↳ " + ", ".join(f"{fleche} {verbe} `{autre}`" for fleche, verbe, autre in liens)
 
 
 def lire_etat(path):
@@ -146,16 +229,11 @@ def main():
 
     con = sqlite3.connect(f"file:{DB}?mode=ro", uri=True, timeout=2.0)
     total = con.execute("SELECT COUNT(*) FROM entities").fetchone()[0]
-    notes = frequences(con, tokens, total)
-    # Porte d'entrée : le message nomme-t-il quelque chose de spécifique ? Sinon on
-    # se tait. Sur-déclencher est LE défaut qui fait désactiver un hook permanent.
-    # « Rare » veut dire RARE MAIS PRÉSENT. Une fréquence de 0 signifie que le mot
-    # n'est pas dans le graphe du tout — il n'y a rien à rappeler, et déclencher
-    # dessus ne produit que du bruit (mesuré : « vas-y », « je vais me coucher »).
-    presents = [f for _, f in notes if f > 0]
-    if not presents or min(presents) > RARETE_MAX:
+    # Porte d'entrée : le message nomme-t-il quelque chose du projet ? Sinon on se
+    # tait. Sur-déclencher est LE défaut qui fait désactiver un hook permanent.
+    tokens = termes_du_projet(con, tokens, total, identifiants(prompt))
+    if not tokens:
         return
-    tokens = filtre_frequence(con, tokens, total)
     expr = " OR ".join(f'"{t}"' for t in tokens)
     try:
         classe = con.execute(SEARCH_SQL, (expr,)).fetchall()
@@ -182,20 +260,25 @@ def main():
     for nom in pris:
         typ = con.execute("SELECT entity_type FROM entities WHERE name = ?", (nom,)).fetchone()
         obs = [r[0] for r in con.execute(
-            "SELECT content FROM observations WHERE entity_name = ?", (nom,))]
+            "SELECT content FROM observations WHERE entity_name = ? "
+            "AND content NOT GLOB 'INVALID *'", (nom,))]
         meilleure = con.execute(
             """SELECT text FROM memory_fts WHERE memory_fts MATCH ? AND entity_name = ?
-               AND kind = 'obs' ORDER BY bm25(memory_fts) LIMIT 1""", (expr, nom)).fetchone()
+               AND kind = 'obs' AND text NOT GLOB 'INVALID *'
+               ORDER BY bm25(memory_fts) LIMIT 1""", (expr, nom)).fetchone()
         extrait = meilleure[0] if meilleure else (obs[0] if obs else "")
         if len(extrait) > MAX_OBS_CHARS:
             extrait = extrait[:MAX_OBS_CHARS - 1] + "…"
         lignes.append(f"- `{nom}` ({typ[0] if typ else '?'}, {len(obs)} obs) — {extrait}")
+        ligne_voisins = voisins(con, nom)
+        if ligne_voisins:
+            lignes.append(ligne_voisins)
     con.close()
 
     contexte = (
         "Mémoire du projet — entrées pertinentes pour ce message (index compact ; "
-        "pour le détail complet d'une entrée, `mcp__memory__open_nodes` avec son nom, "
-        "ou `node scripts/memory/query.mjs --open <nom>`). Ce sont les meilleures "
+        "pour le détail complet d'une entrée : `node scripts/memory/query.mjs --open <nom>`). "
+        "Ce sont les meilleures "
         "correspondances, pas forcément toutes :\n" + "\n".join(lignes))
     print(json.dumps({"hookSpecificOutput": {
         "hookEventName": "UserPromptSubmit",
@@ -209,6 +292,9 @@ def main():
         for nom, i in vu.items():
             fh.write(f"{nom}\t{i}\n")
     os.replace(tmp, chemin)
+    with open(USAGE_LOG, "a") as fh:
+        fh.write(json.dumps({"ts": int(time.time()), "sid": sid, "event": "injected",
+                             "names": pris}, ensure_ascii=False) + "\n")
 
 
 try:

@@ -7,20 +7,47 @@ La mémoire du projet (décisions, plans terminés, historique, dette, retours) 
 
 | Fichier | Rôle |
 |---|---|
-| `query.mjs` | **Le point d'entrée.** Lecture (`"mots clés"`, `--open`, `--stats`), écriture (`--add`, `--link`, `--resolve`, `--retype`) et **suppression** (`--forget`, `--forget-all`). `--help` pour le détail |
+| `query.mjs` | **Le point d'entrée.** Lecture (`"mots clés"`, `--open`, `--stats`), écriture (`--add`, `--link`, `--resolve`, `--retype`, `--invalidate`) et **suppression** (`--forget`, `--forget-all`). `--help` pour le détail |
+| `fts.mjs` | **Le moteur de recherche** : index FTS5, classement BM25, tokenisation, garde anti-doublon, exclusion des faits `INVALID`, bonus `CONFIRMED`. Module pur, testé sur `node:sqlite` (`fts.test.ts`). Vivait hors dépôt jusqu'au plan 217 |
+| `invalidation.mjs` | Les gardes de `--invalidate`, pures (`invalidation.test.ts`) |
+| `relations.mjs` | Le **vocabulaire fermé** des relations : 14 verbes, leur sens, ceux que suit la ligne de voisins du hook (`relations.test.ts`) |
+| `audit.mjs` | **Audit à la demande, lecture seule** : secrets (gitleaks par tuyau), relations hors vocabulaire, candidats à la fusion, recopies, `INVALID` mal formés, orphelins. Propose, ne modifie rien |
+| `hook-probes.tsv` | Sondes du hook de rappel : prompts réels, positifs et négatifs (le hook doit se taire) |
 | `forget-guards.mjs` | Les gardes de `--forget`/`--forget-all`, **pures** (aucun accès disque, aucun `process.exit`) — sorties de `query.mjs` pour rester testables. Couvertes par `query.test.ts` |
-| `paths.mjs` | Résolution **unique** du chemin de la base, déduite de `CLAUDE_CONFIG_DIR`. Surcharges : `PT_MEMORY_HOME`, `PT_MEMORY_VENDOR` |
+| `paths.mjs` | Résolution **unique** du chemin de la base, déduite de `CLAUDE_CONFIG_DIR`. Surcharges : `PT_MEMORY_HOME`, `PT_MEMORY_VENDOR`, `PT_MEMORY_STATE` (état des hooks, log d'usage — `etatMemoire()`) |
 | `import.mjs` | Chargement en masse d'un JSON `{entities, relations}` |
 | `set-recency.py` | Alimente la table de récence et force la reconstruction de l'index FTS. À rejouer après un import en masse |
-| `eval-search.mjs` | **Harnais d'évaluation** : 15 questions réelles, score TOP-3. C'est lui qui a permis de mesurer les réglages au lieu de les supposer — et d'écarter trois pistes plausibles mais fausses |
+| `eval-search.mjs` | **Harnais d'évaluation** : 15 questions réelles (score TOP-3) **et** les sondes du hook (`hook-probes.tsv`, le hook lancé tel quel). `--usage` : injecté puis ouvert, depuis le log d'usage. C'est lui qui a permis de mesurer les réglages au lieu de les supposer — et d'écarter des pistes plausibles mais fausses (dernière en date : retirer le raciniseur `porter`, 13/15 → 10/15) |
 
 Aucune variable d'environnement n'est requise : tout se déduit de `CLAUDE_CONFIG_DIR`.
 
 ```bash
 node scripts/memory/query.mjs "llvmpipe rasteriseur"
 node scripts/memory/query.mjs --open decision-924
-node scripts/memory/eval-search.mjs        # non-régression du classement
+node scripts/memory/eval-search.mjs        # non-régression : recherche ET hook
+node scripts/memory/audit.mjs              # ce qui mérite un coup de balai (rien n'est modifié)
 ```
+
+## Corriger un fait : `--invalidate`, puis `--add`
+
+```bash
+node scripts/memory/query.mjs --invalidate decision-944 "le réseau est restreint au 1v1" "renversée par le plan 209 : cinq formats en ligne"
+node scripts/memory/query.mjs --add decision decision-1100 "…le fait juste…"
+```
+
+Le texte devient `INVALID 2026-10-02: raison — texte d'origine` : lisible par `--open`, plus servi
+par la recherche ni par le hook. Une correction n'est **jamais** un rejet de l'anti-doublon — un
+fait faux ne doit pas pouvoir bloquer sa propre correction. `CONFIRMED AAAA-MM-JJ: …` se pose
+**uniquement** quand l'humain confirme ; il donne un bonus de classement à l'entité.
+
+## Relier : un verbe du vocabulaire fermé
+
+`--link` refuse tout verbe absent de `relations.mjs` et rend la liste. Un seul sens est stocké,
+jamais l'inverse. `voir-aussi` est le dernier recours, jamais suivi ; `cite` n'est pas suivi non
+plus (un plan cite des dizaines de décisions). Les entités `bruit-import` (résidus de la
+migration du plan 200) ne sont jamais servies par le hook ; `query.mjs` les montre, comme tout
+le reste, et l'audit les liste pour qu'on décide de leur sort. Les verbes forts — `contredit`, `remplace`,
+`résout`, `découle-de`, `révise`, `ouvre` — apparaissent dans la ligne `↳` du hook de rappel.
 
 ## Solder une entrée : `--resolve`, jamais une observation seule
 

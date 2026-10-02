@@ -5,7 +5,10 @@
  *         ... --open <nom-entite>   pour lire une entite en entier
  */
 import { planifierOubli } from "./forget-guards.mjs";
+import { plier } from "./fts.mjs";
+import { planifierInvalidation } from "./invalidation.mjs";
 import { ouvrirStore } from "./paths.mjs";
+import { verifierVerbe } from "./relations.mjs";
 
 const argvReel = process.argv.slice(2);
 const store = await ouvrirStore();
@@ -18,12 +21,13 @@ if (!args.length || args[0] === "--help" || args[0] === "-h") {
   query.mjs "mots clés"        recherche classée (index compact)
 
   Aucune variable d'environnement requise : le chemin se déduit de CLAUDE_CONFIG_DIR.
-  Surcharges : PT_MEMORY_HOME (racine du graphe), PT_MEMORY_VENDOR (enveloppe).
+  Surcharges : PT_MEMORY_HOME (racine du graphe), PT_MEMORY_VENDOR (paquet @pepk).
 
   query.mjs --open <nom> ...   observations COMPLÈTES d'une ou plusieurs entités
   query.mjs --stats            taille et composition du graphe
   query.mjs --add <type> <nom> <observation> [obs...]     crée ou complète une entité
-  query.mjs --link <de> <relation> <vers>                 relie deux entités
+  query.mjs --link <de> <relation> <vers>                 relie deux entités ; le verbe
+      appartient au vocabulaire FERMÉ de relations.mjs (refus sinon, liste en retour)
   query.mjs --resolve <nom> <observation> [obs...]        SOLDE une entité : consigne
       la ou les observations de clôture ET bascule son type (backlog → backlog-résolu,
       question-ouverte → question-résolue). Un seul geste : c'est de la séparation des
@@ -35,6 +39,10 @@ if (!args.length || args[0] === "--help" || args[0] === "-h") {
       RÉIMPRIME en entier ce qu'elle retire — c'est le seul geste destructeur)
   query.mjs --forget-all <nom> <fragment>                 retire TOUTES celles qui
       contiennent <fragment>, chacune réimprimée
+  query.mjs --invalidate <nom> <fragment> <raison>        marque UNE observation fausse
+      ou périmée (« INVALID AAAA-MM-JJ: raison — texte »). Le texte reste lisible par
+      --open ; la recherche et le hook de rappel ne le servent plus. Préférez-le à
+      --forget : corriger un fait = l'invalider PUIS --add le nouveau.
 
 Conseils mesurés le 2026-09-06 :
   · préférez 2-4 mots-clés DISTINCTIFS à une phrase — une requête longue se noie
@@ -94,6 +102,17 @@ function retyper(nom, type) {
   }
   store.db.prepare("UPDATE entities SET entity_type = ? WHERE name = ?").run(type, nom);
   return { inchange: false, avant: avant.t };
+}
+
+/** Les observations d'une entité, ou `null` si elle n'existe pas — le contrat des gardes. */
+function lireObservations(nom) {
+  if (nom === undefined || !store.db.prepare("SELECT 1 FROM entities WHERE name = ?").get(nom)) {
+    return null;
+  }
+  return store.db
+    .prepare("SELECT content FROM observations WHERE entity_name = ?")
+    .all(nom)
+    .map((row) => row.content);
 }
 
 if (args[0] === "--retype") {
@@ -164,6 +183,11 @@ if (args[0] === "--link") {
     console.error("usage : --link <de> <relation> <vers>");
     process.exit(1);
   }
+  const verbe = verifierVerbe(relation);
+  if (!verbe.ok) {
+    console.error(verbe.message);
+    process.exit(1);
+  }
   const c = store.createRelations([{ from: de, to: vers, relationType: relation }]);
   console.log(
     c.length ? `relation créée : (${de}) --${relation}--> (${vers})` : "relation déjà présente",
@@ -185,16 +209,7 @@ if (args[0] === "--forget" || args[0] === "--forget-all") {
   const tout = args[0] === "--forget-all";
   const bruts = args.slice(1);
 
-  const nomVise = bruts[0];
-  const connue =
-    nomVise !== undefined &&
-    store.db.prepare("SELECT 1 FROM entities WHERE name = ?").get(nomVise) !== undefined;
-  const observations = connue
-    ? store.db
-        .prepare("SELECT content FROM observations WHERE entity_name = ?")
-        .all(nomVise)
-        .map((row) => row.content)
-    : null;
+  const observations = lireObservations(bruts[0]);
 
   const verdict = planifierOubli({ tout, arguments: bruts, observations });
   if (!verdict.ok) {
@@ -220,6 +235,23 @@ if (args[0] === "--forget" || args[0] === "--forget-all") {
       '    git -C "$CLAUDE_CONFIG_DIR/memory/sync" log --oneline -- memory.db\n' +
       '    git -C "$CLAUDE_CONFIG_DIR/memory/sync" show <commit>:memory.db > /tmp/avant.db',
   );
+  process.exit(0);
+}
+
+if (args[0] === "--invalidate") {
+  const bruts = args.slice(1);
+  const observations = lireObservations(bruts[0]);
+  const date = new Date().toLocaleDateString("sv-SE"); // AAAA-MM-JJ, heure locale
+  const verdict = planifierInvalidation({ arguments: bruts, observations, date });
+  if (!verdict.ok) {
+    console.error(verdict.message);
+    process.exit(1);
+  }
+  // Réécriture EN PLACE : le trigger memory_fts_au_obs réindexe le nouveau texte.
+  store.db
+    .prepare("UPDATE observations SET content = ? WHERE entity_name = ? AND content = ?")
+    .run(verdict.apres, verdict.nom, verdict.avant);
+  console.log(`invalidée dans ${verdict.nom} :\n  +++ ${verdict.apres}`);
   process.exit(0);
 }
 
@@ -285,15 +317,9 @@ if (iOpen >= 0) {
       "sont sur tout trop truc une vous"
     ).split(" "),
   );
-  const mots = [
-    ...new Set(
-      requete
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/\p{M}/gu, "")
-        .match(/[a-z0-9_-]+/g) ?? [],
-    ),
-  ].filter((m) => m.length > 2 && !CREUX.has(m));
+  const mots = [...new Set(plier(requete).match(/[a-z0-9_-]+/g) ?? [])].filter(
+    (m) => m.length > 2 && !CREUX.has(m),
+  );
   const total = store.db.prepare("SELECT COUNT(*) c FROM entities").get().c || 1;
   const rarete = new Map();
   for (const m of mots) {

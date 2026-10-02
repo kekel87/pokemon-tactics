@@ -1,0 +1,37 @@
+# Sondes du hook de rappel (plan 217). Prompts RÉELS de l'humain, relevés dans les transcripts.
+# Colonne 1 : fragment(s) attendus dans le nom d'au moins une entité injectée, séparés par « | » ;
+#             « - » = le hook doit se TAIRE (sonde négative).
+# Colonne 2 : le prompt, tel quel (fautes comprises : ce sont elles qui piègent la porte d'entrée du hook).
+plan-216|relais	Mais on va pas exploser un ration ou un truc du genre avec le relai Durable Objets ? ça va marche a 12 joueur
+doc-keeper	Du coup, je fais quoi pour le doc-keeper ?
+errants	Oui je suis d'accord sue les errants et je ne voualais absolument pas faire de mécanimse de fuite.
+ffta	Non non faut cliquer sur des destination. Non le temps ne passe pas si tu bouge pas. Comme dans FFTA.
+aveugler-facile|perception-facile	Oula, mais c'est pas ouf ... entre facile/moyen et moyen/difficil ok, mais entre facille/difficle, avec meme écart
+onglets	Bah j'ai fermer un onglet FF. Je test sur deux onglet FF. Si je ferme FF ça ferme tout.
+onglets	Mais si j'utilise un onglet privé et que je le ferme, comment ça gère la réouverture ? tu stock pas un identifiant ?
+maillage	olala ... et le maillage 6 et 12 a tester en le screen-tours. ça me parait beaucoup quand memes
+telemetrie|itchio	Bon je pense qu'on a un pb un avec la page de télémétrie. Sur itch io j'ai déjà 2 "browser play" et j'ai rien
+retour-navigateur|creation-partie	Tu peux noter dans le backlog, de revoir l'écran de création de parti ulti et de gérer le retour navigateur.
+209	Vasi fait le plan 209 en entier
+plan-200	Pourqoi je vois les plan 200 alors dans gitkraken ? Est-ce qu'on est bon la ?
+doc-keeper|session-closer	et le session closer ? le next md est pas a jour
+-	oui vasi
+-	Vasi go
+-	vasi fait tout
+-	ta push ?
+-	Parfait
+-	mince reprend
+-	/compact
+-	Mais stop
+-	m'en fou
+-	Okay découpe d'abord
+-	Tu enchain avec le premier plan
+-	ok vasi commit et enchaine sur la suite
+-	Bon on reprend demain, tu finira le plan
+-	C'est bon, j'ai reconnecté
+-	Oui osef aller on enchaine
+-	Je voudrais couper, pour aller me coucher, on reprend demain ?
+-	Désolé, tu attends quoi de moi la ?
+-	ça ma l'aire bon. J'ai fait la partie jusqu'au bout.
+-	Non ça ira, enchaine
+-	oui vasi direct sur main
