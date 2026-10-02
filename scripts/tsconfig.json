@@ -39,6 +39,9 @@
     "memory/relations.mjs",
     "memory/relations.test.ts",
     "memory/audit.mjs",
-    "memory/audit.test.ts"
+    "memory/audit.test.ts",
+    "memory/fusion.mjs",
+    "memory/fusion.test.ts",
+    "memory/memoire-de-test.ts"
   ]
 }

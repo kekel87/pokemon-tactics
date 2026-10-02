@@ -19,6 +19,7 @@ Sûr par construction : toute erreur, base absente ou état illisible sort en
 silence avec le code 0. Un hook de mémoire ne doit JAMAIS bloquer un prompt.
 La base est ouverte en lecture seule : deux sessions parallèles ne se gênent pas.
 """
+import functools
 import json
 import os
 import re
@@ -67,10 +68,6 @@ RE_INJECT_AFTER = 15
 # divergence de tokenisation entre les deux est invisible et coûte la moitié du
 # vocabulaire français. Valeur calibrée au harnais (12/15 à 0,02 sur 1984 entités).
 DF_MAX = 0.02
-# Résidus de la migration des fichiers (plan 200) : des titres de section sans
-# contenu propre (« backlog-suivi »), dont le nom porte des mots courants. Jamais
-# servis, ni en entrée ni en voisin — exclus dans le SQL même.
-TYPE_MUET = "bruit-import"
 # Ligne de voisins (plan 217) : NOMS seulement, jamais leur contenu. La littérature
 # (GraphRAG-Bench) mesure que le graphe aide sur les questions à plusieurs sauts mais
 # coûte en précision sur une recherche simple : on montre le chemin, le lecteur décide
@@ -79,21 +76,19 @@ TYPE_MUET = "bruit-import"
 VERBES_SUIVIS = ("contredit", "remplace", "résout", "découle-de", "révise", "ouvre")
 MAX_VOISINS = 3
 
-# Le graphe est en FRANÇAIS et les questions aussi — l'inverse du montage
-# professionnel, où le graphe est anglais. Ces mots sont donc FRÉQUENTS ici, et
-# c'est le filtre de fréquence documentaire qui fait l'essentiel du travail ;
-# cette liste ne traite que le bruit conversationnel court.
-STOP = set("""
-a accord ai aller alors an and any apres are as assez at au aussi autre aux avant avec beaucoup bien bon bonjour
-by ca car ce cela ces cest cette chose comme comment continue continuer dabord dac daccord dans de deja des dessus dis
-dit dois doit donc donne du elle elles en encore enfin entree est et etre eu fais fait faire faut
-for from hein ici il ils in is it ja jamais je juste la le les leur long lui ma mais me merci mets
-marche mieux moi moins mon montre non nos not notre nous of oh ok on ont ou oui par parce pas peu peut peux
-perdu plus plutot pour pourquoi pourtant quand sinon que quel quelle quelque qui quoi sa sais sait sans se ses
-si son sont sous suis super sur ta tant te tel the this to ton toujours tous tout tres trop truc tu
-un une va vais vas vers veut veux via voila voir vos votre vous vraiment vu was with y yes
-fou parfait
-""".split())
+# Mots vides : liste UNIQUE partagée avec scripts/memory/fts.mjs (plan 218) — mots-outils
+# français et anglais, plus le bruit conversationnel. La porte des noms fait l'essentiel
+# du tri ; cette liste ne retire que ce qu'elle laisserait passer. Fichier illisible = le
+# hook se tait (main() est enveloppé) : pas de liste de repli, ce serait recréer la
+# divergence que ce fichier supprime.
+FICHIER_MOTS_VIDES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..",
+                          "scripts", "memory", "mots-vides.txt")
+
+
+@functools.cache
+def lire_mots_vides():
+    with open(FICHIER_MOTS_VIDES, encoding="utf-8") as fh:
+        return {ligne.strip() for ligne in fh if ligne.strip() and not ligne.startswith("#")}
 
 TOKEN = re.compile(r"[A-Za-z0-9_-]+")
 # Même règle que ecarterNombresIsoles (scripts/memory/fts.mjs) : un nombre seul ne compte
@@ -120,7 +115,7 @@ SEARCH_SQL = f"""
   SELECT brut.n, brut.s * CASE WHEN EXISTS (
            SELECT 1 FROM observations o WHERE o.entity_name = brut.n
              AND o.content GLOB 'CONFIRMED *') THEN {BONUS_CONFIRME} ELSE 1.0 END AS score
-  FROM brut JOIN entities en ON en.name = brut.n AND en.entity_type != '{TYPE_MUET}'
+  FROM brut
   ORDER BY score DESC LIMIT 12"""
 
 
@@ -141,7 +136,7 @@ def terms(text):
         eclate.append(t)
         if "-" in t or "_" in t:
             eclate.extend(re.split(r"[-_]", t))
-    return [t for t in dict.fromkeys(eclate) if len(t) > 2 and t not in STOP]
+    return [t for t in dict.fromkeys(eclate) if len(t) > 2 and t not in lire_mots_vides()]
 
 
 def comptes(con, terme):
@@ -189,14 +184,12 @@ def voisins(con, nom):
     au plus faible. Une flèche sortante se lit « nom verbe x », entrante « y verbe nom »."""
     trous = ",".join("?" * len(VERBES_SUIVIS))
     liens = con.execute(
-        f"""SELECT l.* FROM (
-              SELECT '→', relation_type, to_entity AS autre FROM relations
-                WHERE from_entity = ? AND relation_type IN ({trous})
-              UNION ALL
-              SELECT '←', relation_type, from_entity FROM relations
-                WHERE to_entity = ? AND relation_type IN ({trous})) l
-            JOIN entities en ON en.name = l.autre AND en.entity_type != ?""",
-        (nom, *VERBES_SUIVIS, nom, *VERBES_SUIVIS, TYPE_MUET)).fetchall()
+        f"""SELECT '→', relation_type, to_entity FROM relations
+              WHERE from_entity = ? AND relation_type IN ({trous})
+            UNION ALL
+            SELECT '←', relation_type, from_entity FROM relations
+              WHERE to_entity = ? AND relation_type IN ({trous})""",
+        (nom, *VERBES_SUIVIS, nom, *VERBES_SUIVIS)).fetchall()
     liens = sorted(liens, key=lambda lien: (VERBES_SUIVIS.index(lien[1]), lien[2]))[:MAX_VOISINS]
     if not liens:
         return None

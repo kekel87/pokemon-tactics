@@ -1,6 +1,5 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { DatabaseSync } from "node:sqlite";
 import { describe, expect, it } from "vitest";
 import {
   assurerIndex,
@@ -10,43 +9,18 @@ import {
   estInvalide,
   MARQUEUR_CONFIRME,
   MARQUEUR_INVALIDE,
+  MOTS_VIDES,
   NUMEROTANTS,
   normaliser,
   plafonner,
-  poserSchema,
   termes,
 } from "./fts.mjs";
-
-const SCHEMA_PAQUET = `
-  CREATE TABLE entities (name TEXT PRIMARY KEY, entity_type TEXT NOT NULL);
-  CREATE TABLE observations (
-    id INTEGER PRIMARY KEY AUTOINCREMENT, entity_name TEXT NOT NULL, content TEXT NOT NULL,
-    UNIQUE(entity_name, content));
-  CREATE TABLE relations (
-    id INTEGER PRIMARY KEY AUTOINCREMENT, from_entity TEXT NOT NULL, to_entity TEXT NOT NULL,
-    relation_type TEXT NOT NULL, UNIQUE(from_entity, to_entity, relation_type));`;
-
-type Graphe = Record<string, { type: string; observations: string[] }>;
+import { baseDeTest, type Graphe } from "./memoire-de-test";
 
 const GRAPHE_RELAIS: Graphe = {
   "plan-x": { type: "plan", observations: ["le relais turn débloque le NAT."] },
   "plan-y": { type: "plan", observations: ["le relais turn passe par un Durable Object."] },
 };
-
-function base(graphe: Graphe): DatabaseSync {
-  const db = new DatabaseSync(":memory:");
-  db.exec(SCHEMA_PAQUET);
-  poserSchema(db);
-  const entite = db.prepare("INSERT INTO entities (name, entity_type) VALUES (?, ?)");
-  const observation = db.prepare("INSERT INTO observations (entity_name, content) VALUES (?, ?)");
-  for (const [nom, { type, observations }] of Object.entries(graphe)) {
-    entite.run(nom, type);
-    for (const texte of observations) {
-      observation.run(nom, texte);
-    }
-  }
-  return db;
-}
 
 describe("termes — tokenisation de la requête", () => {
   it("replie les accents, comme unicode61 dans l'index", () => {
@@ -72,7 +46,7 @@ describe("normaliser — clé de quasi-doublon", () => {
 
 describe("classer — classement BM25", () => {
   it("MAX par champ, pas SOMME : une touche précise bat l'accumulation", () => {
-    const db = base({
+    const db = baseDeTest({
       "decision-llvmpipe": { type: "decision", observations: ["llvmpipe écarté pour la CI."] },
       "historique-bavard": {
         type: "historique",
@@ -83,7 +57,7 @@ describe("classer — classement BM25", () => {
   });
 
   it("ne sert pas une entité dont la seule correspondance est invalidée", () => {
-    const db = base({
+    const db = baseDeTest({
       "decision-a": {
         type: "decision",
         observations: ["INVALID 2026-10-02: remplacé par decision-b — swiftshader retenu."],
@@ -94,10 +68,10 @@ describe("classer — classement BM25", () => {
   });
 
   it("donne le bonus à une entité portant un fait CONFIRMED", () => {
-    const ordreNeutre = classer(base(GRAPHE_RELAIS), "relais");
+    const ordreNeutre = classer(baseDeTest(GRAPHE_RELAIS), "relais");
     expect(ordreNeutre).toHaveLength(2);
     const perdant = ordreNeutre[1] ?? "";
-    const avec = base(GRAPHE_RELAIS);
+    const avec = baseDeTest(GRAPHE_RELAIS);
     avec
       .prepare("INSERT INTO observations (entity_name, content) VALUES (?, ?)")
       .run(perdant, "CONFIRMED 2026-10-02: validé en partie réelle.");
@@ -107,7 +81,9 @@ describe("classer — classement BM25", () => {
 
 describe("index FTS — triggers et auto-réparation", () => {
   it("réindexe une observation réécrite en place (--invalidate)", () => {
-    const db = base({ "decision-z": { type: "decision", observations: ["zinzolin retenu."] } });
+    const db = baseDeTest({
+      "decision-z": { type: "decision", observations: ["zinzolin retenu."] },
+    });
     db.prepare("UPDATE observations SET content = ? WHERE entity_name = ?").run(
       "INVALID 2026-10-02: abandonné — zinzolin retenu.",
       "decision-z",
@@ -120,7 +96,9 @@ describe("index FTS — triggers et auto-réparation", () => {
   });
 
   it("se reconstruit quand son nombre de lignes ne correspond plus au graphe", () => {
-    const db = base({ "decision-r": { type: "decision", observations: ["rhizome indexé."] } });
+    const db = baseDeTest({
+      "decision-r": { type: "decision", observations: ["rhizome indexé."] },
+    });
     db.exec("DELETE FROM memory_fts");
     assurerIndex(db);
     expect(classer(db, "rhizome")).toEqual(["decision-r"]);
@@ -150,6 +128,13 @@ describe("contrat avec le hook de rappel — les deux moitiés cherchent pareil"
     expect(hook).toContain(`NOT (kind = 'obs' AND text GLOB '${MARQUEUR_INVALIDE}*')`);
     expect(hook).toContain(`AND o.content GLOB '${MARQUEUR_CONFIRME}*'`);
     expect(hook).toContain(`BONUS_CONFIRME = ${BONUS_CONFIRME}`);
+  });
+
+  it("lit la même liste de mots vides, qui réunit les deux anciennes", () => {
+    expect(hook).toMatch(/mots-vides\.txt/);
+    expect(hook).not.toMatch(/^STOP\s*=/m);
+    expect(MOTS_VIDES.has("something")).toBe(true);
+    expect(MOTS_VIDES.has("parfait")).toBe(true);
   });
 
   it("filtre les termes communs au même seuil", () => {

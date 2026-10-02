@@ -7,7 +7,7 @@
  * l'accord des deux. Rapatrié, il est versionné, relu et testé (`fts.test.ts`, sur
  * `node:sqlite` en mémoire).
  *
- * Module PUR : aucun import de paquet, aucun effet de bord au chargement. Les fonctions
+ * Module sans paquet : seul `mots-vides.txt` est lu au chargement. Les fonctions
  * prennent une base qui expose `exec` et `prepare(...).get/all/run` — better-sqlite3 en
  * production, `node:sqlite` en test. `installerMoteur` patche le prototype du store de
  * `@pepk/mcp-memory-sqlite` : rien n'est édité dans le paquet, et une mise à jour qui
@@ -17,6 +17,8 @@
  * entité à 65 observations ne doit pas dépasser une touche précise en accumulant 65
  * scores faibles.
  */
+
+import { readFileSync } from "node:fs";
 
 const LIMITE = Number(process.env.MEMORY_SEARCH_LIMIT ?? 10) || 10;
 const PLAFOND_OBSERVATIONS = Number(process.env.MEMORY_SEARCH_OBS_CAP ?? 12);
@@ -51,15 +53,16 @@ const POIDS_TYPE = {
   index: 0.8,
 };
 
-// Mots sans signal thématique, en français et en anglais. Le filtre de fréquence fait
-// l'essentiel du travail ; cette liste traite les mots-outils qu'il laisserait passer.
-const MOTS_VIDES = new Set(
-  (
-    "a ai an and any anything are as at au aux avec be but by can ce ces dans de des du en est et " +
-    "eu faire fait for from il in is it je la le les leur lui ma mais me merci beaucoup nos not " +
-    "nothing notre nous of on ont or ou par pas peut peux plus pour qu que qui sa se ses son sont " +
-    "sur ta the this to tu un une vos votre vous was with y yes oui non dis dit something"
-  ).split(" "),
+/**
+ * Mots sans signal thématique, en français et en anglais : `mots-vides.txt`, la liste
+ * UNIQUE que lit aussi le hook de rappel. Deux listes divergeaient jusqu'au plan 218 —
+ * une divergence de tokenisation entre les deux moitiés du système ne se voit pas.
+ */
+export const MOTS_VIDES = new Set(
+  readFileSync(new URL("./mots-vides.txt", import.meta.url), "utf8")
+    .split("\n")
+    .map((ligne) => ligne.trim())
+    .filter((ligne) => ligne && !ligne.startsWith("#")),
 );
 
 const JETON = /[A-Za-z0-9_-]+/g;
@@ -82,13 +85,6 @@ const JETON = /[A-Za-z0-9_-]+/g;
 export const MARQUEUR_INVALIDE = "INVALID ";
 export const MARQUEUR_CONFIRME = "CONFIRMED ";
 export const BONUS_CONFIRME = 1.5;
-
-/**
- * Résidus de la migration des fichiers (plan 200), sans contenu propre. Le hook de rappel
- * ne les sert jamais ; la recherche par `query.mjs` les montre (elle montre tout), et
- * l'audit les liste pour qu'on décide de leur sort.
- */
-export const TYPE_MUET = "bruit-import";
 
 export function estInvalide(observation) {
   return String(observation).startsWith(MARQUEUR_INVALIDE);
@@ -128,7 +124,9 @@ const SQL_RECHERCHE = `
  * l'ancien texte, sans marqueur, et le fait invalidé resterait trouvable — en silence,
  * puisque le comptage de lignes de `assurerIndex` ne bouge pas. Les deux triggers d'UPDATE sur
  * `entities` vivaient dans `paths.mjs` parce que l'ancien propriétaire du schéma ne les
- * déclarait pas — voir le commentaire de `assurerIndex` sur leur absence invisible.
+ * déclarait pas — voir le commentaire de `assurerIndex` sur leur absence invisible. Les deux
+ * triggers de `entity_recency` (plan 218) suivent l'entité quand on la supprime ou la renomme :
+ * sans eux, 688 lignes de récence pointaient vers des entités disparues.
  */
 const SCHEMA = `
   CREATE VIRTUAL TABLE IF NOT EXISTS memory_fts USING fts5(
@@ -145,6 +143,13 @@ const SCHEMA = `
   END;
   CREATE TRIGGER IF NOT EXISTS memory_fts_ad_entity AFTER DELETE ON entities BEGIN
     DELETE FROM memory_fts WHERE entity_name = old.name;
+  END;
+  CREATE TRIGGER IF NOT EXISTS entity_recency_ad_entity AFTER DELETE ON entities BEGIN
+    DELETE FROM entity_recency WHERE entity_name = old.name;
+  END;
+  CREATE TRIGGER IF NOT EXISTS entity_recency_au_entity_rename
+  AFTER UPDATE OF name ON entities BEGIN
+    UPDATE entity_recency SET entity_name = new.name WHERE entity_name = old.name;
   END;
   CREATE TRIGGER IF NOT EXISTS memory_fts_ai_obs AFTER INSERT ON observations BEGIN
     INSERT INTO memory_fts(entity_name, kind, text) VALUES (new.entity_name, 'obs', new.content);
@@ -183,6 +188,24 @@ export function normaliser(texte) {
     .toLowerCase()
     .replace(/[^\p{L}\p{N}]+/gu, " ")
     .trim();
+}
+
+/**
+ * Vrai si `contenu` n'a pas encore de quasi-doublon dans `vues`, qu'il y ajoute alors.
+ * Seule règle anti-doublon du dispositif (ajout, création, fusion). Une forme normalisée
+ * vide (ponctuation seule) n'est jamais un doublon : on ne jette pas en silence ce qu'on ne
+ * sait pas comparer.
+ *
+ * @param {Set<string>} vues formes normalisées déjà présentes
+ * @param {string} contenu
+ */
+export function estNouvelle(vues, contenu) {
+  const cle = normaliser(contenu);
+  if (cle && vues.has(cle)) {
+    return false;
+  }
+  vues.add(cle);
+  return true;
 }
 
 /**
@@ -232,7 +255,7 @@ export function termes(requete) {
 }
 
 /** Exécute `travail` dans une transaction, sur better-sqlite3 comme sur node:sqlite. */
-function enTransaction(db, travail) {
+export function enTransaction(db, travail) {
   db.exec("BEGIN");
   try {
     travail();
@@ -401,17 +424,15 @@ export function installerMoteur(KnowledgeGraphStore) {
         const vues = new Set(existantes.all(lot.entityName).map((r) => normaliser(r.content)));
         const gardees = [];
         for (const contenu of lot.contents) {
-          const cle = normaliser(contenu);
           // `vues` grandit en route : les doublons internes au lot sont pris aussi.
-          if (cle && vues.has(cle)) {
-            if (!ecartes.has(lot.entityName)) {
-              ecartes.set(lot.entityName, []);
-            }
-            ecartes.get(lot.entityName).push(contenu);
+          if (estNouvelle(vues, contenu)) {
+            gardees.push(contenu);
             continue;
           }
-          vues.add(cle);
-          gardees.push(contenu);
+          if (!ecartes.has(lot.entityName)) {
+            ecartes.set(lot.entityName, []);
+          }
+          ecartes.get(lot.entityName).push(contenu);
         }
         return { ...lot, contents: gardees };
       });
@@ -435,17 +456,7 @@ export function installerMoteur(KnowledgeGraphStore) {
     try {
       dedoublonnees = entites.map((e) => {
         const vues = new Set();
-        return {
-          ...e,
-          observations: (e.observations ?? []).filter((o) => {
-            const cle = normaliser(o);
-            if (!cle || vues.has(cle)) {
-              return false;
-            }
-            vues.add(cle);
-            return true;
-          }),
-        };
+        return { ...e, observations: (e.observations ?? []).filter((o) => estNouvelle(vues, o)) };
       });
     } catch (erreur) {
       console.error(`[Memory/FTS] duplicate guard skipped on create: ${erreur.message}`);

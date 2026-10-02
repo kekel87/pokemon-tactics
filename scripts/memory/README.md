@@ -7,9 +7,12 @@ La mémoire du projet (décisions, plans terminés, historique, dette, retours) 
 
 | Fichier | Rôle |
 |---|---|
-| `query.mjs` | **Le point d'entrée.** Lecture (`"mots clés"`, `--open`, `--stats`), écriture (`--add`, `--link`, `--resolve`, `--retype`, `--invalidate`) et **suppression** (`--forget`, `--forget-all`). `--help` pour le détail |
-| `fts.mjs` | **Le moteur de recherche** : index FTS5, classement BM25, tokenisation, garde anti-doublon, exclusion des faits `INVALID`, bonus `CONFIRMED`. Module pur, testé sur `node:sqlite` (`fts.test.ts`). Vivait hors dépôt jusqu'au plan 217 |
+| `query.mjs` | **Le point d'entrée.** Lecture (`"mots clés"`, `--open`, `--stats`), écriture (`--add`, `--link`, `--resolve`, `--retype`, `--invalidate`, `--merge`) et **suppression** (`--forget`, `--forget-all`). `--help` pour le détail |
+| `fts.mjs` | **Le moteur de recherche** : index FTS5, classement BM25, tokenisation, garde anti-doublon, exclusion des faits `INVALID`, bonus `CONFIRMED`. Sans paquet, seul `mots-vides.txt` est lu au chargement ; testé sur `node:sqlite` (`fts.test.ts`). Vivait hors dépôt jusqu'au plan 217 |
 | `invalidation.mjs` | Les gardes de `--invalidate`, pures (`invalidation.test.ts`) |
+| `fusion.mjs` | `--merge` : gardes pures et exécution en une transaction (`fusion.test.ts`) |
+| `mots-vides.txt` | La liste **unique** des mots vides, lue par `fts.mjs` ET par le hook de rappel |
+| `memoire-de-test.ts` | Fabrique de graphe en mémoire (`node:sqlite`) pour les tests |
 | `relations.mjs` | Le **vocabulaire fermé** des relations : 14 verbes, leur sens, ceux que suit la ligne de voisins du hook (`relations.test.ts`) |
 | `audit.mjs` | **Audit à la demande, lecture seule** : secrets (gitleaks par tuyau), relations hors vocabulaire, candidats à la fusion, recopies, `INVALID` mal formés, orphelins. Propose, ne modifie rien |
 | `hook-probes.tsv` | Sondes du hook de rappel : prompts réels, positifs et négatifs (le hook doit se taire) |
@@ -40,13 +43,25 @@ par la recherche ni par le hook. Une correction n'est **jamais** un rejet de l'a
 fait faux ne doit pas pouvoir bloquer sa propre correction. `CONFIRMED AAAA-MM-JJ: …` se pose
 **uniquement** quand l'humain confirme ; il donne un bonus de classement à l'entité.
 
+## Fusionner des morceaux : `--merge`
+
+```bash
+node scripts/memory/query.mjs --merge implementation-attaques implementation-attaques-p1 implementation-attaques-p2
+```
+
+La cible peut ne pas exister : elle est créée au type des sources (c'est ainsi qu'on recolle
+`x-p1`, `x-p2` sous `x`, sans renommage manuel). Observations déplacées (quasi-doublons écartés), relations entrantes et sortantes recâblées
+(doublons et boucles retirés), récence la plus haute gardée, sources supprimées — une
+transaction, entités de même type seulement. 🔴 Ne fusionner que des **morceaux d'un même texte**
+(`-p1`, `-p2`…) : une observation « Section : … » partagée ne suffit pas, la migration du plan
+200 a aussi éclaté des **listes** en un fait par entité (« Fait en Phase 4 » : 55 livrables
+distincts), et les recoller détruirait leur granularité (plan 218).
+
 ## Relier : un verbe du vocabulaire fermé
 
 `--link` refuse tout verbe absent de `relations.mjs` et rend la liste. Un seul sens est stocké,
 jamais l'inverse. `voir-aussi` est le dernier recours, jamais suivi ; `cite` n'est pas suivi non
-plus (un plan cite des dizaines de décisions). Les entités `bruit-import` (résidus de la
-migration du plan 200) ne sont jamais servies par le hook ; `query.mjs` les montre, comme tout
-le reste, et l'audit les liste pour qu'on décide de leur sort. Les verbes forts — `contredit`, `remplace`,
+plus (un plan cite des dizaines de décisions). Les verbes forts — `contredit`, `remplace`,
 `résout`, `découle-de`, `révise`, `ouvre` — apparaissent dans la ligne `↳` du hook de rappel.
 
 ## Solder une entrée : `--resolve`, jamais une observation seule

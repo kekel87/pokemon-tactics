@@ -12,13 +12,13 @@
  *   - candidats à la fusion : même type, noms proches, voisins communs ;
  *   - observations recopiées à l'identique sur plusieurs entités ;
  *   - observations INVALID sans date ni raison lisible ;
- *   - lignes de récence orphelines, entités `bruit-import`.
+ *   - lignes de récence orphelines.
  *
  * Les fonctions de détection sont pures et exportées (audit.test.ts) ; seul le bloc
  * `import.meta.main` touche la base et gitleaks.
  */
 import { spawnSync } from "node:child_process";
-import { normaliser, TYPE_MUET } from "./fts.mjs";
+import { normaliser } from "./fts.mjs";
 import { estInvalideBienFormee } from "./invalidation.mjs";
 import { estVerbeAdmis } from "./relations.mjs";
 
@@ -234,10 +234,6 @@ if (import.meta.main) {
       .all()
       .map((r) => r.n),
     5,
-  );
-  section(
-    `Entités ${TYPE_MUET}`,
-    entites.filter((e) => e.type === TYPE_MUET).map((e) => e.name),
   );
   console.log("\nAucune modification faite. Chaque correction se décide avec l'humain.");
 }

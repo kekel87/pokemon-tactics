@@ -6,6 +6,7 @@
  */
 import { planifierOubli } from "./forget-guards.mjs";
 import { plier } from "./fts.mjs";
+import { fusionner, planifierFusion } from "./fusion.mjs";
 import { planifierInvalidation } from "./invalidation.mjs";
 import { ouvrirStore } from "./paths.mjs";
 import { verifierVerbe } from "./relations.mjs";
@@ -39,6 +40,10 @@ if (!args.length || args[0] === "--help" || args[0] === "-h") {
       RÉIMPRIME en entier ce qu'elle retire — c'est le seul geste destructeur)
   query.mjs --forget-all <nom> <fragment>                 retire TOUTES celles qui
       contiennent <fragment>, chacune réimprimée
+  query.mjs --merge <cible> <source> [source...]          FUSIONNE des entités de même
+      type dans la cible (créée si elle n'existe pas : recoller x-p1, x-p2 sous « x ») :
+      observations (quasi-doublons écartés), relations entrantes et sortantes recâblées,
+      récence la plus haute gardée, sources supprimées. Une transaction.
   query.mjs --invalidate <nom> <fragment> <raison>        marque UNE observation fausse
       ou périmée (« INVALID AAAA-MM-JJ: raison — texte »). Le texte reste lisible par
       --open ; la recherche et le hook de rappel ne le servent plus. Préférez-le à
@@ -252,6 +257,25 @@ if (args[0] === "--invalidate") {
     .prepare("UPDATE observations SET content = ? WHERE entity_name = ? AND content = ?")
     .run(verdict.apres, verdict.nom, verdict.avant);
   console.log(`invalidée dans ${verdict.nom} :\n  +++ ${verdict.apres}`);
+  process.exit(0);
+}
+
+if (args[0] === "--merge") {
+  const noms = args.slice(1);
+  const types = new Map(
+    store.getEntitiesByNames(noms).map((entite) => [entite.name, entite.entityType]),
+  );
+  const verdict = planifierFusion({ arguments: noms, types });
+  if (!verdict.ok) {
+    console.error(verdict.message);
+    process.exit(1);
+  }
+  const bilan = fusionner(store.db, verdict);
+  console.log(
+    `fusionné dans ${verdict.cible}${verdict.creer ? " (créée)" : ""} : ${verdict.sources.length} source(s), ` +
+      `+${bilan.observations} observation(s) (${bilan.ecartees} quasi-doublon(s) écarté(s)), ` +
+      `${bilan.relations} relation(s) recâblée(s).`,
+  );
   process.exit(0);
 }
 
