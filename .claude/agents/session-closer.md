@@ -1,6 +1,6 @@
 ---
 name: session-closer
-description: Clôt une SESSION — consigne où en est le projet dans le graphe de mémoire (entités `historique` et `agenda`, dont le pointeur `agenda-prochaine-etape-courante`) et SIGNALE les documents périmés sans les corriger. Porte sur l'état de la session, pas sur le contenu d'un lot : n'écrit JAMAIS de `decision` ni d'`implémentation`, qui appartiennent à `doc-keeper`. Utiliser uniquement avec /status ou en fin de conversation.
+description: "Clôt une SESSION — consigne où en est le projet dans le graphe de mémoire (entités `historique` et `agenda`, dont le pointeur `agenda-prochaine-etape-courante`) et SIGNALE les documents périmés sans les corriger. Porte sur l'état de la session, pas sur le contenu d'un lot : n'écrit JAMAIS de `decision` ni d'`implémentation`, qui appartiennent à `doc-keeper`. Utiliser uniquement avec /status ou en fin de conversation."
 tools: Read, Write, Edit, Grep, Glob, Bash
 model: sonnet
 disable-model-invocation: true

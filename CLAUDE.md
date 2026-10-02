@@ -67,10 +67,6 @@ Pas tout charger. Lire fichier pertinent moment pertinent.
 
 Règles détaillées par package : `.claude/rules/*.md` (chargées via frontmatter `paths:` selon fichier touché).
 
-## Stack
-
-TypeScript strict ESM · Babylon.js 9 · Vitest · Playwright (`visual-tester` + harness e2e `pnpm test:e2e`) · chrome-devtools MCP (`debugger`, `performance-profiler`) · Vite · Biome · pnpm workspaces.
-
 ## Interdits
 
 - `any` sans justification
@@ -211,57 +207,19 @@ Code écrit, typecheck vert. Claude :
 
 🔴 **Rien d'autre à cet arrêt.** Pas de menu de chaîne, pas de gate, pas d'e2e. Une question.
 
-`oui` → mode interactif (§ dédié plus bas), un scénario à la fois.
+`oui` → skill `/recette` (mode interactif), un scénario à la fois.
 L'humain teste, remonte des retours, on itère jusqu'à ce qu'il valide.
 
 #### 5. ARRÊT 2 — le menu de finalisation
 
-Seulement **après** la validation de la recette (ou un `non` à l'arrêt 1).
+Seulement **après** la validation de la recette (ou un `non` à l'arrêt 1) → **invoquer le skill
+`/menu`**, qui porte la procédure complète : commit WIP, `core-guardian` ∥ `code-reviewer` ∥
+`/code-review`, le menu multi-select, l'ordre d'exécution, les stops sur fail bloquant. Raccourci :
+l'humain peut l'appeler à tout moment via `/menu` ou le mot **`menu`** seul.
 
-D'abord, **sans rien demander** :
-1. **commit WIP** — point de restauration propre avant que la chaîne touche au code.
-2. Puis les trois vérifications **EN PARALLÈLE** — aucune ne dépend des autres, toutes en lecture
-   seule, et c'est le temps d'attente de l'humain qui paie la mise en série :
-   - **`core-guardian`** (arrière-plan) si `git diff --name-only HEAD` matche `packages/core/` ;
-   - **`code-reviewer`** (arrière-plan) — **toujours**. Conventions projet. Il **ne lance plus** lint
-     / typecheck / tests : le gate s'en charge ;
-   - **`/code-review`** (skill intégré, dans le tour) — **toujours**. Axe complémentaire : les **bugs
-     de correction**, que le `code-reviewer` maison ne cherche pas.
-
-Les bloquants des trois se corrigent avant de continuer.
-
-Puis **un seul** `AskUserQuestion`, **une seule question multi-select**, 3 options :
-
-| Option | Pré-coché si |
-|--------|--------------|
-| `tests (test-writer)` | changement observable automatisable → tests unitaires restants + scénario e2e + cahier de recette (graphe, entités `recette`), **puis `/simplify` sur ce code de test**. Décoché si purement pixel/anim |
-| `doc-keeper` | documents `docs/` impactés, fait à consigner au graphe, nouvelle mécanique, nouveau Pokemon/move/talent |
-| `gate + commit` | **toujours** — `/ci-gate full` puis commit + push |
-
-Spéciaux : `visual-tester` n'est **jamais** dans le menu auto (≥2 min Playwright, l'humain le
-demande). Fin de session (« fin », `/status`) → ajouter `session-closer` (4e option, plafond
-`AskUserQuestion`).
-
-**Raccourci** : l'humain peut appeler ce menu à tout moment via `/menu` ou le mot **`menu`** seul.
-
-#### Ordre d'exécution du menu
-
-`commit WIP → {core-guardian ∥ code-reviewer ∥ /code-review} → [MENU] → {test-writer → /simplify (sur les tests)} ∥ doc-keeper → [résumé du diff WIP→final] → /ci-gate full → commit + push (amende le WIP)`
-
-(`∥` = en parallèle, ensembles d'écriture disjoints — voir § Parallélisme.)
-
-Stop sur fail bloquant (`core-guardian` UI-dep, `code-reviewer` ou `/code-review` Critical, `/ci-gate` rouge, contrôle
-injoignable au clavier ou au pad).
-
-🔴 **Résumé du diff WIP→final — à la place du re-test systématique.** Si la chaîne a retouché du
-code **hors tests unitaires / e2e** (correction de review, standardisation, refacto doc-keeper),
-Claude montre en **3 lignes ce qu'elle a changé** (`git diff <commit WIP>..` résumé en français) et
-**l'humain décide** si ça mérite un coup d'œil. Un aller-retour complet remplacé par une phrase.
-Si la chaîne n'a ajouté que des tests, rien à montrer : droit au gate et au commit.
-Origine du garde-fou : plan 166, une « standardisation » post-validation auto-vérifiée à tort a
-écrasé le rendu et fut poussée (mémoire `feedback_wip_commit_retest_before_final`). 🔴 **Le jugement
-revient à l'humain, pas à Claude** — c'est précisément sur une auto-évaluation de Claude que le plan
-166 a dérapé.
+🔴 **Résumé du diff WIP→final** : si la chaîne a retouché du code hors tests, Claude le résume en
+3 lignes et **l'humain décide** s'il mérite un coup d'œil — le jugement ne revient jamais à Claude
+(plan 166).
 
 #### Commits — sans validation de message
 
@@ -283,21 +241,8 @@ lui-même dit « fin » ou lancé `/status`.
 
 #### `human-testing` — mode interactif
 
-Je ne dump pas tout, je déroule **un scénario à la fois**, je lance, tu regardes, tu valides.
-0. **Passe multi-entrée, MESURÉE, avant de te déranger** — quand le diff touche un contrôle
-   d'interface (`packages/app/src/ui/**`, `packages/app/src/styles/**`, `packages/ui-dom/**`). Le jeu
-   se joue souris, clavier, manette et doigt, du téléphone à la 4K : je vérifie **moi-même**, au
-   chrome-devtools sur Chromium, avant de te faire tester. Quatre axes : **clavier** (atteint aux
-   flèches, par de vraies pressions depuis un contrôle voisin — jamais `.focus()` sur la cible),
-   **manette**, **tactile** (hit-area ≥ 30 px sous `pointer: coarse`), **responsive** (568×320,
-   667×375, 1024×768, 1920×1080, 2560×1440 — débordement, chevauchement, hit-areas). 🔴 **Mesurer,
-   jamais supposer** : origine plan 198, une media query ajoutée « au cas où » que la mesure a montrée
-   inutile. Détail et recette : `.claude/rules/multi-input.md`. Ce que je trouve, je le corrige ou je
-   te le remonte **avant** les scénarios — pas la peine de te faire tester un écran cassé au pad.
-1. Analyse `git diff HEAD` → scénarios observables (noms FR).
-2. Par scénario : construis la config JSON **minimale** (seuls les champs nécessaires au scénario, le reste = défauts), moves/Pokemon validés (`packages/data` ; doute → agent `sandbox-json`). **Jamais coller la commande à l'humain.** Si le scénario demande à l'humain d'agir/déplacer/attaquer **avec la cible (Dummy)** → mettre `"dummyControl": "player"` (+ `dummyMoves`), **jamais laisser le défaut `"ai"`** (l'humain ne pourrait pas la contrôler).
-3. **Boucle** : (a) **je lance moi-même** le serveur via `Bash run_in_background` (`pnpm dev:sandbox '{...}'` ; HMR ne suffit pas — config bakée à l'env au boot, donc relancer le process à chaque scénario). Port du checkout : `PT_PORT` env → `.worktree-port` à la racine → sinon `5173` (cf `vite.config.ts`) ; **en worktree c'est PAS 5173**. **Avant chaque relance : j'arrête d'abord MON process sandbox précédent** (`TaskStop` du background task — sûr et indépendant du port) pour **réutiliser le même port — jamais laisser vite incrémenter** (5174, 5175…). Je cible **uniquement mon process sandbox** : jamais un navigateur de l'humain, jamais son serveur dev global. (b) résumé en chat — **URL** (`http://localhost:<port résolu>`) + **quoi tester** (1-2 lignes) + **résultat attendu** (noms FR) ; (c) **pause**, tu testes ; (d) ta réponse `suivant`/`ok` → scénario suivant ; bug/retour → on traite avant de continuer.
-4. Tous scénarios validés → arrêt 2, le menu.
+Réponse `oui` à l'arrêt 1 → **invoquer le skill `/recette`** : passe multi-entrée mesurée, puis un
+scénario sandbox à la fois, lancé par Claude, validé par l'humain. Tous validés → arrêt 2.
 
 #### Exceptions
 
@@ -319,14 +264,3 @@ Je ne dump pas tout, je déroule **un scénario à la fois**, je lance, tu regar
   de retours de l'humain en recette** et le **nombre de correctifs dans les 24-48 h suivant le
   commit**. Ce sont les deux proxies de « le lot était-il bien calibré ». Au bout de quelques lots,
   on ajuste la taille des lots sur des chiffres au lieu du ressenti
-
-## Skills
-
-| Cmd | Action |
-|-----|--------|
-| `/next` | Résumé court + 2-3 candidats + recommandation |
-| `/menu` (ou mot `menu`) | Affiche le menu de finalisation (arrêt 2) à la demande, même mid-session |
-| `/review-local` | Review code changements locaux |
-| `/ci-gate [fast\|full\|slow]` | Gate CI local (lint, typecheck, build, test, integration). BLOQUANT avant commit |
-| `/commit` | Génère message commit conventional court via agent `commit-message`, puis commit + push directement. Pas de validation du message |
-| `/worktree` | Crée/liste/supprime un git worktree (`.worktrees/<branche>/`) pour N sessions Claude en // : deps reflink-copiées (CoW, ≈0 disk), port Vite déterministe par worktree. `add <branche> [base] \| list \| status \| clean \| relink \| rm` |

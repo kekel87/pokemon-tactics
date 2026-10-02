@@ -65,8 +65,8 @@ exhaustif »** — contre-mesure au tampon automatique.
 
 ## Règles
 
-- Le menu reste **identique** à la section « Le workflow — DEUX arrêts » de `CLAUDE.md` — ce skill
-  n'est qu'un raccourci pour le déclencher à la demande.
+- Ce skill est la **source de vérité** de l'arrêt 2 : `CLAUDE.md` (§ « Le workflow — DEUX arrêts »)
+  ne fait qu'y renvoyer.
 - `/commit` : commit + push **directement**, sans proposer le message ni attendre validation.
 - Changes purement config/doc sans code TS → menu réduit (commit direct).
 - 🔴 Ne rien ajouter au backlog / à l'agenda du graphe sans accord explicite de l'humain.

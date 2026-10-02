@@ -1,6 +1,6 @@
 ---
 name: doc-keeper
-description: Consigne un CHANGEMENT une fois celui-ci terminé — décisions, implémentations et faits acquis dans le graphe de mémoire, et mise à jour des documents restants (roadmap, architecture, game-design, README). Porte sur le contenu du lot, pas sur l'état de la session : n'écrit JAMAIS les entités `historique` ni `agenda`, qui appartiennent à `session-closer`. Utiliser à la finalisation d'un lot, jamais en clôture de session.
+description: "Consigne un CHANGEMENT une fois celui-ci terminé — décisions, implémentations et faits acquis dans le graphe de mémoire, et mise à jour des documents restants (roadmap, architecture, game-design, README). Porte sur le contenu du lot, pas sur l'état de la session : n'écrit JAMAIS les entités `historique` ni `agenda`, qui appartiennent à `session-closer`. Utiliser à la finalisation d'un lot, jamais en clôture de session."
 tools: Read, Write, Edit, Grep, Glob, Bash
 model: sonnet
 ---
