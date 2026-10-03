@@ -39,6 +39,7 @@ const FALLBACK: Readonly<Record<Language, Readonly<Record<string, string>>>> = {
     KeyZ: "W",
   },
   [Language.English]: {},
+  [Language.Spanish]: {},
 };
 
 /** Positions dont une légende ou l'écran de contrôles peut avoir besoin : lettres et chiffres. */

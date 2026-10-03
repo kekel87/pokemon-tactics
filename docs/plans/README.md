@@ -53,3 +53,4 @@ Les seuls sur lesquels on travaille.
 | 219 | [Plan 219 — Les portées visibles sur l'eau et le marais](./219-portees-visibles-sur-les-liquides.md) | done |
 | 220 | [Plan 220 — Le malus de déplacement devient une division](./220-malus-deplacement-en-division.md) | done |
 | 221 | [Plan 221 — Changer la langue en plein combat](./221-langue-en-plein-combat.md) | done |
+| 222 | [Plan 222 — Le jeu en espagnol](./222-langue-espagnole.md) | done |

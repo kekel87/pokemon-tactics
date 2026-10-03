@@ -1,4 +1,9 @@
-import type { MoveDefinition, PokemonDefinition, PokemonType } from "@pokemon-tactic/core";
+import type {
+  LocalizedText,
+  MoveDefinition,
+  PokemonDefinition,
+  PokemonType,
+} from "@pokemon-tactic/core";
 import { AbilityHandlerRegistry, type HeldItemHandlerRegistry } from "@pokemon-tactic/core";
 import abilitiesReference from "../reference/abilities.json";
 import itemsReference from "../reference/items.json";
@@ -6,6 +11,7 @@ import movesReference from "../reference/moves.json";
 import pokemonReference from "../reference/pokemon.json";
 import { abilityHandlers } from "./abilities/ability-definitions";
 import { deepFreeze } from "./deep-freeze";
+import type { ReferenceLocalizedText } from "./i18n/localized-text";
 import { itemHandlers } from "./items/item-definitions";
 import { buildItemRegistry } from "./items/load-items";
 import { loadAbilitiesFromReference } from "./loaders/load-abilities";
@@ -157,8 +163,8 @@ export function loadData(): GameData {
   const itemRegistry = buildItemRegistry(
     itemsReference as unknown as Array<{
       id: string;
-      names: { fr: string; en: string };
-      shortDescription: { fr: string; en: string };
+      names: LocalizedText;
+      shortDescription: ReferenceLocalizedText;
     }>,
     itemHandlers,
   );

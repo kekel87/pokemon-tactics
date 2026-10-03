@@ -1,5 +1,4 @@
-import en from "./locales/en";
-import fr from "./locales/fr";
+import { LOCALES } from "./locales";
 import { LANGUAGE_STORAGE_KEY } from "./storage-key";
 import type { TranslationKey, Translations } from "./types";
 import { Language } from "./types";
@@ -7,7 +6,8 @@ import { Language } from "./types";
 export { Language } from "./types";
 export type { TranslationKey, Translations };
 
-const LOCALES: Record<Language, Translations> = { fr, en };
+/** Order the language button cycles through. */
+const LANGUAGE_CYCLE: readonly Language[] = Object.values(Language);
 const STORAGE_KEY = LANGUAGE_STORAGE_KEY;
 
 type LanguageChangeCallback = (language: Language) => void;
@@ -16,7 +16,7 @@ let currentLanguage: Language = Language.French;
 const listeners: Set<LanguageChangeCallback> = new Set();
 
 function isLanguage(value: string): value is Language {
-  return value === Language.French || value === Language.English;
+  return (LANGUAGE_CYCLE as readonly string[]).includes(value);
 }
 
 export function detectLanguage(): Language {
@@ -25,9 +25,12 @@ export function detectLanguage(): Language {
     return stored;
   }
   const browserLanguages = navigator.languages ?? [navigator.language];
-  for (const lang of browserLanguages) {
-    if (lang.startsWith("fr")) {
-      return Language.French;
+  // English is the fallback, so it never wins on its own: a browser listing "en-US, fr" opens in
+  // French, as it did before Spanish existed (plan 222).
+  for (const browserLanguage of browserLanguages) {
+    const primary = browserLanguage.split("-")[0] ?? "";
+    if (primary !== Language.English && isLanguage(primary)) {
+      return primary;
     }
   }
   return Language.English;
@@ -50,6 +53,12 @@ export function setLanguage(language: Language): void {
   for (const callback of listeners) {
     callback(language);
   }
+}
+
+/** The language after `language` on the language button — FR → EN → ES → FR. */
+export function nextLanguage(language: Language): Language {
+  const index = LANGUAGE_CYCLE.indexOf(language);
+  return LANGUAGE_CYCLE[(index + 1) % LANGUAGE_CYCLE.length] ?? Language.French;
 }
 
 export function onLanguageChange(callback: LanguageChangeCallback): () => void {

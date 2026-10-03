@@ -1,4 +1,5 @@
 import { Nature, type TeamSet, type TeamSlot } from "@pokemon-tactic/core";
+import { Language } from "../i18n";
 import { saveTeam } from "./team-storage";
 
 export function generateTeamId(): string {
@@ -23,10 +24,15 @@ export function touchTeam(team: TeamSet): TeamSet {
   return { ...team, updatedAt: Date.now() };
 }
 
-export function formatTeamDate(timestamp: number, language: "fr" | "en"): string {
+const DATE_LOCALES: Record<Language, string> = {
+  [Language.French]: "fr-FR",
+  [Language.English]: "en-US",
+  [Language.Spanish]: "es-ES",
+};
+
+export function formatTeamDate(timestamp: number, language: Language): string {
   const date = new Date(timestamp);
-  const locale = language === "fr" ? "fr-FR" : "en-US";
-  return date.toLocaleDateString(locale, {
+  return date.toLocaleDateString(DATE_LOCALES[language], {
     year: "numeric",
     month: "short",
     day: "numeric",

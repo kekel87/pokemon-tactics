@@ -14,8 +14,8 @@ import { computePressureBonus, isOffensiveMove } from "./pressure";
 const pressureAbility: AbilityDefinition = {
   id: "pressure",
   targetedCtBonus: 50,
-  name: { fr: "Pression", en: "Pressure" },
-  shortDescription: { fr: "", en: "" },
+  name: { fr: "Pression", en: "Pressure", es: "Presión" },
+  shortDescription: { fr: "", en: "", es: "" },
 };
 
 const tackle: MoveDefinition = {

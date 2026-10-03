@@ -1,8 +1,7 @@
 import { createPrng } from "@pokemon-tactic/core";
 import { describe, expect, it } from "vitest";
 import { LOADING_TIPS, pickRandomTip } from "./loading-tips";
-import en from "./locales/en";
-import fr from "./locales/fr";
+import { LOCALES } from "./locales";
 
 describe("LOADING_TIPS", () => {
   it("has unique ids", () => {
@@ -10,10 +9,11 @@ describe("LOADING_TIPS", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("resolves every key in FR and EN locales", () => {
+  it("resolves every key in every locale", () => {
     for (const tip of LOADING_TIPS) {
-      expect(fr[tip.key], `missing FR key for ${tip.id}`).toBeTruthy();
-      expect(en[tip.key], `missing EN key for ${tip.id}`).toBeTruthy();
+      for (const [language, locale] of Object.entries(LOCALES)) {
+        expect(locale[tip.key], `missing ${language} key for ${tip.id}`).toBeTruthy();
+      }
     }
   });
 });

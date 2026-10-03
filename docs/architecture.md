@@ -666,9 +666,9 @@ un par camp, la forme à plat n'ayant qu'un Pokemon de chaque côté.
 
 ## 5d. Système i18n
 
-Renderer supporte FR et EN. Core i18n-free : émet events avec IDs, renderer traduit.
+Renderer supporte FR, EN et ES (plan 222). Core i18n-free : émet events avec IDs, renderer traduit.
 
-**Pas de lib externe** : ~70 lignes maison pour <300 clés et 2 langues.
+**Pas de lib externe** : ~70 lignes maison pour <300 clés et 2 langues (à l'origine ; 3 langues depuis le plan 222).
 
 ### Fichiers
 

@@ -1,3 +1,6 @@
+import type { LocalizedText } from "@pokemon-tactic/core";
+import type { ReferenceLocalizedText } from "../i18n/localized-text";
+
 export interface ReferenceLearnsetEntry {
   level: number;
   move: string;
@@ -19,7 +22,7 @@ export interface ReferencePokemon {
   dexNumber: number;
   id: string;
   generation: number;
-  names: { en: string; fr: string };
+  names: LocalizedText;
   types: string[];
   height: number;
   weight: number;
@@ -32,7 +35,7 @@ export interface ReferencePokemon {
 
 export interface ReferenceMove {
   id: string;
-  names: { en: string; fr: string };
+  names: LocalizedText;
   type: string;
   category: string;
   power: number | null;
@@ -50,9 +53,9 @@ export interface ReferenceTypeChart {
 export interface ReferenceAbility {
   id: string;
   generation: number;
-  names: { en: string; fr: string };
-  shortDescription: { en: string; fr: string };
-  longDescription: { en: string; fr: string };
+  names: LocalizedText;
+  shortDescription: ReferenceLocalizedText;
+  longDescription: ReferenceLocalizedText;
   flags: {
     breakable: boolean;
     ignorable: boolean;

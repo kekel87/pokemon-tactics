@@ -1,4 +1,5 @@
 import { loadSpriteBundle } from "@pokemon-tactic/view-core";
+import { t } from "../i18n/index.js";
 import "../styles/splash.css";
 import { prepareItemIconSheet } from "../team/item-icon-sheet.js";
 import { preparePortraitSheet } from "../team/portrait-sheet.js";
@@ -68,11 +69,11 @@ export function runSplash(host: HTMLElement): Promise<void> {
         .then(fadeOutAndResolve)
         .catch(() => {
           barOuter.hidden = true;
-          status.textContent = "Échec du chargement des ressources.";
+          status.textContent = t("splash.loadFailed");
           const retry = document.createElement("button");
           retry.type = "button";
           retry.className = "splash__retry";
-          retry.textContent = "Réessayer";
+          retry.textContent = t("splash.retry");
           retry.addEventListener("click", () => {
             retry.remove();
             attempt();

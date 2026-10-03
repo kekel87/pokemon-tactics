@@ -1,4 +1,4 @@
-import type { Locator, Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 
 /** Page Object for the main menu (FR labels, accessible-name selectors — no fragile CSS). */
 export class MainMenu {
@@ -17,7 +17,7 @@ export class MainMenu {
   readonly settings: Locator;
   readonly credits: Locator;
   readonly version: Locator;
-  /** Bottom-right language toggle (shows the CURRENT language code "FR"/"EN"). */
+  /** Bottom-right language toggle (shows the CURRENT language code "FR"/"EN"/"ES", cycles in that order). */
   readonly languageToggle: Locator;
 
   constructor(private readonly page: Page) {
@@ -31,6 +31,14 @@ export class MainMenu {
     this.credits = page.getByRole("button", { name: "Crédits" });
     this.version = page.getByTestId("app-version");
     this.languageToggle = page.getByTestId("language-toggle");
+  }
+
+  /** Clicks the language toggle until it shows `code` ("FR" / "EN" / "ES") — the toggle cycles. */
+  async selectLanguage(code: string): Promise<void> {
+    for (let click = 0; click < 3 && (await this.languageToggle.textContent()) !== code; click++) {
+      await this.languageToggle.click();
+    }
+    await expect(this.languageToggle).toHaveText(code);
   }
 
   /**

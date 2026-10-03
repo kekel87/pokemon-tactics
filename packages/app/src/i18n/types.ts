@@ -1,6 +1,7 @@
 export const Language = {
   French: "fr",
   English: "en",
+  Spanish: "es",
 } as const;
 
 export type Language = (typeof Language)[keyof typeof Language];
@@ -306,6 +307,8 @@ export interface Translations {
   "mapSelect.random": string;
   "mapSelect.randomHint": string;
   "mapSelect.randomDescription": string;
+  "splash.loadFailed": string;
+  "splash.retry": string;
   "settings.title": string;
   "settings.language": string;
   "settings.fullscreen": string;

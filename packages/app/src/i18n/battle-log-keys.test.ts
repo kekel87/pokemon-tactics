@@ -10,8 +10,7 @@ import {
   TerrainType,
 } from "@pokemon-tactic/core";
 import { describe, expect, it } from "vitest";
-import en from "./locales/en";
-import fr from "./locales/fr";
+import { LOCALES } from "./locales";
 import type { TranslationKey } from "./types";
 
 const NOT_LOGGED_STATUSES: readonly StatusType[] = [
@@ -34,50 +33,55 @@ const NOT_LOGGED_TERRAINS: readonly TerrainType[] = [
   TerrainType.Snow,
 ];
 
-function expectKeyInBothLocales(key: string): void {
-  expect(fr[key as TranslationKey], `absente de fr.ts : ${key}`).toBeDefined();
-  expect(en[key as TranslationKey], `absente de en.ts : ${key}`).toBeDefined();
+function expectKeyInEveryLocale(key: string): void {
+  for (const [language, locale] of Object.entries(LOCALES)) {
+    expect(locale[key as TranslationKey], `absente de ${language}.ts : ${key}`).toBeDefined();
+  }
 }
 
 function expectKeyInNeitherLocale(key: string): void {
-  expect(fr[key as TranslationKey], `présente en trop dans fr.ts : ${key}`).toBeUndefined();
-  expect(en[key as TranslationKey], `présente en trop dans en.ts : ${key}`).toBeUndefined();
+  for (const [language, locale] of Object.entries(LOCALES)) {
+    expect(
+      locale[key as TranslationKey],
+      `présente en trop dans ${language}.ts : ${key}`,
+    ).toBeUndefined();
+  }
 }
 
 describe("clés i18n composées du journal de combat", () => {
   it.each(Object.values(StatName))("statistique %s a sa clé", (stat) => {
-    expectKeyInBothLocales(`battleLog.stat.${stat}`);
+    expectKeyInEveryLocale(`battleLog.stat.${stat}`);
   });
 
   it.each(Object.values(AuraKind))("aura %s a sa clé", (kind) => {
-    expectKeyInBothLocales(`battleLog.aura.${kind}`);
+    expectKeyInEveryLocale(`battleLog.aura.${kind}`);
   });
 
   it.each(Object.values(DefensiveKind))("protection %s a sa clé", (kind) => {
-    expectKeyInBothLocales(`battleLog.defense.${kind}`);
+    expectKeyInEveryLocale(`battleLog.defense.${kind}`);
   });
 
   it.each(Object.values(EntryHazardKind))("piège d'entrée %s a sa clé", (kind) => {
-    expectKeyInBothLocales(`battleLog.entryHazard.${kind}`);
+    expectKeyInEveryLocale(`battleLog.entryHazard.${kind}`);
   });
 
   it.each(Object.values(FieldGlobalKind))("zone globale %s a sa clé", (kind) => {
-    expectKeyInBothLocales(`battleLog.fieldGlobal.${kind}`);
+    expectKeyInEveryLocale(`battleLog.fieldGlobal.${kind}`);
   });
 
   it.each(Object.values(FieldTerrain))("champ %s a sa clé", (kind) => {
-    expectKeyInBothLocales(`battleLog.fieldTerrain.${kind}`);
+    expectKeyInEveryLocale(`battleLog.fieldTerrain.${kind}`);
   });
 
   it.each(Object.values(Direction))("direction %s a sa clé", (direction) => {
-    expectKeyInBothLocales(`battleLog.direction.${direction}`);
+    expectKeyInEveryLocale(`battleLog.direction.${direction}`);
   });
 
   it.each(Object.values(StatusType).filter((status) => !NOT_LOGGED_STATUSES.includes(status)))(
     "statut journalisé %s a ses clés d'application et de disparition",
     (status) => {
-      expectKeyInBothLocales(`battleLog.status.${status}.applied`);
-      expectKeyInBothLocales(`battleLog.status.${status}.removed`);
+      expectKeyInEveryLocale(`battleLog.status.${status}.applied`);
+      expectKeyInEveryLocale(`battleLog.status.${status}.removed`);
     },
   );
 
@@ -89,7 +93,7 @@ describe("clés i18n composées du journal de combat", () => {
   it.each(Object.values(TerrainType).filter((terrain) => !NOT_LOGGED_TERRAINS.includes(terrain)))(
     "terrain infligeant un statut %s a sa clé",
     (terrain) => {
-      expectKeyInBothLocales(`battleLog.terrainStatus.${terrain}`);
+      expectKeyInEveryLocale(`battleLog.terrainStatus.${terrain}`);
     },
   );
 

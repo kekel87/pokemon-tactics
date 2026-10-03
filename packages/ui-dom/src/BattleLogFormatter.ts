@@ -5,6 +5,7 @@ import type {
   EntryHazardKind,
   FieldGlobalKind,
   FieldTerrain,
+  LocalizedText,
 } from "@pokemon-tactic/core";
 import {
   AbilityChangeReason,
@@ -64,9 +65,6 @@ function auraKindLabel(kind: AuraKind, translate: Translate): string {
   return translate(`battleLog.aura.${kind}`);
 }
 
-/** UI language — seul `getTypeName` (paquet `data`) la consomme encore. */
-type Language = "en" | "fr";
-
 /**
  * Localisateur injecté par l'hôte — même forme que `I18nContext.translate` (`render-ports`).
  *
@@ -88,7 +86,8 @@ export interface BattleLogContext {
   readonly getMoveName: (moveId: string) => string;
   readonly getAbilityName: (abilityId: string) => string | null;
   readonly getItemName: (itemId: string) => string | null;
-  readonly language: Language;
+  /** UI language — seul `getTypeName` (paquet `data`) la consomme encore. */
+  readonly language: keyof LocalizedText;
   /** Localisateur de l'hôte pour les clés `battleLog.*` (plan 190). */
   readonly translate: Translate;
 }

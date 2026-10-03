@@ -305,6 +305,8 @@ const en: Translations = {
   "mapSelect.randomHint": "Drawn at launch",
   "mapSelect.randomDescription":
     "The map stays unknown until the battle starts. Nobody can build a team around the terrain.",
+  "splash.loadFailed": "Failed to load resources.",
+  "splash.retry": "Retry",
   "settings.title": "Settings",
   "settings.language": "Language",
   "settings.fullscreen": "Fullscreen",

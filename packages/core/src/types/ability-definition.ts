@@ -4,6 +4,7 @@ import type { StatusType } from "../enums/status-type";
 import type { Weather } from "../enums/weather";
 import type { BattleEvent } from "./battle-event";
 import type { BattleState } from "./battle-state";
+import type { LocalizedText } from "./localized-text";
 import type { MoveDefinition } from "./move-definition";
 import type { PokemonInstance } from "./pokemon-instance";
 
@@ -214,6 +215,6 @@ export interface AbilityHandler {
 }
 
 export interface AbilityDefinition extends AbilityHandler {
-  name: { fr: string; en: string };
-  shortDescription: { fr: string; en: string };
+  name: LocalizedText;
+  shortDescription: LocalizedText;
 }

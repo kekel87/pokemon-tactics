@@ -5,8 +5,16 @@ const { storage, entries: localStorageMap } = createLocalStorageStub();
 vi.stubGlobal("localStorage", storage);
 vi.stubGlobal("navigator", { languages: ["fr-FR"], language: "fr-FR" });
 
-const { detectLanguage, getLanguage, initLanguage, onLanguageChange, setLanguage, t } =
-  await import(".");
+const {
+  detectLanguage,
+  getLanguage,
+  initLanguage,
+  Language,
+  nextLanguage,
+  onLanguageChange,
+  setLanguage,
+  t,
+} = await import(".");
 
 describe("i18n", () => {
   beforeEach(() => {
@@ -45,6 +53,12 @@ describe("i18n", () => {
       setLanguage("en");
       expect(t("battle.fall")).toBe("Fall");
     });
+
+    it("returns the spanish translation when language is es", () => {
+      setLanguage(Language.Spanish);
+      expect(t("menu.battle")).toBe("Combate");
+      expect(t("menu.settings")).toBe("Ajustes");
+    });
   });
 
   describe("setLanguage() / getLanguage()", () => {
@@ -63,6 +77,14 @@ describe("i18n", () => {
       onLanguageChange(callback);
       setLanguage("fr");
       expect(callback).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("nextLanguage()", () => {
+    it("cycles french → english → spanish → french", () => {
+      expect(nextLanguage(Language.French)).toBe(Language.English);
+      expect(nextLanguage(Language.English)).toBe(Language.Spanish);
+      expect(nextLanguage(Language.Spanish)).toBe(Language.French);
     });
   });
 
@@ -102,6 +124,36 @@ describe("i18n", () => {
     it("returns en for unknown language", () => {
       vi.stubGlobal("navigator", { languages: ["ja-JP"], language: "ja-JP" });
       expect(detectLanguage()).toBe("en");
+    });
+
+    it("accepts a stored spanish language", () => {
+      localStorageMap.set("pt-lang", Language.Spanish);
+      vi.stubGlobal("navigator", { languages: ["fr-FR"], language: "fr-FR" });
+      expect(detectLanguage()).toBe(Language.Spanish);
+    });
+
+    it("ignores a stored language the game does not offer", () => {
+      localStorageMap.set("pt-lang", "de");
+      vi.stubGlobal("navigator", { languages: ["fr-FR"], language: "fr-FR" });
+      expect(detectLanguage()).toBe(Language.French);
+    });
+
+    it.each([
+      [["es-ES"], Language.Spanish],
+      [["es-MX"], Language.Spanish],
+      [["en-US", "es"], Language.Spanish],
+      [["en-US", "fr"], Language.French],
+      [["fr-FR", "es-ES"], Language.French],
+      [["es-ES", "fr-FR"], Language.Spanish],
+      [["de-DE"], Language.English],
+    ])("detects %j as %s", (languages, expected) => {
+      vi.stubGlobal("navigator", { languages, language: languages[0] });
+      expect(detectLanguage()).toBe(expected);
+    });
+
+    it("falls back to navigator.language when navigator.languages is absent", () => {
+      vi.stubGlobal("navigator", { language: "es-AR" });
+      expect(detectLanguage()).toBe(Language.Spanish);
     });
 
     it("localStorage takes priority over browser language", () => {

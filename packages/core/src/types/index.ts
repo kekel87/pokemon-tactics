@@ -18,6 +18,7 @@ export type * from "./field-global-zone";
 export type * from "./field-zone";
 export type * from "./gender-ratio";
 export type * from "./held-item-definition";
+export type * from "./localized-text";
 export type * from "./map-definition";
 export type * from "./map-format";
 export type * from "./move-definition";

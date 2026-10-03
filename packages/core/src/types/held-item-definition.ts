@@ -4,6 +4,7 @@ import type { TerrainType } from "../enums/terrain-type";
 import type { DamageModifyContext } from "./ability-definition";
 import type { BattleEvent } from "./battle-event";
 import type { BattleState } from "./battle-state";
+import type { LocalizedText } from "./localized-text";
 import type { MoveDefinition } from "./move-definition";
 import type { PokemonInstance } from "./pokemon-instance";
 
@@ -158,6 +159,6 @@ export interface HeldItemHandler {
 }
 
 export interface HeldItemDefinition extends HeldItemHandler {
-  name: { fr: string; en: string };
-  shortDescription: { fr: string; en: string };
+  name: LocalizedText;
+  shortDescription: LocalizedText;
 }

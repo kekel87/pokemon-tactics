@@ -1,7 +1,7 @@
 import { CT_TEMPO_MAX } from "@pokemon-tactic/core";
 import { getMoveName, getTypeName } from "@pokemon-tactic/data";
 import { Modal } from "@pokemon-tactic/ui-dom";
-import { getLanguage, t } from "../../i18n";
+import { getLanguage, Language, t } from "../../i18n";
 import { InputSource } from "../../input/input-source";
 import { getCategoryIconUrl, getTypeIconUrl } from "../../team/asset-paths";
 import { buildSearchText, normalizeSearchText } from "../../team/search-index";
@@ -82,7 +82,11 @@ export function openMovePickerModal(options: MovePickerOptions): void {
           info,
           implemented: info !== null,
           searchText:
-            info?.searchText ?? buildSearchText(getMoveName(id, "fr"), getMoveName(id, "en"), id),
+            info?.searchText ??
+            buildSearchText(
+              ...Object.values(Language).map((language) => getMoveName(id, language)),
+              id,
+            ),
         };
       });
   entries.sort((a, b) => {

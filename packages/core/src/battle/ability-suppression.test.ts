@@ -7,14 +7,14 @@ import { resolveDefensiveAbility } from "./ability-suppression";
 const breakableAbility: AbilityDefinition = {
   id: "levitate",
   breakable: true,
-  name: { fr: "Lévitation", en: "Levitate" },
-  shortDescription: { fr: "Lévitation", en: "Levitate" },
+  name: { fr: "Lévitation", en: "Levitate", es: "Levitación" },
+  shortDescription: { fr: "Lévitation", en: "Levitate", es: "Levitación" },
 };
 const reactiveAbility: AbilityDefinition = {
   id: "static",
   breakable: false,
-  name: { fr: "Statik", en: "Static" },
-  shortDescription: { fr: "Statik", en: "Static" },
+  name: { fr: "Statik", en: "Static", es: "Electricidad Estática" },
+  shortDescription: { fr: "Statik", en: "Static", es: "Electricidad Estática" },
 };
 
 const registry = new AbilityHandlerRegistry([breakableAbility, reactiveAbility]);

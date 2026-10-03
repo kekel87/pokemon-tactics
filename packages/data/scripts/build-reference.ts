@@ -16,6 +16,7 @@ import { playablePokemon } from "../src/playable/playable-pokemon";
 import type { ChampionsOverride } from "./champions-override.types";
 import { fetchChampionsData } from "./fetch-champions";
 import { CACHE_DIR, cachedFetch, cachedFetchText, ensureDir } from "./fetch-utils";
+import { SPANISH_ABILITY_NAMES, SPANISH_MOVE_NAMES } from "./spanish-name-overrides";
 
 // ─── Configuration ───────────────────────────────────────────────────────────
 
@@ -67,8 +68,11 @@ function toKebabCase(name: string): string {
     .toLowerCase();
 }
 
-function extractFrName(names: Array<{ language: { name: string }; name: string }>): string | null {
-  return names.find((n) => n.language.name === "fr")?.name ?? null;
+function extractName(
+  names: Array<{ language: { name: string }; name: string }>,
+  language: string,
+): string | null {
+  return names.find((entry) => entry.language.name === language)?.name ?? null;
 }
 
 function extractFrGenus(
@@ -470,7 +474,7 @@ export interface PokemonEntry {
   dexNumber: number;
   id: string;
   generation: number;
-  names: { en: string; fr: string };
+  names: { en: string; fr: string; es: string };
   genus: { en: string | null; fr: string | null };
   types: string[];
   height: number;
@@ -679,10 +683,10 @@ function transformPokemon(
     const speciesData = pokeapi.species.get(dexNum);
     const pokemonData = pokeapi.pokemon.get(dexNum);
 
-    // FR name from PokeAPI
-    const frName = speciesData
-      ? extractFrName(speciesData.names as Array<{ language: { name: string }; name: string }>)
-      : null;
+    const speciesNames =
+      (speciesData?.names as Array<{ language: { name: string }; name: string }> | undefined) ?? [];
+    const frName = extractName(speciesNames, "fr");
+    const esName = extractName(speciesNames, "es");
 
     // Genus
     const genera = speciesData?.genera as
@@ -851,7 +855,7 @@ function transformPokemon(
       dexNumber: dexNum,
       id: toKebabCase(enName),
       generation: deriveGeneration(dexNum),
-      names: { en: enName, fr: frName ?? enName },
+      names: { en: enName, fr: frName ?? enName, es: esName ?? enName },
       genus: {
         en: genera ? extractEnGenus(genera) : null,
         fr: genera ? extractFrGenus(genera) : null,
@@ -892,7 +896,7 @@ function transformPokemon(
 export interface MoveEntry {
   id: string;
   generation: number;
-  names: { en: string; fr: string };
+  names: { en: string; fr: string; es: string };
   type: string;
   category: string;
   power: number | null;
@@ -901,8 +905,8 @@ export interface MoveEntry {
   maxPp: number;
   priority: number;
   target: string;
-  shortDescription: { en: string; fr: string | null };
-  longDescription: { en: string | null; fr: string | null };
+  shortDescription: { en: string; fr: string | null; es: string | null };
+  longDescription: { en: string | null; fr: string | null; es: string | null };
   secondary: {
     chance: number | null;
     status: string | null;
@@ -948,23 +952,16 @@ function transformMoves(
     const accuracy = sdMove.accuracy as number | boolean;
     const pp = sdMove.pp as number;
 
-    // FR name from PokeAPI
     const pokeapiData = pokeapiMoves.get(num);
-    const frName = pokeapiData
-      ? extractFrName(pokeapiData.names as Array<{ language: { name: string }; name: string }>)
-      : null;
-
-    // FR description from PokeAPI flavor text
-    const frDesc = pokeapiData
-      ? extractLatestFlavorText(
-          pokeapiData.flavor_text_entries as Array<{
-            flavor_text: string;
-            language: { name: string };
-            version_group: { name: string };
-          }>,
-          "fr",
-        )
-      : null;
+    const pokeapiNames =
+      (pokeapiData?.names as Array<{ language: { name: string }; name: string }> | undefined) ?? [];
+    const frName = extractName(pokeapiNames, "fr");
+    const esName = extractName(pokeapiNames, "es") ?? SPANISH_MOVE_NAMES[id] ?? null;
+    const moveFlavorEntries = pokeapiData?.flavor_text_entries as
+      | Array<{ flavor_text: string; language: { name: string }; version_group: { name: string } }>
+      | undefined;
+    const frDesc = moveFlavorEntries ? extractLatestFlavorText(moveFlavorEntries, "fr") : null;
+    const esDesc = moveFlavorEntries ? extractLatestFlavorText(moveFlavorEntries, "es") : null;
 
     // Flags
     const sdFlags = (sdMove.flags as Record<string, number>) ?? {};
@@ -1008,7 +1005,7 @@ function transformMoves(
     entries.push({
       id,
       generation: gen,
-      names: { en: enName, fr: frName ?? enName },
+      names: { en: enName, fr: frName ?? enName, es: esName ?? enName },
       type: ((sdMove.type as string) ?? "Normal").toLowerCase(),
       category,
       power: basePower > 0 ? basePower : null,
@@ -1020,10 +1017,12 @@ function transformMoves(
       shortDescription: {
         en: (sdMove.shortDesc as string) ?? "",
         fr: frDesc,
+        es: esDesc,
       },
       longDescription: {
         en: (sdMove.desc as string) ?? null,
         fr: frDesc,
+        es: esDesc,
       },
       secondary,
       drain,
@@ -1045,9 +1044,9 @@ function transformMoves(
 export interface AbilityEntry {
   id: string;
   generation: number;
-  names: { en: string; fr: string };
-  shortDescription: { en: string | null; fr: string | null };
-  longDescription: { en: string | null; fr: string | null };
+  names: { en: string; fr: string; es: string };
+  shortDescription: { en: string | null; fr: string | null; es: string | null };
+  longDescription: { en: string | null; fr: string | null; es: string | null };
   flags: { breakable: boolean; ignorable: boolean; unsuppressable: boolean };
 }
 
@@ -1077,7 +1076,8 @@ function transformAbilities(
 
     const names = data.names as Array<{ language: { name: string }; name: string }>;
     const enName = names?.find((n) => n.language.name === "en")?.name ?? id;
-    const frName = extractFrName(names ?? []);
+    const frName = extractName(names ?? [], "fr");
+    const esName = extractName(names ?? [], "es");
 
     const effectEntries = data.effect_entries as
       | Array<{ effect: string; short_effect: string; language: { name: string } }>
@@ -1092,18 +1092,25 @@ function transformAbilities(
         }>
       | undefined;
     const frFlavor = flavorEntries ? extractLatestFlavorText(flavorEntries, "fr") : null;
+    const esFlavor = flavorEntries ? extractLatestFlavorText(flavorEntries, "es") : null;
 
     entries.push({
       id,
       generation,
-      names: { en: enName, fr: frName ?? enName },
+      names: {
+        en: enName,
+        fr: frName ?? enName,
+        es: esName ?? SPANISH_ABILITY_NAMES[id] ?? enName,
+      },
       shortDescription: {
         en: enEffect?.short_effect ?? null,
         fr: frFlavor,
+        es: esFlavor,
       },
       longDescription: {
         en: enEffect?.effect ?? null,
         fr: frFlavor,
+        es: esFlavor,
       },
       flags: (() => {
         // Showdown key is lowercase no separators: "solar-power" → "solarpower"
@@ -1128,10 +1135,10 @@ function transformAbilities(
 export interface ItemEntry {
   id: string;
   generation: number;
-  names: { en: string; fr: string };
+  names: { en: string; fr: string; es: string };
   category: string;
-  shortDescription: { en: string | null; fr: string | null };
-  longDescription: { en: string | null; fr: string | null };
+  shortDescription: { en: string | null; fr: string | null; es: string | null };
+  longDescription: { en: string | null; fr: string | null; es: string | null };
   flingPower: number | null;
   flingEffect: string | null;
   naturalGift: { type: string; power: number } | null;
@@ -1186,7 +1193,8 @@ function transformItems(pokeapiItems: Map<number, Record<string, unknown>>): Ite
 
     const names = data.names as Array<{ language: { name: string }; name: string }>;
     const enName = names?.find((n) => n.language.name === "en")?.name ?? id;
-    const frName = extractFrName(names ?? []);
+    const frName = extractName(names ?? [], "fr");
+    const esName = extractName(names ?? [], "es");
 
     const effectEntries = data.effect_entries as
       | Array<{ effect: string; short_effect: string; language: { name: string } }>
@@ -1201,6 +1209,7 @@ function transformItems(pokeapiItems: Map<number, Record<string, unknown>>): Ite
         }>
       | undefined;
     const frFlavor = flavorEntries ? extractLatestFlavorText(flavorEntries, "fr") : null;
+    const esFlavor = flavorEntries ? extractLatestFlavorText(flavorEntries, "es") : null;
 
     const flingEffect = data.fling_effect as { name: string } | null;
     const flingPower = data.fling_power as number | null;
@@ -1277,10 +1286,10 @@ function transformItems(pokeapiItems: Map<number, Record<string, unknown>>): Ite
     entries.push({
       id,
       generation,
-      names: { en: enName, fr: frName ?? enName },
+      names: { en: enName, fr: frName ?? enName, es: esName ?? enName },
       category: ourCategory,
-      shortDescription: { en: enEffect?.short_effect ?? null, fr: frFlavor },
-      longDescription: { en: enEffect?.effect ?? null, fr: frFlavor },
+      shortDescription: { en: enEffect?.short_effect ?? null, fr: frFlavor, es: esFlavor },
+      longDescription: { en: enEffect?.effect ?? null, fr: frFlavor, es: esFlavor },
       flingPower: flingPower ?? null,
       flingEffect: flingEffect?.name ?? null,
       naturalGift: null, // PokeAPI doesn't expose natural gift data structured easily
@@ -1737,11 +1746,11 @@ function applyMoveOverride(
     mutated = true;
   }
   if (override.shortDesc !== undefined) {
-    entry.shortDescription = { en: override.shortDesc, fr: entry.shortDescription.fr };
+    entry.shortDescription = { ...entry.shortDescription, en: override.shortDesc };
     mutated = true;
   }
   if (override.desc !== undefined) {
-    entry.longDescription = { en: override.desc, fr: entry.longDescription.fr };
+    entry.longDescription = { ...entry.longDescription, en: override.desc };
     mutated = true;
   }
   if (override.flags !== undefined) {
@@ -1774,11 +1783,11 @@ function applyAbilityOverride(
 ): boolean {
   let mutated = false;
   if (override.shortDesc !== undefined) {
-    entry.shortDescription = { en: override.shortDesc, fr: entry.shortDescription.fr };
+    entry.shortDescription = { ...entry.shortDescription, en: override.shortDesc };
     mutated = true;
   }
   if (override.desc !== undefined) {
-    entry.longDescription = { en: override.desc, fr: entry.longDescription.fr };
+    entry.longDescription = { ...entry.longDescription, en: override.desc };
     mutated = true;
   }
   // isNonstandard n'est pas stocké dans AbilityEntry — ignoré silencieusement
@@ -1791,11 +1800,11 @@ function applyItemOverride(
 ): boolean {
   let mutated = false;
   if (override.shortDesc !== undefined) {
-    entry.shortDescription = { en: override.shortDesc, fr: entry.shortDescription.fr };
+    entry.shortDescription = { ...entry.shortDescription, en: override.shortDesc };
     mutated = true;
   }
   if (override.desc !== undefined) {
-    entry.longDescription = { en: override.desc, fr: entry.longDescription.fr };
+    entry.longDescription = { ...entry.longDescription, en: override.desc };
     mutated = true;
   }
   return mutated;
@@ -1866,23 +1875,29 @@ export function buildI18nMaps(
 ): {
   movesFr: Record<string, string>;
   movesEn: Record<string, string>;
+  movesEs: Record<string, string>;
   pokemonNamesFr: Record<string, string>;
   pokemonNamesEn: Record<string, string>;
+  pokemonNamesEs: Record<string, string>;
 } {
   const movesFr = sortedNameMap(moveEntries.map((move) => [move.id, move.names.fr]));
   const movesEn = sortedNameMap(moveEntries.map((move) => [move.id, move.names.en]));
+  const movesEs = sortedNameMap(moveEntries.map((move) => [move.id, move.names.es]));
 
   const referenceNamesById = new Map(pokemonEntries.map((pokemon) => [pokemon.id, pokemon.names]));
   const frPairs: [string, string][] = [];
   const enPairs: [string, string][] = [];
+  const esPairs: [string, string][] = [];
   for (const entry of playablePokemon) {
     const referenceNames = referenceNamesById.get(entry.id);
     if (referenceNames) {
       frPairs.push([entry.id, referenceNames.fr]);
       enPairs.push([entry.id, referenceNames.en]);
+      esPairs.push([entry.id, referenceNames.es]);
     } else if (entry.custom) {
       frPairs.push([entry.id, entry.custom.name]);
       enPairs.push([entry.id, entry.custom.name]);
+      esPairs.push([entry.id, entry.custom.name]);
     } else {
       throw new Error(
         `Playable pokemon "${entry.id}" is absent from the reference and has no custom name — cannot derive its i18n name.`,
@@ -1893,8 +1908,10 @@ export function buildI18nMaps(
   return {
     movesFr,
     movesEn,
+    movesEs,
     pokemonNamesFr: sortedNameMap(frPairs),
     pokemonNamesEn: sortedNameMap(enPairs),
+    pokemonNamesEs: sortedNameMap(esPairs),
   };
 }
 
@@ -2016,8 +2033,10 @@ async function main(): Promise<void> {
   const i18n = buildI18nMaps(moveEntries, pokemonEntries);
   await writeI18n("moves.fr.json", i18n.movesFr);
   await writeI18n("moves.en.json", i18n.movesEn);
+  await writeI18n("moves.es.json", i18n.movesEs);
   await writeI18n("pokemon-names.fr.json", i18n.pokemonNamesFr);
   await writeI18n("pokemon-names.en.json", i18n.pokemonNamesEn);
+  await writeI18n("pokemon-names.es.json", i18n.pokemonNamesEs);
 
   // Step 4: Generate indexes
   console.log("\n--- Generating indexes ---\n");

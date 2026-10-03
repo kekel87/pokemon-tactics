@@ -1,4 +1,5 @@
 import type { AbilityDefinition, AbilityHandler } from "@pokemon-tactic/core";
+import { completeLocalizedText } from "../i18n/localized-text";
 import type { ReferenceAbility } from "./reference-types";
 
 export function loadAbilitiesFromReference(
@@ -19,11 +20,8 @@ export function loadAbilitiesFromReference(
       ...handler,
       breakable: ref.flags.breakable,
       unsuppressable: ref.flags.unsuppressable,
-      name: { fr: ref.names.fr, en: ref.names.en },
-      shortDescription: {
-        fr: ref.shortDescription.fr,
-        en: ref.shortDescription.en,
-      },
+      name: { ...ref.names },
+      shortDescription: completeLocalizedText(ref.shortDescription),
     };
   });
 }

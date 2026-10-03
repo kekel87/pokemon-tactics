@@ -1,4 +1,9 @@
-import type { HeldItemId, MoveDefinition, PokemonDefinition } from "@pokemon-tactic/core";
+import type {
+  HeldItemId,
+  LocalizedText,
+  MoveDefinition,
+  PokemonDefinition,
+} from "@pokemon-tactic/core";
 import {
   buildTeamBuilderRegistry,
   type CatalogAbility,
@@ -13,11 +18,12 @@ import {
   getPokemonAbilities,
   getPokemonName,
   loadData,
+  localizedText,
   type OpSet,
   playablePokemon,
   type TeamBuilderRegistry,
 } from "@pokemon-tactic/data";
-import { getLanguage } from "../i18n";
+import { getLanguage, Language } from "../i18n";
 import { buildSearchText } from "./search-index";
 
 export interface PlayablePokemon {
@@ -76,8 +82,8 @@ interface TeamBuilderDataCache {
 let cache: TeamBuilderDataCache | null = null;
 let cachedLanguage: string | null = null;
 
-function pickLocalized(localized: { en: string; fr: string }): string {
-  return getLanguage() === "fr" ? localized.fr : localized.en;
+function pickLocalized(localized: LocalizedText): string {
+  return localizedText(localized, getLanguage());
 }
 
 function build(): TeamBuilderDataCache {
@@ -108,8 +114,7 @@ function build(): TeamBuilderDataCache {
       dexNumber: def.dexNumber ?? 0,
       name: getPokemonName(entry.id, getLanguage()),
       searchText: buildSearchText(
-        getPokemonName(entry.id, "fr"),
-        getPokemonName(entry.id, "en"),
+        ...Object.values(Language).map((language) => getPokemonName(entry.id, language)),
         entry.id,
       ),
       types: def.types,
@@ -127,7 +132,7 @@ function build(): TeamBuilderDataCache {
     const move: AvailableMove = {
       id: m.id,
       name: pickLocalized(m.names),
-      searchText: buildSearchText(m.names.fr, m.names.en, m.id),
+      searchText: buildSearchText(...Object.values(m.names), m.id),
       type: m.type,
       category: m.category,
       power: m.power,
@@ -145,7 +150,7 @@ function build(): TeamBuilderDataCache {
     abilityById.set(ab.id, {
       id: ab.id,
       name: pickLocalized(ab.names),
-      searchText: buildSearchText(ab.names.fr, ab.names.en, ab.id),
+      searchText: buildSearchText(...Object.values(ab.names), ab.id),
       shortDescription: pickLocalized(ab.shortDescription),
       implemented: ab.implemented,
     });
@@ -157,7 +162,7 @@ function build(): TeamBuilderDataCache {
     const item: AvailableItem = {
       id: it.id,
       name: pickLocalized(it.names),
-      searchText: buildSearchText(it.names.fr, it.names.en, it.id),
+      searchText: buildSearchText(...Object.values(it.names), it.id),
       category: it.category,
       shortDescription: pickLocalized(it.shortDescription),
       implemented: it.implemented,

@@ -1,6 +1,5 @@
 import { countAction, TelemetryAction } from "../../../analytics/telemetry";
-import { getLanguage, setLanguage, t } from "../../../i18n";
-import { Language } from "../../../i18n/types";
+import { getLanguage, nextLanguage, setLanguage, t } from "../../../i18n";
 import {
   isFullscreen,
   isFullscreenSupported,
@@ -65,10 +64,10 @@ export function createSettingsPanel(options: SettingsPanelOptions): Panel {
     // Changer la langue retraduit chaque libellé, donc celui-ci reconstruit vraiment le panneau —
     // puis remet le focus où il était, sinon un joueur au clavier perd sa place. Proposée aussi en
     // plein combat depuis le plan 221 : l'écran de combat se réécrit tout entier, journal compris.
-    const languageToggle = menuButton(getLanguage() === Language.French ? "FR" : "EN", () => {
+    const languageToggle = menuButton(getLanguage().toUpperCase(), () => {
       // Réglages réellement touchés (plan 196).
       countAction(TelemetryAction.LanguageChange);
-      setLanguage(getLanguage() === Language.French ? Language.English : Language.French);
+      setLanguage(nextLanguage(getLanguage()));
       render();
       root?.querySelector<HTMLElement>("[data-testid='setting-language']")?.focus();
     });

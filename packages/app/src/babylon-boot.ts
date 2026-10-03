@@ -35,7 +35,7 @@ import { initBrowserBack } from "./app/browser-back.js";
 import { type Navigate, ScreenManager } from "./app/screen-manager.js";
 import { loadPersistedScreen } from "./app/screen-persistence.js";
 import { createCombatScreen, mountSandboxStudio } from "./babylon/combat-screen.js";
-import { initLanguage } from "./i18n/index.js";
+import { getLanguage, initLanguage, onLanguageChange } from "./i18n/index.js";
 import { initBindings } from "./input/bindings-store.js";
 import { initInputSystem } from "./input/input-system.js";
 import { resolveKeyLabels } from "./input/key-legend.js";
@@ -69,6 +69,12 @@ if (!root) {
 // (`?config`/`?combat`) qui ne passe pas par le menu. Sans ça, la langue restait figée au défaut
 // (FR) hors navigation menu → HUD de combat en FR même avec `pt-lang=en` (bug backlog).
 initLanguage();
+// `<html lang>` suit la langue du jeu (plan 222) : lecteurs d'écran, césure et traduction automatique
+// du navigateur s'y fient, et `index.html` le fige à « en ».
+document.documentElement.lang = getLanguage();
+onLanguageChange((language) => {
+  document.documentElement.lang = language;
+});
 // Idem pour les réglages (`pt-settings`) : sans cette lecture au boot, `getSettings()` restait sur
 // les défauts en mémoire et un réglage persisté (ex. Prévisualisation dégâts OFF) redevenait ON au
 // rechargement — et le gating du panneau de preview (plan 175) ne s'appliquait jamais.

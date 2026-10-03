@@ -48,8 +48,8 @@ describe("crit-chance", () => {
     it("adds the held item's crit stage boost", () => {
       const scopeLens = {
         id: HeldItemId.ScopeLens,
-        name: { fr: "Lentiscope", en: "Scope Lens" },
-        shortDescription: { fr: "", en: "" },
+        name: { fr: "Lentiscope", en: "Scope Lens", es: "Periscopio" },
+        shortDescription: { fr: "", en: "", es: "" },
         onCritStageBoost: () => 2,
       };
       expect(effectiveCritChance(attacker(), defender(), MockMove.physical, scopeLens)).toBe(0.5);

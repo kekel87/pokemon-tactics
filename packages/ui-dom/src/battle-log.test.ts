@@ -50,7 +50,7 @@ class FakeElement {
   }
 }
 
-type Language = BattleLogContext["language"];
+type Language = "fr" | "en";
 
 let currentLanguage: Language = "fr";
 

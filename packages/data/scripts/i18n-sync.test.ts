@@ -21,6 +21,8 @@ describe("i18n name maps", () => {
     movesEn: readJson<Record<string, string>>("src/i18n/moves.en.json"),
     pokemonNamesFr: readJson<Record<string, string>>("src/i18n/pokemon-names.fr.json"),
     pokemonNamesEn: readJson<Record<string, string>>("src/i18n/pokemon-names.en.json"),
+    movesEs: readJson<Record<string, string>>("src/i18n/moves.es.json"),
+    pokemonNamesEs: readJson<Record<string, string>>("src/i18n/pokemon-names.es.json"),
   };
 
   it("committed src/i18n/*.json match what build-reference generates (run pnpm data:update after a data change)", () => {
@@ -28,12 +30,16 @@ describe("i18n name maps", () => {
     expect(committed.movesEn).toEqual(generated.movesEn);
     expect(committed.pokemonNamesFr).toEqual(generated.pokemonNamesFr);
     expect(committed.pokemonNamesEn).toEqual(generated.pokemonNamesEn);
+    expect(committed.movesEs).toEqual(generated.movesEs);
+    expect(committed.pokemonNamesEs).toEqual(generated.pokemonNamesEs);
   });
 
-  it("keeps en↔fr parity for both moves and pokemon names", () => {
-    expect(Object.keys(generated.movesFr).sort()).toEqual(Object.keys(generated.movesEn).sort());
-    expect(Object.keys(generated.pokemonNamesFr).sort()).toEqual(
-      Object.keys(generated.pokemonNamesEn).sort(),
-    );
+  it("keeps en↔fr↔es parity for both moves and pokemon names", () => {
+    const moveIds = Object.keys(generated.movesEn).sort();
+    expect(Object.keys(generated.movesFr).sort()).toEqual(moveIds);
+    expect(Object.keys(generated.movesEs).sort()).toEqual(moveIds);
+    const pokemonIds = Object.keys(generated.pokemonNamesEn).sort();
+    expect(Object.keys(generated.pokemonNamesFr).sort()).toEqual(pokemonIds);
+    expect(Object.keys(generated.pokemonNamesEs).sort()).toEqual(pokemonIds);
   });
 });

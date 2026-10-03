@@ -1,9 +1,10 @@
-import { type HeldItemId, moveCtTempo } from "@pokemon-tactic/core";
+import { type HeldItemId, type LocalizedText, moveCtTempo } from "@pokemon-tactic/core";
 import abilitiesReference from "../../reference/abilities.json" with { type: "json" };
 import itemsReference from "../../reference/items.json" with { type: "json" };
 import movesReference from "../../reference/moves.json" with { type: "json" };
 import pokemonReference from "../../reference/pokemon.json" with { type: "json" };
 import { abilityHandlers } from "../abilities/ability-definitions";
+import { completeLocalizedText, type ReferenceLocalizedText } from "../i18n/localized-text";
 import { itemHandlers } from "../items/item-definitions";
 import { tacticalOverrides } from "../overrides/tactical";
 import { isAbilityImplemented, isItemImplemented, isMoveImplemented } from "./implementation-flags";
@@ -25,23 +26,23 @@ export interface CatalogMove {
   pp: number | null;
   /** Charge Time "tempo" rating 1..5 (heavier cost → the user acts again later). */
   costTempo: number;
-  names: { en: string; fr: string };
-  shortDescription: { en: string; fr: string };
+  names: LocalizedText;
+  shortDescription: LocalizedText;
 }
 
 export interface CatalogAbility {
   id: string;
   implemented: boolean;
-  names: { en: string; fr: string };
-  shortDescription: { en: string; fr: string };
+  names: LocalizedText;
+  shortDescription: LocalizedText;
 }
 
 export interface CatalogItem {
   id: HeldItemId;
   implemented: boolean;
   category: string;
-  names: { en: string; fr: string };
-  shortDescription: { en: string; fr: string };
+  names: LocalizedText;
+  shortDescription: LocalizedText;
 }
 
 interface ReferencePokemonRaw {
@@ -63,24 +64,24 @@ interface ReferenceMoveRaw {
   power?: number | null;
   accuracy?: number | null;
   pp?: number | null;
-  names: { en: string; fr: string };
-  shortDescription?: { en: string; fr: string };
+  names: LocalizedText;
+  shortDescription?: ReferenceLocalizedText;
 }
 
 interface ReferenceAbilityRaw {
   id: string;
-  names: { en: string; fr: string };
-  shortDescription?: { en: string; fr: string };
+  names: LocalizedText;
+  shortDescription?: ReferenceLocalizedText;
 }
 
 interface ReferenceItemRaw {
   id: string;
   category?: string;
-  names: { en: string; fr: string };
-  shortDescription?: { en: string; fr: string };
+  names: LocalizedText;
+  shortDescription?: ReferenceLocalizedText;
 }
 
-const EMPTY_DESC = { en: "", fr: "" };
+const EMPTY_DESCRIPTION: ReferenceLocalizedText = { en: null, fr: null, es: null };
 
 let cachedAbilities: CatalogAbility[] | null = null;
 let cachedItems: CatalogItem[] | null = null;
@@ -97,7 +98,7 @@ export function getCatalogAbilities(): readonly CatalogAbility[] {
       id: raw.id,
       implemented: isAbilityImplemented(raw.id, abilityHandlers),
       names: raw.names,
-      shortDescription: raw.shortDescription ?? EMPTY_DESC,
+      shortDescription: completeLocalizedText(raw.shortDescription ?? EMPTY_DESCRIPTION),
     });
   }
   cachedAbilities = result;
@@ -116,7 +117,7 @@ export function getCatalogItems(): readonly CatalogItem[] {
       implemented: isItemImplemented(id, itemHandlers),
       category: raw.category ?? "other",
       names: raw.names,
-      shortDescription: raw.shortDescription ?? EMPTY_DESC,
+      shortDescription: completeLocalizedText(raw.shortDescription ?? EMPTY_DESCRIPTION),
     });
   }
   cachedItems = result;
@@ -141,7 +142,7 @@ export function getCatalogMoves(): readonly CatalogMove[] {
       pp: raw.pp ?? null,
       costTempo: moveCtTempo(raw.pp ?? 0, raw.power ?? 0, tacticalOverrides[raw.id]?.effectTier),
       names: raw.names,
-      shortDescription: raw.shortDescription ?? EMPTY_DESC,
+      shortDescription: completeLocalizedText(raw.shortDescription ?? EMPTY_DESCRIPTION),
     });
   }
   cachedMoves = result;

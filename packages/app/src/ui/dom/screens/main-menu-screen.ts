@@ -13,8 +13,8 @@ import {
   isResumableOnlineSave,
 } from "../../../app/battle-persistence";
 import type { Navigate, Screen } from "../../../app/screen-manager";
-import { getLanguage, setLanguage, t } from "../../../i18n";
-import { Language, type TranslationKey } from "../../../i18n/types";
+import { getLanguage, nextLanguage, setLanguage, t } from "../../../i18n";
+import type { TranslationKey } from "../../../i18n/types";
 import { MAPS_REGISTRY } from "../../../maps/maps-registry";
 import { networkErrorCodeOf } from "../../../network/network-error";
 import { holdOnlineRoom, onlineRoomDeps, releaseOnlineRoom } from "../../../network/online-room";
@@ -224,7 +224,7 @@ export function createMainMenuScreen(navigate: Navigate): Screen<"main-menu"> {
     language.type = "button";
     language.textContent = getLanguage().toUpperCase();
     language.addEventListener("click", () => {
-      setLanguage(getLanguage() === Language.French ? Language.English : Language.French);
+      setLanguage(nextLanguage(getLanguage()));
       render(host);
     });
 

@@ -1,10 +1,11 @@
-import type { HeldItemDefinition, HeldItemHandler } from "@pokemon-tactic/core";
+import type { HeldItemDefinition, HeldItemHandler, LocalizedText } from "@pokemon-tactic/core";
 import { HeldItemHandlerRegistry } from "@pokemon-tactic/core";
+import { completeLocalizedText, type ReferenceLocalizedText } from "../i18n/localized-text";
 
 interface ReferenceItem {
   id: string;
-  names: { fr: string; en: string };
-  shortDescription: { fr: string; en: string };
+  names: LocalizedText;
+  shortDescription: ReferenceLocalizedText;
   flingPower?: number | null;
 }
 
@@ -24,11 +25,8 @@ export function loadItemsFromReference(
     }
     return {
       ...handler,
-      name: { fr: ref.names.fr, en: ref.names.en },
-      shortDescription: {
-        fr: ref.shortDescription.fr ?? "",
-        en: ref.shortDescription.en ?? "",
-      },
+      name: { ...ref.names },
+      shortDescription: completeLocalizedText(ref.shortDescription),
       // Fling power (Dégommage) comes from the reference data.
       ...(ref.flingPower == null ? {} : { flingPower: ref.flingPower }),
     };

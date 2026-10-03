@@ -307,6 +307,8 @@ const fr: Translations = {
   "mapSelect.randomHint": "Terrain tiré au lancement",
   "mapSelect.randomDescription":
     "La carte reste inconnue jusqu'au lancement de la partie. Personne ne peut préparer son équipe en fonction du terrain.",
+  "splash.loadFailed": "Échec du chargement des ressources.",
+  "splash.retry": "Réessayer",
   "settings.title": "Paramètres",
   "settings.language": "Langue",
   "settings.fullscreen": "Plein écran",
