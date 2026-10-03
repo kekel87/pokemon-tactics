@@ -50,3 +50,4 @@ Les seuls sur lesquels on travaille.
 | 214 | [Plan 214 — Le niveau de l'IA, choisi place par place](./214-niveau-de-l-ia-par-place.md) | draft |
 | 215 | [Plan 215 — Le niveau appartient au Pokemon, le mode le normalise](./215-niveau-par-pokemon.md) | in-progress |
 | 216 | [Plan 216 — Le relais qui manquait, et deux correctifs de salon](./216-relais-turn-et-deux-correctifs-de-salon.md) | done |
+| 219 | [Plan 219 — Les portées visibles sur l'eau et le marais](./219-portees-visibles-sur-les-liquides.md) | done |

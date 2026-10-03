@@ -105,6 +105,8 @@ export const BABYLON_LIQUID_SURFACE_ALPHA_INDEX = 1;
 /** Waterline foam band (plan 166): drawn AFTER the liquid surface so it reads on top of the water. */
 export const BABYLON_WATER_FOAM_ALPHA_INDEX = 2;
 export const BABYLON_FIELD_TERRAIN_ALPHA_INDEX = 2;
+/** Range/spawn fill on a liquid tile (plan 219): moved into the sprite group, drawn over the surface. */
+export const BABYLON_LIQUID_HIGHLIGHT_ALPHA_INDEX = 2;
 export const BABYLON_TILE_PREVIEW_ALPHA_INDEX = 3;
 
 /**

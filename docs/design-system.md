@@ -1029,6 +1029,7 @@ Les faces latérales intérieures entre deux tuiles liquides adjacentes sont cul
 | `BABYLON_LIQUID_WATER_ALPHA` | `0.6` | Fallback si un groupe liquide n'a pas d'entrée dédiée. |
 | `BABYLON_LIQUID_SURFACE_ALPHA_INDEX` | `1` | `alphaIndex` de la nappe/colonne — après l'ombre (`0`), avant l'écume/les Champs (`2`). |
 | `BABYLON_WATER_FOAM_ALPHA_INDEX` | `2` | `alphaIndex` de l'écume de flottaison — dessinée après la nappe pour lire par-dessus l'eau. |
+| `BABYLON_LIQUID_HIGHLIGHT_ALPHA_INDEX` | `2` | `alphaIndex` d'une surbrillance de portée / zone de déploiement posée sur une case liquide — le quad passe dans le groupe sprite (celui de la nappe) pour être dessiné après elle, sinon le marais (alpha 0,9) le recouvre. Les previews y gardent `3`. Plan 219. |
 
 **Rendering group** : la nappe/colonne translucide est dessinée dans `BABYLON_SPRITE_RENDERING_GROUP` (groupe 2, comme les billboards Pokemon), pas dans le groupe terrain (0) — diverge du draft initial. Conséquence : elle est dessinée **après** les billboards → un Pokemon immergé est vu **à travers** l'eau, tout en restant occulté par le terrain plus haut devant (depth partagée, `disableDepthWrite` sur son matériau). Elle ne déclenche jamais la silhouette X-ray (pas d'écriture depth) — seuls les vrais murs terrain (groupe 0) la déclenchent. Décision #693.
 

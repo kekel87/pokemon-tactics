@@ -3,6 +3,7 @@ import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { CreateGreasedLine } from "@babylonjs/core/Meshes/Builders/greasedLineBuilder";
 import type { GreasedLineBaseMesh } from "@babylonjs/core/Meshes/GreasedLine/greasedLineBaseMesh";
+import type { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import type { Scene } from "@babylonjs/core/scene";
@@ -14,6 +15,8 @@ import {
 import { borderOutlineSegments } from "./babylon-border-outline.js";
 import { hexToColor3 } from "./babylon-color.js";
 import {
+  BABYLON_LIQUID_HIGHLIGHT_ALPHA_INDEX,
+  BABYLON_SPRITE_RENDERING_GROUP,
   BABYLON_TILE_CURSOR_WIDTH,
   BABYLON_TILE_HIGHLIGHT_ALPHA,
   BABYLON_TILE_HIGHLIGHT_Z_OFFSET,
@@ -53,6 +56,9 @@ export type { SpawnZoneHighlight, TileHighlightPosition };
 
 /** Returns the visual height (top) of a tile, for placing the overlay quad. */
 export type TileHeightLookup = (x: number, y: number) => number;
+
+/** Whether a tile is a liquid (its translucent surface is drawn in the sprite group). */
+export type TileLiquidLookup = (x: number, y: number) => boolean;
 
 const FILL_STYLE_BY_KIND: Readonly<Record<HighlightKind, { color: number; alpha: number }>> = {
   [HighlightKind.Move]: { color: TILE_HIGHLIGHT_MOVE_COLOR, alpha: BABYLON_TILE_HIGHLIGHT_ALPHA },
@@ -103,6 +109,7 @@ export interface TileHighlights {
 export function createTileHighlights(
   scene: Scene,
   heightAt: TileHeightLookup,
+  isLiquidAt: TileLiquidLookup,
   mapWidth: number,
   mapHeight: number,
 ): TileHighlights {
@@ -150,6 +157,30 @@ export function createTileHighlights(
     return new Vector3(center.x, center.y, center.z);
   }
 
+  /**
+   * One flat fill quad on a tile top. A liquid's translucent surface draws in the sprite group,
+   * AFTER group 0 — a fill left in group 0 gets washed out under it (murky swamp at 0.9 hides it
+   * entirely) — so a fill on a liquid tile moves to that group, sorted after the surface.
+   */
+  function createFillQuad(
+    name: string,
+    position: TileHighlightPosition,
+    material: StandardMaterial,
+    parent: TransformNode,
+  ): Mesh {
+    const quad = MeshBuilder.CreateGround(name, { width: 1, height: 1 }, scene);
+    const top = topAt(position.x, position.y);
+    quad.position.set(top.x, top.y, top.z);
+    quad.material = material;
+    quad.isPickable = false;
+    quad.parent = parent;
+    if (isLiquidAt(position.x, position.y)) {
+      quad.renderingGroupId = BABYLON_SPRITE_RENDERING_GROUP;
+      quad.alphaIndex = BABYLON_LIQUID_HIGHLIGHT_ALPHA_INDEX;
+    }
+    return quad;
+  }
+
   function set(kind: HighlightKind, positions: readonly TileHighlightPosition[]): void {
     const parent = parentFor(kind);
     for (const child of parent.getChildMeshes()) {
@@ -162,16 +193,12 @@ export function createTileHighlights(
       if (!inBounds(position.x, position.y)) {
         continue;
       }
-      const quad = MeshBuilder.CreateGround(
+      const quad = createFillQuad(
         `highlight_${kind}_${position.x}_${position.y}`,
-        { width: 1, height: 1 },
-        scene,
+        position,
+        material,
+        parent,
       );
-      const top = topAt(position.x, position.y);
-      quad.position.set(top.x, top.y, top.z);
-      quad.material = material;
-      quad.isPickable = false;
-      quad.parent = parent;
       if (isPreview) {
         quad.alphaIndex = BABYLON_TILE_PREVIEW_ALPHA_INDEX;
       }
@@ -213,16 +240,12 @@ export function createTileHighlights(
         if (!inBounds(position.x, position.y)) {
           continue;
         }
-        const quad = MeshBuilder.CreateGround(
+        createFillQuad(
           `highlight_spawn_${zoneIndex}_${position.x}_${position.y}`,
-          { width: 1, height: 1 },
-          scene,
+          position,
+          material,
+          spawnRoot,
         );
-        const top = topAt(position.x, position.y);
-        quad.position.set(top.x, top.y, top.z);
-        quad.material = material;
-        quad.isPickable = false;
-        quad.parent = spawnRoot;
       }
     }
   }
@@ -234,7 +257,7 @@ export function createTileHighlights(
   ): void {
     outline?.dispose();
     outline = null;
-    const onGrid = positions.filter((p) => inBounds(p.x, p.y));
+    const onGrid = positions.filter((position) => inBounds(position.x, position.y));
     if (onGrid.length === 0) {
       return;
     }
@@ -254,6 +277,12 @@ export function createTileHighlights(
     }
     outline.isPickable = false;
     outline.parent = root;
+    // One mesh for the whole contour: as soon as it crosses a liquid it follows the fills
+    // into the sprite group, otherwise the translucent surface washes it out too.
+    if (onGrid.some((position) => isLiquidAt(position.x, position.y))) {
+      outline.renderingGroupId = BABYLON_SPRITE_RENDERING_GROUP;
+      outline.alphaIndex = BABYLON_LIQUID_HIGHLIGHT_ALPHA_INDEX;
+    }
   }
 
   // The tile cursor is a thick yellow outline of the hovered tile top: a unit

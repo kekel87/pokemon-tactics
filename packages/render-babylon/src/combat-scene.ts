@@ -71,7 +71,11 @@ import { BabylonHoverCursor } from "./babylon-hover-cursor.js";
 import { pickTile, type TilePick } from "./babylon-picking.js";
 import { createSpriteHud, type SpriteHudHandle } from "./babylon-sprite-hud.js";
 import { createTextPlane } from "./babylon-text-plane.js";
-import { createTileHighlights, type TileHighlights } from "./babylon-tile-highlights.js";
+import {
+  createTileHighlights,
+  type TileHighlights,
+  type TileLiquidLookup,
+} from "./babylon-tile-highlights.js";
 import {
   BATTLE_TEXT_DURATION_MS,
   BATTLE_TEXT_STROKE_COLOR,
@@ -468,7 +472,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
   // height). Decoration foot placement keeps the raw `heightAt`.
   let tileWorldTop: ((x: number, y: number) => { x: number; y: number; z: number }) | null = null;
   // Whether a cell is a liquid tile (plan 166) — grounded sprites sink into it. Set on load.
-  let isLiquidAt: (x: number, y: number) => boolean = () => false;
+  let isLiquidAt: TileLiquidLookup = () => false;
   // Foam-band tint for a liquid cell (plan 166), null on non-liquid. Set on load.
   let liquidFoamColorAt: (x: number, y: number) => Color3 | null = () => null;
   // Per-tile terrain/height/slope lookups for per-step movement animation (plan 123 4d-5).
@@ -515,7 +519,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
         isSlopeAt: (x, y) => loaded.slopeData[y * width + x] != null,
       };
       decorations = createDecorations(scene, loaded.map, loaded.decorationObjects, heightAt);
-      highlights = createTileHighlights(scene, surfaceHeightAt, width, height);
+      highlights = createTileHighlights(scene, surfaceHeightAt, isLiquidAt, width, height);
       fieldTerrains = createFieldTerrains(scene, heightAt, width, height);
       fieldTerrains.set(pendingFieldTerrains);
       distortionZones = createFieldTerrains(scene, heightAt, width, height);
