@@ -469,7 +469,7 @@ const en: Translations = {
   "tileInfo.terrain.snow": "Snow",
   "tileInfo.terrain.swamp": "Swamp",
   "tileInfo.impassable": "Impassable",
-  "tileInfo.movementPenalty": "Movement penalty −{cost}",
+  "tileInfo.movementPenalty": "Movement ×{factor} when entering",
   "tileInfo.onStop.burn": "Burn",
   "tileInfo.onStop.poison": "Poison",
   "tileInfo.dot": "−1/{fraction} HP/turn",

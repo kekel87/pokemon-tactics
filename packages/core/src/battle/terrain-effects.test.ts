@@ -3,7 +3,8 @@ import { PokemonType } from "../enums/pokemon-type";
 import { StatusType } from "../enums/status-type";
 import { TerrainType } from "../enums/terrain-type";
 import {
-  getMovementPenalty,
+  getMovementBudget,
+  getMovementFactor,
   getTerrainBonusType,
   getTerrainDotFraction,
   getTerrainImmuneTypes,
@@ -45,31 +46,62 @@ describe("isTerrainImmune", () => {
   });
 });
 
-describe("getMovementPenalty", () => {
-  it("water/sand/snow cost +1", () => {
-    expect(getMovementPenalty(TerrainType.Water, [PokemonType.Normal])).toBe(1);
-    expect(getMovementPenalty(TerrainType.Sand, [PokemonType.Normal])).toBe(1);
-    expect(getMovementPenalty(TerrainType.Snow, [PokemonType.Normal])).toBe(1);
+describe("getMovementFactor", () => {
+  it("water/sand/snow scale movement by ¾", () => {
+    expect(getMovementFactor(TerrainType.Water, [PokemonType.Normal])).toBe(0.75);
+    expect(getMovementFactor(TerrainType.Sand, [PokemonType.Normal])).toBe(0.75);
+    expect(getMovementFactor(TerrainType.Snow, [PokemonType.Normal])).toBe(0.75);
   });
 
-  it("swamp costs +2", () => {
-    expect(getMovementPenalty(TerrainType.Swamp, [PokemonType.Normal])).toBe(2);
+  it("swamp halves movement", () => {
+    expect(getMovementFactor(TerrainType.Swamp, [PokemonType.Normal])).toBe(0.5);
   });
 
-  it("normal/tall_grass/ice/magma have no penalty", () => {
-    expect(getMovementPenalty(TerrainType.Normal, [PokemonType.Normal])).toBe(0);
-    expect(getMovementPenalty(TerrainType.TallGrass, [PokemonType.Normal])).toBe(0);
-    expect(getMovementPenalty(TerrainType.Ice, [PokemonType.Normal])).toBe(0);
-    expect(getMovementPenalty(TerrainType.Magma, [PokemonType.Normal])).toBe(0);
+  it("normal/tall_grass/ice/magma leave movement untouched", () => {
+    expect(getMovementFactor(TerrainType.Normal, [PokemonType.Normal])).toBe(1);
+    expect(getMovementFactor(TerrainType.TallGrass, [PokemonType.Normal])).toBe(1);
+    expect(getMovementFactor(TerrainType.Ice, [PokemonType.Normal])).toBe(1);
+    expect(getMovementFactor(TerrainType.Magma, [PokemonType.Normal])).toBe(1);
   });
 
   it("immune types get no penalty", () => {
-    expect(getMovementPenalty(TerrainType.Water, [PokemonType.Water])).toBe(0);
-    expect(getMovementPenalty(TerrainType.Sand, [PokemonType.Ground])).toBe(0);
-    expect(getMovementPenalty(TerrainType.Snow, [PokemonType.Ice])).toBe(0);
-    expect(getMovementPenalty(TerrainType.Swamp, [PokemonType.Poison])).toBe(0);
-    expect(getMovementPenalty(TerrainType.Water, [PokemonType.Flying])).toBe(0);
-    expect(getMovementPenalty(TerrainType.Swamp, [PokemonType.Flying])).toBe(0);
+    expect(getMovementFactor(TerrainType.Water, [PokemonType.Water])).toBe(1);
+    expect(getMovementFactor(TerrainType.Sand, [PokemonType.Ground])).toBe(1);
+    expect(getMovementFactor(TerrainType.Snow, [PokemonType.Ice])).toBe(1);
+    expect(getMovementFactor(TerrainType.Swamp, [PokemonType.Poison])).toBe(1);
+    expect(getMovementFactor(TerrainType.Water, [PokemonType.Flying])).toBe(1);
+    expect(getMovementFactor(TerrainType.Swamp, [PokemonType.Flying])).toBe(1);
+  });
+});
+
+describe("getMovementBudget", () => {
+  it.each([
+    [2, 0.75, 1],
+    [3, 0.75, 2],
+    [4, 0.75, 3],
+    [5, 0.75, 3],
+    [6, 0.75, 4],
+    [7, 0.75, 5],
+    [2, 0.5, 1],
+    [3, 0.5, 1],
+    [4, 0.5, 2],
+    [5, 0.5, 2],
+    [6, 0.5, 3],
+    [7, 0.5, 3],
+  ])("movement %i × %f → %i tiles", (movement, factor, expected) => {
+    expect(getMovementBudget(movement, factor)).toBe(expected);
+  });
+
+  it("keeps at least one tile", () => {
+    expect(getMovementBudget(1, 0.5)).toBe(1);
+  });
+
+  it("gives nothing to a mon without movement", () => {
+    expect(getMovementBudget(0, 0.5)).toBe(0);
+  });
+
+  it("is the raw movement on firm ground", () => {
+    expect(getMovementBudget(5, 1)).toBe(5);
   });
 });
 

@@ -123,7 +123,7 @@ export {
 } from "./battle/tailwind-system";
 export { validateTeamSelection } from "./battle/team-validator";
 export {
-  getMovementPenalty,
+  getMovementFactor,
   getTerrainBonusType,
   getTerrainDotFraction,
   getTerrainImmuneTypes,

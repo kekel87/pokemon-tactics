@@ -51,3 +51,4 @@ Les seuls sur lesquels on travaille.
 | 215 | [Plan 215 — Le niveau appartient au Pokemon, le mode le normalise](./215-niveau-par-pokemon.md) | in-progress |
 | 216 | [Plan 216 — Le relais qui manquait, et deux correctifs de salon](./216-relais-turn-et-deux-correctifs-de-salon.md) | done |
 | 219 | [Plan 219 — Les portées visibles sur l'eau et le marais](./219-portees-visibles-sur-les-liquides.md) | done |
+| 220 | [Plan 220 — Le malus de déplacement devient une division](./220-malus-deplacement-en-division.md) | done |

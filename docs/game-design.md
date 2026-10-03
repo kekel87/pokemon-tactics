@@ -306,15 +306,17 @@ Calcul : `Math.floor(diff)` → index dans `[0, 0, 33, 66, 100]`.
 | `normal` | Rien | — |
 | `tall_grass` | +1 bonus évasion virtuel dans `checkAccuracy` si défenseur sur tile | — |
 | `obstacle` | Bloque mouvement + LOS. Vol : traverse + arrêt. Spectre : traverse, pas d'arrêt. | Vol, Spectre (traverse seul) |
-| `water` | Malus déplacement -1 | Eau/Vol/Lévitation |
+| `water` | Déplacement ×¾ | Eau/Vol/Lévitation |
 | `deep_water` | Intraversable + **KO létal** si atterrissage non-immun + bonus dégâts +15% moves Eau | Eau/Vol |
 | `magma` | Brûlure au passage (traversée) + DOT 1/16 HP/tour (arrêt) + bonus dégâts +15% moves Feu | Feu/Vol |
 | `lava` | Intraversable + **KO létal** si atterrissage non-immun + bonus dégâts +15% moves Feu | Feu/Vol |
 | `ice` | Glissade après knockback (slide jusqu'à obstacle) + bonus dégâts +15% moves Glace | Glace/Vol |
-| `sand` | Malus déplacement -1 + bonus dégâts +15% moves Sol | Sol/Vol |
-| `snow` | Malus déplacement -1 + bonus dégâts +15% moves Glace | Glace/Vol |
-| `swamp` | Malus déplacement -2 + Poison en EndTurn + bonus dégâts +15% moves Poison | Poison/Vol |
+| `sand` | Déplacement ×¾ + bonus dégâts +15% moves Sol | Sol/Vol |
+| `snow` | Déplacement ×¾ + bonus dégâts +15% moves Glace | Glace/Vol |
+| `swamp` | Déplacement ×½ + Poison en EndTurn + bonus dégâts +15% moves Poison | Poison/Vol |
 
+> **Malus de déplacement (plan 220)** : si le trajet **entre** dans une case pénalisée non immunisée, le mouvement devient `max(1, floor(mouvement × facteur))`, payé **une fois** pour tout le trajet ; plusieurs terrains → le facteur le plus fort compte ; chaque case coûte ensuite 1. Case de départ jamais comptée. Mvt 2/3/4/5 → eau/sable/neige 1/2/3/3, marais 1/1/2/2. Le malus est rétroactif (une flaque isolée en bout de chemin réduit tout le trajet) : accepté, il pèse plus sur les rapides.
+>
 > **Règle globale Vol** : pas affecté par terrains, sauf `obstacle` où Spectre ne peut pas s'arrêter. **Lévitation** confère mêmes immunités terrain que type Vol — plan 069+070. Ne peut pas atterrir sur lava/deep_water.
 >
 > **Bonus type/terrain** : +15% dégâts si type move correspond au terrain tile occupée par l'attaquant. Via `getTerrainTypeBonusFactor`. **Le bonus vaut aussi pour le type natif/immunisé au terrain** (ex: un Feu sur magma/lave, un Eau sur eau/eau profonde) — seul un attaquant **aéroporté** (Vol/Lévitation, ne touche jamais la tuile) en est exclu. L'immunité de type continue par ailleurs d'annuler dégâts de terrain, statut et malus de déplacement ; ce sont deux effets distincts (décision 2026-07-25, plan 175).

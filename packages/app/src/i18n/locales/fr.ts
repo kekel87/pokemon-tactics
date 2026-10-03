@@ -471,7 +471,7 @@ const fr: Translations = {
   "tileInfo.terrain.snow": "Neige",
   "tileInfo.terrain.swamp": "Marécage",
   "tileInfo.impassable": "Infranchissable",
-  "tileInfo.movementPenalty": "Malus de déplacement −{cost}",
+  "tileInfo.movementPenalty": "Déplacement ×{factor} si on y entre",
   "tileInfo.onStop.burn": "Brûlure",
   "tileInfo.onStop.poison": "Poison",
   "tileInfo.dot": "−1/{fraction} PV/tour",

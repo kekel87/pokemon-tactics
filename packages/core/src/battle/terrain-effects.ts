@@ -43,22 +43,33 @@ export function getImmuneTerrains(
   return result;
 }
 
-const MOVEMENT_PENALTY: Partial<Record<TerrainType, number>> = {
-  [TerrainType.Water]: 1,
-  [TerrainType.Sand]: 1,
-  [TerrainType.Snow]: 1,
-  [TerrainType.Swamp]: 2,
+/**
+ * Movement multiplier applied once per move when the path enters a penalized tile (plan 220).
+ * The worst factor met along the path wins; it scales the whole budget, not a per-tile cost.
+ */
+const MOVEMENT_FACTOR: Partial<Record<TerrainType, number>> = {
+  [TerrainType.Water]: 0.75,
+  [TerrainType.Sand]: 0.75,
+  [TerrainType.Snow]: 0.75,
+  [TerrainType.Swamp]: 0.5,
 };
 
-export function getMovementPenalty(
+export function getMovementFactor(
   terrain: TerrainType,
   types: PokemonTypeValue[],
   isFlying = false,
 ): number {
   if (isTerrainImmune(terrain, types, isFlying)) {
+    return 1;
+  }
+  return MOVEMENT_FACTOR[terrain] ?? 1;
+}
+
+export function getMovementBudget(movement: number, factor: number): number {
+  if (movement <= 0) {
     return 0;
   }
-  return MOVEMENT_PENALTY[terrain] ?? 0;
+  return Math.max(1, Math.floor(movement * factor));
 }
 
 const TERRAIN_TYPE_BONUS: Partial<Record<TerrainType, PokemonTypeValue>> = {

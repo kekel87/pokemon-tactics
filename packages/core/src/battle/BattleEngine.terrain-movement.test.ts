@@ -8,12 +8,12 @@ import { TerrainType } from "../enums/terrain-type";
 import { MockBattle } from "../testing/mock-battle";
 import { BattleEngine } from "./BattleEngine";
 
-function buildEngine(pokemonTypes: PokemonType[], movement = 4) {
+function buildEngine(pokemonTypes: PokemonType[], movement = 4, start = { x: 0, y: 0 }) {
   const pokemon = {
     ...MockBattle.player1Fast,
     id: "mover",
     definitionId: "test-pokemon",
-    position: { x: 0, y: 0 },
+    position: start,
     derivedStats: { ...MockBattle.player1Fast.derivedStats, movement },
     statusEffects: [],
     statStages: { ...MockBattle.zeroStatStages },
@@ -34,97 +34,171 @@ function buildEngine(pokemonTypes: PokemonType[], movement = 4) {
   return { engine, state };
 }
 
-describe("BFS terrain movement penalty", () => {
-  it("water tile costs +1 movement for non-immune Pokemon", () => {
-    const { engine, state } = buildEngine([PokemonType.Normal]);
-    MockBattle.setTile(state, 1, 0, { terrain: TerrainType.Water });
+type MockState = ReturnType<typeof buildEngine>["state"];
 
-    const reachable = engine.getReachableTilesForPokemon("mover");
-    // (1,0) is water: costs 2. Can reach it (0+2=2 ≤ 4).
-    expect(reachable.some((p) => p.x === 1 && p.y === 0)).toBe(true);
-    // (2,0) after (1,0): costs 2+1=3 ≤ 4. Reachable.
-    expect(reachable.some((p) => p.x === 2 && p.y === 0)).toBe(true);
-    // (4,0) straight: would cost 2+1+1+1=5 > 4. Not reachable via water.
-    // But may be reachable via y-axis route (0,1)→(1,1)→(2,1)→(3,1)→(4,1) = 4 steps.
-    // The straight-through-water route (1,0)→(4,0) is blocked by cost.
-    // Direct via (1,0): cost 2+1+1 = 4 for tile (3,0). (4,0) = 2+1+1+1=5 > 4. Not reachable that way.
-    expect(reachable.some((p) => p.x === 4 && p.y === 0)).toBe(false);
+function fillGrid(state: MockState, terrain: TerrainType): void {
+  for (let y = 0; y < 10; y++) {
+    for (let x = 0; x < 10; x++) {
+      MockBattle.setTile(state, x, y, { terrain });
+    }
+  }
+}
+
+function farthestReach(engine: BattleEngine): number {
+  return Math.max(
+    ...engine.getReachableTilesForPokemon("mover").map((position) => position.x + position.y),
+  );
+}
+
+function isReachable(engine: BattleEngine, x: number, y: number): boolean {
+  return engine
+    .getReachableTilesForPokemon("mover")
+    .some((position) => position.x === x && position.y === y);
+}
+
+function submitMove(engine: BattleEngine, path: { x: number; y: number }[]) {
+  return engine.submitAction(PlayerId.Player1, {
+    kind: ActionKind.Move,
+    pokemonId: "mover",
+    path,
+  });
+}
+
+describe("terrain movement factor (plan 220)", () => {
+  it.each([
+    [2, 1],
+    [3, 2],
+    [4, 3],
+    [5, 3],
+  ])("water scales movement %i to %i tiles", (movement, expected) => {
+    const { engine, state } = buildEngine([PokemonType.Normal], movement);
+    fillGrid(state, TerrainType.Water);
+    expect(farthestReach(engine)).toBe(expected);
   });
 
-  it("water tile costs 0 for Water-type Pokemon", () => {
-    const { engine, state } = buildEngine([PokemonType.Water]);
-    MockBattle.setTile(state, 1, 0, { terrain: TerrainType.Water });
-
-    const reachable = engine.getReachableTilesForPokemon("mover");
-    // Water Pokemon: no penalty. (4,0) reachable.
-    expect(reachable.some((p) => p.x === 4 && p.y === 0)).toBe(true);
+  it.each([
+    [2, 1],
+    [3, 1],
+    [4, 2],
+    [5, 2],
+  ])("swamp scales movement %i to %i tiles", (movement, expected) => {
+    const { engine, state } = buildEngine([PokemonType.Normal], movement);
+    fillGrid(state, TerrainType.Swamp);
+    expect(farthestReach(engine)).toBe(expected);
   });
 
-  it("water tile costs 0 for Flying-type Pokemon", () => {
-    const { engine, state } = buildEngine([PokemonType.Normal, PokemonType.Flying]);
+  it("the penalty is paid once, not per tile", () => {
+    const { engine, state } = buildEngine([PokemonType.Normal], 4);
     MockBattle.setTile(state, 1, 0, { terrain: TerrainType.Water });
     MockBattle.setTile(state, 2, 0, { terrain: TerrainType.Water });
-    MockBattle.setTile(state, 3, 0, { terrain: TerrainType.Water });
 
-    const reachable = engine.getReachableTilesForPokemon("mover");
-    expect(reachable.some((p) => p.x === 4 && p.y === 0)).toBe(true);
-  });
-
-  it("swamp costs +2 per tile", () => {
-    const { engine, state } = buildEngine([PokemonType.Normal]);
-    MockBattle.setTile(state, 1, 0, { terrain: TerrainType.Swamp });
-
-    const reachable = engine.getReachableTilesForPokemon("mover");
-    // (1,0) swamp: cost 3. Still reachable (3 ≤ 4).
-    expect(reachable.some((p) => p.x === 1 && p.y === 0)).toBe(true);
-    // (2,0): cost 3+1=4. Reachable.
-    expect(reachable.some((p) => p.x === 2 && p.y === 0)).toBe(true);
-    // (3,0): cost 3+1+1=5 > 4. Not reachable via swamp.
-    expect(reachable.some((p) => p.x === 3 && p.y === 0)).toBe(false);
-  });
-
-  it("swamp costs 0 for Poison-type Pokemon", () => {
-    const { engine, state } = buildEngine([PokemonType.Poison]);
-    MockBattle.setTile(state, 1, 0, { terrain: TerrainType.Swamp });
-    MockBattle.setTile(state, 2, 0, { terrain: TerrainType.Swamp });
-
-    const reachable = engine.getReachableTilesForPokemon("mover");
-    expect(reachable.some((p) => p.x === 4 && p.y === 0)).toBe(true);
-  });
-
-  it("path too long through water is rejected", () => {
-    const { engine, state } = buildEngine([PokemonType.Normal]);
-    MockBattle.setTile(state, 1, 0, { terrain: TerrainType.Water });
-
-    // Path (1,0)→(2,0)→(3,0)→(4,0): cost = 2+1+1+1 = 5 > 4 → PathTooLong
-    const result = engine.submitAction(PlayerId.Player1, {
-      kind: ActionKind.Move,
-      pokemonId: "mover",
-      path: [
+    // Budget floor(4 × ¾) = 3: two water tiles then one ground tile.
+    expect(
+      submitMove(engine, [
         { x: 1, y: 0 },
         { x: 2, y: 0 },
         { x: 3, y: 0 },
-        { x: 4, y: 0 },
-      ],
-    });
+      ]).success,
+    ).toBe(true);
+  });
+
+  it("the worst factor of the path wins", () => {
+    const { engine, state } = buildEngine([PokemonType.Normal], 4);
+    MockBattle.setTile(state, 1, 0, { terrain: TerrainType.Water });
+    MockBattle.setTile(state, 2, 0, { terrain: TerrainType.Swamp });
+
+    // Water alone would allow 3 tiles; entering the swamp drops the budget to floor(4 × ½) = 2.
+    const result = submitMove(engine, [
+      { x: 1, y: 0 },
+      { x: 2, y: 0 },
+      { x: 3, y: 0 },
+    ]);
     expect(result.success).toBe(false);
     expect(result.error).toBe(ActionError.PathTooLong);
   });
 
-  it("valid path through water within budget is accepted", () => {
-    const { engine, state } = buildEngine([PokemonType.Normal]);
-    MockBattle.setTile(state, 1, 0, { terrain: TerrainType.Water });
+  it("leaving a swamp onto firm ground is free", () => {
+    const { engine, state } = buildEngine([PokemonType.Normal], 4);
+    MockBattle.setTile(state, 0, 0, { terrain: TerrainType.Swamp });
+    expect(isReachable(engine, 4, 0)).toBe(true);
+  });
 
-    // Path (1,0)→(2,0)→(3,0): cost = 2+1+1 = 4 ≤ 4 → ok
-    const result = engine.submitAction(PlayerId.Player1, {
-      kind: ActionKind.Move,
-      pokemonId: "mover",
-      path: [
+  it("a longer detour on firm ground beats a short cut through the swamp", () => {
+    const { engine, state } = buildEngine([PokemonType.Normal], 5);
+    MockBattle.setTile(state, 1, 0, { terrain: TerrainType.Swamp });
+
+    // Through the swamp the budget is 2, so (3,0) only comes from the 5-step detour along row 1.
+    const legalMove = engine
+      .getLegalActions(PlayerId.Player1)
+      .find(
+        (action) =>
+          action.kind === ActionKind.Move &&
+          action.path.at(-1)?.x === 3 &&
+          action.path.at(-1)?.y === 0,
+      );
+    expect(legalMove?.kind === ActionKind.Move && legalMove.path).toHaveLength(5);
+    expect(
+      submitMove(engine, [
         { x: 1, y: 0 },
         { x: 2, y: 0 },
         { x: 3, y: 0 },
-      ],
-    });
-    expect(result.success).toBe(true);
+      ]).error,
+    ).toBe(ActionError.PathTooLong);
+  });
+
+  it("walks around a puddle when it costs no extra step", () => {
+    const { engine, state } = buildEngine([PokemonType.Normal], 4);
+    MockBattle.setTile(state, 1, 0, { terrain: TerrainType.Swamp });
+
+    const legalMove = engine
+      .getLegalActions(PlayerId.Player1)
+      .find(
+        (action) =>
+          action.kind === ActionKind.Move &&
+          action.path.at(-1)?.x === 1 &&
+          action.path.at(-1)?.y === 1,
+      );
+    expect(legalMove?.kind === ActionKind.Move && legalMove.path).toEqual([
+      { x: 0, y: 1 },
+      { x: 1, y: 1 },
+    ]);
+  });
+
+  it("immune types keep their full movement", () => {
+    for (const types of [[PokemonType.Poison], [PokemonType.Steel], [PokemonType.Flying]]) {
+      const { engine, state } = buildEngine(types, 4);
+      fillGrid(state, TerrainType.Swamp);
+      expect(farthestReach(engine)).toBe(4);
+    }
+  });
+
+  it("a mon with no movement stays put", () => {
+    const { engine, state } = buildEngine([PokemonType.Normal], 0);
+    fillGrid(state, TerrainType.Swamp);
+    expect(engine.getReachableTilesForPokemon("mover")).toHaveLength(0);
+  });
+
+  it("lists each reachable tile once, and every offered path is accepted", () => {
+    const layOut = (state: MockState): void => {
+      MockBattle.setTile(state, 1, 0, { terrain: TerrainType.Swamp });
+      MockBattle.setTile(state, 0, 2, { terrain: TerrainType.Water });
+      MockBattle.setTile(state, 2, 1, { terrain: TerrainType.Sand });
+      MockBattle.setTile(state, 3, 3, { terrain: TerrainType.Swamp });
+    };
+    const { engine, state } = buildEngine([PokemonType.Normal], 6);
+    layOut(state);
+
+    const reachable = engine.getReachableTilesForPokemon("mover");
+    expect(new Set(reachable.map((p) => `${p.x},${p.y}`)).size).toBe(reachable.length);
+
+    const movePaths = engine
+      .getLegalActions(PlayerId.Player1)
+      .flatMap((action) => (action.kind === ActionKind.Move ? [action.path] : []));
+    expect(movePaths.length).toBe(reachable.length);
+    for (const path of movePaths) {
+      const fresh = buildEngine([PokemonType.Normal], 6);
+      layOut(fresh.state);
+      expect(submitMove(fresh.engine, path).success).toBe(true);
+    }
   });
 });

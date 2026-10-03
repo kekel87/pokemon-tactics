@@ -456,11 +456,11 @@ describe("buildTileInfoView", () => {
     expect(swamp?.find((c) => c.title === "tileInfo.onStop.poison")?.emoji).toBe("🛑");
   });
 
-  it("shows the swamp movement penalty as a red negative and poison", () => {
+  it("shows the swamp movement factor as a red fraction and poison", () => {
     const chips =
       buildTileInfoView(testContext, makeTileState(tileState("swamp")), ORIGIN)?.lines.flat() ?? [];
     const move = chips.find((c) => c.title === "tileInfo.movementPenalty");
-    expect(move?.text).toBe("−2");
+    expect(move?.text).toBe("×½");
     expect(move?.tone).toBe("danger");
     expect(chips.map((c) => c.title)).toContain("tileInfo.onStop.poison");
   });

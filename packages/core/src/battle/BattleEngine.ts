@@ -149,7 +149,8 @@ import { clampStages, computeMovement, isMajorStatus } from "./stat-modifier";
 import { tailwindSpeedMultiplier } from "./tailwind-system";
 import {
   getImmuneTerrains,
-  getMovementPenalty,
+  getMovementBudget,
+  getMovementFactor,
   getTerrainTypeBonusFactor,
   isTerrainImmune,
 } from "./terrain-effects";
@@ -167,7 +168,7 @@ interface ReachableTile {
 interface BfsNode {
   position: Position;
   path: Position[];
-  distance: number;
+  movementFactor: number;
 }
 
 export class BattleEngine {
@@ -3163,16 +3164,20 @@ export class BattleEngine {
   }
 
   private getReachableTiles(pokemon: PokemonInstance): ReachableTile[] {
-    const result: ReachableTile[] = [];
-    const visited = new Map<string, number>();
+    // Stop tiles by key (null = examined, cannot stop there). Among equally short paths, the one
+    // through the mildest terrain is kept, so a mon walks around a puddle when it costs no extra step.
+    const stops = new Map<string, { reachable: ReachableTile; movementFactor: number } | null>();
+    // Best factor a tile was queued with. Steps all cost 1 and the queue is FIFO, so an earlier
+    // visit with a factor at least as good dominates: a tile is re-queued only if its factor improves.
+    const bestFactor = new Map<string, number>();
     const posKey = (p: Position): string => `${p.x},${p.y}`;
     const pokemonTypes = this.effectiveTypesOf(pokemon);
     const isFlying = this.isEffectivelyFlying(pokemon);
     const isGhost = pokemonTypes.includes(PokemonType.Ghost);
     const immuneTerrains = getImmuneTerrains(this.terrainTypesOf(pokemon), isFlying);
 
-    const queue: BfsNode[] = [{ position: pokemon.position, path: [], distance: 0 }];
-    visited.set(posKey(pokemon.position), 0);
+    const queue: BfsNode[] = [{ position: pokemon.position, path: [], movementFactor: 1 }];
+    bestFactor.set(posKey(pokemon.position), 1);
 
     while (queue.length > 0) {
       const current = queue.shift();
@@ -3180,22 +3185,35 @@ export class BattleEngine {
         break;
       }
 
-      if (current.distance > 0) {
+      const currentKey = posKey(current.position);
+      const knownStop = stops.get(currentKey);
+      if (current.path.length > 0 && knownStop === undefined) {
         const occupant = this.grid.getOccupant(current.position);
         const currentTile = this.grid.getTile(current.position);
-        if (
+        const canStop =
           occupant === null &&
-          currentTile &&
-          canStopOn(currentTile.terrain, isFlying, immuneTerrains)
-        ) {
-          result.push({ position: current.position, path: current.path });
-        }
+          currentTile !== null &&
+          canStopOn(currentTile.terrain, isFlying, immuneTerrains);
+        stops.set(
+          currentKey,
+          canStop
+            ? {
+                reachable: { position: current.position, path: current.path },
+                movementFactor: current.movementFactor,
+              }
+            : null,
+        );
+      } else if (
+        knownStop &&
+        knownStop.reachable.path.length === current.path.length &&
+        current.movementFactor > knownStop.movementFactor
+      ) {
+        knownStop.reachable.path = current.path;
+        knownStop.movementFactor = current.movementFactor;
       }
 
       const neighbors = this.grid.getNeighbors(current.position);
       for (const neighbor of neighbors) {
-        const key = posKey(neighbor.position);
-
         const currentTileForNeighbor = this.grid.getTile(current.position);
         const currentHeight = currentTileForNeighbor?.height ?? 0;
         const currentTerrain = currentTileForNeighbor?.terrain ?? TerrainType.Normal;
@@ -3225,28 +3243,32 @@ export class BattleEngine {
           }
         }
 
-        const penalty = getMovementPenalty(neighbor.terrain, pokemonTypes, isFlying);
-        const newDistance = current.distance + 1 + penalty;
-
-        if (newDistance > pokemon.derivedStats.movement) {
+        const movementFactor = Math.min(
+          current.movementFactor,
+          getMovementFactor(neighbor.terrain, pokemonTypes, isFlying),
+        );
+        if (
+          current.path.length + 1 >
+          getMovementBudget(pokemon.derivedStats.movement, movementFactor)
+        ) {
           continue;
         }
 
-        const existingDistance = visited.get(key);
-        if (existingDistance !== undefined && existingDistance <= newDistance) {
+        const neighborKey = posKey(neighbor.position);
+        if ((bestFactor.get(neighborKey) ?? 0) >= movementFactor) {
           continue;
         }
 
-        visited.set(key, newDistance);
+        bestFactor.set(neighborKey, movementFactor);
         queue.push({
           position: neighbor.position,
           path: [...current.path, neighbor.position],
-          distance: newDistance,
+          movementFactor,
         });
       }
     }
 
-    return result;
+    return [...stops.values()].flatMap((stop) => (stop ? [stop.reachable] : []));
   }
 
   private executeMove(pokemon: PokemonInstance, path: Position[]): ActionResult {
@@ -3376,9 +3398,9 @@ export class BattleEngine {
     const isGhost = pokemonTypes.includes(PokemonType.Ghost);
     const immuneTerrains = getImmuneTerrains(pokemonTypes, isFlying);
 
-    let totalCost = 0;
+    let movementFactor = 1;
     let currentPosition = pokemon.position;
-    for (const step of path) {
+    for (const [stepIndex, step] of path.entries()) {
       if (manhattanDistance(currentPosition, step) !== 1) {
         return ActionError.NonAdjacentStep;
       }
@@ -3418,8 +3440,11 @@ export class BattleEngine {
         return ActionError.ImpassableTile;
       }
 
-      totalCost += 1 + getMovementPenalty(tile.terrain, pokemonTypes, isFlying);
-      if (totalCost > pokemon.derivedStats.movement) {
+      movementFactor = Math.min(
+        movementFactor,
+        getMovementFactor(tile.terrain, pokemonTypes, isFlying),
+      );
+      if (stepIndex + 1 > getMovementBudget(pokemon.derivedStats.movement, movementFactor)) {
         return ActionError.PathTooLong;
       }
 

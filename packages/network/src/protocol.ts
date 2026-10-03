@@ -103,7 +103,12 @@ import {
  * réseau existe pour refuser à l'entrée, plutôt que de le laisser finir en divergence en plein
  * combat.
  */
-export const NETWORK_VERSION = 15;
+/**
+ * 15 → 16 (2026-10-03, plan 220) : le malus de terrain n'est plus un surcoût par case mais un facteur
+ * appliqué une fois au mouvement (eau/sable/neige ×¾, marais ×½). Les cases atteignables changent,
+ * donc deux builds n'acceptent plus les mêmes déplacements.
+ */
+export const NETWORK_VERSION = 16;
 
 /**
  * Durée d'un tour en ligne — **déplacée dans `timings.ts`**, réexportée ici (plan 213).

@@ -11,7 +11,7 @@ import {
   FieldGlobalKind,
   type FieldTerrain,
   getEntryHazardsAt,
-  getMovementPenalty,
+  getMovementFactor,
   getNatureEffect,
   getTerrainBonusType,
   getTerrainDotFraction,
@@ -109,6 +109,16 @@ const TIMED_VOLATILE_LABEL: Partial<Record<StatusType, string>> = {
   [StatusType.Encored]: "infoPanel.volatile.encored",
   [StatusType.HealBlocked]: "infoPanel.volatile.healBlock",
 };
+
+function formatMovementFactor(movementFactor: number): string {
+  if (movementFactor === 0.5) {
+    return "½";
+  }
+  if (movementFactor === 0.75) {
+    return "¾";
+  }
+  return String(movementFactor);
+}
 
 const AURA_KIND_LABEL: Record<AuraKind, string> = {
   reflect: "aura.kind.reflect",
@@ -566,18 +576,19 @@ export function buildTileInfoView(
 
   const dotFraction = getTerrainDotFraction(terrain);
   const fatal = dotFraction === 1;
-  const penalty = getMovementPenalty(terrain, [], false);
+  const movementFactor = getMovementFactor(terrain, [], false);
   if (!isTerrainPassable(terrain)) {
     summary.push({
       emoji: fatal ? "⛔💀" : "⛔",
       title: context.translate(fatal ? "tileInfo.dotFatal" : "tileInfo.impassable"),
       tone: "danger",
     });
-  } else if (penalty > 0) {
+  } else if (movementFactor < 1) {
+    const factorLabel = formatMovementFactor(movementFactor);
     summary.push({
       emoji: "🥾",
-      text: `−${penalty}`,
-      title: context.translate("tileInfo.movementPenalty", { cost: String(penalty) }),
+      text: `×${factorLabel}`,
+      title: context.translate("tileInfo.movementPenalty", { factor: factorLabel }),
       tone: "danger",
     });
   }

@@ -270,7 +270,7 @@ Pour les statuts pré-appliqués via la config sandbox (`SandboxSetup.applyConfi
 Une ability peut rendre un Pokemon "effectivement volant" pour les terrains. Implémenté via `BattleEngine.isEffectivelyFlying(pokemon)` qui vérifie `abilityId === "levitate"` ou type Flying. Tous les helpers de `terrain-effects.ts` acceptent un paramètre `isFlying = false` :
 - `isTerrainImmune(terrain, types, isFlying)`
 - `getImmuneTerrains(types, isFlying)`
-- `getMovementPenalty(terrain, types, isFlying)`
+- `getMovementFactor(terrain, types, isFlying)` (facteur ×¾ / ×½ appliqué une fois au mouvement, 1 si immunisé ; `getMovementBudget(movement, factor)` en tire le budget)
 - `getTerrainTypeBonusFactor(terrain, moveType, attackerTypes, isFlying)`
 - `getTerrainStatusOnStop(terrain, types, isFlying)`
 
