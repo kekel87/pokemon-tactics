@@ -74,6 +74,7 @@ export class PlacementRoster {
     const finish = document.createElement("button");
     finish.type = "button";
     finish.className = "tb-btn pl-roster-finish";
+    finish.dataset.testid = "placement-finish";
     finish.dataset.variant = "primary";
     finish.textContent = this.config.translate("placement.done");
     finish.hidden = callbacks.onFinish === undefined;

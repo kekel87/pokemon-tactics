@@ -34,6 +34,11 @@ import { el, scrollByStep } from "./dom-helpers.js";
  */
 const BOTTOM_STICK_TOLERANCE_PX = 4;
 
+/** Ce qui reste à défiler sous la partie visible de la liste. */
+function distanceFromBottom(list: HTMLElement): number {
+  return list.scrollHeight - list.scrollTop - list.clientHeight;
+}
+
 export interface BattleLogOptions {
   /** Name/language resolvers for `formatBattleEvent`. */
   context: BattleLogContext;
@@ -67,6 +72,13 @@ export interface BattleLog extends BattleFeedback {
   scrollByStep(delta: 1 | -1): void;
   /** Ouvrir / refermer le panneau — le repli n'existait qu'au clic sur l'en-tête (plan 186). */
   toggleCollapsed(): void;
+  /**
+   * Retraduit le titre et RÉÉCRIT chaque ligne déjà écrite dans la langue courante (plan 221).
+   *
+   * Les lignes sont du texte DOM figé : changer de langue en plein combat sans les réécrire donnait
+   * un journal mi-français mi-anglais (décision #828, qui retirait le bouton pour cette raison).
+   */
+  relocalize(): void;
   destroy(): void;
 }
 
@@ -181,7 +193,13 @@ export function createBattleLog(options: BattleLogOptions): BattleLog {
   setCollapsed(true);
   header.addEventListener("click", () => setCollapsed(root.dataset.collapsed !== "true"));
 
-  function appendEntry(entry: BattleLogEntry): void {
+  /**
+   * Les événements reçus, dans l'ordre — la seule source dont `relocalize` peut réécrire les lignes.
+   * Les formater une seconde fois est sûr : `formatBattleEvent` est pur.
+   */
+  const events: BattleEvent[] = [];
+
+  function buildEntry(entry: BattleLogEntry): HTMLLIElement {
     const item = el("li", "bl-entry");
     // Runtime color from the formatter (data-driven per entry) — no CSS equivalent.
     item.style.color = entry.color;
@@ -197,6 +215,20 @@ export function createBattleLog(options: BattleLogOptions): BattleLog {
     const text = el("span", "bl-text", "battle-log-entry");
     text.textContent = entry.message;
     item.append(text);
+    return item;
+  }
+
+  /** Les lignes d'un événement — aucune quand il n'en mérite pas. */
+  const entriesOf = (event: BattleEvent): readonly BattleLogEntry[] => {
+    const result = formatBattleEvent(event, context);
+    if (!result) {
+      return [];
+    }
+    return Array.isArray(result) ? result : [result];
+  };
+
+  function appendEntry(entry: BattleLogEntry): void {
+    const item = buildEntry(entry);
 
     /*
      * On ne recolle en bas QUE si on y était déjà.
@@ -209,8 +241,7 @@ export function createBattleLog(options: BattleLogOptions): BattleLog {
      * Mesuré AVANT l'insertion : après, `scrollHeight` a déjà grandi et la comparaison croit
      * toujours qu'on a décollé du bas.
      */
-    const wasAtBottom =
-      list.scrollHeight - list.scrollTop - list.clientHeight <= BOTTOM_STICK_TOLERANCE_PX;
+    const wasAtBottom = distanceFromBottom(list) <= BOTTOM_STICK_TOLERANCE_PX;
     list.append(item);
     if (wasAtBottom) {
       list.scrollTop = list.scrollHeight;
@@ -223,17 +254,27 @@ export function createBattleLog(options: BattleLogOptions): BattleLog {
     scrollByStep: (delta) => scrollByStep(list, delta),
     toggleCollapsed: () => setCollapsed(root.dataset.collapsed !== "true"),
     report: (event: BattleEvent) => {
-      const result = formatBattleEvent(event, context);
-      if (!result) {
-        return;
+      events.push(event);
+      for (const entry of entriesOf(event)) {
+        appendEntry(entry);
       }
-      if (Array.isArray(result)) {
-        for (const entry of result) {
-          appendEntry(entry);
-        }
-      } else {
-        appendEntry(result);
-      }
+    },
+    relocalize: () => {
+      title.textContent = translate("log.title");
+      // Le joueur qui lisait le début du combat le retrouve : on rend la même distance au bas de la
+      // liste, pas le même `scrollTop` — les lignes traduites n'ont pas la même hauteur.
+      const distance = distanceFromBottom(list);
+      const wasAtBottom = distance <= BOTTOM_STICK_TOLERANCE_PX;
+      // Un seul remplacement : reposer les lignes une à une forçait une mise en page par ligne. La
+      // région live est coupée le temps de la réécriture, sinon un lecteur d'écran relirait tout le
+      // combat — ce ne sont pas des lignes nouvelles.
+      list.removeAttribute("aria-live");
+      list.replaceChildren(...events.flatMap(entriesOf).map(buildEntry));
+      requestAnimationFrame(() => list.setAttribute("aria-live", "polite"));
+      list.scrollTop = wasAtBottom
+        ? list.scrollHeight
+        : list.scrollHeight - list.clientHeight - distance;
+      refreshScrollHint();
     },
     destroy: () => {
       resizeObserver?.disconnect();

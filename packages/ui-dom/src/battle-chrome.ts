@@ -173,16 +173,33 @@ export interface BattleChromeOptions {
 }
 
 /**
+ * Le chrome de combat, plus ce que seul l'hôte appelle (plan 221) : rien de ceci ne passe par le port
+ * `BattleChrome`, que l'orchestrateur n'a pas besoin de connaître.
+ */
+export interface LocalizableBattleChrome extends BattleChrome {
+  /**
+   * Réécrit dans la langue courante ce que le chrome tient à l'écran : bandeau de tour, menu en
+   * cours, ligne d'instruction. Le sous-menu d'attaques porte des textes calculés par l'orchestrateur
+   * — c'est lui qui le reconstruit (`BattleOrchestrator.relocalize`).
+   */
+  relocalize(): void;
+  /**
+   * Rend le focus à l'entrée de menu qui l'avait en dernier — après un `relocalize` fait sous une
+   * modale, où le document est inerte et où aucun `focus()` ne prend.
+   */
+  refocusMenu(): void;
+}
+
+/**
  * DOM battle chrome (plan 121 step 4b) — the screen-anchored half of the combat
  * UI (décision #487): turn banner, action menu + attack submenu (type icons, PP/
  * CT, Provoc/Entrave/Encore block tags), move tooltip on hover, instruction line,
  * info panel, weather HUD and victory dialog. World-anchored feedback (path
  * tweens, floating text) is 4c.
  */
-export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
+export function createBattleChrome(options: BattleChromeOptions): LocalizableBattleChrome {
   const { host, onExit, onReplay, config, insets } = options;
   const shouldAutoFocusMenu = options.shouldAutoFocusMenu ?? ((): boolean => false);
-  const language = config.getLanguage();
 
   const root = el("div", "bc-root");
   // Top-centre stack: the turn banner with the weather HUD directly beneath it, so
@@ -241,15 +258,38 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
    * switches (`battle-orchestrator.ts` sets `inputState` after calling `showSelectedMove`), so the
    * context still read `menu` at that instant. The rule is structural: focus follows the arrows.
    */
-  function restoreMenuFocus(): void {
+  function restoreMenuFocus(index = 0): void {
     if (!shouldAutoFocusMenu()) {
       return;
     }
-    menuControls()[0]?.focus();
+    const controls = menuControls();
+    (controls[index] ?? controls[0])?.focus();
   }
+
+  /** Dernière entrée de menu focalisée — ce que `refocusMenu` rend après une réécriture. */
+  let lastFocusedMenuIndex = 0;
+  menu.addEventListener("focusin", (event) => {
+    if (!(event.target instanceof HTMLElement)) {
+      return;
+    }
+    const index = menuControls().indexOf(event.target);
+    if (index !== -1) {
+      lastFocusedMenuIndex = index;
+    }
+  });
+
+  /**
+   * Repeint le menu en cours, `null` quand aucun n'est affiché. L'index est l'entrée à refocaliser :
+   * seuls le menu d'actions et la liste d'attaques s'en servent — dans les phases de plateau, les
+   * flèches pilotent le curseur (voir `restoreMenuFocus`).
+   */
+  let replayMenu: ((focusIndex: number) => void) | null = null;
+  let lastTurnInfo: TurnInfoView | null = null;
+  let currentInstruction: BattleInstruction | null = null;
 
   /** Text + expected gesture always move together — one call per instruction change. */
   function showInstruction(key: BattleInstruction): void {
+    currentInstruction = key;
     instructionRow.hidden = false;
     instruction.textContent = config.translate(INSTRUCTION_KEY[key]);
     instructionGlyph.update(INSTRUCTION_GLYPH[key]);
@@ -328,13 +368,13 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
     }
 
     const icon = el("img", "bc-move-type", "move-type-icon");
-    icon.alt = getTypeName(move.definition.type, language);
+    icon.alt = getTypeName(move.definition.type, config.getLanguage());
     icon.loading = "lazy";
     icon.decoding = "async";
     icon.src = config.getTypeIconUrl(move.definition.type);
 
     const name = el("span", "bc-move-name", "move-name");
-    name.textContent = getMoveName(move.definition.id, language);
+    name.textContent = getMoveName(move.definition.id, config.getLanguage());
 
     // Charge Time "tempo": filled pips = how heavy this move's CT cost is (heavier → act again later).
     const tempo = el("span", "bc-move-tempo", "move-tempo");
@@ -362,85 +402,110 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
     return row;
   }
 
+  function renderActionMenu(view: ActionMenuView, focusIndex = 0): void {
+    tooltip.hide();
+    instructionRow.hidden = true;
+    // « Annuler le déplacement » va EN DERNIER, sous « Attendre » (retour humain 2026-08-21) :
+    // placé en tête, il occupait le premier arrêt de focus — donc celui qu'un Espace ou un A
+    // atteint sans viser — et le joueur annulait son déplacement sans le vouloir. La première
+    // entrée reste « Déplacement », grisée quand on a déjà bougé, pour que l'ordre du menu ne
+    // change pas d'un tour à l'autre.
+    menu.replaceChildren(
+      button(config.translate("action.move"), view.onMove, !view.canMove),
+      button(config.translate("action.attack"), view.onAttack, !view.canAct),
+      button(config.translate("action.item"), () => undefined, true),
+      button(config.translate("action.wait"), view.onWait),
+      button(config.translate("action.status"), () => undefined, true),
+      ...(view.canUndoMove ? [button(config.translate("action.undoMove"), view.onUndoMove)] : []),
+    );
+    restoreMenuFocus(focusIndex);
+  }
+
+  function renderAttackSubmenu(view: AttackSubmenuView, focusIndex = 0): void {
+    tooltip.hide();
+    instructionRow.hidden = true;
+    const list = el("div", "bc-move-list");
+    for (const move of view.moves) {
+      list.append(moveRow(move, () => view.onSelect(move.definition.id)));
+    }
+    menu.replaceChildren(list, cancelButton(view.onCancel));
+    restoreMenuFocus(focusIndex);
+  }
+
+  function renderSelectedMove(move: SelectedMoveView): void {
+    tooltip.hide();
+    const header = el("div", "bc-selected-move");
+    const name = el("span", "bc-move-name");
+    // Move-copy (plan 144): a masked called move hides its identity — "???" and no type icon.
+    if (move.masked === true) {
+      name.textContent = "???";
+      header.append(name);
+    } else {
+      const icon = el("img", "bc-move-type");
+      icon.alt = getTypeName(move.definition.type, config.getLanguage());
+      icon.loading = "lazy";
+      icon.decoding = "async";
+      icon.src = config.getTypeIconUrl(move.definition.type);
+      name.textContent = getMoveName(move.definition.id, config.getLanguage());
+      header.append(icon, name);
+    }
+    // Cancel sits under the locked-in move, mirroring the attack submenu's own button (plan 183):
+    // Escape is the only other way out and does not exist on a touch screen.
+    menu.replaceChildren(header, cancelButton(move.onCancel));
+  }
+
+  function renderCancelOnly(onCancel: () => void): void {
+    tooltip.hide();
+    menu.replaceChildren(cancelButton(onCancel));
+  }
+
+  function renderTurnInfo(info: TurnInfoView): void {
+    /*
+     * À QUI est le tour, et rien d'autre (retour humain 2026-09-09).
+     *
+     * Le nom du Pokemon actif y figurait depuis le plan 201, où l'ajout de l'appartenance avait
+     * gardé le nom par prudence. Il est redondant : le panneau d'information de gauche ne montre
+     * que l'actif, et le plateau le marque d'une pulsation. Le retirer est ce qui laisse la place
+     * au compteur de chrono dans le même cadre, au lieu d'un cinquième encadré empilé.
+     *
+     * Le numéro de camp se lit dans `playerId` (`player-2` → 2), la V1 n'ayant pas de noms de
+     * joueur (décision #906).
+     */
+    banner.textContent =
+      info.owner === "you"
+        ? config.translate("battle.turnOwner.you")
+        : info.owner === "ai"
+          ? config.translate("battle.turnOwner.ai")
+          : config.translate("battle.turnOwner.player", {
+              player: /^player-(\d+)$/.exec(info.playerId)?.[1] ?? info.playerId,
+            });
+  }
+
   return {
     updateTurnInfo: (info: TurnInfoView) => {
-      /*
-       * À QUI est le tour, et rien d'autre (retour humain 2026-09-09).
-       *
-       * Le nom du Pokemon actif y figurait depuis le plan 201, où l'ajout de l'appartenance avait
-       * gardé le nom par prudence. Il est redondant : le panneau d'information de gauche ne montre
-       * que l'actif, et le plateau le marque d'une pulsation. Le retirer est ce qui laisse la place
-       * au compteur de chrono dans le même cadre, au lieu d'un cinquième encadré empilé.
-       *
-       * Le numéro de camp se lit dans `playerId` (`player-2` → 2), la V1 n'ayant pas de noms de
-       * joueur (décision #906).
-       */
-      banner.textContent =
-        info.owner === "you"
-          ? config.translate("battle.turnOwner.you")
-          : info.owner === "ai"
-            ? config.translate("battle.turnOwner.ai")
-            : config.translate("battle.turnOwner.player", {
-                player: /^player-(\d+)$/.exec(info.playerId)?.[1] ?? info.playerId,
-              });
+      lastTurnInfo = info;
+      renderTurnInfo(info);
     },
 
     showActionMenu: (view: ActionMenuView) => {
-      tooltip.hide();
-      instructionRow.hidden = true;
-      // « Annuler le déplacement » va EN DERNIER, sous « Attendre » (retour humain 2026-08-21) :
-      // placé en tête, il occupait le premier arrêt de focus — donc celui qu'un Espace ou un A
-      // atteint sans viser — et le joueur annulait son déplacement sans le vouloir. La première
-      // entrée reste « Déplacement », grisée quand on a déjà bougé, pour que l'ordre du menu ne
-      // change pas d'un tour à l'autre.
-      menu.replaceChildren(
-        button(config.translate("action.move"), view.onMove, !view.canMove),
-        button(config.translate("action.attack"), view.onAttack, !view.canAct),
-        button(config.translate("action.item"), () => undefined, true),
-        button(config.translate("action.wait"), view.onWait),
-        button(config.translate("action.status"), () => undefined, true),
-        ...(view.canUndoMove ? [button(config.translate("action.undoMove"), view.onUndoMove)] : []),
-      );
-      restoreMenuFocus();
+      replayMenu = (focusIndex) => renderActionMenu(view, focusIndex);
+      renderActionMenu(view);
     },
 
     showAttackSubmenu: (view: AttackSubmenuView) => {
-      tooltip.hide();
-      instructionRow.hidden = true;
-      const list = el("div", "bc-move-list");
-      for (const move of view.moves) {
-        list.append(moveRow(move, () => view.onSelect(move.definition.id)));
-      }
-      menu.replaceChildren(list, cancelButton(view.onCancel));
-      restoreMenuFocus();
+      replayMenu = (focusIndex) => renderAttackSubmenu(view, focusIndex);
+      renderAttackSubmenu(view);
     },
 
     showSelectedMove: (move: SelectedMoveView, key: BattleInstruction) => {
-      tooltip.hide();
-      const header = el("div", "bc-selected-move");
-      const name = el("span", "bc-move-name");
-      // Move-copy (plan 144): a masked called move hides its identity — "???" and no type icon.
-      if (move.masked === true) {
-        name.textContent = "???";
-        header.append(name);
-      } else {
-        const icon = el("img", "bc-move-type");
-        icon.alt = getTypeName(move.definition.type, language);
-        icon.loading = "lazy";
-        icon.decoding = "async";
-        icon.src = config.getTypeIconUrl(move.definition.type);
-        name.textContent = getMoveName(move.definition.id, language);
-        header.append(icon, name);
-      }
-      // Cancel sits under the locked-in move, mirroring the attack submenu's own button (plan 183):
-      // Escape is the only other way out and does not exist on a touch screen.
-      menu.replaceChildren(header, cancelButton(move.onCancel));
+      replayMenu = () => renderSelectedMove(move);
+      renderSelectedMove(move);
       showInstruction(key);
     },
 
     showCancellableInstruction: (key: BattleInstruction, onCancel: () => void) => {
-      tooltip.hide();
-      menu.replaceChildren(cancelButton(onCancel));
+      replayMenu = () => renderCancelOnly(onCancel);
+      renderCancelOnly(onCancel);
       showInstruction(key);
     },
 
@@ -448,7 +513,20 @@ export function createBattleChrome(options: BattleChromeOptions): BattleChrome {
       showInstruction(key);
     },
 
+    relocalize: () => {
+      if (lastTurnInfo !== null) {
+        renderTurnInfo(lastTurnInfo);
+      }
+      replayMenu?.(lastFocusedMenuIndex);
+      if (currentInstruction !== null) {
+        instruction.textContent = config.translate(INSTRUCTION_KEY[currentInstruction]);
+      }
+    },
+
+    refocusMenu: () => replayMenu?.(lastFocusedMenuIndex),
+
     hideMenus: () => {
+      replayMenu = null;
       tooltip.hide();
       menu.replaceChildren();
       instructionRow.hidden = true;

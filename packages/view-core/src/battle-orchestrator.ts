@@ -1161,6 +1161,25 @@ export class BattleOrchestrator {
     this.turnClockSuspendedAt = null;
   }
 
+  /**
+   * Re-render, in the current language, every piece of text this orchestrator built (plan 221) —
+   * the panels and the attack list. The menus the chrome holds are its own business
+   * (`LocalizableBattleChrome.relocalize`). Leaves the phase untouched: an aim in progress, an open
+   * submenu or a confirm are found again as they were.
+   *
+   * Not `refreshUI()`: that one fires `onTurnReady`, the AI / remote-peer hook.
+   */
+  relocalize(): void {
+    if (this.disposed || this.inputState.phase === "battle_over") {
+      return;
+    }
+    if (this.inputState.phase === "attack_submenu") {
+      this.showAttackSubmenu();
+    }
+    this.refreshInfoPanel();
+    this.refreshTileInfo();
+  }
+
   private refreshUI(): void {
     if (this.disposed || this.inputState.phase === "battle_over") {
       return;
@@ -1280,9 +1299,23 @@ export class BattleOrchestrator {
     this.clearConfirmPreview();
     this.board.clearPreview();
     this.board.clearHighlights();
+    if (!this.showAttackSubmenu()) {
+      return;
+    }
+    this.setInputState({ phase: "attack_submenu" });
+    // No move chosen yet → plain upcoming order (clears a previous move preview).
+    this.refreshTimeline();
+  }
+
+  /**
+   * Builds the attack list and hands it to the chrome. Split from `enterAttackSubmenu` so a language
+   * switch can rebuild it in place (plan 221): its contextual causes and effect chips are text,
+   * computed here once per opening. Returns false when there is no active Pokemon.
+   */
+  private showAttackSubmenu(): boolean {
     const active = this.activePokemon();
     if (!active) {
-      return;
+      return false;
     }
     // Show ALL of the actor's moves (greyed when out of PP or out of range),
     // with the Provoc/Entrave/Encore block tag.
@@ -1322,9 +1355,7 @@ export class BattleOrchestrator {
       onSelect: (moveId) => this.enterAttackTarget(moveId),
       onCancel: () => this.enterActionMenu(),
     });
-    this.setInputState({ phase: "attack_submenu" });
-    // No move chosen yet → plain upcoming order (clears a previous move preview).
-    this.refreshTimeline();
+    return true;
   }
 
   private enterAttackTarget(moveId: string): void {

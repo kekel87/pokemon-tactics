@@ -62,30 +62,18 @@ export function createSettingsPanel(options: SettingsPanelOptions): Panel {
     title.textContent = t("settings.title");
 
     const rows = el("div", "mn-rows");
-    /*
-     * La LANGUE n'est pas proposée en cours de combat (revue de code 2026-08-25).
-     *
-     * Ce n'est pas un oubli mais un refus : `runBattle` résout les noms via une langue capturée une
-     * fois, et surtout les lignes DÉJÀ ÉCRITES du journal sont du texte DOM figé. Basculer en pleine
-     * partie donnerait donc un journal mi-français mi-anglais — et rendre la résolution « vivante »
-     * ne suffirait pas, il faudrait re-render tout l'historique. C'est précisément le chantier
-     * « migration i18n du journal de combat » déjà en attente (graphe, entités `agenda`) : jusque-là, mieux vaut
-     * ne pas offrir le bouton que livrer deux langues à l'écran. La langue se règle depuis le menu
-     * principal, où aucun combat ne tourne.
-     */
-    if (!embedded) {
-      // Changer la langue retraduit chaque libellé, donc celui-ci reconstruit vraiment le panneau —
-      // puis remet le focus où il était, sinon un joueur au clavier perd sa place.
-      const languageToggle = menuButton(getLanguage() === Language.French ? "FR" : "EN", () => {
-        // Réglages réellement touchés (plan 196).
-        countAction(TelemetryAction.LanguageChange);
-        setLanguage(getLanguage() === Language.French ? Language.English : Language.French);
-        render();
-        root?.querySelector<HTMLElement>("[data-testid='setting-language']")?.focus();
-      });
-      languageToggle.dataset.testid = "setting-language";
-      rows.append(row(t("settings.language"), languageToggle));
-    }
+    // Changer la langue retraduit chaque libellé, donc celui-ci reconstruit vraiment le panneau —
+    // puis remet le focus où il était, sinon un joueur au clavier perd sa place. Proposée aussi en
+    // plein combat depuis le plan 221 : l'écran de combat se réécrit tout entier, journal compris.
+    const languageToggle = menuButton(getLanguage() === Language.French ? "FR" : "EN", () => {
+      // Réglages réellement touchés (plan 196).
+      countAction(TelemetryAction.LanguageChange);
+      setLanguage(getLanguage() === Language.French ? Language.English : Language.French);
+      render();
+      root?.querySelector<HTMLElement>("[data-testid='setting-language']")?.focus();
+    });
+    languageToggle.dataset.testid = "setting-language";
+    rows.append(row(t("settings.language"), languageToggle));
 
     // Plein écran (plan 180-a) : masque la barre d'URL du navigateur, qui ampute une bande d'un
     // viewport paysage déjà à l'étroit sur téléphone. La ligne n'apparaît que si l'API existe —

@@ -220,3 +220,19 @@ test("§4.20 le passage de relais ne laisse qu'un seul menu : le combat monte le
   // Le journal, absent du placement, est monté avec le chrome de combat.
   await expect(page.getByTestId("battle-log")).toBeVisible();
 });
+
+// Cahier §4.20 (plan 221) — la bascule de langue vaut aussi au placement : le panneau du roster se
+// reconstruit dans la nouvelle langue à la fermeture du menu.
+test("§4.20 basculer la langue depuis le menu du placement retraduit le panneau de placement", async ({
+  page,
+  placement,
+  combatMenu,
+}) => {
+  await startInteractivePlacement(page);
+  await expect(placement.instruction).toBeVisible({ timeout: 30_000 });
+  await expect(placement.counter).toHaveText("Placés : 0/6");
+
+  await combatMenu.switchLanguage();
+
+  await expect(page.getByText(/^Placed: /)).toHaveText("Placed: 0/6");
+});

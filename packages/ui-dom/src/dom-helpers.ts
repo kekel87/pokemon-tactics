@@ -34,3 +34,12 @@ export function el<K extends keyof HTMLElementTagNameMap>(
   }
   return node;
 }
+
+/**
+ * Nomme un bouton icône seule : le glyphe ne porte aucun texte, le nom vient d'`aria-label`, et
+ * `title` le montre au survol. Rappelé à chaque changement de langue (plan 221).
+ */
+export function setIconButtonLabel(button: HTMLElement, label: string): void {
+  button.setAttribute("aria-label", label);
+  button.title = label;
+}

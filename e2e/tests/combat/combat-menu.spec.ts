@@ -499,3 +499,48 @@ test("§4.20 « Quitter » n'existe qu'avec une sauvegarde, sort sans confirmati
   await expect(menu.title).toBeVisible();
   await expect(menu.resume).toHaveCount(0);
 });
+
+// Cahier §4.20 (plan 221) — la langue se change en plein combat, et TOUT l'écran suit à la fermeture
+// du menu : y compris les lignes du journal écrites AVANT la bascule, qui étaient du texte DOM figé
+// (décision #828, qui retirait le bouton pour cette raison). La modale est refermée par « Reprendre »
+// après un `Échap` qui dépile le niveau Paramètres.
+
+test("§4.20 basculer la langue en combat retraduit le journal, ses lignes anciennes comprises, et le menu d'actions", async ({
+  page,
+  bootSandbox,
+  combatMenu,
+}) => {
+  const scene = await bootSandbox(DUEL);
+  await waitForPlayerTurn(page, combatMenu);
+  await scene.castFirstMove(DUMMY_TILE.x, DUMMY_TILE.y);
+  const entries = page.getByTestId("battle-log-entry");
+  await expect(entries.filter({ hasText: "Florizarre utilise Griffe !" })).toHaveCount(1, {
+    timeout: 10_000,
+  });
+  await expect(page.getByTestId("battle-log-title")).toHaveText("Journal de combat");
+  await expect(page.getByRole("button", { name: "Attendre", exact: true })).toBeVisible();
+  const lineCount = await entries.count();
+
+  await combatMenu.switchLanguage();
+
+  await expect(page.getByTestId("battle-log-title")).toHaveText("Battle Log");
+  // Même nombre de lignes ET la ligne anglaise : l'ancienne a été réécrite, pas doublée.
+  await expect(entries.filter({ hasText: "Venusaur used Scratch!" })).toHaveCount(1);
+  await expect(entries).toHaveCount(lineCount);
+  await expect(page.getByRole("button", { name: "Wait", exact: true })).toBeVisible();
+});
+
+test("§4.20 basculer la langue garde la liste d'attaques ouverte, retraduite", async ({
+  page,
+  bootSandbox,
+  combatMenu,
+}) => {
+  await bootSandbox(DUEL);
+  await waitForPlayerTurn(page, combatMenu);
+  await openAttackList(page);
+  await expect(page.getByTestId("move-name").first()).toHaveText("Griffe");
+
+  await combatMenu.switchLanguage();
+
+  await expect(page.getByTestId("move-name").first()).toHaveText("Scratch");
+});

@@ -13,7 +13,7 @@
  * never imports `packages/app`.
  */
 
-import { el } from "./dom-helpers.js";
+import { el, setIconButtonLabel } from "./dom-helpers.js";
 
 export interface FullscreenButtonOptions {
   /** Accessible name — the control is icon-only. */
@@ -33,6 +33,8 @@ export interface FullscreenButton {
   readonly element: HTMLButtonElement;
   /** Re-evaluate visibility — call on `fullscreenchange`. */
   refresh(): void;
+  /** Renomme le bouton — un changement de langue en plein combat (plan 221). */
+  setLabel(label: string): void;
 }
 
 /** Icon-only expand glyph, styled to match the battle log surface it sits beside. */
@@ -40,8 +42,7 @@ export function createFullscreenButton(options: FullscreenButtonOptions): Fullsc
   const button = el("button", "fs-btn", "fullscreen-button");
   button.type = "button";
   // Icon-only control: the arrows carry no text, so the name has to come from `aria-label`.
-  button.setAttribute("aria-label", options.label);
-  button.title = options.label;
+  setIconButtonLabel(button, options.label);
 
   const glyph = el("span", "fs-btn-glyph");
   // Glyphe texte, comme ses deux voisins de rangée (`.cmb-glyph` = "☰", `.bl-burger` = "▤") : même
@@ -65,5 +66,9 @@ export function createFullscreenButton(options: FullscreenButtonOptions): Fullsc
   }
   refresh();
 
-  return { element: button, refresh };
+  return {
+    element: button,
+    refresh,
+    setLabel: (label) => setIconButtonLabel(button, label),
+  };
 }

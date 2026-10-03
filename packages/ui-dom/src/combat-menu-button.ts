@@ -16,7 +16,7 @@
  * jamais `packages/app`.
  */
 
-import { el } from "./dom-helpers.js";
+import { el, setIconButtonLabel } from "./dom-helpers.js";
 
 export interface CombatMenuButtonOptions {
   /** Accessible name — the control is icon-only. */
@@ -34,13 +34,14 @@ export interface CombatMenuButton {
    * un bouton qui n'a AUCUN retour se fait taper trois fois de suite et se lit comme un bug.
    */
   setEnabled(enabled: boolean): void;
+  /** Renomme le bouton — un changement de langue en plein combat (plan 221). */
+  setLabel(label: string): void;
 }
 
 export function createCombatMenuButton(options: CombatMenuButtonOptions): CombatMenuButton {
   const button = el("button", "cmb-btn", "combat-menu-button");
   button.type = "button";
-  button.setAttribute("aria-label", options.label);
-  button.title = options.label;
+  setIconButtonLabel(button, options.label);
 
   const glyph = el("span", "cmb-glyph");
   // Le burger, glyphe conventionnel de « menu ». Il servait au repli du journal, qui est un PANNEAU DE
@@ -60,5 +61,6 @@ export function createCombatMenuButton(options: CombatMenuButtonOptions): Combat
     setEnabled: (enabled) => {
       button.disabled = !enabled;
     },
+    setLabel: (label) => setIconButtonLabel(button, label),
   };
 }

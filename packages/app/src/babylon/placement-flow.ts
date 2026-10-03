@@ -32,7 +32,7 @@ import {
   TILE_SPAWN_ZONE_INACTIVE_COLOR,
   TILE_SPAWN_ZONE_OCCUPIED_ALPHA,
 } from "../constants.js";
-import { getLanguage, t } from "../i18n/index.js";
+import { getLanguage, onLanguageChange, t } from "../i18n/index.js";
 import type { TranslationKey } from "../i18n/types.js";
 import { InputSource } from "../input/input-source.js";
 import { getInputSystem } from "../input/input-system.js";
@@ -156,6 +156,8 @@ export interface PlacementNetwork {
 }
 
 export interface PlacementFlow {
+  /** Rend le focus à « Terminer » s'il est proposé — après une réécriture du roster (plan 221). */
+  focusFinish(): void;
   dispose(): void;
 }
 
@@ -1105,9 +1107,29 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
     enterPlacement();
   }
 
+  /*
+   * La langue se change aussi pendant le placement, depuis le menu (plan 221) : le roster et le
+   * panneau d'attente se réécrivent. Le chrono se relit seul à chaque seconde.
+   */
+  const stopLanguageWatch = onLanguageChange(() => {
+    const activeId = activePlayer();
+    if (placing && activeId !== null) {
+      showRoster(
+        activeId,
+        teamIndexOfPlayer(activeId),
+        placementTeams.find((candidate) => candidate.playerId === activeId),
+      );
+    }
+    refreshWaitingPanel();
+  });
+
   return {
+    focusFinish: () => {
+      roster.focusFinish();
+    },
     dispose: () => {
       placing = false;
+      stopLanguageWatch();
       stopWindowTimer();
       unsubscribeFromPlacements?.();
       unsubscribeFromPlacements = null;

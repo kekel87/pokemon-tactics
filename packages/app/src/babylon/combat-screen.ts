@@ -29,6 +29,8 @@ import type {
 import { EliminatedChoice } from "@pokemon-tactic/render-ports";
 import type {
   ChromeInsetProbe,
+  CombatMenuButton,
+  FullscreenButton,
   GameStage,
   TurnClockHud,
   UiDomConfig,
@@ -78,7 +80,7 @@ import {
   getTeamColorByPlayerId,
 } from "../constants.js";
 import { HighlightKind } from "../enums/highlight-kind.js";
-import { getLanguage, t } from "../i18n/index.js";
+import { getLanguage, onLanguageChange, t } from "../i18n/index.js";
 import type { TranslationKey } from "../i18n/types.js";
 import {
   activateFocusedControl,
@@ -233,6 +235,15 @@ interface PlacementChrome {
   updateClock(view: TurnClockView | null): void;
 }
 
+/** Les deux boutons icône seule du chrome, au placement comme en combat, dans la langue courante. */
+function relabelChromeButtons(
+  fullscreenButton: FullscreenButton,
+  combatMenuButton: CombatMenuButton,
+): void {
+  fullscreenButton.setLabel(t("settings.fullscreen"));
+  combatMenuButton.setLabel(t("combatMenu.open"));
+}
+
 function mountPlacementChrome(options: {
   stage: GameStage;
   /** Absent en ligne : y recommencer remonterait le setup en local (voir `onRestart` du menu). */
@@ -249,12 +260,15 @@ function mountPlacementChrome(options: {
    * sert plus à rien. Il court pourtant dès la première case.
    */
   showClock?: boolean;
+  /** Voir `CombatMenuOptions.onFocusOrphaned`. */
+  onFocusOrphaned?: (lost: HTMLElement) => void;
 }): PlacementChrome {
-  const { stage, onRestart, onQuit } = options;
+  const { stage, onRestart, onQuit, onFocusOrphaned } = options;
   const combatMenu = createCombatMenu({
     host: stage.screenLayer,
     variant: CombatMenuVariant.Placement,
     ...(onRestart === undefined ? {} : { onRestart }),
+    ...(onFocusOrphaned === undefined ? {} : { onFocusOrphaned }),
     // Au placement, la sortie destructrice s'appelle « Quitter » et confirme : rien n'est sauvegardé
     // encore, mais les Pokemon déjà posés sont perdus (plan 189, décisions 4 et 5).
     onAbandon: onQuit,
@@ -281,6 +295,7 @@ function mountPlacementChrome(options: {
    */
   let clockHud: TurnClockHud | null = null;
   let clockBox: HTMLElement | null = null;
+  let clockLabel: HTMLElement | null = null;
   if (options.showClock === true) {
     clockHud = createTurnClockHud();
     const line = document.createElement("div");
@@ -289,6 +304,7 @@ function mountPlacementChrome(options: {
     label.className = "bc-turn-owner";
     label.dataset.testid = "placement-clock-label";
     label.textContent = t("placement.window.label");
+    clockLabel = label;
     line.append(label, clockHud.value);
     clockBox = document.createElement("div");
     clockBox.className = "bc-turn pc-clock";
@@ -296,6 +312,14 @@ function mountPlacementChrome(options: {
     clockBox.append(line, clockHud.bar);
     stage.screenLayer.append(clockBox);
   }
+
+  // Les libellés que ce chrome a posés une fois (plan 221) : le menu ouvert, lui, se réécrit seul.
+  const stopLanguageWatch = onLanguageChange(() => {
+    relabelChromeButtons(fullscreenButton, combatMenuButton);
+    if (clockLabel !== null) {
+      clockLabel.textContent = t("placement.window.label");
+    }
+  });
 
   const row = createBattleLogRow(
     fullscreenButton.element,
@@ -314,6 +338,7 @@ function mountPlacementChrome(options: {
     updateClock: (view) => clockHud?.update(view),
     dispose() {
       stopFullscreenWatch.abort();
+      stopLanguageWatch();
       combatMenu.dispose();
       clockHud?.destroy();
       clockBox?.remove();
@@ -728,29 +753,34 @@ function runBattle(options: {
     // Un chronomètre tourne dès que la partie est en ligne (plan 202) : le menu grignote alors le
     // temps du joueur, et la dette du plan 187 était de ne pas le dire.
     timeKeepsRunning: turnClock !== undefined,
+    // Une bascule de langue a réécrit le menu d'actions sous la modale : l'entrée qui avait le focus
+    // n'existe plus, c'est le chrome qui sait laquelle la remplace (plan 221).
+    onFocusOrphaned: () => chrome.refocusMenu(),
   });
   signal.addEventListener("abort", () => combatMenu.dispose(), { once: true });
 
   onChromeReady?.(chrome);
 
-  const language = getLanguage();
-  // Shared name resolvers for the log + floating texts (instance id → localised names).
+  // Shared name resolvers for the log + floating texts (instance id → localised names). The language
+  // is read at each call, never captured: it can change mid-combat (plan 221).
   const pokemonNameOf = (id: string): string => {
     const pokemon = battle.state.pokemon.get(id);
-    return pokemon ? getPokemonName(pokemon.definitionId, language) : id;
+    return pokemon ? getPokemonName(pokemon.definitionId, getLanguage()) : id;
   };
   const abilityNameOf = (id: string): string | null =>
-    battle.abilityRegistry.get(id)?.name[language] ?? null;
+    battle.abilityRegistry.get(id)?.name[getLanguage()] ?? null;
   const itemNameOf = (id: string): string | null =>
-    battle.itemRegistry.get(id)?.name[language] ?? null;
+    battle.itemRegistry.get(id)?.name[getLanguage()] ?? null;
 
   const battleLog = createBattleLog({
     context: {
       getPokemonName: pokemonNameOf,
-      getMoveName: (moveId) => getMoveName(moveId, language),
+      getMoveName: (moveId) => getMoveName(moveId, getLanguage()),
       getAbilityName: abilityNameOf,
       getItemName: itemNameOf,
-      language,
+      get language() {
+        return getLanguage();
+      },
       translate: uiConfig.translate,
     },
     teamOf: (id) => {
@@ -984,6 +1014,21 @@ function runBattle(options: {
     presentationContext,
   );
   orchestrator.onTurnReady = wireTurnReady(battle);
+  /*
+   * La langue se change en plein combat, depuis les Paramètres du menu (plan 221, qui renverse la
+   * décision #828). Tout ce qui tient du texte à l'écran se réécrit ici, y compris les lignes DÉJÀ
+   * écrites du journal — sans elles, on lisait un journal mi-français mi-anglais. Les textes flottants
+   * déjà en l'air finissent dans l'ancienne langue : ils durent une seconde.
+   */
+  const stopLanguageWatch = onLanguageChange(() => {
+    battleLog.relocalize();
+    // L'orchestrateur D'ABORD : il reconstruit la liste d'attaques, dont il calcule les textes ; le
+    // chrome rejoue ensuite la vue fraîche, et c'est lui qui sait quelle entrée avait le focus.
+    orchestrator.relocalize();
+    chrome.relocalize();
+    relabelChromeButtons(fullscreenButton, combatMenuButton);
+  });
+  signal.addEventListener("abort", stopLanguageWatch, { once: true });
   /**
    * À l'ouverture d'une phase de plateau, le curseur repart du Pokemon actif (retour humain
    * 2026-08-21) : le reprendre là où on l'avait laissé au tour d'avant était déroutant — on visait
@@ -2076,8 +2121,15 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
       // Chronométré seulement en ligne ET en placement à la main : le placement automatique ne dure
       // pas, et hors ligne personne n'attend personne.
       showClock: setup.localSeat !== undefined && !setup.autoPlacement,
+      // Une bascule de langue réécrit le roster sous la modale : « Terminer » est remplacé, et un
+      // joueur au clavier ou au pad qui l'avait en main doit l'y retrouver (plan 221).
+      onFocusOrphaned: (lost) => {
+        if (lost.dataset.testid === "placement-finish") {
+          placementFlow?.focusFinish();
+        }
+      },
     });
-    let placementFlow: PlacementFlow;
+    let placementFlow: PlacementFlow | undefined;
     try {
       placementFlow = await mountPlacement(
         activeCombat,

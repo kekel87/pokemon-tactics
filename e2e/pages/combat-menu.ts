@@ -1,4 +1,4 @@
-import type { Locator, Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 
 /**
  * Page Object de la modale du menu de combat (plan 187) et de son bouton tactile `☰`.
@@ -42,6 +42,8 @@ export class CombatMenuOverlay {
   readonly settingsTitle: Locator;
   /** Titre du panneau des Contrôles, un niveau plus profond. */
   readonly controlsTitle: Locator;
+  /** Bascule FR / EN du panneau des Paramètres — proposée en combat depuis le plan 221. */
+  readonly languageToggle: Locator;
 
   constructor(private readonly page: Page) {
     this.dialog = page.getByTestId("combat-menu");
@@ -57,6 +59,22 @@ export class CombatMenuOverlay {
     this.clockWarning = page.getByTestId("combat-menu-clock-warning");
     this.settingsTitle = page.getByRole("heading", { name: "Paramètres" });
     this.controlsTitle = page.getByRole("heading", { name: "Contrôles" });
+    this.languageToggle = page.getByTestId("setting-language");
+  }
+
+  /**
+   * Passe de FR à EN par le menu (plan 221) puis le referme : `Échap` dépile les Paramètres,
+   * « Reprendre » ferme. Les libellés visés ensuite sont donc anglais.
+   */
+  async switchLanguage(): Promise<void> {
+    await this.openByButton();
+    await this.settings.click();
+    await expect(this.settingsTitle).toBeVisible();
+    await this.languageToggle.click();
+    await expect(this.languageToggle).toHaveText("EN");
+    await this.page.keyboard.press("Escape");
+    await this.resume.click();
+    await expect(this.dialog).toHaveCount(0);
   }
 
   /** Ouvrir au doigt / à la souris. La seule entrée qui n'annule jamais rien du tour en cours. */

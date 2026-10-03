@@ -692,7 +692,7 @@ packages/data/src/i18n/
 
 - **Détection auto** : `detectLanguage()` lit `navigator.language` → 'fr' si commence par 'fr', sinon 'en'
 - **Persistance** : `setLanguage()` écrit en localStorage
-- **Changement de langue** : rebuild complet de l'UI (les vues DOM sont remontées) — pas de hot-swap de textes individuels
+- **Changement de langue** : possible en plein combat (plan 221, decision-1114) — bascule immédiate de tout l'écran sans remonter la scène : `BattleLog.relocalize` réécrit le journal depuis ses événements, les résolveurs de noms lisent la langue à chaque appel, `BattleOrchestrator.relocalize` rafraîchit panneaux et liste d'attaques (sans `refreshUI`), `LocalizableBattleChrome.relocalize/refocusMenu` rejoue le dernier menu. Hors combat, les vues DOM restent remontées. Limite : les textes flottants déjà en l'air gardent l'ancienne langue
 - **`Language` type dans `app` uniquement** : `@pokemon-tactic/data` accepte `string` pour éviter dépendance cyclique
 
 ### BattleLogPanel (plan 037)

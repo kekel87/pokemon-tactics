@@ -91,6 +91,12 @@ export interface CombatMenuOptions {
    * **coûte son tour sans le dire** — un piège qu'il faut refermer par une phrase.
    */
   readonly timeKeepsRunning?: boolean;
+  /**
+   * Appelé à la fermeture quand ce qui avait le focus à l'ouverture a disparu du document — une
+   * bascule de langue a réécrit l'écran derrière la modale (plan 221). L'hôte sait ce qui le
+   * remplace ; ce menu, non.
+   */
+  readonly onFocusOrphaned?: (lost: HTMLElement) => void;
 }
 
 export interface CombatMenu {
@@ -150,6 +156,7 @@ export function createCombatMenu(options: CombatMenuOptions): CombatMenu {
     onQuitKeepingSave,
     variant = CombatMenuVariant.Battle,
     timeKeepsRunning = false,
+    onFocusOrphaned,
   } = options;
   const isPlacement = variant === CombatMenuVariant.Placement;
 
@@ -372,6 +379,8 @@ export function createCombatMenu(options: CombatMenuOptions): CombatMenu {
     openedFrom = null;
     if (trigger?.isConnected === true) {
       trigger.focus();
+    } else if (trigger !== null) {
+      onFocusOrphaned?.(trigger);
     }
   }
 
