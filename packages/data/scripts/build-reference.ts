@@ -14,7 +14,11 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { playablePokemon } from "../src/playable/playable-pokemon";
 import type { ChampionsOverride } from "./champions-override.types";
-import { ABILITY_DESCRIPTION_OVERRIDES } from "./description-overrides";
+import {
+  ABILITY_DESCRIPTION_OVERRIDES,
+  type DescriptionOverride,
+  ITEM_DESCRIPTION_OVERRIDES,
+} from "./description-overrides";
 import { fetchChampionsData } from "./fetch-champions";
 import { CACHE_DIR, cachedFetch, cachedFetchText, ensureDir } from "./fetch-utils";
 import {
@@ -1257,13 +1261,18 @@ function transformItems(pokeapiItems: Map<number, Record<string, unknown>>): Ite
       | undefined;
     const enEffect = effectEntries?.find((e) => e.language.name === "en");
 
-    const flavorEntries = data.flavor_text_entries as
+    // PokeAPI range le texte des objets sous `text` (et non `flavor_text` comme moves/talents/espèces)
+    const itemTextEntries = data.flavor_text_entries as
       | Array<{
-          flavor_text: string;
+          text: string;
           language: { name: string };
           version_group: { name: string };
         }>
       | undefined;
+    const flavorEntries = itemTextEntries?.map((entry) => ({
+      ...entry,
+      flavor_text: entry.text,
+    }));
     const frFlavor = flavorEntries ? extractLatestFlavorText(flavorEntries, "fr") : null;
     const esFlavor = flavorEntries ? extractLatestFlavorText(flavorEntries, "es") : null;
 
@@ -1909,6 +1918,24 @@ function applyLearnsetOverride(
 
 // ─── i18n generation ─────────────────────────────────────────────────────────
 
+/** Our own wording, applied last to the short AND long description (plan 223, items since plan 225). */
+function applyDescriptionOverrides(
+  entries: readonly {
+    id: string;
+    shortDescription: Record<string, string | null>;
+    longDescription: Record<string, string | null>;
+  }[],
+  overrides: Readonly<Record<string, DescriptionOverride>>,
+): void {
+  for (const entry of entries) {
+    const description = overrides[entry.id];
+    if (description) {
+      entry.shortDescription = { ...description };
+      entry.longDescription = { ...description };
+    }
+  }
+}
+
 /** Alphabetically-sorted `{ id: name }` map — stable output regardless of source order. */
 function sortedNameMap(pairs: [string, string][]): Record<string, string> {
   const result: Record<string, string> = {};
@@ -2035,13 +2062,8 @@ async function main(): Promise<void> {
     championsOverride,
     rawMoveIdToKebab,
   );
-  for (const entry of abilityEntries) {
-    const description = ABILITY_DESCRIPTION_OVERRIDES[entry.id];
-    if (description) {
-      entry.shortDescription = { ...description };
-      entry.longDescription = { ...description };
-    }
-  }
+  applyDescriptionOverrides(abilityEntries, ABILITY_DESCRIPTION_OVERRIDES);
+  applyDescriptionOverrides(itemEntries, ITEM_DESCRIPTION_OVERRIDES);
   console.log(
     `  Applied: ${overrideSummary.moves} moves, ${overrideSummary.abilities} abilities, ${overrideSummary.items} items, ${overrideSummary.learnsets} learnsets`,
   );

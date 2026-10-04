@@ -1,0 +1,96 @@
+/*
+ * InfoTooltip (plan 225) — what a talent, a held item, a status, the weather or a tile zone does.
+ * Pairs with `info-tooltip.ts`. Same surface as the move tooltip (`move-tooltip.css`), on the scaled
+ * chrome tokens (`--bc-*`, declared for `.it-tooltip` too in `battle-chrome.css`). Mounted on the
+ * screen layer, the one ancestor shared by the info panels and the top HUD it must point at.
+ */
+
+@layer components {
+  .it-tooltip {
+    /*
+     * Same unit and reference as the info panel it mostly explains (`--ip-px`, `info-panel.css`):
+     * on `--ui-scale` the bubble read at half the size of the talent it pointed at (measured at
+     * 1920 × 1080 in the sandbox: 11 px against 22 px).
+     */
+    --it-px: calc(100cqw / 1920);
+
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    z-index: 1;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    gap: calc(4 * var(--it-px));
+    max-inline-size: min(calc(520 * var(--it-px)), 90%);
+    padding: calc(10 * var(--it-px)) calc(14 * var(--it-px));
+    border: 1px solid var(--color-border-surface);
+    border-radius: var(--bc-radius-md);
+    background: color-mix(in oklch, var(--color-bg-surface) 94%, transparent);
+    color: var(--color-text-primary);
+    font-size: calc(22 * var(--it-px));
+    &[hidden] {
+      display: none;
+    }
+  }
+
+  /* Same narrow-stage calibration as the info panel, so the two keep their ratio on a phone. */
+  @container stage ((height < 500px) or (width < 900px)) {
+    .it-tooltip {
+      --it-px: calc(100cqw / 1500);
+    }
+  }
+
+  .it-title {
+    font-weight: 700;
+  }
+
+  .it-text {
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-base);
+  }
+
+  /*
+   * The panels let the pointer through to the board (`pointer-events: none` all the way down); only
+   * an element that has something to explain catches it back.
+   */
+  [data-describe] {
+    pointer-events: auto;
+    cursor: help;
+  }
+
+  /*
+   * Under a finger the described elements are far below the 30 px floor (`--target-min`, plan 206)
+   * — measured at 568 × 320: the talent was 38 × 14. The hit area grows, the layout does not: an
+   * invisible pseudo-element overhangs the element on each side up to the floor.
+   */
+  @media (pointer: coarse) {
+    [data-describe] {
+      position: relative;
+    }
+
+    [data-describe]::after {
+      content: "";
+      position: absolute;
+      inset-block: min(0px, calc((100% - var(--target-min)) / 2));
+      inset-inline: min(0px, calc((100% - var(--target-min)) / 2));
+    }
+
+    /*
+     * The talent clips its overflow (ellipsis), which would clip the overhang too. It has no
+     * background, so padding cancelled by an equal negative margin grows its box in place.
+     */
+    .ip-talent[data-describe] {
+      --it-overhang: max(0px, calc((var(--target-min) - 1lh) / 2));
+      padding-block: var(--it-overhang);
+      margin-block: calc(-1 * var(--it-overhang));
+    }
+  }
+
+  /* The element being explained — what inspect mode is on, at the keyboard and the gamepad. */
+  .it-anchor {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+    border-radius: var(--bc-radius-sm);
+  }
+}

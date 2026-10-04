@@ -1,6 +1,7 @@
 import type { TailwindView } from "@pokemon-tactic/view-core";
 import type { UiDomConfig } from "./config.js";
 import { el } from "./dom-helpers.js";
+import { setDescription } from "./info-tooltip.js";
 
 /**
  * TailwindHud — top-centre Vent Arrière (tailwind) readout. Shows a single arrow that points the
@@ -60,6 +61,7 @@ export function createTailwindHud(config: UiDomConfig): TailwindHud {
         return;
       }
       label.textContent = config.translate("tailwind.label");
+      setDescription(root, label.textContent, config.translate("describe.tailwind.label"));
       turns.textContent = config.translate("weather.turnsLeft", { turns: view.turnsRemaining });
       applyRotation();
       root.hidden = false;

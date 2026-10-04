@@ -66,6 +66,12 @@ export const LogicalAction = {
    * le joueur reste libre de lui en assigner une dans l'écran de contrôles.
    */
   OpenCombatMenu: "open-combat-menu",
+  /**
+   * Entrer dans le mode Inspecter / en sortir (plan 225) : la croix parcourt alors le talent, l'objet,
+   * les effets, la météo et les zones de la case, une bulle dit ce que chacun fait. C'est la façon
+   * clavier et manette de lire ce que la souris lit au survol (retour de Frank, 2026-09-30).
+   */
+  InspectInfo: "inspect-info",
 } as const;
 
 export type LogicalAction = (typeof LogicalAction)[keyof typeof LogicalAction];

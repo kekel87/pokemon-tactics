@@ -5,6 +5,7 @@ import {
   type BattleState,
   createPrng,
   Direction,
+  type LocalizedText,
   type MapDefinition,
   type PlacementTeam,
   PlayerController,
@@ -12,7 +13,7 @@ import {
   profileForDifficulty,
   resolveAiDifficulty,
 } from "@pokemon-tactic/core";
-import { getMoveName, getPokemonName } from "@pokemon-tactic/data";
+import { getMoveName, getPokemonName, localizedText } from "@pokemon-tactic/data";
 import {
   deriveAiSeedsBySeat,
   ONLINE_PLACEMENT_WINDOW_MS,
@@ -664,6 +665,12 @@ function runBattle(options: {
     // rendrait la main sur les deux camps (plan 201, revue de code). La revanche est hors V1.
     canReplay: localPlayerIds === undefined,
     config: uiConfig,
+    signal,
+    inspectKeyHint: createKeyHint(
+      getInputPromptSheetUrl(),
+      keyHintOf(LogicalAction.InspectInfo),
+      "inspect-key-hint",
+    ),
     /*
      * Capuchons de défilement de l'ordre de jeu (plan 189), un à chaque extrémité de la liste : c'est
      * là que le défilement se produit, donc là que la direction du capuchon veut dire quelque chose.
@@ -771,6 +778,10 @@ function runBattle(options: {
     battle.abilityRegistry.get(id)?.name[getLanguage()] ?? null;
   const itemNameOf = (id: string): string | null =>
     battle.itemRegistry.get(id)?.name[getLanguage()] ?? null;
+  // Tooltip texts (plan 225). `localizedText` falls back to English; a blank one opens no bubble
+  // (`setDescription` drops it).
+  const descriptionOf = (text: LocalizedText | undefined): string | undefined =>
+    text && localizedText(text, getLanguage());
 
   const battleLog = createBattleLog({
     context: {
@@ -876,6 +887,8 @@ function runBattle(options: {
     getItemIconUrl,
     getItemName: itemNameOf,
     getAbilityName: abilityNameOf,
+    getItemDescription: (id) => descriptionOf(battle.itemRegistry.get(id)?.shortDescription),
+    getAbilityDescription: (id) => descriptionOf(battle.abilityRegistry.get(id)?.shortDescription),
     getPokemonTypes: (definitionId) => battle.pokemonDefinitions.get(definitionId)?.types ?? [],
     getTypeIconUrl,
     getStatusIconUrl,
@@ -1157,6 +1170,15 @@ function runBattle(options: {
       toggleLog: () => battleLog.toggleCollapsed(),
       scrollTimeline: (delta) => chrome.scrollTimeline(delta),
       openCombatMenu: () => combatMenu.open(),
+    },
+    // Plan 225 : le mode Inspecter vit dans le chrome, qui tient les panneaux qu'il parcourt. Il se
+    // tait sous une modale (menu de combat, victoire, élimination), qui garde la croix pour elle,
+    // et reprend là où il en était quand elle se ferme.
+    inspect: {
+      toggle: () => !isModalOpen() && chrome.toggleInspect(),
+      isActive: () => chrome.isInspecting() && !isModalOpen(),
+      step: (delta) => chrome.stepInspect(delta),
+      stop: () => chrome.stopInspect(),
     },
     menu: {
       focusMove: (direction) => {

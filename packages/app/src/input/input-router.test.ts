@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   type BoardInputConsumer,
   createInputRouter,
+  type InspectInputConsumer,
   type MenuInputConsumer,
 } from "./input-router.js";
 import { LogicalAction } from "./logical-action.js";
@@ -52,6 +53,32 @@ function makeMenu(): MenuInputConsumer & { calls: string[] } {
       return true;
     },
   };
+}
+
+function makeInspect(active: boolean): InspectInputConsumer & { calls: string[] } {
+  const calls: string[] = [];
+  return {
+    calls,
+    toggle: () => {
+      calls.push("toggle");
+      return true;
+    },
+    isActive: () => active,
+    step: (delta) => calls.push(`step:${delta}`),
+    stop: () => calls.push("stop"),
+  };
+}
+
+function setupInspect(context: InputContext, inspector: InspectInputConsumer) {
+  const board = makeBoard();
+  const menu = makeMenu();
+  const router = createInputRouter({
+    context: () => context,
+    board: () => board,
+    menu: () => menu,
+    inspect: () => inspector,
+  });
+  return { router, board, menu };
 }
 
 function setup(context: InputContext | "screen") {
@@ -293,5 +320,100 @@ describe("createInputRouter — contexte `watching`", () => {
     expect(router.handle(LogicalAction.PanCameraUp)).toBe(false);
 
     expect(board.calls).toEqual([]);
+  });
+});
+
+describe("createInputRouter — mode Inspecter (plan 225)", () => {
+  it("bascule le mode Inspecter, sur le plateau comme dans un menu ou un tour distant", () => {
+    for (const context of ["board", "menu", "watching"] as const) {
+      const inspector = makeInspect(false);
+      const { router, board, menu } = setupInspect(context, inspector);
+
+      expect(router.handle(LogicalAction.InspectInfo), context).toBe(true);
+
+      expect(inspector.calls, context).toEqual(["toggle"]);
+      expect([...board.calls, ...menu.calls], context).toEqual([]);
+    }
+  });
+
+  it("laisse passer la touche quand il n'y a rien à inspecter", () => {
+    const inspector = { ...makeInspect(false), toggle: () => false };
+    const { router } = setupInspect("board", inspector);
+
+    expect(router.handle(LogicalAction.InspectInfo)).toBe(false);
+  });
+
+  it("une fois actif, les flèches parcourent les étapes au lieu de bouger le curseur", () => {
+    const inspector = makeInspect(true);
+    const { router, board } = setupInspect("board", inspector);
+
+    router.handle(LogicalAction.CursorUp);
+    router.handle(LogicalAction.CursorLeft);
+    router.handle(LogicalAction.CursorDown);
+    router.handle(LogicalAction.CursorRight);
+
+    expect(inspector.calls).toEqual(["step:-1", "step:-1", "step:1", "step:1"]);
+    expect(board.calls).toEqual([]);
+  });
+
+  it("une fois actif, les flèches ne déplacent pas non plus le focus d'un menu", () => {
+    const inspector = makeInspect(true);
+    const { router, menu } = setupInspect("menu", inspector);
+
+    expect(router.handle(LogicalAction.CursorDown)).toBe(true);
+
+    expect(inspector.calls).toEqual(["step:1"]);
+    expect(menu.calls).toEqual([]);
+  });
+
+  it("une fois actif, Confirmer et Annuler en sortent sans atteindre le plateau", () => {
+    const inspector = makeInspect(true);
+    const { router, board } = setupInspect("board", inspector);
+
+    expect(router.handle(LogicalAction.Confirm)).toBe(true);
+    expect(router.handle(LogicalAction.Cancel)).toBe(true);
+
+    expect(inspector.calls).toEqual(["stop", "stop"]);
+    expect(board.calls).toEqual([]);
+  });
+
+  it("une fois actif, la caméra reste libre", () => {
+    const inspector = makeInspect(true);
+    const { router, board } = setupInspect("board", inspector);
+
+    expect(router.handle(LogicalAction.RotateCameraLeft)).toBe(true);
+
+    expect(board.calls).toEqual(["rotateCamera:-1"]);
+    expect(inspector.calls).toEqual([]);
+  });
+
+  it("inactif, il ne prend ni les flèches ni Confirmer", () => {
+    const inspector = makeInspect(false);
+    const { router, board } = setupInspect("board", inspector);
+
+    router.handle(LogicalAction.CursorUp);
+    router.handle(LogicalAction.Confirm);
+
+    expect(board.calls).toEqual(["moveCursor:up", "confirmCursorTile"]);
+    expect(inspector.calls).toEqual([]);
+  });
+
+  it("verrouillé, même la touche Inspecter est coupée", () => {
+    const inspector = makeInspect(true);
+    const { router } = setupInspect("locked", inspector);
+
+    expect(router.handle(LogicalAction.InspectInfo)).toBe(false);
+    expect(router.handle(LogicalAction.CursorUp)).toBe(false);
+
+    expect(inspector.calls).toEqual([]);
+  });
+
+  it("sans consommateur Inspecter, la touche n'est pas prise et le reste ne change pas", () => {
+    const { router, board } = setup("board");
+
+    expect(router.handle(LogicalAction.InspectInfo)).toBe(false);
+    router.handle(LogicalAction.CursorUp);
+
+    expect(board.calls).toEqual(["moveCursor:up"]);
   });
 });

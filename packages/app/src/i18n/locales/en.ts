@@ -377,6 +377,7 @@ const en: Translations = {
   "controls.invertRightStick": "Invert right stick",
   "controls.action.toggle-battle-log": "Show/Hide",
   "controls.action.open-combat-menu": "Battle menu",
+  "controls.action.inspect-info": "Inspect",
   "controls.group.aoePreview": "AoE preview",
   "combatMenu.title": "Battle menu",
   "combatMenu.open": "Open the battle menu",
@@ -1031,6 +1032,135 @@ const en: Translations = {
   "battleLog.weatherWar": "The new weather overrides the previous one!",
   "battleLog.wishHealed": "{name}'s wish came true, restoring {amount} HP!",
   "battleLog.wishPosted": "{caster} made a wish.",
+  // Info tooltips (plan 225): `describe.` + the label key they explain.
+  "describe.status.burned":
+    "Loses 1/16 of its max HP at the end of each turn, and its physical attacks deal half damage. Fire-type Pokémon are immune.",
+  "describe.status.paralyzed":
+    "Fills its CT gauge half as fast, and has a 12.5% chance each turn to lose its action. Electric-type Pokémon are immune.",
+  "describe.status.poisoned":
+    "Loses 1/8 of its max HP at the end of each turn. Poison- and Steel-type Pokémon are immune.",
+  "describe.status.badlyPoisoned":
+    "Loses a growing share of its max HP at the end of each turn: 1/16, then 2/16, 3/16… up to 15/16. Poison- and Steel-type Pokémon are immune.",
+  "describe.status.frozen":
+    "Cannot act. 25% chance to thaw each turn, and it always thaws on the 3rd turn. Impossible in harsh sunlight; Ice-type Pokémon are immune.",
+  "describe.status.asleep": "Cannot act for 2 to 3 of its turns.",
+  "describe.status.confused":
+    "For 1 to 4 of its turns, a 50% chance to go astray: a targeted attack hits an ally in range (or the turn is lost), an area attack or a move goes in a random direction.",
+  "describe.status.seeded":
+    "Loses 1/8 of its max HP at the end of each turn, restored to the user. Ends when the user faints. Grass-type Pokémon are immune.",
+  "describe.status.trapped":
+    "Can no longer move, but can still attack. Depending on the cause, lasts 4 to 5 of its turns (with damage each turn) or as long as the Pokémon holding it stays adjacent. Being knocked back frees it.",
+  "describe.status.infatuated":
+    "50% chance each turn to lose its action, as long as the Pokémon that infatuated it stays adjacent.",
+  "describe.status.intimidated":
+    "Attack lowered by one stage while a Pokémon with Intimidate is adjacent. It recovers as soon as that Pokémon moves away or faints.",
+  "describe.status.lockedOn": "Its next attack cannot miss.",
+  "describe.status.charged": "Its next Electric-type attack deals double damage.",
+  "describe.status.ingrain":
+    "Restores 1/8 of its max HP at the end of each turn if it has not moved. Any movement, even forced, tears the roots out.",
+  "describe.status.aquaRing": "Restores 1/16 of its max HP at the end of each turn.",
+  "describe.status.charging":
+    "Is charging a two-turn attack: it will be unleashed on its next turn.",
+  "describe.infoPanel.volatile.imprison":
+    "Enemies cannot use any move this Pokémon also knows. Ends when it faints.",
+  "describe.infoPanel.volatile.destinyBond":
+    "Until its next turn: whoever knocks it out faints along with it.",
+  "describe.infoPanel.volatile.grudge":
+    "Until its next turn: the move that knocks it out can no longer be used by its attacker for the rest of the battle.",
+  "describe.infoPanel.volatile.cursed":
+    "Loses 1/4 of its max HP at the end of each turn, with no time limit.",
+  "describe.infoPanel.volatile.taunted":
+    "Cannot use status moves. The counter goes down on each of its turns.",
+  "describe.infoPanel.volatile.disabled":
+    "One of its moves cannot be used. The counter goes down on each of its turns.",
+  "describe.infoPanel.volatile.encored":
+    "Can only repeat its last move. The counter goes down on each of its turns.",
+  "describe.infoPanel.volatile.healBlock":
+    "Cannot be healed or use healing moves. The counter goes down on each of its turns.",
+  "describe.infoPanel.volatile.lockIn":
+    "Keeps using {move} and cannot pick another move. The counter goes down on each of its turns.",
+  "describe.infoPanel.volatile.substitute":
+    "A decoy takes the damage in its place and blocks most enemy status effects, until its HP runs out.",
+  "describe.infoPanel.volatile.wish":
+    "Will be healed on its next turn, by an amount set when Wish was used. Lost under Heal Block.",
+  "describe.infoPanel.volatile.helpingHand": "Its next damaging attack deals 50% more damage.",
+  "describe.infoPanel.volatile.focusEnergy": "Critical-hit chance raised by {stages} stage(s).",
+  "describe.infoPanel.volatile.laserFocus": "Its next hit is a guaranteed critical hit.",
+  "describe.infoPanel.volatile.perish":
+    "At 0, every Pokémon near it, allies and itself included, faints. The area follows this Pokémon; the counter goes down on each of its turns.",
+  "describe.infoPanel.volatile.smackedDown":
+    "Grounded: loses its airborne status and its immunity to Ground-type attacks, and is hit by ground traps.",
+  "describe.infoPanel.volatile.drowsy":
+    "Will fall asleep at the end of its next turn, unless something prevents it.",
+  "describe.infoPanel.volatile.magnetRise":
+    "Levitating: immune to Ground-type attacks and ground effects. The counter goes down on each of its turns.",
+  "describe.infoPanel.volatile.stockpile":
+    "{count} charge(s) stored, each giving +1 stage of Defense and Special Defense. Spit Up and Swallow spend them.",
+  "describe.infoPanel.volatile.noType": "Has no type at all: no type weakness or resistance.",
+  "describe.infoPanel.volatile.typeChanged":
+    "Its type is now {types}: its weaknesses, resistances and type bonus change with it.",
+  "describe.infoPanel.volatile.abilitySealed":
+    "Its ability is disabled for the rest of the battle.",
+  "describe.infoPanel.volatile.abilityChanged":
+    "Its ability has been replaced by another for the rest of the battle.",
+  "describe.infoPanel.volatile.gasSuppressed":
+    "Its ability has no effect while a Pokémon with Neutralizing Gas is within 2 tiles.",
+  "describe.infoPanel.reveal.topMove":
+    "This Pokémon's most powerful move, revealed by the Forewarn ability.",
+  "describe.infoPanel.unknown":
+    "Unknown until revealed: by seeing it take effect, or with an ability such as Frisk.",
+  "describe.stat.atk": "Attack stages: change the damage of its physical attacks.",
+  "describe.stat.def": "Defense stages: change the damage it takes from physical attacks.",
+  "describe.stat.spA": "Special Attack stages: change the damage of its special attacks.",
+  "describe.stat.spD": "Special Defense stages: change the damage it takes from special attacks.",
+  "describe.stat.spd":
+    "Speed stages: change how fast it fills its CT gauge and how far it can move.",
+  "describe.stat.acc":
+    "Accuracy stages: each stage up makes its attacks more reliable, each stage down makes them miss more often.",
+  "describe.stat.eva":
+    "Evasion stages: each stage up makes it harder to hit, each stage down easier.",
+  "describe.aura.kind.reflect":
+    "Allies within 3 tiles of the user, the user included, take half damage from physical attacks. The area follows the user; lasts a number of the user's turns.",
+  "describe.aura.kind.lightScreen":
+    "Allies within 3 tiles of the user, the user included, take half damage from special attacks. The area follows the user; lasts a number of the user's turns.",
+  "describe.aura.kind.mist":
+    "Allies within 3 tiles of the user cannot have their stats lowered by an enemy. The area follows the user; lasts a number of the user's turns.",
+  "describe.aura.kind.safeguard":
+    "Allies within 3 tiles of the user are protected from major status conditions and confusion inflicted by an enemy. The area follows the user; lasts a number of the user's turns.",
+  "describe.weather.sun":
+    "Fire-type attacks +50%, Water-type attacks −50%. Freezing is impossible and Solar Beam needs no charge. Lasts a number of turns of the Pokémon that started it.",
+  "describe.weather.rain":
+    "Water-type attacks +50%, Fire-type attacks −50%. Thunder and Hurricane never miss. Lasts a number of turns of the Pokémon that started it.",
+  "describe.weather.sandstorm":
+    "Deals 1/16 of max HP at the end of each turn, except to Rock-, Ground- and Steel-type Pokémon. Rock-type Pokémon gain +50% Special Defense. Lasts a number of turns of the Pokémon that started it.",
+  "describe.weather.snow":
+    "Ice-type Pokémon gain +50% Defense, and Blizzard never misses. Lasts a number of turns of the Pokémon that started it.",
+  "describe.tailwind.label":
+    "Pokémon facing the way the wind blows fill their CT gauge 50% faster. Lasts a number of the user's turns.",
+  "describe.tileInfo.hazard.spikes":
+    "Hurts a grounded Pokémon that crosses the tile: 1/8 of its max HP, 1/6 with two layers, 1/4 with three.",
+  "describe.tileInfo.hazard.stealthRock":
+    "Hurts any Pokémon that crosses the tile, even airborne: 1/8 of its max HP, multiplied by the Rock type's effectiveness against it.",
+  "describe.tileInfo.hazard.toxicSpikes":
+    "Poisons a grounded Pokémon that crosses the tile (badly poisons with two layers). A grounded Poison-type Pokémon absorbs them.",
+  "describe.tileInfo.hazard.stickyWeb":
+    "Lowers by one stage the Speed of a grounded Pokémon that crosses the tile.",
+  "describe.tileInfo.field.grassy":
+    "For a grounded Pokémon in the area: Grass-type attacks +30%, 1/16 of its max HP restored at the end of each turn, and Earthquake, Magnitude and Bulldoze deal it half damage. 3-tile radius; lasts a number of the user's turns.",
+  "describe.tileInfo.field.electric":
+    "For a grounded Pokémon in the area: Electric-type attacks +30%, and it cannot fall asleep. 3-tile radius; lasts a number of the user's turns.",
+  "describe.tileInfo.field.misty":
+    "For a grounded Pokémon in the area: Dragon-type damage taken −50%, and protection from major status conditions, confusion and rampaging. 3-tile radius; lasts a number of the user's turns.",
+  "describe.tileInfo.field.psychic":
+    "For a grounded Pokémon in the area: Psychic-type attacks +30%. An enemy of the user that dashes into it is stopped dead and takes a wall impact. 3-tile radius; lasts a number of the user's turns.",
+  "describe.tileInfo.zone.gravity":
+    "In the area: Pokémon are grounded, attacks against them are more accurate, and Fly and Bounce cannot be used. 3-tile radius; lasts a number of the user's turns.",
+  "describe.tileInfo.zone.wonderRoom":
+    "In the area: an attacked Pokémon's Defense and Special Defense are swapped. 3-tile radius; lasts a number of the user's turns.",
+  "describe.tileInfo.zone.magicRoom":
+    "In the area: held items have no effect. 3-tile radius; lasts a number of the user's turns.",
+  "describe.tileInfo.zone.distortion":
+    "In the area, the order is reversed: slow Pokémon fill their CT gauge faster than fast ones. 3-tile radius; lasts a number of the user's turns.",
 };
 
 export default en;

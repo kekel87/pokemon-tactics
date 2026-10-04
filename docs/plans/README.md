@@ -55,3 +55,5 @@ Les seuls sur lesquels on travaille.
 | 221 | [Plan 221 — Changer la langue en plein combat](./221-langue-en-plein-combat.md) | done |
 | 222 | [Plan 222 — Le jeu en espagnol](./222-langue-espagnole.md) | done |
 | 223 | [Plan 223 — Mise à jour des données Pokémon Champions](./223-mise-a-jour-donnees-champions.md) | done |
+| 224 | [Plan 224 — Lecture des abandons : rapport honnête et appareil du joueur](./224-lecture-des-abandons.md) | done |
+| 225 | [Plan 225 — Infobulles talents, objets et effets, et le bouton Inspecter](./225-infobulles-et-bouton-inspecter.md) | done |

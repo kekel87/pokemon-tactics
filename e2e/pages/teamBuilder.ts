@@ -60,6 +60,9 @@ export class PokemonEdit {
   readonly presets: Locator;
   readonly moveRows: Locator;
   readonly itemValue: Locator;
+  /** What the chosen ability / item does, written under the choice (plan 225). */
+  readonly abilityDescription: Locator;
+  readonly itemDescription: Locator;
   constructor(private readonly page: Page) {
     this.name = page.getByTestId("pokemon-edit-name");
     this.genderToggle = page.getByRole("button", { name: /[♂♀]/ });
@@ -68,6 +71,8 @@ export class PokemonEdit {
     this.presets = page.getByTestId("pokemon-edit-presets");
     this.moveRows = page.getByTestId("pokemon-edit-move-row");
     this.itemValue = page.getByTestId("pokemon-edit-item-value");
+    this.abilityDescription = page.getByTestId("pokemon-edit-ability-description");
+    this.itemDescription = page.getByTestId("pokemon-edit-item-description");
   }
 
   /** A section title by key — "ability" | "item" | "nature" (the label is CSS-uppercased, so we

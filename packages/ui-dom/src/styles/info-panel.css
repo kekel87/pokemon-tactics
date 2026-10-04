@@ -506,6 +506,9 @@
 
   .ip-item {
     display: flex;
+    /* Hugs icon + name (plan 225): the line is a tooltip target, and spanning the whole panel width
+       it caught the pointer far from the item it explains (retour humain en recette). */
+    inline-size: fit-content;
     align-items: center;
     gap: calc(6 * var(--ip-px));
     font-size: calc(22 * var(--ip-px));

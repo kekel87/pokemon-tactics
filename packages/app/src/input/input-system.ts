@@ -5,6 +5,7 @@ import { startGamepadPolling } from "./gamepad-source.js";
 import {
   type BoardInputConsumer,
   createInputRouter,
+  type InspectInputConsumer,
   type MenuInputConsumer,
 } from "./input-router.js";
 import { createInputSourceTracker, InputSource, type InputSourceTracker } from "./input-source.js";
@@ -20,6 +21,7 @@ export interface InputRegistration {
   context: () => InputContext | "screen";
   board?: BoardInputConsumer;
   menu?: MenuInputConsumer;
+  inspect?: InspectInputConsumer;
 }
 
 export interface InputSystem {
@@ -70,6 +72,7 @@ export function createInputSystem(): InputSystem {
     context: () => active()?.context() ?? "screen",
     board: () => active()?.board ?? null,
     menu: () => active()?.menu ?? null,
+    inspect: () => active()?.inspect ?? null,
   });
 
   let captureSink: ((captured: CapturedInput | null) => void) | null = null;

@@ -24,6 +24,8 @@ export const PadButton = {
   RightBumper: 5,
   LeftTrigger: 6,
   RightTrigger: 7,
+  /** L3, le clic du stick gauche : Inspecter (plan 225). */
+  LeftStick: 10,
   DpadUp: 12,
   DpadDown: 13,
   DpadLeft: 14,

@@ -31,6 +31,7 @@ import {
 import { getMoveName, getPokemonName, getTypeName, strongestMoveId } from "@pokemon-tactic/data";
 import type {
   InfoPanelBadge,
+  InfoPanelBadgeVariant,
   InfoPanelData,
   InfoPanelStat,
   InfoPanelType,
@@ -127,6 +128,32 @@ const AURA_KIND_LABEL: Record<AuraKind, string> = {
   safeguard: "aura.kind.safeguard",
 };
 
+/**
+ * The tooltip text of a label (plan 225): its `describe.`-prefixed twin key, so a label never ships
+ * without its explanation — the two keys sit side by side in every locale.
+ */
+function describedText(
+  context: PresentationContext,
+  labelKey: string,
+  params?: Record<string, string>,
+): string {
+  return context.translate(`describe.${labelKey}`, params);
+}
+
+/** A badge labelled by `labelKey` and explained by its `describe.` twin. */
+function describedBadge(
+  context: PresentationContext,
+  labelKey: string,
+  variant: InfoPanelBadgeVariant,
+  params?: Record<string, string>,
+): InfoPanelBadge {
+  return {
+    label: context.translate(labelKey, params),
+    variant,
+    description: describedText(context, labelKey, params),
+  };
+}
+
 function genderOf(gender: PokemonGender): "male" | "female" | undefined {
   if (gender === PokemonGender.Male) {
     return "male";
@@ -159,6 +186,7 @@ function pushAuraBadges(
         turns: String(aura.remainingRounds),
       }),
       variant: "volatile",
+      description: describedText(context, AURA_KIND_LABEL[aura.kind]),
     });
   }
 
@@ -178,6 +206,7 @@ function pushAuraBadges(
         kind: context.translate(AURA_KIND_LABEL[aura.kind]),
       }),
       variant: "volatile",
+      description: describedText(context, AURA_KIND_LABEL[aura.kind]),
     });
   }
 }
@@ -266,7 +295,7 @@ export function buildInfoPanelView(
   const majorStatus = pokemon.statusEffects[0]?.type;
   const majorKey = majorStatus ? MAJOR_STATUS_LABEL[majorStatus] : undefined;
   if (majorKey) {
-    badges.push({ label: context.translate(majorKey), variant: "debuff" });
+    badges.push(describedBadge(context, majorKey, "debuff"));
   }
 
   // A panel carrying the stats block shows Atk/Déf/Atk Spé/Déf Spé/Vit crans inline (plan 174), so
@@ -293,41 +322,39 @@ export function buildInfoPanelView(
     badges.push({
       label: `${context.translate(key)} ${sign}${stages}`,
       variant: stages > 0 ? "buff" : "debuff",
+      description: describedText(context, key),
     });
   }
 
   for (const volatile of pokemon.volatileStatuses) {
     const timedKey = TIMED_VOLATILE_LABEL[volatile.type];
     if (timedKey) {
-      badges.push({
-        label: context.translate(timedKey, { turns: String(volatile.remainingTurns) }),
-        variant: "volatile",
-      });
+      badges.push(
+        describedBadge(context, timedKey, "volatile", { turns: String(volatile.remainingTurns) }),
+      );
       continue;
     }
     const key = VOLATILE_LABEL[volatile.type];
     if (key) {
-      badges.push({ label: context.translate(key), variant: "volatile" });
+      badges.push(describedBadge(context, key, "volatile"));
     }
   }
 
   if (pokemon.chargingMove) {
-    badges.push({
-      label: context.translate("status.charging", {
+    badges.push(
+      describedBadge(context, "status.charging", "volatile", {
         move: getMoveName(pokemon.chargingMove.moveId, language),
       }),
-      variant: "volatile",
-    });
+    );
   }
 
   if (pokemon.lockInMoveId !== undefined && (pokemon.lockInTurnsRemaining ?? 0) > 0) {
-    badges.push({
-      label: context.translate("infoPanel.volatile.lockIn", {
+    badges.push(
+      describedBadge(context, "infoPanel.volatile.lockIn", "volatile", {
         move: getMoveName(pokemon.lockInMoveId, language),
         turns: String(pokemon.lockInTurnsRemaining),
       }),
-      variant: "volatile",
-    });
+    );
   }
 
   if (pokemon.substituteHp !== undefined && pokemon.substituteHp > 0) {
@@ -339,82 +366,75 @@ export function buildInfoPanelView(
             hp: String(pokemon.substituteHp),
           }),
       variant: "volatile",
+      description: describedText(context, "infoPanel.volatile.substitute"),
     });
   }
 
   if (pokemon.pendingWish !== undefined) {
-    badges.push({ label: context.translate("infoPanel.volatile.wish"), variant: "volatile" });
+    badges.push(describedBadge(context, "infoPanel.volatile.wish", "volatile"));
   }
 
   if (pokemon.helpingHand === true) {
-    badges.push({ label: context.translate("infoPanel.volatile.helpingHand"), variant: "buff" });
+    badges.push(describedBadge(context, "infoPanel.volatile.helpingHand", "buff"));
   }
 
   if ((pokemon.critStageBoost ?? 0) > 0) {
-    badges.push({
-      label: context.translate("infoPanel.volatile.focusEnergy", {
+    badges.push(
+      describedBadge(context, "infoPanel.volatile.focusEnergy", "buff", {
         stages: String(pokemon.critStageBoost),
       }),
-      variant: "buff",
-    });
+    );
   }
 
   if (pokemon.guaranteedCritArmed === true) {
-    badges.push({ label: context.translate("infoPanel.volatile.laserFocus"), variant: "buff" });
+    badges.push(describedBadge(context, "infoPanel.volatile.laserFocus", "buff"));
   }
 
   if (pokemon.perishAura !== undefined) {
-    badges.push({
-      label: context.translate("infoPanel.volatile.perish", {
+    badges.push(
+      describedBadge(context, "infoPanel.volatile.perish", "debuff", {
         turns: String(pokemon.perishAura.turnsRemaining),
       }),
-      variant: "debuff",
-    });
+    );
   }
 
   if (pokemon.smackedDown === true) {
-    badges.push({ label: context.translate("infoPanel.volatile.smackedDown"), variant: "debuff" });
+    badges.push(describedBadge(context, "infoPanel.volatile.smackedDown", "debuff"));
   }
 
   if (pokemon.drowsyTurns !== undefined) {
-    badges.push({ label: context.translate("infoPanel.volatile.drowsy"), variant: "debuff" });
+    badges.push(describedBadge(context, "infoPanel.volatile.drowsy", "debuff"));
   }
 
   if ((pokemon.magnetRiseTurns ?? 0) > 0) {
-    badges.push({
-      label: context.translate("infoPanel.volatile.magnetRise", {
+    badges.push(
+      describedBadge(context, "infoPanel.volatile.magnetRise", "buff", {
         turns: String(pokemon.magnetRiseTurns),
       }),
-      variant: "buff",
-    });
+    );
   }
 
   if ((pokemon.stockpileCount ?? 0) > 0) {
-    badges.push({
-      label: context.translate("infoPanel.volatile.stockpile", {
+    badges.push(
+      describedBadge(context, "infoPanel.volatile.stockpile", "buff", {
         count: String(pokemon.stockpileCount),
       }),
-      variant: "buff",
-    });
+    );
   }
 
   if (pokemon.typeOverride !== undefined) {
     if (pokemon.typeOverride.length === 0) {
-      badges.push({ label: context.translate("infoPanel.volatile.noType"), variant: "volatile" });
+      badges.push(describedBadge(context, "infoPanel.volatile.noType", "volatile"));
     } else {
       const typeLabel = pokemon.typeOverride.map((type) => getTypeName(type, language)).join(" / ");
-      badges.push({
-        label: context.translate("infoPanel.volatile.typeChanged", { types: typeLabel }),
-        variant: "volatile",
-      });
+      badges.push(
+        describedBadge(context, "infoPanel.volatile.typeChanged", "volatile", { types: typeLabel }),
+      );
     }
   }
 
   if (pokemon.abilitySuppressed === true) {
-    badges.push({
-      label: context.translate("infoPanel.volatile.abilitySealed"),
-      variant: "debuff",
-    });
+    badges.push(describedBadge(context, "infoPanel.volatile.abilitySealed", "debuff"));
   } else if (pokemon.abilityIdOverride !== undefined) {
     // The manip itself is public (Échange / Détrempage are announced), but the RESULTING ability is
     // only named when the panel is allowed to name it — otherwise this badge would spell out what the
@@ -426,18 +446,16 @@ export function buildInfoPanelView(
           })
         : context.translate("infoPanel.volatile.abilityChangedHidden"),
       variant: "volatile",
+      description: describedText(context, "infoPanel.volatile.abilityChanged"),
     });
   }
 
   if (pokemon.arenaTrapped === true) {
-    badges.push({ label: context.translate("status.trapped"), variant: "debuff" });
+    badges.push(describedBadge(context, "status.trapped", "debuff"));
   }
 
   if (pokemon.abilitySuppressedByGas === true && pokemon.abilitySuppressed !== true) {
-    badges.push({
-      label: context.translate("infoPanel.volatile.gasSuppressed"),
-      variant: "debuff",
-    });
+    badges.push(describedBadge(context, "infoPanel.volatile.gasSuppressed", "debuff"));
   }
 
   // Info-reveal (plan 163 scouting + plan 176 reveal-on-use). Item and ability get NO badge: both
@@ -446,12 +464,11 @@ export function buildInfoPanelView(
   if (pokemon.revealedTopMove === true) {
     const topMoveId = strongestMoveId(pokemon.moveIds);
     if (topMoveId !== undefined) {
-      badges.push({
-        label: context.translate("infoPanel.reveal.topMove", {
+      badges.push(
+        describedBadge(context, "infoPanel.reveal.topMove", "volatile", {
           move: getMoveName(topMoveId, language),
         }),
-        variant: "volatile",
-      });
+      );
     }
   }
   pushAuraBadges(context, badges, pokemon, state);
@@ -463,17 +480,28 @@ export function buildInfoPanelView(
   const abilityId = abilityKnown ? effectiveAbilityId(pokemon) : undefined;
   const ability = abilityId ? (context.getAbilityName(abilityId) ?? undefined) : undefined;
   const unknownLabel = context.translate("infoPanel.unknown");
+  const abilityDescription = abilityId ? context.getAbilityDescription(abilityId) : undefined;
 
   // Three states, not two: known-and-held (name + official icon — the id stands in when a translation
   // is missing, rather than dropping the line), known-and-empty (no line at all), unknown (placeholder).
-  const itemFields: Pick<InfoPanelData, "heldItem" | "itemIconUrl" | "itemUnknown"> = itemKnown
+  // Tooltip text (plan 225): the official — or rewritten — description, or under fog the reason the
+  // slot is blank. A description missing from the data drops the tooltip rather than showing nothing.
+  const itemFields: Pick<
+    InfoPanelData,
+    "heldItem" | "itemIconUrl" | "itemUnknown" | "heldItemDescription"
+  > = itemKnown
     ? pokemon.heldItemId === undefined
       ? {}
       : {
           heldItem: context.getItemName(pokemon.heldItemId) ?? pokemon.heldItemId,
           itemIconUrl: context.getItemIconUrl(pokemon.heldItemId),
+          heldItemDescription: context.getItemDescription(pokemon.heldItemId),
         }
-    : { heldItem: unknownLabel, itemUnknown: true };
+    : {
+        heldItem: unknownLabel,
+        itemUnknown: true,
+        heldItemDescription: describedText(context, "infoPanel.unknown"),
+      };
 
   return {
     name: getPokemonName(pokemon.definitionId, language),
@@ -489,8 +517,12 @@ export function buildInfoPanelView(
     ...(abilityKnown
       ? ability === undefined
         ? {}
-        : { ability }
-      : { ability: unknownLabel, abilityUnknown: true }),
+        : { ability, abilityDescription }
+      : {
+          ability: unknownLabel,
+          abilityUnknown: true,
+          abilityDescription: describedText(context, "infoPanel.unknown"),
+        }),
     ...(fogged ? {} : { stats: buildStatRows(context, pokemon) }),
     badges,
     ...itemFields,
@@ -549,6 +581,18 @@ const FIELD_GLOBAL_LABEL: Record<FieldGlobalKind, string> = {
   "wonder-room": "tileInfo.zone.wonderRoom",
   "magic-room": "tileInfo.zone.magicRoom",
 };
+
+/** A field / zone line: its name, its remaining turns as the leading badge, its explanation. */
+function zoneChip(context: PresentationContext, labelKey: string, duration: number): TileInfoChip {
+  const name = context.translate(labelKey);
+  return {
+    text: name,
+    duration,
+    title: name,
+    tone: "info",
+    description: describedText(context, labelKey),
+  };
+}
 
 /**
  * Build the tile-info view-model (plan 177): the terrain of `position` + every modifier active on it
@@ -630,28 +674,26 @@ export function buildTileInfoView(
         text: maxLayersFor(cell.kind) > 1 ? `${name} ×${cell.layers}` : name,
         title: name,
         tone: "danger",
+        description: describedText(context, HAZARD_LABEL[cell.kind]),
       },
     ]);
   }
 
   const fieldZone = [...state.fieldTerrains].reverse().find((zone) => covers(zone.tiles));
   if (fieldZone) {
-    const name = context.translate(FIELD_LABEL[fieldZone.kind]);
-    lines.push([{ text: name, duration: fieldZone.remainingTurns, title: name, tone: "info" }]);
+    lines.push([zoneChip(context, FIELD_LABEL[fieldZone.kind], fieldZone.remainingTurns)]);
   }
 
   for (const kind of FIELD_GLOBAL_ORDER) {
     const zone = state.fieldGlobalZones.find((z) => z.kind === kind && covers(z.tiles));
     if (zone) {
-      const name = context.translate(FIELD_GLOBAL_LABEL[kind]);
-      lines.push([{ text: name, duration: zone.remainingTurns, title: name, tone: "info" }]);
+      lines.push([zoneChip(context, FIELD_GLOBAL_LABEL[kind], zone.remainingTurns)]);
     }
   }
 
   const distortion = state.distortionZones.find((zone) => covers(zone.tiles));
   if (distortion) {
-    const name = context.translate("tileInfo.zone.distortion");
-    lines.push([{ text: name, duration: distortion.remainingTurns, title: name, tone: "info" }]);
+    lines.push([zoneChip(context, "tileInfo.zone.distortion", distortion.remainingTurns)]);
   }
 
   // Damage bonus: own line — the real type sprite + the multiplier.

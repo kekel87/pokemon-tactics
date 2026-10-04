@@ -13,6 +13,7 @@ import "@pokemon-tactic/ui-dom/styles/battle-log.css";
 import "@pokemon-tactic/ui-dom/styles/fullscreen-button.css";
 import "@pokemon-tactic/ui-dom/styles/combat-menu-button.css";
 import "@pokemon-tactic/ui-dom/styles/move-tooltip.css";
+import "@pokemon-tactic/ui-dom/styles/info-tooltip.css";
 import "@pokemon-tactic/ui-dom/styles/turn-timeline.css";
 import "@pokemon-tactic/ui-dom/styles/control-legend.css";
 import "@pokemon-tactic/ui-dom/styles/connection-notice.css";

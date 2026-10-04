@@ -178,6 +178,7 @@ export const DEFAULT_BINDINGS: BindingSet = {
     // Aucun défaut clavier (plan 187) : `Échap` ouvre le menu quand il n'a rien à annuler. La ligne
     // reste affichée — l'écran est aussi une liste de référence, et le joueur peut y assigner sa touche.
     [LogicalAction.OpenCombatMenu]: [null, null],
+    [LogicalAction.InspectInfo]: [key("KeyI"), null],
   },
   gamepad: {
     [LogicalAction.CursorUp]: null,
@@ -208,6 +209,8 @@ export const DEFAULT_BINDINGS: BindingSet = {
     [LogicalAction.ToggleBattleLog]: 8,
     // Start — le seul bouton que le plan 186 a laissé libre, en prévision de ce menu (plan 187).
     [LogicalAction.OpenCombatMenu]: 9,
+    // L3 — le seul bouton encore libre (plan 225) : R3 est le modificateur de défilement.
+    [LogicalAction.InspectInfo]: 10,
     // Stick DROIT, donc aucun bouton (plan 189, `GAMEPAD_STICK_ACTIONS`) : annoncé, jamais assignable.
     [LogicalAction.PanCameraUp]: null,
     [LogicalAction.PanCameraDown]: null,
@@ -368,9 +371,44 @@ export function createBindingsStore(storage: BindingsStorage | null): BindingsSt
           gamepad.set(action as RemappableAction, button);
         }
       }
+      yieldDefaultsToPlayerChoices(parsed);
     } catch {
       // Sauvegarde illisible : les défauts, plutôt qu'un jeu à moitié appliqué.
       loadDefaults();
+    }
+  };
+
+  /**
+   * A default the player never touched gives way to one they chose (plan 225).
+   *
+   * Only differences from the defaults are stored, so an action ADDED to the defaults after the save
+   * — Inspecter on `I` and L3 — would otherwise land on a key the player had already given to
+   * another action, and the lookup would silently hand that key to whichever action it reads last.
+   * The player's choice wins: the untouched default loses that key.
+   */
+  const yieldDefaultsToPlayerChoices = (parsed: Partial<StoredBindings>): void => {
+    const customKeyboard = new Set(Object.keys(parsed.keyboard ?? {}));
+    const customGamepad = new Set(Object.keys(parsed.gamepad ?? {}));
+    const chosenKeys = [...keyboard]
+      .filter(([action]) => customKeyboard.has(action))
+      .flatMap(([, slots]) => slots.filter((slot): slot is KeyBinding => slot !== null));
+    const chosenButtons = new Set(
+      [...gamepad]
+        .filter(([action, button]) => customGamepad.has(action) && button !== null)
+        .map(([, button]) => button),
+    );
+    for (const [action, slots] of keyboard) {
+      if (!customKeyboard.has(action)) {
+        keyboard.set(action, [
+          slots[0] !== null && chosenKeys.some((key) => sameKey(key, slots[0])) ? null : slots[0],
+          slots[1] !== null && chosenKeys.some((key) => sameKey(key, slots[1])) ? null : slots[1],
+        ]);
+      }
+    }
+    for (const [action, button] of gamepad) {
+      if (!customGamepad.has(action) && button !== null && chosenButtons.has(button)) {
+        gamepad.set(action, null);
+      }
     }
   };
 

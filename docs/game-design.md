@@ -453,7 +453,7 @@ La traînée est entièrement **jaune** (`#ffdd44`). La couleur d'intention (rou
 ### Statuts volatils (coexistent, stockés dans `volatileStatuses[]`)
 | Statut | Effet | Durée |
 |--------|-------|-------|
-| **Confusion** | 50% chance/tour de dérailler (redirection allié, direction aléatoire AoE, tour perdu si aucun allié) | 2-5 tours |
+| **Confusion** | 50% chance/tour de dérailler (redirection allié, direction aléatoire AoE, tour perdu si aucun allié) | 1-4 tours |
 | **Flinch** | Bloque Move + UseMove au tour suivant (consommé en début de tour) | 1 tour |
 | **Verrouillé** (LockedOn) | Prochain move garanti (bypass accuracy) — consommé à l'usage | 1 usage |
 | **Charge** | T1 d'un move 2 tours : bloque movement, indique ⚡ en renderer | 1 tour |
@@ -660,7 +660,7 @@ lourd, 900, pour copier un mon plus faible).
 
 ## 7m. Confusion tactique (plan 026)
 
-Statut volatil. Dure 2-5 tours. Chaque tour : 50% de chance de dérailler.
+Statut volatil. Dure 1-4 tours (tirage `floor(random × 4) + 1`, `handle-status.ts` — corrigé au plan 225, le document disait 2-5). Chaque tour : 50% de chance de dérailler.
 
 | Situation | Comportement si confusion déclenche |
 |-----------|--------------------------------------|
@@ -854,18 +854,18 @@ La météo est un état global du combat (`BattleState.weather`) affectant dég�
 
 ### Météos disponibles
 
-| Météo | ID | Setter moves | Durée (base / Heat-Rock) | Effets |
+| Météo | ID | Setter moves | Durée (base / rocher) | Effets |
 |-------|----|-------------|--------------------------|--------|
 | **Soleil** | `Sun` | sunny-day | 5 / 8 tours | Feu ×1.5, Eau ×0.5, Gel bloqué, Synthèse soigne 2/3 HP, Solar-Beam skip charge, Thunder/Hurricane précision 50%, Chlorophylle ×2 vitesse |
-| **Pluie** | `Rain` | rain-dance | 5 / — tours | Eau ×1.5, Feu ×0.5, Thunder/Hurricane précision 100%, Blizzard précision normale, Nage Rapide ×2 vitesse |
+| **Pluie** | `Rain` | rain-dance | 5 / 8 tours | Eau ×1.5, Feu ×0.5, Thunder/Hurricane précision 100%, Blizzard précision normale, Nage Rapide ×2 vitesse |
 | **Tempête de Sable** | `Sandstorm` | sandstorm | 5 / 8 tours | Roche +50% DéfSpé, dégâts 1/16 HP/tour (sauf Rock/Ground/Steel), Solar-Beam BP ÷2, Blizzard précision normale, Voile Sable +20% esquive |
-| **Neige** | `Snow` | snowscape | 5 / — tours | Glace +50% Déf, Blizzard précision 100%, Solar-Beam BP ÷2 |
+| **Neige** | `Snow` | snowscape | 5 / 8 tours | Glace +50% Déf, Blizzard précision 100%, Solar-Beam BP ÷2 |
 
 ### Durée et compteur
 
-- `weatherTurns` décrémenté en `weather-tick` à chaque tour de n'importe quel Pokemon.
-- Quand `weatherTurns` atteint 0 → météo passe à `None`.
-- `HeldItemId.HeatRock` étend Soleil (et Sable) de 5 à **8 tours** via hook `onEndTurn`.
+- `weatherTurnsRemaining` décrémenté en `weather-tick` **au tour du poseur seulement** (tours du lanceur ; tours « fantômes » après son K.O.).
+- Quand il atteint 0 → météo passe à `None`.
+- Chaque météo a son rocher, qui la porte de 5 à **8 tours** (`handle-set-weather.ts`) : Roche Chaude = Plein soleil, Roche Humide = Pluie, Roche Lisse = Tempête de sable, Roche Glace = Neige. Corrigé au plan 225 : le document attribuait à la seule Roche Chaude le Soleil et le Sable.
 
 ### Weather war
 

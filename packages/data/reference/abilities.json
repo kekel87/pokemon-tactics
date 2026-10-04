@@ -200,14 +200,14 @@
       "es": "Trampa Arena"
     },
     "shortDescription": {
-      "en": "Prevents opponents from fleeing or switching out.  Eluded by flying-types and Pokémon in the air.",
-      "fr": "Empêche l'adversaire de quitter le terrain.",
-      "es": "Evita que el rival huya."
+      "en": "Adjacent grounded enemies cannot move. Ghost types, Pokémon that fly or levitate, and those with Run Away escape it.",
+      "fr": "Les ennemis adjacents au sol ne peuvent plus se déplacer. Les Pokémon Spectre, ceux qui volent ou lévitent et ceux au talent Fuite y échappent.",
+      "es": "Los enemigos adyacentes que están en el suelo no pueden desplazarse. Los Pokémon de tipo Fantasma, los que vuelan o levitan y los que tienen Fuga se libran."
     },
     "longDescription": {
-      "en": "While this Pokémon is in battle, opposing Pokémon cannot flee or switch out.  flying-type Pokémon and Pokémon in the air, e.g. due to levitate or magnet rise, are unaffected.\n\nPokémon with run away can still flee.  Pokémon can still switch out with the use of a move or item.\n\nOverworld: If the lead Pokémon has this ability, the wild encounter rate is doubled.",
-      "fr": "Empêche l'adversaire de quitter le terrain.",
-      "es": "Evita que el rival huya."
+      "en": "Adjacent grounded enemies cannot move. Ghost types, Pokémon that fly or levitate, and those with Run Away escape it.",
+      "fr": "Les ennemis adjacents au sol ne peuvent plus se déplacer. Les Pokémon Spectre, ceux qui volent ou lévitent et ceux au talent Fuite y échappent.",
+      "es": "Los enemigos adyacentes que están en el suelo no pueden desplazarse. Los Pokémon de tipo Fantasma, los que vuelan o levitan y los que tienen Fuga se libran."
     },
     "flags": {
       "breakable": false,
@@ -1040,14 +1040,14 @@
       "es": "Humedad"
     },
     "shortDescription": {
-      "en": "Prevents self destruct, explosion, and aftermath from working while the Pokémon is in battle.",
-      "fr": "Le Pokémon augmente l'humidité de l'air, ce qui empêche tous les Pokémon d'utiliser des capacités explosives telles que Destruction.",
-      "es": "Aumenta la humedad del entorno y evita que se puedan utilizar movimientos explosivos, tales como Autodestrucción."
+      "en": "Self-Destruct, Explosion and Misty Explosion fail if the holder is among their targets. The holder also takes no Aftermath recoil.",
+      "fr": "Destruction, Explosion et Explo-Brume échouent si le porteur fait partie de leurs cibles. Le porteur ne subit pas non plus le contrecoup de Boom Final.",
+      "es": "Autodestrucción, Explosión y Bruma Explosiva fallan si el portador está entre sus objetivos. Además, el portador no sufre el daño de Detonación."
     },
     "longDescription": {
-      "en": "While this Pokémon is in battle, self destruct and explosion will fail and aftermath will not take effect.",
-      "fr": "Le Pokémon augmente l'humidité de l'air, ce qui empêche tous les Pokémon d'utiliser des capacités explosives telles que Destruction.",
-      "es": "Aumenta la humedad del entorno y evita que se puedan utilizar movimientos explosivos, tales como Autodestrucción."
+      "en": "Self-Destruct, Explosion and Misty Explosion fail if the holder is among their targets. The holder also takes no Aftermath recoil.",
+      "fr": "Destruction, Explosion et Explo-Brume échouent si le porteur fait partie de leurs cibles. Le porteur ne subit pas non plus le contrecoup de Boom Final.",
+      "es": "Autodestrucción, Explosión y Bruma Explosiva fallan si el portador está entre sus objetivos. Además, el portador no sufre el daño de Detonación."
     },
     "flags": {
       "breakable": true,
@@ -1808,14 +1808,14 @@
       "es": "Compiescolta"
     },
     "shortDescription": {
-      "en": "Decreases all direct damage taken by friendly Pokémon to 0.75×.",
-      "fr": "Diminue les dégâts subis par les alliés.",
-      "es": "Reduce el daño que sufren los aliados."
+      "en": "Allies within 2 tiles of the holder take 25% less damage.",
+      "fr": "Les alliés à 2 cases ou moins du porteur subissent 25 % de dégâts en moins.",
+      "es": "Los aliados a 2 casillas o menos del portador reciben un 25 % menos de daño."
     },
     "longDescription": {
-      "en": "All friendly Pokémon take 0.75× as much direct damage from moves while this Pokémon is in battle.\n\nThis effect stacks if multiple allied Pokémon have it.",
-      "fr": "Diminue les dégâts subis par les alliés.",
-      "es": "Reduce el daño que sufren los aliados."
+      "en": "Allies within 2 tiles of the holder take 25% less damage.",
+      "fr": "Les alliés à 2 cases ou moins du porteur subissent 25 % de dégâts en moins.",
+      "es": "Los aliados a 2 casillas o menos del portador reciben un 25 % menos de daño."
     },
     "flags": {
       "breakable": true,
@@ -2744,14 +2744,14 @@
       "es": "Intimidación"
     },
     "shortDescription": {
-      "en": "Lowers opponents' Attack one stage upon entering battle.",
-      "fr": "Le Pokémon rugit lorsqu'il arrive au combat, ce qui intimide l'ennemi et baisse son Attaque.",
-      "es": "Al entrar en combate amilana al rival de tal manera que su Ataque disminuye."
+      "en": "Adjacent enemies have their Attack lowered by one stage while they stay next to the holder; it comes back as soon as they move away or the holder faints.",
+      "fr": "Les ennemis adjacents ont leur Attaque baissée d'un cran tant qu'ils restent à côté du porteur ; elle remonte dès qu'ils s'éloignent ou qu'il est K.O.",
+      "es": "Los enemigos adyacentes ven su Ataque reducido un nivel mientras sigan junto al portador; lo recuperan en cuanto se alejan o el portador se debilita."
     },
     "longDescription": {
-      "en": "When this Pokémon enters battle, the opponent's Attack is lowered by one stage.  In a double battle, both opponents are affected.\n\nThis ability also takes effect when acquired during a battle, but will not take effect again if lost and reobtained without leaving battle.\n\nThis ability has no effect on an opponent that has a substitute.\n\nOverworld: If the first Pokémon in the party has this ability, any random encounter with a Pokémon five or more levels lower than it has a 50% chance of being skipped.",
-      "fr": "Le Pokémon rugit lorsqu'il arrive au combat, ce qui intimide l'ennemi et baisse son Attaque.",
-      "es": "Al entrar en combate amilana al rival de tal manera que su Ataque disminuye."
+      "en": "Adjacent enemies have their Attack lowered by one stage while they stay next to the holder; it comes back as soon as they move away or the holder faints.",
+      "fr": "Les ennemis adjacents ont leur Attaque baissée d'un cran tant qu'ils restent à côté du porteur ; elle remonte dès qu'ils s'éloignent ou qu'il est K.O.",
+      "es": "Los enemigos adyacentes ven su Ataque reducido un nivel mientras sigan junto al portador; lo recuperan en cuanto se alejan o el portador se debilita."
     },
     "flags": {
       "breakable": false,
@@ -3248,14 +3248,14 @@
       "es": "Imán"
     },
     "shortDescription": {
-      "en": "Prevents steel opponents from fleeing or switching out.",
-      "fr": "Attire les Pokémon Acier grâce à un champ magnétique, ce qui les empêche de quitter le terrain.",
-      "es": "Su magnetismo atrae a los Pokémon de tipo Acero y les impide huir."
+      "en": "Adjacent Steel-type enemies cannot move while the holder stays next to them, but they can still attack.",
+      "fr": "Les ennemis de type Acier adjacents ne peuvent plus se déplacer tant que le porteur reste à côté d'eux, mais peuvent toujours attaquer.",
+      "es": "Los enemigos de tipo Acero adyacentes no pueden desplazarse mientras el portador siga junto a ellos, aunque aún pueden atacar."
     },
     "longDescription": {
-      "en": "While this Pokémon is in battle, opposing steel-type Pokémon cannot flee or switch out.\n\nPokémon with run away can still flee.  Pokémon can still switch out with the use of a move or item.\n\nOverworld: If the lead Pokémon has this ability, Steel-type Pokémon have a higher encounter rate.",
-      "fr": "Attire les Pokémon Acier grâce à un champ magnétique, ce qui les empêche de quitter le terrain.",
-      "es": "Su magnetismo atrae a los Pokémon de tipo Acero y les impide huir."
+      "en": "Adjacent Steel-type enemies cannot move while the holder stays next to them, but they can still attack.",
+      "fr": "Les ennemis de type Acier adjacents ne peuvent plus se déplacer tant que le porteur reste à côté d'eux, mais peuvent toujours attaquer.",
+      "es": "Los enemigos de tipo Acero adyacentes no pueden desplazarse mientras el portador siga junto a ellos, aunque aún pueden atacar."
     },
     "flags": {
       "breakable": false,
@@ -3752,14 +3752,14 @@
       "es": "Gas Reactivo"
     },
     "shortDescription": {
-      "en": "Neutralizes abilities of all Pokémon in battle.",
-      "fr": "Si un Pokémon avec Gaz Inhibiteur est sur le terrain,\\nles effets des talents de tous les autres Pokémon ne\\ns’activent pas ou sont neutralisés.",
-      "es": "Anula los efectos de las habilidades de los demás Pokémon presentes mientras esté en el terreno de combate."
+      "en": "Neutralizes the ability of every other Pokémon, ally or enemy, within 2 tiles of the holder.",
+      "fr": "Neutralise le talent de tous les autres Pokémon, alliés comme ennemis, à 2 cases ou moins du porteur.",
+      "es": "Anula la habilidad de todos los demás Pokémon, aliados o enemigos, a 2 casillas o menos del portador."
     },
     "longDescription": {
-      "en": "While the Pokémon is in the battle, the effects of all other Pokémon’s Abilities will be nullified or will not be triggered.",
-      "fr": "Si un Pokémon avec Gaz Inhibiteur est sur le terrain,\\nles effets des talents de tous les autres Pokémon ne\\ns’activent pas ou sont neutralisés.",
-      "es": "Anula los efectos de las habilidades de los demás Pokémon presentes mientras esté en el terreno de combate."
+      "en": "Neutralizes the ability of every other Pokémon, ally or enemy, within 2 tiles of the holder.",
+      "fr": "Neutralise le talent de tous les autres Pokémon, alliés comme ennemis, à 2 cases ou moins du porteur.",
+      "es": "Anula la habilidad de todos los demás Pokémon, aliados o enemigos, a 2 casillas o menos del portador."
     },
     "flags": {
       "breakable": false,
@@ -4064,14 +4064,14 @@
       "es": "Recogida"
     },
     "shortDescription": {
-      "en": "Picks up other Pokémon's used and Flung held items.  May also pick up an item after battle.",
-      "fr": "Permet parfois au Pokémon de ramasser les objets\\nque d’autres Pokémon ont utilisés. Il lui arrive aussi\\nd’en trouver hors des combats.",
-      "es": "Puede recoger objetos que el rival haya usado, o bien otros que encuentre en plena aventura."
+      "en": "No effect in this game.",
+      "fr": "Sans effet dans ce jeu.",
+      "es": "Sin efecto en este juego."
     },
     "longDescription": {
-      "en": "At the end of each turn, if another Pokémon consumed or Flung a held item that turn, this Pokémon picks up the item if it is not already holding one.  After each battle, this Pokémon has a 10% chance of picking up an item if it is not already holding one.\n\nThe air balloon and eject button cannot be picked up.\n\nThe items that may be found vary by game, and, since Pokémon Emerald, by the Pokémon's level.  This ability is checked after the battle ends, at which point any temporary ability changes have worn off.",
-      "fr": "Permet parfois au Pokémon de ramasser les objets\\nque d’autres Pokémon ont utilisés. Il lui arrive aussi\\nd’en trouver hors des combats.",
-      "es": "Puede recoger objetos que el rival haya usado, o bien otros que encuentre en plena aventura."
+      "en": "No effect in this game.",
+      "fr": "Sans effet dans ce jeu.",
+      "es": "Sin efecto en este juego."
     },
     "flags": {
       "breakable": false,
@@ -4352,14 +4352,14 @@
       "es": "Presión"
     },
     "shortDescription": {
-      "en": "Increases the PP cost of moves targetting the Pokémon by one.",
-      "fr": "Met la pression à l’adversaire pour le forcer\\nà dépenser plus de PP.",
-      "es": "Presiona al rival para que sus PP se acaben antes."
+      "en": "Every damaging move that targets the holder costs its user 50 more CT.",
+      "fr": "Chaque capacité offensive qui vise le porteur coûte 50 CT de plus à son lanceur.",
+      "es": "Cada movimiento ofensivo que apunta al portador le cuesta 50 CT más a su usuario."
     },
     "longDescription": {
-      "en": "Moves targetting this Pokémon use one extra PP.\n\nThis ability stacks if multiple targets have it.  This ability still affects moves that fail or miss.  This ability does not affect ally moves that target either the entire field or just its side, nor this Pokémon's self-targetted moves; it does, however, affect single-targetted ally moves aimed at this Pokémon, ally moves that target all other Pokémon, and opponents' moves that target the entire field.  If this ability raises a move's PP cost above its remaining PP, it will use all remaining PP.\n\nWhen this Pokémon enters battle, all participating trainers are notified that it has this ability.\n\nOverworld: If the lead Pokémon has this ability, higher-levelled Pokémon have their encounter rate increased.",
-      "fr": "Met la pression à l’adversaire pour le forcer\\nà dépenser plus de PP.",
-      "es": "Presiona al rival para que sus PP se acaben antes."
+      "en": "Every damaging move that targets the holder costs its user 50 more CT.",
+      "fr": "Chaque capacité offensive qui vise le porteur coûte 50 CT de plus à son lanceur.",
+      "es": "Cada movimiento ofensivo que apunta al portador le cuesta 50 CT más a su usuario."
     },
     "flags": {
       "breakable": false,
@@ -4808,14 +4808,14 @@
       "es": "Regeneración"
     },
     "shortDescription": {
-      "en": "Heals for 1/3 max HP upon switching out.",
-      "fr": "Restaure un peu de PV si le Pokémon est retiré\\ndu combat.",
-      "es": "Recupera unos pocos PS al ser cambiado por otro Pokémon."
+      "en": "At the end of each of its turns, the holder restores 1/16 of its max HP.",
+      "fr": "À la fin de chacun de ses tours, le porteur récupère 1/16 de ses PV max.",
+      "es": "Al final de cada uno de sus turnos, el portador recupera 1/16 de sus PS máximos."
     },
     "longDescription": {
-      "en": "This Pokémon regains 1/3 of its maximum HP when it is switched out for another Pokémon under any circumstances other than having fainted.\n\nThis ability does not take effect when a battle ends.",
-      "fr": "Restaure un peu de PV si le Pokémon est retiré\\ndu combat.",
-      "es": "Recupera unos pocos PS al ser cambiado por otro Pokémon."
+      "en": "At the end of each of its turns, the holder restores 1/16 of its max HP.",
+      "fr": "À la fin de chacun de ses tours, le porteur récupère 1/16 de ses PV max.",
+      "es": "Al final de cada uno de sus turnos, el portador recupera 1/16 de sus PS máximos."
     },
     "flags": {
       "breakable": false,
@@ -4976,14 +4976,14 @@
       "es": "Fuga"
     },
     "shortDescription": {
-      "en": "Ensures success fleeing from wild battles.",
-      "fr": "Permet de fuir n'importe quel Pokémon sauvage.",
-      "es": "Puede escaparse de todos los Pokémon salvajes."
+      "en": "Immune to Arena Trap. No other effect in this game.",
+      "fr": "Immunise contre Piège Sable. Sans autre effet dans ce jeu.",
+      "es": "Inmune a Trampa Arena. Sin otro efecto en este juego."
     },
     "longDescription": {
-      "en": "This Pokémon is always successful fleeing from wild battles, even if trapped by a move or ability.",
-      "fr": "Permet de fuir n'importe quel Pokémon sauvage.",
-      "es": "Puede escaparse de todos los Pokémon salvajes."
+      "en": "Immune to Arena Trap. No other effect in this game.",
+      "fr": "Immunise contre Piège Sable. Sans autre effet dans ce jeu.",
+      "es": "Inmune a Trampa Arena. Sin otro efecto en este juego."
     },
     "flags": {
       "breakable": false,
@@ -6968,14 +6968,14 @@
       "es": "Nerviosismo"
     },
     "shortDescription": {
-      "en": "Prevents opposing Pokémon from eating held Berries.",
-      "fr": "Fait stresser l’adversaire, ce qui l’empêche de manger\\ndes Baies.",
-      "es": "Pone nervioso al rival y le impide usar bayas."
+      "en": "As long as the holder has not fainted, no enemy can eat its Berry, wherever it stands.",
+      "fr": "Tant que le porteur n'est pas K.O., aucun ennemi ne peut manger sa Baie, où qu'il se trouve.",
+      "es": "Mientras el portador no esté debilitado, ningún enemigo puede comerse su baya, esté donde esté."
     },
     "longDescription": {
-      "en": "Opposing Pokémon cannot eat held Berries while this Pokémon is in battle.\n\nAffected Pokémon can still use bug bite or pluck to eat a target's Berry.",
-      "fr": "Fait stresser l’adversaire, ce qui l’empêche de manger\\ndes Baies.",
-      "es": "Pone nervioso al rival y le impide usar bayas."
+      "en": "As long as the holder has not fainted, no enemy can eat its Berry, wherever it stands.",
+      "fr": "Tant que le porteur n'est pas K.O., aucun ennemi ne peut manger sa Baie, où qu'il se trouve.",
+      "es": "Mientras el portador no esté debilitado, ningún enemigo puede comerse su baya, esté donde esté."
     },
     "flags": {
       "breakable": false,

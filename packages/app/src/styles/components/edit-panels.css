@@ -83,6 +83,14 @@
     }
   }
 
+  /* Ce que fait le talent / l'objet choisi (plan 225), sous sa sélection. */
+  .tb-edit-description {
+    margin: var(--spacing-xs) 0 0;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-base);
+  }
+
   .tb-radio-group {
     display: flex;
     flex-direction: column;

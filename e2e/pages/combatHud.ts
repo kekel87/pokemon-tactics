@@ -45,6 +45,8 @@ export class InfoPanel {
    *  are ordered `<span>`s: label, value, crans, arrow, modified — tag-scoped like `itemIcon`. */
   readonly stats: Locator;
   readonly statRows: Locator;
+  /** Status / volatile / aura badges, in render order (plan 225 gave them a testid). */
+  readonly badges: Locator;
   /** Confirm-phase forecast (plan 175) — inert on the left card, filled on the cursor card. */
   readonly remaining: Locator;
   readonly verdict: Locator;
@@ -81,6 +83,7 @@ export class InfoPanel {
     this.talent = this.panel.getByTestId("info-panel-talent");
     this.stats = this.panel.getByTestId("info-panel-stats");
     this.statRows = this.stats.locator("> div");
+    this.badges = this.panel.getByTestId("info-panel-badge");
     this.remaining = this.panel.getByTestId("combat-preview-remaining");
     this.verdict = this.panel.getByTestId("combat-preview-verdict");
     this.counter = this.panel.getByTestId("combat-preview-counter");
@@ -135,6 +138,20 @@ export class TileInfoPanel {
    *  used to assert the duration badge sits on the same chip as the name. */
   line(text: string): Locator {
     return this.panel.locator("li", { hasText: text });
+  }
+}
+
+/** Info tooltip (plan 225) — the bubble that says what a talent, an item, a badge, the weather or
+ *  a tile zone does. One bubble for the whole chrome, opened by hover, tap or inspect mode. Its
+ *  anchored element is the one inspect mode points at, so `title` tells which stop is current. */
+export class InfoTooltip {
+  readonly bubble: Locator;
+  readonly title: Locator;
+  readonly text: Locator;
+  constructor(page: Page) {
+    this.bubble = page.getByTestId("info-tooltip");
+    this.title = page.getByTestId("info-tooltip-title");
+    this.text = page.getByTestId("info-tooltip-text");
   }
 }
 

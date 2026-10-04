@@ -113,6 +113,26 @@ test("§7.3 fiche : le picker d'objet liste un objet boost-de-type et l'assigne 
   await expect(edit.itemValue).toHaveText("Charbon");
 });
 
+test("§7.3 fiche : la description du talent et de l'objet choisis est écrite sous eux (plan 225)", async ({
+  page,
+}) => {
+  const edit = new PokemonEdit(page);
+  const picker = new ItemPicker(page);
+  await openFlorizarreEdit(page);
+
+  // Talent par défaut de Florizarre : Engrais, texte officiel FR des données.
+  await expect(edit.abilityDescription).toContainText("capacités de type Plante");
+  await page.getByRole("radio", { name: "Chlorophylle" }).check();
+  await expect(edit.abilityDescription).toContainText("Vitesse du Pokémon s'il y a du soleil");
+
+  // Sans objet, aucune ligne : rien à décrire.
+  await expect(edit.itemDescription).toHaveCount(0);
+  await edit.itemValue.click();
+  await picker.row("charcoal").click();
+  await expect(picker.dialog).toBeHidden();
+  await expect(edit.itemDescription).toContainText("capacités de type Feu");
+});
+
 test("§7.1 édition : compteur N/6 + « Vider ce slot » remet le slot à vide", async ({ page }) => {
   const slots = new TeamEditScreen(page);
   await openFlorizarreEdit(page);

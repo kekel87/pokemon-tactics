@@ -72,6 +72,18 @@ export interface MenuInputConsumer {
   cancel(): boolean;
 }
 
+/**
+ * Inspect mode over the combat info panels (plan 225). While it is on, it owns the arrows (step
+ * through what is described), Confirm and Cancel (leave): the board and the menu wait underneath.
+ */
+export interface InspectInputConsumer {
+  /** Enter or leave; false when there is nothing to inspect, so the press is not swallowed. */
+  toggle(): boolean;
+  isActive(): boolean;
+  step(delta: 1 | -1): void;
+  stop(): void;
+}
+
 export interface InputRouterOptions {
   /**
    * The active context. `"screen"` covers everything outside a battle (menu screens), where only
@@ -80,6 +92,8 @@ export interface InputRouterOptions {
   context: () => InputContext | "screen";
   board: () => BoardInputConsumer | null;
   menu: () => MenuInputConsumer | null;
+  /** Only the combat screen offers one; placement and menu screens have no info panels. */
+  inspect?: () => InspectInputConsumer | null;
 }
 
 export interface InputRouter {
@@ -96,7 +110,7 @@ export interface InputRouter {
  * would otherwise silently reintroduce the ambiguity that call used to paper over.
  */
 export function createInputRouter(options: InputRouterOptions): InputRouter {
-  const { context, board, menu } = options;
+  const { context, board, menu, inspect } = options;
 
   /**
    * Camera, zoom and panel scrolling are context-independent: looking around while the action menu
@@ -202,6 +216,27 @@ export function createInputRouter(options: InputRouterOptions): InputRouter {
        * joue — puisque `stepCursor` retombe sur `cameraFocusTile` quand le curseur est vide.
        */
       const direction = CURSOR_ACTION_DIRECTION[action as keyof typeof CURSOR_ACTION_DIRECTION];
+
+      /*
+       * Inspect mode (plan 225) passes before the board and the menu: reading the panels is allowed
+       * in every unlocked context — the player's turn, a menu, and `watching`, where waiting for the
+       * other side is exactly when one reads the enemy's talent.
+       */
+      const inspector = inspect?.() ?? null;
+      if (action === LogicalAction.InspectInfo) {
+        return inspector?.toggle() ?? false;
+      }
+      if (inspector?.isActive()) {
+        if (direction !== undefined) {
+          inspector.step(direction === "up" || direction === "left" ? -1 : 1);
+          return true;
+        }
+        if (action === LogicalAction.Confirm || action === LogicalAction.Cancel) {
+          inspector.stop();
+          return true;
+        }
+      }
+
       if (direction !== undefined) {
         if (activeContext === "board" || activeContext === "watching") {
           if (!boardConsumer) {

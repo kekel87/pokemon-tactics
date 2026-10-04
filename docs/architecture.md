@@ -188,6 +188,7 @@ pokemon-tactics/
 │   │   │   ├── battle-chrome.ts         # chrome combat complet (câble tous les panneaux)
 │   │   │   ├── battle-log.ts            # BattleLogPanel + BattleLogFormatter
 │   │   │   ├── move-tooltip.ts          # MoveTooltip
+│   │   │   ├── info-tooltip.ts          # bulle d'info générique (talent, objet, effet, météo, zone de case — plan 225)
 │   │   │   ├── placement-roster.ts      # bandeau placement (portraits, compteur, Terminer)
 │   │   │   ├── turn-timeline.ts         # TurnTimeline (RR + CT)
 │   │   │   ├── weather-hud.ts           # WeatherHud
@@ -736,6 +737,13 @@ packages/data/src/i18n/
 - **Fog appliqué (plan 176)** : sous fog, les dégâts de ce panneau sont convertis en `%` de PV max (`hpPercent(min, maxHp)`) — voir § 5h. Détail complet : entité `plan-175` du graphe.
 
 ---
+
+## 5g-bis. Infobulles d'info et mode Inspecter (plan 225)
+
+- **Composant** : `packages/ui-dom/src/info-tooltip.ts`, dans le style de l'infobulle d'attaque ; câblé par `battle-chrome.ts` sur talent, objet tenu, pastilles d'effet, météo, zones de case. Survol à la souris, toucher au doigt (toucher ailleurs referme).
+- **Convention view-core** (`battle-views.ts`) : le texte d'une infobulle est la clé jumelle `describe.<clé de libellé>` ; un badge = libellé + sa description.
+- **Mode Inspecter** : action logique `InspectInfo` (`logical-action.ts`, `input-router.ts`), `I` au clavier, `L3` à la manette ; parcours en liste carte Pokémon → panneau de case → météo, en pause sous modale. Les défauts de binding cèdent aux choix du joueur (`bindings-store.ts`). Décisions : graphe, `decision-1118` à `decision-1121`.
+- **Données** : descriptions d'objets via le champ `text` de PokeAPI (`build-reference.ts`), `ITEM_DESCRIPTION_OVERRIDES` quand le texte officiel contredit notre moteur.
 
 ## 5g. Tooltip d'attaque enrichi + source unique des noms de type (plan 178)
 

@@ -12,6 +12,7 @@
 import type { InfoPanelData } from "@pokemon-tactic/render-ports";
 import { createChip } from "./chip.js";
 import { el } from "./dom-helpers.js";
+import { setDescription } from "./info-tooltip.js";
 import { createTypeChip } from "./type-chip.js";
 
 // Data view-model types live in the renderer contract package (plan 125);
@@ -266,6 +267,7 @@ export function createInfoPanel(testId = "info-panel"): InfoPanel {
       talentEl.textContent = "";
       talentEl.hidden = true;
     }
+    setDescription(talentEl, data.ability ?? "", data.abilityDescription);
 
     typesEl.replaceChildren();
     if (data.types.length > 0) {
@@ -348,13 +350,15 @@ export function createInfoPanel(testId = "info-panel"): InfoPanel {
       itemGlyph.textContent = "";
       itemEl.hidden = true;
     }
+    setDescription(itemEl, data.heldItem ?? "", data.heldItemDescription);
 
     badges.replaceChildren();
     const fragment = document.createDocumentFragment();
     for (const badge of data.badges) {
-      const item = el("li", "ip-badge");
+      const item = el("li", "ip-badge", "info-panel-badge");
       item.dataset.variant = badge.variant;
       item.textContent = badge.label;
+      setDescription(item, badge.label, badge.description);
       fragment.append(item);
     }
     badges.append(fragment);

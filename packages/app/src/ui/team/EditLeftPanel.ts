@@ -74,6 +74,22 @@ const NATURE_I18N: Record<Nature, TranslationKey> = {
   [Nature.Lax]: "teamBuilder.nature.lax",
 };
 
+/**
+ * What the chosen ability or item does, written under it (plan 225). Plain text rather than a
+ * tooltip: it reads the same at the mouse, the keyboard, the gamepad and the finger — none of the
+ * three latter can hover. A blank description adds nothing.
+ */
+function appendDescription(section: HTMLElement, text: string | undefined, testId: string): void {
+  if (!text) {
+    return;
+  }
+  const description = document.createElement("p");
+  description.className = "tb-edit-description";
+  description.dataset.testid = testId;
+  description.textContent = text;
+  section.appendChild(description);
+}
+
 export interface EditLeftPanelCallbacks {
   onAbilityChange: (abilityId: string) => void;
   onItemChange: (itemId: HeldItemId | null) => void;
@@ -296,6 +312,11 @@ export class EditLeftPanel {
       group.appendChild(placeholder);
     }
     section.appendChild(group);
+    appendDescription(
+      section,
+      getAbilityInfo(slot.ability)?.shortDescription,
+      "pokemon-edit-ability-description",
+    );
     return section;
   }
 
@@ -313,11 +334,11 @@ export class EditLeftPanel {
     input.type = "button";
     input.className = "tb-input-clickable";
     input.dataset.testid = "pokemon-edit-item-value";
+    const info = slot.heldItemId === undefined ? null : getItemInfo(slot.heldItemId);
     if (slot.heldItemId === undefined) {
       input.dataset.state = "empty";
       input.textContent = t("teamBuilder.itemNone");
     } else {
-      const info = getItemInfo(slot.heldItemId);
       // Icône officielle à côté du nom (demande humaine 2026-08-06), même source que l'InfoPanel
       // de combat depuis le plan 168.
       const icon = document.createElement("img");
@@ -337,6 +358,7 @@ export class EditLeftPanel {
       });
     });
     section.appendChild(input);
+    appendDescription(section, info?.shortDescription, "pokemon-edit-item-description");
     return section;
   }
 

@@ -46,6 +46,11 @@ const PLAN_184_KEYBOARD: Record<string, LogicalAction> = {
   "Shift+PageDown": LogicalAction.ScrollLogDown,
 };
 
+/** Keys added to the defaults after plan 184, each by the plan that brought its action. */
+const ADDED_SINCE_PLAN_184_KEYBOARD: Record<string, LogicalAction> = {
+  KeyI: LogicalAction.InspectInfo,
+};
+
 const PLAN_184_GAMEPAD: Record<number, LogicalAction> = {
   0: LogicalAction.Confirm,
   1: LogicalAction.Cancel,
@@ -76,10 +81,11 @@ describe("transposition des défauts du plan 184", () => {
     }
   });
 
-  it("n'invente aucune touche que le plan 184 n'avait pas", () => {
+  it("n'invente aucune touche hors du plan 184 et des ajouts recensés depuis", () => {
     const lookup = createBindingsStore(null).keyboardLookup();
-    for (const code of lookup.keys()) {
-      expect(PLAN_184_KEYBOARD, code).toHaveProperty([code]);
+    const known = { ...PLAN_184_KEYBOARD, ...ADDED_SINCE_PLAN_184_KEYBOARD };
+    for (const [code, action] of lookup) {
+      expect(known[code], code).toBe(action);
     }
   });
 
@@ -100,14 +106,15 @@ describe("transposition des défauts du plan 184", () => {
     }
   });
 
-  it("ajoute les trois boutons que le plan 184 laissait libres : Y, Select et Start", () => {
+  it("ajoute les quatre boutons que le plan 184 laissait libres : Y, Select, Start et L3", () => {
     const lookup = createBindingsStore(null).gamepadLookup();
     expect(lookup.get(3)).toBe(LogicalAction.CycleTargetPrevious);
     expect(lookup.get(8)).toBe(LogicalAction.ToggleBattleLog);
     // Start, gardé libre par le plan 186 en prévision du menu de combat (plan 187).
     expect(lookup.get(9)).toBe(LogicalAction.OpenCombatMenu);
+    expect(lookup.get(10)).toBe(LogicalAction.InspectInfo);
     expect([...lookup.keys()].sort((left, right) => left - right)).toEqual([
-      0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
     ]);
   });
 
@@ -326,6 +333,49 @@ describe("persistance", () => {
     expect(acceptsGamepadBinding(LogicalAction.PanCameraRight)).toBe(false);
     // Témoin : une action à bouton reste assignable.
     expect(acceptsGamepadBinding(LogicalAction.Confirm)).toBe(true);
+  });
+
+  it("une touche choisie par le joueur avant l'arrivée d'Inspecter reste à lui", () => {
+    const storage = fakeStorage(
+      JSON.stringify({
+        version: 1,
+        keyboard: {
+          [LogicalAction.ZoomIn]: [
+            { code: "KeyR", shift: false },
+            { code: "KeyI", shift: false },
+          ],
+        },
+        gamepad: {},
+      }),
+    );
+    const store = createBindingsStore(storage);
+
+    expect(store.keyboardLookup().get("KeyI")).toBe(LogicalAction.ZoomIn);
+    expect(store.keyBinding(LogicalAction.InspectInfo, 0)).toBeNull();
+  });
+
+  it("un bouton L3 choisi par le joueur avant l'arrivée d'Inspecter reste à lui", () => {
+    const storage = fakeStorage(
+      JSON.stringify({ version: 1, keyboard: {}, gamepad: { [LogicalAction.ZoomIn]: 10 } }),
+    );
+    const store = createBindingsStore(storage);
+
+    expect(store.gamepadLookup().get(10)).toBe(LogicalAction.ZoomIn);
+    expect(store.gamepadButton(LogicalAction.InspectInfo)).toBeNull();
+  });
+
+  it("un défaut ne cède que sa touche en collision, pas les autres", () => {
+    const storage = fakeStorage(
+      JSON.stringify({
+        version: 1,
+        keyboard: { [LogicalAction.ZoomIn]: [{ code: "KeyG", shift: false }, null] },
+        gamepad: { [LogicalAction.ZoomIn]: 3 },
+      }),
+    );
+    const store = createBindingsStore(storage);
+
+    expect(store.keyboardLookup().get("KeyI")).toBe(LogicalAction.InspectInfo);
+    expect(store.gamepadLookup().get(10)).toBe(LogicalAction.InspectInfo);
   });
 
   it("expose les mêmes actions côté clavier et côté manette", () => {

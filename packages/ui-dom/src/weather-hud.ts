@@ -1,6 +1,7 @@
 import type { WeatherView } from "@pokemon-tactic/view-core";
 import type { UiDomConfig } from "./config.js";
 import { el } from "./dom-helpers.js";
+import { setDescription } from "./info-tooltip.js";
 
 /**
  * WeatherHud — top-centre weather readout, DOM/CSS weather HUD
@@ -44,6 +45,11 @@ export function createWeatherHud(config: UiDomConfig): WeatherHud {
       }
       icon.src = config.getWeatherIconUrl(view.kind);
       label.textContent = config.translate(WEATHER_LABEL_KEY[view.kind]);
+      setDescription(
+        root,
+        label.textContent,
+        config.translate(`describe.${WEATHER_LABEL_KEY[view.kind]}`),
+      );
       turns.textContent = config.translate("weather.turnsLeft", { turns: view.turnsRemaining });
       root.hidden = false;
     },

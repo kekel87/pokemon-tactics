@@ -196,6 +196,9 @@ function applyCapTile(cap: HTMLElement, character: string): HTMLElement {
 const PAD_BUTTON_TILE: Readonly<Record<number, readonly [number, number]>> = {
   8: [4, 20],
   9: [5, 20],
+  // `L3` — le stick GAUCHE avec la flèche de pression, pendant exact de `R3` deux lignes plus haut
+  // (relevé 2026-10-04, plan 225 : le bouton Inspecter).
+  10: [16, 12],
   // `R3` — le stick DROIT avec la flèche de pression, c'est-à-dire le clic et non une inclinaison.
   // La feuille offre aussi le stick par direction (vertical, horizontal, les quatre) : ce sont des
   // dessins différents, et celui-ci est le seul qui dise « appuie dessus » (relevé 2026-08-26).

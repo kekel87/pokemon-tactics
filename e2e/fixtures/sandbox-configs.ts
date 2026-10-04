@@ -52,6 +52,16 @@ export const HELD_ITEM_ICONS = {
   dummyHeldItem: "life-orb",
 } as const;
 
+/** Infobulles et mode Inspecter (plan 225, cahier §4.23). Florizarre tient les Restes, part
+ *  empoisonné, sous Plein soleil : le panneau de l'actif porte un talent, un objet et une pastille,
+ *  le HUD une météo — chaque étape du parcours Inspecter a son infobulle. Aucun jet → déterministe. */
+export const INSPECT_INFO = {
+  ...DUEL,
+  heldItem: "leftovers",
+  status: "poisoned",
+  weather: "sun",
+} as const;
+
 /** InfoPanel enrichi d'un ALLIÉ (plan 174, cahier §4.7). L'actif au boot est le joueur Florizarre
  *  (Plante/Poison, team 1 → `isAlly`), donc le panneau montre les chips de types, la ligne PV avec
  *  pourcentage, le talent poussé à droite et le bloc des 5 stats. `statStages.attack: +2` rend une

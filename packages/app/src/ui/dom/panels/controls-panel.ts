@@ -66,6 +66,8 @@ const GROUPS: readonly ControlGroup[] = [
       // Rattaché ici plutôt que dans une section à une seule ligne (plan 187). Sa place est juste
       // après *Annuler*, dont il est la retombée : `Échap` ouvre ce menu quand il n'a rien à annuler.
       LogicalAction.OpenCombatMenu,
+      // Juste après le menu : c'est l'autre façon de lire le combat sans y agir (plan 225).
+      LogicalAction.InspectInfo,
     ],
   },
   {

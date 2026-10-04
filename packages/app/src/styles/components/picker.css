@@ -127,6 +127,10 @@
        paysage téléphone, alors que `.tb-pokemon-cell` et `.tb-filter-chip`, du même écran,
        tenaient déjà le plancher (plan 206). */
     min-block-size: var(--target-min);
+    /* Une ligne ne se tasse jamais sous son contenu. Le plancher explicite remplace le `min-height:
+       auto` d'un élément flex, donc dans la liste (colonne flex à défilement) les centaines de lignes
+       se comprimaient toutes à 24 px et se chevauchaient (retour humain, recette du plan 225). */
+    flex-shrink: 0;
     background: var(--color-bg-elevated);
     border: 1px solid var(--color-border-surface);
     border-radius: var(--radius-sm);

@@ -379,6 +379,7 @@ const es: Translations = {
   "controls.invertRightStick": "Invertir stick derecho",
   "controls.action.toggle-battle-log": "Mostrar/Ocultar",
   "controls.action.open-combat-menu": "Menú de combate",
+  "controls.action.inspect-info": "Inspeccionar",
   "controls.group.aoePreview": "Vista previa de área",
   "combatMenu.title": "Menú de combate",
   "combatMenu.open": "Abrir el menú de combate",
@@ -1039,6 +1040,137 @@ const es: Translations = {
   "battleLog.weatherWar": "¡El nuevo clima sustituye al anterior!",
   "battleLog.wishHealed": "¡El deseo de {name} se ha cumplido y recupera {amount} PS!",
   "battleLog.wishPosted": "{caster} ha pedido un deseo.",
+  // Info tooltips (plan 225): `describe.` + the label key they explain.
+  "describe.status.burned":
+    "Pierde 1/16 de sus PS máximos al final de cada turno, y sus ataques físicos hacen la mitad de daño. Los Pokémon de tipo Fuego son inmunes.",
+  "describe.status.paralyzed":
+    "Llena su barra de CT la mitad de rápido, y tiene un 12,5 % de probabilidad cada turno de perder su acción. Los Pokémon de tipo Eléctrico son inmunes.",
+  "describe.status.poisoned":
+    "Pierde 1/8 de sus PS máximos al final de cada turno. Los Pokémon de tipo Veneno y Acero son inmunes.",
+  "describe.status.badlyPoisoned":
+    "Pierde al final de cada turno una parte creciente de sus PS máximos: 1/16, luego 2/16, 3/16… hasta 15/16. Los Pokémon de tipo Veneno y Acero son inmunes.",
+  "describe.status.frozen":
+    "No puede actuar. 25 % de probabilidad de descongelarse cada turno, y siempre se descongela en el 3.er turno. Imposible con sol intenso; los Pokémon de tipo Hielo son inmunes.",
+  "describe.status.asleep": "No puede actuar durante 2 o 3 de sus turnos.",
+  "describe.status.confused":
+    "Durante 1 a 4 de sus turnos, un 50 % de probabilidad de desviarse: un ataque con objetivo golpea a un aliado a su alcance (si no, pierde el turno), un ataque de área o un desplazamiento sale en una dirección al azar.",
+  "describe.status.seeded":
+    "Pierde 1/8 de sus PS máximos al final de cada turno, que recupera el usuario. Termina si el usuario se debilita. Los Pokémon de tipo Planta son inmunes.",
+  "describe.status.trapped":
+    "Ya no puede desplazarse, pero aún puede atacar. Según la causa, dura 4 o 5 de sus turnos (con daño en cada uno) o mientras el Pokémon que lo retiene siga adyacente. Ser empujado lo libera.",
+  "describe.status.infatuated":
+    "Un 50 % de probabilidad cada turno de perder su acción, mientras el Pokémon que lo enamoró siga adyacente.",
+  "describe.status.intimidated":
+    "Ataque reducido un nivel mientras un Pokémon con Intimidación esté adyacente. Se recupera en cuanto se aleja o se debilita.",
+  "describe.status.lockedOn": "Su próximo ataque no puede fallar.",
+  "describe.status.charged": "Su próximo ataque de tipo Eléctrico hace el doble de daño.",
+  "describe.status.ingrain":
+    "Recupera 1/8 de sus PS máximos al final de cada turno si no se ha movido. Cualquier desplazamiento, incluso forzado, arranca las raíces.",
+  "describe.status.aquaRing": "Recupera 1/16 de sus PS máximos al final de cada turno.",
+  "describe.status.charging": "Prepara un ataque de dos turnos: lo lanzará en su próximo turno.",
+  "describe.infoPanel.volatile.imprison":
+    "Los enemigos no pueden usar ningún movimiento que este Pokémon también conozca. Termina si se debilita.",
+  "describe.infoPanel.volatile.destinyBond":
+    "Hasta su próximo turno: quien lo debilite se debilita con él.",
+  "describe.infoPanel.volatile.grudge":
+    "Hasta su próximo turno: el movimiento que lo debilite queda inutilizable para su atacante hasta el final del combate.",
+  "describe.infoPanel.volatile.cursed":
+    "Pierde 1/4 de sus PS máximos al final de cada turno, sin límite de tiempo.",
+  "describe.infoPanel.volatile.taunted":
+    "No puede usar movimientos de estado. El contador baja en cada uno de sus turnos.",
+  "describe.infoPanel.volatile.disabled":
+    "Uno de sus movimientos no se puede usar. El contador baja en cada uno de sus turnos.",
+  "describe.infoPanel.volatile.encored":
+    "Solo puede repetir su último movimiento. El contador baja en cada uno de sus turnos.",
+  "describe.infoPanel.volatile.healBlock":
+    "No puede recibir curación ni usar movimientos curativos. El contador baja en cada uno de sus turnos.",
+  "describe.infoPanel.volatile.lockIn":
+    "Sigue usando {move} sin poder elegir otro movimiento. El contador baja en cada uno de sus turnos.",
+  "describe.infoPanel.volatile.substitute":
+    "Un sustituto recibe el daño en su lugar y bloquea la mayoría de los estados enemigos, hasta que sus PS se agotan.",
+  "describe.infoPanel.volatile.wish":
+    "Recibirá una curación en su próximo turno, de una cantidad fijada al usar Deseo. Se pierde con Anticura.",
+  "describe.infoPanel.volatile.helpingHand": "Su próximo ataque ofensivo hace un 50 % más de daño.",
+  "describe.infoPanel.volatile.focusEnergy":
+    "Probabilidad de golpe crítico aumentada {stages} nivel(es).",
+  "describe.infoPanel.volatile.laserFocus": "Su próximo golpe será crítico seguro.",
+  "describe.infoPanel.volatile.perish":
+    "Al llegar a 0, todos los Pokémon cercanos, aliados y él mismo incluidos, se debilitan. La zona sigue a este Pokémon; el contador baja en cada uno de sus turnos.",
+  "describe.infoPanel.volatile.smackedDown":
+    "Derribado: pierde su estado aéreo y su inmunidad a los ataques de tipo Tierra, y le afectan las trampas del suelo.",
+  "describe.infoPanel.volatile.drowsy":
+    "Se dormirá al final de su próximo turno, salvo que algo lo impida.",
+  "describe.infoPanel.volatile.magnetRise":
+    "Levitando: inmune a los ataques de tipo Tierra y a los efectos del suelo. El contador baja en cada uno de sus turnos.",
+  "describe.infoPanel.volatile.stockpile":
+    "{count} carga(s) acumulada(s), cada una da +1 nivel de Defensa y Defensa Especial. Escupir y Tragar las gastan.",
+  "describe.infoPanel.volatile.noType":
+    "Ya no tiene ningún tipo: ni debilidades ni resistencias de tipo.",
+  "describe.infoPanel.volatile.typeChanged":
+    "Ahora es de tipo {types}: sus debilidades, resistencias y bonificación de tipo cambian con ello.",
+  "describe.infoPanel.volatile.abilitySealed":
+    "Su habilidad queda anulada hasta el final del combate.",
+  "describe.infoPanel.volatile.abilityChanged":
+    "Su habilidad ha sido sustituida por otra hasta el final del combate.",
+  "describe.infoPanel.volatile.gasSuppressed":
+    "Su habilidad no tiene efecto mientras un Pokémon con Gas Reactivo esté a 2 casillas o menos.",
+  "describe.infoPanel.reveal.topMove":
+    "El movimiento más potente de este Pokémon, revelado por la habilidad Alerta.",
+  "describe.infoPanel.unknown":
+    "Desconocido hasta que se revele: al verlo actuar, o gracias a una habilidad como Cacheo.",
+  "describe.stat.atk": "Niveles de Ataque: modifican el daño de sus ataques físicos.",
+  "describe.stat.def": "Niveles de Defensa: modifican el daño que recibe de los ataques físicos.",
+  "describe.stat.spA": "Niveles de Ataque Especial: modifican el daño de sus ataques especiales.",
+  "describe.stat.spD":
+    "Niveles de Defensa Especial: modifican el daño que recibe de los ataques especiales.",
+  "describe.stat.spd":
+    "Niveles de Velocidad: modifican lo rápido que llena su barra de CT y su alcance de desplazamiento.",
+  "describe.stat.acc":
+    "Niveles de Precisión: cada nivel más hace sus ataques más certeros, cada nivel menos los hace fallar más.",
+  "describe.stat.eva":
+    "Niveles de Evasión: cada nivel más lo hace más difícil de golpear, cada nivel menos más fácil.",
+  "describe.aura.kind.reflect":
+    "Los aliados a 3 casillas o menos del usuario, él incluido, reciben la mitad de daño de los ataques físicos. La zona sigue al usuario; dura un número de turnos del usuario.",
+  "describe.aura.kind.lightScreen":
+    "Los aliados a 3 casillas o menos del usuario, él incluido, reciben la mitad de daño de los ataques especiales. La zona sigue al usuario; dura un número de turnos del usuario.",
+  "describe.aura.kind.mist":
+    "Los aliados a 3 casillas o menos del usuario no pueden sufrir bajadas de características causadas por un enemigo. La zona sigue al usuario; dura un número de turnos del usuario.",
+  "describe.aura.kind.safeguard":
+    "Los aliados a 3 casillas o menos del usuario están protegidos de los problemas de estado y de la confusión causados por un enemigo. La zona sigue al usuario; dura un número de turnos del usuario.",
+  "describe.weather.sun":
+    "Ataques de tipo Fuego +50 %, de tipo Agua −50 %. La congelación es imposible y Rayo Solar no necesita carga. Dura un número de turnos del Pokémon que lo provocó.",
+  "describe.weather.rain":
+    "Ataques de tipo Agua +50 %, de tipo Fuego −50 %. Trueno y Vendaval nunca fallan. Dura un número de turnos del Pokémon que la provocó.",
+  "describe.weather.sandstorm":
+    "Inflige 1/16 de los PS máximos al final de cada turno, salvo a los Pokémon de tipo Roca, Tierra y Acero. Los Pokémon de tipo Roca ganan +50 % de Defensa Especial. Dura un número de turnos del Pokémon que la provocó.",
+  "describe.weather.snow":
+    "Los Pokémon de tipo Hielo ganan +50 % de Defensa, y Ventisca nunca falla. Dura un número de turnos del Pokémon que la provocó.",
+  "describe.tailwind.label":
+    "Los Pokémon orientados en la dirección del viento llenan su barra de CT un 50 % más rápido. Dura un número de turnos del usuario.",
+  "describe.tileInfo.hazard.spikes":
+    "Hiere a un Pokémon en el suelo que pase por la casilla: 1/8 de sus PS máximos, 1/6 con dos capas, 1/4 con tres.",
+  "describe.tileInfo.hazard.stealthRock":
+    "Hiere a cualquier Pokémon que pase por la casilla, incluso en el aire: 1/8 de sus PS máximos, multiplicado por la eficacia del tipo Roca contra él.",
+  "describe.tileInfo.hazard.toxicSpikes":
+    "Envenena a un Pokémon en el suelo que pase por la casilla (gravemente con dos capas). Un Pokémon de tipo Veneno en el suelo las absorbe.",
+  "describe.tileInfo.hazard.stickyWeb":
+    "Baja un nivel la Velocidad de un Pokémon en el suelo que pase por la casilla.",
+  "describe.tileInfo.field.grassy":
+    "Para un Pokémon en el suelo dentro de la zona: ataques de tipo Planta +30 %, recupera 1/16 de sus PS máximos al final de cada turno, y Terremoto, Magnitud y Terratemblor le hacen la mitad de daño. Radio de 3 casillas; dura un número de turnos del usuario.",
+  "describe.tileInfo.field.electric":
+    "Para un Pokémon en el suelo dentro de la zona: ataques de tipo Eléctrico +30 %, y no puede dormirse. Radio de 3 casillas; dura un número de turnos del usuario.",
+  "describe.tileInfo.field.misty":
+    "Para un Pokémon en el suelo dentro de la zona: daño de tipo Dragón recibido −50 %, y protección contra los problemas de estado, la confusión y el frenesí. Radio de 3 casillas; dura un número de turnos del usuario.",
+  "describe.tileInfo.field.psychic":
+    "Para un Pokémon en el suelo dentro de la zona: ataques de tipo Psíquico +30 %. Un enemigo del usuario que entre embistiendo se detiene en seco y sufre el choque de un muro. Radio de 3 casillas; dura un número de turnos del usuario.",
+  "describe.tileInfo.zone.gravity":
+    "En la zona: los Pokémon quedan en el suelo, los ataques contra ellos son más precisos, y no se pueden usar Vuelo ni Bote. Radio de 3 casillas; dura un número de turnos del usuario.",
+  "describe.tileInfo.zone.wonderRoom":
+    "En la zona: se intercambian la Defensa y la Defensa Especial del Pokémon atacado. Radio de 3 casillas; dura un número de turnos del usuario.",
+  "describe.tileInfo.zone.magicRoom":
+    "En la zona: los objetos equipados no tienen efecto. Radio de 3 casillas; dura un número de turnos del usuario.",
+  "describe.tileInfo.zone.distortion":
+    "En la zona, el orden se invierte: los Pokémon lentos llenan su barra de CT más rápido que los rápidos. Radio de 3 casillas; dura un número de turnos del usuario.",
 };
 
 export default es;

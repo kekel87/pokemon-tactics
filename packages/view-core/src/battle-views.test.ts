@@ -27,6 +27,8 @@ const testContext: PresentationContext = {
   getItemIconUrl: (itemId) => `assets/sprites/item-icons/${itemId}.png`,
   getItemName: (itemId) => itemId,
   getAbilityName: (abilityId) => `ability:${abilityId}`,
+  getItemDescription: () => undefined,
+  getAbilityDescription: () => undefined,
   getPokemonTypes: () => ["electric"],
   getTypeIconUrl: (type) => `assets/ui/types/${type}.png`,
   getStatusIconUrl: (kind) => `assets/ui/statuses/icon-${kind}.png`,
@@ -260,6 +262,138 @@ describe("buildInfoPanelView", () => {
   });
 });
 
+describe("buildInfoPanelView — descriptions des infobulles (plan 225)", () => {
+  it("explains a major status badge by its describe twin", () => {
+    const pokemon = makePokemon({
+      statusEffects: [{ type: StatusType.Burned, remainingTurns: null }],
+    } as unknown as Partial<PokemonInstance>);
+    const [badge] = buildInfoPanelView(testContext, pokemon, makeState([pokemon])).badges;
+    expect(badge).toMatchObject({
+      label: "status.burned",
+      description: "describe.status.burned",
+    });
+  });
+
+  it("explains a timed volatile badge, forwarding its turn count", () => {
+    const params: Record<string, string>[] = [];
+    const context: PresentationContext = {
+      ...testContext,
+      translate: (key, values) => {
+        if (key.startsWith("describe.") && values) {
+          params.push(values as Record<string, string>);
+        }
+        return key;
+      },
+    };
+    const pokemon = makePokemon({
+      volatileStatuses: [{ type: StatusType.Taunted, remainingTurns: 2 }],
+    } as unknown as Partial<PokemonInstance>);
+    const [badge] = buildInfoPanelView(context, pokemon, makeState([pokemon])).badges;
+    expect(badge?.description).toBe("describe.infoPanel.volatile.taunted");
+    expect(params).toEqual([{ turns: "2" }]);
+  });
+
+  it("explains a stat-stage badge by its stat", () => {
+    const pokemon = makePokemon({
+      statStages: { evasion: -1 },
+    } as unknown as Partial<PokemonInstance>);
+    const [badge] = buildInfoPanelView(testContext, pokemon, makeState([pokemon])).badges;
+    expect(badge?.description).toBe("describe.stat.eva");
+  });
+
+  it("explains own and covering aura badges by the aura kind", () => {
+    const protectedMon = makePokemon({ id: "p1-pikachu", position: { x: 0, y: 0 } });
+    const caster = makePokemon({ id: "p1-onix", position: { x: 1, y: 0 } });
+    const state = makeState([protectedMon, caster], {
+      auras: [
+        { casterPokemonId: protectedMon.id, kind: "reflect", remainingRounds: 4 },
+        { casterPokemonId: caster.id, kind: "mist", remainingRounds: 2 },
+      ],
+    } as unknown as Partial<BattleState>);
+    const descriptions = buildInfoPanelView(testContext, protectedMon, state).badges.map(
+      (b) => b.description,
+    );
+    expect(descriptions).toEqual(["describe.aura.kind.reflect", "describe.aura.kind.mist"]);
+  });
+
+  it("keeps the substitute explanation under fog, where its hp figure is hidden", () => {
+    const pokemon = makePokemon({ substituteHp: 45 } as unknown as Partial<PokemonInstance>);
+    const [badge] = buildInfoPanelView(foggedContext, pokemon, makeState([pokemon])).badges;
+    expect(badge?.description).toBe("describe.infoPanel.volatile.substitute");
+  });
+
+  it("gives every badge a description", () => {
+    const pokemon = makePokemon({
+      statusEffects: [{ type: StatusType.Paralyzed, remainingTurns: null }],
+      volatileStatuses: [
+        { type: StatusType.Confused, remainingTurns: 2 },
+        { type: StatusType.Encored, remainingTurns: 1 },
+      ],
+      statStages: { accuracy: 1 },
+      helpingHand: true,
+      smackedDown: true,
+      abilitySuppressed: true,
+    } as unknown as Partial<PokemonInstance>);
+    const badges = buildInfoPanelView(testContext, pokemon, makeState([pokemon])).badges;
+    expect(badges.length).toBeGreaterThan(5);
+    expect(badges.every((b) => b.description?.startsWith("describe.") === true)).toBe(true);
+  });
+
+  it("carries the official ability and item descriptions of a known Pokémon", () => {
+    const context: PresentationContext = {
+      ...testContext,
+      getAbilityDescription: (abilityId) => `ability-text:${abilityId}`,
+      getItemDescription: (itemId) => `item-text:${itemId}`,
+    };
+    const pokemon = makePokemon({
+      abilityId: "static",
+      heldItemId: "leftovers",
+    } as unknown as Partial<PokemonInstance>);
+    const view = buildInfoPanelView(context, pokemon, makeState([pokemon]), true);
+    expect(view.abilityDescription).toBe("ability-text:static");
+    expect(view.heldItemDescription).toBe("item-text:leftovers");
+  });
+
+  it("drops the tooltip when the data has no description", () => {
+    const pokemon = makePokemon({
+      abilityId: "static",
+      heldItemId: "leftovers",
+    } as unknown as Partial<PokemonInstance>);
+    const view = buildInfoPanelView(testContext, pokemon, makeState([pokemon]), true);
+    expect(view.abilityDescription).toBeUndefined();
+    expect(view.heldItemDescription).toBeUndefined();
+  });
+
+  it("explains a fogged ability and item as unknown, never by their real text", () => {
+    const context: PresentationContext = {
+      ...foggedContext,
+      getAbilityDescription: (abilityId) => `ability-text:${abilityId}`,
+      getItemDescription: (itemId) => `item-text:${itemId}`,
+    };
+    const pokemon = makePokemon({
+      abilityId: "static",
+      heldItemId: "leftovers",
+    } as unknown as Partial<PokemonInstance>);
+    const view = buildInfoPanelView(context, pokemon, makeState([pokemon]), false);
+    expect(view.abilityDescription).toBe("describe.infoPanel.unknown");
+    expect(view.heldItemDescription).toBe("describe.infoPanel.unknown");
+  });
+
+  it("explains a scouted item under fog by its real text again", () => {
+    const context: PresentationContext = {
+      ...foggedContext,
+      getItemDescription: (itemId) => `item-text:${itemId}`,
+    };
+    const pokemon = makePokemon({
+      heldItemId: "leftovers",
+      revealedItem: true,
+    } as unknown as Partial<PokemonInstance>);
+    const view = buildInfoPanelView(context, pokemon, makeState([pokemon]), false);
+    expect(view.heldItemDescription).toBe("item-text:leftovers");
+    expect(view.abilityDescription).toBe("describe.infoPanel.unknown");
+  });
+});
+
 describe("buildWeatherView", () => {
   it("returns null when there is no weather", () => {
     expect(buildWeatherView(makeState([]))).toBeNull();
@@ -483,5 +617,31 @@ describe("buildTileInfoView", () => {
       ?.lines.flat()
       .map((c) => c.title);
     expect(titles).toContain("tileInfo.zone.gravity");
+  });
+
+  it("explains hazards, field terrain, global zones and distortion lines", () => {
+    const zone = { casterId: "x", tiles: [ORIGIN], anchor: ORIGIN, remainingTurns: 2 };
+    const state = makeTileState(tileState("normal"), {
+      entryHazards: [{ kind: EntryHazardKind.StealthRock, tile: ORIGIN, layers: 1 }],
+      fieldTerrains: [{ ...zone, kind: "misty" }],
+      fieldGlobalZones: [{ ...zone, kind: FieldGlobalKind.WonderRoom }],
+      distortionZones: [zone],
+    } as unknown as Partial<BattleState>);
+    const descriptions = buildTileInfoView(testContext, state, ORIGIN)
+      ?.lines.flat()
+      .map((c) => c.description);
+    expect(descriptions).toEqual([
+      "describe.tileInfo.hazard.stealthRock",
+      "describe.tileInfo.field.misty",
+      "describe.tileInfo.zone.wonderRoom",
+      "describe.tileInfo.zone.distortion",
+    ]);
+  });
+
+  it("leaves the terrain's own effect chips undescribed (native title only)", () => {
+    const chips =
+      buildTileInfoView(testContext, makeTileState(tileState("magma")), ORIGIN)?.lines.flat() ?? [];
+    expect(chips.length).toBeGreaterThan(0);
+    expect(chips.every((c) => c.description === undefined)).toBe(true);
   });
 });

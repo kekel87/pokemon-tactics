@@ -83,6 +83,8 @@ export type InfoPanelBadgeVariant = "buff" | "debuff" | "volatile";
 export interface InfoPanelBadge {
   readonly label: string;
   readonly variant: InfoPanelBadgeVariant;
+  /** What the effect does, shown in the info tooltip (plan 225); omitted = no tooltip. */
+  readonly description?: string;
 }
 
 /** A type chip: `id` drives the `--type-<id>` color token, `label` is the localised name. */
@@ -138,6 +140,8 @@ export interface InfoPanelData {
   readonly ability?: string;
   /** Fog (plan 176): `ability` holds a placeholder, not a name → render it as unknown. */
   readonly abilityUnknown?: boolean;
+  /** What the ability does, or why it is not shown under fog (plan 225); omitted = no tooltip. */
+  readonly abilityDescription?: string;
   /** Battle stats (Atk/Déf/Atk Spé/Déf Spé/Vit) in that order; omitted for a fogged enemy. */
   readonly stats?: readonly InfoPanelStat[];
   /** Status changes / volatiles / statuses, rendered as chips. */
@@ -154,6 +158,8 @@ export interface InfoPanelData {
    * one. Set even when the Pokémon holds nothing: whether it carries an item is hidden too.
    */
   readonly itemUnknown?: boolean;
+  /** What the held item does, or why it is not shown under fog (plan 225); omitted = no tooltip. */
+  readonly heldItemDescription?: string;
   /**
    * Confirm-phase overlay (plan 175): present only on the cursor/target card while an attack is
    * being confirmed. The card is the SAME component as the active-Pokémon panel — the human asked
@@ -218,6 +224,11 @@ export interface TileInfoChip {
    */
   readonly statusLabelUrl?: string;
   readonly statusLabelAlt?: string;
+  /**
+   * What the effect does, shown in the info tooltip (plan 225) — set on field / hazard / zone lines,
+   * whose name alone does not say it. Omitted = the native `title` stays the only hint.
+   */
+  readonly description?: string;
 }
 
 /**

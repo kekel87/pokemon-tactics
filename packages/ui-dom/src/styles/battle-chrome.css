@@ -18,7 +18,7 @@
    * s'affichait donc collé au texte, à coins droits et à une autre taille qu'en combat — c'est-à-dire
    * tout ce que « réutiliser plutôt que redéclarer » cherchait à éviter. Relevé en revue de code.
    */
-  :where(.bc-root, .bc-left-col, .pc-clock) {
+  :where(.bc-root, .bc-left-col, .pc-clock, .it-tooltip) {
     --bc-edge: calc(18px * var(--ui-scale));
 
     /*
@@ -71,6 +71,11 @@
     align-items: stretch;
     gap: var(--bc-pad-md);
     pointer-events: none;
+  }
+
+  /* Capuchon Inspecter (plan 225) : après les panneaux, calé en haut — il annote la rangée entière. */
+  .bc-inspect-hint {
+    align-self: flex-start;
   }
 
   /* The InfoPanel pinned itself to the column bottom before; that job now belongs to the row. */

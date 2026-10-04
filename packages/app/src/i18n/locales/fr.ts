@@ -379,6 +379,7 @@ const fr: Translations = {
   "controls.invertRightStick": "Inverser le stick droit",
   "controls.action.toggle-battle-log": "Afficher/Masquer",
   "controls.action.open-combat-menu": "Menu de combat",
+  "controls.action.inspect-info": "Inspecter",
   "controls.group.aoePreview": "Prévisualisation AoE",
   "combatMenu.title": "Menu de combat",
   "combatMenu.open": "Ouvrir le menu de combat",
@@ -1035,6 +1036,138 @@ const fr: Translations = {
   "battleLog.weatherWar": "La nouvelle météo écrase la précédente !",
   "battleLog.wishHealed": "Le vœu de guérison se réalise, {name} récupère {amount} PV !",
   "battleLog.wishPosted": "{caster} fait un vœu de guérison.",
+  // Info tooltips (plan 225): `describe.` + the label key they explain.
+  "describe.status.burned":
+    "Perd 1/16 de ses PV max à chaque fin de tour, et ses attaques physiques font deux fois moins de dégâts. Les Pokémon Feu sont immunisés.",
+  "describe.status.paralyzed":
+    "Remplit sa jauge de CT deux fois moins vite, et a 12,5 % de chances à chaque tour de perdre son action. Les Pokémon Électrik sont immunisés.",
+  "describe.status.poisoned":
+    "Perd 1/8 de ses PV max à chaque fin de tour. Les Pokémon Poison et Acier sont immunisés.",
+  "describe.status.badlyPoisoned":
+    "Perd à chaque fin de tour une part croissante de ses PV max : 1/16, puis 2/16, 3/16… jusqu'à 15/16. Les Pokémon Poison et Acier sont immunisés.",
+  "describe.status.frozen":
+    "Ne peut pas agir. 25 % de chances de dégeler à chaque tour, dégel assuré au 3e tour. Impossible sous Plein soleil ; les Pokémon Glace sont immunisés.",
+  "describe.status.asleep": "Ne peut pas agir pendant 2 à 3 de ses tours.",
+  "describe.status.confused":
+    "Pendant 1 à 4 de ses tours, une chance sur deux de dérailler : une attaque ciblée part sur un allié à portée (sinon le tour est perdu), une attaque de zone ou un déplacement part dans une direction au hasard.",
+  "describe.status.seeded":
+    "Perd 1/8 de ses PV max à chaque fin de tour, rendus au lanceur. Cesse quand le lanceur est K.O. Les Pokémon Plante sont immunisés.",
+  "describe.status.trapped":
+    "Ne peut plus se déplacer, mais peut toujours attaquer. Selon sa cause, dure 4 à 5 de ses tours (avec des dégâts à chaque tour) ou tant que le Pokémon qui le retient reste adjacent. Être repoussé le libère.",
+  "describe.status.infatuated":
+    "Une chance sur deux à chaque tour de perdre son action, tant que le Pokémon qui l'a charmé reste adjacent.",
+  "describe.status.intimidated":
+    "Attaque baissée d'un cran tant qu'un Pokémon au talent Intimidation est adjacent. Remonte dès qu'il s'éloigne ou est K.O.",
+  "describe.status.lockedOn": "Sa prochaine attaque ne peut pas rater.",
+  "describe.status.charged": "Sa prochaine attaque Électrik fait deux fois plus de dégâts.",
+  "describe.status.ingrain":
+    "Récupère 1/8 de ses PV max à chaque fin de tour s'il n'a pas bougé. Tout déplacement, même subi, arrache les racines.",
+  "describe.status.aquaRing": "Récupère 1/16 de ses PV max à chaque fin de tour.",
+  "describe.status.charging":
+    "Prépare une attaque en deux temps : elle partira à son prochain tour.",
+  "describe.infoPanel.volatile.imprison":
+    "Les ennemis ne peuvent pas utiliser une attaque que ce Pokémon connaît aussi. Disparaît avec lui.",
+  "describe.infoPanel.volatile.destinyBond":
+    "Jusqu'à son prochain tour : celui qui le met K.O. tombe K.O. avec lui.",
+  "describe.infoPanel.volatile.grudge":
+    "Jusqu'à son prochain tour : l'attaque qui le met K.O. devient inutilisable pour son auteur jusqu'à la fin du combat.",
+  "describe.infoPanel.volatile.cursed":
+    "Perd 1/4 de ses PV max à chaque fin de tour, sans limite de durée.",
+  "describe.infoPanel.volatile.taunted":
+    "Ne peut pas utiliser d'attaques de catégorie Statut. Le compteur baisse à chacun de ses tours.",
+  "describe.infoPanel.volatile.disabled":
+    "Une de ses attaques est inutilisable. Le compteur baisse à chacun de ses tours.",
+  "describe.infoPanel.volatile.encored":
+    "Ne peut que répéter sa dernière attaque. Le compteur baisse à chacun de ses tours.",
+  "describe.infoPanel.volatile.healBlock":
+    "Ne peut recevoir aucun soin ni utiliser d'attaque de soin. Le compteur baisse à chacun de ses tours.",
+  "describe.infoPanel.volatile.lockIn":
+    "Enchaîne {move} sans pouvoir choisir une autre attaque. Le compteur baisse à chacun de ses tours.",
+  "describe.infoPanel.volatile.substitute":
+    "Un clone encaisse les dégâts à sa place et bloque la plupart des statuts adverses, jusqu'à ce que ses PV tombent à zéro.",
+  "describe.infoPanel.volatile.wish":
+    "Recevra un soin à son prochain tour, d'un montant fixé au lancement du Vœu. Perdu sous Anti-Soin.",
+  "describe.infoPanel.volatile.helpingHand":
+    "Sa prochaine attaque offensive fait 50 % de dégâts en plus.",
+  "describe.infoPanel.volatile.focusEnergy":
+    "Chances de coup critique augmentées de {stages} cran(s).",
+  "describe.infoPanel.volatile.laserFocus": "Son prochain coup est un coup critique assuré.",
+  "describe.infoPanel.volatile.perish":
+    "À 0, tous les Pokémon proches de lui, alliés et lui compris, tombent K.O. La zone suit ce Pokémon ; le compteur baisse à chacun de ses tours.",
+  "describe.infoPanel.volatile.smackedDown":
+    "Cloué au sol : perd son statut aérien et son immunité aux attaques Sol, et subit les pièges au sol.",
+  "describe.infoPanel.volatile.drowsy":
+    "S'endormira à la fin de son prochain tour, si rien ne l'en empêche.",
+  "describe.infoPanel.volatile.magnetRise":
+    "Lévite : immunisé aux attaques Sol et aux effets au sol. Le compteur baisse à chacun de ses tours.",
+  "describe.infoPanel.volatile.stockpile":
+    "{count} charge(s) en réserve, chacune donnant +1 cran en Défense et en Défense Spéciale. Relâche et Avale les dépensent.",
+  "describe.infoPanel.volatile.noType": "N'a plus aucun type : ni faiblesse ni résistance de type.",
+  "describe.infoPanel.volatile.typeChanged":
+    "Son type est désormais {types} : ses faiblesses, résistances et bonus de type changent avec.",
+  "describe.infoPanel.volatile.abilitySealed": "Son talent est désactivé jusqu'à la fin du combat.",
+  "describe.infoPanel.volatile.abilityChanged":
+    "Son talent a été remplacé par un autre jusqu'à la fin du combat.",
+  "describe.infoPanel.volatile.gasSuppressed":
+    "Son talent est sans effet tant qu'un Pokémon au talent Gaz Inhibiteur est à 2 cases ou moins.",
+  "describe.infoPanel.reveal.topMove":
+    "L'attaque la plus puissante de ce Pokémon, révélée par le talent Prédiction.",
+  "describe.infoPanel.unknown":
+    "Inconnu tant qu'il n'est pas révélé : en le voyant agir, ou grâce à un talent comme Fouille.",
+  "describe.stat.atk": "Crans d'Attaque : modifient les dégâts de ses attaques physiques.",
+  "describe.stat.def":
+    "Crans de Défense : modifient les dégâts qu'il reçoit des attaques physiques.",
+  "describe.stat.spA": "Crans d'Attaque Spéciale : modifient les dégâts de ses attaques spéciales.",
+  "describe.stat.spD":
+    "Crans de Défense Spéciale : modifient les dégâts qu'il reçoit des attaques spéciales.",
+  "describe.stat.spd":
+    "Crans de Vitesse : modifient la vitesse à laquelle il remplit sa jauge de CT et sa portée de déplacement.",
+  "describe.stat.acc":
+    "Crans de Précision : chaque cran en plus rend ses attaques plus sûres, chaque cran en moins les fait rater plus souvent.",
+  "describe.stat.eva":
+    "Crans d'Esquive : chaque cran en plus le rend plus difficile à toucher, chaque cran en moins plus facile.",
+  "describe.aura.kind.reflect":
+    "Les alliés à 3 cases ou moins du lanceur, lanceur compris, subissent deux fois moins de dégâts physiques. La zone suit le lanceur ; durée en tours du lanceur.",
+  "describe.aura.kind.lightScreen":
+    "Les alliés à 3 cases ou moins du lanceur, lanceur compris, subissent deux fois moins de dégâts spéciaux. La zone suit le lanceur ; durée en tours du lanceur.",
+  "describe.aura.kind.mist":
+    "Les alliés à 3 cases ou moins du lanceur ne peuvent pas voir leurs stats baissées par un ennemi. La zone suit le lanceur ; durée en tours du lanceur.",
+  "describe.aura.kind.safeguard":
+    "Les alliés à 3 cases ou moins du lanceur sont protégés des statuts majeurs et de la Confusion infligés par un ennemi. La zone suit le lanceur ; durée en tours du lanceur.",
+  "describe.weather.sun":
+    "Attaques Feu +50 %, attaques Eau −50 %. Le Gel est impossible et Lance-Soleil part sans charge. Durée en tours du Pokémon qui l'a déclenché.",
+  "describe.weather.rain":
+    "Attaques Eau +50 %, attaques Feu −50 %. Fatal-Foudre et Vent Violent ne ratent jamais. Durée en tours du Pokémon qui l'a déclenchée.",
+  "describe.weather.sandstorm":
+    "Inflige 1/16 des PV max à chaque fin de tour, sauf aux Pokémon Roche, Sol et Acier. Les Pokémon Roche gagnent +50 % en Défense Spéciale. Durée en tours du Pokémon qui l'a déclenchée.",
+  "describe.weather.snow":
+    "Les Pokémon Glace gagnent +50 % en Défense, et Blizzard ne rate jamais. Durée en tours du Pokémon qui l'a déclenchée.",
+  "describe.tailwind.label":
+    "Les Pokémon tournés dans le sens du vent remplissent leur jauge de CT 50 % plus vite. Durée en tours du lanceur.",
+  "describe.tileInfo.hazard.spikes":
+    "Blesse un Pokémon au sol qui passe sur la case : 1/8 de ses PV max, 1/6 avec deux couches, 1/4 avec trois.",
+  "describe.tileInfo.hazard.stealthRock":
+    "Blesse tout Pokémon qui passe sur la case, même en vol : 1/8 de ses PV max, multiplié par l'efficacité du type Roche contre lui.",
+  "describe.tileInfo.hazard.toxicSpikes":
+    "Empoisonne un Pokémon au sol qui passe sur la case (Poison grave avec deux couches). Un Pokémon Poison au sol les absorbe.",
+  "describe.tileInfo.hazard.stickyWeb":
+    "Baisse d'un cran la Vitesse d'un Pokémon au sol qui passe sur la case.",
+  "describe.tileInfo.field.grassy":
+    "Pour un Pokémon au sol dans la zone : attaques Plante +30 %, 1/16 de ses PV max rendus à chaque fin de tour, et Séisme, Ampleur et Piétisol lui font moitié moins de dégâts. Rayon de 3 cases ; durée en tours du lanceur.",
+  "describe.tileInfo.field.electric":
+    "Pour un Pokémon au sol dans la zone : attaques Électrik +30 %, et il ne peut pas s'endormir. Rayon de 3 cases ; durée en tours du lanceur.",
+  "describe.tileInfo.field.misty":
+    "Pour un Pokémon au sol dans la zone : dégâts Dragon reçus −50 %, et protection contre les statuts majeurs, la Confusion et l'état Déchaîné. Rayon de 3 cases ; durée en tours du lanceur.",
+  "describe.tileInfo.field.psychic":
+    "Pour un Pokémon au sol dans la zone : attaques Psy +30 %. Un ennemi du lanceur qui y entre en fonçant est stoppé net et subit le choc d'un mur. Rayon de 3 cases ; durée en tours du lanceur.",
+  "describe.tileInfo.zone.gravity":
+    "Dans la zone : les Pokémon sont cloués au sol, les attaques contre eux sont plus précises, et Vol et Rebond sont impossibles. Rayon de 3 cases ; durée en tours du lanceur.",
+  "describe.tileInfo.zone.wonderRoom":
+    "Dans la zone : la Défense et la Défense Spéciale d'un Pokémon attaqué sont échangées. Rayon de 3 cases ; durée en tours du lanceur.",
+  "describe.tileInfo.zone.magicRoom":
+    "Dans la zone : les objets tenus n'ont plus d'effet. Rayon de 3 cases ; durée en tours du lanceur.",
+  "describe.tileInfo.zone.distortion":
+    "Dans la zone, l'ordre s'inverse : les Pokémon lents remplissent leur jauge de CT plus vite que les rapides. Rayon de 3 cases ; durée en tours du lanceur.",
 };
 
 export default fr;

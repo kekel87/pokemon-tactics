@@ -299,6 +299,8 @@ function setup(
       getItemIconUrl: () => "",
       getItemName: () => null,
       getAbilityName: () => null,
+      getItemDescription: () => undefined,
+      getAbilityDescription: () => undefined,
       getPokemonTypes: () => [],
       getTypeIconUrl: () => "",
       getStatusIconUrl: () => "",

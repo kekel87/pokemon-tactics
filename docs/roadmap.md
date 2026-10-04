@@ -100,6 +100,9 @@ d'apparition n'indique une priorité.
 
 > Pourquoi 77 % des parties ne finissent pas. **S'arbitre à la donnée** (`battle_abandoned`).
 
+- [x] **Infobulles et bouton Inspecter** — livré par le plan 225 (2026-10-05) : talents, objets, effets,
+      météo et zones de case expliqués au survol/toucher, et mode Inspecter (`I` / `L3`) pour la manette.
+      → graphe : `plan-225`, `decision-1118`.
 - [ ] **Tutoriel interactif** — jamais cadré.
 - [ ] **Contrôles de vitesse** — vitesse des déplacements, passer les animations d'attaque. Jamais
       cadré depuis son ajout (commit `f805821`, 2026-04-02), aucun retour de playtest. ⚠️ « Passer les

@@ -25,6 +25,7 @@ import { createConnectionNotice } from "./connection-notice.js";
 import { createControlLegend } from "./control-legend.js";
 import { el } from "./dom-helpers.js";
 import { createInfoPanel } from "./info-panel.js";
+import { createInfoTooltip, describedWithin } from "./info-tooltip.js";
 import { createInputPromptGlyph, INSTRUCTION_GLYPH } from "./input-prompt-glyph.js";
 import { createMoveTooltip } from "./move-tooltip.js";
 import { createTailwindHud } from "./tailwind-hud.js";
@@ -170,6 +171,17 @@ export interface BattleChromeOptions {
    * Construits par l'hôte : `ui-dom` ne lit pas les bindings.
    */
   timelineKeyHints?: TurnTimelineKeyHints;
+  /**
+   * Capuchon de la touche Inspecter (plan 225), posé en haut à droite des panneaux d'info qu'elle
+   * parcourt — un bouton manette sans glyphe à l'écran ne se devine pas. Construit par l'hôte, comme
+   * les capuchons de l'ordre de jeu : `ui-dom` ne lit pas les bindings.
+   */
+  inspectKeyHint?: HTMLElement | null;
+  /**
+   * The screen's lifetime (plan 225): the info tooltip listens on the document to close on a tap
+   * elsewhere, and that listener must not outlive the combat.
+   */
+  signal: AbortSignal;
 }
 
 /**
@@ -188,6 +200,16 @@ export interface LocalizableBattleChrome extends BattleChrome {
    * modale, où le document est inerte et où aucun `focus()` ne prend.
    */
   refocusMenu(): void;
+  /**
+   * Inspect mode (plan 225), the keyboard / gamepad way to read the info tooltips: enters it on the
+   * first described element of the info panel, or leaves it. Returns false when there is nothing to
+   * inspect (no panel on screen), so the press is not swallowed for nothing.
+   */
+  toggleInspect(): boolean;
+  /** Next / previous described element, wrapping. No-op outside inspect mode. */
+  stepInspect(delta: 1 | -1): void;
+  stopInspect(): void;
+  isInspecting(): boolean;
 }
 
 /**
@@ -319,6 +341,10 @@ export function createBattleChrome(options: BattleChromeOptions): LocalizableBat
   const cursorPanel = createInfoPanel("cursor-panel");
   const infoPanelRow = el("div", "bc-infopanel-row");
   infoPanelRow.append(infoPanel.element, tileInfoPanel.element, cursorPanel.element);
+  if (options.inspectKeyHint) {
+    options.inspectKeyHint.classList.add("bc-inspect-hint");
+    infoPanelRow.append(options.inspectKeyHint);
+  }
   const timeline = createTurnTimeline(config, options.timelineKeyHints);
   /*
    * Les lignes de la légende descendent dans la colonne latérale de l'ordre de jeu (plan 189, retour
@@ -329,6 +355,86 @@ export function createBattleChrome(options: BattleChromeOptions): LocalizableBat
   const leftColumn = el("div", "bc-left-col");
   leftColumn.append(timeline.element, infoPanelRow);
   host.append(leftColumn);
+
+  /*
+   * Info tooltips (plan 225). Mounted on the host, the one ancestor the info panels (left column) and
+   * the top HUD (weather, Vent Arrière) share — the bubble is placed against whichever it explains.
+   */
+  const infoTooltip = createInfoTooltip(host, [infoPanelRow, top], options.signal);
+
+  /**
+   * Inspect mode: index into `inspectStops()`, null when off. An INDEX, not an element — the panels
+   * rebuild their children on every update, so a held element would go stale under the bubble.
+   */
+  let inspectIndex: number | null = null;
+
+  /**
+   * Inspect stops, in reading order: the Pokémon card the player is looking at (the cursor card when
+   * shown, else the active Pokémon's), then the tile's zones beside it, and only then the weather
+   * and Vent Arrière at the top — jumping up to the HUD between the two bottom panels read as a
+   * detour (retour humain en recette).
+   */
+  function inspectStops(): HTMLElement[] {
+    const pokemonCard = cursorPanel.element.hidden ? infoPanel.element : cursorPanel.element;
+    return [pokemonCard, tileInfoPanel.element, weatherHud.element, tailwindHud.element].flatMap(
+      describedWithin,
+    );
+  }
+
+  function stopInspect(): void {
+    inspectIndex = null;
+    infoTooltip.hide();
+  }
+
+  /**
+   * Land inspect mode on the stop `next` picks among the current ones — or leave it when there are
+   * none. Returns whether a stop was shown.
+   */
+  function inspectAt(next: (stopCount: number) => number): boolean {
+    const stops = inspectStops();
+    inspectIndex = stops.length === 0 ? null : next(stops.length);
+    const stop = inspectIndex === null ? undefined : stops[inspectIndex];
+    if (stop === undefined) {
+      infoTooltip.hide();
+      return false;
+    }
+    infoTooltip.show(stop);
+    return true;
+  }
+
+  /**
+   * After panel updates: inspect mode re-anchors on the same stop (clamped, the list may have
+   * shrunk) or ends when nothing is left; a hovered element that an update replaced closes.
+   *
+   * Deferred to a microtask: a full refresh pushes four or five panel updates in a row, and querying
+   * the stops after each would force as many layouts for a bubble only the last one decides.
+   */
+  let refreshQueued = false;
+  function refreshInfoTooltip(): void {
+    if (refreshQueued) {
+      return;
+    }
+    refreshQueued = true;
+    queueMicrotask(() => {
+      refreshQueued = false;
+      const current = inspectIndex;
+      if (current !== null) {
+        inspectAt((stopCount) => Math.min(current, stopCount - 1));
+        return;
+      }
+      // A hovered or tapped element may have been rebuilt away, or rewritten in place for another
+      // Pokémon (talent and item lines persist across updates): follow its new text, or close.
+      const shown = infoTooltip.current();
+      if (shown === null) {
+        return;
+      }
+      if (shown.isConnected && shown.dataset.describe) {
+        infoTooltip.show(shown);
+      } else {
+        infoTooltip.hide();
+      }
+    });
+  }
 
   function button(label: string, onClick: () => void, disabled = false): HTMLButtonElement {
     const node = el("button", "tb-btn bc-btn");
@@ -525,6 +631,22 @@ export function createBattleChrome(options: BattleChromeOptions): LocalizableBat
 
     refocusMenu: () => replayMenu?.(lastFocusedMenuIndex),
 
+    toggleInspect: () => {
+      if (inspectIndex !== null) {
+        stopInspect();
+        return true;
+      }
+      return inspectAt(() => 0);
+    },
+    stepInspect: (delta) => {
+      const current = inspectIndex;
+      if (current !== null) {
+        inspectAt((stopCount) => (current + delta + stopCount) % stopCount);
+      }
+    },
+    stopInspect,
+    isInspecting: () => inspectIndex !== null,
+
     hideMenus: () => {
       replayMenu = null;
       tooltip.hide();
@@ -538,6 +660,7 @@ export function createBattleChrome(options: BattleChromeOptions): LocalizableBat
       } else {
         infoPanel.hide();
       }
+      refreshInfoTooltip();
     },
 
     updateTileInfo: (view: TileInfoData | null) => {
@@ -546,6 +669,7 @@ export function createBattleChrome(options: BattleChromeOptions): LocalizableBat
       } else {
         tileInfoPanel.hide();
       }
+      refreshInfoTooltip();
     },
 
     updateCursorPanel: (view: InfoPanelData | null) => {
@@ -554,12 +678,19 @@ export function createBattleChrome(options: BattleChromeOptions): LocalizableBat
       } else {
         cursorPanel.hide();
       }
+      refreshInfoTooltip();
     },
 
     updateTurnClock: (view: TurnClockView | null) => turnClockHud.update(view),
     updateConnectionNotice: (view: ConnectionNoticeView | null) => connectionNotice.update(view),
-    updateWeather: (view: WeatherView | null) => weatherHud.update(view),
-    updateTailwind: (view: TailwindView | null) => tailwindHud.update(view),
+    updateWeather: (view: WeatherView | null) => {
+      weatherHud.update(view);
+      refreshInfoTooltip();
+    },
+    updateTailwind: (view: TailwindView | null) => {
+      tailwindHud.update(view);
+      refreshInfoTooltip();
+    },
     updateCameraAzimuth: (azimuth: number) => tailwindHud.setAzimuth(azimuth),
 
     updateTimeline: (view: TimelineView) => timeline.update(view),

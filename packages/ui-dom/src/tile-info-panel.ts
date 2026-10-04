@@ -7,6 +7,7 @@
 
 import type { TileInfoData } from "@pokemon-tactic/render-ports";
 import { el } from "./dom-helpers.js";
+import { setDescription } from "./info-tooltip.js";
 
 // View-model types live in the renderer contract package; re-exported for callers.
 export type { TileInfoChip, TileInfoData, TileInfoTone } from "@pokemon-tactic/render-ports";
@@ -51,6 +52,7 @@ export function createTileInfoPanel(): TileInfoPanel {
             chipEl.title = chip.title;
             chipEl.setAttribute("aria-label", chip.title);
           }
+          setDescription(chipEl, chip.title ?? chip.text ?? "", chip.description);
           // Leading slot: a duration badge (field/zone) replaces the emoji glyph; otherwise the glyph.
           if (chip.duration !== undefined) {
             const badge = el("span", "ti-duration");
