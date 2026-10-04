@@ -797,7 +797,7 @@
     "names": {
       "en": "Aqua Cutter",
       "fr": "Tranch'Aqua",
-      "es": "Aqua Cutter"
+      "es": "Tajo Acuático"
     },
     "type": "water",
     "category": "physical",
@@ -917,7 +917,7 @@
     "names": {
       "en": "Aqua Step",
       "fr": "Danse Aquatique",
-      "es": "Aqua Step"
+      "es": "Danza Acuática"
     },
     "type": "water",
     "category": "physical",
@@ -1040,7 +1040,7 @@
     "names": {
       "en": "Armor Cannon",
       "fr": "Canon Blindé",
-      "es": "Armor Cannon"
+      "es": "Cañón Armadura"
     },
     "type": "fire",
     "category": "special",
@@ -1784,7 +1784,7 @@
     "names": {
       "en": "Barb Barrage",
       "fr": "Multitoxik",
-      "es": "Barb Barrage"
+      "es": "Mil Púas Tóxicas"
     },
     "type": "poison",
     "category": "physical",
@@ -2361,7 +2361,7 @@
     "names": {
       "en": "Bitter Blade",
       "fr": "Lame en Peine",
-      "es": "Bitter Blade"
+      "es": "Espada Lamento"
     },
     "type": "fire",
     "category": "physical",
@@ -2402,7 +2402,7 @@
     "names": {
       "en": "Bitter Malice",
       "fr": "Cœur de Rancœur",
-      "es": "Bitter Malice"
+      "es": "Rencor Reprimido"
     },
     "type": "ghost",
     "category": "special",
@@ -2530,7 +2530,7 @@
     "names": {
       "en": "Blazing Torque",
       "fr": "Crash Brûlant",
-      "es": "Blazing Torque"
+      "es": "Pirochoque"
     },
     "type": "fire",
     "category": "physical",
@@ -2579,7 +2579,7 @@
     "names": {
       "en": "Bleakwind Storm",
       "fr": "Typhon Hivernal",
-      "es": "Bleakwind Storm"
+      "es": "Vendaval Gélido"
     },
     "type": "flying",
     "category": "special",
@@ -2707,7 +2707,7 @@
     "names": {
       "en": "Blood Moon",
       "fr": "Lune Rouge",
-      "es": "Blood Moon"
+      "es": "Luna Roja"
     },
     "type": "normal",
     "category": "special",
@@ -4003,7 +4003,7 @@
     "names": {
       "en": "Ceaseless Edge",
       "fr": "Vagues à Lames",
-      "es": "Ceaseless Edge"
+      "es": "Tajo Metralla"
     },
     "type": "dark",
     "category": "physical",
@@ -4316,7 +4316,7 @@
     "names": {
       "en": "Chilly Reception",
       "fr": "Neigeux de Mots",
-      "es": "Chilly Reception"
+      "es": "Fría Acogida"
     },
     "type": "ice",
     "category": "status",
@@ -4389,7 +4389,7 @@
     "names": {
       "en": "Chloroblast",
       "fr": "Herblast",
-      "es": "Chloroblast"
+      "es": "Clorofiláser"
     },
     "type": "grass",
     "category": "special",
@@ -4770,7 +4770,7 @@
     "names": {
       "en": "Collision Course",
       "fr": "Nitro Crash",
-      "es": "Collision Course"
+      "es": "Nitrochoque"
     },
     "type": "fighting",
     "category": "physical",
@@ -4808,7 +4808,7 @@
     "names": {
       "en": "Combat Torque",
       "fr": "Crash Musclé",
-      "es": "Combat Torque"
+      "es": "Pugnachoque"
     },
     "type": "fighting",
     "category": "physical",
@@ -4897,7 +4897,7 @@
     "names": {
       "en": "Comeuppance",
       "fr": "Vindicte",
-      "es": "Comeuppance"
+      "es": "Resarcimiento"
     },
     "type": "dark",
     "category": "physical",
@@ -6445,7 +6445,7 @@
     "names": {
       "en": "Dire Claw",
       "fr": "Griffes Funestes",
-      "es": "Dire Claw"
+      "es": "Garra Nociva"
     },
     "type": "poison",
     "category": "physical",
@@ -6707,7 +6707,7 @@
     "names": {
       "en": "Doodle",
       "fr": "Décalquage",
-      "es": "Doodle"
+      "es": "Decalcomanía"
     },
     "type": "normal",
     "category": "status",
@@ -6939,7 +6939,7 @@
     "names": {
       "en": "Double Shock",
       "fr": "Double Décharge",
-      "es": "Double Shock"
+      "es": "Electropalmas"
     },
     "type": "electric",
     "category": "physical",
@@ -8370,7 +8370,7 @@
     "names": {
       "en": "Electro Drift",
       "fr": "Turbo Volt",
-      "es": "Electro Drift"
+      "es": "Electroderrape"
     },
     "type": "electric",
     "category": "special",
@@ -8831,7 +8831,7 @@
     "names": {
       "en": "Esper Wing",
       "fr": "Ailes Psycho",
-      "es": "Esper Wing"
+      "es": "Ala Aural"
     },
     "type": "psychic",
     "category": "special",
@@ -9643,7 +9643,7 @@
     "names": {
       "en": "Fillet Away",
       "fr": "Décharnement",
-      "es": "Fillet Away"
+      "es": "Deslome"
     },
     "type": "normal",
     "category": "status",
@@ -10686,7 +10686,7 @@
     "names": {
       "en": "Flower Trick",
       "fr": "Magie Florale",
-      "es": "Flower Trick"
+      "es": "Truco Floral"
     },
     "type": "grass",
     "category": "physical",
@@ -11883,7 +11883,7 @@
     "names": {
       "en": "Gigaton Hammer",
       "fr": "Marteau Mastoc",
-      "es": "Gigaton Hammer"
+      "es": "Martillo Colosal"
     },
     "type": "steel",
     "category": "physical",
@@ -12004,7 +12004,7 @@
     "names": {
       "en": "Glaive Rush",
       "fr": "Charge Glaive",
-      "es": "Glaive Rush"
+      "es": "Asalto Espadón"
     },
     "type": "dragon",
     "category": "physical",
@@ -13099,7 +13099,7 @@
     "names": {
       "en": "Headlong Rush",
       "fr": "Assaut Frontal",
-      "es": "Headlong Rush"
+      "es": "Arremetida"
     },
     "type": "ground",
     "category": "physical",
@@ -14829,7 +14829,7 @@
     "names": {
       "en": "Hyper Drill",
       "fr": "Hyperceuse",
-      "es": "Hyper Drill"
+      "es": "Hipertaladro"
     },
     "type": "normal",
     "category": "physical",
@@ -15611,7 +15611,7 @@
     "names": {
       "en": "Infernal Parade",
       "fr": "Cortège Funèbre",
-      "es": "Infernal Parade"
+      "es": "Marcha Espectral"
     },
     "type": "ghost",
     "category": "special",
@@ -15993,7 +15993,7 @@
     "names": {
       "en": "Ivy Cudgel",
       "fr": "Massue Liane",
-      "es": "Ivy Cudgel"
+      "es": "Garrote Liana"
     },
     "type": "grass",
     "category": "physical",
@@ -16071,7 +16071,7 @@
     "names": {
       "en": "Jet Punch",
       "fr": "Poing Sonique",
-      "es": "Jet Punch"
+      "es": "Puño Jet"
     },
     "type": "water",
     "category": "physical",
@@ -16393,7 +16393,7 @@
     "names": {
       "en": "Kowtow Cleave",
       "fr": "Génusection",
-      "es": "Kowtow Cleave"
+      "es": "Genufendiente"
     },
     "type": "dark",
     "category": "physical",
@@ -17370,7 +17370,7 @@
     "names": {
       "en": "Lumina Crash",
       "fr": "Lumino-Impact",
-      "es": "Lumina Crash"
+      "es": "Fotocolisión"
     },
     "type": "psychic",
     "category": "special",
@@ -17415,7 +17415,7 @@
     "names": {
       "en": "Lunar Blessing",
       "fr": "Prière Lunaire",
-      "es": "Lunar Blessing"
+      "es": "Plegaria Lunar"
     },
     "type": "psychic",
     "category": "status",
@@ -17780,7 +17780,7 @@
     "names": {
       "en": "Magical Torque",
       "fr": "Crash Magique",
-      "es": "Magical Torque"
+      "es": "Feerichoque"
     },
     "type": "fairy",
     "category": "physical",
@@ -18032,7 +18032,7 @@
     "names": {
       "en": "Make It Rain",
       "fr": "Ruée d'Or",
-      "es": "Make It Rain"
+      "es": "Fiebre Dorada"
     },
     "type": "steel",
     "category": "special",
@@ -18151,7 +18151,7 @@
     "names": {
       "en": "Matcha Gotcha",
       "fr": "Mortier Matcha",
-      "es": "Matcha Gotcha"
+      "es": "Cañón Batidor"
     },
     "type": "grass",
     "category": "special",
@@ -19546,7 +19546,7 @@
     "names": {
       "en": "Mortal Spin",
       "fr": "Toupie Éclat",
-      "es": "Mortal Spin"
+      "es": "Giro Mortífero"
     },
     "type": "poison",
     "category": "physical",
@@ -19590,7 +19590,7 @@
     "names": {
       "en": "Mountain Gale",
       "fr": "Bise Glaciaire",
-      "es": "Mountain Gale"
+      "es": "Viento Carámbano"
     },
     "type": "ice",
     "category": "physical",
@@ -19936,7 +19936,7 @@
     "names": {
       "en": "Mystical Power",
       "fr": "Force Mystique",
-      "es": "Mystical Power"
+      "es": "Poder Místico"
     },
     "type": "psychic",
     "category": "special",
@@ -20446,7 +20446,7 @@
     "names": {
       "en": "Noxious Torque",
       "fr": "Crash Toxique",
-      "es": "Noxious Torque"
+      "es": "Ponzochoque"
     },
     "type": "poison",
     "category": "physical",
@@ -20798,7 +20798,7 @@
     "names": {
       "en": "Order Up",
       "fr": "Plat du Jour",
-      "es": "Order Up"
+      "es": "Oído Cocina"
     },
     "type": "dragon",
     "category": "physical",
@@ -21975,7 +21975,7 @@
     "names": {
       "en": "Population Bomb",
       "fr": "Prolifération",
-      "es": "Population Bomb"
+      "es": "Proliferación"
     },
     "type": "normal",
     "category": "physical",
@@ -22225,7 +22225,7 @@
     "names": {
       "en": "Power Shift",
       "fr": "Échange Force",
-      "es": "Power Shift"
+      "es": "Cambiapoder"
     },
     "type": "normal",
     "category": "status",
@@ -23069,7 +23069,7 @@
     "names": {
       "en": "Psyshield Bash",
       "fr": "Sprint Bouclier",
-      "es": "Psyshield Bash"
+      "es": "Asalto Barrera"
     },
     "type": "psychic",
     "category": "physical",
@@ -24415,7 +24415,7 @@
     "names": {
       "en": "Revival Blessing",
       "fr": "Second Souffle",
-      "es": "Revival Blessing"
+      "es": "Plegaria Vital"
     },
     "type": "normal",
     "category": "status",
@@ -25150,7 +25150,7 @@
     "names": {
       "en": "Ruination",
       "fr": "Cataclysme",
-      "es": "Ruination"
+      "es": "Calamidad"
     },
     "type": "dark",
     "category": "special",
@@ -25308,7 +25308,7 @@
     "names": {
       "en": "Salt Cure",
       "fr": "Salaison",
-      "es": "Salt Cure"
+      "es": "Salazón"
     },
     "type": "rock",
     "category": "physical",
@@ -25439,7 +25439,7 @@
     "names": {
       "en": "Sandsear Storm",
       "fr": "Typhon Pyrosable",
-      "es": "Sandsear Storm"
+      "es": "Simún de Arena"
     },
     "type": "ground",
     "category": "special",
@@ -26364,7 +26364,7 @@
     "names": {
       "en": "Shed Tail",
       "fr": "Queulonage",
-      "es": "Shed Tail"
+      "es": "Autotomía"
     },
     "type": "normal",
     "category": "status",
@@ -26573,7 +26573,7 @@
     "names": {
       "en": "Shelter",
       "fr": "Mur Fumigène",
-      "es": "Shelter"
+      "es": "Retracción"
     },
     "type": "steel",
     "category": "status",
@@ -26781,7 +26781,7 @@
     "names": {
       "en": "Silk Trap",
       "fr": "Piège de Fil",
-      "es": "Silk Trap"
+      "es": "Telatrampa"
     },
     "type": "bug",
     "category": "status",
@@ -28453,7 +28453,7 @@
     "names": {
       "en": "Spicy Extract",
       "fr": "Habanerage",
-      "es": "Spicy Extract"
+      "es": "Extracto Picante"
     },
     "type": "grass",
     "category": "status",
@@ -28657,7 +28657,7 @@
     "names": {
       "en": "Spin Out",
       "fr": "Dérapage",
-      "es": "Spin Out"
+      "es": "Quemarrueda"
     },
     "type": "steel",
     "category": "physical",
@@ -28988,7 +28988,7 @@
     "names": {
       "en": "Springtide Storm",
       "fr": "Typhon Passionné",
-      "es": "Springtide Storm"
+      "es": "Ciclón Primavera"
     },
     "type": "fairy",
     "category": "special",
@@ -29443,7 +29443,7 @@
     "names": {
       "en": "Stone Axe",
       "fr": "Hache de Pierre",
-      "es": "Stone Axe"
+      "es": "Hachazo Pétreo"
     },
     "type": "rock",
     "category": "physical",
@@ -30753,7 +30753,7 @@
     "names": {
       "en": "Syrup Bomb",
       "fr": "Bombe au Sirop",
-      "es": "Syrup Bomb"
+      "es": "Bomba Caramelo"
     },
     "type": "grass",
     "category": "special",
@@ -31081,7 +31081,7 @@
     "names": {
       "en": "Take Heart",
       "fr": "Extravaillance",
-      "es": "Take Heart"
+      "es": "Bálsamo Osado"
     },
     "type": "psychic",
     "category": "status",
@@ -31494,7 +31494,7 @@
     "names": {
       "en": "Tera Blast",
       "fr": "Téra Explosion",
-      "es": "Tera Blast"
+      "es": "Teraexplosión"
     },
     "type": "normal",
     "category": "special",
@@ -32250,7 +32250,7 @@
     "names": {
       "en": "Tidy Up",
       "fr": "Grand Nettoyage",
-      "es": "Tidy Up"
+      "es": "Limpieza General"
     },
     "type": "normal",
     "category": "status",
@@ -32324,7 +32324,7 @@
     "names": {
       "en": "Torch Song",
       "fr": "Chant Flamboyant",
-      "es": "Torch Song"
+      "es": "Canto Ardiente"
     },
     "type": "fire",
     "category": "special",
@@ -32787,7 +32787,7 @@
     "names": {
       "en": "Triple Arrows",
       "fr": "Triple Flèche",
-      "es": "Triple Arrows"
+      "es": "Triple Flecha"
     },
     "type": "fighting",
     "category": "physical",
@@ -32864,7 +32864,7 @@
     "names": {
       "en": "Triple Dive",
       "fr": "Triple Plongeon",
-      "es": "Triple Dive"
+      "es": "Triple Inmersión"
     },
     "type": "water",
     "category": "physical",
@@ -33027,7 +33027,7 @@
     "names": {
       "en": "Twin Beam",
       "fr": "Double Laser",
-      "es": "Twin Beam"
+      "es": "Láser Doble"
     },
     "type": "psychic",
     "category": "special",
@@ -33429,7 +33429,7 @@
     "names": {
       "en": "Victory Dance",
       "fr": "Danse Victoire",
-      "es": "Victory Dance"
+      "es": "Danza Triunfal"
     },
     "type": "fighting",
     "category": "status",
@@ -34197,7 +34197,7 @@
     "names": {
       "en": "Wicked Torque",
       "fr": "Crash Obscur",
-      "es": "Wicked Torque"
+      "es": "Ominochoque"
     },
     "type": "dark",
     "category": "physical",
@@ -34321,7 +34321,7 @@
     "names": {
       "en": "Wildbolt Storm",
       "fr": "Typhon Fulgurant",
-      "es": "Wildbolt Storm"
+      "es": "Electormenta"
     },
     "type": "electric",
     "category": "special",

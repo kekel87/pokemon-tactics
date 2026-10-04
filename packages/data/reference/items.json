@@ -55,7 +55,7 @@
     "names": {
       "en": "Ability Shield",
       "fr": "Garde-Talent",
-      "es": "Ability Shield"
+      "es": "Escudo habilidad"
     },
     "category": "heldItem",
     "shortDescription": {
@@ -330,7 +330,7 @@
     "names": {
       "en": "Aipom Hair",
       "fr": "Poils de Capumain",
-      "es": "Aipom Hair"
+      "es": "Pelo de Aipom"
     },
     "category": "other",
     "shortDescription": {
@@ -405,7 +405,7 @@
     "names": {
       "en": "Alomomola Mucus",
       "fr": "Mucus de Mamanbo",
-      "es": "Alomomola Mucus"
+      "es": "Secreción de Alomomola"
     },
     "category": "other",
     "shortDescription": {
@@ -580,7 +580,7 @@
     "names": {
       "en": "Apple",
       "fr": "Pomme",
-      "es": "Apple"
+      "es": "Manzana"
     },
     "category": "other",
     "shortDescription": {
@@ -605,7 +605,7 @@
     "names": {
       "en": "Applin Juice",
       "fr": "Jus de Verpom",
-      "es": "Applin Juice"
+      "es": "Zumo de Applin"
     },
     "category": "other",
     "shortDescription": {
@@ -680,7 +680,7 @@
     "names": {
       "en": "Arrokuda Scales",
       "fr": "Écaille d'Embrochet",
-      "es": "Arrokuda Scales"
+      "es": "Escama de Arrokuda"
     },
     "category": "other",
     "shortDescription": {
@@ -805,7 +805,7 @@
     "names": {
       "en": "Avocado",
       "fr": "Avocat",
-      "es": "Avocado"
+      "es": "Aguacate"
     },
     "category": "other",
     "shortDescription": {
@@ -855,7 +855,7 @@
     "names": {
       "en": "Axew Scales",
       "fr": "Écaille de Coupenotte",
-      "es": "Axew Scales"
+      "es": "Escama de Axew"
     },
     "category": "other",
     "shortDescription": {
@@ -905,7 +905,7 @@
     "names": {
       "en": "Azurill Fur",
       "fr": "Poils d'Azurill",
-      "es": "Azurill Fur"
+      "es": "Pelo de Azurill"
     },
     "category": "other",
     "shortDescription": {
@@ -980,7 +980,7 @@
     "names": {
       "en": "Bacon",
       "fr": "Bacon",
-      "es": "Bacon"
+      "es": "Panceta"
     },
     "category": "other",
     "shortDescription": {
@@ -1005,7 +1005,7 @@
     "names": {
       "en": "Bagon Scales",
       "fr": "Écaille de Draby",
-      "es": "Bagon Scales"
+      "es": "Escama de Bagon"
     },
     "category": "other",
     "shortDescription": {
@@ -1030,7 +1030,7 @@
     "names": {
       "en": "Baguette",
       "fr": "Baguette",
-      "es": "Baguette"
+      "es": "Barra de pan"
     },
     "category": "other",
     "shortDescription": {
@@ -1055,7 +1055,7 @@
     "names": {
       "en": "Banana",
       "fr": "Banane",
-      "es": "Banana"
+      "es": "Plátano"
     },
     "category": "other",
     "shortDescription": {
@@ -1105,7 +1105,7 @@
     "names": {
       "en": "Barboach Slime",
       "fr": "Mucus de Barloche",
-      "es": "Barboach Slime"
+      "es": "Secreción de Barboach"
     },
     "category": "other",
     "shortDescription": {
@@ -1130,7 +1130,7 @@
     "names": {
       "en": "Basculin Fang",
       "fr": "Croc de Bargantua",
-      "es": "Basculin Fang"
+      "es": "Colmillo de Basculin"
     },
     "category": "other",
     "shortDescription": {
@@ -1155,7 +1155,7 @@
     "names": {
       "en": "Basil",
       "fr": "Basilic",
-      "es": "Basil"
+      "es": "Albahaca"
     },
     "category": "other",
     "shortDescription": {
@@ -1230,7 +1230,7 @@
     "names": {
       "en": "Bellsprout Vine",
       "fr": "Liane de Chétiflor",
-      "es": "Bellsprout Vine"
+      "es": "Liana de Bellsprout"
     },
     "category": "other",
     "shortDescription": {
@@ -1280,7 +1280,7 @@
     "names": {
       "en": "Bergmite Ice",
       "fr": "Glace de Grelaçon",
-      "es": "Bergmite Ice"
+      "es": "Hielo de Bergmite"
     },
     "category": "other",
     "shortDescription": {
@@ -1430,7 +1430,7 @@
     "names": {
       "en": "Bitter Herba Mystica",
       "fr": "Épice Secrète Amère",
-      "es": "Bitter Herba Mystica"
+      "es": "Especia oculta amarga"
     },
     "category": "other",
     "shortDescription": {
@@ -1480,7 +1480,7 @@
     "names": {
       "en": "black-augurite",
       "fr": "black-augurite",
-      "es": "black-augurite"
+      "es": "Mineral negro"
     },
     "category": "mega-stone",
     "shortDescription": {
@@ -1605,7 +1605,7 @@
     "names": {
       "en": "Blank Plate",
       "fr": "Plaque Renouveau",
-      "es": "Blank Plate"
+      "es": "Tabla neutra"
     },
     "category": "other",
     "shortDescription": {
@@ -1905,7 +1905,7 @@
     "names": {
       "en": "Bombirdier Feather",
       "fr": "Plume de Lestombaile",
-      "es": "Bombirdier Feather"
+      "es": "Pluma de Bombirdier"
     },
     "category": "other",
     "shortDescription": {
@@ -1930,7 +1930,7 @@
     "names": {
       "en": "Bonsly Tears",
       "fr": "Larme de Manzaï",
-      "es": "Bonsly Tears"
+      "es": "Lágrima de Bonsly"
     },
     "category": "other",
     "shortDescription": {
@@ -1980,7 +1980,7 @@
     "names": {
       "en": "Booster Energy",
       "fr": "Énergie Booster",
-      "es": "Booster Energy"
+      "es": "Energía potenciadora"
     },
     "category": "heldItem",
     "shortDescription": {
@@ -2005,7 +2005,7 @@
     "names": {
       "en": "Bounsweet Sweat",
       "fr": "Sueur de Croquine",
-      "es": "Bounsweet Sweat"
+      "es": "Sudor de Bounsweet"
     },
     "category": "other",
     "shortDescription": {
@@ -2030,7 +2030,7 @@
     "names": {
       "en": "Bramblin Twig",
       "fr": "Branche de Virovent",
-      "es": "Bramblin Twig"
+      "es": "Rama de Bramblin"
     },
     "category": "other",
     "shortDescription": {
@@ -2155,7 +2155,7 @@
     "names": {
       "en": "Bronzor Fragment",
       "fr": "Fragment d'Archéomire",
-      "es": "Bronzor Fragment"
+      "es": "Fragmento de Bronzor"
     },
     "category": "other",
     "shortDescription": {
@@ -2180,7 +2180,7 @@
     "names": {
       "en": "Bruxish Tooth",
       "fr": "Dent de Denticrisse",
-      "es": "Bruxish Tooth"
+      "es": "Diente de Bruxish"
     },
     "category": "other",
     "shortDescription": {
@@ -2255,7 +2255,7 @@
     "names": {
       "en": "Buizel Fur",
       "fr": "Poils de Mustébouée",
-      "es": "Buizel Fur"
+      "es": "Pelo de Buizel"
     },
     "category": "other",
     "shortDescription": {
@@ -2330,7 +2330,7 @@
     "names": {
       "en": "Butter",
       "fr": "Beurre",
-      "es": "Butter"
+      "es": "Mantequilla"
     },
     "category": "other",
     "shortDescription": {
@@ -2355,7 +2355,7 @@
     "names": {
       "en": "Cacnea Needle",
       "fr": "Épine de Cacnea",
-      "es": "Cacnea Needle"
+      "es": "Espina de Cacnea"
     },
     "category": "other",
     "shortDescription": {
@@ -2455,7 +2455,7 @@
     "names": {
       "en": "Capsakid Seed",
       "fr": "Graine de Pimito",
-      "es": "Capsakid Seed"
+      "es": "Semilla de Capsakid"
     },
     "category": "other",
     "shortDescription": {
@@ -2480,7 +2480,7 @@
     "names": {
       "en": "Carbink Jewel",
       "fr": "Joyau de Strassie",
-      "es": "Carbink Jewel"
+      "es": "Gema de Carbink"
     },
     "category": "other",
     "shortDescription": {
@@ -2605,7 +2605,7 @@
     "names": {
       "en": "Cetoddle Grease",
       "fr": "Graisse de Piétacé",
-      "es": "Cetoddle Grease"
+      "es": "Grasa de Cetoddle"
     },
     "category": "other",
     "shortDescription": {
@@ -2630,7 +2630,7 @@
     "names": {
       "en": "Charcadet Soot",
       "fr": "Suie de Charbambin",
-      "es": "Charcadet Soot"
+      "es": "Hollín de Charcadet"
     },
     "category": "other",
     "shortDescription": {
@@ -2755,7 +2755,7 @@
     "names": {
       "en": "Cheese",
       "fr": "Fromage",
-      "es": "Cheese"
+      "es": "Queso"
     },
     "category": "other",
     "shortDescription": {
@@ -2830,7 +2830,7 @@
     "names": {
       "en": "Cherry Tomatoes",
       "fr": "Tomate Cerise",
-      "es": "Cherry Tomatoes"
+      "es": "Tomate Cherri"
     },
     "category": "other",
     "shortDescription": {
@@ -2880,7 +2880,7 @@
     "names": {
       "en": "Chewtle Claw",
       "fr": "Griffe de Khélocrok",
-      "es": "Chewtle Claw"
+      "es": "Garra de Chewtle"
     },
     "category": "other",
     "shortDescription": {
@@ -2930,7 +2930,7 @@
     "names": {
       "en": "Chili Sauce",
       "fr": "Sauce Piquante",
-      "es": "Chili Sauce"
+      "es": "Salsa picante"
     },
     "category": "other",
     "shortDescription": {
@@ -2980,7 +2980,7 @@
     "names": {
       "en": "Chingling Fragment",
       "fr": "Fragment de Korillon",
-      "es": "Chingling Fragment"
+      "es": "Fragmento de Chingling"
     },
     "category": "other",
     "shortDescription": {
@@ -3155,7 +3155,7 @@
     "names": {
       "en": "Clauncher Claw",
       "fr": "Pince de Flingouste",
-      "es": "Clauncher Claw"
+      "es": "Pinza de Clauncher"
     },
     "category": "other",
     "shortDescription": {
@@ -3230,7 +3230,7 @@
     "names": {
       "en": "Clear Amulet",
       "fr": "Talisman Sain",
-      "es": "Clear Amulet"
+      "es": "Amuleto puro"
     },
     "category": "heldItem",
     "shortDescription": {
@@ -3255,7 +3255,7 @@
     "names": {
       "en": "Cleffa Fur",
       "fr": "Poils de Mélo",
-      "es": "Cleffa Fur"
+      "es": "Pelo de Cleffa"
     },
     "category": "other",
     "shortDescription": {
@@ -3280,7 +3280,7 @@
     "names": {
       "en": "Clever Mochi",
       "fr": "Mochi Mental",
-      "es": "Clever Mochi"
+      "es": "Mochi mente"
     },
     "category": "other",
     "shortDescription": {
@@ -3430,7 +3430,7 @@
     "names": {
       "en": "Combee Honey",
       "fr": "Nectar d'Apitrini",
-      "es": "Combee Honey"
+      "es": "Miel de Combee"
     },
     "category": "other",
     "shortDescription": {
@@ -3455,7 +3455,7 @@
     "names": {
       "en": "Cornerstone Mask",
       "fr": "Masque de la Pierre",
-      "es": "Cornerstone Mask"
+      "es": "Máscara cimiento"
     },
     "category": "heldItem",
     "shortDescription": {
@@ -3505,7 +3505,7 @@
     "names": {
       "en": "Corphish Shell",
       "fr": "Carapace d’Écrapince",
-      "es": "Corphish Shell"
+      "es": "Cáscara de Corphish"
     },
     "category": "other",
     "shortDescription": {
@@ -3630,7 +3630,7 @@
     "names": {
       "en": "Covert Cloak",
       "fr": "Cape Obscure",
-      "es": "Covert Cloak"
+      "es": "Capa furtiva"
     },
     "category": "heldItem",
     "shortDescription": {
@@ -3655,7 +3655,7 @@
     "names": {
       "en": "Crabrawler Shell",
       "fr": "Carapace de Crabagarre",
-      "es": "Crabrawler Shell"
+      "es": "Cáscara de Crabrawler"
     },
     "category": "other",
     "shortDescription": {
@@ -3705,7 +3705,7 @@
     "names": {
       "en": "Cramorant Down",
       "fr": "Duvet de Nigosier",
-      "es": "Cramorant Down"
+      "es": "Plumón de Cramorant"
     },
     "category": "other",
     "shortDescription": {
@@ -3730,7 +3730,7 @@
     "names": {
       "en": "Cream Cheese",
       "fr": "Fromage Frais",
-      "es": "Cream Cheese"
+      "es": "Queso crema"
     },
     "category": "other",
     "shortDescription": {
@@ -3755,7 +3755,7 @@
     "names": {
       "en": "Croagunk Poison",
       "fr": "Poison de Cradopaud",
-      "es": "Croagunk Poison"
+      "es": "Toxinas de Croagunk"
     },
     "category": "other",
     "shortDescription": {
@@ -3780,7 +3780,7 @@
     "names": {
       "en": "Cryogonal Ice",
       "fr": "Glace d'Hexagel",
-      "es": "Cryogonal Ice"
+      "es": "Hielo de Cryogonal"
     },
     "category": "other",
     "shortDescription": {
@@ -3805,7 +3805,7 @@
     "names": {
       "en": "Crystal Cluster",
       "fr": "Morceau de Cristal",
-      "es": "Crystal Cluster"
+      "es": "Fragmento de cristal"
     },
     "category": "other",
     "shortDescription": {
@@ -3830,7 +3830,7 @@
     "names": {
       "en": "Cubchoo Fur",
       "fr": "Poils de Polarhume",
-      "es": "Cubchoo Fur"
+      "es": "Pelo de Cubchoo"
     },
     "category": "other",
     "shortDescription": {
@@ -3855,7 +3855,7 @@
     "names": {
       "en": "Cucumber",
       "fr": "Concombre",
-      "es": "Cucumber"
+      "es": "Pepino"
     },
     "category": "other",
     "shortDescription": {
@@ -3880,7 +3880,7 @@
     "names": {
       "en": "Cufant Tarnish",
       "fr": "Rouille de Charibari",
-      "es": "Cufant Tarnish"
+      "es": "Óxido de Cufant"
     },
     "category": "other",
     "shortDescription": {
@@ -3905,7 +3905,7 @@
     "names": {
       "en": "Curry Powder",
       "fr": "Curry en Poudre",
-      "es": "Curry Powder"
+      "es": "Curri en polvo"
     },
     "category": "other",
     "shortDescription": {
@@ -3955,7 +3955,7 @@
     "names": {
       "en": "Cutiefly Powder",
       "fr": "Poudre de Bombydou",
-      "es": "Cutiefly Powder"
+      "es": "Polvo de Cutiefly"
     },
     "category": "other",
     "shortDescription": {
@@ -3980,7 +3980,7 @@
     "names": {
       "en": "Cyclizar Scales",
       "fr": "Écaille de Motorizard",
-      "es": "Cyclizar Scales"
+      "es": "Escama de Cyclizar"
     },
     "category": "other",
     "shortDescription": {
@@ -4805,7 +4805,7 @@
     "names": {
       "en": "Dedenne Fur",
       "fr": "Poils de Dedenne",
-      "es": "Dedenne Fur"
+      "es": "Pelo de Dedenne"
     },
     "category": "other",
     "shortDescription": {
@@ -4880,7 +4880,7 @@
     "names": {
       "en": "Deerling Hair",
       "fr": "Poils de Vivaldaim",
-      "es": "Deerling Hair"
+      "es": "Pelo de Deerling"
     },
     "category": "other",
     "shortDescription": {
@@ -4905,7 +4905,7 @@
     "names": {
       "en": "Deino Scales",
       "fr": "Écaille de Solochi",
-      "es": "Deino Scales"
+      "es": "Escama de Deino"
     },
     "category": "other",
     "shortDescription": {
@@ -4930,7 +4930,7 @@
     "names": {
       "en": "Delibird Parcel",
       "fr": "Provisions de Cadoizo",
-      "es": "Delibird Parcel"
+      "es": "Paquete de Delibird"
     },
     "category": "other",
     "shortDescription": {
@@ -5005,7 +5005,7 @@
     "names": {
       "en": "Diglett Dirt",
       "fr": "Terre de Taupiqueur",
-      "es": "Diglett Dirt"
+      "es": "Tierra de Diglett"
     },
     "category": "other",
     "shortDescription": {
@@ -5105,7 +5105,7 @@
     "names": {
       "en": "Ditto Goo",
       "fr": "Substance de Métamorph",
-      "es": "Ditto Goo"
+      "es": "Pegote de Ditto"
     },
     "category": "other",
     "shortDescription": {
@@ -5180,7 +5180,7 @@
     "names": {
       "en": "Dondozo Whisker",
       "fr": "Barbillon d'Oyacata",
-      "es": "Dondozo Whisker"
+      "es": "Bigote de Dondozo"
     },
     "category": "other",
     "shortDescription": {
@@ -5355,7 +5355,7 @@
     "names": {
       "en": "Dratini Scales",
       "fr": "Écaille de Minidraco",
-      "es": "Dratini Scales"
+      "es": "Escama de Dratini"
     },
     "category": "other",
     "shortDescription": {
@@ -5430,7 +5430,7 @@
     "names": {
       "en": "Dreepy Powder",
       "fr": "Poudre de Fantyrm",
-      "es": "Dreepy Powder"
+      "es": "Polvo de Dreepy"
     },
     "category": "other",
     "shortDescription": {
@@ -5455,7 +5455,7 @@
     "names": {
       "en": "Drifloon Gas",
       "fr": "Gaz de Baudrive",
-      "es": "Drifloon Gas"
+      "es": "Gas de Drifloon"
     },
     "category": "other",
     "shortDescription": {
@@ -5480,7 +5480,7 @@
     "names": {
       "en": "Drowzee Fur",
       "fr": "Poils de Soporifik",
-      "es": "Drowzee Fur"
+      "es": "Pelo de Drowzee"
     },
     "category": "other",
     "shortDescription": {
@@ -5530,7 +5530,7 @@
     "names": {
       "en": "Ducklett Feather",
       "fr": "Plume de Couaneton",
-      "es": "Ducklett Feather"
+      "es": "Pluma de Ducklett"
     },
     "category": "other",
     "shortDescription": {
@@ -5555,7 +5555,7 @@
     "names": {
       "en": "Dunsparce Scales",
       "fr": "Écaille d'Insolourdo",
-      "es": "Dunsparce Scales"
+      "es": "Escama de Dunsparce"
     },
     "category": "other",
     "shortDescription": {
@@ -5655,7 +5655,7 @@
     "names": {
       "en": "Duskull Fragment",
       "fr": "Fragment de Skelénox",
-      "es": "Duskull Fragment"
+      "es": "Fragmento de Duskull"
     },
     "category": "other",
     "shortDescription": {
@@ -5730,7 +5730,7 @@
     "names": {
       "en": "Eevee Fur",
       "fr": "Poils d’Évoli",
-      "es": "Eevee Fur"
+      "es": "Pelo de Eevee"
     },
     "category": "other",
     "shortDescription": {
@@ -5755,7 +5755,7 @@
     "names": {
       "en": "Egg",
       "fr": "Œuf",
-      "es": "Egg"
+      "es": "Huevo cocido"
     },
     "category": "other",
     "shortDescription": {
@@ -5780,7 +5780,7 @@
     "names": {
       "en": "Eiscue Down",
       "fr": "Duvet de Bekaglaçon",
-      "es": "Eiscue Down"
+      "es": "Plumón de Eiscue"
     },
     "category": "other",
     "shortDescription": {
@@ -5855,7 +5855,7 @@
     "names": {
       "en": "Ekans Fang",
       "fr": "Croc d'Abo",
-      "es": "Ekans Fang"
+      "es": "Colmillo de Ekans"
     },
     "category": "other",
     "shortDescription": {
@@ -6405,7 +6405,7 @@
     "names": {
       "en": "Fairy Feather",
       "fr": "Plume Enchantée",
-      "es": "Fairy Feather"
+      "es": "Pluma feérica"
     },
     "category": "heldItem",
     "shortDescription": {
@@ -6480,7 +6480,7 @@
     "names": {
       "en": "Falinks Sweat",
       "fr": "Sueur d'Hexadron",
-      "es": "Falinks Sweat"
+      "es": "Sudor de Falinks"
     },
     "category": "other",
     "shortDescription": {
@@ -6555,7 +6555,7 @@
     "names": {
       "en": "Feebas Scales",
       "fr": "Écaille de Barpau",
-      "es": "Feebas Scales"
+      "es": "Escama de Feebas"
     },
     "category": "other",
     "shortDescription": {
@@ -6580,7 +6580,7 @@
     "names": {
       "en": "Fidough Fur",
       "fr": "Poils de Pâtachiot",
-      "es": "Fidough Fur"
+      "es": "Pelo de Fidough"
     },
     "category": "other",
     "shortDescription": {
@@ -6680,7 +6680,7 @@
     "names": {
       "en": "Finizen Mucus",
       "fr": "Mucus de Dofin",
-      "es": "Finizen Mucus"
+      "es": "Secreción de Finizen"
     },
     "category": "other",
     "shortDescription": {
@@ -6705,7 +6705,7 @@
     "names": {
       "en": "Finneon Scales",
       "fr": "Écaille d’Écayon",
-      "es": "Finneon Scales"
+      "es": "Escama de Finneon"
     },
     "category": "other",
     "shortDescription": {
@@ -6830,7 +6830,7 @@
     "names": {
       "en": "Flabébé Pollen",
       "fr": "Pollen de Flabébé",
-      "es": "Flabébé Pollen"
+      "es": "Polen de Flabébé"
     },
     "category": "other",
     "shortDescription": {
@@ -6905,7 +6905,7 @@
     "names": {
       "en": "Flamigo Down",
       "fr": "Duvet de Flamenroule",
-      "es": "Flamigo Down"
+      "es": "Plumón de Flamigo"
     },
     "category": "other",
     "shortDescription": {
@@ -6930,7 +6930,7 @@
     "names": {
       "en": "Fletchling Feather",
       "fr": "Plume de Passerouge",
-      "es": "Fletchling Feather"
+      "es": "Pluma de Fletchling"
     },
     "category": "other",
     "shortDescription": {
@@ -6955,7 +6955,7 @@
     "names": {
       "en": "Flittle Down",
       "fr": "Duvet de Flotillon",
-      "es": "Flittle Down"
+      "es": "Plumón de Flittle"
     },
     "category": "other",
     "shortDescription": {
@@ -7155,7 +7155,7 @@
     "names": {
       "en": "Fomantis Leaf",
       "fr": "Feuille de Mimantis",
-      "es": "Fomantis Leaf"
+      "es": "Hoja de Fomantis"
     },
     "category": "other",
     "shortDescription": {
@@ -7180,7 +7180,7 @@
     "names": {
       "en": "Foongus Spores",
       "fr": "Spores de Trompignon",
-      "es": "Foongus Spores"
+      "es": "Esporas de Foongus"
     },
     "category": "other",
     "shortDescription": {
@@ -7330,7 +7330,7 @@
     "names": {
       "en": "Fresh Start Mochi",
       "fr": "Mochi Renouveau",
-      "es": "Fresh Start Mochi"
+      "es": "Mochi reinicio"
     },
     "category": "other",
     "shortDescription": {
@@ -7380,7 +7380,7 @@
     "names": {
       "en": "Fried Fillet",
       "fr": "Filet Frit",
-      "es": "Fried Fillet"
+      "es": "Filete frito"
     },
     "category": "other",
     "shortDescription": {
@@ -7455,7 +7455,7 @@
     "names": {
       "en": "Frigibax Scales",
       "fr": "Écaille de Frigodo",
-      "es": "Frigibax Scales"
+      "es": "Escama de Frigibax"
     },
     "category": "other",
     "shortDescription": {
@@ -7755,7 +7755,7 @@
     "names": {
       "en": "Gastly Gas",
       "fr": "Gaz de Fantominus",
-      "es": "Gastly Gas"
+      "es": "Gas de Gastly"
     },
     "category": "other",
     "shortDescription": {
@@ -7805,7 +7805,7 @@
     "names": {
       "en": "Genius Mochi",
       "fr": "Mochi Esprit",
-      "es": "Genius Mochi"
+      "es": "Mochi intelecto"
     },
     "category": "other",
     "shortDescription": {
@@ -7880,7 +7880,7 @@
     "names": {
       "en": "Geodude Fragment",
       "fr": "Fragment de Racaillou",
-      "es": "Geodude Fragment"
+      "es": "Fragmento de Geodude"
     },
     "category": "other",
     "shortDescription": {
@@ -7955,7 +7955,7 @@
     "names": {
       "en": "Gible Scales",
       "fr": "Écaille de Griknot",
-      "es": "Gible Scales"
+      "es": "Escama de Gible"
     },
     "category": "other",
     "shortDescription": {
@@ -8005,7 +8005,7 @@
     "names": {
       "en": "Gimmighoul Coin",
       "fr": "Pièce de Mordudor",
-      "es": "Gimmighoul Coin"
+      "es": "Moneda de Gimmighoul"
     },
     "category": "other",
     "shortDescription": {
@@ -8030,7 +8030,7 @@
     "names": {
       "en": "Girafarig Fur",
       "fr": "Poils de Girafarig",
-      "es": "Girafarig Fur"
+      "es": "Pelo de Girafarig"
     },
     "category": "other",
     "shortDescription": {
@@ -8080,7 +8080,7 @@
     "names": {
       "en": "Gligar Fang",
       "fr": "Croc de Scorplane",
-      "es": "Gligar Fang"
+      "es": "Colmillo de Gligar"
     },
     "category": "other",
     "shortDescription": {
@@ -8105,7 +8105,7 @@
     "names": {
       "en": "Glimmet Crystal",
       "fr": "Cristal de Germéclat",
-      "es": "Glimmet Crystal"
+      "es": "Cristal de Glimmet"
     },
     "category": "other",
     "shortDescription": {
@@ -8230,7 +8230,7 @@
     "names": {
       "en": "Goomy Goo",
       "fr": "Mucus de Mucuscule",
-      "es": "Goomy Goo"
+      "es": "Secreción de Goomy"
     },
     "category": "other",
     "shortDescription": {
@@ -8255,7 +8255,7 @@
     "names": {
       "en": "Gothita Eyelash",
       "fr": "Cils de Scrutella",
-      "es": "Gothita Eyelash"
+      "es": "Pestaña de Gothita"
     },
     "category": "other",
     "shortDescription": {
@@ -8405,7 +8405,7 @@
     "names": {
       "en": "Greavard Wax",
       "fr": "Cire de Toutombe",
-      "es": "Greavard Wax"
+      "es": "Cera de Greavard"
     },
     "category": "other",
     "shortDescription": {
@@ -8455,7 +8455,7 @@
     "names": {
       "en": "Green Bell Pepper",
       "fr": "Poivron Vert",
-      "es": "Green Bell Pepper"
+      "es": "Pimiento Verde"
     },
     "category": "other",
     "shortDescription": {
@@ -8555,7 +8555,7 @@
     "names": {
       "en": "Grimer Toxin",
       "fr": "Poison de Tadmorv",
-      "es": "Grimer Toxin"
+      "es": "Toxinas de Grimer"
     },
     "category": "other",
     "shortDescription": {
@@ -8680,7 +8680,7 @@
     "names": {
       "en": "Growlithe Fur",
       "fr": "Poils de Caninos",
-      "es": "Growlithe Fur"
+      "es": "Pelo de Growlithe"
     },
     "category": "other",
     "shortDescription": {
@@ -8730,7 +8730,7 @@
     "names": {
       "en": "Grubbin Thread",
       "fr": "Fil de Larvibule",
-      "es": "Grubbin Thread"
+      "es": "Hilo de Grubbin"
     },
     "category": "other",
     "shortDescription": {
@@ -8780,7 +8780,7 @@
     "names": {
       "en": "Gulpin Mucus",
       "fr": "Mucus de Gloupti",
-      "es": "Gulpin Mucus"
+      "es": "Secreción de Gulpin"
     },
     "category": "other",
     "shortDescription": {
@@ -8855,7 +8855,7 @@
     "names": {
       "en": "Ham",
       "fr": "Jambon Blanc",
-      "es": "Ham"
+      "es": "Jamón cocido"
     },
     "category": "other",
     "shortDescription": {
@@ -8880,7 +8880,7 @@
     "names": {
       "en": "Hamburger",
       "fr": "Steak Haché",
-      "es": "Hamburger"
+      "es": "Hamburguesa"
     },
     "category": "other",
     "shortDescription": {
@@ -8905,7 +8905,7 @@
     "names": {
       "en": "Happiny Dust",
       "fr": "Babiole de Ptiravi",
-      "es": "Happiny Dust"
+      "es": "Pertenencia de Happiny"
     },
     "category": "other",
     "shortDescription": {
@@ -8980,7 +8980,7 @@
     "names": {
       "en": "Hatenna Dust",
       "fr": "Babiole de Bibichut",
-      "es": "Hatenna Dust"
+      "es": "Pertenencia de Hatenna"
     },
     "category": "other",
     "shortDescription": {
@@ -9005,7 +9005,7 @@
     "names": {
       "en": "Hawlucha Down",
       "fr": "Duvet de Brutalibré",
-      "es": "Hawlucha Down"
+      "es": "Plumón de Hawlucha"
     },
     "category": "other",
     "shortDescription": {
@@ -9155,7 +9155,7 @@
     "names": {
       "en": "Health Mochi",
       "fr": "Mochi Santé",
-      "es": "Health Mochi"
+      "es": "Mochi vigor"
     },
     "category": "other",
     "shortDescription": {
@@ -9230,7 +9230,7 @@
     "names": {
       "en": "Hearthflame Mask",
       "fr": "Masque du Fourneau",
-      "es": "Hearthflame Mask"
+      "es": "Máscara horno"
     },
     "category": "heldItem",
     "shortDescription": {
@@ -9380,7 +9380,7 @@
     "names": {
       "en": "Heracross Claw",
       "fr": "Griffe de Scarhino",
-      "es": "Heracross Claw"
+      "es": "Garra de Heracross"
     },
     "category": "other",
     "shortDescription": {
@@ -9405,7 +9405,7 @@
     "names": {
       "en": "Herbed Sausage",
       "fr": "Saucisse aux Herbes",
-      "es": "Herbed Sausage"
+      "es": "Butifarra"
     },
     "category": "other",
     "shortDescription": {
@@ -9430,7 +9430,7 @@
     "names": {
       "en": "Hippopotas Sand",
       "fr": "Sable d'Hippopotas",
-      "es": "Hippopotas Sand"
+      "es": "Arena de Hippopotas"
     },
     "category": "other",
     "shortDescription": {
@@ -9505,7 +9505,7 @@
     "names": {
       "en": "Hoothoot Feather",
       "fr": "Plume de Hoothoot",
-      "es": "Hoothoot Feather"
+      "es": "Pluma de Hoothoot"
     },
     "category": "other",
     "shortDescription": {
@@ -9530,7 +9530,7 @@
     "names": {
       "en": "Hoppip Leaf",
       "fr": "Feuille de Granivol",
-      "es": "Hoppip Leaf"
+      "es": "Hoja de Hoppip"
     },
     "category": "other",
     "shortDescription": {
@@ -9555,7 +9555,7 @@
     "names": {
       "en": "Horseradish",
       "fr": "Raifort",
-      "es": "Horseradish"
+      "es": "Rábano picante"
     },
     "category": "other",
     "shortDescription": {
@@ -9605,7 +9605,7 @@
     "names": {
       "en": "Houndour Fang",
       "fr": "Croc de Malosse",
-      "es": "Houndour Fang"
+      "es": "Colmillo de Houndour"
     },
     "category": "other",
     "shortDescription": {
@@ -9855,7 +9855,7 @@
     "names": {
       "en": "Igglybuff Fluff",
       "fr": "Poils de Toudoudou",
-      "es": "Igglybuff Fluff"
+      "es": "Pelo de Igglybuff"
     },
     "category": "other",
     "shortDescription": {
@@ -9880,7 +9880,7 @@
     "names": {
       "en": "Illumise Fluid",
       "fr": "Fluide de Lumivole",
-      "es": "Illumise Fluid"
+      "es": "Fluido de Illumise"
     },
     "category": "other",
     "shortDescription": {
@@ -9905,7 +9905,7 @@
     "names": {
       "en": "Impidimp Hair",
       "fr": "Poils de Grimalin",
-      "es": "Impidimp Hair"
+      "es": "Pelo de Impidimp"
     },
     "category": "other",
     "shortDescription": {
@@ -9955,7 +9955,7 @@
     "names": {
       "en": "Indeedee Fur",
       "fr": "Poils de Wimessir",
-      "es": "Indeedee Fur"
+      "es": "Pelo de Indeedee"
     },
     "category": "other",
     "shortDescription": {
@@ -10205,7 +10205,7 @@
     "names": {
       "en": "Jam",
       "fr": "Confiture de Baies",
-      "es": "Jam"
+      "es": "Confitura de bayas"
     },
     "category": "other",
     "shortDescription": {
@@ -10230,7 +10230,7 @@
     "names": {
       "en": "Jangmo-o Scales",
       "fr": "Écaille de Bébécaille",
-      "es": "Jangmo-o Scales"
+      "es": "Escama de Jangmo-o"
     },
     "category": "other",
     "shortDescription": {
@@ -10430,7 +10430,7 @@
     "names": {
       "en": "Ketchup",
       "fr": "Ketchup",
-      "es": "Ketchup"
+      "es": "Kétchup"
     },
     "category": "other",
     "shortDescription": {
@@ -10505,7 +10505,7 @@
     "names": {
       "en": "Klawf Claw",
       "fr": "Pince de Craparoi",
-      "es": "Klawf Claw"
+      "es": "Pinza de Klawf"
     },
     "category": "other",
     "shortDescription": {
@@ -10530,7 +10530,7 @@
     "names": {
       "en": "Klawf Stick",
       "fr": "Bâtonnet de Craparoi",
-      "es": "Klawf Stick"
+      "es": "Surimi de Klawf"
     },
     "category": "other",
     "shortDescription": {
@@ -10555,7 +10555,7 @@
     "names": {
       "en": "Klefki Key",
       "fr": "Clé de Trousselin",
-      "es": "Klefki Key"
+      "es": "Llave de Klefki"
     },
     "category": "other",
     "shortDescription": {
@@ -10580,7 +10580,7 @@
     "names": {
       "en": "Koffing Gas",
       "fr": "Gaz de Smogo",
-      "es": "Koffing Gas"
+      "es": "Gas de Koffing"
     },
     "category": "other",
     "shortDescription": {
@@ -10605,7 +10605,7 @@
     "names": {
       "en": "Komala Claw",
       "fr": "Griffe de Dodoala",
-      "es": "Komala Claw"
+      "es": "Garra de Komala"
     },
     "category": "other",
     "shortDescription": {
@@ -10630,7 +10630,7 @@
     "names": {
       "en": "Koraidon’s Poké Ball",
       "fr": "Poké Ball de Koraidon",
-      "es": "Koraidon’s Poké Ball"
+      "es": "Poké Ball de Koraidon"
     },
     "category": "other",
     "shortDescription": {
@@ -10655,7 +10655,7 @@
     "names": {
       "en": "Kricketot Shell",
       "fr": "Mue de Crikzik",
-      "es": "Kricketot Shell"
+      "es": "Muda de Kricketot"
     },
     "category": "other",
     "shortDescription": {
@@ -10680,7 +10680,7 @@
     "names": {
       "en": "Feather Ball",
       "fr": "Plume Ball",
-      "es": "Feather Ball"
+      "es": "Pluma Ball"
     },
     "category": "other",
     "shortDescription": {
@@ -10730,7 +10730,7 @@
     "names": {
       "en": "Gigaton Ball",
       "fr": "Gigamasse Ball",
-      "es": "Gigaton Ball"
+      "es": "Quintal Ball"
     },
     "category": "other",
     "shortDescription": {
@@ -10755,7 +10755,7 @@
     "names": {
       "en": "Great Ball",
       "fr": "Super Ball",
-      "es": "Great Ball"
+      "es": "Super Ball"
     },
     "category": "other",
     "shortDescription": {
@@ -10780,7 +10780,7 @@
     "names": {
       "en": "Heavy Ball",
       "fr": "Masse Ball",
-      "es": "Heavy Ball"
+      "es": "Peso Ball"
     },
     "category": "other",
     "shortDescription": {
@@ -10805,7 +10805,7 @@
     "names": {
       "en": "Jet Ball",
       "fr": "Propulse Ball",
-      "es": "Jet Ball"
+      "es": "Aero Ball"
     },
     "category": "other",
     "shortDescription": {
@@ -10830,7 +10830,7 @@
     "names": {
       "en": "Leaden Ball",
       "fr": "Mégamasse Ball",
-      "es": "Leaden Ball"
+      "es": "Kilo Ball"
     },
     "category": "other",
     "shortDescription": {
@@ -10880,7 +10880,7 @@
     "names": {
       "en": "Origin Ball",
       "fr": "Origine Ball",
-      "es": "Origin Ball"
+      "es": "Origen Ball"
     },
     "category": "other",
     "shortDescription": {
@@ -10955,7 +10955,7 @@
     "names": {
       "en": "Larvitar Claw",
       "fr": "Griffe d'Embrylex",
-      "es": "Larvitar Claw"
+      "es": "Garra de Larvitar"
     },
     "category": "other",
     "shortDescription": {
@@ -10980,7 +10980,7 @@
     "names": {
       "en": "Strange Ball",
       "fr": "Étrange Ball",
-      "es": "Strange Ball"
+      "es": "Extraña Ball"
     },
     "category": "other",
     "shortDescription": {
@@ -11105,7 +11105,7 @@
     "names": {
       "en": "Wing Ball",
       "fr": "Envol Ball",
-      "es": "Wing Ball"
+      "es": "Ala Ball"
     },
     "category": "other",
     "shortDescription": {
@@ -11205,7 +11205,7 @@
     "names": {
       "en": "Lechonk Hair",
       "fr": "Poils de Gourmelet",
-      "es": "Lechonk Hair"
+      "es": "Pelo de Lechonk"
     },
     "category": "other",
     "shortDescription": {
@@ -11255,7 +11255,7 @@
     "names": {
       "en": "Legend Plate",
       "fr": "Plaque Légende",
-      "es": "Legend Plate"
+      "es": "Tabla legendaria"
     },
     "category": "other",
     "shortDescription": {
@@ -11330,7 +11330,7 @@
     "names": {
       "en": "Lettuce",
       "fr": "Laitue",
-      "es": "Lettuce"
+      "es": "Lechuga"
     },
     "category": "other",
     "shortDescription": {
@@ -11505,7 +11505,7 @@
     "names": {
       "en": "Linking Cord",
       "fr": "Fil de Liaison",
-      "es": "Linking Cord"
+      "es": "Cordón unión"
     },
     "category": "evolution",
     "shortDescription": {
@@ -11530,7 +11530,7 @@
     "names": {
       "en": "Litleo Tuft",
       "fr": "Crinière d'Hélionceau",
-      "es": "Litleo Tuft"
+      "es": "Mechón de Litleo"
     },
     "category": "other",
     "shortDescription": {
@@ -11555,7 +11555,7 @@
     "names": {
       "en": "Litwick Soot",
       "fr": "Suie de Funécire",
-      "es": "Litwick Soot"
+      "es": "Hollín de Litwick"
     },
     "category": "other",
     "shortDescription": {
@@ -11580,7 +11580,7 @@
     "names": {
       "en": "Loaded Dice",
       "fr": "Dé Pipé",
-      "es": "Loaded Dice"
+      "es": "Dado trucado"
     },
     "category": "heldItem",
     "shortDescription": {
@@ -11655,7 +11655,7 @@
     "names": {
       "en": "Lotad Leaf",
       "fr": "Feuille de Nénupiot",
-      "es": "Lotad Leaf"
+      "es": "Hoja de Lotad"
     },
     "category": "other",
     "shortDescription": {
@@ -12005,7 +12005,7 @@
     "names": {
       "en": "Luvdisc Scales",
       "fr": "Écaille de Lovdisc",
-      "es": "Luvdisc Scales"
+      "es": "Escama de Luvdisc"
     },
     "category": "other",
     "shortDescription": {
@@ -12080,7 +12080,7 @@
     "names": {
       "en": "Magikarp Scales",
       "fr": "Écaille de Magicarpe",
-      "es": "Magikarp Scales"
+      "es": "Escama de Magikarp"
     },
     "category": "other",
     "shortDescription": {
@@ -12130,7 +12130,7 @@
     "names": {
       "en": "Magnemite Screw",
       "fr": "Vis de Magnéti",
-      "es": "Magnemite Screw"
+      "es": "Tornillo de Magnemite"
     },
     "category": "other",
     "shortDescription": {
@@ -12230,7 +12230,7 @@
     "names": {
       "en": "Makuhita Sweat",
       "fr": "Sueur de Makuhita",
-      "es": "Makuhita Sweat"
+      "es": "Sudor de Makuhita"
     },
     "category": "other",
     "shortDescription": {
@@ -12255,7 +12255,7 @@
     "names": {
       "en": "Malicious Armor",
       "fr": "Armure de la Rancune",
-      "es": "Malicious Armor"
+      "es": "Armadura maldita"
     },
     "category": "evolution",
     "shortDescription": {
@@ -12305,7 +12305,7 @@
     "names": {
       "en": "Mankey Fur",
       "fr": "Poils de Férosinge",
-      "es": "Mankey Fur"
+      "es": "Pelo de Mankey"
     },
     "category": "other",
     "shortDescription": {
@@ -12355,7 +12355,7 @@
     "names": {
       "en": "Mareanie Spike",
       "fr": "Épine de Vorastérie",
-      "es": "Mareanie Spike"
+      "es": "Aguijón de Mareanie"
     },
     "category": "other",
     "shortDescription": {
@@ -12380,7 +12380,7 @@
     "names": {
       "en": "Mareep Wool",
       "fr": "Laine de Wattouat",
-      "es": "Mareep Wool"
+      "es": "Lana de Mareep"
     },
     "category": "other",
     "shortDescription": {
@@ -12405,7 +12405,7 @@
     "names": {
       "en": "Marmalade",
       "fr": "Marmelade",
-      "es": "Marmalade"
+      "es": "Mermelada"
     },
     "category": "other",
     "shortDescription": {
@@ -12430,7 +12430,7 @@
     "names": {
       "en": "Maschiff Fang",
       "fr": "Croc de Grondogue",
-      "es": "Maschiff Fang"
+      "es": "Colmillo de Maschiff"
     },
     "category": "other",
     "shortDescription": {
@@ -12480,7 +12480,7 @@
     "names": {
       "en": "Masterpiece Teacup",
       "fr": "Bol Exceptionnel",
-      "es": "Masterpiece Teacup"
+      "es": "Cuenco exquisito"
     },
     "category": "evolution",
     "shortDescription": {
@@ -12730,7 +12730,7 @@
     "names": {
       "en": "Mayonnaise",
       "fr": "Mayonnaise",
-      "es": "Mayonnaise"
+      "es": "Mayonesa"
     },
     "category": "other",
     "shortDescription": {
@@ -12805,7 +12805,7 @@
     "names": {
       "en": "Meditite Sweat",
       "fr": "Sueur de Méditikka",
-      "es": "Meditite Sweat"
+      "es": "Sudor de Meditite"
     },
     "category": "other",
     "shortDescription": {
@@ -12880,7 +12880,7 @@
     "names": {
       "en": "Meowth Fur",
       "fr": "Poils de Miaouss",
-      "es": "Meowth Fur"
+      "es": "Pelo de Meowth"
     },
     "category": "other",
     "shortDescription": {
@@ -13080,7 +13080,7 @@
     "names": {
       "en": "Mienfoo Claw",
       "fr": "Griffe de Kungfouine",
-      "es": "Mienfoo Claw"
+      "es": "Garra de Mienfoo"
     },
     "category": "other",
     "shortDescription": {
@@ -13205,7 +13205,7 @@
     "names": {
       "en": "Mimikyu Scrap",
       "fr": "Tissu de Mimiqui",
-      "es": "Mimikyu Scrap"
+      "es": "Retal de Mimikyu"
     },
     "category": "other",
     "shortDescription": {
@@ -13280,7 +13280,7 @@
     "names": {
       "en": "Miraidon’s Poké Ball",
       "fr": "Poké Ball de Miraidon",
-      "es": "Miraidon’s Poké Ball"
+      "es": "Poké Ball de Miraidon"
     },
     "category": "other",
     "shortDescription": {
@@ -13305,7 +13305,7 @@
     "names": {
       "en": "Mirror Herb",
       "fr": "Feuille Copieuse",
-      "es": "Mirror Herb"
+      "es": "Hierba copia"
     },
     "category": "heldItem",
     "shortDescription": {
@@ -13330,7 +13330,7 @@
     "names": {
       "en": "Misdreavus Tears",
       "fr": "Larme de Feuforêve",
-      "es": "Misdreavus Tears"
+      "es": "Lágrima de Misdreavus"
     },
     "category": "other",
     "shortDescription": {
@@ -13530,7 +13530,7 @@
     "names": {
       "en": "Morpeko Snack",
       "fr": "Graine de Morpeko",
-      "es": "Morpeko Snack"
+      "es": "Semilla de Morpeko"
     },
     "category": "other",
     "shortDescription": {
@@ -13555,7 +13555,7 @@
     "names": {
       "en": "Mudbray Mud",
       "fr": "Boue de Tiboudet",
-      "es": "Mudbray Mud"
+      "es": "Lodo de Mudbray"
     },
     "category": "other",
     "shortDescription": {
@@ -13580,7 +13580,7 @@
     "names": {
       "en": "Munchlax Fang",
       "fr": "Croc de Goinfrex",
-      "es": "Munchlax Fang"
+      "es": "Colmillo de Munchlax"
     },
     "category": "other",
     "shortDescription": {
@@ -13605,7 +13605,7 @@
     "names": {
       "en": "Murkrow Bauble",
       "fr": "Trésor de Cornèbre",
-      "es": "Murkrow Bauble"
+      "es": "Tesoro de Murkrow"
     },
     "category": "other",
     "shortDescription": {
@@ -13655,7 +13655,7 @@
     "names": {
       "en": "Muscle Mochi",
       "fr": "Mochi Force",
-      "es": "Muscle Mochi"
+      "es": "Mochi músculo"
     },
     "category": "other",
     "shortDescription": {
@@ -13705,7 +13705,7 @@
     "names": {
       "en": "Mustard",
       "fr": "Moutarde",
-      "es": "Mustard"
+      "es": "Mostaza"
     },
     "category": "other",
     "shortDescription": {
@@ -13780,7 +13780,7 @@
     "names": {
       "en": "Nacli Salt",
       "fr": "Sel de Selutin",
-      "es": "Nacli Salt"
+      "es": "Sal de Nacli"
     },
     "category": "other",
     "shortDescription": {
@@ -13955,7 +13955,7 @@
     "names": {
       "en": "Noibat Fur",
       "fr": "Poils de Sonistrelle",
-      "es": "Noibat Fur"
+      "es": "Pelo de Noibat"
     },
     "category": "other",
     "shortDescription": {
@@ -14005,7 +14005,7 @@
     "names": {
       "en": "Noodles",
       "fr": "Nouilles",
-      "es": "Noodles"
+      "es": "Fideos"
     },
     "category": "other",
     "shortDescription": {
@@ -14055,7 +14055,7 @@
     "names": {
       "en": "Nosepass Fragment",
       "fr": "Fragment de Tarinor",
-      "es": "Nosepass Fragment"
+      "es": "Fragmento de Nosepass"
     },
     "category": "other",
     "shortDescription": {
@@ -14080,7 +14080,7 @@
     "names": {
       "en": "Numel Lava",
       "fr": "Lave de Chamallot",
-      "es": "Numel Lava"
+      "es": "Lava de Numel"
     },
     "category": "other",
     "shortDescription": {
@@ -14105,7 +14105,7 @@
     "names": {
       "en": "Nymble Claw",
       "fr": "Griffe de Lilliterelle",
-      "es": "Nymble Claw"
+      "es": "Garra de Nymble"
     },
     "category": "other",
     "shortDescription": {
@@ -14305,7 +14305,7 @@
     "names": {
       "en": "Olive Oil",
       "fr": "Huile d'Olive",
-      "es": "Olive Oil"
+      "es": "Aceite de oliva"
     },
     "category": "other",
     "shortDescription": {
@@ -14330,7 +14330,7 @@
     "names": {
       "en": "Onion",
       "fr": "Oignon",
-      "es": "Onion"
+      "es": "Cebolla"
     },
     "category": "other",
     "shortDescription": {
@@ -14380,7 +14380,7 @@
     "names": {
       "en": "Oranguru Fur",
       "fr": "Poils de Gouroutan",
-      "es": "Oranguru Fur"
+      "es": "Pelo de Oranguru"
     },
     "category": "other",
     "shortDescription": {
@@ -14405,7 +14405,7 @@
     "names": {
       "en": "Oricorio Feather",
       "fr": "Plume de Plumeline",
-      "es": "Oricorio Feather"
+      "es": "Pluma de Oricorio"
     },
     "category": "other",
     "shortDescription": {
@@ -14430,7 +14430,7 @@
     "names": {
       "en": "Orthworm Tarnish",
       "fr": "Rouille de Ferdeter",
-      "es": "Orthworm Tarnish"
+      "es": "Óxido de Orthworm"
     },
     "category": "other",
     "shortDescription": {
@@ -14480,7 +14480,7 @@
     "names": {
       "en": "Pachirisu Fur",
       "fr": "Poils de Pachirisu",
-      "es": "Pachirisu Fur"
+      "es": "Pelo de Pachirisu"
     },
     "category": "other",
     "shortDescription": {
@@ -14680,7 +14680,7 @@
     "names": {
       "en": "Passimian Fur",
       "fr": "Poils de Quartermac",
-      "es": "Passimian Fur"
+      "es": "Pelo de Passimian"
     },
     "category": "other",
     "shortDescription": {
@@ -14730,7 +14730,7 @@
     "names": {
       "en": "Pawmi Fur",
       "fr": "Poils de Pohm",
-      "es": "Pawmi Fur"
+      "es": "Pelo de Pawmi"
     },
     "category": "other",
     "shortDescription": {
@@ -14755,7 +14755,7 @@
     "names": {
       "en": "Pawniard Blade",
       "fr": "Lame de Scalpion",
-      "es": "Pawniard Blade"
+      "es": "Cuchilla de Pawniard"
     },
     "category": "other",
     "shortDescription": {
@@ -14805,7 +14805,7 @@
     "names": {
       "en": "Peanut Butter",
       "fr": "Beurre de Cacahuètes",
-      "es": "Peanut Butter"
+      "es": "Crema de cacahuete"
     },
     "category": "other",
     "shortDescription": {
@@ -14830,7 +14830,7 @@
     "names": {
       "en": "peat-block",
       "fr": "peat-block",
-      "es": "peat-block"
+      "es": "Bloque de turba"
     },
     "category": "evolution",
     "shortDescription": {
@@ -14880,7 +14880,7 @@
     "names": {
       "en": "Pepper",
       "fr": "Poivre",
-      "es": "Pepper"
+      "es": "Pimienta"
     },
     "category": "other",
     "shortDescription": {
@@ -14955,7 +14955,7 @@
     "names": {
       "en": "Petilil Leaf",
       "fr": "Feuille de Chlorobule",
-      "es": "Petilil Leaf"
+      "es": "Hoja de Petilil"
     },
     "category": "other",
     "shortDescription": {
@@ -15005,7 +15005,7 @@
     "names": {
       "en": "Phanpy Nail",
       "fr": "Ongle de Phanpy",
-      "es": "Phanpy Nail"
+      "es": "Uña de Phanpy"
     },
     "category": "other",
     "shortDescription": {
@@ -15030,7 +15030,7 @@
     "names": {
       "en": "Phantump Twig",
       "fr": "Branche de Brocélôme",
-      "es": "Phantump Twig"
+      "es": "Rama de Phantump"
     },
     "category": "other",
     "shortDescription": {
@@ -15055,7 +15055,7 @@
     "names": {
       "en": "Pichu Fur",
       "fr": "Poils de Pichu",
-      "es": "Pichu Fur"
+      "es": "Pelo de Pichu"
     },
     "category": "other",
     "shortDescription": {
@@ -15080,7 +15080,7 @@
     "names": {
       "en": "Pickle",
       "fr": "Cornichon",
-      "es": "Pickle"
+      "es": "Pepinillo"
     },
     "category": "other",
     "shortDescription": {
@@ -15155,7 +15155,7 @@
     "names": {
       "en": "Pincurchin Spines",
       "fr": "Épine de Wattapik",
-      "es": "Pincurchin Spines"
+      "es": "Púa de Pincurchin"
     },
     "category": "other",
     "shortDescription": {
@@ -15180,7 +15180,7 @@
     "names": {
       "en": "Pineapple",
       "fr": "Ananas",
-      "es": "Pineapple"
+      "es": "Piña"
     },
     "category": "other",
     "shortDescription": {
@@ -15205,7 +15205,7 @@
     "names": {
       "en": "Pineco Husk",
       "fr": "Écorce de Pomdepik",
-      "es": "Pineco Husk"
+      "es": "Corteza de Pineco"
     },
     "category": "other",
     "shortDescription": {
@@ -15530,7 +15530,7 @@
     "names": {
       "en": "Poliwag Slime",
       "fr": "Mucus de Ptitard",
-      "es": "Poliwag Slime"
+      "es": "Secreción de Poliwag"
     },
     "category": "other",
     "shortDescription": {
@@ -15555,7 +15555,7 @@
     "names": {
       "en": "Poltchageist Powder",
       "fr": "Poudre de Poltchageist",
-      "es": "Poltchageist Powder"
+      "es": "Polvo de Poltchageist"
     },
     "category": "other",
     "shortDescription": {
@@ -15605,7 +15605,7 @@
     "names": {
       "en": "Poochyena Fang",
       "fr": "Croc de Medhyèna",
-      "es": "Poochyena Fang"
+      "es": "Colmillo de Poochyena"
     },
     "category": "other",
     "shortDescription": {
@@ -15630,7 +15630,7 @@
     "names": {
       "en": "Potato Salad",
       "fr": "Salade de Patates",
-      "es": "Potato Salad"
+      "es": "Ensaladilla"
     },
     "category": "other",
     "shortDescription": {
@@ -15655,7 +15655,7 @@
     "names": {
       "en": "Potato Tortilla",
       "fr": "Tortilla",
-      "es": "Potato Tortilla"
+      "es": "Tortilla"
     },
     "category": "other",
     "shortDescription": {
@@ -16005,7 +16005,7 @@
     "names": {
       "en": "Prosciutto",
       "fr": "Jambon Cru",
-      "es": "Prosciutto"
+      "es": "Jamón Serrano"
     },
     "category": "other",
     "shortDescription": {
@@ -16180,7 +16180,7 @@
     "names": {
       "en": "Psyduck Down",
       "fr": "Duvet de Psykokwak",
-      "es": "Psyduck Down"
+      "es": "Plumón de Psyduck"
     },
     "category": "other",
     "shortDescription": {
@@ -16205,7 +16205,7 @@
     "names": {
       "en": "Punching Glove",
       "fr": "Gant de Boxe",
-      "es": "Punching Glove"
+      "es": "Guante de boxeo"
     },
     "category": "heldItem",
     "shortDescription": {
@@ -16505,7 +16505,7 @@
     "names": {
       "en": "Qwilfish Spines",
       "fr": "Épine de Qwilfish",
-      "es": "Qwilfish Spines"
+      "es": "Púa de Qwilfish"
     },
     "category": "other",
     "shortDescription": {
@@ -16555,7 +16555,7 @@
     "names": {
       "en": "Ralts Dust",
       "fr": "Babiole de Tarsal",
-      "es": "Ralts Dust"
+      "es": "Pertenencia de Ralts"
     },
     "category": "other",
     "shortDescription": {
@@ -16780,7 +16780,7 @@
     "names": {
       "en": "Red Bell Pepper",
       "fr": "Poivron Rouge",
-      "es": "Red Bell Pepper"
+      "es": "Pimiento Rojo"
     },
     "category": "other",
     "shortDescription": {
@@ -16880,7 +16880,7 @@
     "names": {
       "en": "Red Onion",
       "fr": "Oignon Rouge",
-      "es": "Red Onion"
+      "es": "Cebolla Roja"
     },
     "category": "other",
     "shortDescription": {
@@ -16980,7 +16980,7 @@
     "names": {
       "en": "Rellor Mud",
       "fr": "Boue de Léboulérou",
-      "es": "Rellor Mud"
+      "es": "Barro de Rellor"
     },
     "category": "other",
     "shortDescription": {
@@ -17080,7 +17080,7 @@
     "names": {
       "en": "Resist Mochi",
       "fr": "Mochi Armure",
-      "es": "Resist Mochi"
+      "es": "Mochi aguante"
     },
     "category": "other",
     "shortDescription": {
@@ -17205,7 +17205,7 @@
     "names": {
       "en": "Rice",
       "fr": "Riz",
-      "es": "Rice"
+      "es": "Arroz"
     },
     "category": "other",
     "shortDescription": {
@@ -17305,7 +17305,7 @@
     "names": {
       "en": "Riolu Fur",
       "fr": "Poils de Riolu",
-      "es": "Riolu Fur"
+      "es": "Pelo de Riolu"
     },
     "category": "other",
     "shortDescription": {
@@ -17405,7 +17405,7 @@
     "names": {
       "en": "Rockruff Rock",
       "fr": "Roche de Rocabot",
-      "es": "Rockruff Rock"
+      "es": "Roca de Rockruff"
     },
     "category": "other",
     "shortDescription": {
@@ -17455,7 +17455,7 @@
     "names": {
       "en": "Rolycoly Coal",
       "fr": "Charbon de Charbi",
-      "es": "Rolycoly Coal"
+      "es": "Carbón de Rolycoly"
     },
     "category": "other",
     "shortDescription": {
@@ -17480,7 +17480,7 @@
     "names": {
       "en": "Rookidee Feather",
       "fr": "Plume de Minisange",
-      "es": "Rookidee Feather"
+      "es": "Pluma de Rookidee"
     },
     "category": "other",
     "shortDescription": {
@@ -17605,7 +17605,7 @@
     "names": {
       "en": "Rotom Phone",
       "fr": "Motismart",
-      "es": "Rotom Phone"
+      "es": "SmartRotom"
     },
     "category": "other",
     "shortDescription": {
@@ -17630,7 +17630,7 @@
     "names": {
       "en": "Rotom Sparks",
       "fr": "Électricité de Motisma",
-      "es": "Rotom Sparks"
+      "es": "Electricidad de Rotom"
     },
     "category": "other",
     "shortDescription": {
@@ -17680,7 +17680,7 @@
     "names": {
       "en": "Rufflet Feather",
       "fr": "Plume de Furaiglon",
-      "es": "Rufflet Feather"
+      "es": "Pluma de Rufflet"
     },
     "category": "other",
     "shortDescription": {
@@ -17780,7 +17780,7 @@
     "names": {
       "en": "Sableye Gem",
       "fr": "Joyau de Ténéfix",
-      "es": "Sableye Gem"
+      "es": "Gema de Sableye"
     },
     "category": "other",
     "shortDescription": {
@@ -18005,7 +18005,7 @@
     "names": {
       "en": "Salandit Gas",
       "fr": "Gaz de Tritox",
-      "es": "Salandit Gas"
+      "es": "Gas de Salandit"
     },
     "category": "other",
     "shortDescription": {
@@ -18030,7 +18030,7 @@
     "names": {
       "en": "Salt",
       "fr": "Sel",
-      "es": "Salt"
+      "es": "Sal"
     },
     "category": "other",
     "shortDescription": {
@@ -18055,7 +18055,7 @@
     "names": {
       "en": "Salty Herba Mystica",
       "fr": "Épice Secrète Salée",
-      "es": "Salty Herba Mystica"
+      "es": "Especia oculta salada"
     },
     "category": "other",
     "shortDescription": {
@@ -18080,7 +18080,7 @@
     "names": {
       "en": "Sandile Claw",
       "fr": "Griffe de Mascaïman",
-      "es": "Sandile Claw"
+      "es": "Garra de Sandile"
     },
     "category": "other",
     "shortDescription": {
@@ -18105,7 +18105,7 @@
     "names": {
       "en": "Sandshrew Claw",
       "fr": "Griffe de Sabelette",
-      "es": "Sandshrew Claw"
+      "es": "Garra de Sandshrew"
     },
     "category": "other",
     "shortDescription": {
@@ -18130,7 +18130,7 @@
     "names": {
       "en": "Sandwich",
       "fr": "Sandwich",
-      "es": "Sandwich"
+      "es": "Bocadillo"
     },
     "category": "other",
     "shortDescription": {
@@ -18155,7 +18155,7 @@
     "names": {
       "en": "Sandygast Sand",
       "fr": "Sable de Bacabouh",
-      "es": "Sandygast Sand"
+      "es": "Arena de Sandygast"
     },
     "category": "other",
     "shortDescription": {
@@ -18230,7 +18230,7 @@
     "names": {
       "en": "Scarlet Book",
       "fr": "Livre Écarlate",
-      "es": "Scarlet Book"
+      "es": "Libro Escarlata"
     },
     "category": "other",
     "shortDescription": {
@@ -18255,7 +18255,7 @@
     "names": {
       "en": "Scatterbug Powder",
       "fr": "Poudre de Lépidonille",
-      "es": "Scatterbug Powder"
+      "es": "Polvo de Scatterbug"
     },
     "category": "other",
     "shortDescription": {
@@ -18355,7 +18355,7 @@
     "names": {
       "en": "Scyther Claw",
       "fr": "Griffe d'Insécateur",
-      "es": "Scyther Claw"
+      "es": "Garra de Scyther"
     },
     "category": "other",
     "shortDescription": {
@@ -18430,7 +18430,7 @@
     "names": {
       "en": "Seedot Stem",
       "fr": "Tige de Grainipiot",
-      "es": "Seedot Stem"
+      "es": "Tallo de Seedot"
     },
     "category": "other",
     "shortDescription": {
@@ -18455,7 +18455,7 @@
     "names": {
       "en": "Sentret Fur",
       "fr": "Poils de Fouinette",
-      "es": "Sentret Fur"
+      "es": "Pelo de Sentret"
     },
     "category": "other",
     "shortDescription": {
@@ -18505,7 +18505,7 @@
     "names": {
       "en": "Seviper Fang",
       "fr": "Croc de Séviper",
-      "es": "Seviper Fang"
+      "es": "Colmillo de Seviper"
     },
     "category": "other",
     "shortDescription": {
@@ -18530,7 +18530,7 @@
     "names": {
       "en": "Sewaddle Leaf",
       "fr": "Feuille de Larveyette",
-      "es": "Sewaddle Leaf"
+      "es": "Hoja de Sewaddle"
     },
     "category": "other",
     "shortDescription": {
@@ -18680,7 +18680,7 @@
     "names": {
       "en": "Shellder Pearl",
       "fr": "Perle de Kokiyas",
-      "es": "Shellder Pearl"
+      "es": "Perla de Shellder"
     },
     "category": "other",
     "shortDescription": {
@@ -18705,7 +18705,7 @@
     "names": {
       "en": "Shellos Mucus",
       "fr": "Mucus de Sancoki",
-      "es": "Shellos Mucus"
+      "es": "Secreción de Shellos"
     },
     "category": "other",
     "shortDescription": {
@@ -18730,7 +18730,7 @@
     "names": {
       "en": "Shinx Fang",
       "fr": "Croc de Lixy",
-      "es": "Shinx Fang"
+      "es": "Colmillo de Shinx"
     },
     "category": "other",
     "shortDescription": {
@@ -18855,7 +18855,7 @@
     "names": {
       "en": "Shroodle Ink",
       "fr": "Encre de Gribouraigne",
-      "es": "Shroodle Ink"
+      "es": "Tinta de Shroodle"
     },
     "category": "other",
     "shortDescription": {
@@ -18880,7 +18880,7 @@
     "names": {
       "en": "Shroomish Spores",
       "fr": "Spores de Balignon",
-      "es": "Shroomish Spores"
+      "es": "Esporas de Shroomish"
     },
     "category": "other",
     "shortDescription": {
@@ -18930,7 +18930,7 @@
     "names": {
       "en": "Shuppet Scrap",
       "fr": "Tissu de Polichombr",
-      "es": "Shuppet Scrap"
+      "es": "Retal de Shuppet"
     },
     "category": "other",
     "shortDescription": {
@@ -18955,7 +18955,7 @@
     "names": {
       "en": "Silicobra Sand",
       "fr": "Sable de Dunaja",
-      "es": "Silicobra Sand"
+      "es": "Arena de Silicobra"
     },
     "category": "other",
     "shortDescription": {
@@ -19105,7 +19105,7 @@
     "names": {
       "en": "Sinistea Chip",
       "fr": "Fragment de Théffroi",
-      "es": "Sinistea Chip"
+      "es": "Fragmento de Sinistea"
     },
     "category": "other",
     "shortDescription": {
@@ -19155,7 +19155,7 @@
     "names": {
       "en": "Skiddo Leaf",
       "fr": "Feuille de Cabriolaine",
-      "es": "Skiddo Leaf"
+      "es": "Hoja de Skiddo"
     },
     "category": "other",
     "shortDescription": {
@@ -19180,7 +19180,7 @@
     "names": {
       "en": "Skrelp Kelp",
       "fr": "Algue de Venalgue",
-      "es": "Skrelp Kelp"
+      "es": "Alga de Skrelp"
     },
     "category": "other",
     "shortDescription": {
@@ -19230,7 +19230,7 @@
     "names": {
       "en": "Skwovet Fur",
       "fr": "Poils de Rongourmand",
-      "es": "Skwovet Fur"
+      "es": "Pelo de Skwovet"
     },
     "category": "other",
     "shortDescription": {
@@ -19280,7 +19280,7 @@
     "names": {
       "en": "Slakoth Fur",
       "fr": "Poils de Parecool",
-      "es": "Slakoth Fur"
+      "es": "Pelo de Slakoth"
     },
     "category": "other",
     "shortDescription": {
@@ -19330,7 +19330,7 @@
     "names": {
       "en": "Slowpoke Claw",
       "fr": "Griffe de Ramoloss",
-      "es": "Slowpoke Claw"
+      "es": "Garra de Slowpoke"
     },
     "category": "other",
     "shortDescription": {
@@ -19355,7 +19355,7 @@
     "names": {
       "en": "Slugma Lava",
       "fr": "Lave de Limagma",
-      "es": "Slugma Lava"
+      "es": "Lava de Slugma"
     },
     "category": "other",
     "shortDescription": {
@@ -19505,7 +19505,7 @@
     "names": {
       "en": "Smoked Fillet",
       "fr": "Filet Fumé",
-      "es": "Smoked Fillet"
+      "es": "Filete Ahumado"
     },
     "category": "other",
     "shortDescription": {
@@ -19530,7 +19530,7 @@
     "names": {
       "en": "Smoliv Oil",
       "fr": "Huile d'Olivini",
-      "es": "Smoliv Oil"
+      "es": "Aceite de Smoliv"
     },
     "category": "other",
     "shortDescription": {
@@ -19580,7 +19580,7 @@
     "names": {
       "en": "Sneasel Claw",
       "fr": "Griffe de Farfuret",
-      "es": "Sneasel Claw"
+      "es": "Garra de Sneasel"
     },
     "category": "other",
     "shortDescription": {
@@ -19605,7 +19605,7 @@
     "names": {
       "en": "Snom Thread",
       "fr": "Fil de Frissonille",
-      "es": "Snom Thread"
+      "es": "Hilo de Snom"
     },
     "category": "other",
     "shortDescription": {
@@ -19630,7 +19630,7 @@
     "names": {
       "en": "Snorunt Fur",
       "fr": "Poils de Stalgamin",
-      "es": "Snorunt Fur"
+      "es": "Pelo de Snorunt"
     },
     "category": "other",
     "shortDescription": {
@@ -19655,7 +19655,7 @@
     "names": {
       "en": "Snover Berries",
       "fr": "Baie de Blizzi",
-      "es": "Snover Berries"
+      "es": "Baya de Snover"
     },
     "category": "other",
     "shortDescription": {
@@ -19805,7 +19805,7 @@
     "names": {
       "en": "Sour Herba Mystica",
       "fr": "Épice Secrète Acide",
-      "es": "Sour Herba Mystica"
+      "es": "Especia oculta ácida"
     },
     "category": "other",
     "shortDescription": {
@@ -19905,7 +19905,7 @@
     "names": {
       "en": "Spicy Herba Mystica",
       "fr": "Épice Secrète Corsée",
-      "es": "Spicy Herba Mystica"
+      "es": "Especia oculta picante"
     },
     "category": "other",
     "shortDescription": {
@@ -19930,7 +19930,7 @@
     "names": {
       "en": "Spinarak Thread",
       "fr": "Fil de Mimigal",
-      "es": "Spinarak Thread"
+      "es": "Hilo de Spinarak"
     },
     "category": "other",
     "shortDescription": {
@@ -19955,7 +19955,7 @@
     "names": {
       "en": "Spiritomb Fragment",
       "fr": "Fragment de Spiritomb",
-      "es": "Spiritomb Fragment"
+      "es": "Fragmento de Spiritomb"
     },
     "category": "other",
     "shortDescription": {
@@ -20005,7 +20005,7 @@
     "names": {
       "en": "Spoink Pearl",
       "fr": "Perle de Spoink",
-      "es": "Spoink Pearl"
+      "es": "Perla de Spoink"
     },
     "category": "other",
     "shortDescription": {
@@ -20080,7 +20080,7 @@
     "names": {
       "en": "Squawkabilly Feather",
       "fr": "Plume de Tapatoès",
-      "es": "Squawkabilly Feather"
+      "es": "Pluma de Squawkabilly"
     },
     "category": "other",
     "shortDescription": {
@@ -20130,7 +20130,7 @@
     "names": {
       "en": "Stantler Hair",
       "fr": "Poils de Cerfrousse",
-      "es": "Stantler Hair"
+      "es": "Pelo de Stantler"
     },
     "category": "other",
     "shortDescription": {
@@ -20205,7 +20205,7 @@
     "names": {
       "en": "Starly Feather",
       "fr": "Plume d’Étourmi",
-      "es": "Starly Feather"
+      "es": "Pluma de Starly"
     },
     "category": "other",
     "shortDescription": {
@@ -20380,7 +20380,7 @@
     "names": {
       "en": "Stonjourner Stone",
       "fr": "Roche de Dolman",
-      "es": "Stonjourner Stone"
+      "es": "Roca de Stonjourner"
     },
     "category": "other",
     "shortDescription": {
@@ -20405,7 +20405,7 @@
     "names": {
       "en": "Strange Ball",
       "fr": "Étrange Ball",
-      "es": "Strange Ball"
+      "es": "Extraña Ball"
     },
     "category": "other",
     "shortDescription": {
@@ -20430,7 +20430,7 @@
     "names": {
       "en": "Strawberry",
       "fr": "Fraise",
-      "es": "Strawberry"
+      "es": "Fresa"
     },
     "category": "other",
     "shortDescription": {
@@ -20480,7 +20480,7 @@
     "names": {
       "en": "Stunky Fur",
       "fr": "Poils de Moufouette",
-      "es": "Stunky Fur"
+      "es": "Pelo de Stunky"
     },
     "category": "other",
     "shortDescription": {
@@ -20555,7 +20555,7 @@
     "names": {
       "en": "Sunkern Leaf",
       "fr": "Feuille de Tournegrin",
-      "es": "Sunkern Leaf"
+      "es": "Hoja de Sunkern"
     },
     "category": "other",
     "shortDescription": {
@@ -20680,7 +20680,7 @@
     "names": {
       "en": "Surskit Syrup",
       "fr": "Nectar d'Arakdo",
-      "es": "Surskit Syrup"
+      "es": "Néctar de Surskit"
     },
     "category": "other",
     "shortDescription": {
@@ -20705,7 +20705,7 @@
     "names": {
       "en": "Swablu Fluff",
       "fr": "Plume de Tylton",
-      "es": "Swablu Fluff"
+      "es": "Pluma de Swablu"
     },
     "category": "other",
     "shortDescription": {
@@ -20805,7 +20805,7 @@
     "names": {
       "en": "Sweet Herba Mystica",
       "fr": "Épice Secrète Sucrée",
-      "es": "Sweet Herba Mystica"
+      "es": "Especia oculta dulce"
     },
     "category": "other",
     "shortDescription": {
@@ -20830,7 +20830,7 @@
     "names": {
       "en": "Swift Mochi",
       "fr": "Mochi Sprint",
-      "es": "Swift Mochi"
+      "es": "Mochi ímpetu"
     },
     "category": "other",
     "shortDescription": {
@@ -20880,7 +20880,7 @@
     "names": {
       "en": "Swinub Hair",
       "fr": "Poils de Marcacrin",
-      "es": "Swinub Hair"
+      "es": "Pelo de Swinub"
     },
     "category": "other",
     "shortDescription": {
@@ -20905,7 +20905,7 @@
     "names": {
       "en": "Syrupy Apple",
       "fr": "Pomme Nectar",
-      "es": "Syrupy Apple"
+      "es": "Manzana melosa"
     },
     "category": "evolution",
     "shortDescription": {
@@ -20930,7 +20930,7 @@
     "names": {
       "en": "Tadbulb Mucus",
       "fr": "Mucus de Têtampoule",
-      "es": "Tadbulb Mucus"
+      "es": "Secreción de Tadbulb"
     },
     "category": "other",
     "shortDescription": {
@@ -20980,7 +20980,7 @@
     "names": {
       "en": "Tandemaus Fur",
       "fr": "Poils de Compagnol",
-      "es": "Tandemaus Fur"
+      "es": "Pelo de Tandemaus"
     },
     "category": "other",
     "shortDescription": {
@@ -21030,7 +21030,7 @@
     "names": {
       "en": "Tarountula Thread",
       "fr": "Fil de Tissenboule",
-      "es": "Tarountula Thread"
+      "es": "Hilo de Tarountula"
     },
     "category": "other",
     "shortDescription": {
@@ -21080,7 +21080,7 @@
     "names": {
       "en": "Tatsugiri Scales",
       "fr": "Écaille de Nigirigon",
-      "es": "Tatsugiri Scales"
+      "es": "Escama de Tatsugiri"
     },
     "category": "other",
     "shortDescription": {
@@ -21105,7 +21105,7 @@
     "names": {
       "en": "Tauros Hair",
       "fr": "Poils de Tauros",
-      "es": "Tauros Hair"
+      "es": "Pelo de Tauros"
     },
     "category": "other",
     "shortDescription": {
@@ -21130,7 +21130,7 @@
     "names": {
       "en": "Teal Mask",
       "fr": "Masque Turquoise",
-      "es": "Teal Mask"
+      "es": "Máscara turquesa"
     },
     "category": "other",
     "shortDescription": {
@@ -21155,7 +21155,7 @@
     "names": {
       "en": "Teddiursa Claw",
       "fr": "Griffe de Teddiursa",
-      "es": "Teddiursa Claw"
+      "es": "Garra de Teddiursa"
     },
     "category": "other",
     "shortDescription": {
@@ -21180,7 +21180,7 @@
     "names": {
       "en": "Tera Orb",
       "fr": "Orbe Téracristal",
-      "es": "Tera Orb"
+      "es": "Orbe Teracristal"
     },
     "category": "other",
     "shortDescription": {
@@ -21305,7 +21305,7 @@
     "names": {
       "en": "Timburr Sweat",
       "fr": "Sueur de Charpenti",
-      "es": "Timburr Sweat"
+      "es": "Sudor de Timburr"
     },
     "category": "other",
     "shortDescription": {
@@ -21405,7 +21405,7 @@
     "names": {
       "en": "Tinkatink Hair",
       "fr": "Poils de Forgerette",
-      "es": "Tinkatink Hair"
+      "es": "Pelo de Tinkatink"
     },
     "category": "other",
     "shortDescription": {
@@ -21430,7 +21430,7 @@
     "names": {
       "en": "Toedscool Flaps",
       "fr": "Membrane de Tentacool",
-      "es": "Toedscool Flaps"
+      "es": "Pliegue de Toedscool"
     },
     "category": "other",
     "shortDescription": {
@@ -21480,7 +21480,7 @@
     "names": {
       "en": "Tomato",
       "fr": "Tomate",
-      "es": "Tomato"
+      "es": "Tomate"
     },
     "category": "other",
     "shortDescription": {
@@ -21505,7 +21505,7 @@
     "names": {
       "en": "Torkoal Coal",
       "fr": "Charbon de Chartor",
-      "es": "Torkoal Coal"
+      "es": "Carbón de Torkoal"
     },
     "category": "other",
     "shortDescription": {
@@ -21605,7 +21605,7 @@
     "names": {
       "en": "Toxel Sparks",
       "fr": "Électricité de Toxizap",
-      "es": "Toxel Sparks"
+      "es": "Electricidad de Toxel"
     },
     "category": "other",
     "shortDescription": {
@@ -21680,7 +21680,7 @@
     "names": {
       "en": "Tropius Leaf",
       "fr": "Feuille de Tropius",
-      "es": "Tropius Leaf"
+      "es": "Hoja de Tropius"
     },
     "category": "other",
     "shortDescription": {
@@ -21730,7 +21730,7 @@
     "names": {
       "en": "Tynamo Slime",
       "fr": "Mucus d'Anchwatt",
-      "es": "Tynamo Slime"
+      "es": "Secreción de Tynamo"
     },
     "category": "other",
     "shortDescription": {
@@ -21805,7 +21805,7 @@
     "names": {
       "en": "Unremarkable Teacup",
       "fr": "Bol Médiocre",
-      "es": "Unremarkable Teacup"
+      "es": "Cuenco mediocre"
     },
     "category": "evolution",
     "shortDescription": {
@@ -21880,7 +21880,7 @@
     "names": {
       "en": "Varoom Fume",
       "fr": "Gaz de Vrombi",
-      "es": "Varoom Fume"
+      "es": "Gas de Varoom"
     },
     "category": "other",
     "shortDescription": {
@@ -21905,7 +21905,7 @@
     "names": {
       "en": "Veluza Fillet",
       "fr": "Chair de Délestin",
-      "es": "Veluza Fillet"
+      "es": "Carne de Veluza"
     },
     "category": "other",
     "shortDescription": {
@@ -21930,7 +21930,7 @@
     "names": {
       "en": "Venonat Fang",
       "fr": "Croc de Mimitoss",
-      "es": "Venonat Fang"
+      "es": "Colmillo de Venonat"
     },
     "category": "other",
     "shortDescription": {
@@ -21980,7 +21980,7 @@
     "names": {
       "en": "Vinegar",
       "fr": "Vinaigre",
-      "es": "Vinegar"
+      "es": "Vinagre"
     },
     "category": "other",
     "shortDescription": {
@@ -22005,7 +22005,7 @@
     "names": {
       "en": "Violet Book",
       "fr": "Livre Violet",
-      "es": "Violet Book"
+      "es": "Libro Púrpura"
     },
     "category": "other",
     "shortDescription": {
@@ -22030,7 +22030,7 @@
     "names": {
       "en": "Volbeat Fluid",
       "fr": "Fluide de Muciole",
-      "es": "Volbeat Fluid"
+      "es": "Fluido de Volbeat"
     },
     "category": "other",
     "shortDescription": {
@@ -22055,7 +22055,7 @@
     "names": {
       "en": "Voltorb Sparks",
       "fr": "Électricité de Voltorbe",
-      "es": "Voltorb Sparks"
+      "es": "Electricidad de Voltorb"
     },
     "category": "other",
     "shortDescription": {
@@ -22080,7 +22080,7 @@
     "names": {
       "en": "Vullaby Feather",
       "fr": "Plume de Vostourno",
-      "es": "Vullaby Feather"
+      "es": "Pluma de Vullaby"
     },
     "category": "other",
     "shortDescription": {
@@ -22105,7 +22105,7 @@
     "names": {
       "en": "Vulpix Fur",
       "fr": "Poils de Goupix",
-      "es": "Vulpix Fur"
+      "es": "Pelo de Vulpix"
     },
     "category": "other",
     "shortDescription": {
@@ -22255,7 +22255,7 @@
     "names": {
       "en": "Watercress",
       "fr": "Cresson",
-      "es": "Watercress"
+      "es": "Berros"
     },
     "category": "other",
     "shortDescription": {
@@ -22305,7 +22305,7 @@
     "names": {
       "en": "Wattrel Feather",
       "fr": "Plume de Zapétrel",
-      "es": "Wattrel Feather"
+      "es": "Pluma de Wattrel"
     },
     "category": "other",
     "shortDescription": {
@@ -22380,7 +22380,7 @@
     "names": {
       "en": "Wellspring Mask",
       "fr": "Masque du Puits",
-      "es": "Wellspring Mask"
+      "es": "Máscara fuente"
     },
     "category": "heldItem",
     "shortDescription": {
@@ -22430,7 +22430,7 @@
     "names": {
       "en": "Whipped Cream",
       "fr": "Creme Fouettée",
-      "es": "Whipped Cream"
+      "es": "Nata montada"
     },
     "category": "other",
     "shortDescription": {
@@ -22580,7 +22580,7 @@
     "names": {
       "en": "Wiglett Sand",
       "fr": "Sable de Taupikeau",
-      "es": "Wiglett Sand"
+      "es": "Arena de Wiglett"
     },
     "category": "other",
     "shortDescription": {
@@ -22630,7 +22630,7 @@
     "names": {
       "en": "Wingull Feather",
       "fr": "Plume de Goélise",
-      "es": "Wingull Feather"
+      "es": "Pluma de Wingull"
     },
     "category": "other",
     "shortDescription": {
@@ -22705,7 +22705,7 @@
     "names": {
       "en": "Wooper Slime",
       "fr": "Mucus d'Axoloto",
-      "es": "Wooper Slime"
+      "es": "Secreción de Wooper"
     },
     "category": "other",
     "shortDescription": {
@@ -23355,7 +23355,7 @@
     "names": {
       "en": "Yanma Spike",
       "fr": "Dard de Yanma",
-      "es": "Yanma Spike"
+      "es": "Aguijón de Yanma"
     },
     "category": "other",
     "shortDescription": {
@@ -23405,7 +23405,7 @@
     "names": {
       "en": "Yellow Bell Pepper",
       "fr": "Poivron Jaune",
-      "es": "Yellow Bell Pepper"
+      "es": "Pimiento Amarillo"
     },
     "category": "other",
     "shortDescription": {
@@ -23530,7 +23530,7 @@
     "names": {
       "en": "Yogurt",
       "fr": "Yaourt",
-      "es": "Yogurt"
+      "es": "Yogur"
     },
     "category": "other",
     "shortDescription": {
@@ -23555,7 +23555,7 @@
     "names": {
       "en": "Yungoos Fur",
       "fr": "Poils de Manglouton",
-      "es": "Yungoos Fur"
+      "es": "Pelo de Yungoos"
     },
     "category": "other",
     "shortDescription": {
@@ -23580,7 +23580,7 @@
     "names": {
       "en": "Zangoose Claw",
       "fr": "Griffe de Mangriff",
-      "es": "Zangoose Claw"
+      "es": "Garra de Zangoose"
     },
     "category": "other",
     "shortDescription": {
@@ -23680,7 +23680,7 @@
     "names": {
       "en": "Zorua Fur",
       "fr": "Poils de Zorua",
-      "es": "Zorua Fur"
+      "es": "Pelo de Zorua"
     },
     "category": "other",
     "shortDescription": {

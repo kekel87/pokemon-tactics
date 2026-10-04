@@ -16,7 +16,11 @@ import { playablePokemon } from "../src/playable/playable-pokemon";
 import type { ChampionsOverride } from "./champions-override.types";
 import { fetchChampionsData } from "./fetch-champions";
 import { CACHE_DIR, cachedFetch, cachedFetchText, ensureDir } from "./fetch-utils";
-import { SPANISH_ABILITY_NAMES, SPANISH_MOVE_NAMES } from "./spanish-name-overrides";
+import {
+  SPANISH_ABILITY_NAMES,
+  SPANISH_ITEM_NAMES,
+  SPANISH_MOVE_NAMES,
+} from "./spanish-name-overrides";
 
 // ─── Configuration ───────────────────────────────────────────────────────────
 
@@ -1286,7 +1290,7 @@ function transformItems(pokeapiItems: Map<number, Record<string, unknown>>): Ite
     entries.push({
       id,
       generation,
-      names: { en: enName, fr: frName ?? enName, es: esName ?? enName },
+      names: { en: enName, fr: frName ?? enName, es: esName ?? SPANISH_ITEM_NAMES[id] ?? enName },
       category: ourCategory,
       shortDescription: { en: enEffect?.short_effect ?? null, fr: frFlavor, es: esFlavor },
       longDescription: { en: enEffect?.effect ?? null, fr: frFlavor, es: esFlavor },
