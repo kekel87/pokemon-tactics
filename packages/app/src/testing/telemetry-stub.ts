@@ -28,6 +28,8 @@ export interface TelemetryStub {
   emitVisibilityChange(state: "hidden" | "visible"): void;
   /** Déclenche `pagehide` — l'événement de fermeture d'onglet, celui que la production a raté. */
   emitPageHide(): void;
+  /** Change la source d'entrée publiée sur la racine, comme l'`input-system` en cours de partie. */
+  switchInputSource(source: string): void;
   /** Combien d'écouteurs sont enregistrés pour ce type — de quoi prouver qu'on n'en installe qu'un. */
   listenerCount(type: string): number;
 }
@@ -59,10 +61,11 @@ export function createTelemetryStub(options: {
     }
   };
 
+  const dataset: { inputSource?: string } = { inputSource: options.inputSource };
   const documentStub = {
     visibilityState: "visible" as "hidden" | "visible",
     referrer: options.referrer ?? "",
-    documentElement: { dataset: { inputSource: options.inputSource } },
+    documentElement: { dataset },
     addEventListener: listen,
   };
 
@@ -91,6 +94,9 @@ export function createTelemetryStub(options: {
     },
     emitPageHide() {
       emit("pagehide");
+    },
+    switchInputSource(source) {
+      dataset.inputSource = source;
     },
     listenerCount(type) {
       return listeners.get(type)?.length ?? 0;

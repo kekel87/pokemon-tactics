@@ -17,6 +17,7 @@ import { aiDifficultiesOf, countControllers, trackedSourcesOf } from "./team-tel
 import {
   AbandonSource,
   createBattleId,
+  type TelemetryDevice,
   type TelemetryTeam,
   trackBattleAbandoned,
   trackBattleEnded,
@@ -24,6 +25,8 @@ import {
 } from "./telemetry";
 
 let collector: BattleTelemetryCollector | null = null;
+/** L'appareil relevé au démarrage de la partie ouverte, rejoué tel quel à son abandon (plan 224). */
+let startDevice: TelemetryDevice | null = null;
 let abandonOnPageHideInstalled = false;
 
 /**
@@ -58,7 +61,7 @@ export function beginBattleTelemetry(input: {
   const battleId = input.battleId ?? createBattleId();
   const { humans, ai } = countControllers(input.teams);
 
-  trackBattleStarted({
+  startDevice = trackBattleStarted({
     battleId,
     mode: modeOf(humans, input.localSeat),
     map: mapIdFromUrl(input.mapUrl) ?? MAP_ID_UNKNOWN,
@@ -126,11 +129,11 @@ export function attachBattleRuntime(input: {
  */
 export function abandonBattleTelemetry(from: AbandonSource): void {
   const payload = collector?.buildAbandonedPayload(from);
-  if (!payload) {
+  if (!payload || startDevice === null) {
     return;
   }
   collector = null;
-  trackBattleAbandoned(payload);
+  trackBattleAbandoned(payload, startDevice);
 }
 
 /**

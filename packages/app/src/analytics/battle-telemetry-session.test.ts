@@ -282,3 +282,28 @@ describe("l'onglet qui se ferme sur une partie en cours (plan 212, Lot F)", () =
     expect(stub.beacon.envelopes).toEqual([]);
   });
 });
+
+/**
+ * L'appareil d'une partie est celui du DÉMARRAGE (plan 224). Relu au départ, un joueur passé de la
+ * souris au tactile en cours de partie compterait un départ sans démarrage dans la case tactile, et
+ * le taux d'une case pourrait dépasser 100 %.
+ */
+describe("l'appareil rejoué au départ (plan 224)", () => {
+  it("🔴 porte au départ l'appareil relevé au démarrage, même si la source d'entrée a changé", async () => {
+    const stub = createTelemetryStub({
+      hostname: PAGES_HOST,
+      inputSource: "pointer",
+      screenWidth: 1440,
+    });
+    const session = await loadSession(stub);
+    session.beginBattleTelemetry({ ...SETUP, battleId: "abab9999" });
+
+    stub.switchInputSource("touch");
+    session.abandonBattleTelemetry(AbandonSource.Menu);
+
+    expect(stub.beacon.envelopes.map((envelope) => envelope.payload)).toEqual([
+      expect.objectContaining({ inputSource: "pointer", screen: "1280-1919" }),
+      expect.objectContaining({ inputSource: "pointer", screen: "1280-1919" }),
+    ]);
+  });
+});

@@ -40,11 +40,19 @@ export interface EventRow {
   payload: string;
 }
 
-export interface SessionPayload {
-  first?: boolean;
-  uiLanguage?: string;
+/**
+ * Appareil du joueur, en paliers. Porté par la session et, depuis le plan 224, par le démarrage et
+ * le départ d'une partie. **Facultatif** : les lignes d'avant n'en ont pas, et ne sont jamais
+ * réécrites (décision #868).
+ */
+export interface DevicePayload {
   inputSource?: string | null;
   screen?: string;
+}
+
+export interface SessionPayload extends DevicePayload {
+  first?: boolean;
+  uiLanguage?: string;
   referrer?: string | null;
   screens?: Record<string, number>;
   actions?: Record<string, number>;
@@ -65,7 +73,7 @@ export interface TeamPayload {
   members?: TeamMemberPayload[];
 }
 
-export interface BattleStartedPayload {
+export interface BattleStartedPayload extends DevicePayload {
   battleId: string;
   mode: string;
   map: string;
@@ -109,7 +117,7 @@ export interface MemberOutcomePayload {
  * `battle_ended`, donc il ne bouge pas d'un iota. Cette ligne ne le corrige pas, elle le DÉTAILLE —
  * à quel tour, après combien de temps, et dans quel état de PV.
  */
-export interface BattleAbandonedPayload {
+export interface BattleAbandonedPayload extends DevicePayload {
   battleId: string;
   turns: number;
   durationMs: number;
@@ -316,8 +324,21 @@ export interface Report {
    * un correctif** — perdre est un problème d'équilibrage, gagner un problème de rythme.
    */
   abandonByPosture: Tally;
-  averageAbandonTurns: number | null;
-  averageAbandonDurationMs: number | null;
+  /**
+   * MÉDIANES et non moyennes (plan 224) : la moitié des départs tombe au tour 1, et une dizaine de
+   * parties lâchées après 50 tours tiraient la moyenne à 8,6 — un chiffre qui ne décrivait personne.
+   */
+  medianAbandonTurns: number | null;
+  medianAbandonDurationMs: number | null;
+  /** Répartition des départs par tranche de tours — voir `AbandonTurnRange`. */
+  abandonByTurnRange: Tally;
+  /**
+   * Départs rapides (≤ `QUICK_ABANDON_MAX_TURNS`) rapportés aux parties lancées, par source
+   * d'entrée puis par palier d'écran (plan 224). Seules les lignes qui portent le champ comptent, au
+   * numérateur comme au dénominateur : mêler les lignes d'avant ce plan ferait baisser tous les taux.
+   */
+  quickAbandonByInput: Map<string, DeviceAbandons>;
+  quickAbandonByScreen: Map<string, DeviceAbandons>;
   /**
    * Comment les parties se sont terminées : au combat, par forfait, ou sans qu'on le sache pour
    * les lignes d'avant le plan 201 (plan 204). Compté une fois par partie.
@@ -448,8 +469,11 @@ export function buildReport(rows: EventRow[], days: number): Report {
     battlesAbandoned: 0,
     abandonBySource: new Map(),
     abandonByPosture: new Map(),
-    averageAbandonTurns: null,
-    averageAbandonDurationMs: null,
+    medianAbandonTurns: null,
+    medianAbandonDurationMs: null,
+    abandonByTurnRange: new Map(),
+    quickAbandonByInput: new Map(),
+    quickAbandonByScreen: new Map(),
     battlesByEndReason: new Map(),
     averageTurns: null,
     averageDurationMs: null,
@@ -479,8 +503,8 @@ export function buildReport(rows: EventRow[], days: number): Report {
   };
   let turnsTotal = 0;
   let durationTotal = 0;
-  let abandonTurnsTotal = 0;
-  let abandonDurationTotal = 0;
+  const abandonTurns: number[] = [];
+  const abandonDurations: number[] = [];
   /** Une partie quittée par les DEUX pairs ne compte qu'une fois, comme les fins (plan 204). */
   const countedAbandons = new Set<string>();
 
@@ -619,6 +643,9 @@ export function buildReport(rows: EventRow[], days: number): Report {
         // celles qu'on cherche à voir.
         bump(report.battlesByParticipants, participantsLabel(payload.humans, payload.ai));
       }
+      // Hors du garde, comme les équipes : en ligne, chaque pair joue sur SON appareil et peut
+      // partir de son côté — le dénominateur se compte donc par joueur, pas par partie.
+      countDevice(report, payload, "started");
       // 🔴 Les ÉQUIPES, elles, se cumulent sur les DEUX lignes — hors du garde ci-dessus. Chaque
       // pair ne déclare que son propre camp : les sauter reviendrait à perdre la moitié des
       // compositions des statistiques d'usage, c'est-à-dire la raison d'être du Lot A.
@@ -648,14 +675,21 @@ export function buildReport(rows: EventRow[], days: number): Report {
        * à quel tour, après combien de temps, et dans quel état.
        */
       const payload = JSON.parse(row.payload) as BattleAbandonedPayload;
+      const turnRange = turnRangeOf(payload.turns);
+      // AVANT le dédoublonnage, comme le dénominateur l'est hors du garde des démarrages : en ligne,
+      // les deux pairs peuvent partir, chacun de son appareil. Relevé en revue de code.
+      if (turnRange === AbandonTurnRange.Quick) {
+        countDevice(report, payload, "quick");
+      }
       if (countedAbandons.has(payload.battleId)) {
         continue;
       }
       countedAbandons.add(payload.battleId);
       report.battlesAbandoned += 1;
       bump(report.abandonBySource, payload.from ?? ABANDON_SOURCE_UNKNOWN);
-      abandonTurnsTotal += payload.turns;
-      abandonDurationTotal += payload.durationMs;
+      abandonTurns.push(payload.turns);
+      abandonDurations.push(payload.durationMs);
+      bump(report.abandonByTurnRange, turnRange);
       const posture = postureOf(payload.healthRatios, payload.side);
       if (posture !== null) {
         bump(report.abandonByPosture, posture);
@@ -769,10 +803,8 @@ export function buildReport(rows: EventRow[], days: number): Report {
     report.averageTurns = turnsTotal / report.battlesEnded;
     report.averageDurationMs = durationTotal / report.battlesEnded;
   }
-  if (report.battlesAbandoned > 0) {
-    report.averageAbandonTurns = abandonTurnsTotal / report.battlesAbandoned;
-    report.averageAbandonDurationMs = abandonDurationTotal / report.battlesAbandoned;
-  }
+  report.medianAbandonTurns = median(abandonTurns);
+  report.medianAbandonDurationMs = median(abandonDurations);
   return report;
 }
 
@@ -860,11 +892,18 @@ export const ACTION_LABELS: Record<string, string> = {
   "eliminated-kept-watching": "Éliminé — a continué à regarder",
   "eliminated-left": "Éliminé — a quitté la partie",
 };
+/**
+ * Clé d'une ligne qui porte le relevé d'appareil mais pas de source d'entrée : le joueur n'avait
+ * encore rien touché que l'`input-system` sache nommer.
+ */
+const INPUT_SOURCE_UNKNOWN = "unknown";
+
 export const INPUT_LABELS: Record<string, string> = {
   pointer: "Souris",
   keyboard: "Clavier",
   gamepad: "Manette",
   touch: "Tactile",
+  [INPUT_SOURCE_UNKNOWN]: "Inconnue",
 };
 /**
  * Clé des parties terminées AVANT que `endReason` n'existe (plan 201). Elles sont rangées à part
@@ -872,6 +911,73 @@ export const INPUT_LABELS: Record<string, string> = {
  * retombe sur `battlesEnded` — sans quoi on croirait à une perte.
  */
 export const END_REASON_UNKNOWN = "unknown";
+
+/**
+ * Au-delà de ce tour, un départ n'est plus « rapide » (plan 224). Aligné sur la tranche basse de
+ * `AbandonTurnRange` : le joueur n'a vu qu'un ou deux tours, il n'a pas joué la partie.
+ */
+export const QUICK_ABANDON_MAX_TURNS = 2;
+
+/** Tranches de tours des départs (plan 224). Une médiane seule ne montrerait pas les deux bosses. */
+export const AbandonTurnRange = {
+  Quick: "quick",
+  Engaged: "engaged",
+  Late: "late",
+} as const;
+export type AbandonTurnRange = (typeof AbandonTurnRange)[keyof typeof AbandonTurnRange];
+
+const LATE_ABANDON_MIN_TURNS = 11;
+
+export const ABANDON_TURN_RANGE_LABELS: Record<AbandonTurnRange, string> = {
+  [AbandonTurnRange.Quick]: `tours 0 à ${QUICK_ABANDON_MAX_TURNS}`,
+  [AbandonTurnRange.Engaged]: `tours ${QUICK_ABANDON_MAX_TURNS + 1} à ${LATE_ABANDON_MIN_TURNS - 1}`,
+  [AbandonTurnRange.Late]: `tour ${LATE_ABANDON_MIN_TURNS} et plus`,
+};
+
+function turnRangeOf(turns: number): AbandonTurnRange {
+  if (turns <= QUICK_ABANDON_MAX_TURNS) {
+    return AbandonTurnRange.Quick;
+  }
+  return turns < LATE_ABANDON_MIN_TURNS ? AbandonTurnRange.Engaged : AbandonTurnRange.Late;
+}
+
+/** Parties lancées et quittées dans les premiers tours, pour un appareil donné (plan 224). */
+export interface DeviceAbandons {
+  started: number;
+  quick: number;
+}
+
+function deviceEntry(table: Map<string, DeviceAbandons>, key: string): DeviceAbandons {
+  const existing = table.get(key);
+  if (existing) {
+    return existing;
+  }
+  const fresh: DeviceAbandons = { started: 0, quick: 0 };
+  table.set(key, fresh);
+  return fresh;
+}
+
+/**
+ * Compte une ligne dans les deux tables d'appareil. Une ligne d'avant le plan 224 ne porte pas
+ * `screen` et n'entre nulle part — ni au numérateur, ni au dénominateur.
+ */
+function countDevice(report: Report, device: DevicePayload, field: keyof DeviceAbandons): void {
+  if (device.screen === undefined) {
+    return;
+  }
+  deviceEntry(report.quickAbandonByInput, device.inputSource ?? INPUT_SOURCE_UNKNOWN)[field] += 1;
+  deviceEntry(report.quickAbandonByScreen, device.screen)[field] += 1;
+}
+
+function median(values: readonly number[]): number | null {
+  if (values.length === 0) {
+    return null;
+  }
+  const sorted = [...values].sort((left, right) => left - right);
+  const middle = Math.floor(sorted.length / 2);
+  const upper = sorted[middle] ?? 0;
+  return sorted.length % 2 === 1 ? upper : ((sorted[middle - 1] ?? upper) + upper) / 2;
+}
 
 /** Provenance par défaut des issues d'avant le plan 212 — elles ne suivaient que les équipes bâties. */
 const TEAM_SOURCE_HUMAN_BUILT = "human-built";
@@ -887,8 +993,13 @@ const ABANDON_SOURCE_UNKNOWN = "unknown";
  *
  * Le seuil de 10 points d'écart sépare une partie réellement engagée d'un coude à coude : en deçà,
  * conclure « il perdait » sur trois points de PV serait une sur-lecture.
+ *
+ * `Untouched` (plan 224) se lit AVANT les trois autres : personne n'a encore perdu un PV. Ces départs
+ * passaient pour du coude à coude — 37 sur 51 au 2026-10-04 — alors qu'ils ne disent rien de
+ * l'équilibrage : le joueur est parti avant que le combat commence vraiment.
  */
 export const AbandonPosture = {
+  Untouched: "untouched",
   Losing: "losing",
   Winning: "winning",
   Even: "even",
@@ -896,6 +1007,7 @@ export const AbandonPosture = {
 export type AbandonPosture = (typeof AbandonPosture)[keyof typeof AbandonPosture];
 
 export const ABANDON_POSTURE_LABELS: Record<AbandonPosture, string> = {
+  [AbandonPosture.Untouched]: "avant tout dégât",
   [AbandonPosture.Losing]: "en train de perdre (équilibrage)",
   [AbandonPosture.Winning]: "en train de gagner (rythme)",
   [AbandonPosture.Even]: "au coude à coude",
@@ -939,6 +1051,9 @@ function postureOf(
     .map(([, ratio]) => ratio);
   if (own === undefined || others.length === 0) {
     return null;
+  }
+  if (own >= 1 && others.every((ratio) => ratio >= 1)) {
+    return AbandonPosture.Untouched;
   }
   const bestOpponent = Math.max(...others);
   if (Math.abs(own - bestOpponent) < ABANDON_POSTURE_MARGIN) {

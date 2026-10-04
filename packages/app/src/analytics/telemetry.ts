@@ -305,6 +305,25 @@ function activeInputSource(): string | null {
   return document.documentElement.dataset.inputSource ?? null;
 }
 
+/**
+ * L'appareil du joueur, ajouté à `battle_started` et `battle_abandoned` (plan 224) : sans lui, on ne
+ * sait pas si les départs au premier tour viennent du tactile. Ce sont les deux paliers que la ligne
+ * de session porte déjà — aucune donnée nouvelle, et toujours aucun lien vers le visiteur, que les
+ * événements de partie ne portent volontairement pas (`worker.ts`).
+ *
+ * 🔴 Relevé UNE fois, au démarrage, et rejoué tel quel au départ : relu au départ, un joueur passé de
+ * la souris au tactile en cours de partie tomberait dans deux cases différentes, et le taux d'une
+ * case pourrait dépasser 100 %. Relevé en revue de code.
+ */
+export interface TelemetryDevice {
+  readonly inputSource: string | null;
+  readonly screen: string;
+}
+
+function deviceContext(): TelemetryDevice {
+  return { inputSource: activeInputSource(), screen: screenBucket() };
+}
+
 function countersToRecord<Key extends string>(counters: Map<Key, number>): Record<string, number> {
   return Object.fromEntries(counters);
 }
@@ -371,8 +390,7 @@ export function flushSession(): void {
 
   const payload: Record<string, unknown> = {
     uiLanguage: getLanguage(),
-    inputSource: activeInputSource(),
-    screen: screenBucket(),
+    ...deviceContext(),
     referrer: document.referrer || null,
     screens: countersToRecord(screenCounters),
     actions: countersToRecord(actionCounters),
@@ -460,8 +478,10 @@ export function initTelemetry(): void {
  * ⚠️ À ne PAS appeler à la reprise d'un combat (plan 181), sinon une partie reprise trois fois
  * compterait pour quatre.
  */
-export function trackBattleStarted(payload: BattleStartedPayload): void {
-  send(EventKind.BattleStarted, { ...payload });
+export function trackBattleStarted(payload: BattleStartedPayload): TelemetryDevice {
+  const device = deviceContext();
+  send(EventKind.BattleStarted, { ...payload, ...device });
+  return device;
 }
 
 /**
@@ -482,8 +502,11 @@ export function trackBattleEnded(payload: BattleEndedPayload): void {
  * Le `battleId` rapproche l'abandon de son `battle_started` (décision #880), donc rend le taux
  * lisible par carte et par format plutôt qu'en global.
  */
-export function trackBattleAbandoned(payload: BattleAbandonedPayload): void {
-  send(EventKind.BattleAbandoned, { ...payload });
+export function trackBattleAbandoned(
+  payload: BattleAbandonedPayload,
+  startDevice: TelemetryDevice,
+): void {
+  send(EventKind.BattleAbandoned, { ...payload, ...startDevice });
 }
 
 /**

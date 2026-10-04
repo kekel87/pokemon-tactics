@@ -29,9 +29,12 @@ import { fileURLToPath } from "node:url";
 import {
   ABANDON_POSTURE_LABELS,
   ABANDON_SOURCE_LABELS,
+  ABANDON_TURN_RANGE_LABELS,
+  AbandonTurnRange,
   ACTION_LABELS,
   buildReport,
   CAUSE_LABELS,
+  type DeviceAbandons,
   END_REASON_LABELS,
   type EventRow,
   INPUT_LABELS,
@@ -39,6 +42,7 @@ import {
   MAP_NAMES,
   MODE_LABELS,
   PLATFORM_LABELS,
+  QUICK_ABANDON_MAX_TURNS,
   type Report,
   SCREEN_LABELS,
   SOURCE_LABELS,
@@ -113,6 +117,15 @@ function query(sql: string, local: boolean): EventRow[] {
 
 /* ------------------------------------------------------------------ rapport */
 
+/** Une ligne de tableau : la valeur calée à droite sur 5 colonnes, puis le libellé. */
+function countLine(value: string, text: string): string {
+  return `    ${value.padStart(5)}  ${text}`;
+}
+
+function percent(ratio: number): string {
+  return `${(ratio * 100).toFixed(0)} %`;
+}
+
 function section(
   title: string,
   tally: Tally,
@@ -121,9 +134,7 @@ function section(
   if (tally.size === 0) {
     return `  ${title}\n    (rien)\n`;
   }
-  const lines = top(tally).map(
-    ([key, count]) => `    ${String(count).padStart(5)}  ${translate(key)}`,
-  );
+  const lines = top(tally).map(([key, count]) => countLine(String(count), translate(key)));
   return `  ${title}\n${lines.join("\n")}\n`;
 }
 
@@ -151,7 +162,7 @@ function renderTerminal(report: Report): string {
   parts.push(section("Écrans atteints", report.screens, (k) => label(SCREEN_LABELS, k)));
   parts.push(section("Actions d'interface", report.actions, (k) => label(ACTION_LABELS, k)));
 
-  const abandon = report.abandonRate === null ? "—" : `${(report.abandonRate * 100).toFixed(0)} %`;
+  const abandon = report.abandonRate === null ? "—" : percent(report.abandonRate);
   const turns = report.averageTurns === null ? "—" : report.averageTurns.toFixed(1);
   const duration =
     report.averageDurationMs === null
@@ -247,9 +258,8 @@ function winRateSection(report: Report): string {
   if (rows.length === 0) {
     return `  Présence dans le camp vainqueur\n    (pas encore assez d'apparitions)\n${footer}`;
   }
-  const lines = rows.map(
-    (row) =>
-      `    ${`${(row.rate * 100).toFixed(0)} %`.padStart(5)}  ${nameOf(POKEMON_NAMES, row.species)} (n=${row.appearances})`,
+  const lines = rows.map((row) =>
+    countLine(percent(row.rate), `${nameOf(POKEMON_NAMES, row.species)} (n=${row.appearances})`),
   );
   return `  Présence dans le camp vainqueur\n${lines.join("\n")}\n${footer}`;
 }
@@ -259,17 +269,47 @@ function abandonBlock(report: Report): string {
   if (report.battlesAbandoned === 0) {
     return "\n  ── Abandons ──\n  (aucun départ mesuré sur la période)\n";
   }
-  const turns = report.averageAbandonTurns === null ? "—" : report.averageAbandonTurns.toFixed(1);
+  const turns = report.medianAbandonTurns === null ? "—" : String(report.medianAbandonTurns);
   const duration =
-    report.averageAbandonDurationMs === null
+    report.medianAbandonDurationMs === null
       ? "—"
-      : `${(report.averageAbandonDurationMs / 60_000).toFixed(1)} min`;
+      : `${(report.medianAbandonDurationMs / 60_000).toFixed(1)} min`;
+  const ranges = Object.values(AbandonTurnRange).map((range) =>
+    countLine(String(report.abandonByTurnRange.get(range) ?? 0), ABANDON_TURN_RANGE_LABELS[range]),
+  );
   return [
     "\n  ── Abandons ──\n",
-    `  ${report.battlesAbandoned} départ(s) mesuré(s) · au tour ${turns} en moyenne · après ${duration}\n`,
+    `  ${report.battlesAbandoned} départ(s) mesuré(s) · médiane : tour ${turns}, après ${duration}\n`,
+    `  Quand on part\n${ranges.join("\n")}\n`,
     section("D'où on part", report.abandonBySource, (k) => label(ABANDON_SOURCE_LABELS, k)),
     section("Dans quel état", report.abandonByPosture, (k) => label(ABANDON_POSTURE_LABELS, k)),
+    deviceSection("Abandons rapides par source d'entrée", report.quickAbandonByInput, (k) =>
+      label(INPUT_LABELS, k),
+    ),
+    deviceSection("Abandons rapides par taille d'écran", report.quickAbandonByScreen),
   ].join("\n");
+}
+
+/**
+ * Départs dans les premiers tours rapportés aux parties lancées, par appareil (plan 224). Vide tant
+ * qu'aucune partie n'a été jouée sur une version qui envoie l'appareil.
+ */
+function deviceSection(
+  title: string,
+  table: Map<string, DeviceAbandons>,
+  translate: (key: string) => string = (key) => key,
+): string {
+  const heading = `  ${title} (parties quittées au tour ${QUICK_ABANDON_MAX_TURNS} au plus / lancées)`;
+  if (table.size === 0) {
+    return `${heading}\n    (aucune partie ne porte encore l'appareil)\n`;
+  }
+  const lines = [...table]
+    .sort((left, right) => right[1].started - left[1].started)
+    .map(([key, entry]) => {
+      const rate = entry.started > 0 ? percent(entry.quick / entry.started) : "—";
+      return countLine(rate, `${translate(key)} (${entry.quick}/${entry.started})`);
+    });
+  return `${heading}\n${lines.join("\n")}\n`;
 }
 
 /* --------------------------------------------------------------------- CLI */

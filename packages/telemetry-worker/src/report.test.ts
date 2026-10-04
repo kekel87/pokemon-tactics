@@ -775,14 +775,132 @@ describe("abandons", () => {
     expect(report.battlesAbandoned).toBe(1);
   });
 
-  it("moyenne le tour et la durée du départ", () => {
+  it("prend la médiane du tour et de la durée, pas la moyenne (plan 224)", () => {
+    // Deux départs au tour 1 et un au tour 54 : la moyenne dirait « tour 18 », personne n'y est parti.
+    const report = buildReport(
+      [
+        abandoned({ turns: 1, durationMs: 30_000 }),
+        abandoned({ battleId: "cccc3333", turns: 1, durationMs: 20_000 }),
+        abandoned({ battleId: "dddd4444", turns: 54, durationMs: 1_000_000 }),
+      ],
+      7,
+    );
+
+    expect(report.medianAbandonTurns).toBe(1);
+    expect(report.medianAbandonDurationMs).toBe(30_000);
+  });
+
+  it("prend la moyenne des deux valeurs centrales sur un effectif pair", () => {
     const report = buildReport(
       [abandoned({}), abandoned({ battleId: "cccc3333", turns: 20, durationMs: 600_000 })],
       7,
     );
 
-    expect(report.averageAbandonTurns).toBe(16);
-    expect(report.averageAbandonDurationMs).toBe(450_000);
+    expect(report.medianAbandonTurns).toBe(16);
+    expect(report.medianAbandonDurationMs).toBe(450_000);
+  });
+
+  it("range les départs par tranche de tours", () => {
+    const report = buildReport(
+      [
+        abandoned({ turns: 0 }),
+        abandoned({ battleId: "b2", turns: 2 }),
+        abandoned({ battleId: "b3", turns: 3 }),
+        abandoned({ battleId: "b4", turns: 10 }),
+        abandoned({ battleId: "b5", turns: 11 }),
+      ],
+      7,
+    );
+
+    expect(report.abandonByTurnRange.get("quick")).toBe(2);
+    expect(report.abandonByTurnRange.get("engaged")).toBe(2);
+    expect(report.abandonByTurnRange.get("late")).toBe(1);
+  });
+
+  it("🔴 distingue « avant tout dégât » du coude à coude", () => {
+    // Le défaut lu le 2026-10-04 : 37 départs sur 51 à PV pleins partout, comptés « au coude à coude ».
+    const untouched = buildReport([abandoned({ side: 0, healthRatios: { "0": 1, "1": 1 } })], 7);
+    const scratched = buildReport([abandoned({ side: 0, healthRatios: { "0": 1, "1": 0.97 } })], 7);
+
+    expect(untouched.abandonByPosture.get("untouched")).toBe(1);
+    expect(untouched.abandonByPosture.get("even")).toBeUndefined();
+    expect(scratched.abandonByPosture.get("even")).toBe(1);
+  });
+});
+
+/** Les départs rapides rapportés à l'appareil du joueur (plan 224). */
+describe("abandons rapides par appareil", () => {
+  const started = (id: number, payload: Record<string, unknown>) =>
+    rowOf({
+      id,
+      kind: "battle_started",
+      payload: {
+        battleId: `start${id}`,
+        mode: "local-vs-ai",
+        map: "simple-arena",
+        format: "2v6",
+        teams: [],
+        ...payload,
+      },
+    });
+  const left = (id: number, payload: Record<string, unknown>) =>
+    rowOf({
+      id,
+      kind: "battle_abandoned",
+      payload: { battleId: `start${id}`, durationMs: 30_000, from: "tab-closed", ...payload },
+    });
+
+  it("rapporte les départs rapides aux parties lancées, par source et par écran", () => {
+    const report = buildReport(
+      [
+        started(1, { inputSource: "touch", screen: "<768" }),
+        started(2, { inputSource: "touch", screen: "<768" }),
+        started(3, { inputSource: "pointer", screen: ">=1920" }),
+        left(1, { turns: 1, inputSource: "touch", screen: "<768" }),
+        // Parti tard : compte au dénominateur, pas au numérateur.
+        left(2, { turns: 30, inputSource: "touch", screen: "<768" }),
+      ],
+      7,
+    );
+
+    expect(report.quickAbandonByInput.get("touch")).toEqual({ started: 2, quick: 1 });
+    expect(report.quickAbandonByInput.get("pointer")).toEqual({ started: 1, quick: 0 });
+    expect(report.quickAbandonByScreen.get("<768")).toEqual({ started: 2, quick: 1 });
+  });
+
+  it("🔴 compte le départ de chaque pair d'une partie en ligne, comme son démarrage", () => {
+    // Les deux pairs partagent le `battleId` et partent chacun de leur appareil : un seul départ
+    // compté pour deux démarrages afficherait 50 % là où tout le monde est parti.
+    const online = { mode: "online", battleId: "duel", inputSource: "touch", screen: "<768" };
+    const report = buildReport(
+      [
+        started(1, online),
+        started(2, online),
+        left(3, { battleId: "duel", turns: 1, inputSource: "touch", screen: "<768" }),
+        left(4, { battleId: "duel", turns: 1, inputSource: "touch", screen: "<768" }),
+      ],
+      7,
+    );
+
+    expect(report.quickAbandonByInput.get("touch")).toEqual({ started: 2, quick: 2 });
+    // La PARTIE, elle, ne compte qu'une fois parmi les départs.
+    expect(report.battlesAbandoned).toBe(1);
+  });
+
+  it("🔴 ignore les lignes d'avant le plan, au numérateur comme au dénominateur", () => {
+    // Les mêler ferait baisser tous les taux : les anciennes parties n'ont aucun appareil à qui
+    // s'attribuer, mais grossiraient quand même un total.
+    const report = buildReport([started(1, {}), left(1, { turns: 1 })], 7);
+
+    expect(report.quickAbandonByInput.size).toBe(0);
+    expect(report.quickAbandonByScreen.size).toBe(0);
+    expect(report.abandonByTurnRange.get("quick")).toBe(1);
+  });
+
+  it("range sous « inconnue » une source d'entrée absente du relevé", () => {
+    const report = buildReport([started(1, { inputSource: null, screen: "<768" })], 7);
+
+    expect(report.quickAbandonByInput.get("unknown")).toEqual({ started: 1, quick: 0 });
   });
 });
 

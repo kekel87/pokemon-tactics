@@ -379,6 +379,78 @@ describe("événements de partie", () => {
   });
 });
 
+/**
+ * L'appareil du joueur sur les événements de partie (plan 224) : relevé une fois au démarrage, rejoué
+ * tel quel au départ, pour qu'un joueur passé de la souris au tactile ne tombe pas dans deux cases.
+ */
+describe("appareil du joueur sur les événements de partie", () => {
+  const STARTED = {
+    battleId: "abcd1234",
+    mode: "local-vs-ai",
+    map: "the-wall",
+    format: "2v6",
+    humans: 1,
+    ai: 1,
+    autoPlacement: false,
+    damagePreview: false,
+    aiDifficulties: "",
+    teams: [],
+  } as const;
+
+  const ABANDONED = {
+    battleId: "abcd1234",
+    turns: 1,
+    durationMs: 30_000,
+    side: 0,
+    healthRatios: { "0": 1, "1": 1 },
+  } as const;
+
+  it("joint à `battle_started` la source d'entrée et l'écran en palier, et rend ce relevé", async () => {
+    const stub = createTelemetryStub({
+      hostname: PAGES_HOST,
+      inputSource: "touch",
+      screenWidth: 420,
+    });
+    const telemetry = await loadTelemetry(stub);
+
+    const device = telemetry.trackBattleStarted(STARTED);
+
+    expect(device).toEqual({ inputSource: "touch", screen: "<768" });
+    expect(stub.beacon.envelopes[0]?.payload).toMatchObject(device);
+  });
+
+  it("relève une source `null` quand l'input-system n'a encore rien publié", async () => {
+    const stub = createTelemetryStub({ hostname: PAGES_HOST });
+    const telemetry = await loadTelemetry(stub);
+
+    const device = telemetry.trackBattleStarted(STARTED);
+
+    expect(device.inputSource).toBeNull();
+    expect(stub.beacon.envelopes[0]?.payload).toMatchObject({ inputSource: null });
+  });
+
+  it("🔴 envoie à `battle_abandoned` le relevé reçu, SANS relire l'appareil courant", async () => {
+    const stub = createTelemetryStub({
+      hostname: PAGES_HOST,
+      inputSource: "touch",
+      screenWidth: 420,
+    });
+    const telemetry = await loadTelemetry(stub);
+
+    telemetry.trackBattleAbandoned(
+      { ...ABANDONED, from: telemetry.AbandonSource.Menu },
+      { inputSource: "pointer", screen: ">=1920" },
+    );
+
+    expect(stub.beacon.envelopes[0]).toMatchObject({ kind: "battle_abandoned" });
+    expect(stub.beacon.envelopes[0]?.payload).toMatchObject({
+      battleId: "abcd1234",
+      inputSource: "pointer",
+      screen: ">=1920",
+    });
+  });
+});
+
 describe("createBattleId", () => {
   it("rend un identifiant court, et un différent à chaque partie", async () => {
     const telemetry = await loadTelemetry(createTelemetryStub({ hostname: PAGES_HOST }));
