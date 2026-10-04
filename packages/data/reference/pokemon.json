@@ -449,8 +449,8 @@
         "poison-powder",
         "power-whip",
         "protect",
-        "roar",
         "rest",
+        "roar",
         "round",
         "scary-face",
         "seed-bomb",
@@ -997,6 +997,7 @@
         "scary-face",
         "scorching-sands",
         "shadow-claw",
+        "slash",
         "sleep-talk",
         "snore",
         "solar-beam",
@@ -1504,9 +1505,9 @@
         "bite",
         "blizzard",
         "body-press",
-        "bulldoze",
-        "brick-break",
         "body-slam",
+        "brick-break",
+        "bulldoze",
         "chilling-water",
         "crunch",
         "dark-pulse",
@@ -1542,8 +1543,8 @@
         "liquidation",
         "mega-kick",
         "mirror-coat",
-        "mud-shot",
         "muddy-water",
+        "mud-shot",
         "outrage",
         "protect",
         "rain-dance",
@@ -1561,9 +1562,9 @@
         "substitute",
         "surf",
         "terrain-pulse",
+        "waterfall",
         "water-pulse",
         "water-spout",
-        "waterfall",
         "wave-crash",
         "weather-ball",
         "whirlpool",
@@ -2267,8 +2268,8 @@
         "bug-bite",
         "bug-buzz",
         "cross-poison",
-        "double-hit",
         "double-edge",
+        "double-hit",
         "drill-run",
         "dual-wingbeat",
         "electroweb",
@@ -2776,8 +2777,8 @@
         "heat-wave",
         "hurricane",
         "hyper-beam",
-        "quick-attack",
         "protect",
+        "quick-attack",
         "rain-dance",
         "rest",
         "roost",
@@ -2790,8 +2791,8 @@
         "sunny-day",
         "tailwind",
         "thief",
-        "u-turn",
         "uproar",
+        "u-turn",
         "whirlwind"
       ],
       "tutor": []
@@ -3909,8 +3910,8 @@
         "sludge-wave",
         "snarl",
         "snore",
-        "spit-up",
         "spite",
+        "spit-up",
         "stockpile",
         "stomping-tantrum",
         "substitute",
@@ -4055,9 +4056,9 @@
         "sweet-kiss",
         "thief",
         "thunder",
+        "thunderbolt",
         "thunder-punch",
         "thunder-wave",
-        "thunderbolt",
         "tickle",
         "trailblaze",
         "upper-hand",
@@ -4519,8 +4520,8 @@
         "dig",
         "discharge",
         "double-team",
-        "drain-punch",
         "draining-kiss",
+        "drain-punch",
         "eerie-impulse",
         "electric-terrain",
         "electro-ball",
@@ -4562,9 +4563,9 @@
         "sweet-kiss",
         "thief",
         "thunder",
+        "thunderbolt",
         "thunder-punch",
         "thunder-wave",
-        "thunderbolt",
         "tickle",
         "trailblaze",
         "upper-hand",
@@ -4648,7 +4649,7 @@
           "spe": 110
         },
         "abilities": {
-          "ability1": "surge-surfer",
+          "ability1": "electric-surge",
           "ability2": null,
           "hidden": null
         },
@@ -4671,7 +4672,7 @@
           "spe": 130
         },
         "abilities": {
-          "ability1": "surge-surfer",
+          "ability1": "no-guard",
           "ability2": null,
           "hidden": null
         },
@@ -6563,8 +6564,8 @@
         "dazzling-gleam",
         "dig",
         "double-edge",
-        "drain-punch",
         "draining-kiss",
+        "drain-punch",
         "dual-wingbeat",
         "encore",
         "endeavor",
@@ -6582,8 +6583,8 @@
         "giga-impact",
         "grass-knot",
         "gravity",
-        "heal-pulse",
         "healing-wish",
+        "heal-pulse",
         "helping-hand",
         "hyper-beam",
         "hyper-voice",
@@ -6604,8 +6605,8 @@
         "night-shade",
         "play-rough",
         "protect",
-        "psych-up",
         "psychic",
+        "psych-up",
         "psyshock",
         "rain-dance",
         "reflect",
@@ -6625,9 +6626,9 @@
         "sweet-kiss",
         "thief",
         "thunder",
+        "thunderbolt",
         "thunder-punch",
         "thunder-wave",
-        "thunderbolt",
         "tickle",
         "tri-attack",
         "trick",
@@ -7382,92 +7383,7 @@
       "hidden": "frisk"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 1,
-          "move": "body-slam"
-        },
-        {
-          "level": 1,
-          "move": "charm"
-        },
-        {
-          "level": 1,
-          "move": "copycat"
-        },
-        {
-          "level": 1,
-          "move": "covet"
-        },
-        {
-          "level": 1,
-          "move": "defense-curl"
-        },
-        {
-          "level": 1,
-          "move": "disable"
-        },
-        {
-          "level": 1,
-          "move": "disarming-voice"
-        },
-        {
-          "level": 1,
-          "move": "double-edge"
-        },
-        {
-          "level": 1,
-          "move": "echoed-voice"
-        },
-        {
-          "level": 1,
-          "move": "gyro-ball"
-        },
-        {
-          "level": 1,
-          "move": "hyper-voice"
-        },
-        {
-          "level": 1,
-          "move": "mimic"
-        },
-        {
-          "level": 1,
-          "move": "pound"
-        },
-        {
-          "level": 1,
-          "move": "rest"
-        },
-        {
-          "level": 1,
-          "move": "round"
-        },
-        {
-          "level": 1,
-          "move": "sing"
-        },
-        {
-          "level": 1,
-          "move": "spit-up"
-        },
-        {
-          "level": 1,
-          "move": "stockpile"
-        },
-        {
-          "level": 1,
-          "move": "swallow"
-        },
-        {
-          "level": 1,
-          "move": "sweet-kiss"
-        },
-        {
-          "level": 5,
-          "move": "play-rough"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "alluring-voice",
         "amnesia",
@@ -7475,17 +7391,20 @@
         "blizzard",
         "body-press",
         "body-slam",
+        "bounce",
         "brick-break",
         "calm-mind",
         "charm",
         "chilling-water",
+        "copycat",
+        "covet",
         "dark-pulse",
         "dazzling-gleam",
         "dig",
-        "disarming-voice",
+        "disable",
         "double-edge",
-        "drain-punch",
         "draining-kiss",
+        "drain-punch",
         "encore",
         "endeavor",
         "endure",
@@ -7503,6 +7422,7 @@
         "grass-knot",
         "gravity",
         "gyro-ball",
+        "heal-pulse",
         "helping-hand",
         "hyper-beam",
         "hyper-voice",
@@ -7511,44 +7431,57 @@
         "ice-spinner",
         "icy-wind",
         "knock-off",
+        "last-resort",
         "light-screen",
-        "magical-leaf",
-        "metronome",
+        "magic-room",
+        "mega-kick",
         "misty-explosion",
         "misty-terrain",
+        "moonblast",
         "nasty-plot",
         "pain-split",
+        "perish-song",
         "play-rough",
         "protect",
-        "psych-up",
         "psychic",
         "psychic-noise",
+        "psych-up",
         "psyshock",
         "rain-dance",
         "reflect",
         "rest",
+        "round",
+        "safeguard",
         "sandstorm",
+        "screech",
+        "self-destruct",
         "shadow-ball",
+        "sing",
         "skill-swap",
         "sleep-talk",
+        "snore",
         "solar-beam",
+        "spit-up",
         "stealth-rock",
+        "steel-roller",
+        "stockpile",
         "stored-power",
         "substitute",
         "sunny-day",
-        "swift",
-        "take-down",
+        "swallow",
+        "sweet-kiss",
         "taunt",
-        "tera-blast",
         "thief",
         "thunder",
+        "thunderbolt",
         "thunder-punch",
         "thunder-wave",
-        "thunderbolt",
         "trailblaze",
+        "tri-attack",
         "uproar",
         "water-pulse",
         "wild-charge",
+        "wish",
         "zen-headbutt"
       ],
       "tutor": []
@@ -8343,101 +8276,58 @@
       "hidden": "effect-spore"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 0,
-          "move": "petal-blizzard"
-        },
-        {
-          "level": 1,
-          "move": "absorb"
-        },
-        {
-          "level": 1,
-          "move": "acid"
-        },
-        {
-          "level": 1,
-          "move": "giga-drain"
-        },
-        {
-          "level": 1,
-          "move": "grassy-terrain"
-        },
-        {
-          "level": 1,
-          "move": "growth"
-        },
-        {
-          "level": 1,
-          "move": "mega-drain"
-        },
-        {
-          "level": 1,
-          "move": "moonblast"
-        },
-        {
-          "level": 1,
-          "move": "moonlight"
-        },
-        {
-          "level": 1,
-          "move": "petal-dance"
-        },
-        {
-          "level": 1,
-          "move": "poison-powder"
-        },
-        {
-          "level": 1,
-          "move": "sleep-powder"
-        },
-        {
-          "level": 1,
-          "move": "stun-spore"
-        },
-        {
-          "level": 1,
-          "move": "sweet-scent"
-        },
-        {
-          "level": 1,
-          "move": "toxic"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "acid-spray",
+        "after-you",
+        "attract",
         "body-slam",
         "bullet-seed",
         "charm",
+        "corrosive-gas",
         "dazzling-gleam",
         "endure",
         "energy-ball",
         "facade",
+        "flail",
         "fling",
         "giga-drain",
         "giga-impact",
         "grass-knot",
         "grassy-glide",
         "grassy-terrain",
+        "growth",
         "helping-hand",
         "hyper-beam",
+        "ingrain",
         "leaf-storm",
-        "magical-leaf",
+        "leech-seed",
+        "moonblast",
+        "moonlight",
         "petal-blizzard",
+        "petal-dance",
+        "poison-powder",
         "pollen-puff",
         "protect",
         "rest",
+        "round",
         "seed-bomb",
+        "sleep-powder",
         "sleep-talk",
         "sludge-bomb",
         "sludge-wave",
+        "snore",
         "solar-beam",
         "solar-blade",
+        "strength-sap",
+        "stun-spore",
         "substitute",
         "sunny-day",
+        "sweet-scent",
         "swords-dance",
-        "tera-blast",
+        "synthesis",
+        "teeter-dance",
+        "tickle",
         "toxic",
         "trailblaze",
         "venoshock",
@@ -9894,95 +9784,43 @@
       "hidden": "unnerve"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 0,
-          "move": "power-gem"
-        },
-        {
-          "level": 1,
-          "move": "fake-out"
-        },
-        {
-          "level": 1,
-          "move": "feint"
-        },
-        {
-          "level": 1,
-          "move": "growl"
-        },
-        {
-          "level": 1,
-          "move": "scratch"
-        },
-        {
-          "level": 1,
-          "move": "switcheroo"
-        },
-        {
-          "level": 12,
-          "move": "pay-day"
-        },
-        {
-          "level": 16,
-          "move": "bite"
-        },
-        {
-          "level": 20,
-          "move": "taunt"
-        },
-        {
-          "level": 24,
-          "move": "assurance"
-        },
-        {
-          "level": 31,
-          "move": "fury-swipes"
-        },
-        {
-          "level": 36,
-          "move": "screech"
-        },
-        {
-          "level": 42,
-          "move": "slash"
-        },
-        {
-          "level": 48,
-          "move": "nasty-plot"
-        },
-        {
-          "level": 54,
-          "move": "play-rough"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "aerial-ace",
         "agility",
         "amnesia",
+        "assurance",
+        "bite",
         "body-slam",
         "charm",
         "chilling-water",
+        "covet",
         "dark-pulse",
         "dig",
         "double-edge",
+        "double-team",
         "endeavor",
         "endure",
         "facade",
+        "fake-out",
         "fake-tears",
-        "false-swipe",
+        "feint",
+        "flail",
         "foul-play",
         "giga-impact",
         "gunk-shot",
         "helping-hand",
         "hyper-beam",
         "hyper-voice",
+        "hypnosis",
         "icy-wind",
+        "iron-tail",
         "knock-off",
         "lash-out",
-        "metal-claw",
+        "last-resort",
         "nasty-plot",
         "pain-split",
+        "payback",
         "play-rough",
         "power-gem",
         "protect",
@@ -9990,26 +9828,30 @@
         "rain-dance",
         "rest",
         "roar",
+        "round",
+        "screech",
         "seed-bomb",
         "shadow-ball",
         "shadow-claw",
         "skitter-smack",
+        "slash",
         "sleep-talk",
         "snarl",
+        "snore",
         "spite",
         "substitute",
         "sunny-day",
-        "swift",
-        "take-down",
+        "switcheroo",
         "taunt",
-        "tera-blast",
         "thief",
         "throat-chop",
         "thunder",
-        "thunder-wave",
         "thunderbolt",
+        "thunder-wave",
         "trailblaze",
-        "u-turn"
+        "uproar",
+        "u-turn",
+        "water-pulse"
       ],
       "tutor": []
     },
@@ -15181,14 +15023,14 @@
         "iron-tail",
         "light-screen",
         "liquidation",
-        "mud-shot",
         "muddy-water",
+        "mud-shot",
         "nasty-plot",
         "protect",
-        "psych-up",
         "psychic",
         "psychic-noise",
         "psychic-terrain",
+        "psych-up",
         "psyshock",
         "rain-dance",
         "razor-shell",
@@ -15210,8 +15052,8 @@
         "tri-attack",
         "trick",
         "trick-room",
-        "water-pulse",
         "waterfall",
+        "water-pulse",
         "weather-ball",
         "whirlpool",
         "wonder-room",
@@ -15722,71 +15564,12 @@
       "hidden": "defiant"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 1,
-          "move": "peck"
-        },
-        {
-          "level": 1,
-          "move": "sand-attack"
-        },
-        {
-          "level": 5,
-          "move": "leer"
-        },
-        {
-          "level": 10,
-          "move": "fury-cutter"
-        },
-        {
-          "level": 15,
-          "move": "cut"
-        },
-        {
-          "level": 20,
-          "move": "aerial-ace"
-        },
-        {
-          "level": 25,
-          "move": "air-cutter"
-        },
-        {
-          "level": 30,
-          "move": "knock-off"
-        },
-        {
-          "level": 35,
-          "move": "false-swipe"
-        },
-        {
-          "level": 40,
-          "move": "slash"
-        },
-        {
-          "level": 45,
-          "move": "swords-dance"
-        },
-        {
-          "level": 50,
-          "move": "air-slash"
-        },
-        {
-          "level": 55,
-          "move": "leaf-blade"
-        },
-        {
-          "level": 60,
-          "move": "agility"
-        },
-        {
-          "level": 65,
-          "move": "brave-bird"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "acrobatics",
+        "aerial-ace",
         "agility",
+        "air-cutter",
         "air-slash",
         "attract",
         "baton-pass",
@@ -15794,38 +15577,47 @@
         "brave-bird",
         "brutal-swing",
         "close-combat",
+        "covet",
+        "curse",
+        "dual-wingbeat",
         "endure",
         "facade",
-        "false-swipe",
+        "feather-dance",
+        "feint",
+        "final-gambit",
+        "first-impression",
+        "flail",
         "fly",
         "focus-energy",
         "heat-wave",
         "helping-hand",
         "iron-tail",
+        "knock-off",
         "leaf-blade",
+        "night-slash",
         "poison-jab",
         "protect",
+        "quick-attack",
         "rest",
-        "retaliate",
-        "revenge",
+        "roost",
         "round",
+        "simple-beam",
+        "sky-attack",
+        "slash",
         "sleep-talk",
         "snore",
         "solar-blade",
         "steel-wing",
         "substitute",
         "sunny-day",
-        "swift",
         "swords-dance",
         "thief",
         "throat-chop",
-        "u-turn",
+        "trailblaze",
         "uproar",
-        "work-up"
+        "u-turn"
       ],
-      "tutor": [
-        "dual-wingbeat"
-      ]
+      "tutor": []
     },
     "evolvesFrom": null,
     "evolutions": [],
@@ -17927,9 +17719,9 @@
         "poison-jab",
         "poltergeist",
         "protect",
-        "psych-up",
         "psychic",
         "psychic-noise",
+        "psych-up",
         "rain-dance",
         "reflect-type",
         "rest",
@@ -17952,9 +17744,9 @@
         "taunt",
         "thief",
         "thunder",
+        "thunderbolt",
         "thunder-punch",
         "thunder-wave",
-        "thunderbolt",
         "toxic",
         "toxic-spikes",
         "trick",
@@ -22161,8 +21953,8 @@
         "crunch",
         "dig",
         "disable",
-        "double-hit",
         "double-edge",
+        "double-hit",
         "drain-punch",
         "dynamic-punch",
         "earthquake",
@@ -22210,8 +22002,8 @@
         "terrain-pulse",
         "thief",
         "thunder",
-        "thunder-punch",
         "thunderbolt",
+        "thunder-punch",
         "uproar",
         "whirlpool"
       ],
@@ -23226,13 +23018,13 @@
         "substitute",
         "surf",
         "thunder",
-        "thunder-wave",
         "thunderbolt",
+        "thunder-wave",
         "tri-attack",
         "trick",
         "trick-room",
-        "water-pulse",
         "waterfall",
+        "water-pulse",
         "whirlpool",
         "wonder-room",
         "zen-headbutt"
@@ -23340,92 +23132,7 @@
       "hidden": "technician"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 1,
-          "move": "baton-pass"
-        },
-        {
-          "level": 1,
-          "move": "copycat"
-        },
-        {
-          "level": 1,
-          "move": "encore"
-        },
-        {
-          "level": 1,
-          "move": "guard-swap"
-        },
-        {
-          "level": 1,
-          "move": "pound"
-        },
-        {
-          "level": 1,
-          "move": "power-swap"
-        },
-        {
-          "level": 1,
-          "move": "quick-guard"
-        },
-        {
-          "level": 1,
-          "move": "wide-guard"
-        },
-        {
-          "level": 12,
-          "move": "confusion"
-        },
-        {
-          "level": 16,
-          "move": "role-play"
-        },
-        {
-          "level": 20,
-          "move": "protect"
-        },
-        {
-          "level": 24,
-          "move": "recycle"
-        },
-        {
-          "level": 28,
-          "move": "psybeam"
-        },
-        {
-          "level": 32,
-          "move": "mimic"
-        },
-        {
-          "level": 36,
-          "move": "light-screen"
-        },
-        {
-          "level": 36,
-          "move": "reflect"
-        },
-        {
-          "level": 36,
-          "move": "safeguard"
-        },
-        {
-          "level": 40,
-          "move": "sucker-punch"
-        },
-        {
-          "level": 44,
-          "move": "dazzling-gleam"
-        },
-        {
-          "level": 48,
-          "move": "psychic"
-        },
-        {
-          "level": 52,
-          "move": "teeter-dance"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "ally-switch",
         "attract",
@@ -23433,13 +23140,18 @@
         "body-slam",
         "brick-break",
         "calm-mind",
+        "charge-beam",
         "charm",
+        "confuse-ray",
+        "copycat",
         "dazzling-gleam",
         "drain-punch",
         "encore",
         "endure",
         "energy-ball",
+        "expanding-force",
         "facade",
+        "fake-out",
         "fire-punch",
         "fling",
         "focus-blast",
@@ -23450,27 +23162,29 @@
         "guard-swap",
         "helping-hand",
         "hyper-beam",
+        "hypnosis",
         "ice-punch",
         "icy-wind",
         "iron-defense",
         "light-screen",
         "magic-room",
-        "magical-leaf",
         "mega-kick",
-        "mega-punch",
-        "metronome",
         "misty-terrain",
         "mystical-fire",
         "nasty-plot",
         "payback",
+        "power-split",
         "power-swap",
         "protect",
         "psychic",
         "psychic-terrain",
         "psyshock",
+        "quick-guard",
         "rain-dance",
+        "recycle",
         "reflect",
         "rest",
+        "role-play",
         "round",
         "safeguard",
         "shadow-ball",
@@ -23480,22 +23194,25 @@
         "solar-beam",
         "stored-power",
         "substitute",
+        "sucker-punch",
         "sunny-day",
         "taunt",
+        "teeter-dance",
         "thief",
         "thunder",
+        "thunderbolt",
         "thunder-punch",
         "thunder-wave",
-        "thunderbolt",
+        "tickle",
+        "torment",
         "trick",
         "trick-room",
         "uproar",
+        "wide-guard",
         "wonder-room",
         "zen-headbutt"
       ],
-      "tutor": [
-        "expanding-force"
-      ]
+      "tutor": []
     },
     "evolvesFrom": "mime-jr",
     "evolutions": [],
@@ -24428,8 +24145,10 @@
         "rock-tomb",
         "round",
         "seismic-toss",
+        "slash",
         "sleep-talk",
         "snore",
+        "stealth-rock",
         "stone-edge",
         "storm-throw",
         "substitute",
@@ -24919,11 +24638,11 @@
         "temper-flare",
         "thrash",
         "thunder",
-        "thunder-wave",
         "thunderbolt",
+        "thunder-wave",
         "uproar",
-        "water-pulse",
         "waterfall",
+        "water-pulse",
         "whirlpool"
       ],
       "tutor": []
@@ -25583,8 +25302,8 @@
         "iron-tail",
         "last-resort",
         "liquidation",
-        "mud-slap",
         "muddy-water",
+        "mud-slap",
         "protect",
         "quick-attack",
         "rain-dance",
@@ -25601,8 +25320,8 @@
         "surf",
         "tickle",
         "trailblaze",
-        "water-pulse",
         "waterfall",
+        "water-pulse",
         "weather-ball",
         "whirlpool",
         "wish",
@@ -25740,9 +25459,9 @@
         "substitute",
         "sunny-day",
         "thunder",
+        "thunderbolt",
         "thunder-fang",
         "thunder-wave",
-        "thunderbolt",
         "tickle",
         "trailblaze",
         "volt-switch",
@@ -27144,8 +26863,8 @@
         "swallow",
         "terrain-pulse",
         "thunder",
-        "thunder-punch",
         "thunderbolt",
+        "thunder-punch",
         "trailblaze",
         "uproar",
         "wild-charge",
@@ -28306,11 +28025,11 @@
         "surf",
         "tailwind",
         "thunder",
+        "thunderbolt",
         "thunder-punch",
         "thunder-wave",
-        "thunderbolt",
-        "water-pulse",
         "waterfall",
+        "water-pulse",
         "weather-ball",
         "whirlwind",
         "wrap"
@@ -29946,8 +29665,8 @@
         "body-slam",
         "brick-break",
         "bulldoze",
-        "burn-up",
         "burning-jealousy",
+        "burn-up",
         "covet",
         "curse",
         "dig",
@@ -30539,9 +30258,9 @@
         "liquidation",
         "low-kick",
         "mega-kick",
+        "muddy-water",
         "mud-shot",
         "mud-slap",
-        "muddy-water",
         "outrage",
         "protect",
         "psychic-fangs",
@@ -30555,6 +30274,7 @@
         "scary-face",
         "screech",
         "shadow-claw",
+        "slash",
         "sleep-talk",
         "snarl",
         "snore",
@@ -30568,8 +30288,8 @@
         "thrash",
         "trailblaze",
         "uproar",
-        "water-pulse",
         "waterfall",
+        "water-pulse",
         "whirlpool"
       ],
       "tutor": []
@@ -34346,9 +34066,9 @@
         "sunny-day",
         "supercell-slam",
         "thunder",
+        "thunderbolt",
         "thunder-punch",
         "thunder-wave",
-        "thunderbolt",
         "trailblaze",
         "volt-switch",
         "wild-charge",
@@ -34882,9 +34602,9 @@
         "liquidation",
         "misty-explosion",
         "misty-terrain",
+        "muddy-water",
         "mud-shot",
         "mud-slap",
-        "muddy-water",
         "perish-song",
         "play-rough",
         "protect",
@@ -34902,8 +34622,8 @@
         "tickle",
         "trailblaze",
         "uproar",
-        "water-pulse",
         "waterfall",
+        "water-pulse",
         "whirlpool"
       ],
       "tutor": []
@@ -35222,14 +34942,13 @@
         "liquidation",
         "low-kick",
         "low-sweep",
+        "muddy-water",
         "mud-shot",
         "mud-slap",
-        "muddy-water",
         "perish-song",
-        "pound",
         "protect",
-        "psych-up",
         "psychic",
+        "psych-up",
         "rain-dance",
         "rest",
         "round",
@@ -35241,8 +34960,8 @@
         "swagger",
         "thief",
         "uproar",
-        "water-pulse",
         "waterfall",
+        "water-pulse",
         "weather-ball",
         "whirlpool"
       ],
@@ -37053,11 +36772,11 @@
         "power-gem",
         "power-swap",
         "protect",
-        "psych-up",
         "psychic",
         "psychic-fangs",
         "psychic-noise",
         "psychic-terrain",
+        "psych-up",
         "psyshock",
         "quick-attack",
         "rain-dance",
@@ -37198,8 +36917,8 @@
         "mud-slap",
         "payback",
         "protect",
-        "psych-up",
         "psychic",
+        "psych-up",
         "quick-attack",
         "rain-dance",
         "reflect",
@@ -37539,15 +37258,15 @@
         "iron-tail",
         "light-screen",
         "liquidation",
-        "mud-shot",
         "muddy-water",
+        "mud-shot",
         "nasty-plot",
         "power-gem",
         "protect",
-        "psych-up",
         "psychic",
         "psychic-noise",
         "psychic-terrain",
+        "psych-up",
         "psyshock",
         "rain-dance",
         "razor-shell",
@@ -37574,8 +37293,8 @@
         "tri-attack",
         "trick",
         "trick-room",
-        "water-pulse",
         "waterfall",
+        "water-pulse",
         "weather-ball",
         "whirlpool",
         "wonder-room",
@@ -38511,8 +38230,8 @@
         "rock-slide",
         "rock-tomb",
         "round",
-        "sand-tomb",
         "sandstorm",
+        "sand-tomb",
         "seed-bomb",
         "self-destruct",
         "sleep-talk",
@@ -39075,8 +38794,8 @@
         "rock-slide",
         "rock-tomb",
         "round",
-        "sand-tomb",
         "sandstorm",
+        "sand-tomb",
         "scary-face",
         "scorching-sands",
         "screech",
@@ -39626,86 +39345,26 @@
       "hidden": "intimidate"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 1,
-          "move": "poison-sting"
-        },
-        {
-          "level": 1,
-          "move": "tackle"
-        },
-        {
-          "level": 4,
-          "move": "harden"
-        },
-        {
-          "level": 8,
-          "move": "water-gun"
-        },
-        {
-          "level": 12,
-          "move": "fell-stinger"
-        },
-        {
-          "level": 16,
-          "move": "minimize"
-        },
-        {
-          "level": 20,
-          "move": "spikes"
-        },
-        {
-          "level": 24,
-          "move": "brine"
-        },
-        {
-          "level": 28,
-          "move": "poison-jab"
-        },
-        {
-          "level": 32,
-          "move": "pin-missile"
-        },
-        {
-          "level": 36,
-          "move": "toxic-spikes"
-        },
-        {
-          "level": 40,
-          "move": "spit-up"
-        },
-        {
-          "level": 40,
-          "move": "stockpile"
-        },
-        {
-          "level": 44,
-          "move": "toxic"
-        },
-        {
-          "level": 48,
-          "move": "aqua-tail"
-        },
-        {
-          "level": 52,
-          "move": "acupressure"
-        },
-        {
-          "level": 56,
-          "move": "destiny-bond"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "acid-spray",
+        "acupressure",
         "agility",
+        "aqua-jet",
+        "aqua-tail",
+        "assurance",
+        "barb-barrage",
         "blizzard",
         "chilling-water",
         "crunch",
         "curse",
+        "destiny-bond",
+        "dive",
         "double-edge",
         "endure",
         "facade",
+        "fell-stinger",
+        "flail",
         "flip-turn",
         "giga-impact",
         "gunk-shot",
@@ -39716,36 +39375,41 @@
         "ice-beam",
         "icy-wind",
         "liquidation",
+        "minimize",
         "mud-shot",
         "pain-split",
+        "payback",
+        "pin-missile",
         "poison-jab",
-        "poison-tail",
         "protect",
         "rain-dance",
         "rest",
         "reversal",
+        "round",
         "scale-shot",
         "scary-face",
+        "self-destruct",
         "shadow-ball",
         "sleep-talk",
         "sludge-bomb",
         "sludge-wave",
+        "snore",
         "spikes",
         "spite",
+        "spit-up",
+        "steel-roller",
+        "stockpile",
         "substitute",
         "surf",
-        "swift",
         "swords-dance",
-        "take-down",
         "taunt",
-        "tera-blast",
         "throat-chop",
         "thunder-wave",
         "toxic",
         "toxic-spikes",
         "venoshock",
-        "water-pulse",
         "waterfall",
+        "water-pulse",
         "whirlpool"
       ],
       "tutor": []
@@ -39869,9 +39533,9 @@
         "counter",
         "curse",
         "defog",
+        "double-edge",
         "double-hit",
         "double-team",
-        "double-edge",
         "dual-wingbeat",
         "endure",
         "facade",
@@ -39902,6 +39566,7 @@
         "sandstorm",
         "scary-face",
         "skitter-smack",
+        "slash",
         "sleep-talk",
         "snore",
         "steel-beam",
@@ -42676,9 +42341,10 @@
         "rock-tomb",
         "roost",
         "round",
-        "sand-tomb",
         "sandstorm",
+        "sand-tomb",
         "sky-attack",
+        "slash",
         "sleep-talk",
         "snore",
         "spikes",
@@ -46464,9 +46130,9 @@
         "lash-out",
         "low-kick",
         "mega-kick",
+        "muddy-water",
         "mud-shot",
         "mud-slap",
-        "muddy-water",
         "outrage",
         "payback",
         "power-gem",
@@ -46478,8 +46144,8 @@
         "rock-slide",
         "rock-tomb",
         "round",
-        "sand-tomb",
         "sandstorm",
+        "sand-tomb",
         "scary-face",
         "screech",
         "shadow-claw",
@@ -46499,10 +46165,10 @@
         "taunt",
         "thrash",
         "thunder",
+        "thunderbolt",
         "thunder-fang",
         "thunder-punch",
         "thunder-wave",
-        "thunderbolt",
         "uproar"
       ],
       "tutor": []
@@ -47554,112 +47220,37 @@
       "hidden": "unburden"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 0,
-          "move": "leaf-blade"
-        },
-        {
-          "level": 1,
-          "move": "energy-ball"
-        },
-        {
-          "level": 1,
-          "move": "false-swipe"
-        },
-        {
-          "level": 1,
-          "move": "fury-cutter"
-        },
-        {
-          "level": 1,
-          "move": "leafage"
-        },
-        {
-          "level": 1,
-          "move": "leer"
-        },
-        {
-          "level": 1,
-          "move": "pound"
-        },
-        {
-          "level": 1,
-          "move": "quick-attack"
-        },
-        {
-          "level": 1,
-          "move": "shed-tail"
-        },
-        {
-          "level": 1,
-          "move": "x-scissor"
-        },
-        {
-          "level": 5,
-          "move": "mega-drain"
-        },
-        {
-          "level": 12,
-          "move": "detect"
-        },
-        {
-          "level": 15,
-          "move": "quick-guard"
-        },
-        {
-          "level": 20,
-          "move": "assurance"
-        },
-        {
-          "level": 25,
-          "move": "giga-drain"
-        },
-        {
-          "level": 30,
-          "move": "slam"
-        },
-        {
-          "level": 35,
-          "move": "double-team"
-        },
-        {
-          "level": 42,
-          "move": "screech"
-        },
-        {
-          "level": 49,
-          "move": "endeavor"
-        },
-        {
-          "level": 56,
-          "move": "leaf-storm"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "acrobatics",
         "aerial-ace",
         "agility",
+        "assurance",
         "body-slam",
         "breaking-swipe",
         "brick-break",
+        "brutal-swing",
         "bulldoze",
         "bullet-seed",
+        "cross-poison",
         "crunch",
+        "detect",
         "dig",
         "double-edge",
+        "double-team",
         "dragon-cheer",
         "dragon-claw",
         "dragon-dance",
         "dragon-pulse",
+        "dragon-rush",
         "dragon-tail",
         "drain-punch",
+        "earth-power",
         "earthquake",
         "endeavor",
         "endure",
         "energy-ball",
         "facade",
-        "false-swipe",
         "fling",
         "focus-blast",
         "focus-punch",
@@ -47667,38 +47258,47 @@
         "giga-drain",
         "giga-impact",
         "grass-knot",
-        "grass-pledge",
         "grassy-glide",
         "grassy-terrain",
         "helping-hand",
         "hyper-beam",
+        "iron-tail",
+        "leaf-blade",
         "leaf-storm",
+        "leech-seed",
         "low-kick",
         "low-sweep",
-        "magical-leaf",
+        "mega-kick",
+        "night-slash",
         "outrage",
         "protect",
+        "quick-attack",
+        "quick-guard",
         "rest",
         "roar",
         "rock-slide",
         "rock-tomb",
+        "round",
         "scale-shot",
+        "screech",
         "seed-bomb",
+        "shed-tail",
+        "slash",
         "sleep-talk",
+        "snore",
         "solar-beam",
         "solar-blade",
         "substitute",
         "sunny-day",
-        "swift",
         "swords-dance",
-        "take-down",
-        "tera-blast",
+        "synthesis",
         "thief",
         "throat-chop",
         "thunder-punch",
         "trailblaze",
         "upper-hand",
         "vacuum-wave",
+        "worry-seed",
         "x-scissor"
       ],
       "tutor": []
@@ -48173,111 +47773,36 @@
       "hidden": "speed-boost"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 0,
-          "move": "blaze-kick"
-        },
-        {
-          "level": 1,
-          "move": "double-kick"
-        },
-        {
-          "level": 1,
-          "move": "ember"
-        },
-        {
-          "level": 1,
-          "move": "feather-dance"
-        },
-        {
-          "level": 1,
-          "move": "fire-punch"
-        },
-        {
-          "level": 1,
-          "move": "flamethrower"
-        },
-        {
-          "level": 1,
-          "move": "growl"
-        },
-        {
-          "level": 1,
-          "move": "quick-attack"
-        },
-        {
-          "level": 1,
-          "move": "scratch"
-        },
-        {
-          "level": 9,
-          "move": "flame-charge"
-        },
-        {
-          "level": 12,
-          "move": "detect"
-        },
-        {
-          "level": 15,
-          "move": "sand-attack"
-        },
-        {
-          "level": 20,
-          "move": "aerial-ace"
-        },
-        {
-          "level": 25,
-          "move": "slash"
-        },
-        {
-          "level": 30,
-          "move": "bounce"
-        },
-        {
-          "level": 35,
-          "move": "focus-energy"
-        },
-        {
-          "level": 42,
-          "move": "bulk-up"
-        },
-        {
-          "level": 49,
-          "move": "reversal"
-        },
-        {
-          "level": 56,
-          "move": "flare-blitz"
-        },
-        {
-          "level": 63,
-          "move": "brave-bird"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "acrobatics",
         "aerial-ace",
         "agility",
+        "assurance",
         "aura-sphere",
         "baton-pass",
         "blast-burn",
+        "blaze-kick",
         "body-slam",
+        "bounce",
         "brave-bird",
         "brick-break",
         "bulk-up",
         "bulldoze",
         "close-combat",
         "coaching",
+        "counter",
+        "crush-claw",
         "curse",
+        "detect",
         "dig",
         "double-edge",
         "earthquake",
         "endure",
         "facade",
         "feather-dance",
+        "feint",
         "fire-blast",
-        "fire-pledge",
         "fire-punch",
         "fire-spin",
         "flame-charge",
@@ -48285,41 +47810,48 @@
         "flare-blitz",
         "fling",
         "focus-blast",
+        "focus-energy",
         "focus-punch",
         "giga-impact",
         "heat-crash",
         "heat-wave",
         "helping-hand",
+        "high-jump-kick",
         "hyper-beam",
         "knock-off",
+        "last-resort",
         "low-kick",
         "low-sweep",
+        "mega-kick",
         "mud-slap",
+        "night-slash",
         "overheat",
         "poison-jab",
         "protect",
+        "quick-attack",
         "rest",
         "reversal",
         "roar",
         "rock-slide",
         "rock-tomb",
+        "round",
         "scorching-sands",
         "shadow-claw",
+        "slash",
         "sleep-talk",
+        "snore",
         "solar-beam",
         "stone-edge",
         "substitute",
         "sunny-day",
-        "swift",
+        "superpower",
         "swords-dance",
-        "take-down",
         "temper-flare",
-        "tera-blast",
         "thief",
         "thunder-punch",
-        "u-turn",
         "upper-hand",
         "uproar",
+        "u-turn",
         "vacuum-wave",
         "will-o-wisp"
       ],
@@ -48784,87 +48316,13 @@
       "hidden": "damp"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 1,
-          "move": "earthquake"
-        },
-        {
-          "level": 1,
-          "move": "growl"
-        },
-        {
-          "level": 1,
-          "move": "hammer-arm"
-        },
-        {
-          "level": 1,
-          "move": "mud-shot"
-        },
-        {
-          "level": 1,
-          "move": "rock-smash"
-        },
-        {
-          "level": 1,
-          "move": "surf"
-        },
-        {
-          "level": 1,
-          "move": "tackle"
-        },
-        {
-          "level": 1,
-          "move": "water-gun"
-        },
-        {
-          "level": 9,
-          "move": "rock-throw"
-        },
-        {
-          "level": 12,
-          "move": "protect"
-        },
-        {
-          "level": 15,
-          "move": "supersonic"
-        },
-        {
-          "level": 20,
-          "move": "water-pulse"
-        },
-        {
-          "level": 25,
-          "move": "rock-slide"
-        },
-        {
-          "level": 30,
-          "move": "take-down"
-        },
-        {
-          "level": 35,
-          "move": "amnesia"
-        },
-        {
-          "level": 42,
-          "move": "muddy-water"
-        },
-        {
-          "level": 49,
-          "move": "screech"
-        },
-        {
-          "level": 56,
-          "move": "endeavor"
-        },
-        {
-          "level": 63,
-          "move": "hydro-pump"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "amnesia",
+        "ancient-power",
+        "aqua-ring",
         "avalanche",
+        "bite",
         "blizzard",
         "body-press",
         "body-slam",
@@ -48872,8 +48330,10 @@
         "bulk-up",
         "bulldoze",
         "chilling-water",
+        "counter",
         "curse",
         "dig",
+        "dive",
         "double-edge",
         "earth-power",
         "earthquake",
@@ -48885,6 +48345,7 @@
         "focus-blast",
         "focus-punch",
         "giga-impact",
+        "hammer-arm",
         "hard-press",
         "helping-hand",
         "high-horsepower",
@@ -48894,12 +48355,15 @@
         "ice-beam",
         "ice-punch",
         "icy-wind",
+        "iron-tail",
         "knock-off",
         "liquidation",
         "low-kick",
+        "mega-kick",
+        "mirror-coat",
+        "muddy-water",
         "mud-shot",
         "mud-slap",
-        "muddy-water",
         "outrage",
         "poison-jab",
         "protect",
@@ -48908,24 +48372,29 @@
         "roar",
         "rock-slide",
         "rock-tomb",
+        "round",
         "sand-tomb",
         "scary-face",
+        "screech",
         "sleep-talk",
+        "sludge-bomb",
         "sludge-wave",
         "smack-down",
+        "snore",
         "stealth-rock",
         "stomping-tantrum",
         "stone-edge",
         "substitute",
+        "superpower",
         "surf",
-        "take-down",
-        "tera-blast",
         "uproar",
-        "water-pledge",
-        "water-pulse",
         "waterfall",
+        "water-pulse",
+        "wave-crash",
         "weather-ball",
-        "whirlpool"
+        "whirlpool",
+        "wide-guard",
+        "yawn"
       ],
       "tutor": []
     },
@@ -52130,10 +51599,10 @@
         "swallow",
         "tailwind",
         "thief",
-        "u-turn",
         "uproar",
-        "water-pulse",
+        "u-turn",
         "waterfall",
+        "water-pulse",
         "weather-ball",
         "whirlpool",
         "wide-guard"
@@ -52638,8 +52107,8 @@
         "grass-knot",
         "gravity",
         "guard-swap",
-        "heal-pulse",
         "healing-wish",
+        "heal-pulse",
         "helping-hand",
         "hyper-beam",
         "hyper-voice",
@@ -52661,10 +52130,10 @@
         "pain-split",
         "power-swap",
         "protect",
-        "psych-up",
         "psychic",
         "psychic-noise",
         "psychic-terrain",
+        "psych-up",
         "psyshock",
         "rain-dance",
         "reflect",
@@ -52682,9 +52151,9 @@
         "swagger",
         "taunt",
         "thief",
+        "thunderbolt",
         "thunder-punch",
         "thunder-wave",
-        "thunderbolt",
         "trick",
         "trick-room",
         "triple-axel",
@@ -56232,8 +55701,8 @@
         "poltergeist",
         "power-gem",
         "protect",
-        "psych-up",
         "psychic",
+        "psych-up",
         "quash",
         "rain-dance",
         "recover",
@@ -56364,86 +55833,25 @@
       "hidden": "sheer-force"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 1,
-          "move": "astonish"
-        },
-        {
-          "level": 1,
-          "move": "growl"
-        },
-        {
-          "level": 4,
-          "move": "fairy-wind"
-        },
-        {
-          "level": 8,
-          "move": "baton-pass"
-        },
-        {
-          "level": 12,
-          "move": "bite"
-        },
-        {
-          "level": 16,
-          "move": "spit-up"
-        },
-        {
-          "level": 16,
-          "move": "stockpile"
-        },
-        {
-          "level": 16,
-          "move": "swallow"
-        },
-        {
-          "level": 20,
-          "move": "sucker-punch"
-        },
-        {
-          "level": 24,
-          "move": "iron-defense"
-        },
-        {
-          "level": 28,
-          "move": "crunch"
-        },
-        {
-          "level": 32,
-          "move": "sweet-scent"
-        },
-        {
-          "level": 36,
-          "move": "iron-head"
-        },
-        {
-          "level": 40,
-          "move": "taunt"
-        },
-        {
-          "level": 44,
-          "move": "fake-tears"
-        },
-        {
-          "level": 48,
-          "move": "play-rough"
-        }
-      ],
+      "levelUp": [],
       "tm": [
+        "ancient-power",
         "assurance",
         "attract",
         "baton-pass",
+        "bite",
         "body-slam",
         "brick-break",
         "brutal-swing",
+        "charm",
         "crunch",
         "dark-pulse",
+        "double-edge",
         "draining-kiss",
+        "dynamic-punch",
         "endure",
         "facade",
         "fake-tears",
-        "false-swipe",
         "fire-blast",
         "fire-fang",
         "flamethrower",
@@ -56462,11 +55870,12 @@
         "icy-wind",
         "iron-defense",
         "iron-head",
+        "knock-off",
         "mega-kick",
-        "mega-punch",
         "misty-terrain",
         "payback",
         "play-rough",
+        "poison-fang",
         "protect",
         "psychic-fangs",
         "rain-dance",
@@ -56475,23 +55884,30 @@
         "rock-tomb",
         "round",
         "sandstorm",
+        "seismic-toss",
         "shadow-ball",
         "sleep-talk",
         "sludge-bomb",
         "snore",
         "solar-beam",
+        "spit-up",
         "stealth-rock",
+        "steel-beam",
+        "stockpile",
         "stone-edge",
         "substitute",
+        "sucker-punch",
         "sunny-day",
+        "swagger",
+        "swallow",
+        "sweet-scent",
         "swords-dance",
         "taunt",
         "thunder-fang",
-        "thunder-punch"
+        "thunder-punch",
+        "tickle"
       ],
-      "tutor": [
-        "steel-beam"
-      ]
+      "tutor": []
     },
     "evolvesFrom": null,
     "evolutions": [],
@@ -57011,8 +56427,8 @@
         "rock-slide",
         "rock-tomb",
         "round",
-        "sand-tomb",
         "sandstorm",
+        "sand-tomb",
         "scary-face",
         "screech",
         "shadow-claw",
@@ -57032,9 +56448,9 @@
         "swagger",
         "taunt",
         "thunder",
+        "thunderbolt",
         "thunder-punch",
         "thunder-wave",
-        "thunderbolt",
         "uproar",
         "whirlpool"
       ],
@@ -57380,10 +56796,10 @@
         "power-swap",
         "power-trick",
         "protect",
-        "psych-up",
         "psychic",
         "psychic-terrain",
         "psycho-cut",
+        "psych-up",
         "psyshock",
         "quick-guard",
         "rain-dance",
@@ -57713,9 +57129,9 @@
         "switcheroo",
         "thief",
         "thunder",
+        "thunderbolt",
         "thunder-fang",
         "thunder-wave",
-        "thunderbolt",
         "trailblaze",
         "uproar",
         "volt-switch",
@@ -58936,81 +58352,21 @@
       "hidden": "gluttony"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 0,
-          "move": "body-slam"
-        },
-        {
-          "level": 1,
-          "move": "gunk-shot"
-        },
-        {
-          "level": 1,
-          "move": "poison-gas"
-        },
-        {
-          "level": 1,
-          "move": "pound"
-        },
-        {
-          "level": 1,
-          "move": "sludge"
-        },
-        {
-          "level": 1,
-          "move": "yawn"
-        },
-        {
-          "level": 12,
-          "move": "amnesia"
-        },
-        {
-          "level": 17,
-          "move": "acid-spray"
-        },
-        {
-          "level": 20,
-          "move": "encore"
-        },
-        {
-          "level": 25,
-          "move": "toxic"
-        },
-        {
-          "level": 30,
-          "move": "spit-up"
-        },
-        {
-          "level": 30,
-          "move": "stockpile"
-        },
-        {
-          "level": 30,
-          "move": "swallow"
-        },
-        {
-          "level": 37,
-          "move": "sludge-bomb"
-        },
-        {
-          "level": 42,
-          "move": "gastro-acid"
-        },
-        {
-          "level": 49,
-          "move": "belch"
-        }
-      ],
+      "levelUp": [],
       "tm": [
+        "acid-armor",
         "acid-spray",
         "amnesia",
+        "belch",
         "body-press",
         "body-slam",
         "brick-break",
         "bulldoze",
         "bullet-seed",
+        "clear-smog",
+        "corrosive-gas",
         "curse",
+        "destiny-bond",
         "double-edge",
         "earthquake",
         "encore",
@@ -59018,6 +58374,7 @@
         "facade",
         "fire-punch",
         "fling",
+        "gastro-acid",
         "giga-drain",
         "giga-impact",
         "gunk-shot",
@@ -59026,7 +58383,6 @@
         "ice-beam",
         "ice-punch",
         "knock-off",
-        "metronome",
         "mud-shot",
         "mud-slap",
         "pain-split",
@@ -59034,17 +58390,23 @@
         "protect",
         "rain-dance",
         "rest",
+        "round",
         "seed-bomb",
+        "self-destruct",
         "shadow-ball",
+        "skitter-smack",
         "sleep-talk",
         "sludge-bomb",
         "sludge-wave",
+        "snore",
         "solar-beam",
+        "spit-up",
+        "stockpile",
+        "stuff-cheeks",
         "substitute",
         "sunny-day",
+        "swallow",
         "swords-dance",
-        "take-down",
-        "tera-blast",
         "thief",
         "thunder-punch",
         "thunder-wave",
@@ -59052,6 +58414,7 @@
         "toxic-spikes",
         "venoshock",
         "water-pulse",
+        "yawn",
         "zen-headbutt"
       ],
       "tutor": []
@@ -59344,6 +58707,7 @@
         "scale-shot",
         "scary-face",
         "screech",
+        "slash",
         "sleep-talk",
         "snarl",
         "snore",
@@ -59351,10 +58715,11 @@
         "surf",
         "swagger",
         "taunt",
+        "thief",
         "thrash",
         "uproar",
-        "water-pulse",
         "waterfall",
+        "water-pulse",
         "whirlpool",
         "zen-headbutt"
       ],
@@ -64989,8 +64354,8 @@
         "life-dew",
         "light-screen",
         "mirror-coat",
-        "mud-shot",
         "muddy-water",
+        "mud-shot",
         "protect",
         "psych-up",
         "rain-dance",
@@ -65007,8 +64372,8 @@
         "surf",
         "tickle",
         "triple-axel",
-        "water-pulse",
         "waterfall",
+        "water-pulse",
         "weather-ball",
         "whirlpool",
         "wrap"
@@ -65118,8 +64483,8 @@
         "sunny-day",
         "thief",
         "thunder",
-        "thunder-wave",
         "thunderbolt",
+        "thunder-wave",
         "weather-ball"
       ],
       "tutor": []
@@ -65684,8 +65049,8 @@
         "poltergeist",
         "pounce",
         "protect",
-        "psych-up",
         "psychic",
+        "psych-up",
         "rain-dance",
         "rest",
         "role-play",
@@ -65698,6 +65063,7 @@
         "shadow-sneak",
         "skill-swap",
         "skitter-smack",
+        "slash",
         "sleep-talk",
         "snore",
         "spite",
@@ -65710,8 +65076,8 @@
         "thief",
         "throat-chop",
         "thunder",
-        "thunder-wave",
         "thunderbolt",
+        "thunder-wave",
         "torment",
         "trailblaze",
         "trick",
@@ -66406,8 +65772,8 @@
         "grass-knot",
         "gravity",
         "heal-bell",
-        "heal-pulse",
         "healing-wish",
+        "heal-pulse",
         "helping-hand",
         "hyper-voice",
         "hypnosis",
@@ -66417,9 +65783,9 @@
         "light-screen",
         "metal-sound",
         "protect",
-        "psych-up",
         "psychic",
         "psychic-noise",
+        "psych-up",
         "psyshock",
         "rain-dance",
         "recover",
@@ -66564,8 +65930,8 @@
         "curse",
         "dark-pulse",
         "detect",
-        "double-team",
         "double-edge",
+        "double-team",
         "endure",
         "facade",
         "feint",
@@ -66600,6 +65966,7 @@
         "shadow-ball",
         "shadow-claw",
         "shadow-sneak",
+        "slash",
         "sleep-talk",
         "snarl",
         "snore",
@@ -66613,8 +65980,8 @@
         "thief",
         "throat-chop",
         "thunder",
-        "thunder-wave",
         "thunderbolt",
+        "thunder-wave",
         "trailblaze",
         "will-o-wisp",
         "x-scissor",
@@ -66682,7 +66049,7 @@
           "spe": 151
         },
         "abilities": {
-          "ability1": "magic-bounce",
+          "ability1": "sharpness",
           "ability2": null,
           "hidden": null
         },
@@ -68872,82 +68239,15 @@
       "hidden": "moxie"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 0,
-          "move": "fly"
-        },
-        {
-          "level": 1,
-          "move": "bite"
-        },
-        {
-          "level": 1,
-          "move": "dragon-breath"
-        },
-        {
-          "level": 1,
-          "move": "dragon-tail"
-        },
-        {
-          "level": 1,
-          "move": "dual-wingbeat"
-        },
-        {
-          "level": 1,
-          "move": "ember"
-        },
-        {
-          "level": 1,
-          "move": "leer"
-        },
-        {
-          "level": 1,
-          "move": "protect"
-        },
-        {
-          "level": 1,
-          "move": "roost"
-        },
-        {
-          "level": 15,
-          "move": "headbutt"
-        },
-        {
-          "level": 20,
-          "move": "scary-face"
-        },
-        {
-          "level": 25,
-          "move": "crunch"
-        },
-        {
-          "level": 33,
-          "move": "dragon-claw"
-        },
-        {
-          "level": 39,
-          "move": "zen-headbutt"
-        },
-        {
-          "level": 46,
-          "move": "focus-energy"
-        },
-        {
-          "level": 55,
-          "move": "flamethrower"
-        },
-        {
-          "level": 73,
-          "move": "double-edge"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "aerial-ace",
         "air-slash",
+        "bite",
         "body-slam",
         "breaking-swipe",
         "brick-break",
+        "brutal-swing",
         "bulldoze",
         "crunch",
         "double-edge",
@@ -68956,6 +68256,7 @@
         "dragon-claw",
         "dragon-dance",
         "dragon-pulse",
+        "dragon-rush",
         "dragon-tail",
         "dual-wingbeat",
         "earthquake",
@@ -68966,6 +68267,7 @@
         "fire-spin",
         "flamethrower",
         "fly",
+        "focus-energy",
         "giga-impact",
         "heat-wave",
         "helping-hand",
@@ -68975,6 +68277,7 @@
         "hyper-voice",
         "iron-defense",
         "iron-head",
+        "iron-tail",
         "mud-slap",
         "outrage",
         "protect",
@@ -68984,17 +68287,20 @@
         "roar",
         "rock-slide",
         "rock-tomb",
+        "roost",
+        "round",
         "scary-face",
         "shadow-claw",
+        "slash",
         "sleep-talk",
+        "snore",
+        "steel-wing",
         "stone-edge",
         "substitute",
         "sunny-day",
-        "swift",
         "tailwind",
-        "take-down",
         "temper-flare",
-        "tera-blast",
+        "thrash",
         "thunder-fang",
         "zen-headbutt"
       ],
@@ -69367,87 +68673,22 @@
       "hidden": "light-metal"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 0,
-          "move": "hammer-arm"
-        },
-        {
-          "level": 1,
-          "move": "bullet-punch"
-        },
-        {
-          "level": 1,
-          "move": "confusion"
-        },
-        {
-          "level": 1,
-          "move": "explosion"
-        },
-        {
-          "level": 1,
-          "move": "hone-claws"
-        },
-        {
-          "level": 1,
-          "move": "metal-claw"
-        },
-        {
-          "level": 1,
-          "move": "tackle"
-        },
-        {
-          "level": 6,
-          "move": "zen-headbutt"
-        },
-        {
-          "level": 12,
-          "move": "magnet-rise"
-        },
-        {
-          "level": 16,
-          "move": "flash-cannon"
-        },
-        {
-          "level": 26,
-          "move": "take-down"
-        },
-        {
-          "level": 34,
-          "move": "psychic"
-        },
-        {
-          "level": 42,
-          "move": "scary-face"
-        },
-        {
-          "level": 52,
-          "move": "meteor-mash"
-        },
-        {
-          "level": 62,
-          "move": "iron-defense"
-        },
-        {
-          "level": 72,
-          "move": "agility"
-        },
-        {
-          "level": 82,
-          "move": "hyper-beam"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "aerial-ace",
         "agility",
         "body-press",
         "body-slam",
         "brick-break",
+        "brutal-swing",
         "bulldoze",
+        "bullet-punch",
+        "cosmic-power",
         "double-edge",
         "earthquake",
         "endure",
         "expanding-force",
+        "explosion",
         "facade",
         "flash-cannon",
         "focus-punch",
@@ -69456,44 +68697,48 @@
         "grass-knot",
         "gravity",
         "gyro-ball",
+        "hammer-arm",
         "hard-press",
-        "heavy-slam",
         "hyper-beam",
         "ice-punch",
         "icy-wind",
         "iron-defense",
         "iron-head",
-        "knock-off",
         "light-screen",
-        "metal-claw",
+        "magnet-rise",
         "meteor-beam",
+        "meteor-mash",
         "mud-slap",
         "protect",
-        "psych-up",
         "psychic",
         "psychic-fangs",
         "psychic-noise",
+        "psycho-cut",
+        "psych-up",
         "psyshock",
         "rain-dance",
         "reflect",
         "rest",
         "rock-slide",
         "rock-tomb",
+        "round",
         "sandstorm",
         "scary-face",
+        "self-destruct",
         "shadow-ball",
         "shadow-claw",
+        "shadow-punch",
         "sleep-talk",
         "sludge-bomb",
+        "snore",
         "stealth-rock",
         "steel-beam",
+        "steel-roller",
         "stomping-tantrum",
         "stone-edge",
         "substitute",
         "sunny-day",
-        "swift",
-        "take-down",
-        "tera-blast",
+        "swagger",
         "thunder-punch",
         "trailblaze",
         "trick",
@@ -72118,8 +71363,8 @@
         "rock-slide",
         "rock-tomb",
         "round",
-        "sand-tomb",
         "sandstorm",
+        "sand-tomb",
         "scary-face",
         "scorching-sands",
         "seed-bomb",
@@ -72690,9 +71935,9 @@
         "throat-chop",
         "thunder-punch",
         "torment",
-        "u-turn",
         "upper-hand",
         "uproar",
+        "u-turn",
         "vacuum-wave",
         "will-o-wisp",
         "zen-headbutt"
@@ -73177,8 +72422,8 @@
         "triple-axel",
         "uproar",
         "vacuum-wave",
-        "water-pulse",
         "waterfall",
+        "water-pulse",
         "wave-crash",
         "weather-ball",
         "whirlpool",
@@ -73568,94 +72813,51 @@
       "hidden": "reckless"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 0,
-          "move": "close-combat"
-        },
-        {
-          "level": 1,
-          "move": "growl"
-        },
-        {
-          "level": 1,
-          "move": "quick-attack"
-        },
-        {
-          "level": 1,
-          "move": "tackle"
-        },
-        {
-          "level": 1,
-          "move": "wing-attack"
-        },
-        {
-          "level": 13,
-          "move": "double-team"
-        },
-        {
-          "level": 18,
-          "move": "endeavor"
-        },
-        {
-          "level": 23,
-          "move": "whirlwind"
-        },
-        {
-          "level": 28,
-          "move": "aerial-ace"
-        },
-        {
-          "level": 33,
-          "move": "take-down"
-        },
-        {
-          "level": 41,
-          "move": "agility"
-        },
-        {
-          "level": 49,
-          "move": "brave-bird"
-        },
-        {
-          "level": 57,
-          "move": "final-gambit"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "acrobatics",
         "aerial-ace",
         "agility",
         "air-cutter",
         "air-slash",
+        "blaze-kick",
         "brave-bird",
+        "brick-break",
+        "bulk-up",
         "close-combat",
         "double-edge",
+        "double-team",
         "dual-wingbeat",
         "endeavor",
         "endure",
         "facade",
         "feather-dance",
+        "final-gambit",
         "fly",
+        "focus-blast",
         "giga-impact",
         "heat-wave",
         "helping-hand",
         "hurricane",
         "hyper-beam",
         "protect",
+        "quick-attack",
         "rain-dance",
         "rest",
+        "roost",
+        "round",
+        "sky-attack",
         "sleep-talk",
-        "struggle-bug",
+        "snore",
+        "steel-wing",
         "substitute",
         "sunny-day",
-        "swift",
+        "swagger",
         "tailwind",
-        "take-down",
-        "tera-blast",
         "thief",
+        "uproar",
         "u-turn",
-        "uproar"
+        "whirlwind"
       ],
       "tutor": []
     },
@@ -73696,9 +72898,9 @@
           "spe": 110
         },
         "abilities": {
-          "ability1": "intimidate",
+          "ability1": "contrary",
           "ability2": null,
-          "hidden": "reckless"
+          "hidden": null
         },
         "height": 1.9,
         "weight": 50
@@ -74782,9 +73984,9 @@
         "thief",
         "throat-chop",
         "thunder",
+        "thunderbolt",
         "thunder-fang",
         "thunder-wave",
-        "thunderbolt",
         "trailblaze",
         "volt-switch",
         "wild-charge"
@@ -75352,8 +74554,8 @@
         "thief",
         "thrash",
         "thunder",
-        "thunder-punch",
         "thunderbolt",
+        "thunder-punch",
         "trailblaze",
         "uproar",
         "whirlwind",
@@ -75652,8 +74854,8 @@
         "rock-slide",
         "rock-tomb",
         "round",
-        "sand-tomb",
         "sandstorm",
+        "sand-tomb",
         "scary-face",
         "scorching-sands",
         "screech",
@@ -78530,8 +77732,8 @@
         "cotton-guard",
         "dig",
         "double-hit",
-        "drain-punch",
         "draining-kiss",
+        "drain-punch",
         "dynamic-punch",
         "encore",
         "endure",
@@ -78580,13 +77782,13 @@
         "swords-dance",
         "teeter-dance",
         "thunder",
+        "thunderbolt",
         "thunder-punch",
         "thunder-wave",
-        "thunderbolt",
         "trailblaze",
         "triple-axel",
-        "u-turn",
-        "uproar"
+        "uproar",
+        "u-turn"
       ],
       "tutor": []
     },
@@ -81464,12 +80666,13 @@
         "rock-slide",
         "rock-tomb",
         "round",
-        "sand-tomb",
         "sandstorm",
+        "sand-tomb",
         "scale-shot",
         "scary-face",
         "scorching-sands",
         "shadow-claw",
+        "slash",
         "sleep-talk",
         "snore",
         "spikes",
@@ -81545,7 +80748,7 @@
           "spe": 151
         },
         "abilities": {
-          "ability1": "sand-force",
+          "ability1": "levitate",
           "ability2": null,
           "hidden": null
         },
@@ -82038,8 +81241,8 @@
         "payback",
         "poison-jab",
         "protect",
-        "psych-up",
         "psychic",
+        "psych-up",
         "quick-attack",
         "quick-guard",
         "rain-dance",
@@ -82131,7 +81334,7 @@
           "spe": 151
         },
         "abilities": {
-          "ability1": "adaptability",
+          "ability1": "aura-guard",
           "ability2": null,
           "hidden": null
         },
@@ -82387,17 +81590,17 @@
         "hyper-voice",
         "ice-fang",
         "iron-head",
+        "muddy-water",
         "mud-shot",
         "mud-slap",
-        "muddy-water",
         "protect",
         "rest",
         "roar",
         "rock-slide",
         "rock-tomb",
         "round",
-        "sand-tomb",
         "sandstorm",
+        "sand-tomb",
         "scorching-sands",
         "slack-off",
         "sleep-talk",
@@ -84280,6 +83483,7 @@
         "screech",
         "shadow-ball",
         "shadow-claw",
+        "slash",
         "sleep-talk",
         "snarl",
         "snore",
@@ -84786,8 +83990,8 @@
         "iron-defense",
         "iron-head",
         "iron-tail",
-        "mega-kick",
         "megahorn",
+        "mega-kick",
         "metal-burst",
         "meteor-beam",
         "mud-shot",
@@ -84826,9 +84030,9 @@
         "temper-flare",
         "thief",
         "thunder",
+        "thunderbolt",
         "thunder-fang",
         "thunder-punch",
-        "thunderbolt",
         "uproar"
       ],
       "tutor": []
@@ -86167,12 +85371,13 @@
         "rock-slide",
         "rock-tomb",
         "round",
-        "sand-tomb",
         "sandstorm",
+        "sand-tomb",
         "scale-shot",
         "scary-face",
         "screech",
         "skitter-smack",
+        "slash",
         "sleep-talk",
         "sludge-bomb",
         "snore",
@@ -86278,8 +85483,8 @@
         "charm",
         "curse",
         "dig",
-        "double-hit",
         "double-edge",
+        "double-hit",
         "earth-power",
         "earthquake",
         "endeavor",
@@ -86314,8 +85519,8 @@
         "rock-slide",
         "rock-tomb",
         "round",
-        "sand-tomb",
         "sandstorm",
+        "sand-tomb",
         "scary-face",
         "sleep-talk",
         "smack-down",
@@ -86603,8 +85808,8 @@
         "destiny-bond",
         "disable",
         "double-team",
-        "drain-punch",
         "draining-kiss",
+        "drain-punch",
         "earthquake",
         "encore",
         "endure",
@@ -86645,10 +85850,10 @@
         "pain-split",
         "poison-jab",
         "protect",
-        "psych-up",
         "psychic",
         "psychic-terrain",
         "psycho-cut",
+        "psych-up",
         "psyshock",
         "quick-guard",
         "rain-dance",
@@ -86664,6 +85869,7 @@
         "shadow-claw",
         "shadow-sneak",
         "skill-swap",
+        "slash",
         "sleep-talk",
         "snore",
         "solar-blade",
@@ -86675,9 +85881,9 @@
         "taunt",
         "thief",
         "throat-chop",
+        "thunderbolt",
         "thunder-punch",
         "thunder-wave",
-        "thunderbolt",
         "trick",
         "trick-room",
         "triple-axel",
@@ -87242,8 +86448,8 @@
         "phantom-force",
         "poltergeist",
         "protect",
-        "psych-up",
         "psychic",
+        "psych-up",
         "rain-dance",
         "reflect",
         "rest",
@@ -87260,8 +86466,8 @@
         "switcheroo",
         "taunt",
         "thunder",
-        "thunder-wave",
         "thunderbolt",
+        "thunder-wave",
         "trailblaze",
         "trick",
         "triple-axel",
@@ -87400,8 +86606,8 @@
         "sunny-day",
         "thief",
         "thunder",
-        "thunder-wave",
         "thunderbolt",
+        "thunder-wave",
         "trick",
         "uproar",
         "volt-switch",
@@ -92355,6 +91561,7 @@
         "sacred-sword",
         "scary-face",
         "screech",
+        "slash",
         "sleep-talk",
         "smart-strike",
         "snore",
@@ -92368,8 +91575,8 @@
         "thief",
         "upper-hand",
         "vacuum-wave",
-        "water-pulse",
         "waterfall",
+        "water-pulse",
         "whirlpool",
         "x-scissor"
       ],
@@ -92688,9 +91895,9 @@
         "super-fang",
         "swords-dance",
         "thunder",
+        "thunderbolt",
         "thunder-punch",
         "thunder-wave",
-        "thunderbolt",
         "trailblaze",
         "zen-headbutt"
       ],
@@ -93446,6 +92653,7 @@
         "shadow-ball",
         "shadow-claw",
         "skitter-smack",
+        "slash",
         "sleep-talk",
         "snarl",
         "snore",
@@ -94589,89 +93797,34 @@
       "hidden": "telepathy"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 1,
-          "move": "calm-mind"
-        },
-        {
-          "level": 1,
-          "move": "defense-curl"
-        },
-        {
-          "level": 1,
-          "move": "dream-eater"
-        },
-        {
-          "level": 1,
-          "move": "future-sight"
-        },
-        {
-          "level": 1,
-          "move": "hypnosis"
-        },
-        {
-          "level": 1,
-          "move": "imprison"
-        },
-        {
-          "level": 1,
-          "move": "magic-coat"
-        },
-        {
-          "level": 1,
-          "move": "moonblast"
-        },
-        {
-          "level": 1,
-          "move": "moonlight"
-        },
-        {
-          "level": 1,
-          "move": "psybeam"
-        },
-        {
-          "level": 1,
-          "move": "psychic"
-        },
-        {
-          "level": 1,
-          "move": "psychic-terrain"
-        },
-        {
-          "level": 1,
-          "move": "stored-power"
-        },
-        {
-          "level": 1,
-          "move": "wonder-room"
-        },
-        {
-          "level": 1,
-          "move": "yawn"
-        },
-        {
-          "level": 1,
-          "move": "zen-headbutt"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "ally-switch",
         "amnesia",
         "attract",
         "calm-mind",
+        "charge-beam",
+        "charm",
+        "curse",
         "dazzling-gleam",
+        "double-team",
         "endure",
         "energy-ball",
+        "expanding-force",
         "facade",
         "future-sight",
         "giga-impact",
         "guard-swap",
         "gyro-ball",
+        "healing-wish",
         "helping-hand",
         "hyper-beam",
+        "hypnosis",
         "imprison",
         "light-screen",
+        "misty-explosion",
+        "moonblast",
+        "moonlight",
         "power-swap",
         "protect",
         "psychic",
@@ -94690,17 +93843,14 @@
         "snore",
         "stored-power",
         "substitute",
-        "swift",
         "thunder-wave",
         "trick",
         "trick-room",
         "wonder-room",
+        "yawn",
         "zen-headbutt"
       ],
-      "tutor": [
-        "expanding-force",
-        "misty-explosion"
-      ]
+      "tutor": []
     },
     "evolvesFrom": "munna",
     "evolutions": [],
@@ -96511,11 +95661,12 @@
         "rock-slide",
         "rock-tomb",
         "round",
-        "sand-tomb",
         "sandstorm",
+        "sand-tomb",
         "scary-face",
         "scorching-sands",
         "shadow-claw",
+        "slash",
         "sleep-talk",
         "sludge-bomb",
         "smart-strike",
@@ -96628,8 +95779,8 @@
         "dazzling-gleam",
         "dig",
         "double-edge",
-        "drain-punch",
         "draining-kiss",
+        "drain-punch",
         "encore",
         "endure",
         "entrainment",
@@ -96640,8 +95791,8 @@
         "fling",
         "giga-impact",
         "grass-knot",
-        "heal-pulse",
         "healing-wish",
+        "heal-pulse",
         "helping-hand",
         "hyper-beam",
         "hyper-voice",
@@ -96676,9 +95827,9 @@
         "sweet-kiss",
         "throat-chop",
         "thunder",
+        "thunderbolt",
         "thunder-punch",
         "thunder-wave",
-        "thunderbolt",
         "trick-room",
         "uproar",
         "wild-charge",
@@ -98787,120 +97938,63 @@
       "hidden": "speed-boost"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 1,
-          "move": "baton-pass"
-        },
-        {
-          "level": 1,
-          "move": "defense-curl"
-        },
-        {
-          "level": 1,
-          "move": "iron-defense"
-        },
-        {
-          "level": 1,
-          "move": "poison-sting"
-        },
-        {
-          "level": 1,
-          "move": "protect"
-        },
-        {
-          "level": 1,
-          "move": "rollout"
-        },
-        {
-          "level": 12,
-          "move": "poison-tail"
-        },
-        {
-          "level": 16,
-          "move": "screech"
-        },
-        {
-          "level": 20,
-          "move": "bug-bite"
-        },
-        {
-          "level": 26,
-          "move": "venoshock"
-        },
-        {
-          "level": 34,
-          "move": "take-down"
-        },
-        {
-          "level": 42,
-          "move": "agility"
-        },
-        {
-          "level": 50,
-          "move": "toxic"
-        },
-        {
-          "level": 58,
-          "move": "venom-drench"
-        },
-        {
-          "level": 66,
-          "move": "double-edge"
-        },
-        {
-          "level": 74,
-          "move": "megahorn"
-        }
-      ],
+      "levelUp": [],
       "tm": [
+        "acid-spray",
         "agility",
         "assurance",
         "attract",
         "baton-pass",
+        "bite",
+        "bug-bite",
         "bulldoze",
         "cross-poison",
         "dig",
+        "double-edge",
+        "double-hit",
         "earthquake",
         "endure",
         "facade",
         "giga-impact",
+        "gunk-shot",
         "gyro-ball",
         "hex",
         "hyper-beam",
         "iron-defense",
         "iron-tail",
+        "leech-life",
         "megahorn",
         "payback",
         "pin-missile",
         "poison-jab",
+        "pounce",
         "protect",
         "rest",
         "rock-slide",
         "rock-tomb",
         "round",
         "screech",
+        "skitter-smack",
         "sleep-talk",
         "sludge-bomb",
         "smart-strike",
         "snore",
         "solar-beam",
         "spikes",
+        "steel-roller",
         "stomping-tantrum",
         "substitute",
         "sunny-day",
         "superpower",
         "swords-dance",
         "throat-chop",
+        "toxic",
         "toxic-spikes",
-        "venom-drench",
+        "trailblaze",
         "venoshock",
         "x-scissor"
       ],
-      "tutor": [
-        "skitter-smack",
-        "steel-roller"
-      ]
+      "tutor": []
     },
     "evolvesFrom": "whirlipede",
     "evolutions": [],
@@ -98930,9 +98024,9 @@
           "spe": 62
         },
         "abilities": {
-          "ability1": "poison-point",
-          "ability2": "swarm",
-          "hidden": "speed-boost"
+          "ability1": "shell-armor",
+          "ability2": null,
+          "hidden": null
         },
         "height": 3.2,
         "weight": 230.5
@@ -100271,8 +99365,8 @@
         "rock-slide",
         "rock-tomb",
         "round",
-        "sand-tomb",
         "sandstorm",
+        "sand-tomb",
         "scale-shot",
         "scary-face",
         "scorching-sands",
@@ -101486,79 +100580,22 @@
       "hidden": "intimidate"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 1,
-          "move": "headbutt"
-        },
-        {
-          "level": 1,
-          "move": "leer"
-        },
-        {
-          "level": 1,
-          "move": "low-kick"
-        },
-        {
-          "level": 1,
-          "move": "payback"
-        },
-        {
-          "level": 12,
-          "move": "sand-attack"
-        },
-        {
-          "level": 16,
-          "move": "facade"
-        },
-        {
-          "level": 20,
-          "move": "torment"
-        },
-        {
-          "level": 24,
-          "move": "beat-up"
-        },
-        {
-          "level": 28,
-          "move": "scary-face"
-        },
-        {
-          "level": 32,
-          "move": "brick-break"
-        },
-        {
-          "level": 36,
-          "move": "swagger"
-        },
-        {
-          "level": 42,
-          "move": "crunch"
-        },
-        {
-          "level": 48,
-          "move": "high-jump-kick"
-        },
-        {
-          "level": 54,
-          "move": "focus-punch"
-        },
-        {
-          "level": 60,
-          "move": "head-smash"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "acid-spray",
         "amnesia",
+        "assurance",
+        "beat-up",
         "body-slam",
         "brick-break",
         "bulk-up",
         "close-combat",
         "coaching",
+        "counter",
         "crunch",
         "curse",
         "dark-pulse",
+        "detect",
         "dig",
         "double-edge",
         "dragon-claw",
@@ -101566,10 +100603,12 @@
         "dragon-pulse",
         "dragon-tail",
         "drain-punch",
+        "dynamic-punch",
         "encore",
         "endeavor",
         "endure",
         "facade",
+        "fake-out",
         "fake-tears",
         "fire-punch",
         "fling",
@@ -101578,42 +100617,49 @@
         "foul-play",
         "giga-impact",
         "grass-knot",
+        "head-smash",
         "helping-hand",
+        "high-jump-kick",
         "hyper-beam",
         "ice-punch",
         "iron-defense",
         "iron-head",
+        "iron-tail",
         "knock-off",
         "lash-out",
         "low-kick",
         "low-sweep",
-        "metronome",
+        "mega-kick",
         "outrage",
+        "payback",
         "poison-jab",
         "protect",
+        "quick-guard",
         "rain-dance",
         "rest",
         "reversal",
         "roar",
         "rock-slide",
         "rock-tomb",
+        "round",
         "scary-face",
         "sleep-talk",
         "sludge-bomb",
         "smack-down",
         "snarl",
+        "snore",
         "spite",
         "stone-edge",
         "substitute",
         "sunny-day",
         "super-fang",
+        "swagger",
         "swords-dance",
-        "take-down",
         "taunt",
-        "tera-blast",
         "thief",
         "throat-chop",
         "thunder-punch",
+        "torment",
         "trailblaze",
         "upper-hand",
         "uproar",
@@ -101649,9 +100695,9 @@
           "spe": 68
         },
         "abilities": {
-          "ability1": "shed-skin",
-          "ability2": "moxie",
-          "hidden": "intimidate"
+          "ability1": "intimidate",
+          "ability2": null,
+          "hidden": null
         },
         "height": 1.1,
         "weight": 31
@@ -103438,8 +102484,8 @@
         "pain-split",
         "payback",
         "protect",
-        "psych-up",
         "psychic",
+        "psych-up",
         "rain-dance",
         "rest",
         "roar",
@@ -103463,8 +102509,8 @@
         "torment",
         "toxic",
         "trick",
-        "u-turn",
-        "uproar"
+        "uproar",
+        "u-turn"
       ],
       "tutor": []
     },
@@ -104786,10 +103832,10 @@
         "pain-split",
         "power-swap",
         "protect",
-        "psych-up",
         "psychic",
         "psychic-noise",
         "psychic-terrain",
+        "psych-up",
         "psyshock",
         "rain-dance",
         "recover",
@@ -105962,8 +105008,8 @@
         "substitute",
         "taunt",
         "thunder",
-        "thunder-wave",
         "thunderbolt",
+        "thunder-wave",
         "tickle",
         "u-turn",
         "volt-switch",
@@ -108499,61 +107545,24 @@
       "hidden": null
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 1,
-          "move": "acid"
-        },
-        {
-          "level": 1,
-          "move": "coil"
-        },
-        {
-          "level": 1,
-          "move": "crunch"
-        },
-        {
-          "level": 1,
-          "move": "crush-claw"
-        },
-        {
-          "level": 1,
-          "move": "discharge"
-        },
-        {
-          "level": 1,
-          "move": "gastro-acid"
-        },
-        {
-          "level": 1,
-          "move": "headbutt"
-        },
-        {
-          "level": 1,
-          "move": "thrash"
-        },
-        {
-          "level": 1,
-          "move": "zap-cannon"
-        },
-        {
-          "level": 5,
-          "move": "wild-charge"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "acid-spray",
         "acrobatics",
         "body-press",
         "body-slam",
+        "bounce",
         "brick-break",
         "bulk-up",
         "bulldoze",
         "charge",
         "charge-beam",
         "close-combat",
+        "coil",
         "confuse-ray",
         "crunch",
+        "crush-claw",
+        "discharge",
         "dragon-claw",
         "dragon-pulse",
         "dragon-tail",
@@ -108568,41 +107577,50 @@
         "flamethrower",
         "flash-cannon",
         "focus-punch",
+        "gastro-acid",
         "giga-drain",
         "giga-impact",
         "grass-knot",
         "heavy-slam",
         "hex",
         "hyper-beam",
+        "iron-tail",
         "knock-off",
         "light-screen",
         "liquidation",
         "lunge",
+        "muddy-water",
         "outrage",
+        "poison-fang",
         "protect",
+        "psychic-fangs",
         "rain-dance",
         "rest",
+        "rising-voltage",
         "rock-slide",
         "rock-tomb",
+        "round",
         "scary-face",
         "sleep-talk",
+        "snore",
         "stomping-tantrum",
         "substitute",
         "sunny-day",
-        "super-fang",
         "supercell-slam",
-        "swift",
-        "take-down",
-        "tera-blast",
+        "super-fang",
+        "superpower",
+        "thrash",
         "throat-chop",
         "thunder",
+        "thunderbolt",
         "thunder-fang",
         "thunder-punch",
         "thunder-wave",
-        "thunderbolt",
         "u-turn",
         "volt-switch",
+        "waterfall",
         "wild-charge",
+        "zap-cannon",
         "zen-headbutt"
       ],
       "tutor": []
@@ -108634,7 +107652,7 @@
           "spe": 80
         },
         "abilities": {
-          "ability1": "levitate",
+          "ability1": "eelevate",
           "ability2": null,
           "hidden": null
         },
@@ -109409,8 +108427,8 @@
         "poltergeist",
         "power-split",
         "protect",
-        "psych-up",
         "psychic",
+        "psych-up",
         "rest",
         "round",
         "safeguard",
@@ -110317,6 +109335,7 @@
         "scary-face",
         "shadow-claw",
         "sheer-cold",
+        "slash",
         "sleep-talk",
         "snarl",
         "snore",
@@ -110925,9 +109944,9 @@
         "flail",
         "foul-play",
         "lash-out",
+        "muddy-water",
         "mud-shot",
         "mud-slap",
-        "muddy-water",
         "pain-split",
         "payback",
         "protect",
@@ -110951,8 +109970,8 @@
         "sucker-punch",
         "surf",
         "thunder",
-        "thunder-wave",
         "thunderbolt",
+        "thunder-wave",
         "uproar",
         "yawn"
       ],
@@ -111787,8 +110806,8 @@
         "phantom-force",
         "poltergeist",
         "protect",
-        "psych-up",
         "psychic",
+        "psych-up",
         "rain-dance",
         "reflect",
         "rest",
@@ -111811,8 +110830,8 @@
         "sunny-day",
         "superpower",
         "thief",
-        "thunder-punch",
         "thunderbolt",
+        "thunder-punch",
         "trick",
         "zen-headbutt"
       ],
@@ -113887,8 +112906,8 @@
         "thunder-fang",
         "thunder-wave",
         "tri-attack",
-        "u-turn",
         "uproar",
+        "u-turn",
         "zen-headbutt"
       ],
       "tutor": []
@@ -117550,10 +116569,10 @@
         "night-shade",
         "overheat",
         "protect",
-        "psych-up",
         "psychic",
         "psychic-noise",
         "psychic-terrain",
+        "psych-up",
         "psyshock",
         "rain-dance",
         "reflect",
@@ -118060,11 +117079,11 @@
         "thief",
         "toxic-spikes",
         "trailblaze",
-        "u-turn",
         "upper-hand",
+        "u-turn",
+        "waterfall",
         "water-pulse",
         "water-shuriken",
-        "waterfall",
         "weather-ball"
       ],
       "tutor": []
@@ -118405,8 +117424,8 @@
         "rock-slide",
         "rock-tomb",
         "round",
-        "sand-tomb",
         "sandstorm",
+        "sand-tomb",
         "scorching-sands",
         "sleep-talk",
         "sludge-bomb",
@@ -118422,8 +117441,8 @@
         "thief",
         "thunder-punch",
         "trailblaze",
-        "u-turn",
         "uproar",
+        "u-turn",
         "wild-charge"
       ],
       "tutor": []
@@ -118848,8 +117867,8 @@
         "taunt",
         "temper-flare",
         "thief",
-        "u-turn",
         "upper-hand",
+        "u-turn",
         "whirlwind",
         "will-o-wisp"
       ],
@@ -119421,72 +118440,7 @@
       "hidden": "moxie"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 1,
-          "move": "ember"
-        },
-        {
-          "level": 1,
-          "move": "hyper-beam"
-        },
-        {
-          "level": 1,
-          "move": "leer"
-        },
-        {
-          "level": 1,
-          "move": "tackle"
-        },
-        {
-          "level": 1,
-          "move": "work-up"
-        },
-        {
-          "level": 11,
-          "move": "headbutt"
-        },
-        {
-          "level": 15,
-          "move": "noble-roar"
-        },
-        {
-          "level": 20,
-          "move": "take-down"
-        },
-        {
-          "level": 23,
-          "move": "fire-fang"
-        },
-        {
-          "level": 28,
-          "move": "endeavor"
-        },
-        {
-          "level": 33,
-          "move": "echoed-voice"
-        },
-        {
-          "level": 38,
-          "move": "flamethrower"
-        },
-        {
-          "level": 42,
-          "move": "crunch"
-        },
-        {
-          "level": 48,
-          "move": "hyper-voice"
-        },
-        {
-          "level": 51,
-          "move": "incinerate"
-        },
-        {
-          "level": 57,
-          "move": "overheat"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "acrobatics",
         "body-slam",
@@ -119498,6 +118452,7 @@
         "double-edge",
         "endeavor",
         "endure",
+        "entrainment",
         "facade",
         "fire-blast",
         "fire-fang",
@@ -119510,28 +118465,32 @@
         "helping-hand",
         "hyper-beam",
         "hyper-voice",
+        "iron-tail",
         "mud-slap",
+        "noble-roar",
         "overheat",
+        "payback",
         "protect",
         "psychic-fangs",
         "rain-dance",
         "rest",
         "roar",
+        "round",
+        "scorching-sands",
         "sleep-talk",
         "snarl",
+        "snore",
         "solar-beam",
         "substitute",
         "sunny-day",
-        "swift",
-        "take-down",
         "taunt",
         "temper-flare",
-        "tera-blast",
         "thief",
         "thunder-fang",
         "trailblaze",
         "wild-charge",
-        "will-o-wisp"
+        "will-o-wisp",
+        "yawn"
       ],
       "tutor": []
     },
@@ -119563,9 +118522,9 @@
           "spe": 126
         },
         "abilities": {
-          "ability1": "rivalry",
-          "ability2": "unnerve",
-          "hidden": "moxie"
+          "ability1": "fire-mane",
+          "ability2": null,
+          "hidden": null
         },
         "height": 1.5,
         "weight": 93.3
@@ -120265,80 +119224,7 @@
       "hidden": "grass-pelt"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 0,
-          "move": "aerial-ace"
-        },
-        {
-          "level": 1,
-          "move": "earthquake"
-        },
-        {
-          "level": 1,
-          "move": "growth"
-        },
-        {
-          "level": 1,
-          "move": "tackle"
-        },
-        {
-          "level": 1,
-          "move": "tail-whip"
-        },
-        {
-          "level": 1,
-          "move": "vine-whip"
-        },
-        {
-          "level": 12,
-          "move": "leech-seed"
-        },
-        {
-          "level": 13,
-          "move": "razor-leaf"
-        },
-        {
-          "level": 16,
-          "move": "worry-seed"
-        },
-        {
-          "level": 20,
-          "move": "synthesis"
-        },
-        {
-          "level": 22,
-          "move": "take-down"
-        },
-        {
-          "level": 26,
-          "move": "bulldoze"
-        },
-        {
-          "level": 30,
-          "move": "seed-bomb"
-        },
-        {
-          "level": 34,
-          "move": "bulk-up"
-        },
-        {
-          "level": 40,
-          "move": "double-edge"
-        },
-        {
-          "level": 47,
-          "move": "horn-leech"
-        },
-        {
-          "level": 55,
-          "move": "leaf-blade"
-        },
-        {
-          "level": 58,
-          "move": "milk-drink"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "aerial-ace",
         "body-slam",
@@ -120358,31 +119244,41 @@
         "grass-knot",
         "grassy-glide",
         "grassy-terrain",
+        "growth",
         "helping-hand",
         "high-horsepower",
+        "horn-leech",
         "hyper-beam",
+        "iron-tail",
+        "leaf-blade",
         "leaf-storm",
-        "magical-leaf",
+        "leech-seed",
+        "megahorn",
+        "milk-drink",
         "mud-shot",
         "mud-slap",
+        "payback",
         "play-rough",
         "protect",
         "rain-dance",
         "rest",
         "roar",
         "rock-slide",
+        "round",
         "seed-bomb",
         "sleep-talk",
+        "snore",
         "solar-beam",
         "stomping-tantrum",
         "substitute",
         "sunny-day",
+        "superpower",
         "surf",
-        "take-down",
-        "tera-blast",
+        "synthesis",
         "throat-chop",
         "trailblaze",
         "wild-charge",
+        "worry-seed",
         "zen-headbutt"
       ],
       "tutor": []
@@ -120634,8 +119530,8 @@
         "coaching",
         "comeuppance",
         "crunch",
-        "dark-pulse",
         "darkest-lariat",
+        "dark-pulse",
         "detect",
         "dig",
         "dragon-claw",
@@ -120682,6 +119578,7 @@
         "scary-face",
         "seismic-toss",
         "shadow-claw",
+        "slash",
         "sleep-talk",
         "sludge-bomb",
         "snarl",
@@ -120800,8 +119697,8 @@
         "thunder-fang",
         "thunder-wave",
         "trailblaze",
-        "u-turn",
         "uproar",
+        "u-turn",
         "wild-charge",
         "zen-headbutt"
       ],
@@ -121560,6 +120457,7 @@
         "shadow-ball",
         "shadow-claw",
         "shadow-sneak",
+        "slash",
         "sleep-talk",
         "snore",
         "solar-blade",
@@ -121824,8 +120722,8 @@
         "charm",
         "dazzling-gleam",
         "disable",
-        "drain-punch",
         "draining-kiss",
+        "drain-punch",
         "encore",
         "endure",
         "energy-ball",
@@ -121845,8 +120743,8 @@
         "moonblast",
         "nasty-plot",
         "protect",
-        "psych-up",
         "psychic",
+        "psych-up",
         "psyshock",
         "rain-dance",
         "reflect",
@@ -122094,8 +120992,8 @@
         "cotton-guard",
         "cotton-spore",
         "dazzling-gleam",
-        "drain-punch",
         "draining-kiss",
+        "drain-punch",
         "endeavor",
         "endure",
         "energy-ball",
@@ -122362,77 +121260,18 @@
       "hidden": "infiltrator"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 1,
-          "move": "hypnosis"
-        },
-        {
-          "level": 1,
-          "move": "peck"
-        },
-        {
-          "level": 1,
-          "move": "reversal"
-        },
-        {
-          "level": 1,
-          "move": "tackle"
-        },
-        {
-          "level": 1,
-          "move": "wrap"
-        },
-        {
-          "level": 9,
-          "move": "payback"
-        },
-        {
-          "level": 12,
-          "move": "pluck"
-        },
-        {
-          "level": 15,
-          "move": "psybeam"
-        },
-        {
-          "level": 18,
-          "move": "swagger"
-        },
-        {
-          "level": 21,
-          "move": "slash"
-        },
-        {
-          "level": 24,
-          "move": "night-slash"
-        },
-        {
-          "level": 27,
-          "move": "psycho-cut"
-        },
-        {
-          "level": 33,
-          "move": "switcheroo"
-        },
-        {
-          "level": 37,
-          "move": "foul-play"
-        },
-        {
-          "level": 42,
-          "move": "topsy-turvy"
-        },
-        {
-          "level": 47,
-          "move": "superpower"
-        }
-      ],
+      "levelUp": [],
       "tm": [
+        "acupressure",
         "aerial-ace",
         "baton-pass",
+        "brutal-swing",
         "calm-mind",
         "dark-pulse",
+        "destiny-bond",
+        "disable",
+        "double-hit",
+        "double-team",
         "endure",
         "expanding-force",
         "facade",
@@ -122443,41 +121282,55 @@
         "future-sight",
         "giga-impact",
         "gravity",
+        "guard-swap",
         "helping-hand",
         "hyper-beam",
+        "hypnosis",
         "knock-off",
         "lash-out",
         "light-screen",
         "liquidation",
         "lunge",
         "nasty-plot",
+        "night-slash",
+        "payback",
+        "pluck",
+        "poison-jab",
         "protect",
-        "psybeam",
-        "psych-up",
         "psychic",
         "psychic-noise",
+        "psycho-cut",
+        "psych-up",
         "psyshock",
         "rain-dance",
         "reflect",
         "rest",
         "reversal",
         "rock-slide",
+        "round",
         "scary-face",
         "skill-swap",
+        "slash",
         "sleep-talk",
+        "snore",
         "spite",
         "stored-power",
         "substitute",
         "sunny-day",
-        "swift",
+        "superpower",
+        "swagger",
+        "switcheroo",
         "taunt",
-        "tera-blast",
         "thief",
         "throat-chop",
         "thunderbolt",
+        "topsy-turvy",
+        "torment",
         "trailblaze",
         "trick",
-        "trick-room"
+        "trick-room",
+        "wrap",
+        "zen-headbutt"
       ],
       "tutor": []
     },
@@ -122510,8 +121363,8 @@
         },
         "abilities": {
           "ability1": "contrary",
-          "ability2": "suction-cups",
-          "hidden": "infiltrator"
+          "ability2": null,
+          "hidden": null
         },
         "height": 2.9,
         "weight": 69.8
@@ -122735,69 +121588,10 @@
       "hidden": "pickpocket"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 1,
-          "move": "mud-slap"
-        },
-        {
-          "level": 1,
-          "move": "scratch"
-        },
-        {
-          "level": 1,
-          "move": "skull-bash"
-        },
-        {
-          "level": 1,
-          "move": "water-gun"
-        },
-        {
-          "level": 1,
-          "move": "withdraw"
-        },
-        {
-          "level": 12,
-          "move": "fury-cutter"
-        },
-        {
-          "level": 16,
-          "move": "fury-swipes"
-        },
-        {
-          "level": 20,
-          "move": "ancient-power"
-        },
-        {
-          "level": 24,
-          "move": "rock-polish"
-        },
-        {
-          "level": 28,
-          "move": "slash"
-        },
-        {
-          "level": 32,
-          "move": "hone-claws"
-        },
-        {
-          "level": 36,
-          "move": "razor-shell"
-        },
-        {
-          "level": 42,
-          "move": "shell-smash"
-        },
-        {
-          "level": 48,
-          "move": "cross-chop"
-        },
-        {
-          "level": 54,
-          "move": "stone-edge"
-        }
-      ],
+      "levelUp": [],
       "tm": [
+        "ancient-power",
+        "aqua-cutter",
         "assurance",
         "attract",
         "beat-up",
@@ -122806,14 +121600,17 @@
         "brutal-swing",
         "bulk-up",
         "bulldoze",
+        "chilling-water",
+        "close-combat",
+        "cross-chop",
         "dig",
         "dive",
+        "double-hit",
         "dragon-claw",
         "earth-power",
         "earthquake",
         "endure",
         "facade",
-        "false-swipe",
         "fling",
         "focus-blast",
         "giga-impact",
@@ -122825,8 +121622,11 @@
         "iron-defense",
         "liquidation",
         "low-kick",
-        "mud-shot",
+        "meteor-beam",
         "muddy-water",
+        "mud-shot",
+        "mud-slap",
+        "night-slash",
         "payback",
         "poison-jab",
         "protect",
@@ -122834,6 +121634,7 @@
         "razor-shell",
         "rest",
         "rock-blast",
+        "rock-polish",
         "rock-slide",
         "rock-tomb",
         "round",
@@ -122842,6 +121643,8 @@
         "scald",
         "screech",
         "shadow-claw",
+        "shell-smash",
+        "slash",
         "sleep-talk",
         "sludge-bomb",
         "sludge-wave",
@@ -122851,16 +121654,16 @@
         "substitute",
         "superpower",
         "surf",
+        "switcheroo",
         "swords-dance",
         "taunt",
         "thief",
         "uproar",
+        "waterfall",
         "whirlpool",
         "x-scissor"
       ],
-      "tutor": [
-        "meteor-beam"
-      ]
+      "tutor": []
     },
     "evolvesFrom": "binacle",
     "evolutions": [],
@@ -122891,8 +121694,8 @@
         },
         "abilities": {
           "ability1": "tough-claws",
-          "ability2": "sniper",
-          "hidden": "pickpocket"
+          "ability2": null,
+          "hidden": null
         },
         "height": 2.2,
         "weight": 100
@@ -123110,69 +121913,17 @@
       "hidden": "adaptability"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 1,
-          "move": "acid"
-        },
-        {
-          "level": 1,
-          "move": "smokescreen"
-        },
-        {
-          "level": 1,
-          "move": "tackle"
-        },
-        {
-          "level": 1,
-          "move": "water-gun"
-        },
-        {
-          "level": 15,
-          "move": "tail-whip"
-        },
-        {
-          "level": 20,
-          "move": "double-team"
-        },
-        {
-          "level": 25,
-          "move": "poison-tail"
-        },
-        {
-          "level": 30,
-          "move": "water-pulse"
-        },
-        {
-          "level": 35,
-          "move": "toxic"
-        },
-        {
-          "level": 40,
-          "move": "dragon-pulse"
-        },
-        {
-          "level": 45,
-          "move": "aqua-tail"
-        },
-        {
-          "level": 52,
-          "move": "sludge-bomb"
-        },
-        {
-          "level": 59,
-          "move": "hydro-pump"
-        },
-        {
-          "level": 66,
-          "move": "outrage"
-        }
-      ],
+      "levelUp": [],
       "tm": [
+        "acid-armor",
         "acid-spray",
+        "aqua-tail",
         "chilling-water",
+        "dive",
+        "double-team",
         "draco-meteor",
         "dragon-pulse",
+        "dragon-tail",
         "endure",
         "facade",
         "flip-turn",
@@ -123183,16 +121934,18 @@
         "hydro-pump",
         "hyper-beam",
         "icy-wind",
+        "iron-tail",
         "liquidation",
+        "muddy-water",
         "mud-shot",
         "mud-slap",
-        "muddy-water",
         "outrage",
         "play-rough",
-        "poison-tail",
+        "poison-jab",
         "protect",
         "rain-dance",
         "rest",
+        "round",
         "scald",
         "scale-shot",
         "scary-face",
@@ -123200,20 +121953,19 @@
         "sleep-talk",
         "sludge-bomb",
         "sludge-wave",
+        "snore",
         "snowscape",
         "spite",
         "substitute",
         "surf",
-        "take-down",
-        "tera-blast",
         "thief",
         "thunder",
         "thunderbolt",
         "toxic",
         "toxic-spikes",
         "venoshock",
-        "water-pulse",
         "waterfall",
+        "water-pulse",
         "whirlpool"
       ],
       "tutor": []
@@ -123246,9 +121998,9 @@
           "spe": 44
         },
         "abilities": {
-          "ability1": "poison-point",
-          "ability2": "poison-touch",
-          "hidden": "adaptability"
+          "ability1": "regenerator",
+          "ability2": null,
+          "hidden": null
         },
         "height": 2.1,
         "weight": 100.3
@@ -123487,9 +122239,9 @@
         "ice-beam",
         "icy-wind",
         "liquidation",
+        "muddy-water",
         "mud-shot",
         "mud-slap",
-        "muddy-water",
         "pounce",
         "protect",
         "rain-dance",
@@ -123792,9 +122544,9 @@
         "sunny-day",
         "surf",
         "thunder",
+        "thunderbolt",
         "thunder-punch",
         "thunder-wave",
-        "thunderbolt",
         "trailblaze",
         "u-turn",
         "volt-switch",
@@ -124399,8 +123151,8 @@
         "stone-edge",
         "substitute",
         "thunder",
-        "thunder-wave",
         "thunderbolt",
+        "thunder-wave",
         "weather-ball",
         "zen-headbutt"
       ],
@@ -124499,8 +123251,8 @@
         "mystical-fire",
         "play-rough",
         "protect",
-        "psych-up",
         "psychic",
+        "psych-up",
         "psyshock",
         "quick-attack",
         "rain-dance",
@@ -124659,9 +123411,9 @@
         "throat-chop",
         "thunder-punch",
         "trailblaze",
-        "u-turn",
         "upper-hand",
         "uproar",
+        "u-turn",
         "x-scissor",
         "zen-headbutt"
       ],
@@ -124796,9 +123548,9 @@
         "tearful-look",
         "thief",
         "thunder",
+        "thunderbolt",
         "thunder-punch",
         "thunder-wave",
-        "thunderbolt",
         "trailblaze",
         "u-turn",
         "volt-switch",
@@ -125408,8 +124160,8 @@
         "knock-off",
         "life-dew",
         "mega-kick",
-        "mud-shot",
         "muddy-water",
+        "mud-shot",
         "outrage",
         "power-whip",
         "protect",
@@ -125430,8 +124182,8 @@
         "surf",
         "tearful-look",
         "thunder",
-        "thunder-punch",
         "thunderbolt",
+        "thunder-punch",
         "toxic",
         "water-pulse",
         "weather-ball"
@@ -125550,8 +124302,8 @@
         "misty-terrain",
         "play-rough",
         "protect",
-        "psych-up",
         "psychic",
+        "psych-up",
         "psyshock",
         "rain-dance",
         "recycle",
@@ -125854,9 +124606,9 @@
         "poison-jab",
         "poltergeist",
         "protect",
-        "psych-up",
         "psychic",
         "psychic-noise",
+        "psych-up",
         "rain-dance",
         "reflect",
         "rest",
@@ -126243,8 +124995,8 @@
         "sunny-day",
         "thief",
         "trick",
-        "trick-room",
         "trick-or-treat",
+        "trick-room",
         "will-o-wisp",
         "worry-seed"
       ],
@@ -126880,8 +125632,8 @@
         "brick-break",
         "dark-pulse",
         "defog",
-        "double-team",
         "double-edge",
+        "double-team",
         "draco-meteor",
         "dragon-cheer",
         "dragon-claw",
@@ -126926,8 +125678,8 @@
         "tailwind",
         "taunt",
         "thief",
-        "u-turn",
         "uproar",
+        "u-turn",
         "water-pulse",
         "whirlwind",
         "wild-charge",
@@ -129099,8 +127851,8 @@
         "close-combat",
         "cross-chop",
         "crunch",
-        "dark-pulse",
         "darkest-lariat",
+        "dark-pulse",
         "double-edge",
         "drain-punch",
         "earthquake",
@@ -129582,9 +128334,9 @@
         "perish-song",
         "play-rough",
         "protect",
-        "psych-up",
         "psychic",
         "psychic-noise",
+        "psych-up",
         "rain-dance",
         "reflect",
         "rest",
@@ -129600,8 +128352,8 @@
         "surf",
         "triple-axel",
         "uproar",
-        "water-pulse",
         "waterfall",
+        "water-pulse",
         "weather-ball",
         "whirlpool",
         "wonder-room"
@@ -130036,8 +128788,8 @@
         "temper-flare",
         "thief",
         "throat-chop",
-        "u-turn",
-        "uproar"
+        "uproar",
+        "u-turn"
       ],
       "tutor": []
     },
@@ -131988,8 +130740,8 @@
         "close-combat",
         "crunch",
         "dig",
-        "double-team",
         "double-edge",
+        "double-team",
         "drill-run",
         "earth-power",
         "endeavor",
@@ -132495,8 +131247,8 @@
         "light-screen",
         "liquidation",
         "lunge",
-        "mud-shot",
         "muddy-water",
+        "mud-shot",
         "pain-split",
         "payback",
         "pin-missile",
@@ -132774,8 +131526,8 @@
         "rock-slide",
         "rock-tomb",
         "round",
-        "sand-tomb",
         "sandstorm",
+        "sand-tomb",
         "scary-face",
         "sleep-talk",
         "smack-down",
@@ -133053,8 +131805,8 @@
         "substitute",
         "surf",
         "trailblaze",
-        "water-pulse",
         "waterfall",
+        "water-pulse",
         "wide-guard",
         "wonder-room",
         "x-scissor"
@@ -134981,10 +133733,10 @@
         "pain-split",
         "payback",
         "protect",
-        "psych-up",
         "psychic",
         "psychic-noise",
         "psychic-terrain",
+        "psych-up",
         "psyshock",
         "quash",
         "rain-dance",
@@ -135136,9 +133888,9 @@
         "thief",
         "thrash",
         "trailblaze",
-        "u-turn",
         "upper-hand",
         "uproar",
+        "u-turn",
         "vacuum-wave"
       ],
       "tutor": []
@@ -135309,90 +134061,30 @@
       "hidden": null
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 0,
-          "move": "first-impression"
-        },
-        {
-          "level": 1,
-          "move": "defense-curl"
-        },
-        {
-          "level": 1,
-          "move": "sand-attack"
-        },
-        {
-          "level": 1,
-          "move": "spite"
-        },
-        {
-          "level": 1,
-          "move": "struggle-bug"
-        },
-        {
-          "level": 4,
-          "move": "rock-smash"
-        },
-        {
-          "level": 8,
-          "move": "fury-cutter"
-        },
-        {
-          "level": 12,
-          "move": "mud-shot"
-        },
-        {
-          "level": 16,
-          "move": "bug-bite"
-        },
-        {
-          "level": 20,
-          "move": "iron-defense"
-        },
-        {
-          "level": 24,
-          "move": "sucker-punch"
-        },
-        {
-          "level": 28,
-          "move": "slash"
-        },
-        {
-          "level": 32,
-          "move": "razor-shell"
-        },
-        {
-          "level": 36,
-          "move": "pin-missile"
-        },
-        {
-          "level": 40,
-          "move": "swords-dance"
-        },
-        {
-          "level": 44,
-          "move": "liquidation"
-        }
-      ],
+      "levelUp": [],
       "tm": [
+        "agility",
+        "aqua-jet",
         "assurance",
         "attract",
         "blizzard",
         "brick-break",
+        "bug-bite",
         "bug-buzz",
         "bulk-up",
+        "chilling-water",
         "close-combat",
         "dark-pulse",
         "dive",
+        "double-hit",
         "drill-run",
         "endure",
         "facade",
-        "false-swipe",
+        "first-impression",
         "fling",
         "focus-blast",
         "giga-impact",
-        "hail",
+        "gunk-shot",
         "hyper-beam",
         "ice-beam",
         "icy-wind",
@@ -135400,11 +134092,13 @@
         "iron-head",
         "leech-life",
         "liquidation",
-        "mud-shot",
         "muddy-water",
+        "mud-shot",
+        "night-slash",
         "payback",
         "pin-missile",
         "poison-jab",
+        "pounce",
         "protect",
         "rain-dance",
         "razor-shell",
@@ -135415,25 +134109,29 @@
         "scald",
         "screech",
         "shadow-claw",
+        "skitter-smack",
+        "slash",
         "sleep-talk",
         "sludge-bomb",
         "sludge-wave",
         "snarl",
         "snore",
         "spikes",
+        "spite",
+        "struggle-bug",
         "substitute",
+        "sucker-punch",
         "surf",
-        "swift",
         "swords-dance",
         "taunt",
         "throat-chop",
+        "u-turn",
         "venoshock",
         "waterfall",
+        "wide-guard",
         "x-scissor"
       ],
-      "tutor": [
-        "skitter-smack"
-      ]
+      "tutor": []
     },
     "evolvesFrom": "wimpod",
     "evolutions": [],
@@ -135463,7 +134161,7 @@
           "spe": 40
         },
         "abilities": {
-          "ability1": "emergency-exit",
+          "ability1": "tough-claws",
           "ability2": null,
           "hidden": null
         },
@@ -137445,8 +136143,8 @@
         "dazzling-gleam",
         "destiny-bond",
         "double-team",
-        "drain-punch",
         "draining-kiss",
+        "drain-punch",
         "endure",
         "facade",
         "fling",
@@ -137466,8 +136164,8 @@
         "play-rough",
         "pounce",
         "protect",
-        "psych-up",
         "psychic",
+        "psych-up",
         "rain-dance",
         "rest",
         "round",
@@ -137476,6 +136174,7 @@
         "shadow-ball",
         "shadow-claw",
         "shadow-sneak",
+        "slash",
         "sleep-talk",
         "snore",
         "spite",
@@ -137485,8 +136184,8 @@
         "taunt",
         "thief",
         "thunder",
-        "thunder-wave",
         "thunderbolt",
+        "thunder-wave",
         "trailblaze",
         "trick",
         "trick-room",
@@ -137797,8 +136496,8 @@
         "superpower",
         "surf",
         "thunder",
-        "thunder-wave",
         "thunderbolt",
+        "thunder-wave",
         "tickle",
         "tri-attack",
         "uproar",
@@ -143107,128 +141806,75 @@
       "hidden": "grassy-surge"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 0,
-          "move": "drum-beating"
-        },
-        {
-          "level": 1,
-          "move": "branch-poke"
-        },
-        {
-          "level": 1,
-          "move": "double-hit"
-        },
-        {
-          "level": 1,
-          "move": "grassy-terrain"
-        },
-        {
-          "level": 1,
-          "move": "growl"
-        },
-        {
-          "level": 1,
-          "move": "noble-roar"
-        },
-        {
-          "level": 1,
-          "move": "scratch"
-        },
-        {
-          "level": 1,
-          "move": "taunt"
-        },
-        {
-          "level": 12,
-          "move": "razor-leaf"
-        },
-        {
-          "level": 19,
-          "move": "screech"
-        },
-        {
-          "level": 24,
-          "move": "knock-off"
-        },
-        {
-          "level": 30,
-          "move": "slam"
-        },
-        {
-          "level": 38,
-          "move": "uproar"
-        },
-        {
-          "level": 46,
-          "move": "wood-hammer"
-        },
-        {
-          "level": 54,
-          "move": "endeavor"
-        },
-        {
-          "level": 62,
-          "move": "boomburst"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "acrobatics",
+        "assurance",
         "body-press",
         "body-slam",
+        "boomburst",
         "brick-break",
+        "brutal-swing",
         "bulk-up",
         "bulldoze",
         "bullet-seed",
         "double-edge",
+        "double-hit",
         "drain-punch",
+        "drum-beating",
         "earth-power",
         "earthquake",
         "endeavor",
         "endure",
         "energy-ball",
         "facade",
-        "false-swipe",
+        "fake-out",
         "fling",
         "focus-blast",
+        "focus-energy",
         "focus-punch",
         "frenzy-plant",
         "giga-drain",
         "giga-impact",
         "grass-knot",
-        "grass-pledge",
         "grassy-glide",
         "grassy-terrain",
+        "growth",
+        "hammer-arm",
         "high-horsepower",
         "hyper-beam",
         "hyper-voice",
         "knock-off",
         "leaf-storm",
+        "leech-seed",
         "low-kick",
         "low-sweep",
-        "magical-leaf",
+        "mega-kick",
         "mud-shot",
+        "noble-roar",
         "protect",
         "rest",
+        "round",
         "scary-face",
+        "screech",
         "seed-bomb",
         "sleep-talk",
         "snarl",
+        "snore",
         "solar-beam",
         "solar-blade",
         "stomping-tantrum",
         "substitute",
         "sunny-day",
-        "swift",
+        "superpower",
         "swords-dance",
-        "take-down",
         "taunt",
-        "tera-blast",
         "thief",
         "trailblaze",
+        "uproar",
         "u-turn",
-        "uproar"
+        "wood-hammer",
+        "worry-seed"
       ],
       "tutor": []
     },
@@ -143592,79 +142238,27 @@
       "hidden": "libero"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 0,
-          "move": "pyro-ball"
-        },
-        {
-          "level": 1,
-          "move": "ember"
-        },
-        {
-          "level": 1,
-          "move": "feint"
-        },
-        {
-          "level": 1,
-          "move": "growl"
-        },
-        {
-          "level": 1,
-          "move": "quick-attack"
-        },
-        {
-          "level": 1,
-          "move": "tackle"
-        },
-        {
-          "level": 12,
-          "move": "double-kick"
-        },
-        {
-          "level": 19,
-          "move": "flame-charge"
-        },
-        {
-          "level": 24,
-          "move": "agility"
-        },
-        {
-          "level": 30,
-          "move": "headbutt"
-        },
-        {
-          "level": 38,
-          "move": "counter"
-        },
-        {
-          "level": 46,
-          "move": "bounce"
-        },
-        {
-          "level": 54,
-          "move": "double-edge"
-        },
-        {
-          "level": 62,
-          "move": "court-change"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "acrobatics",
         "agility",
+        "assurance",
         "baton-pass",
         "blast-burn",
+        "blaze-kick",
+        "bounce",
         "bulk-up",
         "burning-jealousy",
         "coaching",
+        "counter",
+        "court-change",
         "double-edge",
         "electro-ball",
         "endure",
         "facade",
+        "feint",
         "fire-blast",
         "fire-fang",
-        "fire-pledge",
         "fire-punch",
         "fire-spin",
         "flame-charge",
@@ -143672,34 +142266,39 @@
         "flare-blitz",
         "fling",
         "focus-blast",
+        "focus-energy",
         "giga-impact",
         "gunk-shot",
         "heat-wave",
         "helping-hand",
+        "high-jump-kick",
         "hyper-beam",
         "iron-head",
         "low-kick",
         "low-sweep",
+        "mega-kick",
         "mud-shot",
         "mud-slap",
         "overheat",
         "protect",
+        "pyro-ball",
+        "quick-attack",
         "rest",
         "reversal",
+        "round",
         "scorching-sands",
         "shadow-ball",
         "sleep-talk",
         "smack-down",
         "snarl",
+        "snore",
         "substitute",
+        "sucker-punch",
         "sunny-day",
         "super-fang",
-        "swift",
         "swords-dance",
-        "take-down",
         "taunt",
         "temper-flare",
-        "tera-blast",
         "trailblaze",
         "u-turn",
         "weather-ball",
@@ -144047,114 +142646,68 @@
       "hidden": "sniper"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 0,
-          "move": "snipe-shot"
-        },
-        {
-          "level": 1,
-          "move": "acrobatics"
-        },
-        {
-          "level": 1,
-          "move": "bind"
-        },
-        {
-          "level": 1,
-          "move": "growl"
-        },
-        {
-          "level": 1,
-          "move": "pound"
-        },
-        {
-          "level": 1,
-          "move": "water-gun"
-        },
-        {
-          "level": 12,
-          "move": "water-pulse"
-        },
-        {
-          "level": 19,
-          "move": "tearful-look"
-        },
-        {
-          "level": 24,
-          "move": "sucker-punch"
-        },
-        {
-          "level": 30,
-          "move": "u-turn"
-        },
-        {
-          "level": 38,
-          "move": "liquidation"
-        },
-        {
-          "level": 46,
-          "move": "soak"
-        },
-        {
-          "level": 54,
-          "move": "rain-dance"
-        },
-        {
-          "level": 62,
-          "move": "hydro-pump"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "acrobatics",
         "agility",
         "air-cutter",
         "air-slash",
+        "aqua-jet",
+        "aqua-ring",
         "baton-pass",
+        "bind",
         "blizzard",
+        "bounce",
         "breaking-swipe",
         "chilling-water",
         "dark-pulse",
+        "dive",
+        "double-team",
         "endure",
         "facade",
+        "fell-stinger",
         "fling",
         "flip-turn",
+        "focus-energy",
         "giga-impact",
         "haze",
         "hydro-cannon",
         "hydro-pump",
         "hyper-beam",
         "ice-beam",
+        "ice-shard",
         "icicle-spear",
         "icy-wind",
         "light-screen",
         "liquidation",
-        "metronome",
-        "mud-shot",
         "muddy-water",
+        "mud-shot",
         "protect",
         "psych-up",
         "rain-dance",
         "reflect",
         "rest",
+        "round",
         "scald",
+        "scale-shot",
         "shadow-ball",
         "skitter-smack",
         "sleep-talk",
         "smack-down",
+        "snipe-shot",
+        "snore",
         "snowscape",
+        "soak",
         "substitute",
+        "sucker-punch",
         "surf",
-        "swift",
         "swords-dance",
-        "take-down",
         "taunt",
-        "tera-blast",
+        "tearful-look",
         "u-turn",
         "vacuum-wave",
-        "water-pledge",
-        "water-pulse",
         "waterfall",
+        "water-pulse",
         "weather-ball",
         "whirlpool"
       ],
@@ -145440,60 +143993,7 @@
       "hidden": "stakeout"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 0,
-          "move": "thief"
-        },
-        {
-          "level": 1,
-          "move": "beat-up"
-        },
-        {
-          "level": 1,
-          "move": "hone-claws"
-        },
-        {
-          "level": 1,
-          "move": "quick-attack"
-        },
-        {
-          "level": 1,
-          "move": "tail-whip"
-        },
-        {
-          "level": 12,
-          "move": "snarl"
-        },
-        {
-          "level": 16,
-          "move": "assurance"
-        },
-        {
-          "level": 22,
-          "move": "nasty-plot"
-        },
-        {
-          "level": 28,
-          "move": "sucker-punch"
-        },
-        {
-          "level": 34,
-          "move": "night-slash"
-        },
-        {
-          "level": 40,
-          "move": "tail-slap"
-        },
-        {
-          "level": 46,
-          "move": "foul-play"
-        },
-        {
-          "level": 52,
-          "move": "parting-shot"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "acrobatics",
         "agility",
@@ -145501,24 +144001,35 @@
         "attract",
         "baton-pass",
         "beat-up",
+        "burning-jealousy",
         "crunch",
         "dark-pulse",
         "dig",
+        "double-team",
         "endure",
         "facade",
         "fake-tears",
         "fire-fang",
+        "first-impression",
         "foul-play",
         "giga-impact",
         "grass-knot",
+        "howl",
         "hyper-beam",
         "ice-fang",
+        "knock-off",
+        "lash-out",
         "mud-shot",
         "nasty-plot",
+        "night-slash",
+        "parting-shot",
         "play-rough",
         "protect",
         "psychic",
+        "quick-attack",
+        "quick-guard",
         "rest",
+        "roar",
         "round",
         "screech",
         "shadow-ball",
@@ -145527,17 +144038,16 @@
         "snarl",
         "snore",
         "substitute",
-        "swift",
+        "sucker-punch",
         "tail-slap",
         "taunt",
         "thief",
         "thunder-fang",
+        "torment",
+        "trailblaze",
         "u-turn"
       ],
-      "tutor": [
-        "burning-jealousy",
-        "lash-out"
-      ]
+      "tutor": []
     },
     "evolvesFrom": "nickit",
     "evolutions": [],
@@ -147724,8 +146234,8 @@
         "rock-slide",
         "rock-tomb",
         "round",
-        "sand-tomb",
         "sandstorm",
+        "sand-tomb",
         "scale-shot",
         "scary-face",
         "scorching-sands",
@@ -148397,106 +146907,16 @@
       "hidden": "technician"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 0,
-          "move": "spark"
-        },
-        {
-          "level": 1,
-          "move": "acid"
-        },
-        {
-          "level": 1,
-          "move": "acid-spray"
-        },
-        {
-          "level": 1,
-          "move": "belch"
-        },
-        {
-          "level": 1,
-          "move": "flail"
-        },
-        {
-          "level": 1,
-          "move": "growl"
-        },
-        {
-          "level": 1,
-          "move": "leer"
-        },
-        {
-          "level": 1,
-          "move": "noble-roar"
-        },
-        {
-          "level": 1,
-          "move": "nuzzle"
-        },
-        {
-          "level": 1,
-          "move": "tearful-look"
-        },
-        {
-          "level": 1,
-          "move": "thunder-shock"
-        },
-        {
-          "level": 4,
-          "move": "charge"
-        },
-        {
-          "level": 8,
-          "move": "shock-wave"
-        },
-        {
-          "level": 12,
-          "move": "scary-face"
-        },
-        {
-          "level": 16,
-          "move": "taunt"
-        },
-        {
-          "level": 24,
-          "move": "screech"
-        },
-        {
-          "level": 28,
-          "move": "swagger"
-        },
-        {
-          "level": 32,
-          "move": "toxic"
-        },
-        {
-          "level": 36,
-          "move": "discharge"
-        },
-        {
-          "level": 40,
-          "move": "poison-jab"
-        },
-        {
-          "level": 44,
-          "move": "overdrive"
-        },
-        {
-          "level": 48,
-          "move": "boomburst"
-        },
-        {
-          "level": 52,
-          "move": "shift-gear"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "acid-spray",
+        "belch",
+        "boomburst",
         "brick-break",
         "charge",
         "charge-beam",
         "charm",
+        "discharge",
         "drain-punch",
         "eerie-impulse",
         "electric-terrain",
@@ -148507,6 +146927,7 @@
         "endure",
         "facade",
         "fire-punch",
+        "flail",
         "fling",
         "giga-impact",
         "gunk-shot",
@@ -148514,40 +146935,48 @@
         "hex",
         "hyper-beam",
         "hyper-voice",
+        "mega-kick",
         "metal-sound",
-        "metronome",
+        "noble-roar",
+        "nuzzle",
+        "overdrive",
+        "payback",
         "poison-jab",
-        "poison-tail",
         "protect",
         "psychic-noise",
         "rain-dance",
         "rest",
+        "rising-voltage",
+        "round",
         "scary-face",
+        "screech",
+        "shift-gear",
         "sleep-talk",
         "sludge-bomb",
         "sludge-wave",
         "snarl",
+        "snore",
         "stored-power",
         "substitute",
         "sunny-day",
-        "swift",
-        "take-down",
+        "swagger",
         "taunt",
-        "tera-blast",
+        "tearful-look",
         "thief",
         "throat-chop",
         "thunder",
+        "thunderbolt",
         "thunder-fang",
         "thunder-punch",
         "thunder-wave",
-        "thunderbolt",
         "toxic",
         "toxic-spikes",
         "trailblaze",
         "uproar",
         "venoshock",
         "volt-switch",
-        "wild-charge"
+        "wild-charge",
+        "zap-cannon"
       ],
       "tutor": []
     },
@@ -149081,109 +147510,59 @@
       "hidden": "technician"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 0,
-          "move": "octolock"
-        },
-        {
-          "level": 1,
-          "move": "bind"
-        },
-        {
-          "level": 1,
-          "move": "feint"
-        },
-        {
-          "level": 1,
-          "move": "leer"
-        },
-        {
-          "level": 1,
-          "move": "octazooka"
-        },
-        {
-          "level": 1,
-          "move": "rock-smash"
-        },
-        {
-          "level": 15,
-          "move": "detect"
-        },
-        {
-          "level": 20,
-          "move": "brick-break"
-        },
-        {
-          "level": 25,
-          "move": "bulk-up"
-        },
-        {
-          "level": 30,
-          "move": "submission"
-        },
-        {
-          "level": 35,
-          "move": "taunt"
-        },
-        {
-          "level": 40,
-          "move": "reversal"
-        },
-        {
-          "level": 45,
-          "move": "superpower"
-        },
-        {
-          "level": 50,
-          "move": "topsy-turvy"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "attract",
+        "bind",
         "body-slam",
         "brick-break",
-        "brine",
         "brutal-swing",
         "bulk-up",
+        "chilling-water",
+        "circle-throw",
         "close-combat",
+        "coaching",
+        "detect",
         "dig",
         "dive",
         "drain-punch",
         "endure",
         "facade",
+        "feint",
         "focus-blast",
         "giga-impact",
         "hydro-pump",
         "hyper-beam",
         "ice-punch",
         "liquidation",
-        "mega-punch",
-        "mud-shot",
+        "mach-punch",
         "muddy-water",
+        "mud-shot",
+        "octolock",
+        "pain-split",
         "payback",
         "protect",
         "rest",
-        "retaliate",
-        "revenge",
         "reversal",
         "round",
         "scary-face",
+        "seismic-toss",
+        "skitter-smack",
         "sleep-talk",
         "snore",
+        "soak",
         "stomping-tantrum",
+        "storm-throw",
         "substitute",
+        "sucker-punch",
         "superpower",
         "surf",
         "taunt",
+        "topsy-turvy",
         "waterfall",
-        "whirlpool",
-        "work-up"
+        "whirlpool"
       ],
-      "tutor": [
-        "coaching",
-        "skitter-smack"
-      ]
+      "tutor": []
     },
     "evolvesFrom": "clobbopus",
     "evolutions": [],
@@ -149865,8 +148244,8 @@
         "giga-impact",
         "gravity",
         "guard-swap",
-        "heal-pulse",
         "healing-wish",
+        "heal-pulse",
         "helping-hand",
         "hyper-beam",
         "imprison",
@@ -149883,11 +148262,11 @@
         "power-swap",
         "power-whip",
         "protect",
-        "psych-up",
         "psychic",
         "psychic-noise",
         "psychic-terrain",
         "psycho-cut",
+        "psych-up",
         "psyshock",
         "quash",
         "reflect",
@@ -150286,77 +148665,10 @@
       "hidden": "pickpocket"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 0,
-          "move": "spirit-break"
-        },
-        {
-          "level": 1,
-          "move": "bite"
-        },
-        {
-          "level": 1,
-          "move": "bulk-up"
-        },
-        {
-          "level": 1,
-          "move": "confide"
-        },
-        {
-          "level": 1,
-          "move": "fake-out"
-        },
-        {
-          "level": 1,
-          "move": "false-surrender"
-        },
-        {
-          "level": 1,
-          "move": "flatter"
-        },
-        {
-          "level": 12,
-          "move": "fake-tears"
-        },
-        {
-          "level": 16,
-          "move": "assurance"
-        },
-        {
-          "level": 20,
-          "move": "swagger"
-        },
-        {
-          "level": 24,
-          "move": "sucker-punch"
-        },
-        {
-          "level": 28,
-          "move": "torment"
-        },
-        {
-          "level": 35,
-          "move": "dark-pulse"
-        },
-        {
-          "level": 40,
-          "move": "nasty-plot"
-        },
-        {
-          "level": 48,
-          "move": "play-rough"
-        },
-        {
-          "level": 56,
-          "move": "foul-play"
-        },
-        {
-          "level": 64,
-          "move": "hammer-arm"
-        }
-      ],
+      "levelUp": [],
       "tm": [
+        "assurance",
+        "bite",
         "body-press",
         "body-slam",
         "brick-break",
@@ -150366,17 +148678,21 @@
         "crunch",
         "dark-pulse",
         "dazzling-gleam",
-        "drain-punch",
         "draining-kiss",
+        "drain-punch",
         "endure",
         "facade",
+        "fake-out",
         "fake-tears",
         "fire-punch",
+        "flatter",
         "fling",
         "focus-blast",
+        "focus-energy",
         "focus-punch",
         "foul-play",
         "giga-impact",
+        "hammer-arm",
         "hyper-beam",
         "ice-punch",
         "imprison",
@@ -150385,27 +148701,36 @@
         "light-screen",
         "low-kick",
         "low-sweep",
-        "metronome",
+        "mega-kick",
         "misty-terrain",
         "nasty-plot",
+        "parting-shot",
         "play-rough",
+        "power-swap",
+        "power-whip",
         "protect",
         "reflect",
         "rest",
+        "round",
         "scary-face",
         "shadow-claw",
         "sleep-talk",
+        "snore",
+        "spirit-break",
         "stomping-tantrum",
         "substitute",
-        "take-down",
+        "sucker-punch",
+        "superpower",
+        "swagger",
         "taunt",
-        "tera-blast",
         "thief",
         "throat-chop",
         "thunder-punch",
-        "thunder-wave",
+        "torment",
         "trailblaze",
-        "trick"
+        "trick",
+        "uproar",
+        "wonder-room"
       ],
       "tutor": []
     },
@@ -150682,81 +149007,20 @@
       "hidden": "steely-spirit"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 0,
-          "move": "iron-head"
-        },
-        {
-          "level": 1,
-          "move": "fake-out"
-        },
-        {
-          "level": 1,
-          "move": "growl"
-        },
-        {
-          "level": 1,
-          "move": "hone-claws"
-        },
-        {
-          "level": 1,
-          "move": "iron-defense"
-        },
-        {
-          "level": 1,
-          "move": "metal-burst"
-        },
-        {
-          "level": 1,
-          "move": "scratch"
-        },
-        {
-          "level": 12,
-          "move": "pay-day"
-        },
-        {
-          "level": 16,
-          "move": "metal-claw"
-        },
-        {
-          "level": 20,
-          "move": "taunt"
-        },
-        {
-          "level": 24,
-          "move": "swagger"
-        },
-        {
-          "level": 31,
-          "move": "fury-swipes"
-        },
-        {
-          "level": 36,
-          "move": "screech"
-        },
-        {
-          "level": 42,
-          "move": "slash"
-        },
-        {
-          "level": 48,
-          "move": "metal-sound"
-        },
-        {
-          "level": 54,
-          "move": "thrash"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "aerial-ace",
         "amnesia",
+        "assurance",
         "baton-pass",
+        "bite",
         "body-slam",
         "brick-break",
+        "bulk-up",
         "charm",
         "chilling-water",
         "close-combat",
+        "covet",
         "crunch",
         "curse",
         "dark-pulse",
@@ -150765,8 +149029,9 @@
         "endeavor",
         "endure",
         "facade",
+        "fake-out",
         "fake-tears",
-        "false-swipe",
+        "flail",
         "flash-cannon",
         "fling",
         "foul-play",
@@ -150779,34 +149044,43 @@
         "hyper-voice",
         "iron-defense",
         "iron-head",
+        "iron-tail",
         "knock-off",
         "lash-out",
-        "metal-claw",
+        "metal-burst",
         "metal-sound",
-        "metronome",
         "nasty-plot",
+        "night-slash",
+        "payback",
         "play-rough",
         "protect",
         "rain-dance",
         "rest",
+        "round",
+        "screech",
         "seed-bomb",
         "shadow-ball",
         "shadow-claw",
+        "slash",
         "sleep-talk",
+        "snore",
+        "spikes",
         "spite",
         "stealth-rock",
         "steel-beam",
         "substitute",
         "sunny-day",
+        "swagger",
         "swords-dance",
-        "take-down",
         "taunt",
-        "tera-blast",
         "thief",
+        "thrash",
         "throat-chop",
         "thunder",
         "thunderbolt",
+        "thunder-wave",
         "trailblaze",
+        "uproar",
         "u-turn",
         "x-scissor"
       ],
@@ -151048,81 +149322,9 @@
       "hidden": "scrappy"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 0,
-          "move": "iron-defense"
-        },
-        {
-          "level": 1,
-          "move": "first-impression"
-        },
-        {
-          "level": 1,
-          "move": "fury-cutter"
-        },
-        {
-          "level": 1,
-          "move": "leer"
-        },
-        {
-          "level": 1,
-          "move": "peck"
-        },
-        {
-          "level": 1,
-          "move": "sand-attack"
-        },
-        {
-          "level": 15,
-          "move": "rock-smash"
-        },
-        {
-          "level": 20,
-          "move": "brutal-swing"
-        },
-        {
-          "level": 25,
-          "move": "detect"
-        },
-        {
-          "level": 30,
-          "move": "knock-off"
-        },
-        {
-          "level": 35,
-          "move": "defog"
-        },
-        {
-          "level": 40,
-          "move": "brick-break"
-        },
-        {
-          "level": 45,
-          "move": "swords-dance"
-        },
-        {
-          "level": 50,
-          "move": "slam"
-        },
-        {
-          "level": 55,
-          "move": "leaf-blade"
-        },
-        {
-          "level": 60,
-          "move": "final-gambit"
-        },
-        {
-          "level": 65,
-          "move": "brave-bird"
-        },
-        {
-          "level": 70,
-          "move": "meteor-assault"
-        }
-      ],
+      "levelUp": [],
       "tm": [
+        "aerial-ace",
         "assurance",
         "attract",
         "body-slam",
@@ -151130,18 +149332,38 @@
         "brick-break",
         "brutal-swing",
         "close-combat",
+        "coaching",
+        "counter",
+        "covet",
+        "curse",
+        "defog",
+        "detect",
+        "double-edge",
+        "dual-wingbeat",
         "endure",
         "facade",
+        "feather-dance",
+        "feint",
+        "final-gambit",
+        "first-impression",
+        "flail",
         "focus-energy",
+        "grassy-glide",
         "helping-hand",
         "iron-defense",
+        "knock-off",
         "leaf-blade",
+        "meteor-assault",
+        "night-slash",
         "poison-jab",
         "protect",
+        "quick-attack",
+        "quick-guard",
         "rest",
-        "retaliate",
-        "revenge",
         "round",
+        "simple-beam",
+        "sky-attack",
+        "slash",
         "sleep-talk",
         "snore",
         "solar-blade",
@@ -151150,14 +149372,9 @@
         "sunny-day",
         "superpower",
         "swords-dance",
-        "throat-chop",
-        "work-up"
+        "throat-chop"
       ],
-      "tutor": [
-        "coaching",
-        "dual-wingbeat",
-        "grassy-glide"
-      ]
+      "tutor": []
     },
     "evolvesFrom": "farfetch-d-galar",
     "evolutions": [],
@@ -151303,8 +149520,8 @@
         "teeter-dance",
         "thief",
         "thunder",
-        "thunder-wave",
         "thunderbolt",
+        "thunder-wave",
         "tickle",
         "torment",
         "trick",
@@ -151425,8 +149642,8 @@
         "rock-tomb",
         "round",
         "safeguard",
-        "sand-tomb",
         "sandstorm",
+        "sand-tomb",
         "scary-face",
         "self-destruct",
         "shadow-ball",
@@ -151649,8 +149866,8 @@
         "charm",
         "dazzling-gleam",
         "decorate",
-        "drain-punch",
         "draining-kiss",
+        "drain-punch",
         "encore",
         "endeavor",
         "endure",
@@ -151673,8 +149890,8 @@
         "pain-split",
         "play-rough",
         "protect",
-        "psych-up",
         "psychic",
+        "psych-up",
         "psyshock",
         "recover",
         "rest",
@@ -151748,77 +149965,25 @@
       "hidden": "defiant"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 1,
-          "move": "protect"
-        },
-        {
-          "level": 1,
-          "move": "tackle"
-        },
-        {
-          "level": 5,
-          "move": "rock-smash"
-        },
-        {
-          "level": 10,
-          "move": "focus-energy"
-        },
-        {
-          "level": 15,
-          "move": "headbutt"
-        },
-        {
-          "level": 20,
-          "move": "bulk-up"
-        },
-        {
-          "level": 25,
-          "move": "endure"
-        },
-        {
-          "level": 30,
-          "move": "reversal"
-        },
-        {
-          "level": 35,
-          "move": "first-impression"
-        },
-        {
-          "level": 40,
-          "move": "no-retreat"
-        },
-        {
-          "level": 45,
-          "move": "iron-defense"
-        },
-        {
-          "level": 50,
-          "move": "close-combat"
-        },
-        {
-          "level": 55,
-          "move": "megahorn"
-        },
-        {
-          "level": 60,
-          "move": "counter"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "agility",
+        "assurance",
+        "beat-up",
         "body-press",
         "body-slam",
         "brick-break",
         "bulk-up",
         "close-combat",
         "coaching",
+        "counter",
+        "double-hit",
         "endeavor",
         "endure",
         "facade",
-        "false-swipe",
+        "first-impression",
         "focus-blast",
+        "focus-energy",
         "giga-impact",
         "helping-hand",
         "high-horsepower",
@@ -151827,6 +149992,9 @@
         "iron-head",
         "knock-off",
         "lunge",
+        "megahorn",
+        "no-retreat",
+        "payback",
         "poison-jab",
         "protect",
         "psych-up",
@@ -151835,13 +150003,16 @@
         "reversal",
         "rock-slide",
         "rock-tomb",
+        "round",
+        "screech",
+        "seed-bomb",
         "sleep-talk",
         "smart-strike",
+        "snore",
         "substitute",
         "sunny-day",
+        "superpower",
         "swords-dance",
-        "take-down",
-        "tera-blast",
         "throat-chop",
         "trailblaze",
         "upper-hand",
@@ -151877,9 +150048,9 @@
           "spe": 100
         },
         "abilities": {
-          "ability1": "battle-armor",
+          "ability1": "defiant",
           "ability2": null,
-          "hidden": "defiant"
+          "hidden": null
         },
         "height": 1.6,
         "weight": 99
@@ -151932,70 +150103,16 @@
       "hidden": "electric-surge"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 1,
-          "move": "peck"
-        },
-        {
-          "level": 1,
-          "move": "thunder-shock"
-        },
-        {
-          "level": 5,
-          "move": "water-gun"
-        },
-        {
-          "level": 10,
-          "move": "charge"
-        },
-        {
-          "level": 15,
-          "move": "fury-attack"
-        },
-        {
-          "level": 20,
-          "move": "spark"
-        },
-        {
-          "level": 25,
-          "move": "bubble-beam"
-        },
-        {
-          "level": 30,
-          "move": "recover"
-        },
-        {
-          "level": 35,
-          "move": "curse"
-        },
-        {
-          "level": 40,
-          "move": "electric-terrain"
-        },
-        {
-          "level": 45,
-          "move": "poison-jab"
-        },
-        {
-          "level": 50,
-          "move": "zing-zap"
-        },
-        {
-          "level": 55,
-          "move": "acupressure"
-        },
-        {
-          "level": 60,
-          "move": "discharge"
-        }
-      ],
+      "levelUp": [],
       "tm": [
+        "acupressure",
+        "assurance",
         "body-slam",
         "charge",
         "charge-beam",
         "chilling-water",
         "curse",
+        "discharge",
         "electric-terrain",
         "electro-ball",
         "electroweb",
@@ -152006,29 +150123,36 @@
         "hydro-pump",
         "hyper-beam",
         "liquidation",
+        "memento",
         "muddy-water",
         "pain-split",
+        "payback",
+        "pin-missile",
         "poison-jab",
         "protect",
         "rain-dance",
+        "recover",
         "rest",
         "reversal",
+        "rising-voltage",
+        "round",
         "scald",
+        "self-destruct",
         "sleep-talk",
+        "snore",
         "spikes",
         "substitute",
+        "sucker-punch",
         "supercell-slam",
         "surf",
-        "swift",
-        "take-down",
-        "tera-blast",
         "throat-chop",
         "thunder",
-        "thunder-wave",
         "thunderbolt",
+        "thunder-wave",
         "toxic-spikes",
         "venoshock",
-        "wild-charge"
+        "wild-charge",
+        "zing-zap"
       ],
       "tutor": []
     },
@@ -152691,97 +150815,53 @@
       "hidden": "psychic-surge"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 1,
-          "move": "play-nice"
-        },
-        {
-          "level": 1,
-          "move": "stored-power"
-        },
-        {
-          "level": 5,
-          "move": "encore"
-        },
-        {
-          "level": 10,
-          "move": "disarming-voice"
-        },
-        {
-          "level": 15,
-          "move": "psybeam"
-        },
-        {
-          "level": 20,
-          "move": "helping-hand"
-        },
-        {
-          "level": 25,
-          "move": "after-you"
-        },
-        {
-          "level": 30,
-          "move": "healing-wish"
-        },
-        {
-          "level": 35,
-          "move": "psychic"
-        },
-        {
-          "level": 40,
-          "move": "calm-mind"
-        },
-        {
-          "level": 45,
-          "move": "power-split"
-        },
-        {
-          "level": 50,
-          "move": "psychic-terrain"
-        },
-        {
-          "level": 55,
-          "move": "last-resort"
-        }
-      ],
+      "levelUp": [],
       "tm": [
+        "after-you",
         "body-slam",
         "calm-mind",
         "dazzling-gleam",
-        "disarming-voice",
-        "drain-punch",
         "draining-kiss",
+        "drain-punch",
         "encore",
         "endure",
         "energy-ball",
         "expanding-force",
+        "extrasensory",
         "facade",
+        "fake-out",
+        "future-sight",
         "gravity",
+        "healing-wish",
         "helping-hand",
         "hyper-voice",
         "imprison",
-        "magical-leaf",
-        "metronome",
+        "last-resort",
+        "magic-room",
+        "mystical-fire",
         "play-rough",
+        "power-split",
+        "power-swap",
         "protect",
-        "psybeam",
-        "psych-up",
         "psychic",
         "psychic-noise",
         "psychic-terrain",
+        "psych-up",
         "psyshock",
         "rest",
+        "round",
         "shadow-ball",
         "skill-swap",
         "sleep-talk",
+        "snore",
         "stored-power",
         "substitute",
-        "swift",
-        "take-down",
-        "tera-blast",
+        "terrain-pulse",
+        "tri-attack",
         "trick",
         "trick-room",
+        "wish",
+        "wonder-room",
         "zen-headbutt"
       ],
       "tutor": []
@@ -152928,10 +151008,10 @@
         "thief",
         "thrash",
         "thunder",
+        "thunderbolt",
         "thunder-fang",
         "thunder-punch",
         "thunder-wave",
-        "thunderbolt",
         "tickle",
         "torment",
         "uproar",
@@ -154437,9 +152517,9 @@
         "curse",
         "disable",
         "dive",
+        "double-edge",
         "double-hit",
         "double-team",
-        "double-edge",
         "draco-meteor",
         "dragon-cheer",
         "dragon-claw",
@@ -154483,8 +152563,8 @@
         "surf",
         "thief",
         "thunder",
-        "thunder-wave",
         "thunderbolt",
+        "thunder-wave",
         "tri-attack",
         "u-turn",
         "will-o-wisp"
@@ -156537,9 +154617,9 @@
         "lunge",
         "megahorn",
         "protect",
-        "psych-up",
         "psychic",
         "psychic-noise",
+        "psych-up",
         "psyshield-bash",
         "psyshock",
         "rain-dance",
@@ -156560,8 +154640,8 @@
         "thrash",
         "throat-chop",
         "thunder",
-        "thunder-wave",
         "thunderbolt",
+        "thunder-wave",
         "trailblaze",
         "trick",
         "trick-room",
@@ -156651,9 +154731,9 @@
         "close-combat",
         "counter",
         "defog",
+        "double-edge",
         "double-hit",
         "double-team",
-        "double-edge",
         "dual-wingbeat",
         "endure",
         "facade",
@@ -156678,6 +154758,7 @@
         "sandstorm",
         "scary-face",
         "skitter-smack",
+        "slash",
         "sleep-talk",
         "smack-down",
         "stealth-rock",
@@ -157013,8 +155094,8 @@
         "icy-wind",
         "last-respects",
         "liquidation",
-        "mud-shot",
         "muddy-water",
+        "mud-shot",
         "night-shade",
         "outrage",
         "pain-split",
@@ -157034,8 +155115,8 @@
         "surf",
         "thrash",
         "uproar",
-        "water-pulse",
         "waterfall",
+        "water-pulse",
         "wave-crash",
         "whirlpool",
         "zen-headbutt"
@@ -157175,6 +155256,7 @@
         "screech",
         "shadow-ball",
         "shadow-claw",
+        "slash",
         "sleep-talk",
         "sludge-bomb",
         "sludge-wave",
@@ -157189,8 +155271,8 @@
         "toxic",
         "toxic-spikes",
         "trailblaze",
-        "u-turn",
         "upper-hand",
+        "u-turn",
         "vacuum-wave",
         "venoshock",
         "x-scissor"
@@ -157261,87 +155343,26 @@
       "hidden": "intimidate"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 1,
-          "move": "poison-sting"
-        },
-        {
-          "level": 1,
-          "move": "tackle"
-        },
-        {
-          "level": 4,
-          "move": "harden"
-        },
-        {
-          "level": 8,
-          "move": "bite"
-        },
-        {
-          "level": 12,
-          "move": "fell-stinger"
-        },
-        {
-          "level": 16,
-          "move": "minimize"
-        },
-        {
-          "level": 20,
-          "move": "spikes"
-        },
-        {
-          "level": 24,
-          "move": "brine"
-        },
-        {
-          "level": 28,
-          "move": "barb-barrage"
-        },
-        {
-          "level": 32,
-          "move": "pin-missile"
-        },
-        {
-          "level": 36,
-          "move": "toxic-spikes"
-        },
-        {
-          "level": 40,
-          "move": "spit-up"
-        },
-        {
-          "level": 40,
-          "move": "stockpile"
-        },
-        {
-          "level": 44,
-          "move": "toxic"
-        },
-        {
-          "level": 48,
-          "move": "crunch"
-        },
-        {
-          "level": 52,
-          "move": "acupressure"
-        },
-        {
-          "level": 56,
-          "move": "destiny-bond"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "acid-spray",
+        "acupressure",
         "agility",
+        "aqua-jet",
+        "aqua-tail",
+        "barb-barrage",
+        "bite",
         "blizzard",
         "chilling-water",
         "crunch",
         "curse",
         "dark-pulse",
+        "destiny-bond",
         "double-edge",
         "endure",
         "facade",
+        "fell-stinger",
+        "flail",
         "giga-impact",
         "gunk-shot",
         "gyro-ball",
@@ -157353,16 +155374,18 @@
         "icy-wind",
         "lash-out",
         "liquidation",
+        "minimize",
         "mud-shot",
         "pain-split",
+        "pin-missile",
         "poison-jab",
-        "poison-tail",
         "protect",
         "rain-dance",
         "rest",
         "reversal",
         "scale-shot",
         "scary-face",
+        "self-destruct",
         "shadow-ball",
         "sleep-talk",
         "sludge-bomb",
@@ -157370,19 +155393,18 @@
         "smart-strike",
         "spikes",
         "spite",
+        "spit-up",
+        "stockpile",
         "substitute",
         "surf",
-        "swift",
         "swords-dance",
-        "take-down",
         "taunt",
-        "tera-blast",
         "throat-chop",
         "toxic",
         "toxic-spikes",
         "venoshock",
-        "water-pulse",
-        "waterfall"
+        "waterfall",
+        "water-pulse"
       ],
       "tutor": []
     },
@@ -158025,6 +156047,7 @@
         "shadow-ball",
         "shadow-claw",
         "skill-swap",
+        "slash",
         "sleep-talk",
         "solar-beam",
         "spikes",
@@ -158904,8 +156927,8 @@
         "swords-dance",
         "taunt",
         "triple-axel",
-        "u-turn",
         "upper-hand",
+        "u-turn",
         "water-pulse",
         "wave-crash",
         "whirlpool"
@@ -160305,87 +158328,11 @@
       "hidden": "iron-fist"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 0,
-          "move": "revival-blessing"
-        },
-        {
-          "level": 1,
-          "move": "growl"
-        },
-        {
-          "level": 1,
-          "move": "scratch"
-        },
-        {
-          "level": 1,
-          "move": "wild-charge"
-        },
-        {
-          "level": 3,
-          "move": "thunder-shock"
-        },
-        {
-          "level": 6,
-          "move": "quick-attack"
-        },
-        {
-          "level": 8,
-          "move": "charge"
-        },
-        {
-          "level": 12,
-          "move": "nuzzle"
-        },
-        {
-          "level": 15,
-          "move": "dig"
-        },
-        {
-          "level": 19,
-          "move": "bite"
-        },
-        {
-          "level": 23,
-          "move": "spark"
-        },
-        {
-          "level": 25,
-          "move": "arm-thrust"
-        },
-        {
-          "level": 29,
-          "move": "thunder-wave"
-        },
-        {
-          "level": 33,
-          "move": "slam"
-        },
-        {
-          "level": 39,
-          "move": "entrainment"
-        },
-        {
-          "level": 44,
-          "move": "close-combat"
-        },
-        {
-          "level": 49,
-          "move": "discharge"
-        },
-        {
-          "level": 54,
-          "move": "agility"
-        },
-        {
-          "level": 60,
-          "move": "double-shock"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "agility",
         "baton-pass",
+        "bite",
         "body-press",
         "brick-break",
         "bulk-up",
@@ -160396,14 +158343,18 @@
         "coaching",
         "crunch",
         "dig",
+        "discharge",
         "double-edge",
+        "double-shock",
         "eerie-impulse",
         "electric-terrain",
         "electro-ball",
         "electroweb",
         "encore",
         "endure",
+        "entrainment",
         "facade",
+        "fake-out",
         "fire-punch",
         "fling",
         "focus-blast",
@@ -160416,32 +158367,33 @@
         "knock-off",
         "low-kick",
         "low-sweep",
-        "metal-claw",
-        "metronome",
+        "mach-punch",
+        "nuzzle",
         "play-rough",
         "protect",
+        "quick-attack",
         "rain-dance",
         "rest",
+        "revival-blessing",
         "rock-tomb",
         "seed-bomb",
         "sleep-talk",
         "substitute",
         "sunny-day",
-        "super-fang",
         "supercell-slam",
-        "swift",
-        "take-down",
-        "tera-blast",
+        "super-fang",
+        "sweet-kiss",
         "thief",
         "throat-chop",
         "thunder",
+        "thunderbolt",
         "thunder-fang",
         "thunder-punch",
         "thunder-wave",
-        "thunderbolt",
         "upper-hand",
         "volt-switch",
-        "wild-charge"
+        "wild-charge",
+        "wish"
       ],
       "tutor": []
     },
@@ -160680,8 +158632,8 @@
         "copycat",
         "crunch",
         "dig",
-        "double-hit",
         "double-edge",
+        "double-hit",
         "encore",
         "endure",
         "facade",
@@ -161424,76 +159376,7 @@
       "hidden": "harvest"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 1,
-          "move": "mirror-coat"
-        },
-        {
-          "level": 1,
-          "move": "safeguard"
-        },
-        {
-          "level": 1,
-          "move": "sweet-scent"
-        },
-        {
-          "level": 1,
-          "move": "tackle"
-        },
-        {
-          "level": 5,
-          "move": "absorb"
-        },
-        {
-          "level": 7,
-          "move": "growth"
-        },
-        {
-          "level": 10,
-          "move": "razor-leaf"
-        },
-        {
-          "level": 13,
-          "move": "helping-hand"
-        },
-        {
-          "level": 16,
-          "move": "flail"
-        },
-        {
-          "level": 20,
-          "move": "mega-drain"
-        },
-        {
-          "level": 23,
-          "move": "grassy-terrain"
-        },
-        {
-          "level": 29,
-          "move": "seed-bomb"
-        },
-        {
-          "level": 34,
-          "move": "energy-ball"
-        },
-        {
-          "level": 39,
-          "move": "leech-seed"
-        },
-        {
-          "level": 46,
-          "move": "terrain-pulse"
-        },
-        {
-          "level": 52,
-          "move": "petal-blizzard"
-        },
-        {
-          "level": 58,
-          "move": "petal-dance"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "alluring-voice",
         "bullet-seed",
@@ -161504,32 +159387,39 @@
         "endure",
         "energy-ball",
         "facade",
+        "flail",
         "fling",
         "giga-drain",
         "giga-impact",
         "grass-knot",
         "grassy-terrain",
+        "growth",
         "helping-hand",
         "hyper-beam",
         "hyper-voice",
         "leaf-storm",
+        "leech-seed",
         "light-screen",
-        "magical-leaf",
-        "metronome",
+        "memento",
+        "mirror-coat",
         "petal-blizzard",
+        "petal-dance",
         "pollen-puff",
         "protect",
         "psych-up",
         "reflect",
         "rest",
+        "safeguard",
         "seed-bomb",
         "sleep-talk",
         "solar-beam",
         "solar-blade",
+        "strength-sap",
         "substitute",
         "sunny-day",
-        "swift",
-        "tera-blast",
+        "sweet-scent",
+        "synthesis",
+        "terrain-pulse",
         "trailblaze",
         "weather-ball"
       ],
@@ -161594,77 +159484,13 @@
       "hidden": "guts"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 1,
-          "move": "growl"
-        },
-        {
-          "level": 1,
-          "move": "mimic"
-        },
-        {
-          "level": 1,
-          "move": "peck"
-        },
-        {
-          "level": 6,
-          "move": "quick-attack"
-        },
-        {
-          "level": 10,
-          "move": "torment"
-        },
-        {
-          "level": 13,
-          "move": "aerial-ace"
-        },
-        {
-          "level": 17,
-          "move": "fury-attack"
-        },
-        {
-          "level": 20,
-          "move": "taunt"
-        },
-        {
-          "level": 24,
-          "move": "uproar"
-        },
-        {
-          "level": 27,
-          "move": "copycat"
-        },
-        {
-          "level": 30,
-          "move": "fly"
-        },
-        {
-          "level": 34,
-          "move": "facade"
-        },
-        {
-          "level": 38,
-          "move": "swagger"
-        },
-        {
-          "level": 42,
-          "move": "brave-bird"
-        },
-        {
-          "level": 47,
-          "move": "roost"
-        },
-        {
-          "level": 52,
-          "move": "reversal"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "aerial-ace",
         "air-cutter",
         "air-slash",
         "brave-bird",
+        "copycat",
         "double-edge",
         "dual-wingbeat",
         "endeavor",
@@ -161672,6 +159498,8 @@
         "facade",
         "fake-tears",
         "feather-dance",
+        "final-gambit",
+        "flatter",
         "fly",
         "foul-play",
         "giga-impact",
@@ -161681,21 +159509,26 @@
         "hyper-beam",
         "hyper-voice",
         "lash-out",
+        "lunge",
+        "parting-shot",
         "pounce",
         "protect",
+        "quick-attack",
         "rest",
         "reversal",
+        "roost",
         "scary-face",
+        "seed-bomb",
         "sleep-talk",
         "substitute",
         "sunny-day",
+        "swagger",
         "tailwind",
-        "take-down",
         "taunt",
-        "tera-blast",
         "thief",
-        "u-turn",
-        "uproar"
+        "torment",
+        "uproar",
+        "u-turn"
       ],
       "tutor": []
     },
@@ -162443,9 +160276,9 @@
         "night-shade",
         "overheat",
         "protect",
-        "psych-up",
         "psychic",
         "psychic-terrain",
+        "psych-up",
         "psyshock",
         "reflect",
         "rest",
@@ -162562,8 +160395,8 @@
         "poison-jab",
         "poltergeist",
         "protect",
-        "psych-up",
         "psycho-cut",
+        "psych-up",
         "quick-guard",
         "reflect",
         "rest",
@@ -162813,9 +160646,9 @@
         "hyper-beam",
         "hyper-voice",
         "light-screen",
+        "muddy-water",
         "mud-shot",
         "mud-slap",
-        "muddy-water",
         "parabolic-charge",
         "protect",
         "rain-dance",
@@ -162828,8 +160661,8 @@
         "sucker-punch",
         "supercell-slam",
         "thunder",
-        "thunder-wave",
         "thunderbolt",
+        "thunder-wave",
         "toxic",
         "volt-switch",
         "water-pulse",
@@ -163373,82 +161206,15 @@
       "hidden": "stakeout"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 0,
-          "move": "comeuppance"
-        },
-        {
-          "level": 1,
-          "move": "leer"
-        },
-        {
-          "level": 1,
-          "move": "scary-face"
-        },
-        {
-          "level": 1,
-          "move": "tackle"
-        },
-        {
-          "level": 4,
-          "move": "lick"
-        },
-        {
-          "level": 7,
-          "move": "snarl"
-        },
-        {
-          "level": 10,
-          "move": "hone-claws"
-        },
-        {
-          "level": 14,
-          "move": "bite"
-        },
-        {
-          "level": 18,
-          "move": "roar"
-        },
-        {
-          "level": 22,
-          "move": "headbutt"
-        },
-        {
-          "level": 26,
-          "move": "payback"
-        },
-        {
-          "level": 34,
-          "move": "crunch"
-        },
-        {
-          "level": 39,
-          "move": "swagger"
-        },
-        {
-          "level": 43,
-          "move": "reversal"
-        },
-        {
-          "level": 48,
-          "move": "jaw-lock"
-        },
-        {
-          "level": 55,
-          "move": "double-edge"
-        },
-        {
-          "level": 60,
-          "move": "outrage"
-        }
-      ],
+      "levelUp": [],
       "tm": [
+        "bite",
         "body-slam",
-        "charm",
+        "comeuppance",
         "crunch",
         "curse",
         "dark-pulse",
+        "destiny-bond",
         "dig",
         "double-edge",
         "endeavor",
@@ -163456,14 +161222,17 @@
         "facade",
         "fake-tears",
         "fire-fang",
+        "focus-energy",
         "giga-impact",
         "helping-hand",
         "hyper-beam",
         "hyper-voice",
         "ice-fang",
+        "jaw-lock",
         "lash-out",
         "outrage",
         "pain-split",
+        "payback",
         "play-rough",
         "protect",
         "psychic-fangs",
@@ -163477,9 +161246,8 @@
         "spite",
         "substitute",
         "sunny-day",
-        "take-down",
+        "swagger",
         "taunt",
-        "tera-blast",
         "thief",
         "thunder-fang",
         "trailblaze",
@@ -165539,9 +163307,9 @@
         "pluck",
         "pounce",
         "protect",
-        "psych-up",
         "psychic",
         "psychic-terrain",
+        "psych-up",
         "psyshock",
         "quick-attack",
         "rain-dance",
@@ -165559,8 +163327,8 @@
         "thief",
         "trick",
         "trick-room",
-        "u-turn",
         "uproar",
+        "u-turn",
         "zen-headbutt"
       ],
       "tutor": []
@@ -166714,8 +164482,8 @@
         "counter",
         "dive",
         "double-hit",
-        "drain-punch",
         "draining-kiss",
+        "drain-punch",
         "encore",
         "endeavor",
         "endure",
@@ -166751,8 +164519,8 @@
         "taunt",
         "throat-chop",
         "tickle",
-        "water-pulse",
         "waterfall",
+        "water-pulse",
         "wave-crash",
         "whirlpool",
         "zen-headbutt"
@@ -167381,8 +165149,8 @@
         "rock-blast",
         "rock-slide",
         "rock-tomb",
-        "sand-tomb",
         "sandstorm",
+        "sand-tomb",
         "shed-tail",
         "sleep-talk",
         "smack-down",
@@ -167645,8 +165413,8 @@
         "rock-polish",
         "rock-slide",
         "rock-tomb",
-        "sand-tomb",
         "sandstorm",
+        "sand-tomb",
         "self-destruct",
         "sleep-talk",
         "sludge-bomb",
@@ -167917,79 +165685,18 @@
       "hidden": "fluffy"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 0,
-          "move": "last-respects"
-        },
-        {
-          "level": 1,
-          "move": "growl"
-        },
-        {
-          "level": 1,
-          "move": "tackle"
-        },
-        {
-          "level": 3,
-          "move": "lick"
-        },
-        {
-          "level": 6,
-          "move": "bite"
-        },
-        {
-          "level": 6,
-          "move": "tail-whip"
-        },
-        {
-          "level": 9,
-          "move": "roar"
-        },
-        {
-          "level": 12,
-          "move": "headbutt"
-        },
-        {
-          "level": 16,
-          "move": "dig"
-        },
-        {
-          "level": 24,
-          "move": "rest"
-        },
-        {
-          "level": 28,
-          "move": "crunch"
-        },
-        {
-          "level": 36,
-          "move": "play-rough"
-        },
-        {
-          "level": 41,
-          "move": "helping-hand"
-        },
-        {
-          "level": 46,
-          "move": "phantom-force"
-        },
-        {
-          "level": 51,
-          "move": "charm"
-        },
-        {
-          "level": 58,
-          "move": "double-edge"
-        }
-      ],
+      "levelUp": [],
       "tm": [
+        "ally-switch",
+        "bite",
         "body-press",
         "bulldoze",
         "charm",
         "confuse-ray",
         "crunch",
+        "destiny-bond",
         "dig",
+        "disable",
         "double-edge",
         "endeavor",
         "endure",
@@ -167998,8 +165705,11 @@
         "giga-impact",
         "helping-hand",
         "hex",
+        "howl",
         "hyper-beam",
         "ice-fang",
+        "last-respects",
+        "memento",
         "mud-shot",
         "mud-slap",
         "night-shade",
@@ -168015,18 +165725,20 @@
         "sandstorm",
         "scary-face",
         "shadow-ball",
+        "shadow-sneak",
         "sleep-talk",
         "snarl",
         "stomping-tantrum",
         "substitute",
         "sunny-day",
-        "take-down",
-        "tera-blast",
+        "swagger",
         "thief",
         "thunder-fang",
         "trick",
         "uproar",
-        "will-o-wisp"
+        "will-o-wisp",
+        "yawn",
+        "zen-headbutt"
       ],
       "tutor": []
     },
@@ -169162,96 +166874,24 @@
       "hidden": "defiant"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 0,
-          "move": "shadow-punch"
-        },
-        {
-          "level": 1,
-          "move": "counter"
-        },
-        {
-          "level": 1,
-          "move": "fling"
-        },
-        {
-          "level": 1,
-          "move": "focus-energy"
-        },
-        {
-          "level": 1,
-          "move": "leer"
-        },
-        {
-          "level": 1,
-          "move": "scratch"
-        },
-        {
-          "level": 5,
-          "move": "fury-swipes"
-        },
-        {
-          "level": 8,
-          "move": "low-kick"
-        },
-        {
-          "level": 12,
-          "move": "seismic-toss"
-        },
-        {
-          "level": 17,
-          "move": "swagger"
-        },
-        {
-          "level": 22,
-          "move": "cross-chop"
-        },
-        {
-          "level": 26,
-          "move": "assurance"
-        },
-        {
-          "level": 30,
-          "move": "thrash"
-        },
-        {
-          "level": 35,
-          "move": "rage-fist"
-        },
-        {
-          "level": 39,
-          "move": "close-combat"
-        },
-        {
-          "level": 44,
-          "move": "screech"
-        },
-        {
-          "level": 48,
-          "move": "stomping-tantrum"
-        },
-        {
-          "level": 53,
-          "move": "outrage"
-        },
-        {
-          "level": 57,
-          "move": "final-gambit"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "acrobatics",
+        "assurance",
+        "beat-up",
         "body-slam",
         "brick-break",
         "bulk-up",
         "bulldoze",
         "close-combat",
         "coaching",
+        "counter",
+        "cross-chop",
         "curse",
         "dig",
         "double-edge",
         "drain-punch",
+        "dynamic-punch",
         "earthquake",
         "encore",
         "endeavor",
@@ -169260,6 +166900,7 @@
         "fire-punch",
         "fling",
         "focus-blast",
+        "focus-energy",
         "focus-punch",
         "giga-impact",
         "gunk-shot",
@@ -169269,41 +166910,46 @@
         "lash-out",
         "low-kick",
         "low-sweep",
-        "metronome",
         "night-shade",
+        "night-slash",
         "outrage",
         "overheat",
         "phantom-force",
         "poison-jab",
         "protect",
+        "rage-fist",
         "rain-dance",
         "rest",
         "reversal",
         "rock-slide",
         "rock-tomb",
         "scary-face",
+        "screech",
         "seed-bomb",
+        "seismic-toss",
         "shadow-ball",
         "shadow-claw",
+        "shadow-punch",
         "sleep-talk",
         "smack-down",
         "spite",
         "stealth-rock",
         "stomping-tantrum",
         "stone-edge",
+        "storm-throw",
         "substitute",
         "sunny-day",
-        "swift",
-        "take-down",
+        "swagger",
         "taunt",
-        "tera-blast",
         "thief",
+        "thrash",
         "throat-chop",
         "thunder",
-        "thunder-punch",
         "thunderbolt",
-        "u-turn",
+        "thunder-punch",
+        "torment",
         "uproar",
+        "u-turn",
         "vacuum-wave"
       ],
       "tutor": []
@@ -169553,8 +167199,8 @@
         "crunch",
         "curse",
         "dazzling-gleam",
-        "double-hit",
         "double-edge",
+        "double-hit",
         "earthquake",
         "endeavor",
         "endure",
@@ -169581,11 +167227,11 @@
         "night-shade",
         "power-swap",
         "protect",
-        "psych-up",
         "psychic",
         "psychic-fangs",
         "psychic-noise",
         "psychic-terrain",
+        "psych-up",
         "psyshock",
         "rain-dance",
         "reflect",
@@ -169600,8 +167246,8 @@
         "sunny-day",
         "thief",
         "thunder",
-        "thunder-wave",
         "thunderbolt",
+        "thunder-wave",
         "trailblaze",
         "trick",
         "trick-room",
@@ -169939,6 +167585,7 @@
         "sandstorm",
         "scary-face",
         "shadow-claw",
+        "slash",
         "sleep-talk",
         "snarl",
         "spite",
@@ -172470,79 +170117,12 @@
       "hidden": "ice-body"
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 0,
-          "move": "glaive-rush"
-        },
-        {
-          "level": 1,
-          "move": "breaking-swipe"
-        },
-        {
-          "level": 1,
-          "move": "dragon-tail"
-        },
-        {
-          "level": 1,
-          "move": "ice-shard"
-        },
-        {
-          "level": 1,
-          "move": "leer"
-        },
-        {
-          "level": 1,
-          "move": "snowscape"
-        },
-        {
-          "level": 1,
-          "move": "tackle"
-        },
-        {
-          "level": 6,
-          "move": "icy-wind"
-        },
-        {
-          "level": 12,
-          "move": "dragon-breath"
-        },
-        {
-          "level": 18,
-          "move": "focus-energy"
-        },
-        {
-          "level": 24,
-          "move": "bite"
-        },
-        {
-          "level": 29,
-          "move": "ice-fang"
-        },
-        {
-          "level": 35,
-          "move": "dragon-claw"
-        },
-        {
-          "level": 42,
-          "move": "take-down"
-        },
-        {
-          "level": 48,
-          "move": "ice-beam"
-        },
-        {
-          "level": 55,
-          "move": "crunch"
-        },
-        {
-          "level": 62,
-          "move": "icicle-crash"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "aerial-ace",
+        "aqua-tail",
         "avalanche",
+        "bite",
         "blizzard",
         "body-press",
         "body-slam",
@@ -172557,17 +170137,23 @@
         "dragon-claw",
         "dragon-dance",
         "dragon-pulse",
+        "dragon-rush",
         "dragon-tail",
         "earthquake",
         "endure",
         "facade",
-        "false-swipe",
+        "focus-energy",
+        "freeze-dry",
+        "frost-breath",
         "giga-impact",
+        "glaive-rush",
         "helping-hand",
         "high-horsepower",
         "hyper-beam",
         "ice-beam",
         "ice-fang",
+        "ice-shard",
+        "icicle-crash",
         "icicle-spear",
         "icy-wind",
         "iron-head",
@@ -172582,8 +170168,6 @@
         "stomping-tantrum",
         "substitute",
         "swords-dance",
-        "take-down",
-        "tera-blast",
         "thunder-fang",
         "zen-headbutt"
       ],
@@ -172619,7 +170203,7 @@
         "abilities": {
           "ability1": "thermal-exchange",
           "ability2": null,
-          "hidden": "ice-body"
+          "hidden": null
         },
         "height": 2.1,
         "weight": 315
@@ -172785,56 +170369,7 @@
       "hidden": null
     },
     "learnset": {
-      "levelUp": [
-        {
-          "level": 1,
-          "move": "astonish"
-        },
-        {
-          "level": 1,
-          "move": "tackle"
-        },
-        {
-          "level": 7,
-          "move": "night-shade"
-        },
-        {
-          "level": 14,
-          "move": "confuse-ray"
-        },
-        {
-          "level": 21,
-          "move": "substitute"
-        },
-        {
-          "level": 28,
-          "move": "metal-sound"
-        },
-        {
-          "level": 35,
-          "move": "shadow-ball"
-        },
-        {
-          "level": 42,
-          "move": "recover"
-        },
-        {
-          "level": 49,
-          "move": "power-gem"
-        },
-        {
-          "level": 56,
-          "move": "make-it-rain"
-        },
-        {
-          "level": 63,
-          "move": "nasty-plot"
-        },
-        {
-          "level": 70,
-          "move": "memento"
-        }
-      ],
+      "levelUp": [],
       "tm": [
         "charge-beam",
         "confuse-ray",
@@ -172853,6 +170388,8 @@
         "light-screen",
         "low-kick",
         "low-sweep",
+        "make-it-rain",
+        "memento",
         "metal-sound",
         "nasty-plot",
         "night-shade",
@@ -172861,20 +170398,20 @@
         "protect",
         "psychic",
         "psyshock",
+        "recover",
         "reflect",
         "rest",
         "sandstorm",
         "shadow-ball",
+        "shadow-punch",
         "sleep-talk",
         "steel-beam",
         "substitute",
-        "take-down",
-        "tera-blast",
+        "surf",
         "thief",
         "thunder",
-        "thunder-punch",
-        "thunder-wave",
         "thunderbolt",
+        "thunder-punch",
         "trick"
       ],
       "tutor": []
@@ -176113,10 +173650,8 @@
         "iron-defense",
         "iron-head",
         "light-screen",
-        "metal-burst",
         "metal-sound",
         "meteor-beam",
-        "mirror-coat",
         "night-slash",
         "outrage",
         "protect",
@@ -176126,6 +173661,7 @@
         "rock-slide",
         "rock-tomb",
         "scary-face",
+        "slash",
         "sleep-talk",
         "smack-down",
         "snarl",
@@ -176136,8 +173672,8 @@
         "substitute",
         "swords-dance",
         "thunder",
-        "thunder-wave",
-        "thunderbolt"
+        "thunderbolt",
+        "thunder-wave"
       ],
       "tutor": []
     },
@@ -176208,8 +173744,8 @@
         "bug-bite",
         "bullet-seed",
         "curse",
-        "double-hit",
         "double-edge",
+        "double-hit",
         "draco-meteor",
         "dragon-cheer",
         "dragon-pulse",

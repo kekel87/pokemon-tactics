@@ -14,6 +14,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { playablePokemon } from "../src/playable/playable-pokemon";
 import type { ChampionsOverride } from "./champions-override.types";
+import { ABILITY_DESCRIPTION_OVERRIDES } from "./description-overrides";
 import { fetchChampionsData } from "./fetch-champions";
 import { CACHE_DIR, cachedFetch, cachedFetchText, ensureDir } from "./fetch-utils";
 import {
@@ -169,6 +170,56 @@ interface ShowdownData {
 
 const SHOWDOWN_GH_RAW = "https://raw.githubusercontent.com/smogon/pokemon-showdown/master/data";
 
+/**
+ * Move descriptions from Showdown's `data/text/moves.ts`. Since mid-2026 the client `moves.json` no longer
+ * carries `desc` / `shortDesc` (plan 223), so they are read here. Only the top-level texts (two-tab indent)
+ * are kept: nested `gen4: { desc }` blocks describe older generations.
+ */
+interface MoveTexts {
+  desc?: string;
+  shortDesc?: string;
+}
+
+export function parseShowdownMoveTexts(tsSource: string): Map<string, MoveTexts> {
+  const texts = new Map<string, MoveTexts>();
+  let currentMove: string | null = null;
+  for (const line of tsSource.split("\n")) {
+    const moveStart = line.match(/^\t"?([a-z0-9]+)"?: \{$/);
+    if (moveStart) {
+      currentMove = moveStart[1] ?? null;
+      continue;
+    }
+    const text = line.match(/^\t\t(?<field>desc|shortDesc): (?<value>".*"),$/);
+    if (currentMove !== null && text?.groups) {
+      const entry = texts.get(currentMove) ?? {};
+      const value = JSON.parse(text.groups.value ?? '""') as string;
+      if (text.groups.field === "desc") {
+        entry.desc = value;
+      } else {
+        entry.shortDesc = value;
+      }
+      texts.set(currentMove, entry);
+    }
+  }
+  return texts;
+}
+
+/** Restores `desc` / `shortDesc` on each Showdown move from the separate text file (`text/moves.ts`). */
+function withMoveTexts(
+  moves: Record<string, Record<string, unknown>>,
+  moveTextsTsSource: string,
+): Record<string, Record<string, unknown>> {
+  const texts = parseShowdownMoveTexts(moveTextsTsSource);
+  for (const [id, move] of Object.entries(moves)) {
+    const text = texts.get(id);
+    if (text) {
+      move.desc ??= text.desc ?? text.shortDesc;
+      move.shortDesc ??= text.shortDesc;
+    }
+  }
+  return moves;
+}
+
 function parseShowdownAbilityFlags(tsSource: string): Map<string, Record<string, boolean>> {
   const result = new Map<string, Record<string, boolean>>();
   const lines = tsSource.split("\n");
@@ -205,18 +256,19 @@ function parseShowdownAbilityFlags(tsSource: string): Map<string, Record<string,
 }
 
 async function fetchShowdownData(): Promise<ShowdownData> {
-  console.log("Fetching Showdown data (3 JSON + 1 TS)...");
-  const [pokedex, moves, learnsets, abilitiesTsRaw] = await Promise.all([
+  console.log("Fetching Showdown data (3 JSON + 2 TS)...");
+  const [pokedex, moves, learnsets, abilitiesTsRaw, moveTextsTsRaw] = await Promise.all([
     cachedFetch(`${SHOWDOWN_BASE}/pokedex.json`, "showdown/pokedex.json"),
     cachedFetch(`${SHOWDOWN_BASE}/moves.json`, "showdown/moves.json"),
     cachedFetch(`${SHOWDOWN_BASE}/learnsets.json`, "showdown/learnsets.json"),
     cachedFetchText(`${SHOWDOWN_GH_RAW}/abilities.ts`, "showdown/abilities.ts"),
+    cachedFetchText(`${SHOWDOWN_GH_RAW}/text/moves.ts`, "showdown/text-moves.ts"),
   ]);
   const abilityFlags = parseShowdownAbilityFlags(abilitiesTsRaw);
   console.log(`  Showdown data cached. Parsed flags for ${abilityFlags.size} abilities.`);
   return {
     pokedex: pokedex as Record<string, Record<string, unknown>>,
-    moves: moves as Record<string, Record<string, unknown>>,
+    moves: withMoveTexts(moves as Record<string, Record<string, unknown>>, moveTextsTsRaw),
     learnsets: learnsets as Record<string, { learnset: Record<string, string[]> }>,
     abilityFlags,
   };
@@ -1937,9 +1989,13 @@ async function main(): Promise<void> {
     console.log("Loading cached data (--skip-fetch)...");
     // Read from cache
     const abilitiesTsRaw = await readFile(join(CACHE_DIR, "showdown/abilities.ts"), "utf-8");
+    const moveTextsTsRaw = await readFile(join(CACHE_DIR, "showdown/text-moves.ts"), "utf-8");
     showdown = {
       pokedex: JSON.parse(await readFile(join(CACHE_DIR, "showdown/pokedex.json"), "utf-8")),
-      moves: JSON.parse(await readFile(join(CACHE_DIR, "showdown/moves.json"), "utf-8")),
+      moves: withMoveTexts(
+        JSON.parse(await readFile(join(CACHE_DIR, "showdown/moves.json"), "utf-8")),
+        moveTextsTsRaw,
+      ),
       learnsets: JSON.parse(await readFile(join(CACHE_DIR, "showdown/learnsets.json"), "utf-8")),
       abilityFlags: parseShowdownAbilityFlags(abilitiesTsRaw),
     };
@@ -1979,6 +2035,13 @@ async function main(): Promise<void> {
     championsOverride,
     rawMoveIdToKebab,
   );
+  for (const entry of abilityEntries) {
+    const description = ABILITY_DESCRIPTION_OVERRIDES[entry.id];
+    if (description) {
+      entry.shortDescription = { ...description };
+      entry.longDescription = { ...description };
+    }
+  }
   console.log(
     `  Applied: ${overrideSummary.moves} moves, ${overrideSummary.abilities} abilities, ${overrideSummary.items} items, ${overrideSummary.learnsets} learnsets`,
   );

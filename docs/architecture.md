@@ -290,7 +290,7 @@ pokemon-tactics/
 │       │   ├── indexes/         # 19 index inversés regénérés depuis JSON bruts (jamais édités à la main)
 │       │   └── schema/          # 4 JSON Schemas (pokemon, move, ability, item)
 │       ├── scripts/             # Scripts de génération one-shot (non compilés dans src/)
-│       │   ├── build-reference.ts   # Génère reference/ depuis Showdown + PokeAPI (pnpm data:update) — applique applyChampionsOverrides
+│       │   ├── build-reference.ts   # Génère reference/ depuis Showdown + PokeAPI (pnpm data:update) — applique applyChampionsOverrides puis `description-overrides.ts` ; lit les textes via `data/text/moves.ts` (cache `showdown/text-moves.ts`)
 │       │   └── fetch-champions.ts   # Fetch mod Showdown Champions (data/mods/champions/) et extrait overrides par regex
 │       ├── tsconfig.json
 │       └── package.json
@@ -1034,7 +1034,7 @@ Replay **déterministe** : même seed + mêmes actions = même résultat.
 | Tests | `pnpm test` (Vitest) |
 | Faire jouer une IA | Script Node.js important le core |
 | Voir un replay | Charger JSON dans renderer web |
-| Mettre à jour données Champions | `pnpm data:update` → fetch Showdown + apply Champions overrides → écrit `reference/*.json` |
+| Mettre à jour données Champions | `pnpm data:update` → fetch Showdown + apply Champions overrides → écrit `reference/*.json`. Purger `.cache/showdown` et `.cache/champions` avant, sinon `cachedFetch` ne refetch jamais. Les descriptions de moves viennent de `data/text/moves.ts` (Showdown les a retirées de `moves.json`) ; `description-overrides.ts` réapplique les descriptions Champions retirées par Showdown pour les talents adaptés (`healer`) |
 | Reviewer un diff données | `pnpm data:diff` → résumé lisible des changements vs dernier commit |
 
 ---

@@ -37,8 +37,8 @@ describe("effectFloor", () => {
 
 describe("computeMoveCost", () => {
   it("Scratch (20PP, 40p) → 500", () => expect(computeMoveCost(20, 40, undefined)).toBe(500));
-  it("Slash (20PP, 70p) → 600 (powerFloor kicks in)", () =>
-    expect(computeMoveCost(20, 70, undefined)).toBe(600));
+  it("Slash (20PP, 80p) → 600 (powerFloor kicks in)", () =>
+    expect(computeMoveCost(20, 80, undefined)).toBe(600));
   it("Thunderbolt (16PP, 90p) → 700", () => expect(computeMoveCost(16, 90, undefined)).toBe(700));
   it("Volt Tackle (16PP, 120p) → 900", () => expect(computeMoveCost(16, 120, undefined)).toBe(900));
   it("Earthquake (12PP, 100p) → 700", () => expect(computeMoveCost(12, 100, undefined)).toBe(700));

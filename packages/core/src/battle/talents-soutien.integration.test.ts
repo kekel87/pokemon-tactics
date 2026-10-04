@@ -221,8 +221,8 @@ describe("Plan 141 — talents soutien & couplage objet", () => {
       return buildItemTestEngine([healerMon, ally, foe]);
     };
 
-    it("Given a paralysed ally within r2 and a successful 30% roll, When the healer ends its turn, Then the ally is cured", () => {
-      vi.spyOn(Math, "random").mockReturnValue(0);
+    it("Given a paralysed ally within r2 and a roll under 50%, When the healer ends its turn, Then the ally is cured", () => {
+      vi.spyOn(Math, "random").mockReturnValue(0.4);
       const { engine } = healerAndStatusedAlly({ x: 2, y: 0 });
       const result = engine.submitAction(PlayerId.Player1, {
         kind: ActionKind.EndTurn,
@@ -241,8 +241,8 @@ describe("Plan 141 — talents soutien & couplage objet", () => {
       ).toBe(true);
     });
 
-    it("Given the roll fails (≥30%), When the healer ends its turn, Then the ally keeps its status", () => {
-      vi.spyOn(Math, "random").mockReturnValue(0.9);
+    it("Given the roll fails (≥50%), When the healer ends its turn, Then the ally keeps its status", () => {
+      vi.spyOn(Math, "random").mockReturnValue(0.5);
       const { engine } = healerAndStatusedAlly({ x: 2, y: 0 });
       engine.submitAction(PlayerId.Player1, {
         kind: ActionKind.EndTurn,

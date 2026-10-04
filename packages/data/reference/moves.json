@@ -21,7 +21,7 @@
       "es": "Un ataque que absorbe nutrientes. Quien lo usa recupera la mitad de los PS del daño que produce."
     },
     "longDescription": {
-      "en": "The user recovers 1/2 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3x normal, rounded half down.",
+      "en": "The user recovers 1/2 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3× normal, rounded half down.",
       "fr": "Une attaque qui convertit la moitié des dégâts infligés en PV pour le lanceur.",
       "es": "Un ataque que absorbe nutrientes. Quien lo usa recupera la mitad de los PS del daño que produce."
     },
@@ -891,7 +891,7 @@
       "es": "Un manto de agua cubre al Pokémon que lo usa. Recupera algunos PS en cada turno."
     },
     "longDescription": {
-      "en": "The user has 1/16 of its maximum HP, rounded down, restored at the end of each turn while it remains active. If Big Root is held by the user, the HP recovered is 1.3x normal, rounded half down. If the user uses Baton Pass, the replacement will receive the healing effect.",
+      "en": "The user has 1/16 of its maximum HP, rounded down, restored at the end of each turn while it remains active. If Big Root is held by the user, the HP recovered is 1.3× normal, rounded half down. If the user uses Baton Pass, the replacement will receive the healing effect.",
       "fr": "Un voile d’eau recouvre le lanceur et régénère ses PV à chaque tour.",
       "es": "Un manto de agua cubre al Pokémon que lo usa. Recupera algunos PS en cada turno."
     },
@@ -1547,7 +1547,7 @@
       "es": "Reduce el daño de los ataques físicos y especiales que ejecuta el rival durante cinco turnos. Solo puede usarse cuando está granizando."
     },
     "longDescription": {
-      "en": "For 5 turns, the user and its party members take 0.5x damage from physical and special attacks, or 0.66x damage if in a Double Battle; does not reduce damage further with Reflect or Light Screen. Critical hits ignore this protection. It is removed from the user's side if the user or an ally is successfully hit by Brick Break, Psychic Fangs, or Defog. Brick Break and Psychic Fangs remove the effect before damage is calculated. Lasts for 8 turns if the user is holding Light Clay. Fails unless the weather is Snow.",
+      "en": "For 5 turns, the user and its party members take 0.5× damage from physical and special attacks, or 0.66× damage if in a Double Battle; does not reduce damage further with Reflect or Light Screen. Critical hits ignore this protection. It is removed from the user's side if the user or an ally is successfully hit by Brick Break, Psychic Fangs, or Defog. Brick Break and Psychic Fangs remove the effect before damage is calculated. Lasts for 8 turns if the user is holding Light Clay. Fails unless the weather is Snow.",
       "fr": "Réduit les dégâts causés par les capacités physiques et spéciales durant cinq tours. Ne peut être utilisée que lorsqu’il grêle.",
       "es": "Reduce el daño de los ataques físicos y especiales que ejecuta el rival durante cinco turnos. Solo puede usarse cuando está granizando."
     },
@@ -1795,7 +1795,7 @@
     "priority": 0,
     "target": "normal",
     "shortDescription": {
-      "en": "50% psn. 2x power if target already poisoned.",
+      "en": "50% psn. 2× power if target already poisoned.",
       "fr": "Une multitude de pointes toxiques frappent la cible et peuvent l'empoisonner. La puissance est doublée si celle-ci est déjà empoisonnée.",
       "es": null
     },
@@ -2119,7 +2119,7 @@
     "priority": 0,
     "target": "normal",
     "shortDescription": {
-      "en": "Fails unless the user has eaten a Berry.",
+      "en": "Cannot be selected until the user eats a Berry.",
       "fr": "Le lanceur se tourne vers l’ennemi et lui éructe dessus, infligeant des dégâts. Ne fonctionne que si le lanceur consomme la Baie qu’il tient.",
       "es": "El Pokémon causa daño a su oponente lanzándole un eructo. Para poder utilizar este movimiento tiene que llevar una baya y comérsela."
     },
@@ -2203,7 +2203,7 @@
       "es": "Este movimiento no se puede usar, por lo que sería mejor olvidarlo, aunque eso implique que no se pueda recordar posteriormente."
     },
     "longDescription": {
-      "en": "The target receives the user's held item. Fails if the user has no item or is holding a Mail or Z-Crystal, if the target is already holding an item, if the user is a Kyogre holding a Blue Orb, a Groudon holding a Red Orb, a Giratina holding a Griseous Orb, an Arceus holding a Plate, a Genesect holding a Drive, a Silvally holding a Memory, a Pokemon that can Mega Evolve holding the Mega Stone for its species, or if the target is one of those Pokemon and the user is holding the respective item.",
+      "en": "The target receives the user's held item. Fails if the user has no item or is holding a Z-Crystal, if the target is already holding an item, if the item is a Mega Stone and either the user or the target is the species that can Mega Evolve with it, or if the item is a Blue Orb, Red Orb, Griseous Orb, Plate, Drive, or Memory and either the user or the target is a Kyogre, Groudon, Giratina, Arceus, Genesect, or Silvally, respectively.",
       "fr": "Cette capacité ne peut pas être utilisée. Il est recommandé de l’oublier, même s’il sera impossible de se la remémorer une fois oubliée.",
       "es": "Este movimiento no se puede usar, por lo que sería mejor olvidarlo, aunque eso implique que no se pueda recordar posteriormente."
     },
@@ -2377,7 +2377,7 @@
       "es": null
     },
     "longDescription": {
-      "en": "The user recovers 1/2 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3x normal, rounded half down.",
+      "en": "The user recovers 1/2 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3× normal, rounded half down.",
       "fr": "Le lanceur concentre son amertume du monde des vivants dans la pointe de ses épées et tranche la cible. La moitié des dégâts infligés sont convertis en PV pour le lanceur.",
       "es": null
     },
@@ -2595,7 +2595,7 @@
       "es": null
     },
     "longDescription": {
-      "en": "Has a 30% chance to lower the target's Speed by 1 stage. If the weather is Primordial Sea or Rain Dance, this move does not check accuracy. If this move is used against a Pokemon holding Utility Umbrella, this move's accuracy remains at 80%.",
+      "en": "Has a 30% chance to lower the target's Speed by 1 stage. If the weather is Heavy Rain or Rain, this move does not check accuracy. If this move is used against a Pokemon holding Utility Umbrella, this move's accuracy remains at 80%.",
       "fr": "Le lanceur déclenche un typhon froid et brutal qui fait trembler le cœur et le corps de la cible, ce qui peut aussi baisser sa Vitesse.",
       "es": null
     },
@@ -4099,7 +4099,7 @@
     "priority": 0,
     "target": "self",
     "shortDescription": {
-      "en": "+1 SpD, user's next Electric move 2x power.",
+      "en": "+1 SpD, user's next Electric move 2× power.",
       "fr": "Le lanceur concentre sa puissance pour sa prochaine attaque Électrik. Augmente sa Défense Spéciale.",
       "es": "Recarga energía para potenciar el siguiente movimiento de tipo Eléctrico. También sube la Defensa Especial."
     },
@@ -4781,7 +4781,7 @@
     "priority": 0,
     "target": "normal",
     "shortDescription": {
-      "en": "Deals 1.3333x damage with supereffective hits.",
+      "en": "Deals 1.3333× damage with supereffective hits.",
       "fr": "Le lanceur change de forme et s'écrase sur la cible dans une explosion antique. Si la capacité est super efficace, elle inflige encore plus de dégâts que d'ordinaire.",
       "es": null
     },
@@ -4908,7 +4908,7 @@
     "priority": 0,
     "target": "scripted",
     "shortDescription": {
-      "en": "If hit by an attack, returns 1.5x damage.",
+      "en": "If hit by an attack, returns 1.5× damage.",
       "fr": "Le lanceur contre-attaque avec un coup infligeant des dégâts supérieurs à ceux de la dernière capacité qui l'a blessé.",
       "es": null
     },
@@ -5285,7 +5285,7 @@
       "es": "El usuario libera un gas cáustico que envuelve a todos los que se encuentren alrededor y derrite por completo los objetos que lleven equipados."
     },
     "longDescription": {
-      "en": "The target loses its held item. This move cannot cause Pokemon with the Sticky Hold Ability to lose their held item or cause a Kyogre, a Groudon, a Giratina, an Arceus, a Genesect, a Silvally, a Zacian, or a Zamazenta to lose their Blue Orb, Red Orb, Griseous Orb, Plate, Drive, Memory, Rusted Sword, or Rusted Shield respectively. Items lost to this move cannot be regained with Recycle or the Harvest Ability.",
+      "en": "The target loses its held item. This move cannot cause Pokemon with the Sticky Hold Ability to lose their held item or cause a Kyogre, Groudon, Dialga, Palkia, Giratina, Arceus, Genesect, Silvally, Zacian, Zamazenta, Paradox Pokemon, or Ogerpon to lose their Blue Orb, Red Orb, Adamant Crystal, Lustrous Globe, Griseous Core, Plate, Drive, Memory, Rusted Sword, Rusted Shield, Booster Energy, or Mask, respectively. In this case, Paradox Pokemon include every species with the Protosynthesis and Quark Drive Abilities, except Gouging Fire, Raging Bolt, Iron Boulder, and Iron Crown. Items lost to this move cannot be regained with Recycle or the Harvest Ability.",
       "fr": "Un gaz corrosif qui enveloppe tous les Pokémon alentour et qui dissout les objets qu’ils tiennent.",
       "es": "El usuario libera un gas cáustico que envuelve a todos los que se encuentren alrededor y derrite por completo los objetos que lleven equipados."
     },
@@ -5538,7 +5538,7 @@
       "es": "Se acerca con ternura al objetivo, pero le ataca y le roba el objeto que lleve."
     },
     "longDescription": {
-      "en": "If this attack was successful and the user has not fainted, it steals the target's held item if the user is not holding one. The target's item is not stolen if it is a Mail or Z-Crystal, or if the target is a Kyogre holding a Blue Orb, a Groudon holding a Red Orb, a Giratina holding a Griseous Orb, an Arceus holding a Plate, a Genesect holding a Drive, a Silvally holding a Memory, or a Pokemon that can Mega Evolve holding the Mega Stone for its species. Items lost to this move cannot be regained with Recycle or the Harvest Ability.",
+      "en": "If this attack was successful and the user has not fainted, it steals the target's held item if the user is not holding one. A target with the Sticky Hold Ability does not lose its held item if it has not fainted. The target's item is not stolen if it is a Blue Orb, Red Orb, Adamant Crystal, Lustrous Globe, Griseous Core, Plate, Drive, Memory, Rusted Sword, Rusted Shield, Booster Energy, or Mask held by a Kyogre, Groudon, Dialga, Palkia, Giratina, Arceus, Genesect, Silvally, Zacian, Zamazenta, Paradox Pokemon, or Ogerpon, respectively, or if the user is one of those species and the target is holding the respective item. In this case, Paradox Pokemon include every species with the Protosynthesis and Quark Drive Abilities, except Gouging Fire, Raging Bolt, Iron Boulder, and Iron Crown. Items lost to this move cannot be regained with Recycle or the Harvest Ability.",
       "fr": "Le lanceur s’approche de la cible avec un air angélique afin de dérober l’objet qu’elle tient.",
       "es": "Se acerca con ternura al objetivo, pero le ataca y le roba el objeto que lleve."
     },
@@ -5829,7 +5829,7 @@
       "es": "Estruja al objetivo con gran fuerza. Cuantos más PS le queden al objetivo, más fuerte será el ataque."
     },
     "longDescription": {
-      "en": "Power is equal to 120 * (target's current HP / target's maximum HP), rounded half down, but not less than 1.",
+      "en": "Power is equal to 120 × (target's current HP / target's maximum HP), rounded half down, but not less than 1.",
       "fr": "Une force puissante écrase l’ennemi. Plus il lui reste de PV et plus l’attaque est puissante.",
       "es": "Estruja al objetivo con gran fuerza. Cuantos más PS le queden al objetivo, más fuerte será el ataque."
     },
@@ -7363,7 +7363,7 @@
       "es": "El usuario convierte su fuerza vital en una energía con la que ataca al objetivo. Cuantos menos PS tenga el usuario, menor será la potencia del movimiento."
     },
     "longDescription": {
-      "en": "Power is equal to (user's current HP * 150 / user's maximum HP), rounded down, but not less than 1.",
+      "en": "Power is equal to (user's current HP × 150 / user's maximum HP), rounded down, but not less than 1.",
       "fr": "Le lanceur utilise son énergie vitale pour attaquer l’ennemi. Moins il a de PV, moins l’attaque est puissante.",
       "es": "El usuario convierte su fuerza vital en una energía con la que ataca al objetivo. Cuantos menos PS tenga el usuario, menor será la potencia del movimiento."
     },
@@ -7603,7 +7603,7 @@
       "es": "Un golpe que drena energía. El Pokémon recupera la mitad de los PS arrebatados al objetivo."
     },
     "longDescription": {
-      "en": "The user recovers 1/2 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3x normal, rounded half down.",
+      "en": "The user recovers 1/2 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3× normal, rounded half down.",
       "fr": "Un coup de poing qui draine l’énergie. Convertit la moitié des dégâts infligés en PV pour le lanceur.",
       "es": "Un golpe que drena energía. El Pokémon recupera la mitad de los PS arrebatados al objetivo."
     },
@@ -7644,7 +7644,7 @@
       "es": "El usuario absorbe PS del objetivo con un beso y restaura su propia energía en una cantidad igual o superior a la mitad del daño infligido."
     },
     "longDescription": {
-      "en": "The user recovers 3/4 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3x normal, rounded half down.",
+      "en": "The user recovers 3/4 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3× normal, rounded half down.",
       "fr": "Aspire la force vitale de l’ennemi par un baiser. Rend au lanceur un nombre de PV supérieur ou égal à la moitié des dégâts infligés.",
       "es": "El usuario absorbe PS del objetivo con un beso y restaura su propia energía en una cantidad igual o superior a la mitad del daño infligido."
     },
@@ -7684,7 +7684,7 @@
       "es": "Restaura al usuario la mitad del daño causado a un objetivo dormido."
     },
     "longDescription": {
-      "en": "The target is unaffected by this move unless it is asleep. The user recovers 1/2 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3x normal, rounded half down.",
+      "en": "The target is unaffected by this move unless it is asleep. The user recovers 1/2 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3× normal, rounded half down.",
       "fr": "Le lanceur mange le rêve de l’ennemi endormi et récupère en PV la moitié des dégâts infligés.",
       "es": "Restaura al usuario la mitad del daño causado a un objetivo dormido."
     },
@@ -8381,7 +8381,7 @@
     "priority": 0,
     "target": "normal",
     "shortDescription": {
-      "en": "Deals 1.3333x damage with supereffective hits.",
+      "en": "Deals 1.3333× damage with supereffective hits.",
       "fr": "Le lanceur change de forme et fonce sur la cible en la perforant d'électricité futuriste. Si la capacité est super efficace, sa puissance augmente encore plus.",
       "es": null
     },
@@ -8424,7 +8424,7 @@
       "es": null
     },
     "longDescription": {
-      "en": "This attack charges on the first turn and executes on the second. Raises the user's Special Attack by 1 stage on the first turn. If the user is holding a Power Herb or the weather is Primordial Sea or Rain Dance, the move completes in one turn. If the user is holding Utility Umbrella and the weather is Primordial Sea or Rain Dance, the move still requires a turn to charge.",
+      "en": "This attack charges on the first turn and executes on the second. Raises the user's Special Attack by 1 stage on the first turn. If the user is holding a Power Herb or the weather is Heavy Rain or Rain, the move completes in one turn. If the user is holding Utility Umbrella and the weather is Heavy Rain or Rain, the move still requires a turn to charge.",
       "fr": "Le lanceur absorbe de l'électricité au premier tour, ce qui augmente son Attaque Spéciale, et envoie une puissante décharge au second. S'il pleut, il l'envoie au premier tour.",
       "es": null
     },
@@ -8809,7 +8809,7 @@
       "es": "Furia explosiva. Cuanto menor sea el número de PS del usuario, menos daño hará el ataque."
     },
     "longDescription": {
-      "en": "Power is equal to (user's current HP * 150 / user's maximum HP), rounded down, but not less than 1.",
+      "en": "Power is equal to (user's current HP × 150 / user's maximum HP), rounded down, but not less than 1.",
       "fr": "Le lanceur laisse exploser sa colère. Plus ses PV sont bas, moins l’attaque est puissante.",
       "es": "Furia explosiva. Cuanto menor sea el número de PS del usuario, menos daño hará el ataque."
     },
@@ -8923,7 +8923,7 @@
     "priority": 0,
     "target": "normal",
     "shortDescription": {
-      "en": "User on Psychic Terrain: 1.5x power, hits foes.",
+      "en": "User on Psychic Terrain: 1.5× power, hits foes.",
       "fr": "Le lanceur attaque la cible avec ses pouvoirs psychiques. Si un Champ Psychique est actif, la puissance de cette capacité augmente et elle touche tous les ennemis.",
       "es": "El usuario ataca al objetivo con sus poderes psíquicos. Cuando se usa en conjunción con un campo psíquico, aumenta su potencia e inflige daño a todos los rivales."
     },
@@ -10117,7 +10117,7 @@
       "es": "Ataque frenético. Cuantos menos PS tenga el usuario, más daño producirá."
     },
     "longDescription": {
-      "en": "The power of this move is 20 if X is 33 to 48, 40 if X is 17 to 32, 80 if X is 10 to 16, 100 if X is 5 to 9, 150 if X is 2 to 4, and 200 if X is 0 or 1, where X is equal to (user's current HP * 48 / user's maximum HP), rounded down.",
+      "en": "The power of this move is 20 if X is 33 to 48, 40 if X is 17 to 32, 80 if X is 10 to 16, 100 if X is 5 to 9, 150 if X is 2 to 4, and 200 if X is 0 or 1, where X is equal to (user's current HP × 48 / user's maximum HP), rounded down.",
       "fr": "Le lanceur attaque en gigotant dans tous les sens. Plus ses PV sont bas, plus l’attaque est puissante.",
       "es": "Ataque frenético. Cuantos menos PS tenga el usuario, más daño producirá."
     },
@@ -11164,7 +11164,7 @@
     "priority": 0,
     "target": "normal",
     "shortDescription": {
-      "en": "Super effective on Water.",
+      "en": "10% chance to freeze. Super effective on Water.",
       "fr": "Refroidit violemment l’ennemi et peut le geler. Super efficace sur les Pokémon de type Eau.",
       "es": "Enfría súbitamente al objetivo e incluso puede congelarlo. Es supereficaz contra Pokémon de tipo Agua."
     },
@@ -11377,7 +11377,7 @@
       "es": "Este movimiento no se puede usar, por lo que sería mejor olvidarlo, aunque eso implique que no se pueda recordar posteriormente."
     },
     "longDescription": {
-      "en": "Power is equal to the greater of ((255 - user's Happiness) * 2/5), rounded down, or 1.",
+      "en": "Power is equal to the greater of ((255 - user's Happiness) × 2/5), rounded down, or 1.",
       "fr": "Cette capacité ne peut pas être utilisée. Il est recommandé de l’oublier, même s’il sera impossible de se la remémorer une fois oubliée.",
       "es": "Este movimiento no se puede usar, por lo que sería mejor olvidarlo, aunque eso implique que no se pueda recordar posteriormente."
     },
@@ -11820,7 +11820,7 @@
       "es": "Un ataque que absorbe nutrientes. Quien lo usa recupera la mitad de los PS del daño que produce."
     },
     "longDescription": {
-      "en": "The user recovers 1/2 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3x normal, rounded half down.",
+      "en": "The user recovers 1/2 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3× normal, rounded half down.",
       "fr": "Une attaque qui convertit la moitié des dégâts infligés en PV pour le lanceur.",
       "es": "Un ataque que absorbe nutrientes. Quien lo usa recupera la mitad de los PS del daño que produce."
     },
@@ -12015,7 +12015,7 @@
     "priority": 0,
     "target": "normal",
     "shortDescription": {
-      "en": "User takes sure-hit 2x damage until its next turn.",
+      "en": "User takes sure-hit 2× damage until its next turn.",
       "fr": "Le lanceur se jette dans une charge inconsciente sur la cible. Une fois cette capacité utilisée, toute attaque sur le lanceur inflige le double de dégâts et n'échoue jamais.",
       "es": null
     },
@@ -12300,7 +12300,7 @@
     "priority": 0,
     "target": "normal",
     "shortDescription": {
-      "en": "Target: 100% -1 Def. During Gravity: 1.5x power.",
+      "en": "Target: 100% -1 Def. During Gravity: 1.5× power.",
       "fr": "Le lanceur attaque son adversaire avec une pomme qu’il fait tomber de très haut. Baisse la Défense de la cible.",
       "es": "El usuario ataca haciendo caer una manzana desde gran altura. Disminuye la Defensa del objetivo."
     },
@@ -12344,7 +12344,7 @@
     "priority": 0,
     "target": "all",
     "shortDescription": {
-      "en": "5 turns: no Ground immunities, 1.67x accuracy.",
+      "en": "5 turns: no Ground immunities, 1.67× accuracy.",
       "fr": "Pendant cinq tours, les Pokémon Vol ou qui ont Lévitation deviennent sensibles aux capacités Sol, et les capacités volantes deviennent inutilisables.",
       "es": "Durante cinco turnos, se anulan los movimientos que alzan el vuelo y los Pokémon de tipo Volador o que levitan son vulnerables a movimientos de tipo Tierra."
     },
@@ -12434,7 +12434,7 @@
       "es": "Hace que su cuerpo crezca a marchas forzadas con lo que aumenta su Ataque y Ataque Especial."
     },
     "longDescription": {
-      "en": "Raises the user's Attack and Special Attack by 1 stage. If the weather is Sunny Day or Desolate Land, this move raises the user's Attack and Special Attack by 2 stages. If the user is holding Utility Umbrella, this move will only raise the user's Attack and Special Attack by 1 stage, even if the weather is Sunny Day or Desolate Land.",
+      "en": "Raises the user's Attack and Special Attack by 1 stage. If the weather is Sun or Intense Sun, this move raises the user's Attack and Special Attack by 2 stages. If the user is holding Utility Umbrella, this move will only raise the user's Attack and Special Attack by 1 stage, even if the weather is Sun or Intense Sun.",
       "fr": "Le corps du lanceur se développe. Augmente l’Attaque et l’Attaque Spéciale.",
       "es": "Hace que su cuerpo crezca a marchas forzadas con lo que aumenta su Ataque y Ataque Especial."
     },
@@ -12873,7 +12873,7 @@
       "es": null
     },
     "longDescription": {
-      "en": "Power is equal to 100 * (target's current HP / target's maximum HP), rounded half down, but not less than 1.",
+      "en": "Power is equal to 100 × (target's current HP / target's maximum HP), rounded half down, but not less than 1.",
       "fr": "Le lanceur écrase la cible avec ses bras ou ses pinces. Plus il reste de PV à la cible, plus la puissance de la capacité augmente.",
       "es": null
     },
@@ -13562,7 +13562,7 @@
     "priority": 5,
     "target": "adjacentAlly",
     "shortDescription": {
-      "en": "One adjacent ally's move power is 1.5x this turn.",
+      "en": "One adjacent ally's move power is 1.5× this turn.",
       "fr": "Une capacité qui augmente la puissance d’attaque d’un allié.",
       "es": "El usuario ayuda a un aliado reforzando la potencia de su ataque."
     },
@@ -14560,7 +14560,7 @@
       "es": "Un golpe que drena energía. El Pokémon recupera la mitad de los PS arrebatados al objetivo."
     },
     "longDescription": {
-      "en": "The user recovers 1/2 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3x normal, rounded half down.",
+      "en": "The user recovers 1/2 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3× normal, rounded half down.",
       "fr": "Un coup de corne qui draine l’énergie de l’ennemi. Convertit la moitié des dégâts infligés en PV pour le lanceur.",
       "es": "Un golpe que drena energía. El Pokémon recupera la mitad de los PS arrebatados al objetivo."
     },
@@ -14645,7 +14645,7 @@
       "es": "Golpea al objetivo con un fuerte torbellino que envuelve al rival y puede confundirlo."
     },
     "longDescription": {
-      "en": "Has a 30% chance to confuse the target. This move can hit a target using Bounce, Fly, or Sky Drop, or is under the effect of Sky Drop. If the weather is Primordial Sea or Rain Dance, this move does not check accuracy. If the weather is Desolate Land or Sunny Day, this move's accuracy is 50%. If this move is used against a Pokemon holding Utility Umbrella, this move's accuracy remains at 70%.",
+      "en": "Has a 30% chance to confuse the target. This move can hit a target using Bounce, Fly, or Sky Drop, or is under the effect of Sky Drop. If the weather is Heavy Rain or Rain, this move does not check accuracy. If the weather is Intense Sun or Sun, this move's accuracy is 50%. If this move is used against a Pokemon holding Utility Umbrella, this move's accuracy remains at 70%.",
       "fr": "Le lanceur déclenche une tempête de vents violents qui s’abat sur l’ennemi. Peut aussi le rendre confus.",
       "es": "Golpea al objetivo con un fuerte torbellino que envuelve al rival y puede confundirlo."
     },
@@ -14762,12 +14762,12 @@
     "priority": 0,
     "target": "normal",
     "shortDescription": {
-      "en": "During Sunny Day: 1.5x damage instead of half.",
+      "en": "During Sun: 1.5× damage instead of half.",
       "fr": "Le lanceur asperge la cible avec un puissant jet d'eau bouillante. Quand le soleil brille, la puissance de cette capacité augmente de 50 % au lieu de baisser.",
       "es": null
     },
     "longDescription": {
-      "en": "If the current weather is Sunny Day and the user is not holding Utility Umbrella, this move's damage is multiplied by 1.5 instead of halved for being Water type.",
+      "en": "If the current weather is Sun and the user is not holding Utility Umbrella, this move's damage is multiplied by 1.5 instead of halved for being Water type.",
       "fr": "Le lanceur asperge la cible avec un puissant jet d'eau bouillante. Quand le soleil brille, la puissance de cette capacité augmente de 50 % au lieu de baisser.",
       "es": null
     },
@@ -15622,7 +15622,7 @@
     "priority": 0,
     "target": "normal",
     "shortDescription": {
-      "en": "30% burn. 2x power if target is already statused.",
+      "en": "30% burn. 2× power if target is already statused.",
       "fr": "Une multitude de boules de feu frappent la cible, ce qui peut aussi la brûler. La puissance est doublée si celle-ci souffre d'une altération de statut.",
       "es": null
     },
@@ -15914,7 +15914,7 @@
     "priority": 0,
     "target": "normal",
     "shortDescription": {
-      "en": "20% chance to make the target flinch.",
+      "en": "30% chance to make the target flinch.",
       "fr": "Le lanceur heurte l’ennemi avec sa tête dure comme de l’acier. Peut aussi l’apeurer.",
       "es": "Ataca con su dura cabeza de hierro. Puede hacer que el objetivo se amedrente."
     },
@@ -16365,12 +16365,12 @@
     "priority": 0,
     "target": "normal",
     "shortDescription": {
-      "en": "1.5x damage if foe holds an item. Removes item.",
+      "en": "1.5× damage if foe holds an item. Removes item.",
       "fr": "Fait plus de dégâts aux cibles qui tiennent un objet. De plus, fait tomber cet objet et empêche la cible de l’utiliser jusqu’à la fin du combat.",
       "es": "Impide al objetivo usar el objeto que lleva durante el combate. La potencia del movimiento se multiplica si el objetivo lleva un objeto."
     },
     "longDescription": {
-      "en": "If the target is holding an item that can be removed from it, ignoring the Sticky Hold Ability, this move's power is multiplied by 1.5. If the user has not fainted, the target loses its held item. This move cannot cause Pokemon with the Sticky Hold Ability to lose their held item or cause a Kyogre, a Groudon, a Giratina, an Arceus, a Genesect, a Silvally, a Zacian, or a Zamazenta to lose their Blue Orb, Red Orb, Griseous Orb, Plate, Drive, Memory, Rusted Sword, or Rusted Shield respectively. Items lost to this move cannot be regained with Recycle or the Harvest Ability.",
+      "en": "This move's power is multiplied by 1.5 if the target is holding an item, and the target loses its held item if the user has not fainted. A target with the Sticky Hold Ability does not lose its held item if it has not fainted. This move does not increase in power or remove the target's item if it is a Blue Orb, Red Orb, Adamant Crystal, Lustrous Globe, Griseous Core, Plate, Drive, Memory, Rusted Sword, Rusted Shield, Booster Energy, or Mask held by a Kyogre, Groudon, Dialga, Palkia, Giratina, Arceus, Genesect, Silvally, Zacian, Zamazenta, Paradox Pokemon, or Ogerpon, respectively, or if the user is one of those species and the target is holding the respective item. In this case, Paradox Pokemon include every species with the Protosynthesis and Quark Drive Abilities, except Gouging Fire, Raging Bolt, Iron Boulder, and Iron Crown. Items lost to this move cannot be regained with Recycle or the Harvest Ability.",
       "fr": "Fait plus de dégâts aux cibles qui tiennent un objet. De plus, fait tomber cet objet et empêche la cible de l’utiliser jusqu’à la fin du combat.",
       "es": "Impide al objetivo usar el objeto que lleva durante el combate. La potencia del movimiento se multiplica si el objetivo lleva un objeto."
     },
@@ -16525,7 +16525,7 @@
     "priority": 0,
     "target": "normal",
     "shortDescription": {
-      "en": "2x power if the user had a stat lowered this turn.",
+      "en": "2× power if the user had a stat lowered this turn.",
       "fr": "Le lanceur frappe l’ennemi avec toute sa rancune. Si les stats du lanceur ont diminué pendant ce tour, la puissance de cette attaque est doublée.",
       "es": "Ataca al rival presa de la rabia. Si el usuario ha sufrido una reducción de características en ese turno, la potencia del movimiento se duplica."
     },
@@ -16608,7 +16608,7 @@
       "es": null
     },
     "longDescription": {
-      "en": "Power is equal to 50+(X*50), where X is the total number of times any Pokemon has fainted on the user's side, and X cannot be greater than 100.",
+      "en": "Power is equal to 50+(X × 50), where X is the total number of times any Pokemon has fainted on the user's side, and X cannot be greater than 100.",
       "fr": "Le lanceur attaque pour venger ses alliés. Plus le nombre de Pokémon alliés mis K.O. est élevé, plus la puissance de cette capacité augmente.",
       "es": null
     },
@@ -16850,7 +16850,7 @@
       "es": "Restaura al usuario la mitad del daño causado al objetivo."
     },
     "longDescription": {
-      "en": "The user recovers 1/2 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3x normal, rounded half down.",
+      "en": "The user recovers 1/2 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3× normal, rounded half down.",
       "fr": "Une attaque qui aspire le sang de l’ennemi. La moitié des dégâts sont convertis en PV pour le lanceur.",
       "es": "Restaura al usuario la mitad del daño causado al objetivo."
     },
@@ -16890,7 +16890,7 @@
       "es": "Planta semillas que absorben PS del objetivo en cada turno y que le sirven para recuperarse."
     },
     "longDescription": {
-      "en": "The Pokemon at the user's position steals 1/8 of the target's maximum HP, rounded down, at the end of each turn. If Big Root is held by the recipient, the HP recovered is 1.3x normal, rounded half down. If the target uses Baton Pass, the replacement will continue being leeched. If the target switches out or uses Mortal Spin or Rapid Spin successfully, the effect ends. Grass-type Pokemon are immune to this move on use, but not its effect.",
+      "en": "The Pokemon at the user's position steals 1/8 of the target's maximum HP, rounded down, at the end of each turn. If Big Root is held by the recipient, the HP recovered is 1.3× normal, rounded half down. If the target uses Baton Pass, the replacement will continue being leeched. If the target switches out or uses Mortal Spin or Rapid Spin successfully, the effect ends. Grass-type Pokemon are immune to this move on use, but not its effect.",
       "fr": "Une graine est semée sur l’ennemi. À chaque tour, elle lui dérobe des PV que le lanceur récupère.",
       "es": "Planta semillas que absorben PS del objetivo en cada turno y que le sirven para recuperarse."
     },
@@ -17099,7 +17099,7 @@
       "es": "Pared de luz que reduce durante cinco turnos el daño producido por los ataques especiales."
     },
     "longDescription": {
-      "en": "For 5 turns, the user and its party members take 0.5x damage from special attacks, or 0.66x damage if in a Double Battle. Damage is not reduced further with Aurora Veil. Critical hits ignore this effect. It is removed from the user's side if the user or an ally is successfully hit by Brick Break, Psychic Fangs, or Defog. Lasts for 8 turns if the user is holding Light Clay. Fails if the effect is already active on the user's side.",
+      "en": "For 5 turns, the user and its party members take 0.5× damage from special attacks, or 0.66× damage if in a Double Battle. Damage is not reduced further with Aurora Veil. Critical hits ignore this effect. It is removed from the user's side if the user or an ally is successfully hit by Brick Break, Psychic Fangs, or Defog. Lasts for 8 turns if the user is holding Light Clay. Fails if the effect is already active on the user's side.",
       "fr": "Crée un fabuleux mur de lumière qui réduit les dégâts causés par les capacités spéciales pendant cinq tours.",
       "es": "Pared de luz que reduce durante cinco turnos el daño producido por los ataques especiales."
     },
@@ -18004,7 +18004,7 @@
     "priority": 0,
     "target": "allAdjacent",
     "shortDescription": {
-      "en": "Hits adjacent Pokemon. Power varies; 2x on Dig.",
+      "en": "Hits adjacent Pokemon. Power varies; 2× on Dig.",
       "fr": "Cette capacité ne peut pas être utilisée. Il est recommandé de l’oublier, même s’il sera impossible de se la remémorer une fois oubliée.",
       "es": "Este movimiento no se puede usar, por lo que sería mejor olvidarlo, aunque eso implique que no se pueda recordar posteriormente."
     },
@@ -18043,7 +18043,7 @@
     "priority": 0,
     "target": "allAdjacentFoes",
     "shortDescription": {
-      "en": "Lowers the user's Sp. Atk by 2. Hits foe(s).",
+      "en": "Lowers the user's Sp. Atk by 1. Hits foe(s).",
       "fr": "Le lanceur attaque en lançant de nombreuses pièces, ce qui baisse son Attaque Spéciale. Permet d'obtenir plus d'argent à la fin du combat.",
       "es": null
     },
@@ -18167,7 +18167,7 @@
       "es": null
     },
     "longDescription": {
-      "en": "Has a 20% chance to burn the target. The user recovers 1/2 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3x normal, rounded half down. The target thaws out if it is frozen.",
+      "en": "Has a 20% chance to burn the target. The user recovers 1/2 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3× normal, rounded half down. The target thaws out if it is frozen.",
       "fr": "Le lanceur remue son thé et en bombarde la cible. La moitié des dégâts infligés sont convertis en PV pour le lanceur. Cette capacité peut aussi brûler la cible.",
       "es": null
     },
@@ -18207,7 +18207,7 @@
     "priority": 0,
     "target": "adjacentFoe",
     "shortDescription": {
-      "en": "Copies a foe at 1.5x power. User must be faster.",
+      "en": "Copies a foe at 1.5× power. User must be faster.",
       "fr": "Cette capacité ne peut pas être utilisée. Il est recommandé de l’oublier, même s’il sera impossible de se la remémorer une fois oubliée.",
       "es": "Este movimiento no se puede usar, por lo que sería mejor olvidarlo, aunque eso implique que no se pueda recordar posteriormente."
     },
@@ -18338,7 +18338,7 @@
       "es": "Un ataque que absorbe nutrientes. Quien lo usa recupera la mitad de los PS del daño que produce."
     },
     "longDescription": {
-      "en": "The user recovers 1/2 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3x normal, rounded half down.",
+      "en": "The user recovers 1/2 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3× normal, rounded half down.",
       "fr": "Une attaque qui convertit la moitié des dégâts infligés en PV pour le lanceur.",
       "es": "Un ataque que absorbe nutrientes. Quien lo usa recupera la mitad de los PS del daño que produce."
     },
@@ -18536,7 +18536,7 @@
     "priority": 0,
     "target": "scripted",
     "shortDescription": {
-      "en": "If hit by an attack, returns 1.5x damage.",
+      "en": "If hit by an attack, returns 1.5× damage.",
       "fr": "Le lanceur attaque le dernier ennemi l’ayant blessé durant le même tour en frappant plus fort.",
       "es": "Devuelve al rival el último ataque recibido, pero con mucha más fuerza."
     },
@@ -18661,7 +18661,7 @@
     },
     "type": "fighting",
     "category": "physical",
-    "power": 150,
+    "power": 170,
     "accuracy": 100,
     "pp": 5,
     "maxPp": 8,
@@ -18958,7 +18958,7 @@
       "es": "El usuario hace explotar su cabeza para atacar a todos los Pokémon que se hallan a su alrededor, aunque también se hiere a sí mismo."
     },
     "longDescription": {
-      "en": "Whether or not this move is successful and even if it would cause fainting, the user loses 1/2 of its maximum HP, rounded up, unless the user has the Magic Guard Ability. This move is prevented from executing and the user does not lose HP if any active Pokemon has the Damp Ability, or if this move is Fire type and the user is affected by Powder or the weather is Primordial Sea.",
+      "en": "Whether or not this move is successful and even if it would cause fainting, the user loses 1/2 of its maximum HP, rounded up, unless the user has the Magic Guard Ability. This move is prevented from executing and the user does not lose HP if any active Pokemon has the Damp Ability, or if this move is Fire type and the user is affected by Powder or the weather is Heavy Rain.",
       "fr": "Le lanceur fait exploser sa tête pour attaquer toutes les cibles autour de lui. Il subit aussi des dégâts.",
       "es": "El usuario hace explotar su cabeza para atacar a todos los Pokémon que se hallan a su alrededor, aunque también se hiere a sí mismo."
     },
@@ -19324,7 +19324,7 @@
     "priority": 0,
     "target": "allAdjacent",
     "shortDescription": {
-      "en": "User faints. User on Misty Terrain: 1.5x power.",
+      "en": "User faints. User on Misty Terrain: 1.5× power.",
       "fr": "Le lanceur frappe tous les Pokémon autour de lui en explosant, ce qui le met K.O. La puissance de cette attaque augmente si un Champ Brumeux est actif.",
       "es": "El usuario ataca a todos a su alrededor, pero se debilita de inmediato. La potencia del movimiento aumenta si el terreno está cubierto por un campo de niebla."
     },
@@ -19399,7 +19399,7 @@
     "priority": 0,
     "target": "normal",
     "shortDescription": {
-      "en": "10% chance to lower the target's Sp. Atk by 1.",
+      "en": "30% chance to lower the target's Sp. Atk by 1.",
       "fr": "Attaque l’ennemi grâce au pouvoir de la lune. Peut diminuer son Attaque Spéciale.",
       "es": "Invoca el poder de la luna para atacar al objetivo. Puede disminuir el Ataque Especial del objetivo."
     },
@@ -19486,7 +19486,7 @@
       "es": "Restaura PS del usuario. La cantidad varía según el tiempo que haga."
     },
     "longDescription": {
-      "en": "The user restores 1/2 of its maximum HP if Delta Stream or no weather conditions are in effect or if the user is holding Utility Umbrella, 2/3 of its maximum HP if the weather is Desolate Land or Sunny Day, and 1/4 of its maximum HP if the weather is Primordial Sea, Rain Dance, Sandstorm, or Snow, all rounded half down.",
+      "en": "The user restores 1/2 of its maximum HP if Strong Winds or no weather conditions are in effect or if the user is holding Utility Umbrella, 2/3 of its maximum HP if the weather is Intense Sun or Sun, and 1/4 of its maximum HP if the weather is Heavy Rain, Rain, Sandstorm, or Snow, all rounded half down.",
       "fr": "Un soin qui restaure des PV au lanceur. Son efficacité varie en fonction de la météo.",
       "es": "Restaura PS del usuario. La cantidad varía según el tiempo que haga."
     },
@@ -19524,7 +19524,7 @@
       "es": "Restaura PS del usuario. La cantidad varía según el tiempo que haga."
     },
     "longDescription": {
-      "en": "The user restores 1/2 of its maximum HP if Delta Stream or no weather conditions are in effect or if the user is holding Utility Umbrella, 2/3 of its maximum HP if the weather is Desolate Land or Sunny Day, and 1/4 of its maximum HP if the weather is Primordial Sea, Rain Dance, Sandstorm, or Snow, all rounded half down.",
+      "en": "The user restores 1/2 of its maximum HP if Strong Winds or no weather conditions are in effect or if the user is holding Utility Umbrella, 2/3 of its maximum HP if the weather is Intense Sun or Sun, and 1/4 of its maximum HP if the weather is Heavy Rain, Rain, Sandstorm, or Snow, all rounded half down.",
       "fr": "Un soin qui restaure des PV au lanceur. Son efficacité varie en fonction de la météo.",
       "es": "Restaura PS del usuario. La cantidad varía según el tiempo que haga."
     },
@@ -20555,7 +20555,7 @@
       "es": "El usuario absorbe energía del objetivo y aumenta sus PS en una cantidad igual o superior a la mitad del daño infligido."
     },
     "longDescription": {
-      "en": "The user recovers 3/4 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3x normal, rounded half down.",
+      "en": "The user recovers 3/4 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3× normal, rounded half down.",
       "fr": "Vole l’énergie de la cible. Rend au lanceur un nombre de PV supérieur ou égal à la moitié des dégâts infligés.",
       "es": "El usuario absorbe energía del objetivo y aumenta sus PS en una cantidad igual o superior a la mitad del daño infligido."
     },
@@ -21044,7 +21044,7 @@
       "es": "Inflige daño a todos los Pokémon a su alrededor. El usuario absorbe la mitad del daño producido para restaurar sus propios PS."
     },
     "longDescription": {
-      "en": "The user recovers 1/2 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3x normal, rounded half down.",
+      "en": "The user recovers 1/2 the HP lost by the target, rounded half up. If Big Root is held by the user, the HP recovered is 1.3× normal, rounded half down.",
       "fr": "Inflige des dégâts à tous les Pokémon autour du lanceur. Il récupère en PV la moitié des dégâts infligés.",
       "es": "Inflige daño a todos los Pokémon a su alrededor. El usuario absorbe la mitad del daño producido para restaurar sus propios PS."
     },
@@ -22402,7 +22402,7 @@
       "es": "Ataca al oponente presumiendo de su fuerza. Cuanto más hayan subido las características del usuario, mayor será el daño."
     },
     "longDescription": {
-      "en": "Power is equal to 20+(X*20), where X is the user's total stat stage changes that are greater than 0.",
+      "en": "Power is equal to 20+(X × 20), where X is the user's total stat stage changes that are greater than 0.",
       "fr": "Ivre de puissance, le lanceur attaque de toutes ses forces. Plus ses stats ont été augmentées, plus la puissance de l’attaque est élevée.",
       "es": "Ataca al oponente presumiendo de su fuerza. Cuanto más hayan subido las características del usuario, mayor será el daño."
     },
@@ -22720,7 +22720,7 @@
     "priority": 0,
     "target": "normal",
     "shortDescription": {
-      "en": "During Electric Terrain: 1.5x power.",
+      "en": "During Electric Terrain: 1.5× power.",
       "fr": "Le lanceur lacère la cible à l'aide d'une lame intangible. S'il se trouve dans un champ électrifié, la puissance de cette capacité augmente de 50 %.",
       "es": null
     },
@@ -23200,12 +23200,12 @@
     "priority": 0,
     "target": "normal",
     "shortDescription": {
-      "en": "Random damage equal to 0.5x-1.5x user's level.",
+      "en": "Random damage equal to 0.5×-1.5× user's level.",
       "fr": "Cette capacité ne peut pas être utilisée. Il est recommandé de l’oublier, même s’il sera impossible de se la remémorer une fois oubliée.",
       "es": "Este movimiento no se puede usar, por lo que sería mejor olvidarlo, aunque eso implique que no se pueda recordar posteriormente."
     },
     "longDescription": {
-      "en": "Deals damage to the target equal to (user's level) * (X + 50) / 100, where X is a random number from 0 to 100, rounded down, but not less than 1 HP.",
+      "en": "Deals damage to the target equal to (user's level) × (X + 50) / 100, where X is a random number from 0 to 100, rounded down, but not less than 1 HP.",
       "fr": "Cette capacité ne peut pas être utilisée. Il est recommandé de l’oublier, même s’il sera impossible de se la remémorer une fois oubliée.",
       "es": "Este movimiento no se puede usar, por lo que sería mejor olvidarlo, aunque eso implique que no se pueda recordar posteriormente."
     },
@@ -23243,7 +23243,7 @@
       "es": "Este movimiento no se puede usar, por lo que sería mejor olvidarlo, aunque eso implique que no se pueda recordar posteriormente."
     },
     "longDescription": {
-      "en": "Power is equal to 60+(X*20), where X is the target's total stat stage changes that are greater than 0, but not more than 200 power.",
+      "en": "Power is equal to 60+(X × 20), where X is the target's total stat stage changes that are greater than 0, but not more than 200 power.",
       "fr": "Cette capacité ne peut pas être utilisée. Il est recommandé de l’oublier, même s’il sera impossible de se la remémorer une fois oubliée.",
       "es": "Este movimiento no se puede usar, por lo que sería mejor olvidarlo, aunque eso implique que no se pueda recordar posteriormente."
     },
@@ -23316,7 +23316,7 @@
     "priority": 0,
     "target": "normal",
     "shortDescription": {
-      "en": "If a foe is switching out, hits it at 2x power.",
+      "en": "If a foe is switching out, hits it at 2× power.",
       "fr": "Cette capacité ne peut pas être utilisée. Il est recommandé de l’oublier, même s’il sera impossible de se la remémorer une fois oubliée.",
       "es": "Este movimiento no se puede usar, por lo que sería mejor olvidarlo, aunque eso implique que no se pueda recordar posteriormente."
     },
@@ -23597,12 +23597,12 @@
     "priority": 0,
     "target": "normal",
     "shortDescription": {
-      "en": "+50 BP/hit on user. Max 6 hits. Resets on switch-out.",
+      "en": "+50 power for each time user was hit. Max 6 hits.",
       "fr": "Le lanceur transforme sa colère en énergie pour attaquer. Plus il a subi d'attaques, plus la puissance de cette capacité augmente.",
       "es": null
     },
     "longDescription": {
-      "en": "Power is equal to 50+(X*50), where X is the total number of times the user has been hit by a damaging attack during the battle, even if the user did not lose HP from the attack. X cannot be greater than 6 and does not reset upon switching out or fainting. Each hit of a multi-hit attack is counted, but confusion damage is not counted.",
+      "en": "Power is equal to 50+(X × 50), where X is the total number of times the user has been hit by a damaging attack during the battle, even if the user did not lose HP from the attack. X cannot be greater than 6 and does not reset upon switching out or fainting. Each hit of a multi-hit attack is counted, but confusion damage is not counted.",
       "fr": "Le lanceur transforme sa colère en énergie pour attaquer. Plus il a subi d'attaques, plus la puissance de cette capacité augmente.",
       "es": null
     },
@@ -23759,7 +23759,7 @@
       "es": "Genera una fuerte lluvia que refuerza los movimientos de tipo Agua durante cinco turnos y debilita los de tipo Fuego."
     },
     "longDescription": {
-      "en": "For 5 turns, the weather becomes Rain Dance. The damage of Water-type attacks is multiplied by 1.5 and the damage of Fire-type attacks is multiplied by 0.5 during the effect. Lasts for 8 turns if the user is holding Damp Rock. Fails if the current weather is Rain Dance.",
+      "en": "For 5 turns, the weather becomes Rain. The damage of Water-type attacks is multiplied by 1.5 and the damage of Fire-type attacks is multiplied by 0.5 during the effect. Lasts for 8 turns if the user is holding Damp Rock. Fails if the current weather is Rain.",
       "fr": "Invoque de fortes pluies qui durent cinq tours, augmentant la puissance des capacités de type Eau et baissant celle des capacités de type Feu.",
       "es": "Genera una fuerte lluvia que refuerza los movimientos de tipo Agua durante cinco turnos y debilita los de tipo Fuego."
     },
@@ -24041,7 +24041,7 @@
       "es": "Pared de luz que reduce durante cinco turnos el daño producido por los ataques físicos."
     },
     "longDescription": {
-      "en": "For 5 turns, the user and its party members take 0.5x damage from physical attacks, or 0.66x damage if in a Double Battle. Damage is not reduced further with Aurora Veil. Critical hits ignore this effect. It is removed from the user's side if the user or an ally is successfully hit by Brick Break, Psychic Fangs, or Defog. Lasts for 8 turns if the user is holding Light Clay. Fails if the effect is already active on the user's side.",
+      "en": "For 5 turns, the user and its party members take 0.5× damage from physical attacks, or 0.66× damage if in a Double Battle. Damage is not reduced further with Aurora Veil. Critical hits ignore this effect. It is removed from the user's side if the user or an ally is successfully hit by Brick Break, Psychic Fangs, or Defog. Lasts for 8 turns if the user is holding Light Clay. Fails if the effect is already active on the user's side.",
       "fr": "Crée un fabuleux mur de lumière qui réduit les dégâts causés par les capacités physiques pendant cinq tours.",
       "es": "Pared de luz que reduce durante cinco turnos el daño producido por los ataques físicos."
     },
@@ -24275,7 +24275,7 @@
       "es": "Este movimiento no se puede usar, por lo que sería mejor olvidarlo, aunque eso implique que no se pueda recordar posteriormente."
     },
     "longDescription": {
-      "en": "Power is equal to the greater of (user's Happiness * 2/5), rounded down, or 1.",
+      "en": "Power is equal to the greater of (user's Happiness × 2/5), rounded down, or 1.",
       "fr": "Cette capacité ne peut pas être utilisée. Il est recommandé de l’oublier, même s’il sera impossible de se la remémorer une fois oubliée.",
       "es": "Este movimiento no se puede usar, por lo que sería mejor olvidarlo, aunque eso implique que no se pueda recordar posteriormente."
     },
@@ -24392,7 +24392,7 @@
       "es": "Ataque desesperado que causa más daño cuantos menos PS tenga el usuario."
     },
     "longDescription": {
-      "en": "The power of this move is 20 if X is 33 to 48, 40 if X is 17 to 32, 80 if X is 10 to 16, 100 if X is 5 to 9, 150 if X is 2 to 4, and 200 if X is 0 or 1, where X is equal to (user's current HP * 48 / user's maximum HP), rounded down.",
+      "en": "The power of this move is 20 if X is 33 to 48, 40 if X is 17 to 32, 80 if X is 10 to 16, 100 if X is 5 to 9, 150 if X is 2 to 4, and 200 if X is 0 or 1, where X is equal to (user's current HP × 48 / user's maximum HP), rounded down.",
       "fr": "Le lanceur ne retient plus ses coups. Plus ses PV sont bas, plus l’attaque est puissante.",
       "es": "Ataque desesperado que causa más daño cuantos menos PS tenga el usuario."
     },
@@ -24463,7 +24463,7 @@
     "priority": 0,
     "target": "normal",
     "shortDescription": {
-      "en": "2x power if target is grounded in Electric Terrain.",
+      "en": "2× power if target is grounded in Electric Terrain.",
       "fr": "Des éclairs surgissent du sol et frappent l’ennemi. La puissance de cette attaque est doublée si la cible est sur un Champ Électrifié.",
       "es": "Ataca con una descarga eléctrica que surge del terreno de combate. La potencia del movimiento se duplica si el rival se ve afectado por un campo eléctrico."
     },
@@ -25455,7 +25455,7 @@
       "es": null
     },
     "longDescription": {
-      "en": "Has a 20% chance to burn the target. If the weather is Primordial Sea or Rain Dance, this move does not check accuracy. If this move is used against a Pokemon holding Utility Umbrella, this move's accuracy remains at 80%.",
+      "en": "Has a 20% chance to burn the target. If the weather is Heavy Rain or Rain, this move does not check accuracy. If this move is used against a Pokemon holding Utility Umbrella, this move's accuracy remains at 80%.",
       "fr": "Le lanceur déclenche un violent typhon mêlé à du sable ardent qui s'abat sur la cible, ce qui peut la brûler.",
       "es": null
     },
@@ -25494,7 +25494,7 @@
     "priority": 0,
     "target": "all",
     "shortDescription": {
-      "en": "For 5 turns, a sandstorm rages. Rock: 1.5x SpD.",
+      "en": "For 5 turns, a sandstorm rages. Rock: 1.5× SpD.",
       "fr": "Une tempête de sable blesse tous les Pokémon pendant cinq tours, sauf ceux de type Roche, Sol ou Acier. Augmente la Défense Spéciale des Pokémon Roche.",
       "es": "Tormenta de arena que dura cinco turnos y hiere a todos, excepto a los de tipo Roca, Tierra y Acero, y aumenta la Defensa Especial de los de tipo Roca."
     },
@@ -26457,7 +26457,7 @@
       "es": "El usuario lanza un ataque físico o especial en función de cuál inflija más daño. Puede envenenar al objetivo."
     },
     "longDescription": {
-      "en": "Has a 20% chance to poison the target. This move becomes a physical attack that makes contact if the value of ((((2 * the user's level / 5 + 2) * 90 * X) / Y) / 50), where X is the user's Attack stat and Y is the target's Defense stat, is greater than the same value where X is the user's Special Attack stat and Y is the target's Special Defense stat. No stat modifiers other than stat stage changes are considered for this purpose. If the two values are equal, this move chooses a damage category at random.",
+      "en": "Has a 20% chance to poison the target. This move becomes a physical attack that makes contact if the value of ((((2 × the user's level / 5 + 2) × 90 × X) / Y) / 50), where X is the user's Attack stat and Y is the target's Defense stat, is greater than the same value where X is the user's Special Attack stat and Y is the target's Special Defense stat. No stat modifiers other than stat stage changes are considered for this purpose. If the two values are equal, this move chooses a damage category at random.",
       "fr": "Une attaque physique ou spéciale, en fonction de ce qui est le plus efficace contre la cible. Peut aussi empoisonner.",
       "es": "El usuario lanza un ataque físico o especial en función de cuál inflija más daño. Puede envenenar al objetivo."
     },
@@ -27335,7 +27335,7 @@
     },
     "type": "normal",
     "category": "physical",
-    "power": 70,
+    "power": 80,
     "accuracy": 100,
     "pp": 20,
     "maxPp": 32,
@@ -28024,7 +28024,7 @@
     "priority": 0,
     "target": "all",
     "shortDescription": {
-      "en": "For 5 turns, snow falls. Ice: 1.5x Def.",
+      "en": "For 5 turns, snow falls. Ice: 1.5× Def.",
       "fr": "Le lanceur invoque une tempête de neige qui dure cinq tours, ce qui augmente la Défense des Pokémon de type Glace.",
       "es": null
     },
@@ -28141,7 +28141,7 @@
       "es": "El usuario absorbe luz en el primer turno y en el segundo lanza un potente rayo de energía."
     },
     "longDescription": {
-      "en": "This attack charges on the first turn and executes on the second. Power is halved if the weather is Primordial Sea, Rain Dance, Sandstorm, or Snow and the user is not holding Utility Umbrella. If the user is holding a Power Herb or the weather is Desolate Land or Sunny Day, the move completes in one turn. If the user is holding Utility Umbrella and the weather is Desolate Land or Sunny Day, the move still requires a turn to charge.",
+      "en": "This attack charges on the first turn and executes on the second. Power is halved if the weather is Heavy Rain, Rain, Sandstorm, or Snow and the user is not holding Utility Umbrella. If the user is holding a Power Herb or the weather is Intense Sun or Sun, the move completes in one turn. If the user is holding Utility Umbrella and the weather is Intense Sun or Sun, the move still requires a turn to charge.",
       "fr": "Absorbe la lumière au premier tour et envoie un rayon puissant au tour suivant.",
       "es": "El usuario absorbe luz en el primer turno y en el segundo lanza un potente rayo de energía."
     },
@@ -28182,7 +28182,7 @@
       "es": "El usuario dedica un turno a absorber energía lumínica y concentrarla en forma de cuchilla con la que ataca al rival en el siguiente turno."
     },
     "longDescription": {
-      "en": "This attack charges on the first turn and executes on the second. Power is halved if the weather is Hail, Primordial Sea, Rain Dance, or Sandstorm and the user is not holding Utility Umbrella. If the user is holding a Power Herb or the weather is Desolate Land or Sunny Day, the move completes in one turn. If the user is holding Utility Umbrella and the weather is Desolate Land or Sunny Day, the move still requires a turn to charge.",
+      "en": "This attack charges on the first turn and executes on the second. Power is halved if the weather is Heavy Rain, Rain, Sandstorm, or Snow and the user is not holding Utility Umbrella. If the user is holding a Power Herb or the weather is Intense Sun or Sun, the move completes in one turn. If the user is holding Utility Umbrella and the weather is Intense Sun or Sun, the move still requires a turn to charge.",
       "fr": "Le lanceur absorbe la lumière au premier tour et attaque au second tour en libérant cette énergie sous forme de lames.",
       "es": "El usuario dedica un turno a absorber energía lumínica y concentrarla en forma de cuchilla con la que ataca al rival en el siguiente turno."
     },
@@ -29049,7 +29049,7 @@
       "es": "Una trampa de rocas que flota en el aire y daña a los objetivos que entran en combate."
     },
     "longDescription": {
-      "en": "Sets up a hazard on the opposing side of the field, damaging each opposing Pokemon that switches in. Fails if the effect is already active on the opposing side. Foes lose 1/32, 1/16, 1/8, 1/4, or 1/2 of their maximum HP, rounded down, based on their weakness to the Rock type; 0.25x, 0.5x, neutral, 2x, or 4x, respectively. Can be removed from the opposing side if any Pokemon uses Tidy Up, or if any opposing Pokemon uses Mortal Spin, Rapid Spin, or Defog successfully, or is hit by Defog.",
+      "en": "Sets up a hazard on the opposing side of the field, damaging each opposing Pokemon that switches in. Fails if the effect is already active on the opposing side. Foes lose 1/32, 1/16, 1/8, 1/4, or 1/2 of their maximum HP, rounded down, based on their weakness to the Rock type; 0.25×, 0.5×, neutral, 2×, or 4×, respectively. Can be removed from the opposing side if any Pokemon uses Tidy Up, or if any opposing Pokemon uses Mortal Spin, Rapid Spin, or Defog successfully, or is hit by Defog.",
       "fr": "Lance des pierres flottantes autour de l’ennemi, qui blessent tout adversaire entrant au combat.",
       "es": "Una trampa de rocas que flota en el aire y daña a los objetivos que entran en combate."
     },
@@ -29459,7 +29459,7 @@
       "es": null
     },
     "longDescription": {
-      "en": "If this move is successful, it sets up a hazard on the opposing side of the field, damaging each opposing Pokemon that switches in. Foes lose 1/32, 1/16, 1/8, 1/4, or 1/2 of their maximum HP, rounded down, based on their weakness to the Rock type; 0.25x, 0.5x, neutral, 2x, or 4x, respectively. Can be removed from the opposing side if any Pokemon uses Tidy Up, or if any opposing Pokemon uses Mortal Spin, Rapid Spin, or Defog successfully, or is hit by Defog.",
+      "en": "If this move is successful, it sets up a hazard on the opposing side of the field, damaging each opposing Pokemon that switches in. Foes lose 1/32, 1/16, 1/8, 1/4, or 1/2 of their maximum HP, rounded down, based on their weakness to the Rock type; 0.25×, 0.5×, neutral, 2×, or 4×, respectively. Can be removed from the opposing side if any Pokemon uses Tidy Up, or if any opposing Pokemon uses Mortal Spin, Rapid Spin, or Defog successfully, or is hit by Defog.",
       "fr": "Le lanceur attaque le point faible de sa cible avec sa hache de pierre. Les débris de pierre se mettent alors à flotter autour de la cible.",
       "es": null
     },
@@ -29542,7 +29542,7 @@
       "es": "Acumula poder para golpear. Cuanto más suban las características del usuario, mayor será el daño."
     },
     "longDescription": {
-      "en": "Power is equal to 20+(X*20), where X is the user's total stat stage changes that are greater than 0.",
+      "en": "Power is equal to 20+(X × 20), where X is the user's total stat stage changes that are greater than 0.",
       "fr": "Le lanceur attaque l’ennemi avec une force accumulée. Plus les stats du lanceur sont augmentées, plus le coup est efficace.",
       "es": "Acumula poder para golpear. Cuanto más suban las características del usuario, mayor será el daño."
     },
@@ -29690,8 +29690,8 @@
     "category": "status",
     "power": null,
     "accuracy": 100,
-    "pp": 10,
-    "maxPp": 16,
+    "pp": 5,
+    "maxPp": 8,
     "priority": 0,
     "target": "normal",
     "shortDescription": {
@@ -29700,7 +29700,7 @@
       "es": "Restaura una cantidad de PS equivalente al valor de Ataque del rival, que además verá reducida esta característica."
     },
     "longDescription": {
-      "en": "Lowers the target's Attack by 1 stage. The user restores its HP equal to the target's Attack stat calculated with its stat stage before this move was used. If Big Root is held by the user, the HP recovered is 1.3x normal, rounded half down. Fails if the target's Attack stat stage is -6.",
+      "en": "Lowers the target's Attack by 1 stage. The user restores its HP equal to the target's Attack stat calculated with its stat stage before this move was used. If Big Root is held by the user, the HP recovered is 1.3× normal, rounded half down. Fails if the target's Attack stat stage is -6.",
       "fr": "Rend au lanceur une quantité de PV équivalente à la stat d’Attaque de la cible, puis baisse celle-ci.",
       "es": "Restaura una cantidad de PS equivalente al valor de Ataque del rival, que además verá reducida esta característica."
     },
@@ -30079,7 +30079,7 @@
       "es": "Hace que se intensifique el efecto del sol durante cinco turnos, lo que potencia los movimientos de tipo Fuego y debilita los de tipo Agua."
     },
     "longDescription": {
-      "en": "For 5 turns, the weather becomes Sunny Day. The damage of Fire-type attacks is multiplied by 1.5 and the damage of Water-type attacks is multiplied by 0.5 during the effect. Lasts for 8 turns if the user is holding Heat Rock. Fails if the current weather is Sunny Day.",
+      "en": "For 5 turns, the weather becomes Sun. The damage of Fire-type attacks is multiplied by 1.5 and the damage of Water-type attacks is multiplied by 0.5 during the effect. Lasts for 8 turns if the user is holding Heat Rock. Fails if the current weather is Sun.",
       "fr": "Fait briller le soleil pendant cinq tours, augmentant la puissance des capacités de type Feu et baissant celle des capacités de type Eau.",
       "es": "Hace que se intensifique el efecto del sol durante cinco turnos, lo que potencia los movimientos de tipo Fuego y debilita los de tipo Agua."
     },
@@ -30608,7 +30608,7 @@
       "es": "Intercambia con el objetivo los objetos que llevan tan rápido que es imposible verlo a simple vista."
     },
     "longDescription": {
-      "en": "The user swaps its held item with the target's held item. Fails if either the user or the target is holding a Mail or Z-Crystal, if neither is holding an item, if the user is trying to give or take a Mega Stone to or from the species that can Mega Evolve with it, or if the user is trying to give or take a Blue Orb, a Red Orb, a Griseous Orb, a Plate, a Drive, or a Memory to or from a Kyogre, a Groudon, a Giratina, an Arceus, a Genesect, or a Silvally, respectively. The target is immune to this move if it has the Sticky Hold Ability.",
+      "en": "The user swaps its held item with the target's held item. Fails if both the user and the target have no held item, or if the user is trying to give or take a Blue Orb, Red Orb, Adamant Crystal, Lustrous Globe, Griseous Core, Plate, Drive, Memory, Rusted Sword, Rusted Shield, Booster Energy, or Mask to or from a Kyogre, Groudon, Dialga, Palkia, Giratina, Arceus, Genesect, Silvally, Zacian, Zamazenta, Paradox Pokemon, or Ogerpon, respectively. In this case, Paradox Pokemon include every species with the Protosynthesis and Quark Drive Abilities, except Gouging Fire, Raging Bolt, Iron Boulder, and Iron Crown. The target is immune to this move if it has the Sticky Hold Ability.",
       "fr": "Le lanceur échange son objet avec celui de la cible à une vitesse que l’œil a du mal à suivre.",
       "es": "Intercambia con el objetivo los objetos que llevan tan rápido que es imposible verlo a simple vista."
     },
@@ -30731,7 +30731,7 @@
       "es": "Restaura PS del usuario. La cantidad varía según el tiempo que haga."
     },
     "longDescription": {
-      "en": "The user restores 1/2 of its maximum HP if Delta Stream or no weather conditions are in effect or if the user is holding Utility Umbrella, 2/3 of its maximum HP if the weather is Desolate Land or Sunny Day, and 1/4 of its maximum HP if the weather is Primordial Sea, Rain Dance, Sandstorm, or Snow, all rounded half down.",
+      "en": "The user restores 1/2 of its maximum HP if Strong Winds or no weather conditions are in effect or if the user is holding Utility Umbrella, 2/3 of its maximum HP if the weather is Intense Sun or Sun, and 1/4 of its maximum HP if the weather is Heavy Rain, Rain, Sandstorm, or Snow, all rounded half down.",
       "fr": "Un soin qui restaure des PV au lanceur. Son efficacité varie en fonction de la météo.",
       "es": "Restaura PS del usuario. La cantidad varía según el tiempo que haga."
     },
@@ -31629,7 +31629,7 @@
       "es": "El agresor ataca y le quita el objeto al objetivo siempre y cuando no lleve ninguno."
     },
     "longDescription": {
-      "en": "If this attack was successful and the user has not fainted, it steals the target's held item if the user is not holding one. The target's item is not stolen if it is a Mail or Z-Crystal, or if the target is a Kyogre holding a Blue Orb, a Groudon holding a Red Orb, a Giratina holding a Griseous Orb, an Arceus holding a Plate, a Genesect holding a Drive, a Silvally holding a Memory, or a Pokemon that can Mega Evolve holding the Mega Stone for its species. Items lost to this move cannot be regained with Recycle or the Harvest Ability.",
+      "en": "If this attack was successful and the user has not fainted, it steals the target's held item if the user is not holding one. A target with the Sticky Hold Ability does not lose its held item if it has not fainted. The target's item is not stolen if it is a Blue Orb, Red Orb, Adamant Crystal, Lustrous Globe, Griseous Core, Plate, Drive, Memory, Rusted Sword, Rusted Shield, Booster Energy, or Mask held by a Kyogre, Groudon, Dialga, Palkia, Giratina, Arceus, Genesect, Silvally, Zacian, Zamazenta, Paradox Pokemon, or Ogerpon, respectively, or if the user is one of those species and the target is holding the respective item. In this case, Paradox Pokemon include every species with the Protosynthesis and Quark Drive Abilities, except Gouging Fire, Raging Bolt, Iron Boulder, and Iron Crown. Items lost to this move cannot be regained with Recycle or the Harvest Ability.",
       "fr": "Le lanceur attaque la cible et vole son objet. Le lanceur ne peut rien voler s’il tient déjà un objet.",
       "es": "El agresor ataca y le quita el objeto al objetivo siempre y cuando no lleve ninguno."
     },
@@ -31835,7 +31835,7 @@
       "es": "Un poderoso rayo que daña al objetivo y puede paralizarlo."
     },
     "longDescription": {
-      "en": "Has a 30% chance to paralyze the target. This move can hit a target using Bounce, Fly, or Sky Drop, or is under the effect of Sky Drop. If the weather is Primordial Sea or Rain Dance, this move does not check accuracy. If the weather is Desolate Land or Sunny Day, this move's accuracy is 50%. If this move is used against a Pokemon holding Utility Umbrella, this move's accuracy remains at 70%.",
+      "en": "Has a 30% chance to paralyze the target. This move can hit a target using Bounce, Fly, or Sky Drop, or is under the effect of Sky Drop. If the weather is Heavy Rain or Rain, this move does not check accuracy. If the weather is Intense Sun or Sun, this move's accuracy is 50%. If this move is used against a Pokemon holding Utility Umbrella, this move's accuracy remains at 70%.",
       "fr": "La foudre tombe sur l’ennemi pour lui infliger des dégâts. Peut aussi le paralyser.",
       "es": "Un poderoso rayo que daña al objetivo y puede paralizarlo."
     },
@@ -32508,7 +32508,7 @@
     "priority": 0,
     "target": "normal",
     "shortDescription": {
-      "en": "Lowers the target's Speed by 2 and poisons it.",
+      "en": "Lowers the target's Speed by 1 and poisons it.",
       "fr": "Tisse un fil imprégné de venin. Empoisonne la cible et baisse sa Vitesse.",
       "es": "Ataca al oponente con hilillos venenosos que reducen su Velocidad y lo envenenan."
     },
@@ -32686,7 +32686,7 @@
       "es": "Engaña al objetivo desprevenido e intercambia objetos."
     },
     "longDescription": {
-      "en": "The user swaps its held item with the target's held item. Fails if either the user or the target is holding a Mail or Z-Crystal, if neither is holding an item, if the user is trying to give or take a Mega Stone to or from the species that can Mega Evolve with it, or if the user is trying to give or take a Blue Orb, a Red Orb, a Griseous Orb, a Plate, a Drive, or a Memory to or from a Kyogre, a Groudon, a Giratina, an Arceus, a Genesect, or a Silvally, respectively. The target is immune to this move if it has the Sticky Hold Ability.",
+      "en": "The user swaps its held item with the target's held item. Fails if both the user and the target have no held item, or if the user is trying to give or take a Blue Orb, Red Orb, Adamant Crystal, Lustrous Globe, Griseous Core, Plate, Drive, Memory, Rusted Sword, Rusted Shield, Booster Energy, or Mask to or from a Kyogre, Groudon, Dialga, Palkia, Giratina, Arceus, Genesect, Silvally, Zacian, Zamazenta, Paradox Pokemon, or Ogerpon, respectively. In this case, Paradox Pokemon include every species with the Protosynthesis and Quark Drive Abilities, except Gouging Fire, Raging Bolt, Iron Boulder, and Iron Crown. The target is immune to this move if it has the Sticky Hold Ability.",
       "fr": "Le lanceur prend la cible au dépourvu et l’oblige à échanger son objet contre le sien.",
       "es": "Engaña al objetivo desprevenido e intercambia objetos."
     },
@@ -33201,12 +33201,12 @@
     "priority": 3,
     "target": "normal",
     "shortDescription": {
-      "en": "100% flinch. Fails unless target using priority.",
+      "en": "100% flinch. Fails unless target using priority attack.",
       "fr": "Le lanceur réagit instinctivement au moindre mouvement et donne un coup de paume qui apeure la cible. Échoue si cette dernière n'a pas utilisé une attaque prioritaire.",
       "es": null
     },
     "longDescription": {
-      "en": "Has a 100% chance to make the target flinch. Fails if the target did not select a priority move for use this turn, or if the target moves before the user.",
+      "en": "Has a 100% chance to make the target flinch. Fails if the target did not select a physical or special attack for use this turn with altered priority greater than 0, or if the target moves before the user.",
       "fr": "Le lanceur réagit instinctivement au moindre mouvement et donne un coup de paume qui apeure la cible. Échoue si cette dernière n'a pas utilisé une attaque prioritaire.",
       "es": null
     },
@@ -33928,7 +33928,7 @@
       "es": "Chorro de agua. Cuantos menos PS tenga el usuario, menos dañino será."
     },
     "longDescription": {
-      "en": "Power is equal to (user's current HP * 150 / user's maximum HP), rounded down, but not less than 1.",
+      "en": "Power is equal to (user's current HP × 150 / user's maximum HP), rounded down, but not less than 1.",
       "fr": "Le lanceur attaque avec un jet d’eau. Moins il a de PV et moins l’attaque est puissante.",
       "es": "Chorro de agua. Cuantos menos PS tenga el usuario, menos dañino será."
     },
@@ -34049,7 +34049,7 @@
       "es": "El tipo y fuerza del ataque varían según el tiempo que haga."
     },
     "longDescription": {
-      "en": "Power doubles if a weather condition other than Delta Stream is active, and this move's type changes to match. Ice type during Snow, Water type during Primordial Sea or Rain Dance, Rock type during Sandstorm, and Fire type during Desolate Land or Sunny Day. If the user is holding Utility Umbrella and uses Weather Ball during Primordial Sea, Rain Dance, Desolate Land, or Sunny Day, this move remains Normal type and does not double in power.",
+      "en": "Power doubles if a weather condition other than Strong Winds is active, and this move's type changes to match. Ice type during Snow, Water type during Heavy Rain or Rain, Rock type during Sandstorm, and Fire type during Intense Sun or Sun. If the user is holding Utility Umbrella and uses Weather Ball during Heavy Rain, Rain, Intense Sun, or Sun, this move remains Normal type and does not double in power.",
       "fr": "Une attaque dont la puissance et le type varient en fonction du temps qu’il fait.",
       "es": "El tipo y fuerza del ataque varían según el tiempo que haga."
     },
@@ -34337,7 +34337,7 @@
       "es": null
     },
     "longDescription": {
-      "en": "Has a 20% chance to paralyze the target. If the weather is Primordial Sea or Rain Dance, this move does not check accuracy. If this move is used against a Pokemon holding Utility Umbrella, this move's accuracy remains at 80%.",
+      "en": "Has a 20% chance to paralyze the target. If the weather is Heavy Rain or Rain, this move does not check accuracy. If this move is used against a Pokemon holding Utility Umbrella, this move's accuracy remains at 80%.",
       "fr": "Le lanceur déclenche un violent typhon orageux dont les rafales et la foudre frappent la cible, ce qui peut aussi la paralyser.",
       "es": null
     },
@@ -34455,8 +34455,8 @@
     "category": "status",
     "power": null,
     "accuracy": null,
-    "pp": 10,
-    "maxPp": 16,
+    "pp": 5,
+    "maxPp": 8,
     "priority": 0,
     "target": "self",
     "shortDescription": {
@@ -34752,7 +34752,7 @@
       "es": "Este movimiento no se puede usar, por lo que sería mejor olvidarlo, aunque eso implique que no se pueda recordar posteriormente."
     },
     "longDescription": {
-      "en": "Power is equal to 120 * (target's current HP / target's maximum HP), rounded half down, but not less than 1.",
+      "en": "Power is equal to 120 × (target's current HP / target's maximum HP), rounded half down, but not less than 1.",
       "fr": "Cette capacité ne peut pas être utilisée. Il est recommandé de l’oublier, même s’il sera impossible de se la remémorer une fois oubliée.",
       "es": "Este movimiento no se puede usar, por lo que sería mejor olvidarlo, aunque eso implique que no se pueda recordar posteriormente."
     },

@@ -108,7 +108,12 @@ import {
  * appliqué une fois au mouvement (eau/sable/neige ×¾, marais ×½). Les cases atteignables changent,
  * donc deux builds n'acceptent plus les mêmes déplacements.
  */
-export const NETWORK_VERSION = 16;
+/**
+ * 16 → 17 (2026-10-04, plan 223) : données Pokémon Champions rafraîchies — Tranche passe de 70 à 80
+ * de puissance, Cœur Soin de 30 % à 50 %, et les attaques apprenables de six Pokemon changent. Deux
+ * builds ne calculent plus les mêmes dégâts ni n'acceptent les mêmes équipes.
+ */
+export const NETWORK_VERSION = 17;
 
 /**
  * Durée d'un tour en ligne — **déplacée dans `timings.ts`**, réexportée ici (plan 213).

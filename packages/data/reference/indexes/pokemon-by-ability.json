@@ -155,6 +155,7 @@
     "barbaracle",
     "barbaracle-mega",
     "lycanroc-dusk",
+    "golisopod-mega",
     "perrserker"
   ],
   "drought": [
@@ -283,7 +284,6 @@
     "burmy",
     "scraggy",
     "scrafty",
-    "scrafty-mega",
     "karrablast",
     "spewpa",
     "silicobra",
@@ -339,7 +339,6 @@
     "venipede",
     "whirlipede",
     "scolipede",
-    "scolipede-mega",
     "karrablast",
     "escavalier",
     "joltik",
@@ -370,7 +369,6 @@
     "drapion",
     "binacle",
     "barbaracle",
-    "barbaracle-mega",
     "sobble",
     "drizzile",
     "inteleon"
@@ -383,14 +381,12 @@
     "crawdaunt",
     "feebas",
     "lucario-mega",
-    "lucario-mega-z",
     "porygon-z",
     "basculin",
     "basculin-blue-striped",
     "basculin-white-striped",
     "skrelp",
     "dragalge",
-    "dragalge-mega",
     "yungoos",
     "gumshoos",
     "basculegion",
@@ -472,6 +468,7 @@
   ],
   "no-guard": [
     "pidgeot-mega",
+    "raichu-mega-y",
     "machop",
     "machoke",
     "machamp",
@@ -602,7 +599,6 @@
     "salamence",
     "staravia",
     "staraptor",
-    "staraptor-mega",
     "shinx",
     "luxio",
     "luxray",
@@ -648,7 +644,6 @@
     "haxorus",
     "litleo",
     "pyroar",
-    "pyroar-mega",
     "bewear",
     "rookidee",
     "corvisquire",
@@ -727,9 +722,12 @@
     "pincurchin"
   ],
   "surge-surfer": [
-    "raichu-alola",
+    "raichu-alola"
+  ],
+  "electric-surge": [
     "raichu-mega-x",
-    "raichu-mega-y"
+    "tapu-koko",
+    "pincurchin"
   ],
   "sand-veil": [
     "sandshrew",
@@ -817,10 +815,8 @@
     "venipede",
     "whirlipede",
     "scolipede",
-    "scolipede-mega",
     "skrelp",
     "dragalge",
-    "dragalge-mega",
     "overqwil",
     "clodsire"
   ],
@@ -842,8 +838,7 @@
     "fraxure",
     "haxorus",
     "litleo",
-    "pyroar",
-    "pyroar-mega"
+    "pyroar"
   ],
   "sheer-force": [
     "nidoqueen",
@@ -948,7 +943,6 @@
     "espeon",
     "sableye-mega",
     "absol-mega",
-    "absol-mega-z",
     "diancie-mega",
     "hatenna",
     "hattrem",
@@ -1111,7 +1105,6 @@
     "meowstic-f",
     "inkay",
     "malamar",
-    "malamar-mega",
     "noibat",
     "noivern",
     "dreepy",
@@ -1197,7 +1190,6 @@
     "shellos",
     "gastrodon",
     "garchomp-mega",
-    "garchomp-mega-z",
     "hippopotas",
     "hippowdon",
     "probopass",
@@ -1761,6 +1753,7 @@
     "mienfoo",
     "mienshao",
     "tornadus-therian",
+    "dragalge-mega",
     "mareanie",
     "toxapex",
     "gossifleur",
@@ -1788,6 +1781,7 @@
     "oshawott",
     "dewott",
     "samurott",
+    "scolipede-mega",
     "dwebble",
     "crustle",
     "escavalier",
@@ -1896,8 +1890,7 @@
     "arctovish",
     "frigibax",
     "arctibax",
-    "baxcalibur",
-    "baxcalibur-mega"
+    "baxcalibur"
   ],
   "sticky-hold": [
     "grimer",
@@ -1921,7 +1914,6 @@
     "seismitoad",
     "skrelp",
     "dragalge",
-    "dragalge-mega",
     "sneasler",
     "grafaiai"
   ],
@@ -1993,6 +1985,7 @@
     "chingling",
     "bronzor",
     "bronzong",
+    "garchomp-mega-z",
     "carnivine",
     "rotom",
     "rotom-heat",
@@ -2008,7 +2001,6 @@
     "tynamo",
     "eelektrik",
     "eelektross",
-    "eelektross-mega",
     "cryogonal",
     "hydreigon",
     "delphox-mega",
@@ -2167,8 +2159,7 @@
     "drapion",
     "type-null",
     "perrserker",
-    "falinks",
-    "falinks-mega"
+    "falinks"
   ],
   "reckless": [
     "hitmonlee",
@@ -2177,7 +2168,6 @@
     "starly",
     "staravia",
     "staraptor",
-    "staraptor-mega",
     "rhyperior",
     "emboar",
     "basculin",
@@ -2398,10 +2388,8 @@
     "krookodile",
     "scraggy",
     "scrafty",
-    "scrafty-mega",
     "litleo",
     "pyroar",
-    "pyroar-mega",
     "quaxly",
     "quaxwell",
     "quaquaval"
@@ -2583,7 +2571,6 @@
     "venipede",
     "whirlipede",
     "scolipede",
-    "scolipede-mega",
     "flittle",
     "espathra"
   ],
@@ -2651,6 +2638,7 @@
   "contrary": [
     "shuckle",
     "spinda",
+    "staraptor-mega",
     "snivy",
     "servine",
     "serperior",
@@ -2670,7 +2658,6 @@
     "weavile",
     "binacle",
     "barbaracle",
-    "barbaracle-mega",
     "impidimp",
     "morgrem",
     "grimmsnarl",
@@ -2705,8 +2692,7 @@
     "lileep",
     "cradily",
     "inkay",
-    "malamar",
-    "malamar-mega"
+    "malamar"
   ],
   "stalwart": [
     "skarmory-mega",
@@ -2851,6 +2837,13 @@
     "floragato",
     "meowscarada"
   ],
+  "sharpness": [
+    "absol-mega-z",
+    "gallade",
+    "samurott-hisui",
+    "kleavor",
+    "veluza"
+  ],
   "refrigerate": [
     "glalie-mega",
     "amaura",
@@ -2899,17 +2892,14 @@
     "sinistcha",
     "sinistcha-masterpiece"
   ],
+  "aura-guard": [
+    "lucario-mega-z"
+  ],
   "motor-drive": [
     "electivire",
     "blitzle",
     "zebstrika",
     "emolga"
-  ],
-  "sharpness": [
-    "gallade",
-    "samurott-hisui",
-    "kleavor",
-    "veluza"
   ],
   "slow-start": [
     "regigigas",
@@ -2977,6 +2967,9 @@
     "ferrothorn",
     "togedemaru"
   ],
+  "eelevate": [
+    "eelektross-mega"
+  ],
   "mimicry": [
     "stunfisk-galar"
   ],
@@ -3031,6 +3024,9 @@
     "fletchling",
     "fletchinder",
     "talonflame"
+  ],
+  "fire-mane": [
+    "pyroar-mega"
   ],
   "flower-veil": [
     "flabe-be",
@@ -3172,8 +3168,7 @@
     "wimpod"
   ],
   "emergency-exit": [
-    "golisopod",
-    "golisopod-mega"
+    "golisopod"
   ],
   "water-compaction": [
     "sandygast",
@@ -3215,10 +3210,6 @@
   ],
   "steelworker": [
     "dhelmise"
-  ],
-  "electric-surge": [
-    "tapu-koko",
-    "pincurchin"
   ],
   "psychic-surge": [
     "tapu-lele",

@@ -2034,7 +2034,8 @@ const moldBreaker: AbilityHandler = {
 // ===== Plan 141 — Talents soutien & couplage objet =====
 
 const HEALER_RADIUS = 2;
-const HEALER_CURE_CHANCE = 0.3;
+// Champions value (plan 223) — the radius stays our grid adaptation of "adjacent".
+const HEALER_CURE_CHANCE = 0.5;
 
 // Gloutonnerie (gluttony): pinch berries trigger at 50% HP instead of 25%. Handled in the
 // `pinchStatBerry` item factory via `pokemon.abilityId`; the data entry only registers the id.
@@ -2054,7 +2055,7 @@ const damp: AbilityHandler = {
   id: "damp",
 };
 
-// Cœur Soin (healer): each end of turn, 30% chance (independent per ally) to cure the major
+// Cœur Soin (healer): each end of turn, 50% chance (independent per ally) to cure the major
 // statuses of each living ally within Manhattan r2. Volatile statuses are never cured.
 const healer: AbilityHandler = {
   id: "healer",

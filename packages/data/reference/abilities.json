@@ -2240,14 +2240,14 @@
       "es": "Alma Cura"
     },
     "shortDescription": {
-      "en": "50% chance this Pokemon's ally has its status cured at the end of each turn.",
-      "fr": "Soigne parfois une altération de statut d’un allié proche.",
-      "es": "A veces cura los problemas de estado de un aliado."
+      "en": "At the end of each turn, 50% chance to cure the major status of each ally within 2 tiles.",
+      "fr": "En fin de tour, 50 % de chances de soigner le statut majeur de chaque allié à 2 cases ou moins.",
+      "es": "Al final de cada turno, 50 % de probabilidad de curar el problema de estado de cada aliado a 2 casillas o menos."
     },
     "longDescription": {
-      "en": "50% chance this Pokemon's ally has its non-volatile status condition cured at the end of each turn.",
-      "fr": "Soigne parfois une altération de statut d’un allié proche.",
-      "es": "A veces cura los problemas de estado de un aliado."
+      "en": "At the end of each turn, 50% chance to cure the major status of each ally within 2 tiles.",
+      "fr": "En fin de tour, 50 % de chances de soigner le statut majeur de chaque allié à 2 cases ou moins.",
+      "es": "Al final de cada turno, 50 % de probabilidad de curar el problema de estado de cada aliado a 2 casillas o menos."
     },
     "flags": {
       "breakable": false,
@@ -6992,7 +6992,7 @@
       "es": "Puño Invisible"
     },
     "shortDescription": {
-      "en": "This Pokemon's contact moves ignore a target's protection and deal 1/4 the usual damage.",
+      "en": "Contact moves can strike through Protect/Detect.",
       "fr": "Si le Pokémon utilise une attaque directe, celle-ci\\npourra toucher la cible même si elle se protège.",
       "es": "Si usa un movimiento de contacto, puede infligir daño al objetivo aunque este se proteja."
     },
