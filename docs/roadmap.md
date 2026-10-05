@@ -7,19 +7,22 @@
 
 ## Où on en est
 
-**Phase 7 — Multijoueur sortie le 2026-09-16 en `v2026.9.1`.** Jeu en ligne P2P, 2 à 12 joueurs, sans
-compte. → graphe : `release-v2026.9.1`, `plan-195`.
+**Dernière release : `v2026.10.2` (2026-10-05)** — infobulles des talents, objets et effets ; équipe
+modifiable sans quitter l'écran de sélection. Avant elle, `v2026.10.1` (espagnol, langue changeable en
+combat) et la série `v2026.9.x` (multijoueur P2P 2 à 12 joueurs sans compte, niveaux de l'IA, relais
+NAT). Détail dans « Ce qui est fait » ; → graphe : `release-v2026.10.2`.
 
-14 jours de production (plan 212) : **36 visites · 22 parties commencées · 5 terminées (77 %
+14 jours de production (plan 212, mi-septembre) : **36 visites · 22 parties commencées · 5 terminées (77 %
 d'abandon) · 21 parties sur 22 contre l'IA · 36 % de tactile**.
 
 🔴 **Le chiffre qui oriente ce document : 21 sur 22 contre l'IA.** Le jeu réellement joué est un jeu
 **solo**. Ce qui sert le solo sert presque toutes les sessions ; ce qui est adjacent au réseau en sert
 une poignée.
 
-`battle_abandoned` est en production depuis le 2026-09-16 (tour, durée, porte de sortie, camp, PV).
-Il dira sous peu **pourquoi** on abandonne — plusieurs items de « Comprendre & rythme » attendent
-cette lecture plutôt qu'un pari.
+**Abandons lus le 2026-10-04 (plan 224, 19 jours)** : départ médian **au tour 1, après 30 s**, et
+30 départs avant tout dégât. On part tôt, pas pour l'équilibrage. L'appareil du joueur est relevé
+depuis la `v2026.10.2` : le tableau « abandons rapides par appareil » dira si c'est le mobile.
+→ graphe : `resultat-2026-10-04-lecture-abandons`, `decision-1117`.
 
 ## Comment lire
 
