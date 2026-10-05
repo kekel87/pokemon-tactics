@@ -13,6 +13,8 @@ export interface TeamPickerOptions {
   assignedTeamIdsBySlot: readonly (string | null)[];
   /** `null` = la ligne « Aléatoire ». */
   onPick: (teamId: string | null) => void;
+  /** « Nouvelle équipe » : la modale est déjà fermée quand il est appelé (plan 228). */
+  onCreateTeam: () => void;
 }
 
 /**
@@ -63,7 +65,20 @@ export function openTeamPickerModal(options: TeamPickerOptions): void {
       },
     },
   );
-  modal.getBody().appendChild(list);
+  /*
+   * Créer une équipe sans quitter l'écran (plan 228). En TÊTE, avant la liste : c'est la seule porte
+   * quand aucune équipe n'est sauvegardée, là où le message vide renvoyait à « Mes équipes ».
+   */
+  const createButton = document.createElement("button");
+  createButton.type = "button";
+  createButton.className = "tb-btn ts-team-picker-create";
+  createButton.dataset.testid = "team-picker-create";
+  createButton.textContent = t("teamBuilder.newTeam");
+  createButton.addEventListener("click", () => {
+    modal.close();
+    options.onCreateTeam();
+  });
+  modal.getBody().append(createButton, list);
 
   // Une manette n'a pas de `Tab` : sans point de départ posé ici, la première pression de direction
   // ne servirait qu'à entrer dans la liste (même motif que `bindScreenInput`, plan 184).

@@ -1,5 +1,6 @@
 import { Nature, type TeamSet, type TeamSlot } from "@pokemon-tactic/core";
-import { Language } from "../i18n";
+import { countAction, TelemetryAction } from "../analytics/telemetry";
+import { Language, t } from "../i18n";
 import { saveTeam } from "./team-storage";
 
 export function generateTeamId(): string {
@@ -18,6 +19,18 @@ export function createEmptyTeam(name: string): TeamSet {
     createdAt: now,
     updatedAt: now,
   };
+}
+
+/**
+ * Une équipe vide, déjà sauvegardée, prête à ouvrir dans l'éditeur. Deux portes y mènent : « Mes
+ * équipes » et le sélecteur d'équipe d'un camp (plan 228).
+ */
+export function createSavedEmptyTeam(): TeamSet {
+  // Le Team Builder est-il utilisé, ou joue-t-on avec les équipes par défaut ? (plan 196)
+  countAction(TelemetryAction.TeamSave);
+  const team = createEmptyTeam(t("teamBuilder.untitledTeam"));
+  saveTeam(team);
+  return team;
 }
 
 export function touchTeam(team: TeamSet): TeamSet {

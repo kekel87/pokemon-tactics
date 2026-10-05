@@ -61,10 +61,52 @@ function topmostOpenDialog(): HTMLDialogElement | null {
   return [...document.querySelectorAll<HTMLDialogElement>("dialog[open]")].at(-1) ?? null;
 }
 
-/** Centre d'un élément, en coordonnées de viewport. */
-function centreOf(element: HTMLElement): { x: number; y: number } {
-  const box = element.getBoundingClientRect();
-  return { x: box.left + box.width / 2, y: box.top + box.height / 2 };
+/** La géométrie dont la navigation spatiale a besoin — un `DOMRect` en est un. */
+export interface NavigationBox {
+  readonly left: number;
+  readonly right: number;
+  readonly top: number;
+  readonly bottom: number;
+}
+
+/** L'écart entre le bord de départ et le bord d'arrivée, par direction. */
+const EDGE_GAP = {
+  up: (from, to) => from.top - to.bottom,
+  down: (from, to) => to.top - from.bottom,
+  left: (from, to) => from.left - to.right,
+  right: (from, to) => to.left - from.right,
+} as const satisfies Record<ScreenDirection, (from: NavigationBox, to: NavigationBox) => number>;
+
+/**
+ * Le coût d'aller de `from` à `to` dans une direction, ou `null` si `to` n'est pas de ce côté.
+ *
+ * Le CÔTÉ se juge sur les centres : un candidat dont le centre n'est pas strictement dans la
+ * direction pressée n'en est pas un. La DISTANCE, elle, se mesure d'un BORD à l'autre, et non plus de
+ * centre à centre (plan 228) : entre centres, un contrôle large voyait son voisin collé à droite plus
+ * loin qu'un bouton de la rangée du dessus dont le centre tombait juste à côté du sien. Sur la carte
+ * de camp, → depuis l'équipe remontait sur « Facile » au lieu d'atteindre l'icône ✏️ qui la touche,
+ * et ← depuis l'icône partait sur « Moyenne ». Bord à bord, le voisin collé est à distance nulle.
+ */
+export function directionalScore(
+  from: NavigationBox,
+  to: NavigationBox,
+  direction: ScreenDirection,
+): number | null {
+  const vertical = direction === "up" || direction === "down";
+  const forward = direction === "down" || direction === "right";
+  const centre = (box: NavigationBox) =>
+    vertical ? (box.top + box.bottom) / 2 : (box.left + box.right) / 2;
+  const crossCentre = (box: NavigationBox) =>
+    vertical ? (box.left + box.right) / 2 : (box.top + box.bottom) / 2;
+  const centreGap = centre(to) - centre(from);
+  if (forward ? centreGap <= 0 : centreGap >= 0) {
+    return null;
+  }
+  const edgeGap = EDGE_GAP[direction](from, to);
+  // Deux contrôles qui se chevauchent sur l'axe sont au contact : pas de distance négative.
+  const along = Math.max(0, edgeGap);
+  const cross = Math.abs(crossCentre(to) - crossCentre(from));
+  return along + cross * CROSS_AXIS_PENALTY;
 }
 
 /**
@@ -96,24 +138,15 @@ export function focusInDirection(direction: ScreenDirection): void {
     return;
   }
 
-  const from = centreOf(current);
-  const vertical = direction === "up" || direction === "down";
-  const forward = direction === "down" || direction === "right";
+  const fromBox = current.getBoundingClientRect();
   let best: HTMLElement | null = null;
   let bestScore = Number.POSITIVE_INFINITY;
   for (const candidate of controls) {
     if (candidate === current) {
       continue;
     }
-    const to = centreOf(candidate);
-    const along = vertical ? to.y - from.y : to.x - from.x;
-    const cross = vertical ? to.x - from.x : to.y - from.y;
-    // Strictement dans la direction pressée, sinon ce n'est pas un candidat.
-    if (forward ? along <= 0 : along >= 0) {
-      continue;
-    }
-    const score = Math.abs(along) + Math.abs(cross) * CROSS_AXIS_PENALTY;
-    if (score < bestScore) {
+    const score = directionalScore(fromBox, candidate.getBoundingClientRect(), direction);
+    if (score !== null && score < bestScore) {
       bestScore = score;
       best = candidate;
     }

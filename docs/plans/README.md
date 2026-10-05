@@ -59,3 +59,4 @@ Les seuls sur lesquels on travaille.
 | 225 | [Plan 225 — Infobulles talents, objets et effets, et le bouton Inspecter](./225-infobulles-et-bouton-inspecter.md) | done |
 | 226 | [Plan 226 — Évoluroc selon la règle officielle, et les textes officiels d'abord](./226-evoluroc-et-textes-officiels.md) | done |
 | 227 | [Plan 227 — Dépilage du backlog d'octobre](./227-depilage-backlog-octobre.md) | done |
+| 228 | [Plan 228 — Modifier son équipe sans quitter l'écran de sélection](./228-editer-equipe-sans-quitter-selection.md) | done |

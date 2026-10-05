@@ -20,6 +20,26 @@
     }
   }
 
+  /* Grande fenêtre qui héberge un écran entier (plan 228). Retour de recette : en plein écran, on
+     croyait avoir quitté la sélection — la fenêtre laisse voir, sous le voile, l'écran qui reste
+     ouvert dessous.
+
+     L'écran hébergé est une `.scr-root`, faite pour s'ancrer au VIEWPORT (`position: fixed;
+     inset: 0`). Ici elle s'ancre à la fenêtre : le `<dialog>` modal est lui-même positionné, donc
+     `absolute` le prend pour bloc conteneur. */
+  .tb-dialog[data-size="screen"] {
+    width: 95vw;
+    height: 95dvh;
+    position: fixed;
+    /* Le `<dialog>` prend lui-même le focus à l'ouverture quand rien d'autre n'est focalisé (souris,
+       doigt) : un anneau autour de toute la fenêtre ne désignerait aucun contrôle. */
+    outline: none;
+
+    .scr-root {
+      position: absolute;
+    }
+  }
+
   /* picker size: body en flex pour que la liste prenne le reste */
   .tb-dialog[data-size="picker"] .tb-modal-body {
     display: flex;

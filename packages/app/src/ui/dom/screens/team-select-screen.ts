@@ -18,6 +18,7 @@ import {
   type RoomView,
   type StartMessage,
 } from "@pokemon-tactic/network";
+import { Modal } from "@pokemon-tactic/ui-dom";
 import { buildOnlineTelemetryTeams, buildTelemetryTeams } from "../../../analytics/team-telemetry";
 import {
   countAction,
@@ -31,6 +32,8 @@ import type { Navigate, Screen } from "../../../app/screen-manager";
 import type { NetworkIntent } from "../../../app/screens";
 import { getLanguage, t } from "../../../i18n";
 import type { TranslationKey } from "../../../i18n/types";
+import { focusableControls } from "../../../input/focus-navigation";
+import { getInputSystem } from "../../../input/input-system";
 import { loadTiledMap } from "../../../maps/load-tiled-map";
 import { isRandomMapId, RANDOM_MAP_ID, resolveMapId } from "../../../maps/map-choice";
 import { mapIdFromUrl, mapUrlFromId } from "../../../maps/map-identity";
@@ -44,7 +47,9 @@ import {
 } from "../../../network/online-room";
 import { getSettings, updateSettings } from "../../../settings";
 import { generateRandomTeamSlots } from "../../../team/team-generator";
+import { createSavedEmptyTeam } from "../../../team/team-helpers";
 import { openMapPickerModal } from "../../map-select/MapPickerModal";
+import { TeamEditView } from "../../team/TeamEditView";
 import {
   buildFormatKey,
   createFormatPickerElement,
@@ -141,6 +146,11 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
    * fuité répondrait `isReady() === true` au hook e2e — le bug même que `e2e-debug-hook.ts` documente.
    */
   let closeMapPicker: (() => void) | null = null;
+  /**
+   * L'éditeur d'équipe ouvert par-dessus l'écran (plan 228). Même raison d'être que
+   * `closeMapPicker` : un `start` distant peut démonter l'écran pendant qu'il est ouvert.
+   */
+  let teamEditor: Modal | null = null;
   /** Le jeton anti-course des chargements de carte — voir `loadMapChoice`. */
   let mapLoadToken = 0;
   /** Les désabonnements du salon, soldés au démontage — le salon, lui, survit à cet écran. */
@@ -205,9 +215,14 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
    * 🔴 `ephemeral` avec `assignedTeam === null` n'est PAS un camp incomplet : c'est « Aléatoire, pas
    * encore tiré ». Sans cette lecture, différer le tirage aurait rendu toute partie aléatoire
    * impossible à lancer.
+   *
+   * 🔴 Une équipe sauvegardée VIDE ne compte pas (recette du plan 228) : l'éditeur ouvert depuis cet
+   * écran permet de tout retirer, et « Lancer » partait alors en combat avec un camp sans Pokémon.
    */
   const isLaunchable = (): boolean =>
-    slots.every((slot) => slot.assignedTeam !== null || slot.ephemeral);
+    slots.every((slot) =>
+      slot.assignedTeam === null ? slot.ephemeral : slot.assignedTeam.slots.length > 0,
+    );
 
   const onLaunch = (): void => {
     if (!isLaunchable()) {
@@ -749,17 +764,98 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
       playerLabel: playerLabel(slotIndex),
       assignedTeamIdsBySlot: slots.map((slot) => slot.assignedTeamId),
       onPick: (teamId) => assignTeam(slotIndex, teamId),
+      onCreateTeam: () => createTeamForSlot(slotIndex),
     });
   };
 
-  const assignTeam = (slotIndex: number, teamId: string | null): void => {
-    const slot = slots[slotIndex];
-    if (!slot || !assignTeamToSlot(slot, slotIndex, teamId, humanIndex())) {
+  const createTeamForSlot = (slotIndex: number): void => {
+    const team = createSavedEmptyTeam();
+    if (applyTeam(slotIndex, team.id)) {
+      openTeamEditor(slotIndex, team.id);
+    }
+  };
+
+  /**
+   * L'éditeur d'équipe, par-dessus l'écran au lieu d'une navigation (plan 228) : naviguer vers
+   * `team-edit` démonterait cet écran, et avec lui le format, les camps et les réglages en cours.
+   *
+   * Une `Modal` en grande fenêtre, donc un `<dialog>` sur `document.body` et non un enfant de `root` (que
+   * `render()` vide à chaque message du salon). Tout l'existant la vise déjà, sans inscription
+   * d'entrée de plus : `focusInDirection` reste dans le `<dialog>` du dessus, B le ferme
+   * (`closeOpenModal`), Échap aussi. Les sélecteurs de l'éditeur, eux-mêmes des modales, s'empilent
+   * au-dessus et se ferment en premier.
+   */
+  const openTeamEditor = (slotIndex: number, teamId: string): void => {
+    if (teamEditor !== null) {
       return;
     }
+    const editor = new Modal({
+      title: t("teamBuilder.editTitle"),
+      size: "screen",
+      closeOnBackdrop: false,
+      onClose: () => {
+        // 🔴 `destroy()` AVANT toute relecture : l'éditeur diffère ses sauvegardes de 300 ms, et
+        // c'est `destroy()` qui vide ce différé. Relire avant perdrait la dernière modification.
+        view.destroy();
+        // Fermé par `dispose()` : l'écran s'en va, il n'y a rien à rafraîchir.
+        if (teamEditor !== editor) {
+          return;
+        }
+        teamEditor = null;
+        refreshEditedTeam(slotIndex, teamId);
+      },
+    });
+    const view = new TeamEditView({ teamId, onBack: () => editor.close() });
+    editor.getBody().append(view.element);
+    teamEditor = editor;
+    // Le contenu arrive après `showModal()`, qui n'a donc rien trouvé à focaliser : une manette n'a
+    // pas de `Tab`, il lui faut un point de départ (même motif que le sélecteur d'équipe).
+    if (getInputSystem()?.tracker.isFocusDriven() === true) {
+      focusableControls()[0]?.focus();
+    }
+  };
+
+  /**
+   * Reprend l'équipe telle que l'éditeur l'a laissée : la carte de camp en garde une COPIE, et c'est
+   * elle que l'annonce au salon transmet — sans ce passage, le combat partirait avec l'ancienne.
+   *
+   * TOUS les camps qui jouent cette équipe sont repris, pas seulement celui d'où l'éditeur est parti :
+   * deux camps peuvent tenir la même équipe sauvegardée (les badges du sélecteur le montrent), et
+   * chacun en garde sa propre copie — l'autre partirait sinon en combat avec l'ancienne version.
+   * Un camp qui a changé de mains pendant l'édition (passé en IA par l'hôte, autre équipe choisie)
+   * n'est pas touché : l'équipe éditée n'est plus la sienne.
+   */
+  const refreshEditedTeam = (slotIndex: number, teamId: string): void => {
+    for (const [index, slot] of slots.entries()) {
+      if (slot.assignedTeamId === teamId && canEditSlot(index)) {
+        applyTeam(index, teamId);
+      }
+    }
+    focusSlotControl("player-team-edit-button", slotIndex);
+  };
+
+  /** Assigne, annonce au salon, re-rend — le tronc commun de tout changement d'équipe d'un camp. */
+  const applyTeam = (slotIndex: number, teamId: string | null): boolean => {
+    const slot = slots[slotIndex];
+    if (!slot || !assignTeamToSlot(slot, slotIndex, teamId, humanIndex())) {
+      return false;
+    }
     announceSelection(slotIndex, slot);
+    /*
+     * « Prêt » ne survit pas à une équipe devenue injouable (vidée dans l'éditeur, ou une équipe vide
+     * choisie). Sans ça, l'hôte voyait la place prête et pouvait lancer avec une sélection vide.
+     */
+    if (room !== null && isSelfReady() && !isLaunchable()) {
+      room.setReady(false);
+    }
     render();
-    focusNextUnassigned(slotIndex);
+    return true;
+  };
+
+  const assignTeam = (slotIndex: number, teamId: string | null): void => {
+    if (applyTeam(slotIndex, teamId)) {
+      focusNextUnassigned(slotIndex);
+    }
   };
 
   /**
@@ -814,11 +910,15 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
       // parfaitement réglé au lieu de rester là où le joueur a encore quelque chose à choisir.
       (slot, index) => index > fromSlotIndex && slot.assignedTeam === null && !slot.ephemeral,
     );
-    const targetIndex = nextIndex === -1 ? fromSlotIndex : nextIndex;
+    focusSlotControl("player-team-button", nextIndex === -1 ? fromSlotIndex : nextIndex);
+  };
+
+  const focusSlotControl = (
+    testid: "player-team-button" | "player-team-edit-button",
+    slotIndex: number,
+  ): void => {
     root
-      ?.querySelector<HTMLElement>(
-        `[data-testid="player-team-button"][data-slot-index="${targetIndex}"]`,
-      )
+      ?.querySelector<HTMLElement>(`[data-testid="${testid}"][data-slot-index="${slotIndex}"]`)
       ?.focus();
   };
 
@@ -993,6 +1093,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
           controllerAiMedium: t("teamSelect.controller.aiMedium"),
           controllerAiHard: t("teamSelect.controller.aiHard"),
           chooseTeam: t("teamSelect.players.choose"),
+          editTeam: t("teamSelect.players.edit"),
           randomTeam: t("teamSelect.teams.random"),
           controllerRemote: t("room.remotePlayer"),
           controllerHost: t("room.hostPlayer"),
@@ -1047,6 +1148,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
       },
       callbacks: {
         onChooseTeam: () => chooseTeam(slotIndex),
+        onEditTeam: (teamId) => openTeamEditor(slotIndex, teamId),
         onSetController: (controller, aiDifficulty) =>
           setController(slotIndex, controller, aiDifficulty),
       },
@@ -1169,7 +1271,8 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     button.dataset.variant = "ghost";
     button.dataset.testid = "room-ready";
     button.textContent = isSelfReady() ? t("room.notReady") : t("room.ready");
-    button.disabled = !isLaunchable();
+    // « Pas prêt » reste toujours cliquable : on ne doit jamais rester coincé en « Prêt ».
+    button.disabled = !isSelfReady() && !isLaunchable();
     button.addEventListener("click", onToggleReady);
     return button;
   };
@@ -1275,6 +1378,11 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
       // La modale de carte ne vit pas dans l'arbre de cet écran : `root.remove()` ne la ferme pas.
       closeMapPicker?.();
       closeMapPicker = null;
+      // Même raison que la modale de carte. Annulé AVANT de fermer, pour que la fermeture vide la
+      // sauvegarde différée de l'éditeur sans rafraîchir un écran qui s'en va.
+      const editor = teamEditor;
+      teamEditor = null;
+      editor?.close();
       /*
        * 🔴 **Le salon N'EST PAS fermé ici** : il appartient à la session (`online-room.ts`), pas à
        * cet écran, et il doit survivre à l'entrée en combat pour que l'accusé de lancement ait le

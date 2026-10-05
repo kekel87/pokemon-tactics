@@ -229,6 +229,26 @@
     color: inherit;
   }
 
+  /* L'icône ✏️ à droite de l'équipe, de la hauteur du bouton d'équipe (retour de recette du
+     plan 228 : un « Modifier » pleine largeur sous l'équipe était trop gros). */
+  .ts-player-cell-team-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--spacing-xs);
+  }
+
+  .ts-player-cell-team-edit {
+    aspect-ratio: 1;
+    height: 100%;
+    max-height: 3rem;
+    align-self: center;
+  }
+
+  .ts-team-picker-create {
+    width: 100%;
+    margin-block-end: var(--spacing-sm);
+  }
+
   /*
    * La liste d'équipes vit dans un `<dialog>` depuis le plan 188 (#832), donc sur `document.body` —
    * HORS de `.ts-root`. Ses métriques compactes sont déclarées ICI et non sur `.ts-root` pour cette

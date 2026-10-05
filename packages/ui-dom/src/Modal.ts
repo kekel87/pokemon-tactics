@@ -26,8 +26,15 @@ export function closeModalDialog(dialog: HTMLDialogElement): void {
 }
 
 export interface ModalOptions {
+  /** Titre affiché en en-tête — ou, en `screen`, simple nom accessible du dialogue. */
   title: string;
-  size?: "default" | "picker";
+  /**
+   * `screen` : grande fenêtre qui héberge un écran entier (plan 228, l'éditeur d'équipe ouvert
+   * depuis la sélection), l'écran d'en dessous restant visible sous le voile. Pas d'en-tête ni de
+   * croix — l'écran hébergé apporte sa propre barre et son retour —, mais le même cycle de vie que
+   * toute modale : Échap repris en main, démontage synchrone.
+   */
+  size?: "default" | "picker" | "screen";
   onClose?: () => void;
   closeOnBackdrop?: boolean;
   /** Localised aria-label for the close button (host-injected, plan 125 Phase 4). Defaults to "Close". */
@@ -37,7 +44,7 @@ export interface ModalOptions {
 export class Modal {
   private readonly dialog: HTMLDialogElement;
   private readonly body: HTMLDivElement;
-  private readonly titleEl: HTMLHeadingElement;
+  private readonly titleElement: HTMLHeadingElement | null;
   private readonly previousFocus: HTMLElement | null;
   private readonly onClose: (() => void) | undefined;
   /** Le démontage n'a lieu QU'UNE FOIS, quel que soit le chemin qui referme la modale. */
@@ -53,20 +60,12 @@ export class Modal {
       this.dialog.dataset.size = options.size;
     }
 
-    const header = document.createElement("div");
-    header.className = "tb-modal-header";
-    this.titleEl = document.createElement("h2");
-    this.titleEl.className = "tb-modal-title";
-    this.titleEl.textContent = options.title;
-    header.appendChild(this.titleEl);
-    const closeBtn = document.createElement("button");
-    closeBtn.className = "tb-modal-close";
-    closeBtn.type = "button";
-    closeBtn.textContent = "×";
-    closeBtn.setAttribute("aria-label", options.closeAriaLabel ?? "Close");
-    closeBtn.addEventListener("click", () => this.close());
-    header.appendChild(closeBtn);
-    this.dialog.appendChild(header);
+    if (options.size === "screen") {
+      this.titleElement = null;
+      this.dialog.setAttribute("aria-label", options.title);
+    } else {
+      this.titleElement = this.buildHeader(options);
+    }
 
     this.body = document.createElement("div");
     this.body.className = "tb-modal-body";
@@ -105,11 +104,33 @@ export class Modal {
   }
 
   setTitle(title: string): void {
-    this.titleEl.textContent = title;
+    if (this.titleElement === null) {
+      this.dialog.setAttribute("aria-label", title);
+      return;
+    }
+    this.titleElement.textContent = title;
   }
 
   getBody(): HTMLDivElement {
     return this.body;
+  }
+
+  private buildHeader(options: ModalOptions): HTMLHeadingElement {
+    const header = document.createElement("div");
+    header.className = "tb-modal-header";
+    const titleElement = document.createElement("h2");
+    titleElement.className = "tb-modal-title";
+    titleElement.textContent = options.title;
+    header.appendChild(titleElement);
+    const closeButton = document.createElement("button");
+    closeButton.className = "tb-modal-close";
+    closeButton.type = "button";
+    closeButton.textContent = "×";
+    closeButton.setAttribute("aria-label", options.closeAriaLabel ?? "Close");
+    closeButton.addEventListener("click", () => this.close());
+    header.appendChild(closeButton);
+    this.dialog.appendChild(header);
+    return titleElement;
   }
 
   /** Referme la modale, et la démonte avant de rendre la main — voir {@link teardown}. */

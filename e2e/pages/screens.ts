@@ -135,6 +135,14 @@ export class TeamSelectScreen {
   readonly goOnlineConfirmButton: Locator;
   /** « Rester en solo » — le geste par défaut, celui qui ne coûte rien. */
   readonly goOnlineCancel: Locator;
+  /** « + Nouvelle équipe » en tête du sélecteur d'équipe d'un camp (plan 228). */
+  readonly pickerCreateTeam: Locator;
+  /**
+   * L'éditeur d'équipe ouvert PAR-DESSUS l'écran (plan 228) : une modale `screen`, sans en-tête,
+   * dont le titre n'est plus que le nom accessible. 🔴 Tout ce qu'on y vise passe par ce locator :
+   * l'écran d'en dessous porte lui aussi un `screen-back`, donc un `getByTestId` nu serait ambigu.
+   */
+  readonly teamEditor: Locator;
   constructor(private readonly page: Page) {
     this.title = page.getByText("Sélection d'équipe", { exact: false });
     this.formatSegments = page.getByTestId("format-segments");
@@ -151,6 +159,8 @@ export class TeamSelectScreen {
     this.goOnlineConfirm = page.getByTestId("go-online-confirm");
     this.goOnlineConfirmButton = page.getByTestId("go-online-confirm-button");
     this.goOnlineCancel = page.getByTestId("go-online-cancel");
+    this.pickerCreateTeam = page.getByRole("dialog").getByTestId("team-picker-create");
+    this.teamEditor = page.getByRole("dialog", { name: "Constructeur d'équipe" });
   }
 
   /**
@@ -162,6 +172,16 @@ export class TeamSelectScreen {
     return this.page
       .locator(`[data-testid="format-segment"][data-format-key^="${teamCount}v"]`)
       .first();
+  }
+
+  /**
+   * L'icône ✏️ d'un camp (0-indexé), à droite de son bouton d'équipe — n'existe que sur un camp qui
+   * tient une équipe SAUVEGARDÉE (plan 228). Visée par testid : son seul texte est un glyphe.
+   */
+  editButton(slotIndex = 0): Locator {
+    return this.page
+      .getByTestId("player-team-edit-button")
+      .and(this.page.locator(`[data-slot-index="${slotIndex}"]`));
   }
 
   /** Bouton d'équipe d'un camp (0-indexé) — l'ouvre sur son sélecteur. */

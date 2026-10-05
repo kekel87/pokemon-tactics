@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { selectDouble, sliderDouble } from "../testing/focusable-control-doubles";
-import { applyToControl } from "./focus-navigation.js";
+import { applyToControl, directionalScore } from "./focus-navigation.js";
 import { LogicalAction } from "./logical-action.js";
 
 describe("applyToControl — slider", () => {
@@ -112,5 +112,48 @@ describe("applyToControl — ce qui ne revendique rien", () => {
     expect(applyToControl(undefined, LogicalAction.CursorLeft)).toBe(false);
     expect(applyToControl({}, LogicalAction.CursorLeft)).toBe(false);
     expect(applyToControl({ tagName: 42 }, LogicalAction.CursorLeft)).toBe(false);
+  });
+});
+
+describe("directionalScore", () => {
+  // La carte de camp du plan 228 : un bouton d'équipe large, l'icône ✏️ collée à sa droite, et un
+  // bouton de difficulté sur la rangée du dessus dont le centre tombe à droite de celui de l'équipe.
+  const teamButton = { left: 0, right: 300, top: 100, bottom: 140 };
+  const editIcon = { left: 304, right: 344, top: 100, bottom: 140 };
+  const rowAboveButton = { left: 160, right: 240, top: 40, bottom: 80 };
+
+  it("préfère le voisin collé à droite d'un contrôle large au bouton de la rangée du dessus", () => {
+    const toEditIcon = directionalScore(teamButton, editIcon, "right");
+    const toRowAbove = directionalScore(teamButton, rowAboveButton, "right");
+    expect(toEditIcon).toBe(4);
+    expect(toRowAbove).toBe(60 * 2);
+  });
+
+  it("revient sur le contrôle large par ←, et non sur la rangée du dessus", () => {
+    expect(directionalScore(editIcon, teamButton, "left")).toBe(4);
+    expect(directionalScore(editIcon, rowAboveButton, "left")).toBe(64 + 60 * 2);
+  });
+
+  it("écarte un candidat dont le centre n'est pas dans la direction pressée", () => {
+    expect(directionalScore(editIcon, teamButton, "right")).toBeNull();
+    expect(directionalScore(teamButton, editIcon, "left")).toBeNull();
+    expect(directionalScore(rowAboveButton, teamButton, "up")).toBeNull();
+    expect(directionalScore(teamButton, rowAboveButton, "down")).toBeNull();
+  });
+
+  it("écarte un candidat aligné sur le centre, ni d'un côté ni de l'autre", () => {
+    const sameCentre = { left: 100, right: 200, top: 0, bottom: 240 };
+    expect(directionalScore(teamButton, sameCentre, "right")).toBeNull();
+    expect(directionalScore(teamButton, sameCentre, "left")).toBeNull();
+  });
+
+  it("compte une distance nulle entre deux contrôles qui se chevauchent sur l'axe", () => {
+    const overlapping = { left: 250, right: 350, top: 100, bottom: 140 };
+    expect(directionalScore(teamButton, overlapping, "right")).toBe(0);
+  });
+
+  it("mesure la verticale bord à bord, avec l'écart d'axe pénalisé ×2", () => {
+    expect(directionalScore(teamButton, rowAboveButton, "up")).toBe(20 + 50 * 2);
+    expect(directionalScore(rowAboveButton, teamButton, "down")).toBe(20 + 50 * 2);
   });
 });

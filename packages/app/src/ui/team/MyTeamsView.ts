@@ -2,7 +2,7 @@ import type { TeamSet } from "@pokemon-tactic/core";
 import { countAction, TelemetryAction } from "../../analytics/telemetry";
 import { t } from "../../i18n";
 import { generateRandomTeam } from "../../team/team-generator";
-import { createEmptyTeam } from "../../team/team-helpers";
+import { createSavedEmptyTeam } from "../../team/team-helpers";
 import { deleteTeam, listTeamSummaries, loadTeam, saveTeam } from "../../team/team-storage";
 import { renderPreservingFocus } from "../dom/preserve-focus";
 import { screenHeader, screenHeaderSpacer, screenHeaderTitle } from "../dom/screens/elements";
@@ -113,11 +113,7 @@ export class MyTeamsView {
   }
 
   private createNewTeam(): void {
-    // Le Team Builder est-il utilisé, ou joue-t-on avec les équipes par défaut ? (plan 196)
-    countAction(TelemetryAction.TeamSave);
-    const team = createEmptyTeam(t("teamBuilder.untitledTeam"));
-    saveTeam(team);
-    this.options.onEditTeam(team.id);
+    this.options.onEditTeam(createSavedEmptyTeam().id);
   }
 
   private generateRandom(): void {

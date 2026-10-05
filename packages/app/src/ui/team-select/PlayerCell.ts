@@ -7,6 +7,8 @@ export interface PlayerCellLabels {
   controllerAiMedium: string;
   controllerAiHard: string;
   chooseTeam: string;
+  /** « Modifier l'équipe » (nom accessible de l'icône ✏️) — ouvre l'éditeur sur l'équipe sauvegardée du camp, sans quitter l'écran (plan 228). */
+  editTeam: string;
   /** « Aléatoire » — un camp qui tirera son équipe au lancement (plan 216, bug 2). */
   randomTeam: string;
   /** Réseau seulement — les états de ligne propres au salon (plan 199). */
@@ -80,6 +82,8 @@ export interface PlayerCellProps {
 export interface PlayerCellCallbacks {
   /** Ouvre le sélecteur d'équipe de ce camp (décision #832). */
   onChooseTeam: () => void;
+  /** Ouvre l'éditeur sur l'équipe sauvegardée de ce camp, par-dessus l'écran (plan 228). */
+  onEditTeam: (teamId: string) => void;
   onSetController: (controller: PlayerController, aiDifficulty?: AiDifficulty) => void;
 }
 
@@ -239,7 +243,33 @@ export function createPlayerCellElement(
     teamButton.appendChild(createTeamPortraitsElement(props.assignedTeam.slots));
   }
   teamButton.addEventListener("click", () => callbacks.onChooseTeam());
-  cell.appendChild(teamButton);
+
+  /*
+   * « Modifier » ne vaut que pour une équipe SAUVEGARDÉE : une équipe aléatoire n'existe nulle part
+   * dans le stockage, il n'y aurait rien à ouvrir. Absent plutôt que désactivé quand la ligne n'est
+   * pas de notre ressort — même motif que le bouton d'équipe, qu'aucune flèche ne doit traverser
+   * pour rien.
+   */
+  if (props.assignedTeam === null || props.ephemeral || props.teamEditable === false) {
+    cell.appendChild(teamButton);
+    return cell;
+  }
+  const editButton = document.createElement("button");
+  editButton.type = "button";
+  editButton.className = "tb-btn ts-player-cell-team-edit";
+  editButton.dataset.testid = "player-team-edit-button";
+  editButton.dataset.slotIndex = String(props.slotIndex);
+  // Icône seule (retour de recette du plan 228 : le libellé pleine largeur était « trop gros ») ;
+  // le mot reste porté par `aria-label` et l'infobulle.
+  editButton.textContent = "✏️";
+  editButton.setAttribute("aria-label", props.labels.editTeam);
+  editButton.title = props.labels.editTeam;
+  const teamId = props.assignedTeam.id;
+  editButton.addEventListener("click", () => callbacks.onEditTeam(teamId));
+  const teamRow = document.createElement("div");
+  teamRow.className = "ts-player-cell-team-row";
+  teamRow.append(teamButton, editButton);
+  cell.appendChild(teamRow);
 
   return cell;
 }
