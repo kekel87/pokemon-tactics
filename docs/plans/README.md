@@ -57,3 +57,4 @@ Les seuls sur lesquels on travaille.
 | 223 | [Plan 223 — Mise à jour des données Pokémon Champions](./223-mise-a-jour-donnees-champions.md) | done |
 | 224 | [Plan 224 — Lecture des abandons : rapport honnête et appareil du joueur](./224-lecture-des-abandons.md) | done |
 | 225 | [Plan 225 — Infobulles talents, objets et effets, et le bouton Inspecter](./225-infobulles-et-bouton-inspecter.md) | done |
+| 226 | [Plan 226 — Évoluroc selon la règle officielle, et les textes officiels d'abord](./226-evoluroc-et-textes-officiels.md) | done |

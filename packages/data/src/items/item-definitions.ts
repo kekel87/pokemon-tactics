@@ -13,6 +13,8 @@ import {
   StatName,
   StatusType,
 } from "@pokemon-tactic/core";
+import pokemonReference from "../../reference/pokemon.json" with { type: "json" };
+import type { ReferencePokemon } from "../loaders/reference-types";
 
 const LIFE_ORB_RECOIL_FRACTION = 10;
 const LEFTOVERS_HEAL_FRACTION = 16;
@@ -59,18 +61,12 @@ const LUCKY_PUNCH_CRIT_STAGES = 2;
 const FOCUS_BAND_SURVIVE_CHANCE = 0.1;
 const METAL_POWDER_DEFENSE_MOD = 1 / 1.5;
 
-const EVIOLITE_NFE_POKEMON_IDS = new Set<string>([
-  "chansey",
-  "electabuzz",
-  "lickitung",
-  "magmar",
-  "onix",
-  "porygon",
-  "rhydon",
-  "scyther",
-  "seadra",
-  "tangela",
-]);
+/** Évoluroc's holders, the official rule (plan 226): every species some other species evolves from. */
+const EVIOLITE_ELIGIBLE_SPECIES_IDS: ReadonlySet<string> = new Set(
+  (pokemonReference as unknown as readonly ReferencePokemon[]).flatMap((pokemon) =>
+    pokemon.evolvesFrom === null ? [] : [pokemon.evolvesFrom],
+  ),
+);
 
 const TYPE_BOOST_MOD = 1.2;
 const TYPE_RESIST_MOD = 0.5;
@@ -704,7 +700,7 @@ const baseItemHandlers: HeldItemHandler[] = [
       if (context.isAttacker) {
         return 1.0;
       }
-      if (!EVIOLITE_NFE_POKEMON_IDS.has(context.self.definitionId)) {
+      if (!EVIOLITE_ELIGIBLE_SPECIES_IDS.has(context.self.definitionId)) {
         return 1.0;
       }
       return EVIOLITE_DEFENSE_MOD;

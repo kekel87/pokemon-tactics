@@ -105,9 +105,9 @@ function processPositionLinkedTrapped(pokemon: PokemonInstance, state: BattleSta
 
   for (let i = pokemon.volatileStatuses.length - 1; i >= 0; i--) {
     const status = pokemon.volatileStatuses[i];
-    // Position-linked traps use remainingTurns === -1 and always have a sourceId. In this game they
-    // are move-sourced only (Barrage / Regard Noir); there is no ability-driven Magnépiège trap, so
-    // ability loss on the source does NOT release them (only death / distance does).
+    // Position-linked traps use remainingTurns === -1 and always have a sourceId. They come from
+    // moves (Barrage / Regard Noir) AND from the Magnépiège aura (`magnet-pull`, onAuraCheck). Either
+    // way only death / distance releases them: ability loss on the source (Gaz Inhibiteur…) does NOT.
     if (
       !status ||
       status.type !== StatusType.Trapped ||

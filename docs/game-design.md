@@ -750,6 +750,8 @@ Chaque Pokemon peut porter **1 objet tenu** enregistré dans `HeldItemHandlerReg
 | `heavy-duty-boots` | Grosses Bottes | Immunité effets terrain (pas la traversabilité) |
 | `light-ball` | Balle Lumière | ×2 Atk ET ×2 SpAtk — Pikachu uniquement |
 
+**Évoluroc (`eviolite`, plan 226)** : suit la règle officielle — tout Pokemon dont **une autre espèce évolue** (dérivé de `evolvesFrom` dans les données), sans liste d'espèces écrite à la main. **Textes officiels d'abord** : les descriptions de talents, objets et attaques reprennent le texte officiel ; une surcharge n'existe que si le gameplay diffère (une simple unité de durée « tours du lanceur » n'en est pas une).
+
 **Mini-système critiques (plan 073, étendu plan 142 + plan 151) :**
 
 Intégré dans `damage-calculator.ts`. Stage critique de base = `move.critRatio ?? 0` (Tranche, Karaté Chop = 1). Lentilscope ajoute +1. Probabilités Gen 6+ simplifiées :

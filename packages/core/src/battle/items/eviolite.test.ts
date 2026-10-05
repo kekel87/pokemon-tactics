@@ -71,66 +71,83 @@ describe("Eviolite", () => {
       expect(damageWith).toBeLessThan(damageWithout);
     });
 
-    it("Given Scyther (NFE) with Eviolite, When hit by tackle, Then damage is reduced compared to without item", () => {
-      vi.spyOn(Math, "random").mockReturnValue(0.5);
+    it.each(["scyther", "bulbasaur", "magneton"])(
+      "Given %s (can still evolve) with Eviolite, When hit by tackle, Then damage is reduced compared to without item",
+      (definitionId) => {
+        vi.spyOn(Math, "random").mockReturnValue(0.5);
 
-      const scytherWith = MockPokemon.fresh(MockPokemon.base, {
-        id: "scyther-with",
-        definitionId: "scyther",
-        playerId: PlayerId.Player2,
-        position: { x: 1, y: 0 },
-        currentHp: 300,
-        maxHp: 300,
-        combatStats: { hp: 300, attack: 115, defense: 85, spAttack: 60, spDefense: 90, speed: 115 },
-        derivedStats: { movement: 3, jump: 1, initiative: 10 },
-        heldItemId: HeldItemId.Eviolite,
-      });
-      const { engine: engineWith } = buildItemTestEngine([
-        MockPokemon.fresh(MockPokemon.squirtle, {
-          id: "attacker-with",
-          playerId: PlayerId.Player1,
-          position: { x: 0, y: 0 },
-          derivedStats: { movement: 3, jump: 1, initiative: 100 },
-        }),
-        scytherWith,
-      ]);
-      engineWith.submitAction(PlayerId.Player1, {
-        kind: ActionKind.UseMove,
-        pokemonId: "attacker-with",
-        moveId: "tackle",
-        targetPosition: { x: 1, y: 0 },
-      });
+        const holderWith = MockPokemon.fresh(MockPokemon.base, {
+          id: "holder-with",
+          definitionId,
+          playerId: PlayerId.Player2,
+          position: { x: 1, y: 0 },
+          currentHp: 300,
+          maxHp: 300,
+          combatStats: {
+            hp: 300,
+            attack: 115,
+            defense: 85,
+            spAttack: 60,
+            spDefense: 90,
+            speed: 115,
+          },
+          derivedStats: { movement: 3, jump: 1, initiative: 10 },
+          heldItemId: HeldItemId.Eviolite,
+        });
+        const { engine: engineWith } = buildItemTestEngine([
+          MockPokemon.fresh(MockPokemon.squirtle, {
+            id: "attacker-with",
+            playerId: PlayerId.Player1,
+            position: { x: 0, y: 0 },
+            derivedStats: { movement: 3, jump: 1, initiative: 100 },
+          }),
+          holderWith,
+        ]);
+        engineWith.submitAction(PlayerId.Player1, {
+          kind: ActionKind.UseMove,
+          pokemonId: "attacker-with",
+          moveId: "tackle",
+          targetPosition: { x: 1, y: 0 },
+        });
 
-      const scytherWithout = MockPokemon.fresh(MockPokemon.base, {
-        id: "scyther-without",
-        definitionId: "scyther",
-        playerId: PlayerId.Player2,
-        position: { x: 1, y: 0 },
-        currentHp: 300,
-        maxHp: 300,
-        combatStats: { hp: 300, attack: 115, defense: 85, spAttack: 60, spDefense: 90, speed: 115 },
-        derivedStats: { movement: 3, jump: 1, initiative: 10 },
-      });
-      const { engine: engineWithout } = buildItemTestEngine([
-        MockPokemon.fresh(MockPokemon.squirtle, {
-          id: "attacker-without",
-          playerId: PlayerId.Player1,
-          position: { x: 0, y: 0 },
-          derivedStats: { movement: 3, jump: 1, initiative: 100 },
-        }),
-        scytherWithout,
-      ]);
-      engineWithout.submitAction(PlayerId.Player1, {
-        kind: ActionKind.UseMove,
-        pokemonId: "attacker-without",
-        moveId: "tackle",
-        targetPosition: { x: 1, y: 0 },
-      });
+        const holderWithout = MockPokemon.fresh(MockPokemon.base, {
+          id: "holder-without",
+          definitionId,
+          playerId: PlayerId.Player2,
+          position: { x: 1, y: 0 },
+          currentHp: 300,
+          maxHp: 300,
+          combatStats: {
+            hp: 300,
+            attack: 115,
+            defense: 85,
+            spAttack: 60,
+            spDefense: 90,
+            speed: 115,
+          },
+          derivedStats: { movement: 3, jump: 1, initiative: 10 },
+        });
+        const { engine: engineWithout } = buildItemTestEngine([
+          MockPokemon.fresh(MockPokemon.squirtle, {
+            id: "attacker-without",
+            playerId: PlayerId.Player1,
+            position: { x: 0, y: 0 },
+            derivedStats: { movement: 3, jump: 1, initiative: 100 },
+          }),
+          holderWithout,
+        ]);
+        engineWithout.submitAction(PlayerId.Player1, {
+          kind: ActionKind.UseMove,
+          pokemonId: "attacker-without",
+          moveId: "tackle",
+          targetPosition: { x: 1, y: 0 },
+        });
 
-      const damageWith = 300 - scytherWith.currentHp;
-      const damageWithout = 300 - scytherWithout.currentHp;
-      expect(damageWith).toBeLessThan(damageWithout);
-    });
+        const damageWith = 300 - holderWith.currentHp;
+        const damageWithout = 300 - holderWithout.currentHp;
+        expect(damageWith).toBeLessThan(damageWithout);
+      },
+    );
   });
 
   describe("Eviolite does not reduce damage when attacker holds it", () => {
@@ -195,65 +212,82 @@ describe("Eviolite", () => {
   });
 
   describe("non-NFE holder receives no damage reduction", () => {
-    it("Given Weezing (final form, not in NFE list) with Eviolite, When hit by tackle, Then damage is same as without item", () => {
-      vi.spyOn(Math, "random").mockReturnValue(0.5);
+    it.each(["weezing", "venusaur"])(
+      "Given %s (final form) with Eviolite, When hit by tackle, Then damage is same as without item",
+      (definitionId) => {
+        vi.spyOn(Math, "random").mockReturnValue(0.5);
 
-      const weezingWith = MockPokemon.fresh(MockPokemon.base, {
-        id: "weezing-with",
-        definitionId: "weezing",
-        playerId: PlayerId.Player2,
-        position: { x: 1, y: 0 },
-        currentHp: 300,
-        maxHp: 300,
-        combatStats: { hp: 300, attack: 95, defense: 125, spAttack: 90, spDefense: 75, speed: 65 },
-        derivedStats: { movement: 3, jump: 1, initiative: 10 },
-        heldItemId: HeldItemId.Eviolite,
-      });
-      const { engine: engineWith } = buildItemTestEngine([
-        MockPokemon.fresh(MockPokemon.squirtle, {
-          id: "attacker-with",
-          playerId: PlayerId.Player1,
-          position: { x: 0, y: 0 },
-          derivedStats: { movement: 3, jump: 1, initiative: 100 },
-        }),
-        weezingWith,
-      ]);
-      engineWith.submitAction(PlayerId.Player1, {
-        kind: ActionKind.UseMove,
-        pokemonId: "attacker-with",
-        moveId: "tackle",
-        targetPosition: { x: 1, y: 0 },
-      });
+        const holderWith = MockPokemon.fresh(MockPokemon.base, {
+          id: "holder-with",
+          definitionId,
+          playerId: PlayerId.Player2,
+          position: { x: 1, y: 0 },
+          currentHp: 300,
+          maxHp: 300,
+          combatStats: {
+            hp: 300,
+            attack: 95,
+            defense: 125,
+            spAttack: 90,
+            spDefense: 75,
+            speed: 65,
+          },
+          derivedStats: { movement: 3, jump: 1, initiative: 10 },
+          heldItemId: HeldItemId.Eviolite,
+        });
+        const { engine: engineWith } = buildItemTestEngine([
+          MockPokemon.fresh(MockPokemon.squirtle, {
+            id: "attacker-with",
+            playerId: PlayerId.Player1,
+            position: { x: 0, y: 0 },
+            derivedStats: { movement: 3, jump: 1, initiative: 100 },
+          }),
+          holderWith,
+        ]);
+        engineWith.submitAction(PlayerId.Player1, {
+          kind: ActionKind.UseMove,
+          pokemonId: "attacker-with",
+          moveId: "tackle",
+          targetPosition: { x: 1, y: 0 },
+        });
 
-      const weezingWithout = MockPokemon.fresh(MockPokemon.base, {
-        id: "weezing-without",
-        definitionId: "weezing",
-        playerId: PlayerId.Player2,
-        position: { x: 1, y: 0 },
-        currentHp: 300,
-        maxHp: 300,
-        combatStats: { hp: 300, attack: 95, defense: 125, spAttack: 90, spDefense: 75, speed: 65 },
-        derivedStats: { movement: 3, jump: 1, initiative: 10 },
-      });
-      const { engine: engineWithout } = buildItemTestEngine([
-        MockPokemon.fresh(MockPokemon.squirtle, {
-          id: "attacker-without",
-          playerId: PlayerId.Player1,
-          position: { x: 0, y: 0 },
-          derivedStats: { movement: 3, jump: 1, initiative: 100 },
-        }),
-        weezingWithout,
-      ]);
-      engineWithout.submitAction(PlayerId.Player1, {
-        kind: ActionKind.UseMove,
-        pokemonId: "attacker-without",
-        moveId: "tackle",
-        targetPosition: { x: 1, y: 0 },
-      });
+        const holderWithout = MockPokemon.fresh(MockPokemon.base, {
+          id: "holder-without",
+          definitionId,
+          playerId: PlayerId.Player2,
+          position: { x: 1, y: 0 },
+          currentHp: 300,
+          maxHp: 300,
+          combatStats: {
+            hp: 300,
+            attack: 95,
+            defense: 125,
+            spAttack: 90,
+            spDefense: 75,
+            speed: 65,
+          },
+          derivedStats: { movement: 3, jump: 1, initiative: 10 },
+        });
+        const { engine: engineWithout } = buildItemTestEngine([
+          MockPokemon.fresh(MockPokemon.squirtle, {
+            id: "attacker-without",
+            playerId: PlayerId.Player1,
+            position: { x: 0, y: 0 },
+            derivedStats: { movement: 3, jump: 1, initiative: 100 },
+          }),
+          holderWithout,
+        ]);
+        engineWithout.submitAction(PlayerId.Player1, {
+          kind: ActionKind.UseMove,
+          pokemonId: "attacker-without",
+          moveId: "tackle",
+          targetPosition: { x: 1, y: 0 },
+        });
 
-      const damageWith = 300 - weezingWith.currentHp;
-      const damageWithout = 300 - weezingWithout.currentHp;
-      expect(damageWith).toBe(damageWithout);
-    });
+        const damageWith = 300 - holderWith.currentHp;
+        const damageWithout = 300 - holderWithout.currentHp;
+        expect(damageWith).toBe(damageWithout);
+      },
+    );
   });
 });

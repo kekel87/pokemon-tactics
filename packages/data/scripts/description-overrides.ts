@@ -56,12 +56,6 @@ export const ABILITY_DESCRIPTION_OVERRIDES: Readonly<Record<string, DescriptionO
     fr: "Neutralise le talent de tous les autres Pokémon, alliés comme ennemis, à 2 cases ou moins du porteur.",
     es: "Anula la habilidad de todos los demás Pokémon, aliados o enemigos, a 2 casillas o menos del portador.",
   },
-  // Field-wide: any living holder blocks every enemy berry, whatever the distance.
-  unnerve: {
-    en: "As long as the holder has not fainted, no enemy can eat its Berry, wherever it stands.",
-    fr: "Tant que le porteur n'est pas K.O., aucun ennemi ne peut manger sa Baie, où qu'il se trouve.",
-    es: "Mientras el portador no esté debilitado, ningún enemigo puede comerse su baya, esté donde esté.",
-  },
   // Only engine use: exemption from Arena Trap (BattleEngine.isArenaTrapped).
   "run-away": {
     en: "Immune to Arena Trap. No other effect in this game.",
@@ -77,8 +71,12 @@ export const ABILITY_DESCRIPTION_OVERRIDES: Readonly<Record<string, DescriptionO
 
 /**
  * Same contract as {@link ABILITY_DESCRIPTION_OVERRIDES}, for held items (plan 225): the official
- * text promises a rule our engine does not have (bench, switch-in, PP, "N turns"), or PokeAPI has no
- * text at all for the item.
+ * text promises a rule our engine does not have (bench, switch-in, PP), or PokeAPI has no text at all
+ * for the item.
+ *
+ * 🔴 The official text is the default (human, 2026-10-05, plan 226). An override needs a GAMEPLAY
+ * difference: a duration counted in the holder's turns rather than the battle's is not one — the
+ * weather rocks, Lumargile and Champ'Duit keep their official wording.
  */
 export const ITEM_DESCRIPTION_OVERRIDES: Readonly<Record<string, DescriptionOverride>> = {
   // No bench: the spawn-zone teleport is the analogue of the canonical switch-out.
@@ -96,16 +94,6 @@ export const ITEM_DESCRIPTION_OVERRIDES: Readonly<Record<string, DescriptionOver
     en: "The holder fills its CT gauge 50% faster, but stays locked into the first move it uses.",
     fr: "Le porteur remplit sa jauge de CT 50 % plus vite, mais reste bloqué sur la première capacité qu'il utilise.",
     es: "El portador llena su barra de CT un 50 % más rápido, pero queda bloqueado en el primer movimiento que usa.",
-  },
-  "assault-vest": {
-    en: "The holder's Special Defense is multiplied by 1.5, but it cannot use status moves.",
-    fr: "La Défense Spéciale du porteur est multipliée par 1,5, mais il ne peut pas utiliser de capacités de statut.",
-    es: "La Defensa Especial del portador se multiplica por 1,5, pero no puede usar movimientos de estado.",
-  },
-  metronome: {
-    en: "Each consecutive use of the same move raises its damage by 10%, up to +100%. The bonus resets if the holder switches moves or the move fails.",
-    fr: "Chaque utilisation consécutive de la même capacité augmente ses dégâts de 10 %, jusqu'à +100 %. Le bonus repart de zéro si le porteur change de capacité ou si elle échoue.",
-    es: "Cada uso consecutivo del mismo movimiento aumenta su daño un 10 %, hasta +100 %. La bonificación se pierde si el portador cambia de movimiento o si este falla.",
   },
   // Seeds: checked at the end of the holder's turn, grounded and standing inside the matching zone.
   "electric-seed": {
@@ -128,42 +116,11 @@ export const ITEM_DESCRIPTION_OVERRIDES: Readonly<Record<string, DescriptionOver
     fr: "À la fin de son tour, si le porteur se tient au sol dans un Champ Brumeux, sa Défense Spéciale monte d'un cran et la graine est consommée.",
     es: "Al final de su turno, si el portador está en el suelo dentro de un Campo de Niebla, su Defensa Especial sube un nivel y la semilla se consume.",
   },
-  // Weather rocks: only weather set by the holder's MOVE (not by Drought-like abilities).
-  "heat-rock": {
-    en: "Harsh sunlight set by the holder with Sunny Day lasts 8 of the holder's turns instead of 5.",
-    fr: "Le Plein soleil posé par le porteur avec Zénith dure 8 tours du porteur au lieu de 5.",
-    es: "El sol intenso que el portador crea con Día Soleado dura 8 turnos del portador en lugar de 5.",
-  },
-  "damp-rock": {
-    en: "Rain set by the holder with Rain Dance lasts 8 of the holder's turns instead of 5.",
-    fr: "La Pluie posée par le porteur avec Danse Pluie dure 8 tours du porteur au lieu de 5.",
-    es: "La lluvia que el portador crea con Danza Lluvia dura 8 turnos del portador en lugar de 5.",
-  },
-  "smooth-rock": {
-    en: "A sandstorm set by the holder with Sandstorm lasts 8 of the holder's turns instead of 5.",
-    fr: "La Tempête de sable posée par le porteur avec Tempête de Sable dure 8 tours du porteur au lieu de 5.",
-    es: "La tormenta de arena que el portador crea con Tormenta Arena dura 8 turnos del portador en lugar de 5.",
-  },
+  // Snow is extended whichever move set it — Hail or Snowscape — and the official text names Hail only.
   "icy-rock": {
-    en: "Snow set by the holder with Hail or Snowscape lasts 8 of the holder's turns instead of 5.",
-    fr: "La Neige posée par le porteur avec Grêle ou Chute de Neige dure 8 tours du porteur au lieu de 5.",
-    es: "La nieve que el portador crea con Granizo o Paisaje Nevado dura 8 turnos del portador en lugar de 5.",
-  },
-  "light-clay": {
-    en: "Reflect and Light Screen used by the holder last 8 of the holder's turns instead of 5.",
-    fr: "Protection et Mur Lumière lancés par le porteur durent 8 tours du porteur au lieu de 5.",
-    es: "Reflejo y Pantalla de Luz usados por el portador duran 8 turnos del portador en lugar de 5.",
-  },
-  "terrain-extender": {
-    en: "Terrains created by the holder last 8 of the holder's turns instead of 5.",
-    fr: "Les champs créés par le porteur durent 8 tours du porteur au lieu de 5.",
-    es: "Los campos creados por el portador duran 8 turnos del portador en lugar de 5.",
-  },
-  // Restricted to a fixed species list (EVIOLITE_NFE_POKEMON_IDS), not to "can still evolve".
-  eviolite: {
-    en: "If the holder is Chansey, Electabuzz, Lickitung, Magmar, Onix, Porygon, Rhydon, Scyther, Seadra or Tangela, its Defense and Special Defense are multiplied by 1.5. No effect on other Pokémon.",
-    fr: "Si le porteur est Leveinard, Élektek, Excelangue, Magmar, Onix, Porygon, Rhinoféros, Insécateur, Hypocéan ou Saquedeneu, sa Défense et sa Défense Spéciale sont multipliées par 1,5. Sans effet sur les autres Pokémon.",
-    es: "Si el portador es Chansey, Electabuzz, Lickitung, Magmar, Onix, Porygon, Rhydon, Scyther, Seadra o Tangela, su Defensa y su Defensa Especial se multiplican por 1,5. Sin efecto en otros Pokémon.",
+    en: "An item to be held by a Pokémon. It extends the duration of the moves Hail and Snowscape used by the holder.",
+    fr: "Objet à tenir. Prolonge la durée des capacités Grêle et Chute de Neige utilisées par le porteur.",
+    es: "Objeto que se puede llevar. Prolonga la duración de los movimientos Granizo y Paisaje Nevado que usa el portador.",
   },
   "mental-herb": {
     en: "Instantly cures the holder of Taunt, Encore, Disable, Heal Block or infatuation, then the herb is consumed.",

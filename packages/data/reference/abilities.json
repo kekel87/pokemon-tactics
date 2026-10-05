@@ -33,12 +33,12 @@
     },
     "shortDescription": {
       "en": "Turns the bearer's normal moves into flying moves and strengthens them to 1.3× their power.",
-      "fr": "Les capacités de type Normal deviennent de type Vol.\\nLeur puissance augmente légèrement.",
+      "fr": "Les capacités de type Normal deviennent de type Vol. Leur puissance augmente légèrement.",
       "es": "Convierte los movimientos de tipo Normal en tipo Volador y aumenta ligeramente su potencia."
     },
     "longDescription": {
       "en": "Turns the bearer's normal-type moves into flying-type moves.  Moves changed by this ability have 1.3× their power.",
-      "fr": "Les capacités de type Normal deviennent de type Vol.\\nLeur puissance augmente légèrement.",
+      "fr": "Les capacités de type Normal deviennent de type Vol. Leur puissance augmente légèrement.",
       "es": "Convierte los movimientos de tipo Normal en tipo Volador y aumenta ligeramente su potencia."
     },
     "flags": {
@@ -57,12 +57,12 @@
     },
     "shortDescription": {
       "en": "Damages the attacker for 1/4 its max HP when knocked out by a contact move.",
-      "fr": "Si le Pokémon est mis K.O. par une attaque directe,\\nil inflige des dégâts à l’attaquant avant de s’évanouir.",
+      "fr": "Si le Pokémon est mis K.O. par une attaque directe, il inflige des dégâts à l’attaquant avant de s’évanouir.",
       "es": "Daña al agresor que le ha dado el golpe de gracia con un movimiento de contacto."
     },
     "longDescription": {
       "en": "When this Pokémon is knocked out by a move that makes contact, the move's user takes 1/4 its maximum HP in damage.",
-      "fr": "Si le Pokémon est mis K.O. par une attaque directe,\\nil inflige des dégâts à l’attaquant avant de s’évanouir.",
+      "fr": "Si le Pokémon est mis K.O. par une attaque directe, il inflige des dégâts à l’attaquant avant de s’évanouir.",
       "es": "Daña al agresor que le ha dado el golpe de gracia con un movimiento de contacto."
     },
     "flags": {
@@ -105,12 +105,12 @@
     },
     "shortDescription": {
       "en": "Strengthens moves to 1.3× their power when moving last.",
-      "fr": "Augmente la puissance des capacités du Pokémon\\ns’il attaque en dernier.",
+      "fr": "Augmente la puissance des capacités du Pokémon s’il attaque en dernier.",
       "es": "Aumenta la potencia de su movimiento si es el último en atacar."
     },
     "longDescription": {
       "en": "This Pokémon's moves have 1.3× their power when it moves last in a turn.\n\nfuture sight and doom desire are unaffected.",
-      "fr": "Augmente la puissance des capacités du Pokémon\\ns’il attaque en dernier.",
+      "fr": "Augmente la puissance des capacités du Pokémon s’il attaque en dernier.",
       "es": "Aumenta la potencia de su movimiento si es el último en atacar."
     },
     "flags": {
@@ -129,12 +129,12 @@
     },
     "shortDescription": {
       "en": "Raises Attack to the maximum of six stages upon receiving a critical hit.",
-      "fr": "Si le Pokémon subit un coup critique, il entre\\ndans une colère noire qui augmente son Attaque\\nau maximum.",
+      "fr": "Si le Pokémon subit un coup critique, il entre dans une colère noire qui augmente son Attaque au maximum.",
       "es": "Si recibe un golpe crítico, monta en cólera y sube su Ataque hasta el máximo."
     },
     "longDescription": {
       "en": "Whenever this Pokémon receives a critical hit, its Attack rises to the maximum of 6 stages.\n\nThis ability will still take effect if the critical hit is received by a substitute.",
-      "fr": "Si le Pokémon subit un coup critique, il entre\\ndans une colère noire qui augmente son Attaque\\nau maximum.",
+      "fr": "Si le Pokémon subit un coup critique, il entre dans une colère noire qui augmente son Attaque au maximum.",
       "es": "Si recibe un golpe crítico, monta en cólera y sube su Ataque hasta el máximo."
     },
     "flags": {
@@ -153,12 +153,12 @@
     },
     "shortDescription": {
       "en": "When the Pokémon's HP drops below half, Anger Shell lowers its Defense and Special Defense but its Attack, Special Attack and Speed are raised.",
-      "fr": "Le Pokémon enrage s’il a moins de la moitié de ses PV\\naprès avoir subi une attaque. Sa Déf. et sa Déf. Spé.\\nbaissent, et son Atq., son Atq. Spé. et sa Vit. augmentent.",
+      "fr": "Le Pokémon enrage s’il a moins de la moitié de ses PV après avoir subi une attaque. Sa Déf. et sa Déf. Spé. baissent, et son Atq., son Atq. Spé. et sa Vit. augmentent.",
       "es": null
     },
     "longDescription": {
       "en": "When an attack causes its HP to drop to half or less, the Pokémon gets angry. This lowers its Defense and Sp. Def stats but boosts its Attack, Sp. Atk, and Speed stats.",
-      "fr": "Le Pokémon enrage s’il a moins de la moitié de ses PV\\naprès avoir subi une attaque. Sa Déf. et sa Déf. Spé.\\nbaissent, et son Atq., son Atq. Spé. et sa Vit. augmentent.",
+      "fr": "Le Pokémon enrage s’il a moins de la moitié de ses PV après avoir subi une attaque. Sa Déf. et sa Déf. Spé. baissent, et son Atq., son Atq. Spé. et sa Vit. augmentent.",
       "es": null
     },
     "flags": {
@@ -225,12 +225,12 @@
     },
     "shortDescription": {
       "en": "Prevents the opponent from using any moves that have priority, such as Quick Attack.",
-      "fr": "Une étrange queue recouvre la tête du Pokémon,\\nce qui empêche ce dernier et ses alliés d’être visés\\npar une capacité prioritaire.",
+      "fr": "Une étrange queue recouvre la tête du Pokémon, ce qui empêche ce dernier et ses alliés d’être visés par une capacité prioritaire.",
       "es": null
     },
     "longDescription": {
       "en": "The mysterious tail covering the Pokémon’s head makes opponents unable to use priority moves against the Pokémon or its allies.",
-      "fr": "Une étrange queue recouvre la tête du Pokémon,\\nce qui empêche ce dernier et ses alliés d’être visés\\npar une capacité prioritaire.",
+      "fr": "Une étrange queue recouvre la tête du Pokémon, ce qui empêche ce dernier et ses alliés d’être visés par une capacité prioritaire.",
       "es": null
     },
     "flags": {
@@ -249,12 +249,12 @@
     },
     "shortDescription": {
       "en": "Protects allies against moves that affect their mental state.",
-      "fr": "Protège le Pokémon et ses alliés des effets limitant\\nle libre arbitre.",
+      "fr": "Protège le Pokémon et ses alliés des effets limitant le libre arbitre.",
       "es": "Se protege a sí mismo y a sus aliados de ataques que impiden elegir movimientos."
     },
     "longDescription": {
       "en": "Protects allies against moves that affect their mental state.",
-      "fr": "Protège le Pokémon et ses alliés des effets limitant\\nle libre arbitre.",
+      "fr": "Protège le Pokémon et ses alliés des effets limitant le libre arbitre.",
       "es": "Se protege a sí mismo y a sus aliados de ataques que impiden elegir movimientos."
     },
     "flags": {
@@ -273,12 +273,12 @@
     },
     "shortDescription": {
       "en": null,
-      "fr": "Les talents Tension de Sylveroy et Sombre Ruade\\nde Spectreval sont cumulés.",
+      "fr": "Les talents Tension de Sylveroy et Sombre Ruade de Spectreval sont cumulés.",
       "es": "El Pokémon tiene dos habilidades: Relincho Blanco de Glastrier y Nerviosismo de Calyrex."
     },
     "longDescription": {
       "en": null,
-      "fr": "Les talents Tension de Sylveroy et Sombre Ruade\\nde Spectreval sont cumulés.",
+      "fr": "Les talents Tension de Sylveroy et Sombre Ruade de Spectreval sont cumulés.",
       "es": "El Pokémon tiene dos habilidades: Relincho Blanco de Glastrier y Nerviosismo de Calyrex."
     },
     "flags": {
@@ -321,12 +321,12 @@
     },
     "shortDescription": {
       "en": "Makes dark aura and fairy aura weaken moves of their respective types.",
-      "fr": "Inverse l’effet des talents « Aura » afin que ceux-ci\\nbaissent la puissance des capacités affectées au lieu\\nde l’augmenter.",
+      "fr": "Inverse l’effet des talents « Aura » afin que ceux-ci baissent la puissance des capacités affectées au lieu de l’augmenter.",
       "es": "Invierte los efectos de las auras, por lo que baja la potencia de ciertos movimientos en vez de subirla."
     },
     "longDescription": {
       "en": "While this Pokémon is on the field, dark aura and fairy aura weaken moves of their respective types to 2/3 their power, rather than strengthening them.",
-      "fr": "Inverse l’effet des talents « Aura » afin que ceux-ci\\nbaissent la puissance des capacités affectées au lieu\\nde l’augmenter.",
+      "fr": "Inverse l’effet des talents « Aura » afin que ceux-ci baissent la puissance des capacités affectées au lieu de l’augmenter.",
       "es": "Invierte los efectos de las auras, por lo que baja la potencia de ciertos movimientos en vez de subirla."
     },
     "flags": {
@@ -369,12 +369,12 @@
     },
     "shortDescription": {
       "en": "If the Pokémon is not holding an item, it will fetch the Poké Ball from the first failed throw of the battle.",
-      "fr": "Si le Pokémon ne tient aucun objet, il ramassera\\nla Poké Ball lors du premier lancer raté du combat.",
+      "fr": "Si le Pokémon ne tient aucun objet, il ramassera la Poké Ball lors du premier lancer raté du combat.",
       "es": "Si no lleva equipado ningún objeto, recupera la Poké Ball del primer intento de captura fallido."
     },
     "longDescription": {
       "en": "At any time after the first Poké Ball is thrown and fails to catch a Pokémon, at the end of a turn, if a Pokémon with Ball Fetch is on the field and not holding another item, it will pick up the same type of ball as the first one thrown.",
-      "fr": "Si le Pokémon ne tient aucun objet, il ramassera\\nla Poké Ball lors du premier lancer raté du combat.",
+      "fr": "Si le Pokémon ne tient aucun objet, il ramassera la Poké Ball lors du premier lancer raté du combat.",
       "es": "Si no lleva equipado ningún objeto, recupera la Poké Ball del primer intento de captura fallido."
     },
     "flags": {
@@ -417,12 +417,12 @@
     },
     "shortDescription": {
       "en": "Protects against critical hits.",
-      "fr": "Le Pokémon est protégé des coups critiques\\npar une solide carapace.",
+      "fr": "Le Pokémon est protégé des coups critiques par une solide carapace.",
       "es": "La robusta coraza que lo protege bloquea los golpes críticos."
     },
     "longDescription": {
       "en": "Moves cannot score critical hits against this Pokémon.\n\nThis ability functions identically to shell armor.",
-      "fr": "Le Pokémon est protégé des coups critiques\\npar une solide carapace.",
+      "fr": "Le Pokémon est protégé des coups critiques par une solide carapace.",
       "es": "La robusta coraza que lo protege bloquea los golpes críticos."
     },
     "flags": {
@@ -441,12 +441,12 @@
     },
     "shortDescription": {
       "en": "Transforms this Pokémon into Ash-Greninja after fainting an opponent.  Water Shuriken's power is 20 and always hits three times.",
-      "fr": "En battant un ennemi, ce Pokémon renforce ses liens\\navec son Dresseur, ce qui augmente son Attaque,\\nson Attaque Spéciale et sa Vitesse.",
+      "fr": "En battant un ennemi, ce Pokémon renforce ses liens avec son Dresseur, ce qui augmente son Attaque, son Attaque Spéciale et sa Vitesse.",
       "es": "Al derrotar a un rival, los vínculos con su Entrenador se refuerzan y se convierte en Greninja Ash. Su Shuriken de Agua también se ve potenciado."
     },
     "longDescription": {
       "en": "Transforms this Pokémon into Ash-Greninja after fainting an opponent.  Water Shuriken's power is 20 and always hits three times.\n\nThis ability cannot be copied or replaced.  This ability only takes effect for Greninja.",
-      "fr": "En battant un ennemi, ce Pokémon renforce ses liens\\navec son Dresseur, ce qui augmente son Attaque,\\nson Attaque Spéciale et sa Vitesse.",
+      "fr": "En battant un ennemi, ce Pokémon renforce ses liens avec son Dresseur, ce qui augmente son Attaque, son Attaque Spéciale et sa Vitesse.",
       "es": "Al derrotar a un rival, los vínculos con su Entrenador se refuerzan y se convierte en Greninja Ash. Su Shuriken de Agua también se ve potenciado."
     },
     "flags": {
@@ -465,12 +465,12 @@
     },
     "shortDescription": {
       "en": "Lowers Special Defense of all Pokémon except itself.",
-      "fr": "Le pouvoir des perles qui appellent le fléau affaiblit\\nla Défense Spéciale de tous les autres Pokémon.",
+      "fr": "Le pouvoir des perles qui appellent le fléau affaiblit la Défense Spéciale de tous les autres Pokémon.",
       "es": null
     },
     "longDescription": {
       "en": "The power of the Pokémon’s ruinous beads lowers the Sp. Def stats of all Pokémon except itself.",
-      "fr": "Le pouvoir des perles qui appellent le fléau affaiblit\\nla Défense Spéciale de tous les autres Pokémon.",
+      "fr": "Le pouvoir des perles qui appellent le fléau affaiblit la Défense Spéciale de tous les autres Pokémon.",
       "es": null
     },
     "flags": {
@@ -489,12 +489,12 @@
     },
     "shortDescription": {
       "en": "Raises this Pokémon's highest stat by one stage when it faints another Pokémon.",
-      "fr": "Augmente la stat la plus élevée du Pokémon\\nquand il met K.O. un autre Pokémon.",
+      "fr": "Augmente la stat la plus élevée du Pokémon quand il met K.O. un autre Pokémon.",
       "es": "Si derrota a un rival en ese turno, aumenta su característica más fuerte."
     },
     "longDescription": {
       "en": "Raises this Pokémon's highest stat by one stage when it faints another Pokémon.",
-      "fr": "Augmente la stat la plus élevée du Pokémon\\nquand il met K.O. un autre Pokémon.",
+      "fr": "Augmente la stat la plus élevée du Pokémon quand il met K.O. un autre Pokémon.",
       "es": "Si derrota a un rival en ese turno, aumenta su característica más fuerte."
     },
     "flags": {
@@ -513,12 +513,12 @@
     },
     "shortDescription": {
       "en": "Raises this Pokémon's Special Attack by one stage every time its HP drops below half.",
-      "fr": "Augmente l’Attaque Spéciale du Pokémon lorsque\\nses PV tombent à la moitié à cause d’une attaque\\nde l’adversaire.",
+      "fr": "Augmente l’Attaque Spéciale du Pokémon lorsque ses PV tombent à la moitié à cause d’une attaque de l’adversaire.",
       "es": "Aumenta su Ataque Especial si sus PS se ven reducidos a la mitad debido a algún ataque."
     },
     "longDescription": {
       "en": "Whenever this Pokémon takes damage from a move that causes its HP to drop below 50%, its Special Attack rises by one stage.",
-      "fr": "Augmente l’Attaque Spéciale du Pokémon lorsque\\nses PV tombent à la moitié à cause d’une attaque\\nde l’adversaire.",
+      "fr": "Augmente l’Attaque Spéciale du Pokémon lorsque ses PV tombent à la moitié à cause d’une attaque de l’adversaire.",
       "es": "Aumenta su Ataque Especial si sus PS se ven reducidos a la mitad debido a algún ataque."
     },
     "flags": {
@@ -585,12 +585,12 @@
     },
     "shortDescription": {
       "en": "Protects against bullet, ball, and bomb-based moves.",
-      "fr": "Protège de certaines capacités lançant des projectiles\\ncomme des bombes et des balles.",
+      "fr": "Protège de certaines capacités lançant des projectiles comme des bombes et des balles.",
       "es": "No le afectan las bombas ni algunos proyectiles."
     },
     "longDescription": {
       "en": "Protects against bullet, ball, and bomb-based moves.",
-      "fr": "Protège de certaines capacités lançant des projectiles\\ncomme des bombes et des balles.",
+      "fr": "Protège de certaines capacités lançant des projectiles comme des bombes et des balles.",
       "es": "No le afectan las bombas ni algunos proyectiles."
     },
     "flags": {
@@ -609,12 +609,12 @@
     },
     "shortDescription": {
       "en": "Restores HP upon eating a Berry, in addition to the Berry's effect.",
-      "fr": "Le Pokémon récupère des PV lorsqu’il consomme\\nn’importe quelle Baie en plus de bénéficier de\\nses effets habituels.",
+      "fr": "Le Pokémon récupère des PV lorsqu’il consomme n’importe quelle Baie en plus de bénéficier de ses effets habituels.",
       "es": "Recupera PS al comer cualquier baya."
     },
     "longDescription": {
       "en": "Restores HP upon eating a Berry, in addition to the Berry's effect.",
-      "fr": "Le Pokémon récupère des PV lorsqu’il consomme\\nn’importe quelle Baie en plus de bénéficier de\\nses effets habituels.",
+      "fr": "Le Pokémon récupère des PV lorsqu’il consomme n’importe quelle Baie en plus de bénéficier de ses effets habituels.",
       "es": "Recupera PS al comer cualquier baya."
     },
     "flags": {
@@ -633,12 +633,12 @@
     },
     "shortDescription": {
       "en": "Boosts Attack after knocking out a Pokémon.",
-      "fr": "Quand le Pokémon met un ennemi K.O., il émet\\nun hennissement glaçant, ce qui augmente son Attaque.",
+      "fr": "Quand le Pokémon met un ennemi K.O., il émet un hennissement glaçant, ce qui augmente son Attaque.",
       "es": "Al derrotar a un objetivo, emite un relincho gélido y aumenta su Ataque."
     },
     "longDescription": {
       "en": "When the Pokémon knocks out a target, it utters a chilling neigh, which boosts its Attack stat.",
-      "fr": "Quand le Pokémon met un ennemi K.O., il émet\\nun hennissement glaçant, ce qui augmente son Attaque.",
+      "fr": "Quand le Pokémon met un ennemi K.O., il émet un hennissement glaçant, ce qui augmente son Attaque.",
       "es": "Al derrotar a un objetivo, emite un relincho gélido y aumenta su Ataque."
     },
     "flags": {
@@ -729,12 +729,12 @@
     },
     "shortDescription": {
       "en": "Changes type to match when hit by a damaging move.",
-      "fr": "Lorsque le Pokémon est touché par une capacité,\\nil prend le type de celle-ci.",
+      "fr": "Lorsque le Pokémon est touché par une capacité, il prend le type de celle-ci.",
       "es": "Adopta el tipo del último movimiento del que es blanco."
     },
     "longDescription": {
       "en": "Whenever this Pokémon takes damage from a move, the Pokémon's type changes to match the move.\n\nIf the Pokémon has two types, both are overridden.  The Pokémon must directly take damage; for example, moves blocked by a substitute will not trigger this ability, nor will moves that deal damage indirectly, such as spikes.\n\nThis ability takes effect on only the last hit of a multiple-hit attack.\n\nIn Pokémon Colosseum and XD: Gale of Darkness, this ability does not take effect on Shadow-type moves.",
-      "fr": "Lorsque le Pokémon est touché par une capacité,\\nil prend le type de celle-ci.",
+      "fr": "Lorsque le Pokémon est touché par une capacité, il prend le type de celle-ci.",
       "es": "Adopta el tipo del último movimiento del que es blanco."
     },
     "flags": {
@@ -753,12 +753,12 @@
     },
     "shortDescription": {
       "en": "This Pokémon always  acts as though it were Asleep.",
-      "fr": "Le Pokémon rêve en permanence et ne se réveille\\njamais. Il est capable d’attaquer normalement\\ntout en dormant.",
+      "fr": "Le Pokémon rêve en permanence et ne se réveille jamais. Il est capable d’attaquer normalement tout en dormant.",
       "es": "No despierta jamás de su profundo letargo e incluso ataca dormido."
     },
     "longDescription": {
       "en": "This Pokémon always acts as though it were Asleep.  It cannot be given another status ailment; it's unaffected by yawn; it can use sleep talk; and so on.",
-      "fr": "Le Pokémon rêve en permanence et ne se réveille\\njamais. Il est capable d’attaquer normalement\\ntout en dormant.",
+      "fr": "Le Pokémon rêve en permanence et ne se réveille jamais. Il est capable d’attaquer normalement tout en dormant.",
       "es": "No despierta jamás de su profundo letargo e incluso ataca dormido."
     },
     "flags": {
@@ -777,12 +777,12 @@
     },
     "shortDescription": {
       "en": "Goes inside the mouth of an ally Dondozo if one is on the field.",
-      "fr": "Si un Oyacata allié est sur le terrain quand ce Pokémon\\nrejoint le combat, ce dernier entre dans sa bouche et\\ndevient son commandant.",
+      "fr": "Si un Oyacata allié est sur le terrain quand ce Pokémon rejoint le combat, ce dernier entre dans sa bouche et devient son commandant.",
       "es": null
     },
     "longDescription": {
       "en": "When the Pokémon enters a battle, it goes inside the mouth of an ally Dondozo if one is on the field. The Pokémon then issues commands from there.",
-      "fr": "Si un Oyacata allié est sur le terrain quand ce Pokémon\\nrejoint le combat, ce dernier entre dans sa bouche et\\ndevient son commandant.",
+      "fr": "Si un Oyacata allié est sur le terrain quand ce Pokémon rejoint le combat, ce dernier entre dans sa bouche et devient son commandant.",
       "es": null
     },
     "flags": {
@@ -801,12 +801,12 @@
     },
     "shortDescription": {
       "en": "Raises Special Attack by two stages upon having any stat lowered.",
-      "fr": "Augmente beaucoup l’Attaque Spéciale du Pokémon\\nquand ses stats ont été baissées par l’adversaire.",
+      "fr": "Augmente beaucoup l’Attaque Spéciale du Pokémon quand ses stats ont été baissées par l’adversaire.",
       "es": "Aumenta mucho su Ataque Especial cuando el rival le baja cualquiera de sus características."
     },
     "longDescription": {
       "en": "Raises Special Attack by two stages upon having any stat lowered.",
-      "fr": "Augmente beaucoup l’Attaque Spéciale du Pokémon\\nquand ses stats ont été baissées par l’adversaire.",
+      "fr": "Augmente beaucoup l’Attaque Spéciale du Pokémon quand ses stats ont été baissées par l’adversaire.",
       "es": "Aumenta mucho su Ataque Especial cuando el rival le baja cualquiera de sus características."
     },
     "flags": {
@@ -849,12 +849,12 @@
     },
     "shortDescription": {
       "en": "Inverts stat changes.",
-      "fr": "Inverse les changements de stats : les augmentations\\nde stats se transforment en baisses, et vice-versa.",
+      "fr": "Inverse les changements de stats : les augmentations de stats se transforment en baisses, et vice-versa.",
       "es": "Invierte los cambios en las características: bajan cuando les toca subir y suben cuando les toca bajar."
     },
     "longDescription": {
       "en": "Whenever this Pokémon's stats would be raised, they are instead lowered by the same amount, and vice versa.",
-      "fr": "Inverse les changements de stats : les augmentations\\nde stats se transforment en baisses, et vice-versa.",
+      "fr": "Inverse les changements de stats : les augmentations de stats se transforment en baisses, et vice-versa.",
       "es": "Invierte los cambios en las características: bajan cuando les toca subir y suben cuando les toca bajar."
     },
     "flags": {
@@ -873,12 +873,12 @@
     },
     "shortDescription": {
       "en": "This Pokémon can inflict poison on Poison and Steel Pokémon.",
-      "fr": "Permet d’empoisonner les Pokémon de type Acier\\nou Poison.",
+      "fr": "Permet d’empoisonner les Pokémon de type Acier ou Poison.",
       "es": "Puede envenenar incluso a rivales de tipo Acero o Veneno."
     },
     "longDescription": {
       "en": "This Pokémon's moves and item ignore the usual immunity of Poison and Steel Pokémon when attempting to inflict poison.",
-      "fr": "Permet d’empoisonner les Pokémon de type Acier\\nou Poison.",
+      "fr": "Permet d’empoisonner les Pokémon de type Acier ou Poison.",
       "es": "Puede envenenar incluso a rivales de tipo Acero o Veneno."
     },
     "flags": {
@@ -897,12 +897,12 @@
     },
     "shortDescription": {
       "en": "Copies ally's stat changes on entering battle.",
-      "fr": "Quand le Pokémon entre sur le terrain, il copie\\nles changements de stats de son allié.",
+      "fr": "Quand le Pokémon entre sur le terrain, il copie les changements de stats de son allié.",
       "es": null
     },
     "longDescription": {
       "en": "When the Pokémon enters a battle, it copies an ally’s stat changes.",
-      "fr": "Quand le Pokémon entre sur le terrain, il copie\\nles changements de stats de son allié.",
+      "fr": "Quand le Pokémon entre sur le terrain, il copie les changements de stats de son allié.",
       "es": null
     },
     "flags": {
@@ -921,12 +921,12 @@
     },
     "shortDescription": {
       "en": "When Ignores moves and abilities that draw in moves.",
-      "fr": "Quand le Pokémon est touché par une attaque,\\nil dissémine des aigrettes qui diminuent la Vitesse\\nde tout le monde, sauf la sienne.",
+      "fr": "Quand le Pokémon est touché par une attaque, il dissémine des aigrettes qui diminuent la Vitesse de tout le monde, sauf la sienne.",
       "es": "Al ser alcanzado por un ataque, suelta una pelusa de algodón que reduce la Velocidad de todos los demás Pokémon."
     },
     "longDescription": {
       "en": "When the Pokémon is hit by an attack, it scatters cotton fluff around and lowers the Speed stats of all Pokémon except itself.",
-      "fr": "Quand le Pokémon est touché par une attaque,\\nil dissémine des aigrettes qui diminuent la Vitesse\\nde tout le monde, sauf la sienne.",
+      "fr": "Quand le Pokémon est touché par une attaque, il dissémine des aigrettes qui diminuent la Vitesse de tout le monde, sauf la sienne.",
       "es": "Al ser alcanzado por un ataque, suelta una pelusa de algodón que reduce la Velocidad de todos los demás Pokémon."
     },
     "flags": {
@@ -945,12 +945,12 @@
     },
     "shortDescription": {
       "en": "Causes the Pokémon to reuse an already consumed Berry at the end of the next turn.",
-      "fr": "Quand le Pokémon mange une Baie, il la régurgite\\nà la fin du tour suivant et la mange une nouvelle fois.",
+      "fr": "Quand le Pokémon mange une Baie, il la régurgite à la fin du tour suivant et la mange une nouvelle fois.",
       "es": null
     },
     "longDescription": {
       "en": "When the Pokémon eats a Berry, it will regurgitate that Berry at the end of the next turn and eat it one more time.",
-      "fr": "Quand le Pokémon mange une Baie, il la régurgite\\nà la fin du tour suivant et la mange une nouvelle fois.",
+      "fr": "Quand le Pokémon mange une Baie, il la régurgite à la fin du tour suivant et la mange une nouvelle fois.",
       "es": null
     },
     "flags": {
@@ -969,12 +969,12 @@
     },
     "shortDescription": {
       "en": "Resets all stat changes upon entering battlefield.",
-      "fr": "Quand il entre au combat, le Pokémon répand\\nune substance qui annule les changements de stats\\nde ses alliés.",
+      "fr": "Quand il entre au combat, le Pokémon répand une substance qui annule les changements de stats de ses alliés.",
       "es": "Al entrar en combate, rezuma una substancia medicinal por la caracola que revierte los cambios en las características de los aliados."
     },
     "longDescription": {
       "en": "When the Pokémon enters a battle, it scatters medicine from its shell, which removes all stat changes from allies.",
-      "fr": "Quand il entre au combat, le Pokémon répand\\nune substance qui annule les changements de stats\\nde ses alliés.",
+      "fr": "Quand il entre au combat, le Pokémon répand une substance qui annule les changements de stats de ses alliés.",
       "es": "Al entrar en combate, rezuma una substancia medicinal por la caracola que revierte los cambios en las características de los aliados."
     },
     "flags": {
@@ -993,12 +993,12 @@
     },
     "shortDescription": {
       "en": "Has a 30% chance of Disabling any move that hits the Pokémon.",
-      "fr": "Quand le Pokémon est touché par une capacité adverse,\\nil inflige parfois Entrave sur celle-ci.",
+      "fr": "Quand le Pokémon est touché par une capacité adverse, il inflige parfois Entrave sur celle-ci.",
       "es": "Puede anular el movimiento usado en su contra."
     },
     "longDescription": {
       "en": "Moves that hit this Pokémon have a 30% chance of being Disabled afterward.",
-      "fr": "Quand le Pokémon est touché par une capacité adverse,\\nil inflige parfois Entrave sur celle-ci.",
+      "fr": "Quand le Pokémon est touché par une capacité adverse, il inflige parfois Entrave sur celle-ci.",
       "es": "Puede anular el movimiento usado en su contra."
     },
     "flags": {
@@ -1065,12 +1065,12 @@
     },
     "shortDescription": {
       "en": "Whenever another Pokémon uses a dance move, this Pokémon will use the same move immediately afterwards.",
-      "fr": "Si n’importe quel Pokémon utilise une capacité dansante,\\nle Pokémon utilise immédiatement cette danse lui aussi.",
+      "fr": "Si n’importe quel Pokémon utilise une capacité dansante, le Pokémon utilise immédiatement cette danse lui aussi.",
       "es": "Puede copiar inmediatamente cualquier movimiento de baile que haya usado otro Pokémon presente en el combate."
     },
     "longDescription": {
       "en": "Whenever another Pokémon uses a dance move, this Pokémon will use the same move immediately afterwards.",
-      "fr": "Si n’importe quel Pokémon utilise une capacité dansante,\\nle Pokémon utilise immédiatement cette danse lui aussi.",
+      "fr": "Si n’importe quel Pokémon utilise une capacité dansante, le Pokémon utilise immédiatement cette danse lui aussi.",
       "es": "Puede copiar inmediatamente cualquier movimiento de baile que haya usado otro Pokémon presente en el combate."
     },
     "flags": {
@@ -1089,12 +1089,12 @@
     },
     "shortDescription": {
       "en": "Strengthens dark moves to 1.33× their power for all friendly and opposing Pokémon.",
-      "fr": "Augmente la puissance des capacités de type Ténèbres\\nde tous les Pokémon.",
+      "fr": "Augmente la puissance des capacités de type Ténèbres de tous les Pokémon.",
       "es": "Aumenta la potencia de todos los movimientos de tipo Siniestro."
     },
     "longDescription": {
       "en": "Strengthens dark moves for all friendly and opposing Pokémon.",
-      "fr": "Augmente la puissance des capacités de type Ténèbres\\nde tous les Pokémon.",
+      "fr": "Augmente la puissance des capacités de type Ténèbres de tous les Pokémon.",
       "es": "Aumenta la potencia de todos los movimientos de tipo Siniestro."
     },
     "flags": {
@@ -1113,12 +1113,12 @@
     },
     "shortDescription": {
       "en": "Boosts Defense in battle.",
-      "fr": "Augmente la Défense du Pokémon la première fois\\nqu’il entre au combat.",
+      "fr": "Augmente la Défense du Pokémon la première fois qu’il entre au combat.",
       "es": "Aumenta su Defensa al entrar en combate."
     },
     "longDescription": {
       "en": "Boosts the Pokémon’s Defense stat the first time the Pokémon enters a battle.",
-      "fr": "Augmente la Défense du Pokémon la première fois\\nqu’il entre au combat.",
+      "fr": "Augmente la Défense du Pokémon la première fois qu’il entre au combat.",
       "es": "Aumenta su Defensa al entrar en combate."
     },
     "flags": {
@@ -1137,12 +1137,12 @@
     },
     "shortDescription": {
       "en": "Opposing Pokémon cannot use priority attacks.",
-      "fr": "L’adversaire est abasourdi par le Pokémon,\\nce qui l’empêche de viser ce dernier et\\nses alliés avec une capacité prioritaire.",
+      "fr": "L’adversaire est abasourdi par le Pokémon, ce qui l’empêche de viser ce dernier et ses alliés avec une capacité prioritaire.",
       "es": "Desconcierta al rival y le impide utilizar movimientos con prioridad en su contra."
     },
     "longDescription": {
       "en": "When an opposing Pokémon attempts to use a move that targets this Pokémon or an ally, and that move has priority, it will fail.",
-      "fr": "L’adversaire est abasourdi par le Pokémon,\\nce qui l’empêche de viser ce dernier et\\nses alliés avec une capacité prioritaire.",
+      "fr": "L’adversaire est abasourdi par le Pokémon, ce qui l’empêche de viser ce dernier et ses alliés avec une capacité prioritaire.",
       "es": "Desconcierta al rival y le impide utilizar movimientos con prioridad en su contra."
     },
     "flags": {
@@ -1161,12 +1161,12 @@
     },
     "shortDescription": {
       "en": "Halves Attack and Special Attack at 50% max HP or less.",
-      "fr": "Le Pokémon devient défaitiste quand ses PV tombent\\nà la moitié, et son Attaque et son Attaque Spéciale\\nsont divisées par deux.",
+      "fr": "Le Pokémon devient défaitiste quand ses PV tombent à la moitié, et son Attaque et son Attaque Spéciale sont divisées par deux.",
       "es": "Se debilita tanto cuando sus PS se ven reducidos a la mitad que su Ataque y su Ataque Especial bajan."
     },
     "longDescription": {
       "en": "This Pokémon's Attack and Special Attack are halved when it has half its HP or less.",
-      "fr": "Le Pokémon devient défaitiste quand ses PV tombent\\nà la moitié, et son Attaque et son Attaque Spéciale\\nsont divisées par deux.",
+      "fr": "Le Pokémon devient défaitiste quand ses PV tombent à la moitié, et son Attaque et son Attaque Spéciale sont divisées par deux.",
       "es": "Se debilita tanto cuando sus PS se ven reducidos a la mitad que su Ataque y su Ataque Especial bajan."
     },
     "flags": {
@@ -1209,12 +1209,12 @@
     },
     "shortDescription": {
       "en": "Creates a mysterious air current, which cannot be replaced and causes moves to never be super effective against Flying Pokémon.",
-      "fr": "Altère les conditions météo pour annuler les faiblesses\\ndu type Vol.",
+      "fr": "Altère les conditions météo pour annuler les faiblesses du type Vol.",
       "es": "Altera el clima para anular las vulnerabilidades del tipo Volador."
     },
     "longDescription": {
       "en": "When this Pokémon enters battle or gains this ability, the weather becomes a mysterious air current.  A mysterious air current causes moves to not be super effective against Flying; they do neutral damage instead.  anticipation and stealth rock are not affected.\n\nThe mysterious air current ends when this Pokémon leaves battle or loses this ability, or when this ability is nullified.  The weather cannot otherwise be changed except by the effects of desolate land and primordial sea.\n\nair lock and cloud nine will prevent the effect of a mysterious air current, but will not allow the weather to be changed.",
-      "fr": "Altère les conditions météo pour annuler les faiblesses\\ndu type Vol.",
+      "fr": "Altère les conditions météo pour annuler les faiblesses du type Vol.",
       "es": "Altera el clima para anular las vulnerabilidades del tipo Volador."
     },
     "flags": {
@@ -1233,12 +1233,12 @@
     },
     "shortDescription": {
       "en": "Creates extremely harsh sunlight, which has all the properties of Sunny Day, cannot be replaced, and causes damaging Water moves to fail.",
-      "fr": "Altère les conditions météo pour neutraliser\\nles attaques de type Eau.",
+      "fr": "Altère les conditions météo pour neutraliser les attaques de type Eau.",
       "es": "Altera el clima para anular los ataques de tipo Agua."
     },
     "longDescription": {
       "en": "When this Pokémon enters battle or gains this ability, the weather becomes extremely harsh sunlight.  Extremely harsh sunlight has all the properties of sunny day and also causes damaging Water moves to fail.\n\nExtremely harsh sunlight ends when this Pokémon leaves battle or loses this ability, or when this ability is nullified.  The weather cannot otherwise be changed except by the effects of delta stream and primordial sea.\n\nair lock and cloud nine will prevent the effects of extremely harsh sunlight, including allowing Water moves to work, but will not allow the weather to be changed.",
-      "fr": "Altère les conditions météo pour neutraliser\\nles attaques de type Eau.",
+      "fr": "Altère les conditions météo pour neutraliser les attaques de type Eau.",
       "es": "Altera el clima para anular los ataques de tipo Agua."
     },
     "flags": {
@@ -1257,12 +1257,12 @@
     },
     "shortDescription": {
       "en": "Prevents the first instance of battle damage.",
-      "fr": "Le déguisement qui recouvre le corps du Pokémon\\nest capable de le protéger d’une attaque.",
+      "fr": "Le déguisement qui recouvre le corps du Pokémon est capable de le protéger d’une attaque.",
       "es": "Puede eludir un ataque valiéndose de la tela que le cubre el cuerpo una vez por combate."
     },
     "longDescription": {
       "en": "If this Pokémon is in its Disguised Form and takes damage from a move, it switches to its Busted Form and the damage is prevented.  Other effects are not prevented.\n\nThis ability cannot be copied or replaced.  This ability only takes effect for Mimikyu.",
-      "fr": "Le déguisement qui recouvre le corps du Pokémon\\nest capable de le protéger d’une attaque.",
+      "fr": "Le déguisement qui recouvre le corps du Pokémon est capable de le protéger d’une attaque.",
       "es": "Puede eludir un ataque valiéndose de la tela que le cubre el cuerpo una vez por combate."
     },
     "flags": {
@@ -1281,12 +1281,12 @@
     },
     "shortDescription": {
       "en": "Raises the attack stat corresponding to the opponents' weaker defense one stage upon entering battle.",
-      "fr": "Le Pokémon compare la Défense et la Défense Spéciale\\nde l’adversaire et, en fonction de la stat la plus basse,\\nil augmente sa propre Attaque ou Attaque Spéciale.",
+      "fr": "Le Pokémon compare la Défense et la Défense Spéciale de l’adversaire et, en fonction de la stat la plus basse, il augmente sa propre Attaque ou Attaque Spéciale.",
       "es": "Compara la Defensa y la Defensa Especial del rival para ver cuál es inferior y aumenta su propio Ataque o Ataque Especial según sea lo más eficaz."
     },
     "longDescription": {
       "en": "When this Pokémon enters battle, its Attack or Special Attack, whichever corresponds to its opponents' weaker total defensive stat, rises one stage.  In the event of a tie, Special Attack is raised.\n\nThis ability also takes effect when acquired during a battle.",
-      "fr": "Le Pokémon compare la Défense et la Défense Spéciale\\nde l’adversaire et, en fonction de la stat la plus basse,\\nil augmente sa propre Attaque ou Attaque Spéciale.",
+      "fr": "Le Pokémon compare la Défense et la Défense Spéciale de l’adversaire et, en fonction de la stat la plus basse, il augmente sa propre Attaque ou Attaque Spéciale.",
       "es": "Compara la Defensa y la Defensa Especial del rival para ver cuál es inferior y aumenta su propio Ataque o Ataque Especial según sea lo más eficaz."
     },
     "flags": {
@@ -1449,12 +1449,12 @@
     },
     "shortDescription": {
       "en": "Restores HP when hit by a Ground-type move.",
-      "fr": "Si le Pokémon est touché par une capacité de type Sol,\\nil regagne des PV au lieu de subir des dégâts.",
+      "fr": "Si le Pokémon est touché par une capacité de type Sol, il regagne des PV au lieu de subir des dégâts.",
       "es": null
     },
     "longDescription": {
       "en": "If hit by a Ground-type move, the Pokémon has its HP restored instead of taking damage.",
-      "fr": "Si le Pokémon est touché par une capacité de type Sol,\\nil regagne des PV au lieu de subir des dégâts.",
+      "fr": "Si le Pokémon est touché par une capacité de type Sol, il regagne des PV au lieu de subir des dégâts.",
       "es": null
     },
     "flags": {
@@ -1497,12 +1497,12 @@
     },
     "shortDescription": {
       "en": "When this Pokémon enters battle, it changes the terrain to Electric Terrain.",
-      "fr": "Le Pokémon crée un champ électrifié au moment\\noù il entre au combat.",
+      "fr": "Le Pokémon crée un champ électrifié au moment où il entre au combat.",
       "es": "Crea un campo eléctrico al entrar en combate."
     },
     "longDescription": {
       "en": "When this Pokémon enters battle, it changes the terrain to electric terrain.",
-      "fr": "Le Pokémon crée un champ électrifié au moment\\noù il entre au combat.",
+      "fr": "Le Pokémon crée un champ électrifié au moment où il entre au combat.",
       "es": "Crea un campo eléctrico al entrar en combate."
     },
     "flags": {
@@ -1521,12 +1521,12 @@
     },
     "shortDescription": {
       "en": "When hit by an attack, the power of the next Electric-type move it uses is doubled.",
-      "fr": "Si le Pokémon subit des dégâts, il se charge\\nen électricité.",
+      "fr": "Si le Pokémon subit des dégâts, il se charge en électricité.",
       "es": null
     },
     "longDescription": {
       "en": "The Pokémon becomes charged when it takes damage, boosting the power of the next Electric-type move the Pokémon uses.",
-      "fr": "Si le Pokémon subit des dégâts, il se charge\\nen électricité.",
+      "fr": "Si le Pokémon subit des dégâts, il se charge en électricité.",
       "es": null
     },
     "flags": {
@@ -1545,12 +1545,12 @@
     },
     "shortDescription": {
       "en": "This Pokémon automatically switches out when its HP drops below half.",
-      "fr": "Le Pokémon évite les situations inutilement\\ndangereuses. Quand ses PV tombent à la moitié,\\nil se réfugie dans sa Poké Ball.",
+      "fr": "Le Pokémon évite les situations inutilement dangereuses. Quand ses PV tombent à la moitié, il se réfugie dans sa Poké Ball.",
       "es": "Abandona el terreno de combate cuando sus PS se ven reducidos a la mitad para evitar males mayores."
     },
     "longDescription": {
       "en": "After this Pokémon is hit by a move, if that move caused this Pokémon's HP to drop below half, it switches out.",
-      "fr": "Le Pokémon évite les situations inutilement\\ndangereuses. Quand ses PV tombent à la moitié,\\nil se réfugie dans sa Poké Ball.",
+      "fr": "Le Pokémon évite les situations inutilement dangereuses. Quand ses PV tombent à la moitié, il se réfugie dans sa Poké Ball.",
       "es": "Abandona el terreno de combate cuando sus PS se ven reducidos a la mitad para evitar males mayores."
     },
     "flags": {
@@ -1569,12 +1569,12 @@
     },
     "shortDescription": {
       "en": "Strengthens fairy moves to 1.33× their power for all friendly and opposing Pokémon.",
-      "fr": "Augmente la puissance des capacités de type Fée\\nde tous les Pokémon.",
+      "fr": "Augmente la puissance des capacités de type Fée de tous les Pokémon.",
       "es": "Aumenta la potencia de todos los movimientos de tipo Hada."
     },
     "longDescription": {
       "en": "Strengthens fairy moves for all friendly and opposing Pokémon.",
-      "fr": "Augmente la puissance des capacités de type Fée\\nde tous les Pokémon.",
+      "fr": "Augmente la puissance des capacités de type Fée de tous les Pokémon.",
       "es": "Aumenta la potencia de todos los movimientos de tipo Hada."
     },
     "flags": {
@@ -1593,12 +1593,12 @@
     },
     "shortDescription": {
       "en": "Decreases damage taken from super-effective moves by 1/4.",
-      "fr": "Diminue la puissance des attaques super efficaces\\nsubies.",
+      "fr": "Diminue la puissance des attaques super efficaces subies.",
       "es": "Mitiga el daño que le infligen los movimientos supereficaces."
     },
     "longDescription": {
       "en": "This Pokémon takes 0.75× as much damage from moves that are super effective against it.\n\nThis ability functions identically to solid rock.",
-      "fr": "Diminue la puissance des attaques super efficaces\\nsubies.",
+      "fr": "Diminue la puissance des attaques super efficaces subies.",
       "es": "Mitiga el daño que le infligen los movimientos supereficaces."
     },
     "flags": {
@@ -1641,12 +1641,12 @@
     },
     "shortDescription": {
       "en": "Increases Special Attack to 1.5× when burned.",
-      "fr": "Augmente la puissance des capacités spéciales\\nquand le Pokémon est brûlé.",
+      "fr": "Augmente la puissance des capacités spéciales quand le Pokémon est brûlé.",
       "es": "Aumenta la potencia de sus ataques especiales cuando sufre quemaduras."
     },
     "longDescription": {
       "en": "This Pokémon has 1.5× its Special Attack when burned.",
-      "fr": "Augmente la puissance des capacités spéciales\\nquand le Pokémon est brûlé.",
+      "fr": "Augmente la puissance des capacités spéciales quand le Pokémon est brûlé.",
       "es": "Aumenta la potencia de sus ataques especiales cuando sufre quemaduras."
     },
     "flags": {
@@ -1689,12 +1689,12 @@
     },
     "shortDescription": {
       "en": "Increases friendly Pokémon's Attack and Special Defense to 1.5× during strong sunlight.",
-      "fr": "Augmente l’Attaque et la Défense Spéciale du Pokémon\\net de ses alliés lorsque le soleil brille.",
+      "fr": "Augmente l’Attaque et la Défense Spéciale du Pokémon et de ses alliés lorsque le soleil brille.",
       "es": "Si hace sol, aumenta su Ataque y su Defensa Especial, así como los de sus aliados."
     },
     "longDescription": {
       "en": "Friendly Pokémon have 1.5× their Attack and Special Defense during strong sunlight if any friendly Pokémon has this ability.\n\nUnlike forecast, multitype, and zen mode, this ability is not tied to its Pokémon's form change; cherrim will switch between its forms even if it loses this ability.  As such, this ability also works if obtained by a Pokémon other than Cherrim.",
-      "fr": "Augmente l’Attaque et la Défense Spéciale du Pokémon\\net de ses alliés lorsque le soleil brille.",
+      "fr": "Augmente l’Attaque et la Défense Spéciale du Pokémon et de ses alliés lorsque le soleil brille.",
       "es": "Si hace sol, aumenta su Ataque y su Defensa Especial, así como los de sus aliados."
     },
     "flags": {
@@ -1713,12 +1713,12 @@
     },
     "shortDescription": {
       "en": "Protects friendly grass Pokémon from having their stats lowered by other Pokémon.",
-      "fr": "Empêche les alliés de type Plante de subir des baisses\\nde stats et des altérations de statut.",
+      "fr": "Empêche les alliés de type Plante de subir des baisses de stats et des altérations de statut.",
       "es": "Evita que los Pokémon de tipo Planta aliados sufran problemas de estado o que les bajen sus características."
     },
     "longDescription": {
       "en": "Protects friendly grass Pokémon from having their stats lowered by other Pokémon.",
-      "fr": "Empêche les alliés de type Plante de subir des baisses\\nde stats et des altérations de statut.",
+      "fr": "Empêche les alliés de type Plante de subir des baisses de stats et des altérations de statut.",
       "es": "Evita que los Pokémon de tipo Planta aliados sufran problemas de estado o que les bajen sus características."
     },
     "flags": {
@@ -1737,12 +1737,12 @@
     },
     "shortDescription": {
       "en": "Damage from contact moves is halved.  Damage from Fire moves is doubled.",
-      "fr": "Divise par deux les dégâts des attaques directes\\nsubies par le Pokémon, mais double les dégâts\\ndes capacités de type Feu.",
+      "fr": "Divise par deux les dégâts des attaques directes subies par le Pokémon, mais double les dégâts des capacités de type Feu.",
       "es": "Reduce a la mitad el daño provocado por los movimientos de contacto, pero duplica el infligido por los de tipo Fuego."
     },
     "longDescription": {
       "en": "Damage from contact moves is halved.  Damage from Fire moves is doubled.",
-      "fr": "Divise par deux les dégâts des attaques directes\\nsubies par le Pokémon, mais double les dégâts\\ndes capacités de type Feu.",
+      "fr": "Divise par deux les dégâts des attaques directes subies par le Pokémon, mais double les dégâts des capacités de type Feu.",
       "es": "Reduce a la mitad el daño provocado por los movimientos de contacto, pero duplica el infligido por los de tipo Fuego."
     },
     "flags": {
@@ -1761,12 +1761,12 @@
     },
     "shortDescription": {
       "en": "Changes castform's type and form to match the weather.",
-      "fr": "Le Pokémon prend le type Eau, Feu ou Glace\\nen fonction de la météo.",
+      "fr": "Le Pokémon prend le type Eau, Feu ou Glace en fonction de la météo.",
       "es": "Cambia a tipo Agua, Fuego o Hielo en función del tiempo atmosférico."
     },
     "longDescription": {
       "en": "During rain, strong sunlight, or hail, this Pokémon's type changes to water, fire, or ice, respectively, and its form changes to match.\n\nThis ability has no effect for any Pokémon other than castform.\n\nIf the weather ends or becomes anything that does not trigger this ability, or a Pokémon with air lock or cloud nine enters battle, this Pokémon's type and form revert to their default.  If this ability is lost or disabled, this Pokémon cannot change its current type and form until it regains its ability.",
-      "fr": "Le Pokémon prend le type Eau, Feu ou Glace\\nen fonction de la météo.",
+      "fr": "Le Pokémon prend le type Eau, Feu ou Glace en fonction de la météo.",
       "es": "Cambia a tipo Agua, Fuego o Hielo en función del tiempo atmosférico."
     },
     "flags": {
@@ -1785,12 +1785,12 @@
     },
     "shortDescription": {
       "en": "Reveals the opponents' strongest move upon entering battle.",
-      "fr": "Révèle l’une des capacités de l’adversaire quand\\nle combat commence.",
+      "fr": "Révèle l’une des capacités de l’adversaire quand le combat commence.",
       "es": "Indica el movimiento más potente del rival al entrar en combate."
     },
     "longDescription": {
       "en": "When this Pokémon enters battle, it reveals the move with the highest base power known by any opposing Pokémon to all participating trainers.\n\nIn the event of a tie, one is chosen at random.\n\nMoves without a listed base power are assigned one as follows:\n\nPower | Moves\n----: | -----\n  160 | One-hit KO moves: fissure, guillotine, horn drill, and sheer cold\n  120 | Counter moves: counter, metal burst, and mirror coat\n   80 | Variable power or set damage: crush grip, dragon rage, electro ball, endeavor, final gambit, flail, frustration, grass knot, gyro ball, heat crash, heavy slam, hidden power, low kick, natural gift, night shade, psywave, return, reversal, seismic toss, sonic boom, trump card, and wring out\n    0 | Any such move not listed\n",
-      "fr": "Révèle l’une des capacités de l’adversaire quand\\nle combat commence.",
+      "fr": "Révèle l’une des capacités de l’adversaire quand le combat commence.",
       "es": "Indica el movimiento más potente del rival al entrar en combate."
     },
     "flags": {
@@ -1857,12 +1857,12 @@
     },
     "shortDescription": {
       "en": "Other Pokémon cannot lower this Pokémon's stats.",
-      "fr": "Empêche les stats du Pokémon de baisser à cause\\ndu talent ou d’une capacité de l’adversaire.",
+      "fr": "Empêche les stats du Pokémon de baisser à cause du talent ou d’une capacité de l’adversaire.",
       "es": "Evita que bajen sus características a causa de movimientos o habilidades de otros Pokémon."
     },
     "longDescription": {
       "en": "This Pokémon's stats cannot be lowered by other Pokémon's moves or abilities.  This effect only applies to normal stat modifications and not more exotic effects such as topsy turvy or power swap.\n\nThis Ability is not bypassed by mold breaker, teravolt, or turboblaze.",
-      "fr": "Empêche les stats du Pokémon de baisser à cause\\ndu talent ou d’une capacité de l’adversaire.",
+      "fr": "Empêche les stats du Pokémon de baisser à cause du talent ou d’une capacité de l’adversaire.",
       "es": "Evita que bajen sus características a causa de movimientos o habilidades de otros Pokémon."
     },
     "flags": {
@@ -1881,12 +1881,12 @@
     },
     "shortDescription": {
       "en": "Halves damage from physical attacks.",
-      "fr": "Divise par deux les dégâts des capacités physiques\\nsubies par le Pokémon.",
+      "fr": "Divise par deux les dégâts des capacités physiques subies par le Pokémon.",
       "es": "Reduce a la mitad el daño que recibe de ataques físicos del rival."
     },
     "longDescription": {
       "en": "Halves damage from physical attacks.",
-      "fr": "Divise par deux les dégâts des capacités physiques\\nsubies par le Pokémon.",
+      "fr": "Divise par deux les dégâts des capacités physiques subies par le Pokémon.",
       "es": "Reduce a la mitad el daño que recibe de ataques físicos del rival."
     },
     "flags": {
@@ -1905,12 +1905,12 @@
     },
     "shortDescription": {
       "en": "Raises flying moves' priority by one stage.",
-      "fr": "Quand les PV du Pokémon sont au maximum,\\nses capacités de type Vol sont prioritaires.",
+      "fr": "Quand les PV du Pokémon sont au maximum, ses capacités de type Vol sont prioritaires.",
       "es": "Da prioridad a los movimientos de tipo Volador si sus PS están al máximo."
     },
     "longDescription": {
       "en": "Raises flying moves' priority by one stage.",
-      "fr": "Quand les PV du Pokémon sont au maximum,\\nses capacités de type Vol sont prioritaires.",
+      "fr": "Quand les PV du Pokémon sont au maximum, ses capacités de type Vol sont prioritaires.",
       "es": "Da prioridad a los movimientos de tipo Volador si sus PS están al máximo."
     },
     "flags": {
@@ -1929,12 +1929,12 @@
     },
     "shortDescription": {
       "en": "This Pokémon's Normal moves are Electric and have their power increased to 1.2×.",
-      "fr": "Les capacités de type Normal deviennent de type\\nÉlectrik. Leur puissance augmente légèrement.",
+      "fr": "Les capacités de type Normal deviennent de type Électrik. Leur puissance augmente légèrement.",
       "es": "Convierte los movimientos de tipo Normal en tipo Eléctrico y aumenta ligeramente su potencia."
     },
     "longDescription": {
       "en": "When this Pokémon uses a Normal moves, that move is Electric its power is 1.2×.",
-      "fr": "Les capacités de type Normal deviennent de type\\nÉlectrik. Leur puissance augmente légèrement.",
+      "fr": "Les capacités de type Normal deviennent de type Électrik. Leur puissance augmente légèrement.",
       "es": "Convierte los movimientos de tipo Normal en tipo Eléctrico y aumenta ligeramente su potencia."
     },
     "flags": {
@@ -1977,12 +1977,12 @@
     },
     "shortDescription": {
       "en": "Gives immunity to status moves.",
-      "fr": "Le corps en or pur et robuste du Pokémon l’immunise\\ncontre les capacités de statut des autres Pokémon.",
+      "fr": "Le corps en or pur et robuste du Pokémon l’immunise contre les capacités de statut des autres Pokémon.",
       "es": null
     },
     "longDescription": {
       "en": "A body of pure, solid gold gives the Pokémon full immunity to other Pokémon’s status moves.",
-      "fr": "Le corps en or pur et robuste du Pokémon l’immunise\\ncontre les capacités de statut des autres Pokémon.",
+      "fr": "Le corps en or pur et robuste du Pokémon l’immunise contre les capacités de statut des autres Pokémon.",
       "es": null
     },
     "flags": {
@@ -2001,12 +2001,12 @@
     },
     "shortDescription": {
       "en": "Lowers attacking Pokémon's Speed by one stage on contact.",
-      "fr": "Baisse la Vitesse de l’attaquant lorsque le Pokémon\\nsubit une attaque directe.",
+      "fr": "Baisse la Vitesse de l’attaquant lorsque le Pokémon subit une attaque directe.",
       "es": "Baja la Velocidad del rival cuando este le ataca con un movimiento de contacto."
     },
     "longDescription": {
       "en": "Lowers attacking Pokémon's Speed by one stage on contact.",
-      "fr": "Baisse la Vitesse de l’attaquant lorsque le Pokémon\\nsubit une attaque directe.",
+      "fr": "Baisse la Vitesse de l’attaquant lorsque le Pokémon subit une attaque directe.",
       "es": "Baja la Velocidad del rival cuando este le ataca con un movimiento de contacto."
     },
     "flags": {
@@ -2025,12 +2025,12 @@
     },
     "shortDescription": {
       "en": "Boosts the Pokémon's Attack stat but only allows the use of the first selected move.",
-      "fr": "Augmente l’Attaque, mais empêche d’utiliser\\ntoute autre capacité que celle utilisée en premier\\npar le Pokémon.",
+      "fr": "Augmente l’Attaque, mais empêche d’utiliser toute autre capacité que celle utilisée en premier par le Pokémon.",
       "es": "Potencia su Ataque, pero solo puede usar el primer movimiento escogido."
     },
     "longDescription": {
       "en": "Boosts the Pokémon’s Attack stat but only allows the use of the first selected move.",
-      "fr": "Augmente l’Attaque, mais empêche d’utiliser\\ntoute autre capacité que celle utilisée en premier\\npar le Pokémon.",
+      "fr": "Augmente l’Attaque, mais empêche d’utiliser toute autre capacité que celle utilisée en premier par le Pokémon.",
       "es": "Potencia su Ataque, pero solo puede usar el primer movimiento escogido."
     },
     "flags": {
@@ -2049,12 +2049,12 @@
     },
     "shortDescription": {
       "en": "Boosts Defense while grassy terrain is in effect.",
-      "fr": "Augmente la Défense du Pokémon si un champ herbu\\nest actif.",
+      "fr": "Augmente la Défense du Pokémon si un champ herbu est actif.",
       "es": "Aumenta su Defensa si hay un campo de hierba en el terreno de combate."
     },
     "longDescription": {
       "en": "Boosts Defense while grassy terrain is in effect.",
-      "fr": "Augmente la Défense du Pokémon si un champ herbu\\nest actif.",
+      "fr": "Augmente la Défense du Pokémon si un champ herbu est actif.",
       "es": "Aumenta su Defensa si hay un campo de hierba en el terreno de combate."
     },
     "flags": {
@@ -2073,12 +2073,12 @@
     },
     "shortDescription": {
       "en": "When this Pokémon enters battle, it changes the terrain to Grassy Terrain.",
-      "fr": "Le Pokémon crée un champ herbu au moment\\noù il entre au combat.",
+      "fr": "Le Pokémon crée un champ herbu au moment où il entre au combat.",
       "es": "Crea un campo de hierba al entrar en combate."
     },
     "longDescription": {
       "en": "When this Pokémon enters battle, it changes the terrain to grassy terrain.",
-      "fr": "Le Pokémon crée un champ herbu au moment\\noù il entre au combat.",
+      "fr": "Le Pokémon crée un champ herbu au moment où il entre au combat.",
       "es": "Crea un campo de hierba al entrar en combate."
     },
     "flags": {
@@ -2097,12 +2097,12 @@
     },
     "shortDescription": {
       "en": "Boosts Special Attack after knocking out a Pokémon.",
-      "fr": "Quand le Pokémon met un ennemi K.O., il émet\\nun hennissement terrifiant qui augmente\\nson Attaque Spéciale.",
+      "fr": "Quand le Pokémon met un ennemi K.O., il émet un hennissement terrifiant qui augmente son Attaque Spéciale.",
       "es": "Al derrotar a un objetivo, emite un relincho aterrador y aumenta su Ataque Especial."
     },
     "longDescription": {
       "en": "When the Pokémon knocks out a target, it utters a terrifying neigh, which boosts its Sp. Atk stat.",
-      "fr": "Quand le Pokémon met un ennemi K.O., il émet\\nun hennissement terrifiant qui augmente\\nson Attaque Spéciale.",
+      "fr": "Quand le Pokémon met un ennemi K.O., il émet un hennissement terrifiant qui augmente son Attaque Spéciale.",
       "es": "Al derrotar a un objetivo, emite un relincho aterrador y aumenta su Ataque Especial."
     },
     "flags": {
@@ -2121,12 +2121,12 @@
     },
     "shortDescription": {
       "en": "Boosts Attack if intimidated, and prevents being forced to switch out.",
-      "fr": "L’Attaque du Pokémon augmente s’il subit l’effet du\\ntalent Intimidation. Les capacités ou objets qui font\\nchanger de Pokémon n’ont aucun effet sur lui.",
+      "fr": "L’Attaque du Pokémon augmente s’il subit l’effet du talent Intimidation. Les capacités ou objets qui font changer de Pokémon n’ont aucun effet sur lui.",
       "es": null
     },
     "longDescription": {
       "en": "Boosts the Pokémon’s Attack stat if intimidated. Moves and items that would force the Pokémon to switch out also fail to work.",
-      "fr": "L’Attaque du Pokémon augmente s’il subit l’effet du\\ntalent Intimidation. Les capacités ou objets qui font\\nchanger de Pokémon n’ont aucun effet sur lui.",
+      "fr": "L’Attaque du Pokémon augmente s’il subit l’effet du talent Intimidation. Les capacités ou objets qui font changer de Pokémon n’ont aucun effet sur lui.",
       "es": null
     },
     "flags": {
@@ -2145,12 +2145,12 @@
     },
     "shortDescription": {
       "en": "If a Cramorant with Gulp Missile uses Surf or Dive, it catches prey and changes its form depending on its remaining HP.",
-      "fr": "Quand le Pokémon utilise Surf ou Plongée, il revient\\navec une proie. Lorsqu’il subit des dégâts par la suite,\\nil attaque en recrachant sa proie.",
+      "fr": "Quand le Pokémon utilise Surf ou Plongée, il revient avec une proie. Lorsqu’il subit des dégâts par la suite, il attaque en recrachant sa proie.",
       "es": "Tras usar Surf o Buceo, emerge con una presa en la boca. Al recibir daño, ataca escupiéndola al rival."
     },
     "longDescription": {
       "en": "When the Pokémon uses Surf or Dive, it will come back with prey. When it takes damage, it will spit out the prey to attack.",
-      "fr": "Quand le Pokémon utilise Surf ou Plongée, il revient\\navec une proie. Lorsqu’il subit des dégâts par la suite,\\nil attaque en recrachant sa proie.",
+      "fr": "Quand le Pokémon utilise Surf ou Plongée, il revient avec une proie. Lorsqu’il subit des dégâts par la suite, il attaque en recrachant sa proie.",
       "es": "Tras usar Surf o Buceo, emerge con una presa en la boca. Al recibir daño, ataca escupiéndola al rival."
     },
     "flags": {
@@ -2193,12 +2193,12 @@
     },
     "shortDescription": {
       "en": "Creates an Electric Terrain when entering battle, and boosts Special Attack while active.",
-      "fr": "Le Pokémon crée un champ électrifié quand il rejoint\\nle combat. Une machine du futur fait monter son Attaque\\nSpéciale si un champ électrifié est actif.",
+      "fr": "Le Pokémon crée un champ électrifié quand il rejoint le combat. Une machine du futur fait monter son Attaque Spéciale si un champ électrifié est actif.",
       "es": null
     },
     "longDescription": {
       "en": "Turns the ground into Electric Terrain when the Pokémon enters a battle. The futuristic engine within the Pokémon also boosts its Sp. Atk stat on Electric Terrain.",
-      "fr": "Le Pokémon crée un champ électrifié quand il rejoint\\nle combat. Une machine du futur fait monter son Attaque\\nSpéciale si un champ électrifié est actif.",
+      "fr": "Le Pokémon crée un champ électrifié quand il rejoint le combat. Une machine du futur fait monter son Attaque Spéciale si un champ électrifié est actif.",
       "es": null
     },
     "flags": {
@@ -2265,12 +2265,12 @@
     },
     "shortDescription": {
       "en": "Halves damage from fire moves and burns.",
-      "fr": "Diminue de moitié les dégâts infligés au Pokémon\\npar les capacités de type Feu.",
+      "fr": "Diminue de moitié les dégâts infligés au Pokémon par les capacités de type Feu.",
       "es": "Su cuerpo, resistente al calor, reduce a la mitad el daño recibido por movimientos de tipo Fuego."
     },
     "longDescription": {
       "en": "This Pokémon takes half as much damage from fire-type moves and burns.",
-      "fr": "Diminue de moitié les dégâts infligés au Pokémon\\npar les capacités de type Feu.",
+      "fr": "Diminue de moitié les dégâts infligés au Pokémon par les capacités de type Feu.",
       "es": "Su cuerpo, resistente al calor, reduce a la mitad el daño recibido por movimientos de tipo Fuego."
     },
     "flags": {
@@ -2337,12 +2337,12 @@
     },
     "shortDescription": {
       "en": "When a Pokémon with Hospitality enters a battle, it restores HP for an ally by 25%.",
-      "fr": "Quand il rejoint le combat, ce Pokémon est aux petits\\nsoins avec son allié et restaure quelques PV.",
+      "fr": "Quand il rejoint le combat, ce Pokémon est aux petits soins avec son allié et restaure quelques PV.",
       "es": null
     },
     "longDescription": {
       "en": "When the Pokémon enters a battle, it showers its ally with hospitality, restoring a small amount of the ally's HP.",
-      "fr": "Quand il rejoint le combat, ce Pokémon est aux petits\\nsoins avec son allié et restaure quelques PV.",
+      "fr": "Quand il rejoint le combat, ce Pokémon est aux petits soins avec son allié et restaure quelques PV.",
       "es": null
     },
     "flags": {
@@ -2385,12 +2385,12 @@
     },
     "shortDescription": {
       "en": "Causes Morpeko to change its form each turn, alternating between Full Belly Mode and Hangry Mode",
-      "fr": "À la fin de chaque tour, le Pokémon alterne\\nentre ses formes Mode Rassasié et Mode Affamé.",
+      "fr": "À la fin de chaque tour, le Pokémon alterne entre ses formes Mode Rassasié et Mode Affamé.",
       "es": "Alterna entre su Forma Saciada y Forma Voraz al final de cada turno."
     },
     "longDescription": {
       "en": "The Pokémon changes its form, alternating between its Full Belly Mode and Hangry Mode after the end of every turn.",
-      "fr": "À la fin de chaque tour, le Pokémon alterne\\nentre ses formes Mode Rassasié et Mode Affamé.",
+      "fr": "À la fin de chaque tour, le Pokémon alterne entre ses formes Mode Rassasié et Mode Affamé.",
       "es": "Alterna entre su Forma Saciada y Forma Voraz al final de cada turno."
     },
     "flags": {
@@ -2505,12 +2505,12 @@
     },
     "shortDescription": {
       "en": "The Pokémon’s ice head can take a physical attack as a substitute, but the attack also changes the Pokémon’s appearance. The ice will be restored when it snows.",
-      "fr": "Le glaçon sur sa tête encaisse les attaques physiques\\nà la place du Pokémon, mais sa destruction modifie\\nson apparence. Le glaçon se reforme quand il neige.",
+      "fr": "Le glaçon sur sa tête encaisse les attaques physiques à la place du Pokémon, mais sa destruction modifie son apparence. Le glaçon se reforme quand il neige.",
       "es": "Absorbe el daño de un ataque físico con el hielo de la cabeza, tras lo cual cambia de forma. El hielo se regenerará la próxima vez que granice."
     },
     "longDescription": {
       "en": "When an Eiscue that's in its Ice Face form is hit by a physical move, it takes no damage and changes into its Noice Face form. If a hailstorm or snowstorm begins while Eiscue is in its Noice Face form, or if it is sent out in its Noice Face form during hail, it will immediately revert to its Ice Face form.",
-      "fr": "Le glaçon sur sa tête encaisse les attaques physiques\\nà la place du Pokémon, mais sa destruction modifie\\nson apparence. Le glaçon se reforme quand il neige.",
+      "fr": "Le glaçon sur sa tête encaisse les attaques physiques à la place du Pokémon, mais sa destruction modifie son apparence. Le glaçon se reforme quand il neige.",
       "es": "Absorbe el daño de un ataque físico con el hielo de la cabeza, tras lo cual cambia de forma. El hielo se regenerará la próxima vez que granice."
     },
     "flags": {
@@ -2529,12 +2529,12 @@
     },
     "shortDescription": {
       "en": "Halves damage from Special moves.",
-      "fr": "Le Pokémon est protégé par des écailles de glace.\\nLes dégâts qu’il subit par des capacités spéciales\\nsont divisés par deux.",
+      "fr": "Le Pokémon est protégé par des écailles de glace. Les dégâts qu’il subit par des capacités spéciales sont divisés par deux.",
       "es": "Las gélidas escamas que protegen su cuerpo reducen a la mitad el daño que le infligen los ataques especiales."
     },
     "longDescription": {
       "en": "The Pokémon is protected by ice scales, which halve the damage taken from special moves.",
-      "fr": "Le Pokémon est protégé par des écailles de glace.\\nLes dégâts qu’il subit par des capacités spéciales\\nsont divisés par deux.",
+      "fr": "Le Pokémon est protégé par des écailles de glace. Les dégâts qu’il subit par des capacités spéciales sont divisés par deux.",
       "es": "Las gélidas escamas que protegen su cuerpo reducen a la mitad el daño que le infligen los ataques especiales."
     },
     "flags": {
@@ -2553,12 +2553,12 @@
     },
     "shortDescription": {
       "en": "Doubles the wild encounter rate.",
-      "fr": "Le Pokémon illumine les alentours, ce qui empêche\\nsa Précision de baisser.",
+      "fr": "Le Pokémon illumine les alentours, ce qui empêche sa Précision de baisser.",
       "es": "Aumenta la probabilidad de encontrar Pokémon al iluminar el entorno."
     },
     "longDescription": {
       "en": "Overworld: If the lead Pokémon has this ability, the wild encounter rate is doubled.\n\nThis ability has no effect in battle.",
-      "fr": "Le Pokémon illumine les alentours, ce qui empêche\\nsa Précision de baisser.",
+      "fr": "Le Pokémon illumine les alentours, ce qui empêche sa Précision de baisser.",
       "es": "Aumenta la probabilidad de encontrar Pokémon al iluminar el entorno."
     },
     "flags": {
@@ -2577,12 +2577,12 @@
     },
     "shortDescription": {
       "en": "Takes the appearance of the last conscious party Pokémon upon being sent out until hit by a damaging move.",
-      "fr": "Le Pokémon prend l’apparence du dernier membre\\nde l’équipe pour tromper l’adversaire.",
+      "fr": "Le Pokémon prend l’apparence du dernier membre de l’équipe pour tromper l’adversaire.",
       "es": "Adopta el aspecto del último Pokémon del equipo al entrar en combate para desconcertar al rival."
     },
     "longDescription": {
       "en": "This Pokémon, upon being sent out, appears to have the species, nickname, and Poké Ball of the last Pokémon in the party that is able to battle.  This illusion breaks upon being hit by a damaging move.\n\nOther damage, e.g. from weather or spikes, does not break the illusion, nor does damage done to a substitute.\n\nIf the party order becomes temporarily shuffled around as Pokémon are switched out in battle, this ability chooses the last Pokémon according to that shuffled order.",
-      "fr": "Le Pokémon prend l’apparence du dernier membre\\nde l’équipe pour tromper l’adversaire.",
+      "fr": "Le Pokémon prend l’apparence du dernier membre de l’équipe pour tromper l’adversaire.",
       "es": "Adopta el aspecto del último Pokémon del equipo al entrar en combate para desconcertar al rival."
     },
     "flags": {
@@ -2601,12 +2601,12 @@
     },
     "shortDescription": {
       "en": "Prevents poison.",
-      "fr": "Le Pokémon est naturellement immunisé\\ncontre toute forme de poison.",
+      "fr": "Le Pokémon est naturellement immunisé contre toute forme de poison.",
       "es": "Su sistema inmunitario evita el envenenamiento."
     },
     "longDescription": {
       "en": "This Pokémon cannot be poisoned.  This includes bad poison.\n\nIf a Pokémon is poisoned and acquires this ability, its poison is healed; this includes when regaining a lost ability upon leaving battle.",
-      "fr": "Le Pokémon est naturellement immunisé\\ncontre toute forme de poison.",
+      "fr": "Le Pokémon est naturellement immunisé contre toute forme de poison.",
       "es": "Su sistema inmunitario evita el envenenamiento."
     },
     "flags": {
@@ -2649,12 +2649,12 @@
     },
     "shortDescription": {
       "en": "Bypasses light screen, reflect, and safeguard.",
-      "fr": "Traverse les barrières et les clones adverses\\npour attaquer directement.",
+      "fr": "Traverse les barrières et les clones adverses pour attaquer directement.",
       "es": "Ataca sorteando la barrera o el sustituto del rival."
     },
     "longDescription": {
       "en": "This Pokémon's moves ignore light screen, reflect, and safeguard.",
-      "fr": "Traverse les barrières et les clones adverses\\npour attaquer directement.",
+      "fr": "Traverse les barrières et les clones adverses pour attaquer directement.",
       "es": "Ataca sorteando la barrera o el sustituto del rival."
     },
     "flags": {
@@ -2673,12 +2673,12 @@
     },
     "shortDescription": {
       "en": "When this Pokémon faints from an opponent's move, that opponent takes damage equal to the HP this Pokémon had remaining.",
-      "fr": "Le Pokémon inflige à l’adversaire l’ayant mis K.O.\\ndes dégâts égaux au nombre de PV qu’il lui restait\\navant le coup de grâce.",
+      "fr": "Le Pokémon inflige à l’adversaire l’ayant mis K.O. des dégâts égaux au nombre de PV qu’il lui restait avant le coup de grâce.",
       "es": "Al caer debilitado, inflige al rival un daño equivalente a los PS que le quedaran."
     },
     "longDescription": {
       "en": "When this Pokémon faints from an opponent's move, that opponent takes damage equal to the HP this Pokémon had remaining.",
-      "fr": "Le Pokémon inflige à l’adversaire l’ayant mis K.O.\\ndes dégâts égaux au nombre de PV qu’il lui restait\\navant le coup de grâce.",
+      "fr": "Le Pokémon inflige à l’adversaire l’ayant mis K.O. des dégâts égaux au nombre de PV qu’il lui restait avant le coup de grâce.",
       "es": "Al caer debilitado, inflige al rival un daño equivalente a los PS que le quedaran."
     },
     "flags": {
@@ -2769,12 +2769,12 @@
     },
     "shortDescription": {
       "en": "Boosts Attack in battle.",
-      "fr": "Augmente l’Attaque du Pokémon la première fois\\nqu’il entre au combat.",
+      "fr": "Augmente l’Attaque du Pokémon la première fois qu’il entre au combat.",
       "es": "Aumenta su Ataque al entrar en combate."
     },
     "longDescription": {
       "en": "Boosts the Pokémon’s Attack stat the first time the Pokémon enters a battle.",
-      "fr": "Augmente l’Attaque du Pokémon la première fois\\nqu’il entre au combat.",
+      "fr": "Augmente l’Attaque du Pokémon la première fois qu’il entre au combat.",
       "es": "Aumenta su Ataque al entrar en combate."
     },
     "flags": {
@@ -2793,12 +2793,12 @@
     },
     "shortDescription": {
       "en": "Damages attacking Pokémon for 1/8 their max HP on contact.",
-      "fr": "Inflige des dégâts à l’attaquant lorsque le Pokémon\\nsubit une attaque directe.",
+      "fr": "Inflige des dégâts à l’attaquant lorsque le Pokémon subit une attaque directe.",
       "es": "Inflige daño al rival si este le golpea con un movimiento de contacto."
     },
     "longDescription": {
       "en": "Whenever a move makes contact with this Pokémon, the move's user takes 1/8 of its maximum HP in damage.\n\nThis ability functions identically to rough skin.",
-      "fr": "Inflige des dégâts à l’attaquant lorsque le Pokémon\\nsubit une attaque directe.",
+      "fr": "Inflige des dégâts à l’attaquant lorsque le Pokémon subit une attaque directe.",
       "es": "Inflige daño al rival si este le golpea con un movimiento de contacto."
     },
     "flags": {
@@ -2841,12 +2841,12 @@
     },
     "shortDescription": {
       "en": "Raises Attack one stage upon taking damage from a dark move.",
-      "fr": "Réveille la noblesse du Pokémon lorsqu’il subit\\nune attaque de type Ténèbres, ce qui augmente\\nson Attaque.",
+      "fr": "Réveille la noblesse du Pokémon lorsqu’il subit une attaque de type Ténèbres, ce qui augmente son Attaque.",
       "es": "Si le alcanza un movimiento de tipo Siniestro, aumenta el Ataque debido a su integridad."
     },
     "longDescription": {
       "en": "Whenever a dark-type move hits this Pokémon, its Attack rises one stage.\n\nThe move is not negated in any way.",
-      "fr": "Réveille la noblesse du Pokémon lorsqu’il subit\\nune attaque de type Ténèbres, ce qui augmente\\nson Attaque.",
+      "fr": "Réveille la noblesse du Pokémon lorsqu’il subit une attaque de type Ténèbres, ce qui augmente son Attaque.",
       "es": "Si le alcanza un movimiento de tipo Siniestro, aumenta el Ataque debido a su integridad."
     },
     "flags": {
@@ -2961,12 +2961,12 @@
     },
     "shortDescription": {
       "en": "Libero changes the Pokémon's type to that of its previously used attack.",
-      "fr": "Le Pokémon prend le type de la capacité qu’il utilise.\\nCe talent ne peut se déclencher qu’une fois par entrée\\nau combat du Pokémon.",
+      "fr": "Le Pokémon prend le type de la capacité qu’il utilise. Ce talent ne peut se déclencher qu’une fois par entrée au combat du Pokémon.",
       "es": "Cambia su tipo al del movimiento que va a usar."
     },
     "longDescription": {
       "en": "Changes the Pokémon’s type to the type of the move it’s about to use. This works only once each time the Pokémon enters battle.",
-      "fr": "Le Pokémon prend le type de la capacité qu’il utilise.\\nCe talent ne peut se déclencher qu’une fois par entrée\\nau combat du Pokémon.",
+      "fr": "Le Pokémon prend le type de la capacité qu’il utilise. Ce talent ne peut se déclencher qu’une fois par entrée au combat du Pokémon.",
       "es": "Cambia su tipo al del movimiento que va a usar."
     },
     "flags": {
@@ -3009,12 +3009,12 @@
     },
     "shortDescription": {
       "en": "Redirects single-target electric moves to this Pokémon where possible.  Absorbs Electric moves, raising Special Attack one stage.",
-      "fr": "Le Pokémon détourne sur lui les capacités\\nde type Électrik et les neutralise, tout en\\naugmentant son Attaque Spéciale.",
+      "fr": "Le Pokémon détourne sur lui les capacités de type Électrik et les neutralise, tout en augmentant son Attaque Spéciale.",
       "es": "Atrae y neutraliza los movimientos de tipo Eléctrico, que además le suben el Ataque Especial."
     },
     "longDescription": {
       "en": "All other Pokémon's single-target electric-type moves are redirected to this Pokémon if it is an eligible target.  Other Pokémon's Electric moves raise this Pokémon's Special Attack one stage, negating any other effect on it, and cannot miss it.\n\nIf the move's intended target also has this ability, the move is not redirected.  When multiple Pokémon with this ability are possible targets for redirection, the move is redirected to the one with the highest Speed stat, or, in the case of a tie, to a random tied Pokémon.  follow me takes precedence over this ability.\n\nIf the Pokémon is a ground-type and thus immune to Electric moves, its immunity prevents the Special Attack boost.",
-      "fr": "Le Pokémon détourne sur lui les capacités\\nde type Électrik et les neutralise, tout en\\naugmentant son Attaque Spéciale.",
+      "fr": "Le Pokémon détourne sur lui les capacités de type Électrik et les neutralise, tout en augmentant son Attaque Spéciale.",
       "es": "Atrae y neutraliza los movimientos de tipo Eléctrico, que además le suben el Ataque Especial."
     },
     "flags": {
@@ -3057,12 +3057,12 @@
     },
     "shortDescription": {
       "en": "Contact changes the attacker's Ability to Lingering Aroma.",
-      "fr": "Lorsque le Pokémon subit une attaque directe, le talent\\nde l’attaquant est remplacé par Odeur Tenace.",
+      "fr": "Lorsque le Pokémon subit une attaque directe, le talent de l’attaquant est remplacé par Odeur Tenace.",
       "es": null
     },
     "longDescription": {
       "en": "Contact with the Pokémon changes the attacker’s Ability to Lingering Aroma.",
-      "fr": "Lorsque le Pokémon subit une attaque directe, le talent\\nde l’attaquant est remplacé par Odeur Tenace.",
+      "fr": "Lorsque le Pokémon subit une attaque directe, le talent de l’attaquant est remplacé par Odeur Tenace.",
       "es": null
     },
     "flags": {
@@ -3105,12 +3105,12 @@
     },
     "shortDescription": {
       "en": "Sound-based moves become Water-type.",
-      "fr": "Toutes les attaques sonores du Pokémon prennent\\nle type Eau.",
+      "fr": "Toutes les attaques sonores du Pokémon prennent le type Eau.",
       "es": "Hace que todos sus movimientos que usan sonido pasen a ser de tipo Agua."
     },
     "longDescription": {
       "en": "When this Pokémon uses a move that is sound-based, that move's type is Water.",
-      "fr": "Toutes les attaques sonores du Pokémon prennent\\nle type Eau.",
+      "fr": "Toutes les attaques sonores du Pokémon prennent le type Eau.",
       "es": "Hace que todos sus movimientos que usan sonido pasen a ser de tipo Agua."
     },
     "flags": {
@@ -3129,12 +3129,12 @@
     },
     "shortDescription": {
       "en": "This Pokémon's moves do not make contact.",
-      "fr": "Le Pokémon est capable d’utiliser toutes ses capacités\\nsans entrer en contact direct avec sa cible.",
+      "fr": "Le Pokémon est capable d’utiliser toutes ses capacités sans entrer en contact direct avec sa cible.",
       "es": "Puede usar cualquier movimiento sin entrar en contacto con el rival."
     },
     "longDescription": {
       "en": "A move used by this Pokémon will not make contact.",
-      "fr": "Le Pokémon est capable d’utiliser toutes ses capacités\\nsans entrer en contact direct avec sa cible.",
+      "fr": "Le Pokémon est capable d’utiliser toutes ses capacités sans entrer en contact direct avec sa cible.",
       "es": "Puede usar cualquier movimiento sin entrar en contacto con el rival."
     },
     "flags": {
@@ -3153,12 +3153,12 @@
     },
     "shortDescription": {
       "en": "Reflects most non-damaging moves back at their user.",
-      "fr": "Annule les effets des capacités de statut subies\\npar le Pokémon et les retourne à l’envoyeur.",
+      "fr": "Annule les effets des capacités de statut subies par le Pokémon et les retourne à l’envoyeur.",
       "es": "Puede devolver los movimientos de estado lanzados por el rival, sin verse afectado por ellos."
     },
     "longDescription": {
       "en": "When this Pokémon is targeted by a move flagged as being reflectable, the move is redirected to its user.\n\nAll reflectable moves are non-damaging, and most non-damaging moves that target other Pokémon are reflectable.\n\nA move reflected by this ability or magic coat cannot be reflected back.",
-      "fr": "Annule les effets des capacités de statut subies\\npar le Pokémon et les retourne à l’envoyeur.",
+      "fr": "Annule les effets des capacités de statut subies par le Pokémon et les retourne à l’envoyeur.",
       "es": "Puede devolver los movimientos de estado lanzados por el rival, sin verse afectado por ellos."
     },
     "flags": {
@@ -3225,12 +3225,12 @@
     },
     "shortDescription": {
       "en": "Prevents freezing.",
-      "fr": "Le magma qui recouvre le corps du Pokémon le protège\\ncontre le gel.",
+      "fr": "Le magma qui recouvre le corps du Pokémon le protège contre le gel.",
       "es": "Gracias al magma candente que lo envuelve, no puede ser congelado."
     },
     "longDescription": {
       "en": "This Pokémon cannot be frozen.\n\nIf a Pokémon is frozen and acquires this ability, it will immediately thaw out; this includes when regaining a lost ability upon leaving battle.\n\nOverworld: If any Pokémon in the party has this ability, each egg in the party has its hatch counter decreased by 2 (rather than 1) each step cycle, making eggs hatch roughly twice as quickly.  This effect does not stack if multiple Pokémon have this ability or flame body.",
-      "fr": "Le magma qui recouvre le corps du Pokémon le protège\\ncontre le gel.",
+      "fr": "Le magma qui recouvre le corps du Pokémon le protège contre le gel.",
       "es": "Gracias al magma candente que lo envuelve, no puede ser congelado."
     },
     "flags": {
@@ -3273,12 +3273,12 @@
     },
     "shortDescription": {
       "en": "Increases Defense to 1.5× with a major status ailment.",
-      "fr": "Les écailles mystérieuses du Pokémon réagissent\\naux altérations de statut en augmentant sa Défense.",
+      "fr": "Les écailles mystérieuses du Pokémon réagissent aux altérations de statut en augmentant sa Défense.",
       "es": "Sube su Defensa si sufre un problema de estado."
     },
     "longDescription": {
       "en": "Whenever this Pokémon has a major status ailment, it has 1.5× its Defense.\n\nThis bonus does not count as a stat modifier.",
-      "fr": "Les écailles mystérieuses du Pokémon réagissent\\naux altérations de statut en augmentant sa Défense.",
+      "fr": "Les écailles mystérieuses du Pokémon réagissent aux altérations de statut en augmentant sa Défense.",
       "es": "Sube su Defensa si sufre un problema de estado."
     },
     "flags": {
@@ -3297,12 +3297,12 @@
     },
     "shortDescription": {
       "en": "Strengthens aura and pulse moves to 1.5× their power.",
-      "fr": "Augmente la puissance des capacités qui projettent\\nune aura.",
+      "fr": "Augmente la puissance des capacités qui projettent une aura.",
       "es": "Aumenta la potencia de algunos movimientos de pulsos y auras."
     },
     "longDescription": {
       "en": "Strengthens aura and pulse moves to 1.5× their power.",
-      "fr": "Augmente la puissance des capacités qui projettent\\nune aura.",
+      "fr": "Augmente la puissance des capacités qui projettent une aura.",
       "es": "Aumenta la potencia de algunos movimientos de pulsos y auras."
     },
     "flags": {
@@ -3345,12 +3345,12 @@
     },
     "shortDescription": {
       "en": "This Pokémon's moves critical hit against poisoned targets.",
-      "fr": "Lorsque le Pokémon attaque un adversaire empoisonné,\\nle coup est forcément critique.",
+      "fr": "Lorsque le Pokémon attaque un adversaire empoisonné, le coup est forcément critique.",
       "es": "Hace que sus movimientos asesten siempre un golpe crítico si el rival está envenenado."
     },
     "longDescription": {
       "en": "This Pokémon's moves critical hit against poisoned targets.",
-      "fr": "Lorsque le Pokémon attaque un adversaire empoisonné,\\nle coup est forcément critique.",
+      "fr": "Lorsque le Pokémon attaque un adversaire empoisonné, le coup est forcément critique.",
       "es": "Hace que sus movimientos asesten siempre un golpe crítico si el rival está envenenado."
     },
     "flags": {
@@ -3369,12 +3369,12 @@
     },
     "shortDescription": {
       "en": "Changes type depending on the terrain.",
-      "fr": "Le Pokémon adopte le même type que le terrain\\nlorsqu’un champ est actif.",
+      "fr": "Le Pokémon adopte le même type que le terrain lorsqu’un champ est actif.",
       "es": "Cambia su tipo según el campo que haya en el terreno de combate."
     },
     "longDescription": {
       "en": "Changes the Pokémon’s type depending on the terrain.",
-      "fr": "Le Pokémon adopte le même type que le terrain\\nlorsqu’un champ est actif.",
+      "fr": "Le Pokémon adopte le même type que le terrain lorsqu’un champ est actif.",
       "es": "Cambia su tipo según el campo que haya en el terreno de combate."
     },
     "flags": {
@@ -3393,12 +3393,12 @@
     },
     "shortDescription": {
       "en": "The Pokémon ignores changes to opponents' evasiveness, its accuracy can't be lowered, and it can hit Ghost types with Normal- and Fighting-type moves.",
-      "fr": "Le Pokémon ignore les changements d’Esquive des cibles\\net peut toucher les Pokémon Spectre avec des capacités\\nNormal ou Combat. Sa Précision ne peut pas baisser.",
+      "fr": "Le Pokémon ignore les changements d’Esquive des cibles et peut toucher les Pokémon Spectre avec des capacités Normal ou Combat. Sa Précision ne peut pas baisser.",
       "es": null
     },
     "longDescription": {
       "en": "Mind's Eye enables the Pokémon with this Ability to hit Ghost-type Pokémon with damage-dealing Normal- and Fighting-type moves. It also prevents other Pokémon from lowering the Pokémon's accuracy and ignores changes to the opponents' evasion.",
-      "fr": "Le Pokémon ignore les changements d’Esquive des cibles\\net peut toucher les Pokémon Spectre avec des capacités\\nNormal ou Combat. Sa Précision ne peut pas baisser.",
+      "fr": "Le Pokémon ignore les changements d’Esquive des cibles et peut toucher les Pokémon Spectre avec des capacités Normal ou Combat. Sa Précision ne peut pas baisser.",
       "es": null
     },
     "flags": {
@@ -3417,12 +3417,12 @@
     },
     "shortDescription": {
       "en": "Increases Special Attack to 1.5× when a friendly Pokémon has plus or minus.",
-      "fr": "L’Attaque Spéciale du Pokémon augmente\\nsi un Pokémon allié a le talent Moins ou Plus.",
+      "fr": "L’Attaque Spéciale du Pokémon augmente si un Pokémon allié a le talent Moins ou Plus.",
       "es": "Potencia su Ataque Especial si un Pokémon aliado tiene la habilidad Más o Menos."
     },
     "longDescription": {
       "en": "This Pokémon has 1.5× its Special Attack if any friendly Pokémon has plus or minus.\n\nThis bonus does not count as a stat modifier.  If either ability is disabled by gastro acid, both lose their effect.",
-      "fr": "L’Attaque Spéciale du Pokémon augmente\\nsi un Pokémon allié a le talent Moins ou Plus.",
+      "fr": "L’Attaque Spéciale du Pokémon augmente si un Pokémon allié a le talent Moins ou Plus.",
       "es": "Potencia su Ataque Especial si un Pokémon aliado tiene la habilidad Más o Menos."
     },
     "flags": {
@@ -3441,12 +3441,12 @@
     },
     "shortDescription": {
       "en": "Reflects any stat-lowering effects.",
-      "fr": "Le Pokémon renvoie les effets réducteurs de stats\\nqu’il reçoit.",
+      "fr": "Le Pokémon renvoie les effets réducteurs de stats qu’il reçoit.",
       "es": "Refleja los efectos que reducen las características."
     },
     "longDescription": {
       "en": "Bounces back only the stat-lowering effects that the Pokémon receives.",
-      "fr": "Le Pokémon renvoie les effets réducteurs de stats\\nqu’il reçoit.",
+      "fr": "Le Pokémon renvoie les effets réducteurs de stats qu’il reçoit.",
       "es": "Refleja los efectos que reducen las características."
     },
     "flags": {
@@ -3465,12 +3465,12 @@
     },
     "shortDescription": {
       "en": "When this Pokémon enters battle, it changes the terrain to Misty Terrain.",
-      "fr": "Le Pokémon crée un champ brumeux au moment\\noù il entre au combat.",
+      "fr": "Le Pokémon crée un champ brumeux au moment où il entre au combat.",
       "es": "Crea un campo de niebla al entrar en combate."
     },
     "longDescription": {
       "en": "When this Pokémon enters battle, it changes the terrain to misty terrain.",
-      "fr": "Le Pokémon crée un champ brumeux au moment\\noù il entre au combat.",
+      "fr": "Le Pokémon crée un champ brumeux au moment où il entre au combat.",
       "es": "Crea un campo de niebla al entrar en combate."
     },
     "flags": {
@@ -3513,12 +3513,12 @@
     },
     "shortDescription": {
       "en": "Raises a random stat two stages and lowers another one stage after each turn.",
-      "fr": "Augmente beaucoup une stat du Pokémon\\net en baisse une autre au hasard à chaque tour.",
+      "fr": "Augmente beaucoup une stat du Pokémon et en baisse une autre au hasard à chaque tour.",
       "es": "Una característica le sube mucho en cada turno, pero le baja otra."
     },
     "longDescription": {
       "en": "After each turn, one of this Pokémon's stats at random rises two stages, and another falls one stage.\n\nIf a stat is already at 6 or -6 stages, it will not be chosen to be increased or decreased, respectively.",
-      "fr": "Augmente beaucoup une stat du Pokémon\\net en baisse une autre au hasard à chaque tour.",
+      "fr": "Augmente beaucoup une stat du Pokémon et en baisse une autre au hasard à chaque tour.",
       "es": "Una característica le sube mucho en cada turno, pero le baja otra."
     },
     "flags": {
@@ -3537,12 +3537,12 @@
     },
     "shortDescription": {
       "en": "Absorbs electric moves, raising Speed one stage.",
-      "fr": "Si le Pokémon est touché par une capacité de type\\nÉlectrik, il ne subit aucun dégât et sa Vitesse augmente.",
+      "fr": "Si le Pokémon est touché par une capacité de type Électrik, il ne subit aucun dégât et sa Vitesse augmente.",
       "es": "Si le alcanza un movimiento de tipo Eléctrico, le sube la Velocidad en vez de sufrir daño."
     },
     "longDescription": {
       "en": "Whenever an electric-type move hits this Pokémon, its Speed rises one stage, negating any other effect on it.\n\nThis ability will not take effect if this Pokémon is immune to Electric moves.  Electric moves will ignore this Pokémon's substitute.\n\nThis effect includes non-damaging moves, i.e. thunder wave.",
-      "fr": "Si le Pokémon est touché par une capacité de type\\nÉlectrik, il ne subit aucun dégât et sa Vitesse augmente.",
+      "fr": "Si le Pokémon est touché par une capacité de type Électrik, il ne subit aucun dégât et sa Vitesse augmente.",
       "es": "Si le alcanza un movimiento de tipo Eléctrico, le sube la Velocidad en vez de sufrir daño."
     },
     "flags": {
@@ -3585,12 +3585,12 @@
     },
     "shortDescription": {
       "en": "Raises Attack one stage upon KOing a Pokémon.",
-      "fr": "Quand le Pokémon met un ennemi K.O.,\\nsa confiance en lui ne connaît plus de limite\\net son Attaque augmente.",
+      "fr": "Quand le Pokémon met un ennemi K.O., sa confiance en lui ne connaît plus de limite et son Attaque augmente.",
       "es": "Al debilitar a un objetivo, su confianza se refuerza de tal manera que aumenta su Ataque."
     },
     "longDescription": {
       "en": "This Pokémon's Attack rises one stage upon knocking out another Pokémon, even a friendly Pokémon.\n\nThis ability does not take effect when the Pokémon indirectly causes another Pokémon to faint, e.g. through poison or spikes.\n\nIf this Pokémon knocks out a Pokémon with mummy, the former's ability will change without taking effect.",
-      "fr": "Quand le Pokémon met un ennemi K.O.,\\nsa confiance en lui ne connaît plus de limite\\net son Attaque augmente.",
+      "fr": "Quand le Pokémon met un ennemi K.O., sa confiance en lui ne connaît plus de limite et son Attaque augmente.",
       "es": "Al debilitar a un objetivo, su confianza se refuerza de tal manera que aumenta su Ataque."
     },
     "flags": {
@@ -3609,12 +3609,12 @@
     },
     "shortDescription": {
       "en": "Halves damage taken from full HP.",
-      "fr": "Le Pokémon subit moins de dégâts quand ses PV\\nsont au maximum.",
+      "fr": "Le Pokémon subit moins de dégâts quand ses PV sont au maximum.",
       "es": "Reduce el daño que sufre si sus PS están al máximo."
     },
     "longDescription": {
       "en": "This Pokémon takes half as much damage when it is hit having full HP.",
-      "fr": "Le Pokémon subit moins de dégâts quand ses PV\\nsont au maximum.",
+      "fr": "Le Pokémon subit moins de dégâts quand ses PV sont au maximum.",
       "es": "Reduce el daño que sufre si sus PS están al máximo."
     },
     "flags": {
@@ -3633,12 +3633,12 @@
     },
     "shortDescription": {
       "en": "Changes arceus's type and form to match its held Plate.",
-      "fr": "Modifie le type du Pokémon en fonction de la plaque\\nqu’il tient.",
+      "fr": "Modifie le type du Pokémon en fonction de la plaque qu’il tient.",
       "es": "Cambia su tipo al de la tabla o al del Cristal Z que lleve."
     },
     "longDescription": {
       "en": "If this Pokémon is holding an elemental Plate, its type and form change to match the Plate.\n\nThis Pokémon's held item, whether or not it is a Plate, cannot be taken by covet or thief, nor removed by knock off, nor traded by switcheroo or trick.  Covet, Thief, and Knock Off still inflict damage against this Pokémon.  Unlike with sticky hold, this Pokémon cannot use fling, Switcheroo, or Trick to lose its item itself, nor gain an item through Switcheroo or Trick if it does not have one.\n\nThis ability has no effect for any Pokémon other than arceus.  This ability cannot be traded with skill swap, nor copied with role play or trace, nor disabled with gastro acid, nor changed with worry seed.  This Pokémon cannot use Skill Swap or Role Play to lose its ability itself.  mold breaker cannot ignore this ability.\n\nIf a Pokémon Transforms into an Arceus with this ability, it will Transform into Arceus's default, normal-type form.  If the Transforming Pokémon is holding a Plate, this ability will then activate and change the Pokémon into the corresponding form.",
-      "fr": "Modifie le type du Pokémon en fonction de la plaque\\nqu’il tient.",
+      "fr": "Modifie le type du Pokémon en fonction de la plaque qu’il tient.",
       "es": "Cambia su tipo al de la tabla o al del Cristal Z que lleve."
     },
     "flags": {
@@ -3657,12 +3657,12 @@
     },
     "shortDescription": {
       "en": "Changes attacking Pokémon's abilities to Mummy on contact.",
-      "fr": "Lorsque le Pokémon subit une attaque directe, le talent\\nde l’attaquant est remplacé par Momie.",
+      "fr": "Lorsque le Pokémon subit une attaque directe, le talent de l’attaquant est remplacé par Momie.",
       "es": "Contagia la habilidad Momia al rival que entre en contacto con él."
     },
     "longDescription": {
       "en": "Whenever a contact move hits this Pokémon, the attacking Pokémon's ability changes to Mummy.\n\nmultitype is unaffected.  If a Pokémon with moxie knocks this Pokémon out, the former's ability will change without taking effect.",
-      "fr": "Lorsque le Pokémon subit une attaque directe, le talent\\nde l’attaquant est remplacé par Momie.",
+      "fr": "Lorsque le Pokémon subit une attaque directe, le talent de l’attaquant est remplacé par Momie.",
       "es": "Contagia la habilidad Momia al rival que entre en contacto con él."
     },
     "flags": {
@@ -3681,12 +3681,12 @@
     },
     "shortDescription": {
       "en": "Status moves go last, but are not affected by the opponent's ability.",
-      "fr": "Le Pokémon agit toujours plus lentement quand il utilise\\nune capacité de statut, mais il ignore les talents adverses.",
+      "fr": "Le Pokémon agit toujours plus lentement quand il utilise une capacité de statut, mais il ignore les talents adverses.",
       "es": null
     },
     "longDescription": {
       "en": "The Pokémon will always act more slowly when using status moves, but these moves will be unimpeded by the Ability of the target.",
-      "fr": "Le Pokémon agit toujours plus lentement quand il utilise\\nune capacité de statut, mais il ignore les talents adverses.",
+      "fr": "Le Pokémon agit toujours plus lentement quand il utilise une capacité de statut, mais il ignore les talents adverses.",
       "es": null
     },
     "flags": {
@@ -3729,12 +3729,12 @@
     },
     "shortDescription": {
       "en": "Increases super-effective damage dealt to 1.25×.",
-      "fr": "Augmente encore plus la puissance des attaques\\nsuper efficaces.",
+      "fr": "Augmente encore plus la puissance des attaques super efficaces.",
       "es": "Potencia los ataques supereficaces."
     },
     "longDescription": {
       "en": "Increases super-effective damage dealt to 1.25×.",
-      "fr": "Augmente encore plus la puissance des attaques\\nsuper efficaces.",
+      "fr": "Augmente encore plus la puissance des attaques super efficaces.",
       "es": "Potencia los ataques supereficaces."
     },
     "flags": {
@@ -3801,12 +3801,12 @@
     },
     "shortDescription": {
       "en": "Makes the Pokémon's moves all act normal-type.",
-      "fr": "Toutes les capacités du Pokémon deviennent\\nde type Normal, quel que soit leur type original.\\nLeur puissance augmente légèrement.",
+      "fr": "Toutes les capacités du Pokémon deviennent de type Normal, quel que soit leur type original. Leur puissance augmente légèrement.",
       "es": "Hace que todos sus movimientos se vuelvan de tipo Normal y aumenten ligeramente su potencia."
     },
     "longDescription": {
       "en": "This Pokémon's moves all act as if they were normal-type.\n\nMoves that inflict typeless damage do so as usual.  Moves of variable type, such as hidden power, are affected.  They otherwise work as usual, however; weather ball, for example, is always forced to be Normal, but it still has doubled power and looks different during weather.\n\nAs thunder wave is prevented by immunities, unlike most non-damaging moves, it does not affect ghost-type Pokémon under the effect of this ability.",
-      "fr": "Toutes les capacités du Pokémon deviennent\\nde type Normal, quel que soit leur type original.\\nLeur puissance augmente légèrement.",
+      "fr": "Toutes les capacités du Pokémon deviennent de type Normal, quel que soit leur type original. Leur puissance augmente légèrement.",
       "es": "Hace que todos sus movimientos se vuelvan de tipo Normal y aumenten ligeramente su potencia."
     },
     "flags": {
@@ -3849,12 +3849,12 @@
     },
     "shortDescription": {
       "en": "Copies stat boosts by the opponent.",
-      "fr": "Quand les stats de l’ennemi augmentent, le Pokémon\\nen profite pour augmenter ses stats de la même manière.",
+      "fr": "Quand les stats de l’ennemi augmentent, le Pokémon en profite pour augmenter ses stats de la même manière.",
       "es": null
     },
     "longDescription": {
       "en": "If an opponent’s stat is boosted, the Pokémon seizes the opportunity to boost the same stat for itself.",
-      "fr": "Quand les stats de l’ennemi augmentent, le Pokémon\\nen profite pour augmenter ses stats de la même manière.",
+      "fr": "Quand les stats de l’ennemi augmentent, le Pokémon en profite pour augmenter ses stats de la même manière.",
       "es": null
     },
     "flags": {
@@ -3873,12 +3873,12 @@
     },
     "shortDescription": {
       "en": "Turns the sunlight harsh when entering battle, and boosts Attack while active.",
-      "fr": "Le Pokémon invoque le soleil quand il rejoint le combat.\\nQuand le soleil brille, une pulsation primitive augmente\\nson Attaque.",
+      "fr": "Le Pokémon invoque le soleil quand il rejoint le combat. Quand le soleil brille, une pulsation primitive augmente son Attaque.",
       "es": null
     },
     "longDescription": {
       "en": "Turns the sunlight harsh when the Pokémon enters a battle. The ancient pulse thrumming through the Pokémon also boosts its Attack stat in harsh sunlight.",
-      "fr": "Le Pokémon invoque le soleil quand il rejoint le combat.\\nQuand le soleil brille, une pulsation primitive augmente\\nson Attaque.",
+      "fr": "Le Pokémon invoque le soleil quand il rejoint le combat. Quand le soleil brille, une pulsation primitive augmente son Attaque.",
       "es": null
     },
     "flags": {
@@ -3897,12 +3897,12 @@
     },
     "shortDescription": {
       "en": "Protects against damage from weather.",
-      "fr": "Protège des dégâts occasionnés par les tempêtes\\nde sable, ainsi que des effets des capacités\\nqui libèrent de la poudre et des spores.",
+      "fr": "Protège des dégâts occasionnés par les tempêtes de sable, ainsi que des effets des capacités qui libèrent de la poudre et des spores.",
       "es": "No le afectan las tormentas de arena, el granizo y los movimientos con polvos."
     },
     "longDescription": {
       "en": "This Pokémon does not take damage from weather.",
-      "fr": "Protège des dégâts occasionnés par les tempêtes\\nde sable, ainsi que des effets des capacités\\nqui libèrent de la poudre et des spores.",
+      "fr": "Protège des dégâts occasionnés par les tempêtes de sable, ainsi que des effets des capacités qui libèrent de la poudre et des spores.",
       "es": "No le afectan las tormentas de arena, el granizo y los movimientos con polvos."
     },
     "flags": {
@@ -3969,12 +3969,12 @@
     },
     "shortDescription": {
       "en": "Lets the bearer hit twice with damaging moves.  The second hit has half power.",
-      "fr": "La mère et son petit unissent leurs forces pour\\nattaquer deux fois d’affilée.",
+      "fr": "La mère et son petit unissent leurs forces pour attaquer deux fois d’affilée.",
       "es": "Une fuerzas con su cría y ataca dos veces."
     },
     "longDescription": {
       "en": "Lets the bearer hit twice with damaging moves.  The second hit has half power.",
-      "fr": "La mère et son petit unissent leurs forces pour\\nattaquer deux fois d’affilée.",
+      "fr": "La mère et son petit unissent leurs forces pour attaquer deux fois d’affilée.",
       "es": "Une fuerzas con su cría y ataca dos veces."
     },
     "flags": {
@@ -3993,12 +3993,12 @@
     },
     "shortDescription": {
       "en": "Prevents the Pokémon and its allies from being poisoned.",
-      "fr": "Protège le Pokémon et ses alliés contre toutes\\nles altérations de statut liées à l’empoisonnement.",
+      "fr": "Protège le Pokémon et ses alliés contre toutes les altérations de statut liées à l’empoisonnement.",
       "es": "Se protege a sí mismo y a sus aliados del envenenamiento."
     },
     "longDescription": {
       "en": "Prevents the Pokémon and its teammates from being poisoned. It also cures teammates of poisoning when it enters the battlefield.",
-      "fr": "Protège le Pokémon et ses alliés contre toutes\\nles altérations de statut liées à l’empoisonnement.",
+      "fr": "Protège le Pokémon et ses alliés contre toutes les altérations de statut liées à l’empoisonnement.",
       "es": "Se protege a sí mismo y a sus aliados del envenenamiento."
     },
     "flags": {
@@ -4017,12 +4017,12 @@
     },
     "shortDescription": {
       "en": "When hit by a move that makes direct contact, the Pokémon and the attacker will faint after three turns unless they switch out of battle.",
-      "fr": "Lorsque le Pokémon est directement touché par\\nune capacité, l’assaillant et lui tomberont K.O. dans trois\\ntours, à moins qu’ils ne soient remplacés entre temps.",
+      "fr": "Lorsque le Pokémon est directement touché par une capacité, l’assaillant et lui tomberont K.O. dans trois tours, à moins qu’ils ne soient remplacés entre temps.",
       "es": "Si le alcanza un movimiento de contacto, se debilitará al cabo de 3 turnos, así como su agresor, a menos que abandonen el terreno de combate."
     },
     "longDescription": {
       "en": "When the Pokémon with Perish Body is hit with a contact move, both the attacker and the Pokémon with Perish Body will faint in three turns.",
-      "fr": "Lorsque le Pokémon est directement touché par\\nune capacité, l’assaillant et lui tomberont K.O. dans trois\\ntours, à moins qu’ils ne soient remplacés entre temps.",
+      "fr": "Lorsque le Pokémon est directement touché par une capacité, l’assaillant et lui tomberont K.O. dans trois tours, à moins qu’ils ne soient remplacés entre temps.",
       "es": "Si le alcanza un movimiento de contacto, se debilitará al cabo de 3 turnos, así como su agresor, a menos que abandonen el terreno de combate."
     },
     "flags": {
@@ -4041,12 +4041,12 @@
     },
     "shortDescription": {
       "en": "Steals attacking Pokémon's held items on contact.",
-      "fr": "Vole l’objet que tient l’attaquant quand le Pokémon\\nsubit une attaque directe.",
+      "fr": "Vole l’objet que tient l’attaquant quand le Pokémon subit une attaque directe.",
       "es": "Si el rival usa un movimiento de contacto al atacar, le roba el objeto."
     },
     "longDescription": {
       "en": "Whenever a move makes contact with this Pokémon, if it does not have a held item, it steals the attacker's held item.\n\nThis Pokémon cannot steal upon being knocked out.  It can steal if the attacker has a substitute, but cannot steal when its own Substitute is hit.  If a move hits multiple times, only the last hit triggers this ability.  If this Pokémon is wild, it cannot steal from a trained Pokémon.",
-      "fr": "Vole l’objet que tient l’attaquant quand le Pokémon\\nsubit une attaque directe.",
+      "fr": "Vole l’objet que tient l’attaquant quand le Pokémon subit une attaque directe.",
       "es": "Si el rival usa un movimiento de contacto al atacar, le roba el objeto."
     },
     "flags": {
@@ -4113,12 +4113,12 @@
     },
     "shortDescription": {
       "en": "Turns the bearer's normal moves into fairy moves and strengthens them to 1.3× their power.",
-      "fr": "Les capacités de type Normal deviennent de type Fée.\\nLeur puissance augmente légèrement.",
+      "fr": "Les capacités de type Normal deviennent de type Fée. Leur puissance augmente légèrement.",
       "es": "Convierte los movimientos de tipo Normal en tipo Hada y aumenta ligeramente su potencia."
     },
     "longDescription": {
       "en": "Turns the bearer's normal-type moves into fairy moves.  Moves changed by this ability have 1.3× their power.",
-      "fr": "Les capacités de type Normal deviennent de type Fée.\\nLeur puissance augmente légèrement.",
+      "fr": "Les capacités de type Normal deviennent de type Fée. Leur puissance augmente légèrement.",
       "es": "Convierte los movimientos de tipo Normal en tipo Hada y aumenta ligeramente su potencia."
     },
     "flags": {
@@ -4137,12 +4137,12 @@
     },
     "shortDescription": {
       "en": "Increases Special Attack to 1.5× when a friendly Pokémon has plus or minus.",
-      "fr": "L’Attaque Spéciale du Pokémon augmente\\nsi un Pokémon allié a le talent Moins ou Plus.",
+      "fr": "L’Attaque Spéciale du Pokémon augmente si un Pokémon allié a le talent Moins ou Plus.",
       "es": "Potencia su Ataque Especial si un Pokémon aliado tiene la habilidad Más o Menos."
     },
     "longDescription": {
       "en": "This Pokémon has 1.5× its Special Attack if any friendly Pokémon has plus or minus.\n\nThis bonus does not count as a stat modifier.  If either ability is disabled by gastro acid, both lose their effect.",
-      "fr": "L’Attaque Spéciale du Pokémon augmente\\nsi un Pokémon allié a le talent Moins ou Plus.",
+      "fr": "L’Attaque Spéciale du Pokémon augmente si un Pokémon allié a le talent Moins ou Plus.",
       "es": "Potencia su Ataque Especial si un Pokémon aliado tiene la habilidad Más o Menos."
     },
     "flags": {
@@ -4161,12 +4161,12 @@
     },
     "shortDescription": {
       "en": "Heals for 1/8 max HP after each turn when poisoned in place of damage.",
-      "fr": "Quand le Pokémon est empoisonné, il regagne des PV\\nau lieu d’en perdre.",
+      "fr": "Quand le Pokémon est empoisonné, il regagne des PV au lieu d’en perdre.",
       "es": "Si resulta envenenado, recupera PS en vez de perderlos."
     },
     "longDescription": {
       "en": "If this Pokémon is poisoned, it will heal for 1/8 of its maximum HP after each turn rather than taking damage.  This includes bad poison.",
-      "fr": "Quand le Pokémon est empoisonné, il regagne des PV\\nau lieu d’en perdre.",
+      "fr": "Quand le Pokémon est empoisonné, il regagne des PV au lieu d’en perdre.",
       "es": "Si resulta envenenado, recupera PS en vez de perderlos."
     },
     "flags": {
@@ -4209,12 +4209,12 @@
     },
     "shortDescription": {
       "en": "Pokémon poisoned by Pecharunt's moves will also become confused.",
-      "fr": "Lorsque Pêchaminus empoisonne un Pokémon grâce\\nà l’une de ses capacités, ce dernier devient également\\nconfus.",
+      "fr": "Lorsque Pêchaminus empoisonne un Pokémon grâce à l’une de ses capacités, ce dernier devient également confus.",
       "es": null
     },
     "longDescription": {
       "en": "When a Pokémon is poisoned by any of Pecharunt's moves, it will also become confused.",
-      "fr": "Lorsque Pêchaminus empoisonne un Pokémon grâce\\nà l’une de ses capacités, ce dernier devient également\\nconfus.",
+      "fr": "Lorsque Pêchaminus empoisonne un Pokémon grâce à l’une de ses capacités, ce dernier devient également confus.",
       "es": null
     },
     "flags": {
@@ -4257,12 +4257,12 @@
     },
     "shortDescription": {
       "en": "Transforms 10% or 50% Zygarde into Complete Forme when its HP is below 50%.",
-      "fr": "Lorsque le Pokémon perd la moitié de ses PV,\\nses Cellules se rassemblent pour l’encourager,\\nce qui lui permet de prendre sa Forme Parfaite.",
+      "fr": "Lorsque le Pokémon perd la moitié de ses PV, ses Cellules se rassemblent pour l’encourager, ce qui lui permet de prendre sa Forme Parfaite.",
       "es": "Cuando sus PS se ven reducidos a la mitad, las células se reagrupan y adopta su Forma Completa."
     },
     "longDescription": {
       "en": "Transforms 10% or 50% Zygarde into Complete Forme when its HP is below 50%.\n\nThis ability cannot be copied or replaced.  This ability only takes effect for Zygarde.",
-      "fr": "Lorsque le Pokémon perd la moitié de ses PV,\\nses Cellules se rassemblent pour l’encourager,\\nce qui lui permet de prendre sa Forme Parfaite.",
+      "fr": "Lorsque le Pokémon perd la moitié de ses PV, ses Cellules se rassemblent pour l’encourager, ce qui lui permet de prendre sa Forme Parfaite.",
       "es": "Cuando sus PS se ven reducidos a la mitad, las células se reagrupan y adopta su Forma Completa."
     },
     "flags": {
@@ -4305,12 +4305,12 @@
     },
     "shortDescription": {
       "en": "Just being next to the Pokémon powers up moves.",
-      "fr": "Augmente la puissance des capacités des Pokémon\\nqui se trouvent à proximité.",
+      "fr": "Augmente la puissance des capacités des Pokémon qui se trouvent à proximité.",
       "es": "Potencia los movimientos de los Pokémon adyacentes."
     },
     "longDescription": {
       "en": " \"The power of moves used by the allies of the Pokémon with Power Spot is increased by 30%.\"",
-      "fr": "Augmente la puissance des capacités des Pokémon\\nqui se trouvent à proximité.",
+      "fr": "Augmente la puissance des capacités des Pokémon qui se trouvent à proximité.",
       "es": "Potencia los movimientos de los Pokémon adyacentes."
     },
     "flags": {
@@ -4377,12 +4377,12 @@
     },
     "shortDescription": {
       "en": "Creates heavy rain, which has all the properties of Rain Dance, cannot be replaced, and causes damaging Fire moves to fail.",
-      "fr": "Altère les conditions météo pour neutraliser\\nles attaques de type Feu.",
+      "fr": "Altère les conditions météo pour neutraliser les attaques de type Feu.",
       "es": "Altera el clima para anular los ataques de tipo Fuego."
     },
     "longDescription": {
       "en": "When this Pokémon enters battle or gains this ability, the weather becomes heavy rain.  Heavy rain has all the properties of rain dance and also causes damaging Fire moves to fail.\n\nHeavy rain ends when this Pokémon leaves battle or loses this ability, or when this ability is nullified.  The weather cannot otherwise be changed except by the effects of delta stream and desolate land.\n\nair lock and cloud nine will prevent the effects of heavy rain, including allowing Fire moves to work, but will not allow the weather to be changed.",
-      "fr": "Altère les conditions météo pour neutraliser\\nles attaques de type Feu.",
+      "fr": "Altère les conditions météo pour neutraliser les attaques de type Feu.",
       "es": "Altera el clima para anular los ataques de tipo Fuego."
     },
     "flags": {
@@ -4401,12 +4401,12 @@
     },
     "shortDescription": {
       "en": "Reduces super-effective damage to 0.75×.",
-      "fr": "Diminue la puissance des attaques super efficaces\\nsubies.",
+      "fr": "Diminue la puissance des attaques super efficaces subies.",
       "es": "Mitiga el daño que le infligen los movimientos supereficaces."
     },
     "longDescription": {
       "en": "Super-effective damage this Pokémon takes is reduced to 0.75×.\n\nThis Ability is not bypassed by mold breaker, teravolt, or turboblaze.",
-      "fr": "Diminue la puissance des attaques super efficaces\\nsubies.",
+      "fr": "Diminue la puissance des attaques super efficaces subies.",
       "es": "Mitiga el daño que le infligen los movimientos supereficaces."
     },
     "flags": {
@@ -4425,12 +4425,12 @@
     },
     "shortDescription": {
       "en": "Ignores moves and abilities that draw in moves.",
-      "fr": "Permet d’ignorer l’effet des capacités ou des talents qui\\nattirent les capacités.",
+      "fr": "Permet d’ignorer l’effet des capacités ou des talents qui attirent les capacités.",
       "es": "Impide que el rival pueda atraer ataques hacia sí mismo por efecto de su habilidad o sus movimientos."
     },
     "longDescription": {
       "en": "Ignores the effects of opposing Pokémon’s Abilities and moves that draw in moves.",
-      "fr": "Permet d’ignorer l’effet des capacités ou des talents qui\\nattirent les capacités.",
+      "fr": "Permet d’ignorer l’effet des capacités ou des talents qui attirent les capacités.",
       "es": "Impide que el rival pueda atraer ataques hacia sí mismo por efecto de su habilidad o sus movimientos."
     },
     "flags": {
@@ -4449,12 +4449,12 @@
     },
     "shortDescription": {
       "en": "Changes the bearer's type to match each move it uses.",
-      "fr": "Le Pokémon prend le type de la capacité qu’il utilise.\\nCe talent ne peut se déclencher qu’une fois par entrée\\nau combat du Pokémon.",
+      "fr": "Le Pokémon prend le type de la capacité qu’il utilise. Ce talent ne peut se déclencher qu’une fois par entrée au combat du Pokémon.",
       "es": "Cambia su tipo al del movimiento que va a usar."
     },
     "longDescription": {
       "en": "Changes the bearer's type to match each move it uses.\n\nThe type change takes place just before the move is used.",
-      "fr": "Le Pokémon prend le type de la capacité qu’il utilise.\\nCe talent ne peut se déclencher qu’une fois par entrée\\nau combat du Pokémon.",
+      "fr": "Le Pokémon prend le type de la capacité qu’il utilise. Ce talent ne peut se déclencher qu’une fois par entrée au combat du Pokémon.",
       "es": "Cambia su tipo al del movimiento que va a usar."
     },
     "flags": {
@@ -4473,12 +4473,12 @@
     },
     "shortDescription": {
       "en": "Raises highest stat in harsh sunlight, or if holding Booster Energy.",
-      "fr": "Quand le soleil brille ou que le Pokémon tient\\nune capsule d’Énergie Booster, sa stat la plus élevée\\naugmente.",
+      "fr": "Quand le soleil brille ou que le Pokémon tient une capsule d’Énergie Booster, sa stat la plus élevée augmente.",
       "es": null
     },
     "longDescription": {
       "en": "Boosts the Pokémon’s most proficient stat in harsh sunlight or if the Pokémon is holding Booster Energy.",
-      "fr": "Quand le soleil brille ou que le Pokémon tient\\nune capsule d’Énergie Booster, sa stat la plus élevée\\naugmente.",
+      "fr": "Quand le soleil brille ou que le Pokémon tient une capsule d’Énergie Booster, sa stat la plus élevée augmente.",
       "es": null
     },
     "flags": {
@@ -4497,12 +4497,12 @@
     },
     "shortDescription": {
       "en": "When this Pokémon enters battle, it changes the terrain to Psychic Terrain.",
-      "fr": "Le Pokémon crée un champ psychique au moment\\noù il entre au combat.",
+      "fr": "Le Pokémon crée un champ psychique au moment où il entre au combat.",
       "es": "Crea un campo psíquico al entrar en combate."
     },
     "longDescription": {
       "en": "When this Pokémon enters battle, it changes the terrain to psychic terrain.",
-      "fr": "Le Pokémon crée un champ psychique au moment\\noù il entre au combat.",
+      "fr": "Le Pokémon crée un champ psychique au moment où il entre au combat.",
       "es": "Crea un campo psíquico al entrar en combate."
     },
     "flags": {
@@ -4521,12 +4521,12 @@
     },
     "shortDescription": {
       "en": "Boosts sound-based moves and halves damage from the same moves.",
-      "fr": "Augmente la puissance des capacités basées sur le son.\\nLe Pokémon ne subit que la moitié des dégâts quand\\nil est touché par ce genre de capacités.",
+      "fr": "Augmente la puissance des capacités basées sur le son. Le Pokémon ne subit que la moitié des dégâts quand il est touché par ce genre de capacités.",
       "es": "Potencia los movimientos que usan sonido y reduce a la mitad el daño que le infligen dichos movimientos."
     },
     "longDescription": {
       "en": "Boosts the power of sound-based moves. The Pokémon also takes half the damage from these kinds of moves.",
-      "fr": "Augmente la puissance des capacités basées sur le son.\\nLe Pokémon ne subit que la moitié des dégâts quand\\nil est touché par ce genre de capacités.",
+      "fr": "Augmente la puissance des capacités basées sur le son. Le Pokémon ne subit que la moitié des dégâts quand il est touché par ce genre de capacités.",
       "es": "Potencia los movimientos que usan sonido y reduce a la mitad el daño que le infligen dichos movimientos."
     },
     "flags": {
@@ -4545,12 +4545,12 @@
     },
     "shortDescription": {
       "en": "Doubles Attack in battle.",
-      "fr": "Le Pokémon utilise sa maîtrise du yoga pour doubler\\nla puissance de ses attaques physiques.",
+      "fr": "Le Pokémon utilise sa maîtrise du yoga pour doubler la puissance de ses attaques physiques.",
       "es": "Duplica la potencia de sus ataques físicos gracias al yoga."
     },
     "longDescription": {
       "en": "This Pokémon's Attack is doubled in battle.\n\nThis bonus does not count as a stat modifier.\n\nThis ability functions identically to huge power.",
-      "fr": "Le Pokémon utilise sa maîtrise du yoga pour doubler\\nla puissance de ses attaques physiques.",
+      "fr": "Le Pokémon utilise sa maîtrise du yoga pour doubler la puissance de ses attaques physiques.",
       "es": "Duplica la potencia de sus ataques físicos gracias al yoga."
     },
     "flags": {
@@ -4569,12 +4569,12 @@
     },
     "shortDescription": {
       "en": "Protects from status conditions and halves damage from Ghost-type moves.",
-      "fr": "Le sel pur immunise le Pokémon contre les altérations\\nde statut, et diminue de moitié les dégâts des capacités\\nde type Spectre.",
+      "fr": "Le sel pur immunise le Pokémon contre les altérations de statut, et diminue de moitié les dégâts des capacités de type Spectre.",
       "es": null
     },
     "longDescription": {
       "en": "The Pokémon’s pure salt protects it from status conditions and halves the damage taken from Ghost-type moves.",
-      "fr": "Le sel pur immunise le Pokémon contre les altérations\\nde statut, et diminue de moitié les dégâts des capacités\\nde type Spectre.",
+      "fr": "Le sel pur immunise le Pokémon contre les altérations de statut, et diminue de moitié les dégâts des capacités de type Spectre.",
       "es": null
     },
     "flags": {
@@ -4593,12 +4593,12 @@
     },
     "shortDescription": {
       "en": "Raises highest stat on Electric Terrain, or if holding Booster Energy.",
-      "fr": "Quand un champ électrifié est actif ou que le Pokémon\\ntient une capsule d’Énergie Booster, sa stat la plus élevée\\naugmente.",
+      "fr": "Quand un champ électrifié est actif ou que le Pokémon tient une capsule d’Énergie Booster, sa stat la plus élevée augmente.",
       "es": null
     },
     "longDescription": {
       "en": "Boosts the Pokémon’s most proficient stat on Electric Terrain or if the Pokémon is holding Booster Energy.",
-      "fr": "Quand un champ électrifié est actif ou que le Pokémon\\ntient une capsule d’Énergie Booster, sa stat la plus élevée\\naugmente.",
+      "fr": "Quand un champ électrifié est actif ou que le Pokémon tient une capsule d’Énergie Booster, sa stat la plus élevée augmente.",
       "es": null
     },
     "flags": {
@@ -4617,12 +4617,12 @@
     },
     "shortDescription": {
       "en": "Opposing Pokémon cannot use priority attacks.",
-      "fr": "L’adversaire est impressionné par la majesté\\ndu Pokémon, ce qui l’empêche de viser ce dernier\\net ses alliés avec une capacité prioritaire.",
+      "fr": "L’adversaire est impressionné par la majesté du Pokémon, ce qui l’empêche de viser ce dernier et ses alliés avec une capacité prioritaire.",
       "es": "Intimida al objetivo y le impide usar movimientos con prioridad."
     },
     "longDescription": {
       "en": "When an opposing Pokémon attempts to use a move that targets this Pokémon or an ally, and that move has priority, it will fail.",
-      "fr": "L’adversaire est impressionné par la majesté\\ndu Pokémon, ce qui l’empêche de viser ce dernier\\net ses alliés avec une capacité prioritaire.",
+      "fr": "L’adversaire est impressionné par la majesté du Pokémon, ce qui l’empêche de viser ce dernier et ses alliés avec une capacité prioritaire.",
       "es": "Intimida al objetivo y le impide usar movimientos con prioridad."
     },
     "flags": {
@@ -4713,12 +4713,12 @@
     },
     "shortDescription": {
       "en": "Raises Speed one stage upon being hit by a dark, ghost, or bug move.",
-      "fr": "Si le Pokémon est touché par le talent Intimidation ou\\nune attaque de type Ténèbres, Spectre ou Insecte,\\nsa phobie se révèle et sa Vitesse augmente.",
+      "fr": "Si le Pokémon est touché par le talent Intimidation ou une attaque de type Ténèbres, Spectre ou Insecte, sa phobie se révèle et sa Vitesse augmente.",
       "es": "Si le alcanza un movimiento de tipo Siniestro, Bicho o Fantasma, el miedo hace que le suba la Velocidad."
     },
     "longDescription": {
       "en": "This Pokémon's Speed rises one stage with each hit from a damaging dark-, ghost-, or bug-type move.",
-      "fr": "Si le Pokémon est touché par le talent Intimidation ou\\nune attaque de type Ténèbres, Spectre ou Insecte,\\nsa phobie se révèle et sa Vitesse augmente.",
+      "fr": "Si le Pokémon est touché par le talent Intimidation ou une attaque de type Ténèbres, Spectre ou Insecte, sa phobie se révèle et sa Vitesse augmente.",
       "es": "Si le alcanza un movimiento de tipo Siniestro, Bicho o Fantasma, el miedo hace que le suba la Velocidad."
     },
     "flags": {
@@ -4785,12 +4785,12 @@
     },
     "shortDescription": {
       "en": "Turns the bearer's normal moves into ice moves and strengthens them to 1.3× their power.",
-      "fr": "Les capacités de type Normal deviennent de type Glace.\\nLeur puissance augmente légèrement.",
+      "fr": "Les capacités de type Normal deviennent de type Glace. Leur puissance augmente légèrement.",
       "es": "Convierte los movimientos de tipo Normal en tipo Hielo y aumenta ligeramente su potencia."
     },
     "longDescription": {
       "en": "Turns the bearer's normal-type moves into ice-type moves.  Moves changed by this ability have 1.3× their power.",
-      "fr": "Les capacités de type Normal deviennent de type Glace.\\nLeur puissance augmente légèrement.",
+      "fr": "Les capacités de type Normal deviennent de type Glace. Leur puissance augmente légèrement.",
       "es": "Convierte los movimientos de tipo Normal en tipo Hielo y aumenta ligeramente su potencia."
     },
     "flags": {
@@ -4833,12 +4833,12 @@
     },
     "shortDescription": {
       "en": "Doubles the effect of berries.",
-      "fr": "Le Pokémon fait mûrir la Baie qu’il tient\\net double ainsi son effet.",
+      "fr": "Le Pokémon fait mûrir la Baie qu’il tient et double ainsi son effet.",
       "es": "Hace madurar las bayas, por lo que duplica sus efectos."
     },
     "longDescription": {
       "en": "Ripens Berries and doubles their effect.",
-      "fr": "Le Pokémon fait mûrir la Baie qu’il tient\\net double ainsi son effet.",
+      "fr": "Le Pokémon fait mûrir la Baie qu’il tient et double ainsi son effet.",
       "es": "Hace madurar las bayas, por lo que duplica sus efectos."
     },
     "flags": {
@@ -4881,12 +4881,12 @@
     },
     "shortDescription": {
       "en": "Changes this Pokémon's type to match its held Memory.",
-      "fr": "Change le type du Pokémon en fonction\\nde la ROM équipée.",
+      "fr": "Change le type du Pokémon en fonction de la ROM équipée.",
       "es": "Cambia su tipo según el disco que lleve instalado."
     },
     "longDescription": {
       "en": "Changes this Pokémon's type to match its held Memory.\n\nThis ability cannot be copied, replaced, or nullified.  This ability only takes effect for Silvally.",
-      "fr": "Change le type du Pokémon en fonction\\nde la ROM équipée.",
+      "fr": "Change le type du Pokémon en fonction de la ROM équipée.",
       "es": "Cambia su tipo según el disco que lleve instalado."
     },
     "flags": {
@@ -5001,12 +5001,12 @@
     },
     "shortDescription": {
       "en": "Strengthens rock, ground, and steel moves to 1.3× their power during a sandstorm.  Protects against sandstorm damage.",
-      "fr": "Augmente la puissance des capacités de types Roche,\\nSol et Acier en cas de tempête de sable.",
+      "fr": "Augmente la puissance des capacités de types Roche, Sol et Acier en cas de tempête de sable.",
       "es": "Potencia los movimientos de tipo Tierra, Acero y Roca durante las tormentas de arena."
     },
     "longDescription": {
       "en": "During a sandstorm, this Pokémon's rock-, ground-, and steel-type moves have 1.3× their base power.  This Pokémon does not take sandstorm damage, regardless of type.",
-      "fr": "Augmente la puissance des capacités de types Roche,\\nSol et Acier en cas de tempête de sable.",
+      "fr": "Augmente la puissance des capacités de types Roche, Sol et Acier en cas de tempête de sable.",
       "es": "Potencia los movimientos de tipo Tierra, Acero y Roca durante las tormentas de arena."
     },
     "flags": {
@@ -5049,12 +5049,12 @@
     },
     "shortDescription": {
       "en": "Creates a sandstorm when hit by an attack.",
-      "fr": "Le Pokémon déclenche une tempête de sable\\nquand il subit une attaque.",
+      "fr": "Le Pokémon déclenche une tempête de sable quand il subit une attaque.",
       "es": "Provoca una tormenta de arena al recibir un ataque."
     },
     "longDescription": {
       "en": "The Pokémon creates a sandstorm when it’s hit by an attack.",
-      "fr": "Le Pokémon déclenche une tempête de sable\\nquand il subit une attaque.",
+      "fr": "Le Pokémon déclenche une tempête de sable quand il subit une attaque.",
       "es": "Provoca una tormenta de arena al recibir un ataque."
     },
     "flags": {
@@ -5073,12 +5073,12 @@
     },
     "shortDescription": {
       "en": "Summons a sandstorm that lasts indefinitely upon entering battle.",
-      "fr": "Le Pokémon invoque une tempête de sable\\nquand il entre au combat.",
+      "fr": "Le Pokémon invoque une tempête de sable quand il entre au combat.",
       "es": "Crea una tormenta de arena al entrar en combate."
     },
     "longDescription": {
       "en": "The weather changes to a sandstorm when this Pokémon enters battle and does not end unless cancelled by another weather condition.\n\nIf multiple Pokémon with this ability, drizzle, drought, or snow warning are sent out at the same time, the abilities will activate in order of Speed, respecting trick room.  Each ability's weather will cancel the previous weather, and only the weather summoned by the slowest of the Pokémon will stay.\n\nOverworld: If the lead Pokémon has this ability, the wild encounter rate is halved in a sandstorm.",
-      "fr": "Le Pokémon invoque une tempête de sable\\nquand il entre au combat.",
+      "fr": "Le Pokémon invoque une tempête de sable quand il entre au combat.",
       "es": "Crea una tormenta de arena al entrar en combate."
     },
     "flags": {
@@ -5121,12 +5121,12 @@
     },
     "shortDescription": {
       "en": "Absorbs grass moves, raising Attack one stage.",
-      "fr": "Annule les attaques de type Plante subies\\npar le Pokémon et augmente son Attaque.",
+      "fr": "Annule les attaques de type Plante subies par le Pokémon et augmente son Attaque.",
       "es": "Neutraliza los movimientos de tipo Planta y sube su Ataque."
     },
     "longDescription": {
       "en": "Whenever a grass-type move hits this Pokémon, its Attack rises one stage, negating any other effect on it.",
-      "fr": "Annule les attaques de type Plante subies\\npar le Pokémon et augmente son Attaque.",
+      "fr": "Annule les attaques de type Plante subies par le Pokémon et augmente son Attaque.",
       "es": "Neutraliza los movimientos de tipo Planta y sube su Ataque."
     },
     "flags": {
@@ -5145,12 +5145,12 @@
     },
     "shortDescription": {
       "en": "Wishiwashi becomes Schooling Form when its HP is 25% or higher.",
-      "fr": "Le Pokémon se rassemble avec ses congénères\\nquand ses PV sont élevés. Quand il ne lui reste\\nplus beaucoup de PV, le banc se disperse.",
+      "fr": "Le Pokémon se rassemble avec ses congénères quand ses PV sont élevés. Quand il ne lui reste plus beaucoup de PV, le banc se disperse.",
       "es": "Forma bancos con sus congéneres cuando tiene muchos PS, lo cual le otorga más fuerza. Cuando le quedan pocos PS, el banco se dispersa."
     },
     "longDescription": {
       "en": "If this Pokémon is a wishiwashi and level 20 or above, then when it enters battle and at the start of each turn, it becomes Schooling Form if its HP is 25% or higher and Solo Form otherwise.\n\nThis ability cannot be replaced, copied, or nullified.",
-      "fr": "Le Pokémon se rassemble avec ses congénères\\nquand ses PV sont élevés. Quand il ne lui reste\\nplus beaucoup de PV, le banc se disperse.",
+      "fr": "Le Pokémon se rassemble avec ses congénères quand ses PV sont élevés. Quand il ne lui reste plus beaucoup de PV, le banc se disperse.",
       "es": "Forma bancos con sus congéneres cuando tiene muchos PS, lo cual le otorga más fuerza. Cuando le quedan pocos PS, el banco se dispersa."
     },
     "flags": {
@@ -5193,12 +5193,12 @@
     },
     "shortDescription": {
       "en": "Nullifies effects of Light Screen, Reflect, and Aurora Veil.",
-      "fr": "Quand le Pokémon entre au combat, les effets de\\nMur Lumière, Protection et Voile Aurore disparaissent\\npour les alliés comme pour les adversaires.",
+      "fr": "Quand le Pokémon entre au combat, les effets de Mur Lumière, Protection et Voile Aurore disparaissent pour les alliés comme pour les adversaires.",
       "es": "Anula los efectos de Pantalla de Luz, Reflejo y Velo Aurora tanto de rivales como de aliados al entrar en combate."
     },
     "longDescription": {
       "en": "When the Pokémon enters a battle, the effects of Light Screen, Reflect, and Aurora Veil are nullified for both opposing and ally Pokémon.",
-      "fr": "Quand le Pokémon entre au combat, les effets de\\nMur Lumière, Protection et Voile Aurore disparaissent\\npour les alliés comme pour les adversaires.",
+      "fr": "Quand le Pokémon entre au combat, les effets de Mur Lumière, Protection et Voile Aurore disparaissent pour les alliés comme pour les adversaires.",
       "es": "Anula los efectos de Pantalla de Luz, Reflejo y Velo Aurora tanto de rivales como de aliados al entrar en combate."
     },
     "flags": {
@@ -5217,12 +5217,12 @@
     },
     "shortDescription": {
       "en": "Turns the ground into Grassy Terrain when the Pokémon is hit by an attack.",
-      "fr": "Le Pokémon crée un champ herbu quand\\nil subit une attaque.",
+      "fr": "Le Pokémon crée un champ herbu quand il subit une attaque.",
       "es": null
     },
     "longDescription": {
       "en": "Turns the ground into Grassy Terrain when the Pokémon is hit by an attack.",
-      "fr": "Le Pokémon crée un champ herbu quand\\nil subit une attaque.",
+      "fr": "Le Pokémon crée un champ herbu quand il subit une attaque.",
       "es": null
     },
     "flags": {
@@ -5265,12 +5265,12 @@
     },
     "shortDescription": {
       "en": "When this Pokémon has full HP, regular damage from moves is halved.",
-      "fr": "Le Pokémon subit moins de dégâts quand ses PV\\nsont au maximum.",
+      "fr": "Le Pokémon subit moins de dégâts quand ses PV sont au maximum.",
       "es": "Reduce el daño que sufre si sus PS están al máximo."
     },
     "longDescription": {
       "en": "When this Pokémon has full HP, regular damage (not fixed damage!) from moves is halved.\n\nThis ability cannot be nullified.",
-      "fr": "Le Pokémon subit moins de dégâts quand ses PV\\nsont au maximum.",
+      "fr": "Le Pokémon subit moins de dégâts quand ses PV sont au maximum.",
       "es": "Reduce el daño que sufre si sus PS están al máximo."
     },
     "flags": {
@@ -5361,12 +5361,12 @@
     },
     "shortDescription": {
       "en": "Strengthens moves with extra effects to 1.3× their power, but prevents their extra effects.",
-      "fr": "Les capacités ayant un effet additionnel le perdent,\\nmais leur puissance augmente.",
+      "fr": "Les capacités ayant un effet additionnel le perdent, mais leur puissance augmente.",
       "es": "Sube la potencia de sus movimientos en detrimento de los efectos secundarios, que se ven anulados."
     },
     "longDescription": {
       "en": "This Pokémon's moves with extra effects have 1.3× their power, but lose their extra effects.\n\nAn effect chance is a move's chance to inflict a status ailment, cause a stat change, or make the target flinch in addition to the move's main effect. For example, thunder shock's paralysis is an extra effect, but thunder wave's is not, nor are knock off's item removal and air cutter's increased critical hit rate.\n\nMoves that lower the user's stats are unaffected.",
-      "fr": "Les capacités ayant un effet additionnel le perdent,\\nmais leur puissance augmente.",
+      "fr": "Les capacités ayant un effet additionnel le perdent, mais leur puissance augmente.",
       "es": "Sube la potencia de sus movimientos en detrimento de los efectos secundarios, que se ven anulados."
     },
     "flags": {
@@ -5433,12 +5433,12 @@
     },
     "shortDescription": {
       "en": "Transforms this Minior between Core Form and Meteor Form.  Prevents major status ailments and drowsiness while in Meteor Form.",
-      "fr": "Lorsque le Pokémon perd la moitié de ses PV,\\nson enveloppe se brise et il adopte une posture\\noffensive.",
+      "fr": "Lorsque le Pokémon perd la moitié de ses PV, son enveloppe se brise et il adopte une posture offensive.",
       "es": "Rompe su coraza cuando sus PS se ven reducidos a la mitad y adopta una forma ofensiva."
     },
     "longDescription": {
       "en": "When this Pokémon enters battle and at the end of each turn, if its HP is 50% or above, it changes into Meteor Form; otherwise, it changes into Core Form.  In Meteor Form, it cannot be given a major status ailment (though existing ones are not cured), cannot become drowsy from yawn, and cannot use rest (which will simply fail).\n\nThis ability cannot be copied, replaced, or nullified.  This ability only takes effect for Minior.",
-      "fr": "Lorsque le Pokémon perd la moitié de ses PV,\\nson enveloppe se brise et il adopte une posture\\noffensive.",
+      "fr": "Lorsque le Pokémon perd la moitié de ses PV, son enveloppe se brise et il adopte une posture offensive.",
       "es": "Rompe su coraza cuando sus PS se ven reducidos a la mitad y adopta una forma ofensiva."
     },
     "flags": {
@@ -5457,12 +5457,12 @@
     },
     "shortDescription": {
       "en": "Doubles the Pokémon's stat modifiers.  These doubled modifiers are still capped at -6 or 6 stages.",
-      "fr": "Les changements de stats sont deux fois plus importants\\npour le Pokémon.",
+      "fr": "Les changements de stats sont deux fois plus importants pour le Pokémon.",
       "es": "Duplica los cambios en las características."
     },
     "longDescription": {
       "en": "Each stage of this Pokémon's stat modifiers acts as two stages.  These doubled stages are still limited to a minimum of -6 and a maximum of 6.\n\nThis Pokémon can still accumulate less than -3 or more than 3 stages of stat modifiers, even though the extra ones have no effect after doubling.",
-      "fr": "Les changements de stats sont deux fois plus importants\\npour le Pokémon.",
+      "fr": "Les changements de stats sont deux fois plus importants pour le Pokémon.",
       "es": "Duplica los cambios en las características."
     },
     "flags": {
@@ -5481,12 +5481,12 @@
     },
     "shortDescription": {
       "en": "Extends two-to-five-hit moves and triple kick to their full length every time.",
-      "fr": "Les capacités pouvant frapper plusieurs fois frappent\\ntoujours le nombre maximal de coups.",
+      "fr": "Les capacités pouvant frapper plusieurs fois frappent toujours le nombre maximal de coups.",
       "es": "Ejecuta siempre los movimientos múltiples con el número máximo de golpes."
     },
     "longDescription": {
       "en": "This Pokémon always hits five times with two-to-five-hit moves, such as icicle spear.  It also bypasses the accuracy checks on triple kick's second and third hits.",
-      "fr": "Les capacités pouvant frapper plusieurs fois frappent\\ntoujours le nombre maximal de coups.",
+      "fr": "Les capacités pouvant frapper plusieurs fois frappent toujours le nombre maximal de coups.",
       "es": "Ejecuta siempre los movimientos múltiples con el número máximo de golpes."
     },
     "flags": {
@@ -5505,12 +5505,12 @@
     },
     "shortDescription": {
       "en": "Halves Attack and Speed for five turns upon entering battle.",
-      "fr": "Divise la Vitesse et l’Attaque du Pokémon par deux\\npendant les cinq premiers tours du combat.",
+      "fr": "Divise la Vitesse et l’Attaque du Pokémon par deux pendant les cinq premiers tours du combat.",
       "es": "Baja a la mitad su Ataque y su Velocidad durante cinco turnos."
     },
     "longDescription": {
       "en": "This Pokémon's Attack and Speed are halved for five turns upon entering battle.\n\nThis ability also takes effect when acquired during battle.  If this Pokémon loses its ability before the five turns are up, its Attack and Speed return to normal; if it then regains this ability without leaving battle, its Attack and Speed are halved again, but the counter keeps counting from where it was.",
-      "fr": "Divise la Vitesse et l’Attaque du Pokémon par deux\\npendant les cinq premiers tours du combat.",
+      "fr": "Divise la Vitesse et l’Attaque du Pokémon par deux pendant les cinq premiers tours du combat.",
       "es": "Baja a la mitad su Ataque y su Velocidad durante cinco turnos."
     },
     "flags": {
@@ -5553,12 +5553,12 @@
     },
     "shortDescription": {
       "en": "Strengthens critical hits to inflict 3× damage rather than 2×.",
-      "fr": "Lorsque le Pokémon porte un coup critique, les dégâts\\ninfligés augmentent encore plus que d’habitude.",
+      "fr": "Lorsque le Pokémon porte un coup critique, les dégâts infligés augmentent encore plus que d’habitude.",
       "es": "Potencia los golpes críticos que asesta aún más de lo normal."
     },
     "longDescription": {
       "en": "This Pokémon inflicts triple damage with critical hits, rather than the usual double damage.",
-      "fr": "Lorsque le Pokémon porte un coup critique, les dégâts\\ninfligés augmentent encore plus que d’habitude.",
+      "fr": "Lorsque le Pokémon porte un coup critique, les dégâts infligés augmentent encore plus que d’habitude.",
       "es": "Potencia los golpes críticos que asesta aún más de lo normal."
     },
     "flags": {
@@ -5649,12 +5649,12 @@
     },
     "shortDescription": {
       "en": "Decreases damage taken from super-effective moves by 1/4.",
-      "fr": "Diminue la puissance des attaques super efficaces\\nsubies.",
+      "fr": "Diminue la puissance des attaques super efficaces subies.",
       "es": "Mitiga el daño que le infligen los movimientos supereficaces."
     },
     "longDescription": {
       "en": "This Pokémon takes 0.75× as much damage from moves that are super effective against it.\n\nThis ability functions identically to filter.",
-      "fr": "Diminue la puissance des attaques super efficaces\\nsubies.",
+      "fr": "Diminue la puissance des attaques super efficaces subies.",
       "es": "Mitiga el daño que le infligen los movimientos supereficaces."
     },
     "flags": {
@@ -5673,12 +5673,12 @@
     },
     "shortDescription": {
       "en": "This Pokémon's Special Attack rises by one stage every time any Pokémon faints.",
-      "fr": "Augmente l’Attaque Spéciale du Pokémon\\nlorsqu’un autre Pokémon est mis K.O.",
+      "fr": "Augmente l’Attaque Spéciale du Pokémon lorsqu’un autre Pokémon est mis K.O.",
       "es": "Aumenta su Ataque Especial cada vez que un Pokémon cae debilitado."
     },
     "longDescription": {
       "en": "This Pokémon's Special Attack rises by one stage every time any Pokémon faints.",
-      "fr": "Augmente l’Attaque Spéciale du Pokémon\\nlorsqu’un autre Pokémon est mis K.O.",
+      "fr": "Augmente l’Attaque Spéciale du Pokémon lorsqu’un autre Pokémon est mis K.O.",
       "es": "Aumenta su Ataque Especial cada vez que un Pokémon cae debilitado."
     },
     "flags": {
@@ -5769,12 +5769,12 @@
     },
     "shortDescription": {
       "en": "This Pokémon's moves have double power against Pokémon that switched in this turn.",
-      "fr": "Lorsque le Pokémon attaque une cible qui vient d’entrer\\nsur le terrain en remplacement d’un autre Pokémon,\\nles dégâts infligés sont doublés.",
+      "fr": "Lorsque le Pokémon attaque une cible qui vient d’entrer sur le terrain en remplacement d’un autre Pokémon, les dégâts infligés sont doublés.",
       "es": "Si el objetivo de su ataque es sustituido por otro, duplica el daño que infligirá."
     },
     "longDescription": {
       "en": "This Pokémon's moves have double power against Pokémon that switched in this turn.",
-      "fr": "Lorsque le Pokémon attaque une cible qui vient d’entrer\\nsur le terrain en remplacement d’un autre Pokémon,\\nles dégâts infligés sont doublés.",
+      "fr": "Lorsque le Pokémon attaque une cible qui vient d’entrer sur le terrain en remplacement d’un autre Pokémon, les dégâts infligés sont doublés.",
       "es": "Si el objetivo de su ataque es sustituido por otro, duplica el daño que infligirá."
     },
     "flags": {
@@ -5817,12 +5817,12 @@
     },
     "shortDescription": {
       "en": "Ignores moves and abilities that draw in moves.",
-      "fr": "Permet d’ignorer l’effet des capacités ou des talents qui\\nattirent les capacités.",
+      "fr": "Permet d’ignorer l’effet des capacités ou des talents qui attirent les capacités.",
       "es": "Impide que el rival pueda atraer ataques hacia sí mismo por efecto de su habilidad o sus movimientos."
     },
     "longDescription": {
       "en": "Ignores the effects of opposing Pokémon’s Abilities and moves that draw in moves.",
-      "fr": "Permet d’ignorer l’effet des capacités ou des talents qui\\nattirent les capacités.",
+      "fr": "Permet d’ignorer l’effet des capacités ou des talents qui attirent les capacités.",
       "es": "Impide que el rival pueda atraer ataques hacia sí mismo por efecto de su habilidad o sus movimientos."
     },
     "flags": {
@@ -5841,12 +5841,12 @@
     },
     "shortDescription": {
       "en": "Raises this Pokémon's Defense by one stage when it takes damage from a move.",
-      "fr": "Augmente la Défense du Pokémon lorsqu’il subit\\nune attaque.",
+      "fr": "Augmente la Défense du Pokémon lorsqu’il subit une attaque.",
       "es": "Aumenta su Defensa al recibir un ataque."
     },
     "longDescription": {
       "en": "Raises this Pokémon's Defense by one stage when it takes damage from a move.",
-      "fr": "Augmente la Défense du Pokémon lorsqu’il subit\\nune attaque.",
+      "fr": "Augmente la Défense du Pokémon lorsqu’il subit une attaque.",
       "es": "Aumenta su Defensa al recibir un ataque."
     },
     "flags": {
@@ -5865,12 +5865,12 @@
     },
     "shortDescription": {
       "en": "Changes aegislash to Blade Forme before using a damaging move, or Shield Forme before using kings shield.",
-      "fr": "Le Pokémon prend la Forme Assaut lorsqu’il utilise\\nune capacité offensive, et la Forme Parade lorsqu’il\\nutilise Bouclier Royal.",
+      "fr": "Le Pokémon prend la Forme Assaut lorsqu’il utilise une capacité offensive, et la Forme Parade lorsqu’il utilise Bouclier Royal.",
       "es": "Adopta la Forma Filo al lanzar un ataque, o bien la Forma Escudo si usa el movimiento Escudo Real."
     },
     "longDescription": {
       "en": "Changes aegislash to Blade Forme before using a damaging move, or Shield Forme before using kings shield.",
-      "fr": "Le Pokémon prend la Forme Assaut lorsqu’il utilise\\nune capacité offensive, et la Forme Parade lorsqu’il\\nutilise Bouclier Royal.",
+      "fr": "Le Pokémon prend la Forme Assaut lorsqu’il utilise une capacité offensive, et la Forme Parade lorsqu’il utilise Bouclier Royal.",
       "es": "Adopta la Forma Filo al lanzar un ataque, o bien la Forma Escudo si usa el movimiento Escudo Real."
     },
     "flags": {
@@ -5937,12 +5937,12 @@
     },
     "shortDescription": {
       "en": "Boosts the Speed stat drastically when the Pokémon is hit by a Fire- or Water-type move.",
-      "fr": "Lorsque le Pokémon est touché par des capacités\\nde type Eau ou Feu, sa Vitesse augmente énormément.",
+      "fr": "Lorsque le Pokémon est touché par des capacités de type Eau ou Feu, sa Vitesse augmente énormément.",
       "es": "Si le alcanza un movimiento de tipo Fuego o Agua, le sube muchísimo la Velocidad."
     },
     "longDescription": {
       "en": "Raises the user's Speed by three stages when it is hit by a Fire- or Water-type attack. The attack still deals damage.",
-      "fr": "Lorsque le Pokémon est touché par des capacités\\nde type Eau ou Feu, sa Vitesse augmente énormément.",
+      "fr": "Lorsque le Pokémon est touché par des capacités de type Eau ou Feu, sa Vitesse augmente énormément.",
       "es": "Si le alcanza un movimiento de tipo Fuego o Agua, le sube muchísimo la Velocidad."
     },
     "flags": {
@@ -5985,12 +5985,12 @@
     },
     "shortDescription": {
       "en": "Powers up ally Pokémon's Steel-type moves.",
-      "fr": "Augmente la puissance des attaques de type Acier\\ndu Pokémon et de ses alliés.",
+      "fr": "Augmente la puissance des attaques de type Acier du Pokémon et de ses alliés.",
       "es": "Potencia los movimientos de tipo Acero de los aliados."
     },
     "longDescription": {
       "en": "Powers up the Steel-type moves of the Pokémon and its allies.",
-      "fr": "Augmente la puissance des attaques de type Acier\\ndu Pokémon et de ses alliés.",
+      "fr": "Augmente la puissance des attaques de type Acier du Pokémon et de ses alliés.",
       "es": "Potencia los movimientos de tipo Acero de los aliados."
     },
     "flags": {
@@ -6033,12 +6033,12 @@
     },
     "shortDescription": {
       "en": "Prevents a held item from being removed by other Pokémon.",
-      "fr": "Les objets sont collés au corps gluant du Pokémon,\\nce qui empêche ses adversaires de les dérober.",
+      "fr": "Les objets sont collés au corps gluant du Pokémon, ce qui empêche ses adversaires de les dérober.",
       "es": "Los objetos se quedan pegados a su cuerpo, por lo que no pueden robárselos."
     },
     "longDescription": {
       "en": "This Pokémon's hold item cannot be removed by other Pokémon.\n\nDamaging moves that would remove this Pokémon's item can still inflict damage against this Pokémon, e.g. knock off or pluck.  This Pokémon can still use moves that involve the loss of its own item, e.g. fling or trick.\n\nOverworld: If the lead Pokémon has this ability, the encounter rate while fishing is increased.",
-      "fr": "Les objets sont collés au corps gluant du Pokémon,\\nce qui empêche ses adversaires de les dérober.",
+      "fr": "Les objets sont collés au corps gluant du Pokémon, ce qui empêche ses adversaires de les dérober.",
       "es": "Los objetos se quedan pegados a su cuerpo, por lo que no pueden robárselos."
     },
     "flags": {
@@ -6057,12 +6057,12 @@
     },
     "shortDescription": {
       "en": "Redirects single-target water moves to this Pokémon where possible.  Absorbs Water moves, raising Special Attack one stage.",
-      "fr": "Le Pokémon détourne sur lui les capacités de\\ntype Eau et les neutralise, tout en augmentant\\nson Attaque Spéciale.",
+      "fr": "Le Pokémon détourne sur lui les capacités de type Eau et les neutralise, tout en augmentant son Attaque Spéciale.",
       "es": "Atrae y neutraliza los movimientos de tipo Agua, que además le suben el Ataque Especial."
     },
     "longDescription": {
       "en": "All other Pokémon's single-target water-type moves are redirected to this Pokémon, if it is an eligible target.  Other Pokémon's Water moves raise this Pokémon's Special Attack one stage, negating any other effect on it, and cannot miss it.\n\nIf the move's intended target also has this ability, the move is not redirected.  When multiple Pokémon with this ability are possible targets for redirection, the move is redirected to the one with the highest Speed stat, or, in the case of a tie, to a random tied Pokémon.  follow me takes precedence over this ability.",
-      "fr": "Le Pokémon détourne sur lui les capacités de\\ntype Eau et les neutralise, tout en augmentant\\nson Attaque Spéciale.",
+      "fr": "Le Pokémon détourne sur lui les capacités de type Eau et les neutralise, tout en augmentant son Attaque Spéciale.",
       "es": "Atrae y neutraliza los movimientos de tipo Agua, que además le suben el Ataque Especial."
     },
     "flags": {
@@ -6081,12 +6081,12 @@
     },
     "shortDescription": {
       "en": "Strengthens biting moves to 1.5× their power.",
-      "fr": "Le Pokémon a une mâchoire robuste qui augmente\\nla puissance de ses capacités de morsure.",
+      "fr": "Le Pokémon a une mâchoire robuste qui augmente la puissance de ses capacités de morsure.",
       "es": "Su robusta mandíbula le confiere una mordedura potente."
     },
     "longDescription": {
       "en": "Strengthens biting moves to 1.5× their power.",
-      "fr": "Le Pokémon a une mâchoire robuste qui augmente\\nla puissance de ses capacités de morsure.",
+      "fr": "Le Pokémon a une mâchoire robuste qui augmente la puissance de ses capacités de morsure.",
       "es": "Su robusta mandíbula le confiere una mordedura potente."
     },
     "flags": {
@@ -6105,12 +6105,12 @@
     },
     "shortDescription": {
       "en": "Prevents being KOed from full HP, leaving 1 HP instead.  Protects against the one-hit KO moves regardless of HP.",
-      "fr": "Le Pokémon encaisse toujours au moins une attaque\\ns’il a tous ses PV. Il est également immunisé contre\\nles capacités pouvant mettre K.O. en un coup.",
+      "fr": "Le Pokémon encaisse toujours au moins une attaque s’il a tous ses PV. Il est également immunisé contre les capacités pouvant mettre K.O. en un coup.",
       "es": "Evita que el rival pueda debilitarlo de un solo golpe cuando tiene los PS al máximo. También evita los movimientos fulminantes."
     },
     "longDescription": {
       "en": "When this Pokémon is at full HP, any hit that would knock it out will instead leave it with 1 HP.  Regardless of its current HP, it is also immune to the one-hit KO moves: fissure, guillotine, horn drill, and sheer cold.\n\nIf this Pokémon is holding a focus sash, this ability takes precedence and the item will not be consumed.",
-      "fr": "Le Pokémon encaisse toujours au moins une attaque\\ns’il a tous ses PV. Il est également immunisé contre\\nles capacités pouvant mettre K.O. en un coup.",
+      "fr": "Le Pokémon encaisse toujours au moins une attaque s’il a tous ses PV. Il est également immunisé contre les capacités pouvant mettre K.O. en un coup.",
       "es": "Evita que el rival pueda debilitarlo de un solo golpe cuando tiene los PS al máximo. También evita los movimientos fulminantes."
     },
     "flags": {
@@ -6129,12 +6129,12 @@
     },
     "shortDescription": {
       "en": "Prevents being forced out of battle by other Pokémon's moves.",
-      "fr": "Le Pokémon est solidement fixé au sol par des\\nventouses, ce qui le protège des capacités ou\\nobjets qui font changer de Pokémon.",
+      "fr": "Le Pokémon est solidement fixé au sol par des ventouses, ce qui le protège des capacités ou objets qui font changer de Pokémon.",
       "es": "Sus ventosas se aferran al suelo, con lo cual anula movimientos y objetos que fuerzan el relevo."
     },
     "longDescription": {
       "en": "This Pokémon cannot be forced out of battle by moves such as whirlwind.\n\ndragon tail and circle throw still inflict damage against this Pokémon.\n\nOverworld: If the lead Pokémon has this ability, the success rate while fishing is increased.",
-      "fr": "Le Pokémon est solidement fixé au sol par des\\nventouses, ce qui le protège des capacités ou\\nobjets qui font changer de Pokémon.",
+      "fr": "Le Pokémon est solidement fixé au sol par des ventouses, ce qui le protège des capacités ou objets qui font changer de Pokémon.",
       "es": "Sus ventosas se aferran al suelo, con lo cual anula movimientos y objetos que fuerzan el relevo."
     },
     "flags": {
@@ -6177,12 +6177,12 @@
     },
     "shortDescription": {
       "en": "Once per battle, when a Pokémon with Supersweet Syrup enters the battle, it lowers the evasion stat of all adjacent opponents by one stage. ",
-      "fr": "La première fois que le Pokémon entre au combat,\\nune odeur de nectar sucré se répand sur le terrain,\\nce qui baisse l’Esquive de l’adversaire.",
+      "fr": "La première fois que le Pokémon entre au combat, une odeur de nectar sucré se répand sur le terrain, ce qui baisse l’Esquive de l’adversaire.",
       "es": null
     },
     "longDescription": {
       "en": "A sickly sweet scent spreads across the field the first time the Pokémon enters a battle, lowering the evasiveness of opposing Pokémon.",
-      "fr": "La première fois que le Pokémon entre au combat,\\nune odeur de nectar sucré se répand sur le terrain,\\nce qui baisse l’Esquive de l’adversaire.",
+      "fr": "La première fois que le Pokémon entre au combat, une odeur de nectar sucré se répand sur le terrain, ce qui baisse l’Esquive de l’adversaire.",
       "es": null
     },
     "flags": {
@@ -6201,12 +6201,12 @@
     },
     "shortDescription": {
       "en": "Attack and Special Attack are boosted for each party Pokémon that has been defeated.",
-      "fr": "Quand le Pokémon entre sur le terrain, son Attaque\\net son Attaque Spéciale augmentent légèrement\\npour chaque allié mis K.O. auparavant.",
+      "fr": "Quand le Pokémon entre sur le terrain, son Attaque et son Attaque Spéciale augmentent légèrement pour chaque allié mis K.O. auparavant.",
       "es": null
     },
     "longDescription": {
       "en": "When the Pokémon enters a battle, its Attack and Sp. Atk stats are slightly boosted for each of the allies in its party that have already been defeated.",
-      "fr": "Quand le Pokémon entre sur le terrain, son Attaque\\net son Attaque Spéciale augmentent légèrement\\npour chaque allié mis K.O. auparavant.",
+      "fr": "Quand le Pokémon entre sur le terrain, son Attaque et son Attaque Spéciale augmentent légèrement pour chaque allié mis K.O. auparavant.",
       "es": null
     },
     "flags": {
@@ -6225,12 +6225,12 @@
     },
     "shortDescription": {
       "en": "Doubles this Pokémon's Speed on Electric Terrain.",
-      "fr": "La Vitesse du Pokémon est doublée sur\\nun champ électrifié.",
+      "fr": "La Vitesse du Pokémon est doublée sur un champ électrifié.",
       "es": "Duplica su Velocidad si hay un campo eléctrico en el terreno de combate."
     },
     "longDescription": {
       "en": "Doubles this Pokémon's Speed on Electric Terrain.",
-      "fr": "La Vitesse du Pokémon est doublée sur\\nun champ électrifié.",
+      "fr": "La Vitesse du Pokémon est doublée sur un champ électrifié.",
       "es": "Duplica su Velocidad si hay un campo eléctrico en el terreno de combate."
     },
     "flags": {
@@ -6321,12 +6321,12 @@
     },
     "shortDescription": {
       "en": "Lowers Defense of all Pokémon except itself.",
-      "fr": "Le pouvoir de l’épée qui appelle le fléau affaiblit\\nla Défense de tous les autres Pokémon.",
+      "fr": "Le pouvoir de l’épée qui appelle le fléau affaiblit la Défense de tous les autres Pokémon.",
       "es": null
     },
     "longDescription": {
       "en": "The power of the Pokémon’s ruinous sword lowers the Defense stats of all Pokémon except itself.",
-      "fr": "Le pouvoir de l’épée qui appelle le fléau affaiblit\\nla Défense de tous les autres Pokémon.",
+      "fr": "Le pouvoir de l’épée qui appelle le fléau affaiblit la Défense de tous les autres Pokémon.",
       "es": null
     },
     "flags": {
@@ -6345,12 +6345,12 @@
     },
     "shortDescription": {
       "en": "Passes the bearer's held item to an ally when the ally uses up its item.",
-      "fr": "Quand les alliés utilisent l’objet qu’ils tiennent,\\nle Pokémon leur donne l’objet qu’il tient\\nen remplacement.",
+      "fr": "Quand les alliés utilisent l’objet qu’ils tiennent, le Pokémon leur donne l’objet qu’il tient en remplacement.",
       "es": "Pasa su objeto a un aliado que ya haya utilizado el suyo."
     },
     "longDescription": {
       "en": "Passes the bearer's held item to an ally when the ally uses up its item.",
-      "fr": "Quand les alliés utilisent l’objet qu’ils tiennent,\\nle Pokémon leur donne l’objet qu’il tient\\nen remplacement.",
+      "fr": "Quand les alliés utilisent l’objet qu’ils tiennent, le Pokémon leur donne l’objet qu’il tient en remplacement.",
       "es": "Pasa su objeto a un aliado que ya haya utilizado el suyo."
     },
     "flags": {
@@ -6393,12 +6393,12 @@
     },
     "shortDescription": {
       "en": "Lowers Attack of all Pokémon except itself.",
-      "fr": "Le pouvoir du bois qui appelle le fléau affaiblit\\nl’Attaque de tous les autres Pokémon.",
+      "fr": "Le pouvoir du bois qui appelle le fléau affaiblit l’Attaque de tous les autres Pokémon.",
       "es": null
     },
     "longDescription": {
       "en": "The power of the Pokémon’s ruinous wooden tablets lowers the Attack stats of all Pokémon except itself.",
-      "fr": "Le pouvoir du bois qui appelle le fléau affaiblit\\nl’Attaque de tous les autres Pokémon.",
+      "fr": "Le pouvoir du bois qui appelle le fléau affaiblit l’Attaque de tous les autres Pokémon.",
       "es": null
     },
     "flags": {
@@ -6441,12 +6441,12 @@
     },
     "shortDescription": {
       "en": "When this Pokémon takes regular damage from a contact move, the attacking Pokémon's Speed lowers by one stage.",
-      "fr": "Baisse la Vitesse de l’attaquant lorsque le Pokémon\\nsubit une attaque directe.",
+      "fr": "Baisse la Vitesse de l’attaquant lorsque le Pokémon subit une attaque directe.",
       "es": "Baja la Velocidad del rival cuando este le ataca con un movimiento de contacto."
     },
     "longDescription": {
       "en": "When this Pokémon takes regular damage from a contact move, the attacking Pokémon's Speed lowers by one stage.",
-      "fr": "Baisse la Vitesse de l’attaquant lorsque le Pokémon\\nsubit une attaque directe.",
+      "fr": "Baisse la Vitesse de l’attaquant lorsque le Pokémon subit une attaque directe.",
       "es": "Baja la Velocidad del rival cuando este le ataca con un movimiento de contacto."
     },
     "flags": {
@@ -6513,12 +6513,12 @@
     },
     "shortDescription": {
       "en": "All damage-dealing moves that hit the Pokémon when its HP is full will not be very effective.",
-      "fr": "Grâce à sa carapace qui renferme l’énergie de tous\\nles types, les capacités subies par ce Pokémon quand\\nses PV sont au maximum ne sont pas très efficaces.",
+      "fr": "Grâce à sa carapace qui renferme l’énergie de tous les types, les capacités subies par ce Pokémon quand ses PV sont au maximum ne sont pas très efficaces.",
       "es": null
     },
     "longDescription": {
       "en": "The Pokémon’s shell contains the powers of each type. All damage-dealing moves that hit the Pokémon when its HP is full will not be very effective.",
-      "fr": "Grâce à sa carapace qui renferme l’énergie de tous\\nles types, les capacités subies par ce Pokémon quand\\nses PV sont au maximum ne sont pas très efficaces.",
+      "fr": "Grâce à sa carapace qui renferme l’énergie de tous les types, les capacités subies par ce Pokémon quand ses PV sont au maximum ne sont pas très efficaces.",
       "es": null
     },
     "flags": {
@@ -6537,12 +6537,12 @@
     },
     "shortDescription": {
       "en": "When Terapagos enters the battle, it turns into its Terastal Form until the end of the battle. ",
-      "fr": "Quand le Pokémon rejoint le combat, il absorbe\\nl’énergie alentour et prend sa Forme Téracristal.",
+      "fr": "Quand le Pokémon rejoint le combat, il absorbe l’énergie alentour et prend sa Forme Téracristal.",
       "es": null
     },
     "longDescription": {
       "en": "When the Pokémon enters a battle, it absorbs the energy around itself and transforms into its Terastal Form.",
-      "fr": "Quand le Pokémon rejoint le combat, il absorbe\\nl’énergie alentour et prend sa Forme Téracristal.",
+      "fr": "Quand le Pokémon rejoint le combat, il absorbe l’énergie alentour et prend sa Forme Téracristal.",
       "es": null
     },
     "flags": {
@@ -6561,12 +6561,12 @@
     },
     "shortDescription": {
       "en": "As soon as Terapagos assumes its Stellar Form, it will immediately neutralize weather and terrain effects. ",
-      "fr": "Lorsque Terapagos prend sa Forme Stellaire, il utilise\\nson pouvoir enfoui pour annuler les effets de la météo\\net des champs actifs.",
+      "fr": "Lorsque Terapagos prend sa Forme Stellaire, il utilise son pouvoir enfoui pour annuler les effets de la météo et des champs actifs.",
       "es": null
     },
     "longDescription": {
       "en": "When Terapagos changes into its Stellar Form, it uses its hidden powers to eliminate all effects of weather and terrain, reducing them to zero.",
-      "fr": "Lorsque Terapagos prend sa Forme Stellaire, il utilise\\nson pouvoir enfoui pour annuler les effets de la météo\\net des champs actifs.",
+      "fr": "Lorsque Terapagos prend sa Forme Stellaire, il utilise son pouvoir enfoui pour annuler les effets de la météo et des champs actifs.",
       "es": null
     },
     "flags": {
@@ -6585,12 +6585,12 @@
     },
     "shortDescription": {
       "en": "Bypasses targets' abilities if they could hinder or prevent moves.",
-      "fr": "Le Pokémon ignore les talents adverses qui auraient\\nun effet sur ses capacités.",
+      "fr": "Le Pokémon ignore les talents adverses qui auraient un effet sur ses capacités.",
       "es": "Las habilidades del objetivo no afectan a los movimientos que emplea."
     },
     "longDescription": {
       "en": "This Pokémon's moves completely ignore abilities that could hinder or prevent their effect on the target.\n\nFor example, this Pokémon's moves ignore abilities that would fully negate them, such as water absorb; abilities that would prevent any of their effects, such as clear body, shell armor, or sticky hold; and abilities that grant any general protective benefit, such as simple, snow cloak, or thick fat.  If an ability could either hinder or help this Pokémon's moves, e.g. dry skin or unaware, the ability is ignored either way.\n\nAbilities that do not fit this description, even if they could hinder moves in some other way, are not affected.  For example, cursed body only affects potential future uses of the move, while liquid ooze and shadow tag can only hinder a move's effect on the user.  This ablity cannot ignore type or form changes granted by abilities, for example color change or forecast; nor effects that were caused by abilities but are no longer tied to an ability, such as the rain from drizzle.  This ability cannot ignore multitype at all.\n\nAn ability ignored by this ability is only nullified while the move is being used.  For example, this Pokémon's moves can paralyze a Pokémon with limber, but Limber will activate and heal the paralysis immediately thereafter, and this Pokémon's spikes are not affected by this ability after they have been placed.\n\nWhen this Pokémon enters battle, all participating trainers are notified that it has this ability.\n\nThis ability functions identically to mold breaker and turboblaze.",
-      "fr": "Le Pokémon ignore les talents adverses qui auraient\\nun effet sur ses capacités.",
+      "fr": "Le Pokémon ignore les talents adverses qui auraient un effet sur ses capacités.",
       "es": "Las habilidades del objetivo no afectan a los movimientos que emplea."
     },
     "flags": {
@@ -6609,12 +6609,12 @@
     },
     "shortDescription": {
       "en": "Raises Attack when hit by a Fire-type move. Cannot be burned.",
-      "fr": "Lorsque le Pokémon est touché par une capacité de type\\nFeu, son Attaque augmente. Il ne peut pas être brûlé.",
+      "fr": "Lorsque le Pokémon est touché par une capacité de type Feu, son Attaque augmente. Il ne peut pas être brûlé.",
       "es": null
     },
     "longDescription": {
       "en": "Boosts the Attack stat when the Pokémon is hit by a Fire-type move. The Pokémon also cannot be burned.",
-      "fr": "Lorsque le Pokémon est touché par une capacité de type\\nFeu, son Attaque augmente. Il ne peut pas être brûlé.",
+      "fr": "Lorsque le Pokémon est touché par une capacité de type Feu, son Attaque augmente. Il ne peut pas être brûlé.",
       "es": null
     },
     "flags": {
@@ -6705,12 +6705,12 @@
     },
     "shortDescription": {
       "en": "Strengthens moves that make contact to 1.33× their power.",
-      "fr": "Augmente la puissance des attaques directes\\ndu Pokémon.",
+      "fr": "Augmente la puissance des attaques directes du Pokémon.",
       "es": "Aumenta la potencia de los movimientos de contacto."
     },
     "longDescription": {
       "en": "Strengthens moves that make contact to 1.33× their power.",
-      "fr": "Augmente la puissance des attaques directes\\ndu Pokémon.",
+      "fr": "Augmente la puissance des attaques directes du Pokémon.",
       "es": "Aumenta la potencia de los movimientos de contacto."
     },
     "flags": {
@@ -6729,12 +6729,12 @@
     },
     "shortDescription": {
       "en": "Increases Attack to 1.5× when poisoned.",
-      "fr": "Augmente la puissance des capacités physiques\\nquand le Pokémon est empoisonné.",
+      "fr": "Augmente la puissance des capacités physiques quand le Pokémon est empoisonné.",
       "es": "Aumenta la potencia de sus ataques físicos cuando está envenenado."
     },
     "longDescription": {
       "en": "This Pokémon has 1.5× its Attack when poisoned.",
-      "fr": "Augmente la puissance des capacités physiques\\nquand le Pokémon est empoisonné.",
+      "fr": "Augmente la puissance des capacités physiques quand le Pokémon est empoisonné.",
       "es": "Aumenta la potencia de sus ataques físicos cuando está envenenado."
     },
     "flags": {
@@ -6753,12 +6753,12 @@
     },
     "shortDescription": {
       "en": "May cause bad poisoning when the Pokémon hits an opponent with a move.",
-      "fr": "Grâce aux pouvoirs de sa chaîne imprégnée de toxines,\\nle Pokémon peut empoisonner gravement sa cible\\nen la touchant avec une capacité.",
+      "fr": "Grâce aux pouvoirs de sa chaîne imprégnée de toxines, le Pokémon peut empoisonner gravement sa cible en la touchant avec une capacité.",
       "es": null
     },
     "longDescription": {
       "en": "The power of the Pokémon's toxic chain may badly poison any target the Pokémon hits with a move.",
-      "fr": "Grâce aux pouvoirs de sa chaîne imprégnée de toxines,\\nle Pokémon peut empoisonner gravement sa cible\\nen la touchant avec une capacité.",
+      "fr": "Grâce aux pouvoirs de sa chaîne imprégnée de toxines, le Pokémon peut empoisonner gravement sa cible en la touchant avec une capacité.",
       "es": null
     },
     "flags": {
@@ -6777,12 +6777,12 @@
     },
     "shortDescription": {
       "en": "Scatters poison spikes at the feet of the opposing team when the Pokémon takes damage from physical moves.",
-      "fr": "Quand le Pokémon est touché par une capacité\\nphysique, il répand des pics toxiques dans le camp\\nadverse.",
+      "fr": "Quand le Pokémon est touché par une capacité physique, il répand des pics toxiques dans le camp adverse.",
       "es": null
     },
     "longDescription": {
       "en": "Scatters poison spikes at the feet of the opposing team when the Pokémon takes damage from physical moves.",
-      "fr": "Quand le Pokémon est touché par une capacité\\nphysique, il répand des pics toxiques dans le camp\\nadverse.",
+      "fr": "Quand le Pokémon est touché par une capacité physique, il répand des pics toxiques dans le camp adverse.",
       "es": null
     },
     "flags": {
@@ -6897,12 +6897,12 @@
     },
     "shortDescription": {
       "en": "Bypasses targets' abilities if they could hinder or prevent moves.",
-      "fr": "Le Pokémon ignore les talents adverses qui auraient\\nun effet sur ses capacités.",
+      "fr": "Le Pokémon ignore les talents adverses qui auraient un effet sur ses capacités.",
       "es": "Las habilidades del objetivo no afectan a los movimientos que emplea."
     },
     "longDescription": {
       "en": "This Pokémon's moves completely ignore abilities that could hinder or prevent their effect on the target.\n\nFor example, this Pokémon's moves ignore abilities that would fully negate them, such as water absorb; abilities that would prevent any of their effects, such as clear body, shell armor, or sticky hold; and abilities that grant any general protective benefit, such as simple, snow cloak, or thick fat.  If an ability could either hinder or help this Pokémon's moves, e.g. dry skin or unaware, the ability is ignored either way.\n\nAbilities that do not fit this description, even if they could hinder moves in some other way, are not affected.  For example, cursed body only affects potential future uses of the move, while liquid ooze and shadow tag can only hinder a move's effect on the user.  This ablity cannot ignore type or form changes granted by abilities, for example color change or forecast; nor effects that were caused by abilities but are no longer tied to an ability, such as the rain from drizzle.  This ability cannot ignore multitype at all.\n\nAn ability ignored by this ability is only nullified while the move is being used.  For example, this Pokémon's moves can paralyze a Pokémon with limber, but Limber will activate and heal the paralysis immediately thereafter, and this Pokémon's spikes are not affected by this ability after they have been placed.\n\nWhen this Pokémon enters battle, all participating trainers are notified that it has this ability.\n\nThis ability functions identically to mold breaker and teravolt.",
-      "fr": "Le Pokémon ignore les talents adverses qui auraient\\nun effet sur ses capacités.",
+      "fr": "Le Pokémon ignore les talents adverses qui auraient un effet sur ses capacités.",
       "es": "Las habilidades del objetivo no afectan a los movimientos que emplea."
     },
     "flags": {
@@ -6968,14 +6968,14 @@
       "es": "Nerviosismo"
     },
     "shortDescription": {
-      "en": "As long as the holder has not fainted, no enemy can eat its Berry, wherever it stands.",
-      "fr": "Tant que le porteur n'est pas K.O., aucun ennemi ne peut manger sa Baie, où qu'il se trouve.",
-      "es": "Mientras el portador no esté debilitado, ningún enemigo puede comerse su baya, esté donde esté."
+      "en": "Prevents opposing Pokémon from eating held Berries.",
+      "fr": "Fait stresser l’adversaire, ce qui l’empêche de manger des Baies.",
+      "es": "Pone nervioso al rival y le impide usar bayas."
     },
     "longDescription": {
-      "en": "As long as the holder has not fainted, no enemy can eat its Berry, wherever it stands.",
-      "fr": "Tant que le porteur n'est pas K.O., aucun ennemi ne peut manger sa Baie, où qu'il se trouve.",
-      "es": "Mientras el portador no esté debilitado, ningún enemigo puede comerse su baya, esté donde esté."
+      "en": "Opposing Pokémon cannot eat held Berries while this Pokémon is in battle.\n\nAffected Pokémon can still use bug bite or pluck to eat a target's Berry.",
+      "fr": "Fait stresser l’adversaire, ce qui l’empêche de manger des Baies.",
+      "es": "Pone nervioso al rival y le impide usar bayas."
     },
     "flags": {
       "breakable": false,
@@ -6993,12 +6993,12 @@
     },
     "shortDescription": {
       "en": "Contact moves can strike through Protect/Detect.",
-      "fr": "Si le Pokémon utilise une attaque directe, celle-ci\\npourra toucher la cible même si elle se protège.",
+      "fr": "Si le Pokémon utilise une attaque directe, celle-ci pourra toucher la cible même si elle se protège.",
       "es": "Si usa un movimiento de contacto, puede infligir daño al objetivo aunque este se proteja."
     },
     "longDescription": {
       "en": "If the Pokémon uses moves that make direct contact, it can attack the target even if the target protects itself.",
-      "fr": "Si le Pokémon utilise une attaque directe, celle-ci\\npourra toucher la cible même si elle se protège.",
+      "fr": "Si le Pokémon utilise une attaque directe, celle-ci pourra toucher la cible même si elle se protège.",
       "es": "Si usa un movimiento de contacto, puede infligir daño al objetivo aunque este se proteja."
     },
     "flags": {
@@ -7017,12 +7017,12 @@
     },
     "shortDescription": {
       "en": "Lowers Special Attack of all Pokémon except itself.",
-      "fr": "Le pouvoir de l’urne qui appelle le fléau affaiblit\\nl’Attaque Spéciale de tous les autres Pokémon.",
+      "fr": "Le pouvoir de l’urne qui appelle le fléau affaiblit l’Attaque Spéciale de tous les autres Pokémon.",
       "es": null
     },
     "longDescription": {
       "en": "The power of the Pokémon’s ruinous vessel lowers the Sp. Atk stats of all Pokémon except itself.",
-      "fr": "Le pouvoir de l’urne qui appelle le fléau affaiblit\\nl’Attaque Spéciale de tous les autres Pokémon.",
+      "fr": "Le pouvoir de l’urne qui appelle le fléau affaiblit l’Attaque Spéciale de tous les autres Pokémon.",
       "es": null
     },
     "flags": {
@@ -7113,12 +7113,12 @@
     },
     "shortDescription": {
       "en": "Swaps abilities with opponents on contact.",
-      "fr": "Lorsque le Pokémon est directement touché\\npar une capacité, il échange son talent avec\\ncelui de l’assaillant.",
+      "fr": "Lorsque le Pokémon est directement touché par une capacité, il échange son talent avec celui de l’assaillant.",
       "es": "Si le alcanza un movimiento de contacto, intercambia su habilidad con la del agresor."
     },
     "longDescription": {
       "en": "The Pokémon exchanges Abilities with a Pokémon that hits it with a move that makes direct contact.",
-      "fr": "Lorsque le Pokémon est directement touché\\npar une capacité, il échange son talent avec\\ncelui de l’assaillant.",
+      "fr": "Lorsque le Pokémon est directement touché par une capacité, il échange son talent avec celui de l’assaillant.",
       "es": "Si le alcanza un movimiento de contacto, intercambia su habilidad con la del agresor."
     },
     "flags": {
@@ -7161,12 +7161,12 @@
     },
     "shortDescription": {
       "en": "Halves damage from Fire moves, doubles damage of Water moves, and prevents burns.",
-      "fr": "Réduit la puissance des capacités de type Feu subies\\npar le Pokémon. Il est également immunisé contre\\nles brûlures.",
+      "fr": "Réduit la puissance des capacités de type Feu subies par le Pokémon. Il est également immunisé contre les brûlures.",
       "es": "Reduce el daño que le provocan los movimientos de tipo Fuego y es inmune a las quemaduras."
     },
     "longDescription": {
       "en": "When this Pokémon is hit by a Fire move, the damage is halved.  When this Pokémon uses a Water move, the power is doubled. This Pokémon cannot be burned, and if it becomes burned, the burn is immediately cured.",
-      "fr": "Réduit la puissance des capacités de type Feu subies\\npar le Pokémon. Il est également immunisé contre\\nles brûlures.",
+      "fr": "Réduit la puissance des capacités de type Feu subies par le Pokémon. Il est également immunisé contre les brûlures.",
       "es": "Reduce el daño que le provocan los movimientos de tipo Fuego y es inmune a las quemaduras."
     },
     "flags": {
@@ -7185,12 +7185,12 @@
     },
     "shortDescription": {
       "en": "Raises this Pokémon's Defense by two stages when it's hit by a Water move.",
-      "fr": "Augmente beaucoup la Défense du Pokémon\\nquand il subit une capacité de type Eau.",
+      "fr": "Augmente beaucoup la Défense du Pokémon quand il subit une capacité de type Eau.",
       "es": "Aumenta mucho su Defensa si le alcanza un movimiento de tipo Agua."
     },
     "longDescription": {
       "en": "Raises this Pokémon's Defense by two stages when it's hit by a Water move.",
-      "fr": "Augmente beaucoup la Défense du Pokémon\\nquand il subit une capacité de type Eau.",
+      "fr": "Augmente beaucoup la Défense du Pokémon quand il subit une capacité de type Eau.",
       "es": "Aumenta mucho su Defensa si le alcanza un movimiento de tipo Agua."
     },
     "flags": {
@@ -7209,12 +7209,12 @@
     },
     "shortDescription": {
       "en": "Prevents burns.",
-      "fr": "Le voile qui recouvre le Pokémon le protège\\ndes brûlures.",
+      "fr": "Le voile qui recouvre le Pokémon le protège des brûlures.",
       "es": "Evita las quemaduras gracias a la capa de agua que lo envuelve."
     },
     "longDescription": {
       "en": "This Pokémon cannot be burned.\n\nIf a Pokémon is burned and acquires this ability, its burn is healed; this includes when regaining a lost ability upon leaving battle.",
-      "fr": "Le voile qui recouvre le Pokémon le protège\\ndes brûlures.",
+      "fr": "Le voile qui recouvre le Pokémon le protège des brûlures.",
       "es": "Evita las quemaduras gracias a la capa de agua que lo envuelve."
     },
     "flags": {
@@ -7233,12 +7233,12 @@
     },
     "shortDescription": {
       "en": "Raises Speed and lowers Defense by one stage each upon being hit by a physical move.",
-      "fr": "Quand le Pokémon est touché par une capacité\\nphysique, sa Défense baisse mais sa Vitesse\\naugmente beaucoup.",
+      "fr": "Quand le Pokémon est touché par une capacité physique, sa Défense baisse mais sa Vitesse augmente beaucoup.",
       "es": "Al recibir daño de un ataque físico, le baja la Defensa, pero le sube mucho la Velocidad."
     },
     "longDescription": {
       "en": "Whenever a physical move hits this Pokémon, its Speed rises one stage and its Defense falls one stage.\n\nThis ability triggers on every hit of a multiple-hit move.",
-      "fr": "Quand le Pokémon est touché par une capacité\\nphysique, sa Défense baisse mais sa Vitesse\\naugmente beaucoup.",
+      "fr": "Quand le Pokémon est touché par une capacité physique, sa Défense baisse mais sa Vitesse augmente beaucoup.",
       "es": "Al recibir daño de un ataque físico, le baja la Defensa, pero le sube mucho la Velocidad."
     },
     "flags": {
@@ -7257,12 +7257,12 @@
     },
     "shortDescription": {
       "en": "Immune to Fire-type moves, and Defense is sharply boosted.",
-      "fr": "Si le Pokémon est touché par une capacité de type Feu,\\nil ne subit aucun dégât et sa Défense augmente\\nbeaucoup.",
+      "fr": "Si le Pokémon est touché par une capacité de type Feu, il ne subit aucun dégât et sa Défense augmente beaucoup.",
       "es": null
     },
     "longDescription": {
       "en": "The Pokémon takes no damage when hit by Fire-type moves. Instead, its Defense stat is sharply boosted.",
-      "fr": "Si le Pokémon est touché par une capacité de type Feu,\\nil ne subit aucun dégât et sa Défense augmente\\nbeaucoup.",
+      "fr": "Si le Pokémon est touché par une capacité de type Feu, il ne subit aucun dégât et sa Défense augmente beaucoup.",
       "es": null
     },
     "flags": {
@@ -7281,12 +7281,12 @@
     },
     "shortDescription": {
       "en": "Prevents stats from being lowered by other Pokémon.",
-      "fr": "Un écran de fumée empêche l’adversaire de baisser\\nles stats du Pokémon.",
+      "fr": "Un écran de fumée empêche l’adversaire de baisser les stats du Pokémon.",
       "es": "El humo blanco que lo protege evita que otros Pokémon le bajen las características."
     },
     "longDescription": {
       "en": "This Pokémon cannot have its stats lowered by other Pokémon.\n\nThis ability does not prevent any stat losses other than stat modifiers, such as the Speed cut from paralysis; nor self-inflicted stat drops, such as the Special Attack drop from overheat; nor opponent-triggered stat boosts, such as the Attack boost from swagger.  This Pokémon can still be passed negative stat modifiers through guard swap, heart swap, or power swap.\n\nThis ability functions identically to clear body in battle.\n\nOverworld: If the lead Pokémon has this ability, the wild encounter rate is halved.",
-      "fr": "Un écran de fumée empêche l’adversaire de baisser\\nles stats du Pokémon.",
+      "fr": "Un écran de fumée empêche l’adversaire de baisser les stats du Pokémon.",
       "es": "El humo blanco que lo protege evita que otros Pokémon le bajen las características."
     },
     "flags": {
@@ -7305,12 +7305,12 @@
     },
     "shortDescription": {
       "en": "This Pokémon automatically switches out when its HP drops below half.",
-      "fr": "Le Pokémon perd confiance quand ses PV tombent\\nà la moitié et s’enfuit dans sa Poké Ball.",
+      "fr": "Le Pokémon perd confiance quand ses PV tombent à la moitié et s’enfuit dans sa Poké Ball.",
       "es": "Se asusta y abandona el terreno de combate cuando sus PS se ven reducidos a la mitad."
     },
     "longDescription": {
       "en": "After this Pokémon is hit by a move, if that move caused this Pokémon's HP to drop below half, it switches out.",
-      "fr": "Le Pokémon perd confiance quand ses PV tombent\\nà la moitié et s’enfuit dans sa Poké Ball.",
+      "fr": "Le Pokémon perd confiance quand ses PV tombent à la moitié et s’enfuit dans sa Poké Ball.",
       "es": "Se asusta y abandona el terreno de combate cuando sus PS se ven reducidos a la mitad."
     },
     "flags": {
@@ -7329,12 +7329,12 @@
     },
     "shortDescription": {
       "en": "When hit by a wind move, the power of the next Electric-type move it uses is doubled.",
-      "fr": "Si le Pokémon est touché par une capacité faisant appel\\nau vent, il se charge en électricité.",
+      "fr": "Si le Pokémon est touché par une capacité faisant appel au vent, il se charge en électricité.",
       "es": null
     },
     "longDescription": {
       "en": "The Pokémon becomes charged when it is hit by a wind move, boosting the power of the next Electric-type move the Pokémon uses.",
-      "fr": "Si le Pokémon est touché par une capacité faisant appel\\nau vent, il se charge en électricité.",
+      "fr": "Si le Pokémon est touché par une capacité faisant appel au vent, il se charge en électricité.",
       "es": null
     },
     "flags": {
@@ -7353,12 +7353,12 @@
     },
     "shortDescription": {
       "en": "Gives immunity to wind moves, and causes the Pokémon's Attack to increase by one stage when hit by one.",
-      "fr": "L’Attaque du Pokémon augmente si un vent arrière souffle\\nou s’il est touché par une capacité faisant appel au vent.\\nDans ce dernier cas, il ne subit aucun dégât.",
+      "fr": "L’Attaque du Pokémon augmente si un vent arrière souffle ou s’il est touché par une capacité faisant appel au vent. Dans ce dernier cas, il ne subit aucun dégât.",
       "es": null
     },
     "longDescription": {
       "en": "Boosts the Pokémon’s Attack stat if Tailwind takes effect or if the Pokémon is hit by a wind move. The Pokémon also takes no damage from wind moves.",
-      "fr": "L’Attaque du Pokémon augmente si un vent arrière souffle\\nou s’il est touché par une capacité faisant appel au vent.\\nDans ce dernier cas, il ne subit aucun dégât.",
+      "fr": "L’Attaque du Pokémon augmente si un vent arrière souffle ou s’il est touché par une capacité faisant appel au vent. Dans ce dernier cas, il ne subit aucun dégât.",
       "es": null
     },
     "flags": {
@@ -7377,12 +7377,12 @@
     },
     "shortDescription": {
       "en": "Protects against damaging moves that are not super effective.",
-      "fr": "Une puissance mystérieuse protège le Pokémon contre\\ntoutes les capacités, sauf celles qui sont super efficaces.",
+      "fr": "Une puissance mystérieuse protège le Pokémon contre toutes les capacités, sauf celles qui sont super efficaces.",
       "es": "Gracias a un poder misterioso, solo le hacen daño los movimientos supereficaces."
     },
     "longDescription": {
       "en": "This Pokémon is immune to damaging moves that are not super effective against it.\n\nMoves that inflict fixed damage, such as night shade or seismic toss, are considered super effective if their types are.  Damage not directly dealt by moves, such as damage from weather, a status ailment, or spikes, is not prevented.\n\nThis ability cannot be copied with role play or traded away with skill swap, but it can be copied with trace, disabled with gastro acid, or changed with worry seed.  This Pokémon can still use Role Play itself to lose this ability, but not Skill Swap.\n\nIf this Pokémon has a substitute, this ability will block moves as usual and any moves not blocked will react to the Substitute as usual.",
-      "fr": "Une puissance mystérieuse protège le Pokémon contre\\ntoutes les capacités, sauf celles qui sont super efficaces.",
+      "fr": "Une puissance mystérieuse protège le Pokémon contre toutes les capacités, sauf celles qui sont super efficaces.",
       "es": "Gracias a un poder misterioso, solo le hacen daño los movimientos supereficaces."
     },
     "flags": {
@@ -7425,12 +7425,12 @@
     },
     "shortDescription": {
       "en": "Changes darmanitan's form after each turn depending on its HP: Zen Mode below 50% max HP, and Standard Mode otherwise.",
-      "fr": "Le Pokémon change de forme quand il lui reste moins\\nde la moitié de ses PV.",
+      "fr": "Le Pokémon change de forme quand il lui reste moins de la moitié de ses PV.",
       "es": "Cambia de forma si sus PS se ven reducidos a la mitad."
     },
     "longDescription": {
       "en": "This Pokémon switches between Standard Mode and Zen Mode after each turn depending on its HP.  Below 50% of its maximum HP, it switches to Zen Mode, and at 50% or above, it switches to Standard Mode.\n\nThis Pokémon returns to Standard Mode upon leaving battle or losing this ability.  This ability has no effect if this Pokémon is not a darmanitan.",
-      "fr": "Le Pokémon change de forme quand il lui reste moins\\nde la moitié de ses PV.",
+      "fr": "Le Pokémon change de forme quand il lui reste moins de la moitié de ses PV.",
       "es": "Cambia de forma si sus PS se ven reducidos a la mitad."
     },
     "flags": {
@@ -7449,12 +7449,12 @@
     },
     "shortDescription": {
       "en": "Transforms into its Hero Form when switching out.",
-      "fr": "Le Pokémon prend sa Forme Super en quittant\\nle combat.",
+      "fr": "Le Pokémon prend sa Forme Super en quittant le combat.",
       "es": null
     },
     "longDescription": {
       "en": "The Pokémon transforms into its Hero Form when it switches out.",
-      "fr": "Le Pokémon prend sa Forme Super en quittant\\nle combat.",
+      "fr": "Le Pokémon prend sa Forme Super en quittant le combat.",
       "es": null
     },
     "flags": {

@@ -142,7 +142,12 @@ function extractFlavorText(
     if (gen) {
       const key = `gen${gen}`;
       const text = entry.flavor_text ?? "";
-      byGen[key] = text.replace(/\n|\f/g, " ").replace(/\s+/g, " ").trim();
+      // PokeAPI's ability flavor texts also carry an ESCAPED line break — a backslash then `n` —
+      // which reached the tooltips verbatim (plan 226, 188 abilities). Cleaned with the real ones.
+      byGen[key] = text
+        .replace(/\n|\f|\\n/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
     }
   }
   return byGen;

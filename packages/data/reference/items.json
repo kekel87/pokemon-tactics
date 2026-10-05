@@ -734,14 +734,14 @@
     },
     "category": "heldItem",
     "shortDescription": {
-      "en": "The holder's Special Defense is multiplied by 1.5, but it cannot use status moves.",
-      "fr": "La Défense Spéciale du porteur est multipliée par 1,5, mais il ne peut pas utiliser de capacités de statut.",
-      "es": "La Defensa Especial del portador se multiplica por 1,5, pero no puede usar movimientos de estado."
+      "en": "Raises the holder’s Special Defense to 1.5×.  Prevents the holder from selecting a status move.",
+      "fr": "Objet à tenir. Une veste augmentant la Défense Spéciale, mais empêchant d’utiliser des capacités de statut.",
+      "es": "Chaleco que potencia la Defensa Especial del Pokémon que lo lleva, pero le impide lanzar movimientos de estado."
     },
     "longDescription": {
-      "en": "The holder's Special Defense is multiplied by 1.5, but it cannot use status moves.",
-      "fr": "La Défense Spéciale du porteur est multipliée par 1,5, mais il ne peut pas utiliser de capacités de statut.",
-      "es": "La Defensa Especial del portador se multiplica por 1,5, pero no puede usar movimientos de estado."
+      "en": "Raises the holder’s Special Defense to 1.5×.  Prevents the holder from selecting a status move.",
+      "fr": "Objet à tenir. Une veste augmentant la Défense Spéciale, mais empêchant d’utiliser des capacités de statut.",
+      "es": "Chaleco que potencia la Defensa Especial del Pokémon que lo lleva, pero le impide lanzar movimientos de estado."
     },
     "flingPower": 80,
     "flingEffect": null,
@@ -4034,14 +4034,14 @@
     },
     "category": "heldItem",
     "shortDescription": {
-      "en": "Rain set by the holder with Rain Dance lasts 8 of the holder's turns instead of 5.",
-      "fr": "La Pluie posée par le porteur avec Danse Pluie dure 8 tours du porteur au lieu de 5.",
-      "es": "La lluvia que el portador crea con Danza Lluvia dura 8 turnos del portador en lugar de 5."
+      "en": "Held: Rain Dance by the holder lasts 8 rounds instead of 5.",
+      "fr": "Objet à tenir. Prolonge la durée de la capacité Danse Pluie utilisée par le porteur.",
+      "es": "Prolonga la duración del movimiento Danza Lluvia que use el Pokémon que la lleva."
     },
     "longDescription": {
-      "en": "Rain set by the holder with Rain Dance lasts 8 of the holder's turns instead of 5.",
-      "fr": "La Pluie posée par le porteur avec Danse Pluie dure 8 tours du porteur au lieu de 5.",
-      "es": "La lluvia que el portador crea con Danza Lluvia dura 8 turnos del portador en lugar de 5."
+      "en": "Held: The holder’s Rain Dance will create rain lasting for eight turns rather than five.  As this item affects the move rather than the weather itself, the effect is not lost if the holder leaves battle or drops this item.",
+      "fr": "Objet à tenir. Prolonge la durée de la capacité Danse Pluie utilisée par le porteur.",
+      "es": "Prolonga la duración del movimiento Danza Lluvia que use el Pokémon que la lleva."
     },
     "flingPower": 60,
     "flingEffect": null,
@@ -6209,14 +6209,14 @@
     },
     "category": "mega-stone",
     "shortDescription": {
-      "en": "If the holder is Chansey, Electabuzz, Lickitung, Magmar, Onix, Porygon, Rhydon, Scyther, Seadra or Tangela, its Defense and Special Defense are multiplied by 1.5. No effect on other Pokémon.",
-      "fr": "Si le porteur est Leveinard, Élektek, Excelangue, Magmar, Onix, Porygon, Rhinoféros, Insécateur, Hypocéan ou Saquedeneu, sa Défense et sa Défense Spéciale sont multipliées par 1,5. Sans effet sur les autres Pokémon.",
-      "es": "Si el portador es Chansey, Electabuzz, Lickitung, Magmar, Onix, Porygon, Rhydon, Scyther, Seadra o Tangela, su Defensa y su Defensa Especial se multiplican por 1,5. Sin efecto en otros Pokémon."
+      "en": "Held: Holder has 1.5× Defense and Special Defense, as long as it’s not fully evolved.",
+      "fr": "Objet à tenir. Un étrange concentré d’évolution qui augmente la Défense et la Défense Spéciale d’un Pokémon pouvant évoluer.",
+      "es": "Roca misteriosa. El Pokémon portador aumentará su Defensa y su Defensa Especial si aún puede evolucionar."
     },
     "longDescription": {
-      "en": "If the holder is Chansey, Electabuzz, Lickitung, Magmar, Onix, Porygon, Rhydon, Scyther, Seadra or Tangela, its Defense and Special Defense are multiplied by 1.5. No effect on other Pokémon.",
-      "fr": "Si le porteur est Leveinard, Élektek, Excelangue, Magmar, Onix, Porygon, Rhinoféros, Insécateur, Hypocéan ou Saquedeneu, sa Défense et sa Défense Spéciale sont multipliées par 1,5. Sans effet sur les autres Pokémon.",
-      "es": "Si el portador es Chansey, Electabuzz, Lickitung, Magmar, Onix, Porygon, Rhydon, Scyther, Seadra o Tangela, su Defensa y su Defensa Especial se multiplican por 1,5. Sin efecto en otros Pokémon."
+      "en": "Held by a Pokémon that is not fully evolved\n:   Holder has 1.5× Defense and Special Defense.",
+      "fr": "Objet à tenir. Un étrange concentré d’évolution qui augmente la Défense et la Défense Spéciale d’un Pokémon pouvant évoluer.",
+      "es": "Roca misteriosa. El Pokémon portador aumentará su Defensa y su Defensa Especial si aún puede evolucionar."
     },
     "flingPower": 40,
     "flingEffect": null,
@@ -9259,14 +9259,14 @@
     },
     "category": "heldItem",
     "shortDescription": {
-      "en": "Harsh sunlight set by the holder with Sunny Day lasts 8 of the holder's turns instead of 5.",
-      "fr": "Le Plein soleil posé par le porteur avec Zénith dure 8 tours du porteur au lieu de 5.",
-      "es": "El sol intenso que el portador crea con Día Soleado dura 8 turnos del portador en lugar de 5."
+      "en": "Held: Sunny Day by the holder lasts 8 rounds instead of 5.",
+      "fr": "Objet à tenir. Prolonge la durée de la capacité Zénith utilisée par le porteur.",
+      "es": "Prolonga la duración del movimiento Día Soleado que use el Pokémon que la lleva."
     },
     "longDescription": {
-      "en": "Harsh sunlight set by the holder with Sunny Day lasts 8 of the holder's turns instead of 5.",
-      "fr": "Le Plein soleil posé par le porteur avec Zénith dure 8 tours du porteur au lieu de 5.",
-      "es": "El sol intenso que el portador crea con Día Soleado dura 8 turnos del portador en lugar de 5."
+      "en": "Held: The holder’s Sunny Day will create sunshine lasting for eight turns rather than five.  As this item affects the move rather than the weather itself, the effect is not lost if the holder leaves battle or drops this item.",
+      "fr": "Objet à tenir. Prolonge la durée de la capacité Zénith utilisée par le porteur.",
+      "es": "Prolonga la duración del movimiento Día Soleado que use el Pokémon que la lleva."
     },
     "flingPower": 60,
     "flingEffect": null,
@@ -9834,14 +9834,14 @@
     },
     "category": "heldItem",
     "shortDescription": {
-      "en": "Snow set by the holder with Hail or Snowscape lasts 8 of the holder's turns instead of 5.",
-      "fr": "La Neige posée par le porteur avec Grêle ou Chute de Neige dure 8 tours du porteur au lieu de 5.",
-      "es": "La nieve que el portador crea con Granizo o Paisaje Nevado dura 8 turnos del portador en lugar de 5."
+      "en": "An item to be held by a Pokémon. It extends the duration of the moves Hail and Snowscape used by the holder.",
+      "fr": "Objet à tenir. Prolonge la durée des capacités Grêle et Chute de Neige utilisées par le porteur.",
+      "es": "Objeto que se puede llevar. Prolonga la duración de los movimientos Granizo y Paisaje Nevado que usa el portador."
     },
     "longDescription": {
-      "en": "Snow set by the holder with Hail or Snowscape lasts 8 of the holder's turns instead of 5.",
-      "fr": "La Neige posée par le porteur avec Grêle ou Chute de Neige dure 8 tours du porteur au lieu de 5.",
-      "es": "La nieve que el portador crea con Granizo o Paisaje Nevado dura 8 turnos del portador en lugar de 5."
+      "en": "An item to be held by a Pokémon. It extends the duration of the moves Hail and Snowscape used by the holder.",
+      "fr": "Objet à tenir. Prolonge la durée des capacités Grêle et Chute de Neige utilisées par le porteur.",
+      "es": "Objeto que se puede llevar. Prolonga la duración de los movimientos Granizo y Paisaje Nevado que usa el portador."
     },
     "flingPower": 40,
     "flingEffect": null,
@@ -11484,14 +11484,14 @@
     },
     "category": "heldItem",
     "shortDescription": {
-      "en": "Reflect and Light Screen used by the holder last 8 of the holder's turns instead of 5.",
-      "fr": "Protection et Mur Lumière lancés par le porteur durent 8 tours du porteur au lieu de 5.",
-      "es": "Reflejo y Pantalla de Luz usados por el portador duran 8 turnos del portador en lugar de 5."
+      "en": "Held: Light Screen and Reflect used by the holder last 8 rounds instead of 5.",
+      "fr": "Objet à tenir. Prolonge la durée des capacités barrières telles que Mur Lumière et Protection.",
+      "es": "Prolonga la duración de barreras como las creadas por Reflejo y Pantalla de Luz. Debe llevarla un Pokémon."
     },
     "longDescription": {
-      "en": "Reflect and Light Screen used by the holder last 8 of the holder's turns instead of 5.",
-      "fr": "Protection et Mur Lumière lancés par le porteur durent 8 tours du porteur au lieu de 5.",
-      "es": "Reflejo y Pantalla de Luz usados por el portador duran 8 turnos del portador en lugar de 5."
+      "en": "Held: The holder’s Reflect and Light Screen will create effects lasting for eight turns rather than five.  As this item affects the move rather than the barrier itself, the effect is not lost if the holder leaves battle or drops this item.",
+      "fr": "Objet à tenir. Prolonge la durée des capacités barrières telles que Mur Lumière et Protection.",
+      "es": "Prolonga la duración de barreras como las creadas por Reflejo y Pantalla de Luz. Debe llevarla un Pokémon."
     },
     "flingPower": 30,
     "flingEffect": null,
@@ -12984,14 +12984,14 @@
     },
     "category": "heldItem",
     "shortDescription": {
-      "en": "Each consecutive use of the same move raises its damage by 10%, up to +100%. The bonus resets if the holder switches moves or the move fails.",
-      "fr": "Chaque utilisation consécutive de la même capacité augmente ses dégâts de 10 %, jusqu'à +100 %. Le bonus repart de zéro si le porteur change de capacité ou si elle échoue.",
-      "es": "Cada uso consecutivo del mismo movimiento aumenta su daño un 10 %, hasta +100 %. La bonificación se pierde si el portador cambia de movimiento o si este falla."
+      "en": "Held: Consectutive uses of the same attack have a cumulative damage boost of 10%. Maximum 100% boost.",
+      "fr": "Objet à tenir. Booste une capacité utilisée à répétition. L’effet s’annule si une autre capacité est utilisée.",
+      "es": "Potencia un movimiento que se use de forma consecutiva. Pero el efecto se pierde si se emplea otro movimiento."
     },
     "longDescription": {
-      "en": "Each consecutive use of the same move raises its damage by 10%, up to +100%. The bonus resets if the holder switches moves or the move fails.",
-      "fr": "Chaque utilisation consécutive de la même capacité augmente ses dégâts de 10 %, jusqu'à +100 %. Le bonus repart de zéro si le porteur change de capacité ou si elle échoue.",
-      "es": "Cada uso consecutivo del mismo movimiento aumenta su daño un 10 %, hasta +100 %. La bonificación se pierde si el portador cambia de movimiento o si este falla."
+      "en": "Held: Each time the holder uses the same move consecutively, its power is increased by another 10% of its original, to a maximum of 100%.",
+      "fr": "Objet à tenir. Booste une capacité utilisée à répétition. L’effet s’annule si une autre capacité est utilisée.",
+      "es": "Potencia un movimiento que se use de forma consecutiva. Pero el efecto se pierde si se emplea otro movimiento."
     },
     "flingPower": 30,
     "flingEffect": null,
@@ -19559,14 +19559,14 @@
     },
     "category": "heldItem",
     "shortDescription": {
-      "en": "A sandstorm set by the holder with Sandstorm lasts 8 of the holder's turns instead of 5.",
-      "fr": "La Tempête de sable posée par le porteur avec Tempête de Sable dure 8 tours du porteur au lieu de 5.",
-      "es": "La tormenta de arena que el portador crea con Tormenta Arena dura 8 turnos del portador en lugar de 5."
+      "en": "Held: Sandstorm by the holder lasts 8 rounds instead of 5.",
+      "fr": "Objet à tenir. Prolonge la durée de la capacité Tempête de Sable utilisée par le porteur.",
+      "es": "Prolonga la duración del movimiento Tormenta de Arena que use el Pokémon que la lleva."
     },
     "longDescription": {
-      "en": "A sandstorm set by the holder with Sandstorm lasts 8 of the holder's turns instead of 5.",
-      "fr": "La Tempête de sable posée par le porteur avec Tempête de Sable dure 8 tours du porteur au lieu de 5.",
-      "es": "La tormenta de arena que el portador crea con Tormenta Arena dura 8 turnos del portador en lugar de 5."
+      "en": "Held: The holder’s Sandstorm will create a sandstorm lasting for eight turns rather than five.  As this item affects the move rather than the weather itself, the effect is not lost if the holder leaves battle or drops this item.",
+      "fr": "Objet à tenir. Prolonge la durée de la capacité Tempête de Sable utilisée par le porteur.",
+      "es": "Prolonga la duración del movimiento Tormenta de Arena que use el Pokémon que la lleva."
     },
     "flingPower": 10,
     "flingEffect": null,
@@ -21209,14 +21209,14 @@
     },
     "category": "heldItem",
     "shortDescription": {
-      "en": "Terrains created by the holder last 8 of the holder's turns instead of 5.",
-      "fr": "Les champs créés par le porteur durent 8 tours du porteur au lieu de 5.",
-      "es": "Los campos creados por el portador duran 8 turnos del portador en lugar de 5."
+      "en": "Held: Extends the holder’s Terrain effects to 8 turns.",
+      "fr": "Objet à tenir. Prolonge la durée des champs que le Pokémon peut créer sur le terrain avec une capacité ou un talent.",
+      "es": "Al llevarlo, prolonga la duración de los campos creados por el Pokémon en el terreno de combate mediante movimientos o su habilidad."
     },
     "longDescription": {
-      "en": "Terrains created by the holder last 8 of the holder's turns instead of 5.",
-      "fr": "Les champs créés par le porteur durent 8 tours du porteur au lieu de 5.",
-      "es": "Los campos creados por el portador duran 8 turnos del portador en lugar de 5."
+      "en": "Held: When the holder changes the Terrain (whether by move or ability), it will last  8 turns instead of 5.",
+      "fr": "Objet à tenir. Prolonge la durée des champs que le Pokémon peut créer sur le terrain avec une capacité ou un talent.",
+      "es": "Al llevarlo, prolonga la duración de los campos creados por el Pokémon en el terreno de combate mediante movimientos o su habilidad."
     },
     "flingPower": 60,
     "flingEffect": null,

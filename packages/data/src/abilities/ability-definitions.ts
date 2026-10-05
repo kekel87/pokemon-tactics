@@ -2049,8 +2049,9 @@ const unnerve: AbilityHandler = {
   id: "unnerve",
 };
 
-// Moiteur (damp): blocks explosion moves (Destruction) and Boom Final (aftermath) recoil from any
-// field position. Enforced engine-side (damp-system); marker handler only.
+// Moiteur (damp): relational, not field-wide (décision #559) — Destruction, Explosion and Explo-Brume
+// fail only when a living holder is among the targets, and the holder takes no Boom Final
+// (aftermath) recoil. Enforced engine-side (damp-system); marker handler only.
 const damp: AbilityHandler = {
   id: "damp",
 };
