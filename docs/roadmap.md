@@ -19,11 +19,6 @@ d'abandon) · 21 parties sur 22 contre l'IA · 36 % de tactile**.
 **solo**. Ce qui sert le solo sert presque toutes les sessions ; ce qui est adjacent au réseau en sert
 une poignée.
 
-**Abandons lus le 2026-10-04 (plan 224, 19 jours)** : départ médian **au tour 1, après 30 s**, et
-30 départs avant tout dégât. On part tôt, pas pour l'équilibrage. L'appareil du joueur est relevé
-depuis la `v2026.10.2` : le tableau « abandons rapides par appareil » dira si c'est le mobile.
-→ graphe : `resultat-2026-10-04-lecture-abandons`, `decision-1117`.
-
 ## Comment lire
 
 **Plus de phases numérotées, plus d'ordre.** Les numéros servaient à construire le jeu du POC vers la
