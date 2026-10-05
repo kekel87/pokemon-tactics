@@ -26,6 +26,7 @@ import { Grid } from "../grid/Grid";
 import { hasLineOfSight } from "../grid/line-of-sight";
 import { resolveTargeting } from "../grid/targeting";
 import { isValidHitAndRunRetreat } from "../grid/validate-hit-and-run-retreat";
+import type { AuraCheckContext } from "../types/ability-definition";
 import type { Action, ActionResult } from "../types/action";
 import type { BattleEvent } from "../types/battle-event";
 import { AuraDissipatedReason } from "../types/battle-event";
@@ -1555,11 +1556,7 @@ export class BattleEngine {
         this.startupEvents.push(...events);
       }
       if (ability.onAuraCheck) {
-        const auraEvents = ability.onAuraCheck({
-          self: pokemon,
-          state: this.state,
-          pokemonTypesMap: this.pokemonTypesMap,
-        });
+        const auraEvents = ability.onAuraCheck(this.auraCheckContext(pokemon));
         this.startupEvents.push(...auraEvents);
       }
       if (ability.weatherAutoSetter && pokemon.currentHp > 0) {
@@ -1585,11 +1582,7 @@ export class BattleEngine {
         if (!ability?.onAuraCheck) {
           continue;
         }
-        const auraEvents = ability.onAuraCheck({
-          self: pokemon,
-          state: this.state,
-          pokemonTypesMap: this.pokemonTypesMap,
-        });
+        const auraEvents = ability.onAuraCheck(this.auraCheckContext(pokemon));
         for (const event of auraEvents) {
           this.emit(event);
           events.push(event);
@@ -3781,6 +3774,17 @@ export class BattleEngine {
       this.emit(resistedEvent);
       events.push(resistedEvent);
     }
+  }
+
+  private auraCheckContext(pokemon: PokemonInstance): AuraCheckContext {
+    return {
+      self: pokemon,
+      state: this.state,
+      pokemonTypesMap: this.pokemonTypesMap,
+      abilityRegistry: this.abilityRegistry ?? undefined,
+      itemRegistry: this.itemRegistry ?? undefined,
+      readWeather: () => this.getEffectiveWeather(),
+    };
   }
 
   getEffectiveWeather(): Weather {

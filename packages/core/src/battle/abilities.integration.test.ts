@@ -1267,9 +1267,10 @@ describe("ability system integration", () => {
     const startupEvents = engine.consumeStartupEvents();
 
     expect(lickitungAfter?.statStages[StatName.Attack]).toBe(0);
-    expect(lickitungAfter?.volatileStatuses.some((v) => v.type === StatusType.Intimidated)).toBe(
-      false,
-    );
+    expect(
+      lickitungAfter?.volatileStatuses.find((v) => v.type === StatusType.Intimidated)
+        ?.statChangeApplied,
+    ).toBe(false);
     expect(
       startupEvents.some(
         (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "own-tempo",

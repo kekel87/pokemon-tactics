@@ -36,13 +36,29 @@ export function buildMoveContextualView(
   const baseAccuracy = definition.accuracy;
   const effectiveAccuracy = caster.weatherAccuracyOverride ?? baseAccuracy;
 
+  // Chaque cause sur la grandeur qu'elle change (plan 227). La météo seule peut toucher l'une, l'autre
+  // ou les deux ; le reste ne corrige que la puissance.
+  const powerCauses = caster.causes.filter(
+    (cause) => cause.kind !== "weather" || caster.weatherBpMultiplier !== 1,
+  );
+  const accuracyCauses = caster.causes.filter(
+    (cause) => cause.kind === "weather" && caster.weatherAccuracyOverride !== undefined,
+  );
   const power =
     basePower > 0 && effectivePower !== basePower
-      ? { base: basePower, effective: effectivePower }
+      ? {
+          base: basePower,
+          effective: effectivePower,
+          causes: powerCauses.map((cause) => describeCause(context, cause)),
+        }
       : null;
   const accuracy =
     baseAccuracy > 0 && effectiveAccuracy !== baseAccuracy
-      ? { base: baseAccuracy, effective: effectiveAccuracy }
+      ? {
+          base: baseAccuracy,
+          effective: effectiveAccuracy,
+          causes: accuracyCauses.map((cause) => describeCause(context, cause)),
+        }
       : null;
 
   // Rien à dire : ni chiffre corrigé, ni brûlure. Null plutôt qu'une vue vide, pour que le chrome
@@ -54,7 +70,6 @@ export function buildMoveContextualView(
   return {
     power,
     accuracy,
-    causes: caster.causes.map((cause) => describeCause(context, cause)),
     burnHalvesDamage: caster.burnHalvesDamage,
   };
 }

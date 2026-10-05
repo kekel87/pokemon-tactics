@@ -19,6 +19,7 @@ import {
   BattleEndReason,
   KnockOutCause,
   type TeamSource,
+  type TelemetryAiTeam,
   type TelemetryMemberOutcome,
 } from "./telemetry";
 
@@ -37,7 +38,7 @@ function sideOf(pokemonId: string): number | null {
 }
 
 /** `player-2` → camp 1. */
-function sideOfPlayer(playerId: string): number | null {
+export function sideOfPlayer(playerId: string): number | null {
   const match = /^player-(\d+)$/.exec(playerId);
   if (!match?.[1]) {
     return null;
@@ -91,6 +92,8 @@ export function createBattleTelemetryCollector(input: {
   battleId: string;
   /** Camps tenus par un humain, et la provenance de l'équipe de chacun. */
   trackedSources: ReadonlyMap<number, TeamSource>;
+  /** Camps tenus par l'IA, rendus tels quels dans `battle_ended` (plan 227). */
+  aiTeams: readonly TelemetryAiTeam[];
   startedAt: number;
   now: () => number;
 }): BattleTelemetryCollector {
@@ -249,6 +252,7 @@ export function createBattleTelemetryCollector(input: {
         durationMs: input.now() - input.startedAt,
         turns,
         outcomes,
+        aiTeams: input.aiTeams,
       };
     },
 

@@ -327,6 +327,11 @@ export function buildInfoPanelView(
   }
 
   for (const volatile of pokemon.volatileStatuses) {
+    // Intimidation bloquée (Talisman Sain, Corps Sain… plan 227) : le statut reste posé pour que
+    // l'aura ne se redéclenche pas, mais rien n'a été subi — il ne se montre pas.
+    if (volatile.type === StatusType.Intimidated && volatile.statChangeApplied === false) {
+      continue;
+    }
     const timedKey = TIMED_VOLATILE_LABEL[volatile.type];
     if (timedKey) {
       badges.push(

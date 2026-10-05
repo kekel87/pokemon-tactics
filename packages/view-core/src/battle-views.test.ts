@@ -109,6 +109,27 @@ describe("buildInfoPanelView", () => {
     expect(view.badges.filter((b) => b.variant === "volatile")).toHaveLength(1);
   });
 
+  it.each([
+    [true, true],
+    [false, false],
+  ])(
+    "badges Intimidation only when it lowered Attack (applied %s → shown %s)",
+    (applied, shown) => {
+      const pokemon = makePokemon({
+        volatileStatuses: [
+          {
+            type: StatusType.Intimidated,
+            remainingTurns: -1,
+            sourceId: "p2-growlithe",
+            statChangeApplied: applied,
+          },
+        ],
+      } as unknown as Partial<PokemonInstance>);
+      const view = buildInfoPanelView(testContext, pokemon, makeState([pokemon]));
+      expect(view.badges.some((b) => b.label.includes("status.intimidated"))).toBe(shown);
+    },
+  );
+
   it("exposes public type chips for either side", () => {
     const pokemon = makePokemon();
     const view = buildInfoPanelView(testContext, pokemon, makeState([pokemon]), false);

@@ -10,19 +10,38 @@
  */
 
 import type { BattleEvent, TeamSelection } from "@pokemon-tactic/core";
+import type { CombatSetup } from "../app/screens";
 import { MAP_ID_UNKNOWN, mapIdFromUrl } from "../maps/map-identity";
 import { modeOf } from "./battle-mode";
 import { type BattleTelemetryCollector, createBattleTelemetryCollector } from "./battle-telemetry";
-import { aiDifficultiesOf, countControllers, trackedSourcesOf } from "./team-telemetry";
+import { aiDifficultiesOf, aiTeamsOf, countControllers, trackedSourcesOf } from "./team-telemetry";
 import {
   AbandonSource,
   createBattleId,
   type TelemetryDevice,
-  type TelemetryTeam,
   trackBattleAbandoned,
   trackBattleEnded,
   trackBattleStarted,
 } from "./telemetry";
+
+/**
+ * Ce que la télémétrie lit du setup de combat — et c'est elle qui le lit, champ par champ (plan
+ * 227). L'écran de combat lui passe le setup ENTIER : un passe-plat bâti de `...` conditionnels
+ * jetait un champ en silence sans que le compilateur le voie (décision #979), et c'est ainsi que
+ * `battleId` n'était prouvé par aucun test sur son dernier maillon.
+ *
+ * `telemetryTeams` n'existe que sur le chemin de l'écran de sélection : le bac à sable, la route
+ * `?combat=1` et un combat repris n'émettent donc rien, ce qui est le comportement voulu.
+ */
+export type BattleTelemetrySetup = Readonly<
+  Pick<
+    CombatSetup,
+    "formatKey" | "autoPlacement" | "damagePreview" | "telemetryTeams" | "localSeat" | "battleId"
+  >
+> & {
+  readonly mapUrl: string;
+  readonly teams: readonly TeamSelection[];
+};
 
 let collector: BattleTelemetryCollector | null = null;
 /** L'appareil relevé au démarrage de la partie ouverte, rejoué tel quel à son abandon (plan 224). */
@@ -39,25 +58,11 @@ let abandonOnPageHideInstalled = false;
  * ⚠️ Jamais appelé à la reprise d'un combat (plan 181) : la reprise ne repasse pas par le placement,
  * donc une partie reprise trois fois ne compte pas pour quatre.
  */
-export function beginBattleTelemetry(input: {
-  mapUrl: string;
-  formatKey: string;
-  autoPlacement: boolean;
-  damagePreview: boolean;
-  telemetryTeams: readonly TelemetryTeam[];
-  teams: readonly TeamSelection[];
-  /** Notre place en ligne. Sa seule présence fait le mode `online` (plan 201). */
-  localSeat?: number;
-  /**
-   * L'identifiant tiré par l'hôte et reçu dans le `start` (plan 204). **Absent en local**, où on
-   * tire le nôtre : un seul client déclare la partie, il n'y a personne avec qui s'accorder.
-   *
-   * 🔴 En ligne il est indispensable : les deux pairs émettent chacun leurs événements, et c'est
-   * cet identifiant partagé qui permet à l'agrégation de compter UNE partie au lieu de deux, tout
-   * en gardant les deux camps que chaque pair déclare de son côté.
-   */
-  battleId?: string;
-}): void {
+export function beginBattleTelemetry(input: BattleTelemetrySetup): void {
+  const telemetryTeams = input.telemetryTeams;
+  if (!telemetryTeams) {
+    return;
+  }
   const battleId = input.battleId ?? createBattleId();
   const { humans, ai } = countControllers(input.teams);
 
@@ -71,12 +76,13 @@ export function beginBattleTelemetry(input: {
     autoPlacement: input.autoPlacement,
     damagePreview: input.damagePreview,
     aiDifficulties: aiDifficultiesOf(input.teams),
-    teams: input.telemetryTeams,
+    teams: telemetryTeams,
   });
 
   collector = createBattleTelemetryCollector({
     battleId,
-    trackedSources: trackedSourcesOf(input.telemetryTeams),
+    trackedSources: trackedSourcesOf(telemetryTeams),
+    aiTeams: aiTeamsOf(input.teams),
     startedAt: Date.now(),
     now: () => Date.now(),
   });

@@ -1,6 +1,6 @@
-import type { BattleState, PokemonInstance } from "@pokemon-tactic/core";
+import { type BattleState, PlayerController, type PokemonInstance } from "@pokemon-tactic/core";
 import { describe, expect, it, vi } from "vitest";
-import { healthRatiosBySide, soleLocalSide, trackedSourcesOf } from "./team-telemetry";
+import { aiTeamsOf, healthRatiosBySide, soleLocalSide, trackedSourcesOf } from "./team-telemetry";
 import { TeamSource, type TelemetryTeam } from "./telemetry";
 
 vi.mock("../i18n", () => ({ getLanguage: () => "fr", t: (key: string) => key }));
@@ -97,5 +97,50 @@ describe("trackedSourcesOf", () => {
     const tracked = trackedSourcesOf([team(0, TeamSource.AiRandom), team(1, TeamSource.AiBuilt)]);
 
     expect(tracked.size).toBe(0);
+  });
+});
+
+describe("aiTeamsOf", () => {
+  it("rend le camp 0-indexé et les espèces de chaque équipe de l'IA", () => {
+    const teams = aiTeamsOf([
+      { playerId: "player-1", controller: PlayerController.Human, pokemonDefinitionIds: ["abra"] },
+      {
+        playerId: "player-2",
+        controller: PlayerController.Ai,
+        pokemonDefinitionIds: ["onix", "growlithe"],
+      },
+    ]);
+
+    expect(teams).toEqual([{ side: 1, species: ["onix", "growlithe"] }]);
+  });
+
+  it("🔴 n'expose JAMAIS les espèces d'une équipe humaine", () => {
+    const teams = aiTeamsOf([
+      { playerId: "player-1", controller: PlayerController.Human, pokemonDefinitionIds: ["abra"] },
+    ]);
+
+    expect(teams).toEqual([]);
+  });
+
+  it("écarte un identifiant de joueur qu'il ne sait pas lire", () => {
+    const teams = aiTeamsOf([
+      {
+        playerId: "dummy" as PokemonInstance["playerId"],
+        controller: PlayerController.Ai,
+        pokemonDefinitionIds: ["onix"],
+      },
+    ]);
+
+    expect(teams).toEqual([]);
+  });
+
+  it("copie la liste d'espèces au lieu de partager celle de la sélection", () => {
+    const species = ["onix"];
+    const [team] = aiTeamsOf([
+      { playerId: "player-2", controller: PlayerController.Ai, pokemonDefinitionIds: species },
+    ]);
+    species.push("abra");
+
+    expect(team?.species).toEqual(["onix"]);
   });
 });

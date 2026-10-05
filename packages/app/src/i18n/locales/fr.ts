@@ -926,7 +926,6 @@ const fr: Translations = {
   "battleLog.stat.hp": "PV",
   "moveContext.charge": "Chargeur",
   "moveContext.helpingHand": "Coup d'Main",
-  "moveContext.effective": "ici",
   "moveContext.burnHalves": "Brûlure : dégâts physiques ÷2",
   "battleLog.stat.spAttack": "Atq. Spé.",
   "battleLog.stat.spDefense": "Déf. Spé.",

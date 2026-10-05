@@ -24,13 +24,13 @@ Tu proposes un message de commit pour les changements en cours.
 
 ## Ce que tu fais
 
-### 0. Gate CI (OBLIGATOIRE — AVANT TOUT)
+### 0. Le gate n'est PAS ton rôle
 
-Lancer `pnpm lint 2>&1 | tail -5` et vérifier le exit code. Si erreurs :
-- **STOP** — ne pas proposer de commit message
-- Lister les erreurs et dire à l'appelant de corriger avant de relancer
-
-Si lint passe (exit 0, warnings OK), continuer.
+🔴 **Ne lance ni `pnpm lint`, ni aucune vérification.** Le gate (`/ci-gate full`) a déjà rendu son
+verdict dans le tour, avant de t'appeler : c'est lui qui fait foi. Le 2026-09-18, cet agent relançait
+`pnpm lint`, lisait « Linter process terminated abnormally (possibly out of memory) » — un faux
+positif connu de la couche pnpm, pas de Biome — et refusait le commit en concluant « GATE CI
+BLOQUANT » contre un gate vert. Tu proposes un message, rien d'autre.
 
 ### 1. Comprendre le contexte (prioritaire)
 

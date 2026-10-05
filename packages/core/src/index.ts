@@ -94,6 +94,7 @@ export {
   NATURE_LOWER_MULTIPLIER,
 } from "./battle/nature-modifier";
 export type { OhkoImmunity } from "./battle/ohko";
+export { applyOpponentStatDrop } from "./battle/opponent-stat-drop";
 export type { PlacementResult } from "./battle/PlacementPhase";
 export { PlacementError, PlacementPhase } from "./battle/PlacementPhase";
 export type { EngineFactory } from "./battle/replay-runner";

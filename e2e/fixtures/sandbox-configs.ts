@@ -2656,3 +2656,37 @@ export const BATTLE_LEVEL_MIXED = {
     { control: "passive", members: [{ pokemon: "dummy", position: { x: 2, y: 2 } }] },
   ],
 } as const;
+
+/** Cause à côté du chiffre (plan 227, cahier §4) : Dracaufeu sous Plein soleil, seul move
+ *  Lance-Flammes. Le soleil multiplie la puissance d'un move Feu (×1,5) sans toucher sa précision →
+ *  la cellule « Puis » porte la valeur effective et « (Plein soleil) », la cellule « Préc » rien.
+ *  Aucune note commune « Modifiée par » sous la ligne. Aucun jet → déterministe. */
+export const TOOLTIP_SUN_FLAMETHROWER = {
+  ...DUEL,
+  pokemon: "charizard",
+  moves: ["flamethrower"],
+  weather: "sun",
+} as const;
+
+/** Intimidation bloquée (plan 227, cahier §5.14) : Caninos porte Intimidation, au contact du Dummy
+ *  dès le boot — l'aura se déclenche sans piloter de tour. `INTIMIDATE_BLOCKED` : le Dummy tient le
+ *  Talisman Sain, la baisse est bloquée (statut posé avec `statChangeApplied: false`, donc PAS de
+ *  badge « Intimidé »). `INTIMIDATE_UNBLOCKED` : témoin sans objet, le badge s'affiche. */
+export const INTIMIDATE_UNBLOCKED = {
+  ...DUEL,
+  pokemon: "growlithe",
+  playerAbility: "intimidate",
+} as const;
+
+export const INTIMIDATE_BLOCKED = {
+  ...INTIMIDATE_UNBLOCKED,
+  dummyHeldItem: "clear-amulet",
+} as const;
+
+/** Acharné lié à l'aura (plan 227, decision-1131) : le Dummy porte Acharné au contact de Caninos
+ *  (Intimidation). Au boot : -1 Attaque puis +2 → net +1. Quand Caninos s'éloigne hors de l'aura,
+ *  le -1 ET le +2 d'Acharné sont rendus → crans d'Attaque à 0, plus de badge. Aucun jet. */
+export const INTIMIDATE_DEFIANT = {
+  ...INTIMIDATE_UNBLOCKED,
+  dummyAbility: "defiant",
+} as const;

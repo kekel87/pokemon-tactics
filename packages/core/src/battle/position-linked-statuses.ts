@@ -4,6 +4,7 @@ import { StatusType } from "../enums/status-type";
 import type { BattleEvent } from "../types/battle-event";
 import type { BattleState } from "../types/battle-state";
 import type { PokemonInstance } from "../types/pokemon-instance";
+import { applyStatStage } from "./apply-stat-stage";
 import { effectiveAbilityId } from "./effective-ability";
 
 function chebyshevDistance(a: { x: number; y: number }, b: { x: number; y: number }): number {
@@ -70,6 +71,11 @@ function processIntimidated(pokemon: PokemonInstance, state: BattleState): Battl
           stages: 1,
         });
       }
+    }
+    // Acharné / Battant leave with the aura that woke them (plan 227).
+    for (const { stat, stages } of status.retaliation ?? []) {
+      const { events: undone } = applyStatStage(pokemon, stat, -stages);
+      events.push(...undone);
     }
   }
 

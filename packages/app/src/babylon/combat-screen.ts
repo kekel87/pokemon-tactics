@@ -405,24 +405,9 @@ async function mountPlacement(
    * `battle_ended`, toutes les parties abandonnées disparaîtraient des statistiques d'usage, et
    * l'abandon est justement la population qu'on veut mesurer.
    *
-   * `telemetryTeams` n'existe que sur le chemin de l'écran de sélection : le bac à sable, la route
-   * `?combat=1` et un combat repris n'émettent donc rien, ce qui est le comportement voulu.
+   * Le setup part ENTIER : c'est la télémétrie qui en lit les champs (plan 227).
    */
-  if (setup.telemetryTeams) {
-    beginBattleTelemetry({
-      mapUrl,
-      formatKey: setup.formatKey,
-      autoPlacement: setup.autoPlacement,
-      damagePreview: setup.damagePreview,
-      telemetryTeams: setup.telemetryTeams,
-      teams: setup.teams,
-      ...(setup.localSeat === undefined ? {} : { localSeat: setup.localSeat }),
-      // Fourni en ligne seulement (plan 204) : c'est l'hôte qui l'a tiré et le `start` qui l'a
-      // apporté, pour que les deux pairs déclarent la même partie sous le même identifiant. Absent
-      // en local, où `beginBattleTelemetry` tire le sien.
-      ...(setup.battleId === undefined ? {} : { battleId: setup.battleId }),
-    });
-  }
+  beginBattleTelemetry({ ...setup, mapUrl });
   return startPlacementFlow({
     combat,
     map: loaded.map,

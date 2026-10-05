@@ -1,5 +1,8 @@
+import type { Page } from "@playwright/test";
 import { expect, test } from "../../fixtures";
-import { DUEL } from "../../fixtures/sandbox-configs";
+import { DUEL, INTIMIDATE_BLOCKED, INTIMIDATE_DEFIANT } from "../../fixtures/sandbox-configs";
+import type { CombatScene } from "../../pages/CombatScene";
+import { badgeCountOnHover, hoverCard } from "../../pages/combat-queries";
 
 // Cahier §5.14 — talents & objets déclenchés à travers le renderer (journal FR). Configurables en
 // sandbox (`playerAbility`/`dummyAbility`/`heldItem`) → déterministe, sans archéologie de map.
@@ -13,6 +16,52 @@ test("§5.14 talent : Intimidation s'active à l'entrée et baisse l'Attaque adv
   await bootSandbox({ ...DUEL, dummyAbility: "intimidate", dummyPokemon: "charizard" });
   await expect(log(page, /Intimidation de .* s'active/)).toBeAttached({ timeout: 10_000 });
   await expect(log(page, /Attaque de .* baisse/)).toBeAttached();
+});
+
+/** Le Dummy, au contact de Caninos dès le boot dans les configs INTIMIDATE_*. */
+const DUMMY_TILE = { x: 2, y: 2 };
+
+/** Badges « Intimidé » sur la carte du Dummy ; -1 tant que la bonne carte n'est pas affichée. */
+function intimidatedBadges(scene: CombatScene, page: Page) {
+  return expect.poll(() => badgeCountOnHover(scene, page, DUMMY_TILE, "Dummy", "Intimidé"), {
+    timeout: 10_000,
+  });
+}
+
+// §5.14 (plan 227) — Intimidation bloquée. Caninos porte Intimidation au contact du Dummy dès le
+// boot. Le témoin non bloqué est le test Acharné plus bas (badge présent). Avec le Talisman Sain, la baisse est bloquée : le statut reste posé côté core (pour que l'aura ne se
+// redéclenche pas à chaque passe) mais le panneau ne le montre PAS, et l'Attaque ne baisse pas.
+test("§5.14 talent : Intimidation bloquée par le Talisman Sain — pas de badge « Intimidé »", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox(INTIMIDATE_BLOCKED);
+  await expect(log(page, /Intimidation de .* s'active/)).toBeAttached({ timeout: 10_000 });
+  await expect(log(page, /Talisman Sain/)).toBeAttached();
+  await expect(log(page, /Attaque de .* baisse/)).toHaveCount(0);
+  await intimidatedBadges(scene, page).toBe(0);
+});
+
+// §5.14 (plan 227, decision-1131) — Acharné réagit à Intimidation, et son bonus est LIÉ À L'AURA :
+// rendu quand l'intimidateur s'éloigne. Sans ce lien, chaque aller-retour au contact cumulait +2.
+// Au boot : -1 puis +2 → la ligne Attaque du Dummy (fog OFF → bloc de stats lisible) montre « 1↑ ».
+// Caninos s'éloigne de deux cases (hors aura, Chebyshev 3) → le -1 et le +2 sont rendus ensemble :
+// plus aucun cran sur l'Attaque, et le badge « Intimidé » tombe.
+test("§5.14 talent : Acharné réagit à Intimidation et rend son bonus quand l'intimidateur s'éloigne", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox(INTIMIDATE_DEFIANT);
+  await expect(log(page, /Acharné de .* s'active/)).toBeAttached({ timeout: 10_000 });
+  const before = await hoverCard(scene, page, DUMMY_TILE.x, DUMMY_TILE.y, "Dummy");
+  await expect(before.statRows.first()).toContainText("1↑");
+  await intimidatedBadges(scene, page).toBe(1);
+
+  await scene.moveTo(2, 3, 2, 5);
+
+  await intimidatedBadges(scene, page).toBe(0);
+  const after = await hoverCard(scene, page, DUMMY_TILE.x, DUMMY_TILE.y, "Dummy");
+  await expect(after.statRows.first()).not.toHaveText(/[↑↓]/);
 });
 
 test("§5.14 objet tenu : Restes soigne en fin de tour (journal)", async ({ page, bootSandbox }) => {

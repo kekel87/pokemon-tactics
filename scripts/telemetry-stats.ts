@@ -213,6 +213,7 @@ function renderTerminal(report: Report): string {
     section("Tombés sans avoir agi", report.diedWithoutActing, (k) => nameOf(POKEMON_NAMES, k)),
   );
   parts.push(winRateSection(report));
+  parts.push(matchupSection(report));
 
   parts.push(abandonBlock(report));
 
@@ -240,28 +241,64 @@ const MIN_APPEARANCES_FOR_WIN_RATE = 10;
  * lancées, qui sont directement imputables à l'individu.
  */
 function winRateSection(report: Report): string {
-  const eligible = [...report.speciesAppearances.entries()]
+  return rateSection({
+    title: "Présence dans le camp vainqueur",
+    appearances: report.speciesAppearances,
+    wins: report.speciesWins,
+    labelOf: (species) => nameOf(POKEMON_NAMES, species),
+    emptyText: "pas encore assez d'apparitions",
+    heldText: (held) =>
+      `${held} espèce(s) sous ${MIN_APPEARANCES_FOR_WIN_RATE} apparition(s), tues plutôt que lues de travers`,
+  });
+}
+
+/**
+ * Affrontements espèce contre espèce (plan 227), même seuil que la présence dans le camp vainqueur.
+ * L'adversaire peut être de l'IA ; le sujet est toujours tenu par un humain.
+ */
+function matchupSection(report: Report): string {
+  return rateSection({
+    title: "Affrontements",
+    appearances: report.matchupAppearances,
+    wins: report.matchupWins,
+    labelOf: (key) => {
+      const [species = "", opponent = ""] = key.split("|");
+      return `${nameOf(POKEMON_NAMES, species)} contre ${nameOf(POKEMON_NAMES, opponent)}`;
+    },
+    emptyText: "pas encore assez de parties",
+    heldText: (held) =>
+      `${held} affrontement(s) sous ${MIN_APPEARANCES_FOR_WIN_RATE} partie(s), tus plutôt que lus de travers`,
+  });
+}
+
+/** Un taux par clé, avec son `n`, sous le seuil `MIN_APPEARANCES_FOR_WIN_RATE`. Douze lignes au plus. */
+function rateSection(section: {
+  title: string;
+  appearances: Tally;
+  wins: Tally;
+  labelOf: (key: string) => string;
+  emptyText: string;
+  heldText: (held: number) => string;
+}): string {
+  const eligible = [...section.appearances.entries()]
     .filter(([, appearances]) => appearances >= MIN_APPEARANCES_FOR_WIN_RATE)
-    .map(([species, appearances]) => {
-      const wins = report.speciesWins.get(species) ?? 0;
-      return { species, appearances, rate: wins / appearances };
+    .map(([key, appearances]) => {
+      const wins = section.wins.get(key) ?? 0;
+      return { key, appearances, rate: wins / appearances };
     })
     .sort((left, right) => right.rate - left.rate);
   const rows = eligible.slice(0, 12);
   // Compté AVANT la coupe à douze : mélanger les deux attribuerait à un manque de données des
-  // lignes qui n'ont manqué que de place, et le message deviendrait faux dès la treizième espèce.
-  const held = report.speciesAppearances.size - eligible.length;
-  const footer =
-    held > 0
-      ? `    (${held} espèce(s) sous ${MIN_APPEARANCES_FOR_WIN_RATE} apparition(s), tues plutôt que lues de travers)\n`
-      : "";
+  // lignes qui n'ont manqué que de place, et le message deviendrait faux dès la treizième ligne.
+  const held = section.appearances.size - eligible.length;
+  const footer = held > 0 ? `    (${section.heldText(held)})\n` : "";
   if (rows.length === 0) {
-    return `  Présence dans le camp vainqueur\n    (pas encore assez d'apparitions)\n${footer}`;
+    return `  ${section.title}\n    (${section.emptyText})\n${footer}`;
   }
   const lines = rows.map((row) =>
-    countLine(percent(row.rate), `${nameOf(POKEMON_NAMES, row.species)} (n=${row.appearances})`),
+    countLine(percent(row.rate), `${section.labelOf(row.key)} (n=${row.appearances})`),
   );
-  return `  Présence dans le camp vainqueur\n${lines.join("\n")}\n${footer}`;
+  return `  ${section.title}\n${lines.join("\n")}\n${footer}`;
 }
 
 /** Ce que les 77 % d'abandon ne pouvaient pas dire : quand on lâche, et dans quel état. */

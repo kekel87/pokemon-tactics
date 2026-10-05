@@ -36,7 +36,7 @@ describe("buildMoveContextualView", () => {
   it("expose la puissance effective quand un multiplicateur s'applique", () => {
     const view = buildMoveContextualView(context, caster({ weatherBpMultiplier: 1.5 }), MOVE);
 
-    expect(view?.power).toEqual({ base: 90, effective: 135 });
+    expect(view?.power).toEqual({ base: 90, effective: 135, causes: [] });
     expect(view?.accuracy).toBeNull();
   });
 
@@ -53,7 +53,7 @@ describe("buildMoveContextualView", () => {
   it("expose la précision imposée par la météo", () => {
     const view = buildMoveContextualView(context, caster({ weatherAccuracyOverride: 70 }), MOVE);
 
-    expect(view?.accuracy).toEqual({ base: 100, effective: 70 });
+    expect(view?.accuracy).toEqual({ base: 100, effective: 70, causes: [] });
     expect(view?.power).toBeNull();
   });
 
@@ -65,7 +65,7 @@ describe("buildMoveContextualView", () => {
     expect(view?.accuracy).toBeNull();
   });
 
-  it("traduit chaque cause", () => {
+  it("traduit chaque cause et la range sur la puissance qu'elle change", () => {
     const view = buildMoveContextualView(
       context,
       caster({
@@ -75,7 +75,22 @@ describe("buildMoveContextualView", () => {
       MOVE,
     );
 
-    expect(view?.causes).toEqual(["weather.sun", "moveContext.helpingHand"]);
+    expect(view?.power?.causes).toEqual(["weather.sun", "moveContext.helpingHand"]);
+    expect(view?.accuracy).toBeNull();
+  });
+
+  it("range la météo sur la précision seule quand elle ne touche qu'elle", () => {
+    const view = buildMoveContextualView(
+      context,
+      caster({
+        weatherAccuracyOverride: 100,
+        causes: [{ kind: "weather", weather: "snow" }],
+      } as Partial<CasterMoveContext>),
+      { ...MOVE, accuracy: 70 } as MoveDefinition,
+    );
+
+    expect(view?.accuracy?.causes).toEqual(["weather.snow"]);
+    expect(view?.power).toBeNull();
   });
 
   it("laisse une puissance nulle tranquille (move de statut)", () => {

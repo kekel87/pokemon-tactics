@@ -17,12 +17,19 @@ import {
   type BattleState,
   PlayerController,
   resolveAiDifficulty,
+  type TeamSelection,
   type TeamSet,
   type TeamSlot,
 } from "@pokemon-tactic/core";
 import { t } from "../i18n";
 import type { SlotState } from "../ui/team-select/slot-state";
-import { TeamSource, type TelemetryTeam, type TelemetryTeamMember } from "./telemetry";
+import { sideOfPlayer } from "./battle-telemetry";
+import {
+  TeamSource,
+  type TelemetryAiTeam,
+  type TelemetryTeam,
+  type TelemetryTeamMember,
+} from "./telemetry";
 
 function sourceOf(slot: SlotState): TeamSource {
   if (slot.controller === PlayerController.Human) {
@@ -119,6 +126,22 @@ export function trackedSourcesOf(teams: readonly TelemetryTeam[]): Map<number, T
     }
   }
   return tracked;
+}
+
+/**
+ * Les espèces de chaque camp tenu par l'IA (plan 227), pour les seuls affrontements : voir
+ * `TelemetryAiTeam`, qui porte la limite de l'humain — jamais dans une statistique d'usage.
+ */
+export function aiTeamsOf(
+  teams: readonly Pick<TeamSelection, "playerId" | "controller" | "pokemonDefinitionIds">[],
+): TelemetryAiTeam[] {
+  return teams.flatMap((team) => {
+    const side = sideOfPlayer(team.playerId);
+    if (team.controller !== PlayerController.Ai || side === null) {
+      return [];
+    }
+    return [{ side, species: [...team.pokemonDefinitionIds] }];
+  });
 }
 
 /**

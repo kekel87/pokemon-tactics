@@ -58,3 +58,4 @@ Les seuls sur lesquels on travaille.
 | 224 | [Plan 224 — Lecture des abandons : rapport honnête et appareil du joueur](./224-lecture-des-abandons.md) | done |
 | 225 | [Plan 225 — Infobulles talents, objets et effets, et le bouton Inspecter](./225-infobulles-et-bouton-inspecter.md) | done |
 | 226 | [Plan 226 — Évoluroc selon la règle officielle, et les textes officiels d'abord](./226-evoluroc-et-textes-officiels.md) | done |
+| 227 | [Plan 227 — Dépilage du backlog d'octobre](./227-depilage-backlog-octobre.md) | done |

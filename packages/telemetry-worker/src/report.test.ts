@@ -399,6 +399,16 @@ describe("parties en ligne, comptées une fois", () => {
       },
     });
 
+  it("🔴 écarte une partie commencée avant la fenêtre, même avec ses deux fins dedans", () => {
+    // Les départs sont tombés avant la borne : sans eux, les deux fins comptaient double et le
+    // taux d'abandon passait sous zéro (plan 227).
+    const report = buildReport([onlineEnd(2, "venusaur"), onlineEnd(3, "charizard")], 30);
+
+    expect(report.battlesEnded).toBe(0);
+    expect(report.abandonRate).toBeNull();
+    expect(report.speciesAppearances.size).toBe(0);
+  });
+
   it("ne compte la tablée QU'UNE fois, malgré les deux pairs", () => {
     const twoPeerRow = (id: number, side: number) =>
       rowOf({
@@ -578,6 +588,13 @@ describe("parties en ligne, comptées une fois", () => {
 });
 
 describe("fins de partie", () => {
+  // Une fin ne compte que si son départ est dans la fenêtre (plan 227) : chaque fin a le sien.
+  const startedRow = (id: number) =>
+    rowOf({
+      id: 100 + id,
+      kind: "battle_started",
+      payload: { battleId: `b${id}`, map: "forest", mode: "local", teams: [] },
+    });
   const endedRow = (id: number, payload: Record<string, unknown>) =>
     rowOf({
       id,
@@ -596,6 +613,9 @@ describe("fins de partie", () => {
   it("distingue le combat du forfait", () => {
     const report = buildReport(
       [
+        startedRow(1),
+        startedRow(2),
+        startedRow(3),
         endedRow(1, { endReason: "combat" }),
         endedRow(2, { endReason: "forfeit" }),
         endedRow(3, { endReason: "combat" }),
@@ -610,7 +630,10 @@ describe("fins de partie", () => {
   it("🔴 range les lignes d'avant la mesure plutôt que de les perdre", () => {
     // Sans clé dédiée, le total de la table ne retomberait pas sur `battlesEnded` et on croirait à
     // une perte. `endReason` n'existe que depuis le plan 201.
-    const report = buildReport([endedRow(1, {}), endedRow(2, { endReason: "combat" })], 30);
+    const report = buildReport(
+      [startedRow(1), startedRow(2), endedRow(1, {}), endedRow(2, { endReason: "combat" })],
+      30,
+    );
 
     expect(report.battlesByEndReason.get(END_REASON_UNKNOWN)).toBe(1);
     const total = [...report.battlesByEndReason.values()].reduce((sum, count) => sum + count, 0);
@@ -650,6 +673,11 @@ describe("fins de partie", () => {
  * le tri à la lecture tient.
  */
 describe("tri des cohortes goût / force", () => {
+  const started = rowOf({
+    id: 2,
+    kind: "battle_started",
+    payload: { battleId: "aaaa1111", map: "forest", mode: "local", teams: [] },
+  });
   const ended = (outcomes: unknown[]) =>
     rowOf({
       id: 1,
@@ -668,6 +696,7 @@ describe("tri des cohortes goût / force", () => {
   it("🔴 tient les équipes aléatoires HORS des attaques d'usage", () => {
     const report = buildReport(
       [
+        started,
         ended([
           { species: "venusaur", source: "human-built", side: 0, moves: { "giga-drain": 2 } },
           { species: "gengar", source: "human-random", side: 1, moves: { "shadow-ball": 5 } },
@@ -686,7 +715,10 @@ describe("tri des cohortes goût / force", () => {
   it("range les issues d'avant le plan 212 en équipes bâties à la main", () => {
     // Le repli est EXACT et non approximatif : avant ce plan, seules les équipes bâties à la main
     // étaient suivies, donc une issue sans `source` en est forcément une.
-    const report = buildReport([ended([{ species: "venusaur", moves: { "giga-drain": 1 } }])], 7);
+    const report = buildReport(
+      [started, ended([{ species: "venusaur", moves: { "giga-drain": 1 } }])],
+      7,
+    );
 
     expect(report.movesCast.get("giga-drain")).toBe(1);
   });
@@ -694,6 +726,7 @@ describe("tri des cohortes goût / force", () => {
   it("compte les apparitions et les présences dans le camp vainqueur", () => {
     const report = buildReport(
       [
+        started,
         ended([
           { species: "venusaur", source: "human-random", side: 0, moves: {}, knockedOutTurn: null },
           { species: "gengar", source: "human-random", side: 1, moves: {}, knockedOutTurn: 4 },
@@ -998,5 +1031,80 @@ describe("barre de chiffres", () => {
 
     expect(avant).toContain("comptées double");
     expect(apres).not.toContain("comptées double");
+  });
+});
+
+/**
+ * Les affrontements (plan 227) : qui bat qui, l'adversaire pouvant être tenu par l'IA.
+ *
+ * 🔴 Limite posée par l'humain le 2026-10-05 : les espèces de l'IA ne servent QU'À nommer
+ * l'adversaire. Elles n'entrent dans aucun usage ni dans le `n` de la cohorte de force.
+ */
+describe("affrontements", () => {
+  const started = (battleId: string) =>
+    rowOf({
+      id: 1,
+      kind: "battle_started",
+      payload: { battleId, map: "forest", mode: "local", teams: [] },
+    });
+  const ended = (battleId: string, payload: Record<string, unknown>) =>
+    rowOf({
+      id: 2,
+      kind: "battle_ended",
+      payload: {
+        battleId,
+        winnerSide: 0,
+        draw: false,
+        endReason: "combat",
+        durationMs: 60_000,
+        turns: 10,
+        outcomes: [{ species: "venusaur", source: "human-built", side: 0, moves: {} }],
+        aiTeams: [{ side: 1, species: ["charizard", "onix"] }],
+        ...payload,
+      },
+    });
+
+  it("croise chaque espèce humaine avec chaque espèce adverse de l'IA", () => {
+    const report = buildReport([started("m1"), ended("m1", {})], 7);
+
+    expect(report.matchupAppearances.get("venusaur|charizard")).toBe(1);
+    expect(report.matchupWins.get("venusaur|onix")).toBe(1);
+  });
+
+  it("🔴 ne compte jamais l'IA comme sujet, ni dans les usages, ni dans la force", () => {
+    const report = buildReport([started("m2"), ended("m2", { winnerSide: 1 })], 7);
+
+    expect([...report.matchupAppearances.keys()].some((key) => key.startsWith("charizard|"))).toBe(
+      false,
+    );
+    expect(report.matchupWins.size).toBe(0);
+    expect(report.speciesAppearances.has("charizard")).toBe(false);
+  });
+
+  it("écarte les forfaits et les matchs nuls", () => {
+    const report = buildReport(
+      [
+        started("m3"),
+        ended("m3", { endReason: "forfeit" }),
+        started("m4"),
+        ended("m4", { draw: true, winnerSide: null }),
+      ],
+      7,
+    );
+
+    expect(report.matchupAppearances.size).toBe(0);
+  });
+
+  it("recolle les deux camps d'une partie en ligne, déclarés chacun par son pair", () => {
+    const peer = (side: number, species: string) =>
+      ended("m5", {
+        outcomes: [{ species, source: "human-built", side, moves: {} }],
+        aiTeams: [],
+      });
+    const report = buildReport([started("m5"), peer(0, "venusaur"), peer(1, "gengar")], 7);
+
+    expect(report.matchupWins.get("venusaur|gengar")).toBe(1);
+    expect(report.matchupAppearances.get("gengar|venusaur")).toBe(1);
+    expect(report.matchupWins.has("gengar|venusaur")).toBe(false);
   });
 });

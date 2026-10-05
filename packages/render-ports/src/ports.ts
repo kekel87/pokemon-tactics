@@ -259,6 +259,11 @@ export interface ContextualStat {
   readonly base: number;
   /** Valeur effective ici et maintenant. */
   readonly effective: number;
+  /**
+   * Ce qui la corrige, en libellés déjà traduits (« Plein soleil », « Coup d'Main »), affichés à côté
+   * de la valeur : nommés sur la grandeur qu'ils changent, pas dans une note commune (plan 227).
+   */
+  readonly causes: readonly string[];
 }
 
 export interface MoveContextualView {
@@ -266,11 +271,6 @@ export interface MoveContextualView {
   readonly power: ContextualStat | null;
   /** Présent seulement si la météo impose une précision différente. */
   readonly accuracy: ContextualStat | null;
-  /**
-   * Causes à nommer, en clés i18n déjà résolues par l'hôte côté `view-core` (ex. « Soleil »,
-   * « Champ Électrifié »). Le chrome les affiche telles quelles.
-   */
-  readonly causes: readonly string[];
   /**
    * La brûlure divise les dégâts physiques par deux. Elle n'est PAS pliée dans `power` : elle réduit
    * la statistique d'Attaque du lanceur, pas la puissance du move — annoncer « Puis 100 → 50 »

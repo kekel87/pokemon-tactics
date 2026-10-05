@@ -17,10 +17,10 @@ import { AbandonSource, TeamSource, type TelemetryTeam } from "./telemetry";
  * propres tests ; ici on éprouve le dernier maillon *testable en unitaire* — que l'identifiant reçu
  * soit celui qui part, sur les DEUX événements, et qu'en son absence un identifiant soit tiré.
  *
- * Le maillon restant — le setup qui atteint cette fonction depuis l'écran de combat — n'est pas
- * observable ici : il est pris en e2e, à deux navigateurs (`e2e/tests/dom/online-lobby.spec.ts`,
- * §11.1 (e)), parce que la décision #979 a montré qu'un passe-plat bâti par `...` conditionnels
- * jette un champ EN SILENCE sans que le compilateur ni un test unitaire ne le voient.
+ * Le maillon qui restait — le setup qui atteint cette fonction depuis l'écran de combat — n'en est
+ * plus un depuis le plan 227 : l'écran passe le setup ENTIER, et c'est cette fonction qui lit
+ * `battleId`. La décision #979 avait montré qu'un passe-plat bâti par `...` conditionnels jette un
+ * champ EN SILENCE ; il n'y a plus de passe-plat.
  */
 
 // `telemetry.ts` lit la langue à chaque envoi, et `team-telemetry.ts` le préfixe des équipes
@@ -114,6 +114,43 @@ describe("beginBattleTelemetry", () => {
       { kind: "battle_started", battleId: "deadbeef" },
       { kind: "battle_ended", battleId: "deadbeef" },
     ]);
+  });
+
+  it("reste muette sans `telemetryTeams` : bac à sable, `?combat=1`, combat repris", async () => {
+    const stub = createTelemetryStub({ hostname: PAGES_HOST });
+    const session = await loadSession(stub);
+
+    session.beginBattleTelemetry({ ...SETUP, telemetryTeams: undefined });
+    session.observeBattleTelemetry(battleEnded);
+    session.endBattleTelemetry();
+
+    expect(emittedBattleIds(stub)).toEqual([]);
+  });
+
+  it("joint les espèces de l'IA à la fin, pour les affrontements seulement (plan 227)", async () => {
+    const stub = createTelemetryStub({ hostname: PAGES_HOST });
+    const session = await loadSession(stub);
+    const againstAi: readonly TeamSelection[] = [
+      {
+        playerId: "player-1",
+        pokemonDefinitionIds: ["alakazam"],
+        controller: PlayerController.Human,
+      },
+      {
+        playerId: "player-2",
+        pokemonDefinitionIds: ["onix", "abra"],
+        controller: PlayerController.Ai,
+      },
+    ];
+
+    session.beginBattleTelemetry({ ...SETUP, teams: againstAi });
+    session.observeBattleTelemetry(battleEnded);
+    session.endBattleTelemetry();
+
+    const [started, ended] = stub.beacon.envelopes.map((envelope) => envelope.payload);
+    expect(ended).toMatchObject({ aiTeams: [{ side: 1, species: ["onix", "abra"] }] });
+    // Jamais dans les compositions de départ : c'est là que se lisent les usages.
+    expect(JSON.stringify(started)).not.toContain("onix");
   });
 
   it("tire son propre identifiant en local, où personne n'en apporte", async () => {

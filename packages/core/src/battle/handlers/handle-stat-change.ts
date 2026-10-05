@@ -4,15 +4,30 @@ import { EffectTarget } from "../../enums/effect-target";
 import type { BattleEvent } from "../../types/battle-event";
 import { ProtectionReason } from "../../types/battle-event";
 import type { Effect } from "../../types/effect";
+import type { OpponentStatDrop } from "../../types/opponent-stat-drop";
 import type { PokemonInstance } from "../../types/pokemon-instance";
 import { manhattanDistance } from "../../utils/manhattan-distance";
-import { resolveDefensiveAbility } from "../ability-suppression";
 import { applyStatStage } from "../apply-stat-stage";
-import { isProtectedFromStatDecrease } from "../aura-system";
 import type { EffectContext } from "../effect-handler-registry";
 import { effectiveAbilityId } from "../effective-ability";
-import { effectiveHeldItem } from "../effective-held-item";
+import { notifyOpponentStatLowered, resolveOpponentStatDropBlock } from "../opponent-stat-drop";
 import { shouldSubstituteBlock } from "../substitute-system";
+
+function statDrop(
+  context: EffectContext,
+  target: PokemonInstance,
+  effect: Extract<Effect, { kind: typeof EffectKind.StatChange }>,
+): OpponentStatDrop {
+  return {
+    state: context.state,
+    abilityRegistry: context.abilityRegistry,
+    itemRegistry: context.itemRegistry,
+    target,
+    source: context.attacker,
+    stat: effect.stat,
+    stages: effect.stages,
+  };
+}
 
 export function handleStatChange(context: EffectContext): BattleEvent[] {
   const events: BattleEvent[] = [];
@@ -31,49 +46,12 @@ export function handleStatChange(context: EffectContext): BattleEvent[] {
   const isEnemyDebuff = effect.target !== EffectTarget.Self && effect.stages < 0;
 
   for (const pokemon of affectedPokemon) {
+    const drop = statDrop(context, pokemon, effect);
     if (isEnemyDebuff) {
-      // Brise Moule ignores the target's breakable stat-drop blockers (Corps Sain, Regard Vif,
-      // Hyper Cutter, Cœur de Coq, Tempo Perso) → the debuff lands.
-      const blockResult = resolveDefensiveAbility(
-        context.abilityRegistry,
-        pokemon,
-        context.attacker,
-      )?.onStatChangeBlocked?.({
-        self: pokemon,
-        stat: effect.stat,
-        stages: effect.stages,
-        source: context.attacker,
-      });
-      if (blockResult?.blocked) {
-        events.push(...blockResult.events);
-        continue;
-      }
-
-      // Talisman Sain (clear-amulet): blocks any opponent-inflicted stat drop on the holder.
-      const itemBlock = effectiveHeldItem(
-        context.state,
-        pokemon,
-        context.itemRegistry,
-      )?.onStatChangeBlocked?.({
-        self: pokemon,
-        stat: effect.stat,
-        stages: effect.stages,
-        source: context.attacker,
-      });
-      if (itemBlock?.blocked) {
-        events.push(...itemBlock.events);
-        continue;
-      }
-
-      const mistProtection = isProtectedFromStatDecrease(context.state, context.attacker, pokemon);
-      if (mistProtection.protected) {
-        events.push({
-          type: BattleEventType.StatChangeBlocked,
-          pokemonId: pokemon.id,
-          stat: effect.stat,
-          reason: ProtectionReason.Mist,
-          protectingCasterId: mistProtection.casterId,
-        });
+      // Corps Sain / Talisman Sain / Brume — Brise Moule ignores the breakable abilities.
+      const dropBlock = resolveOpponentStatDropBlock(drop);
+      if (dropBlock.blocked) {
+        events.push(...dropBlock.events);
         continue;
       }
 
@@ -108,17 +86,7 @@ export function handleStatChange(context: EffectContext): BattleEvent[] {
 
       // Acharné / Battant (defiant / competitive): retaliate when an opponent lowers a stat.
       if (isEnemyDebuff) {
-        const loweredAbility = context.abilityRegistry?.getForPokemon(pokemon);
-        if (loweredAbility?.onAfterStatLowered) {
-          events.push(
-            ...loweredAbility.onAfterStatLowered({
-              self: pokemon,
-              stat: effect.stat,
-              stages: actualChange,
-              source: context.attacker,
-            }),
-          );
-        }
+        events.push(...notifyOpponentStatLowered({ ...drop, stages: actualChange }));
       }
     }
   }

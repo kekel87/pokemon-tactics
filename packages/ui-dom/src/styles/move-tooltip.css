@@ -143,7 +143,15 @@
     }
   }
 
-  /* Pourquoi les chiffres diffèrent, plus la brûlure. Discret : c'est une note, pas une donnée. */
+  /* Ce qui corrige le chiffre, juste après lui (plan 227). Même discrétion que la note de brûlure. */
+  .mt-stat-cause {
+    margin-inline-start: calc(4px * var(--ui-scale));
+    color: var(--color-text-secondary);
+    font-size: 0.85em;
+    opacity: 0.9;
+  }
+
+  /* La brûlure, qui ne corrige aucun chiffre de la fiche. Discret : c'est une note, pas une donnée. */
   .mt-context {
     color: var(--color-text-secondary);
     font-size: 0.85em;

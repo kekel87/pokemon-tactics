@@ -6,6 +6,7 @@ import {
   TOOLTIP_RECOIL_MAX_HP,
   TOOLTIP_RECOIL_TAKE_DOWN,
   TOOLTIP_SELF_KO_EXPLOSION,
+  TOOLTIP_SUN_FLAMETHROWER,
 } from "../../fixtures/sandbox-configs";
 
 // Cahier §4 — HUD DOM de combat.
@@ -156,4 +157,27 @@ test("HUD : aucun compteur de chrono sur une partie locale", async ({
   await combatMenu.openByButton();
   await expect(combatMenu.dialog).toBeVisible();
   await expect(combatMenu.clockWarning).toHaveCount(0);
+});
+
+// §4.14 (plan 227) — la cause est écrite À CÔTÉ du chiffre qu'elle change, plus dans une note
+// commune « Modifiée par » qui ne disait pas si c'était la puissance ou la précision. Sous Plein
+// soleil, Lance-Flammes voit sa puissance multipliée par 1,5 et sa précision inchangée.
+test("HUD : tooltip — la cause météo est à côté de la puissance (Lance-Flammes, Plein soleil)", async ({
+  page,
+  bootSandbox,
+}) => {
+  await bootSandbox(TOOLTIP_SUN_FLAMETHROWER);
+  await page.getByRole("button", { name: "Attaque", exact: true }).click();
+
+  await page.getByTestId("move-item").first().hover();
+
+  const tooltip = page.getByTestId("move-tooltip");
+  await expect(tooltip).toBeVisible();
+  const power = tooltip.getByTestId("move-tooltip-power");
+  await expect(power.getByTestId("mt-stat-effective")).toHaveText("135");
+  await expect(power.getByTestId("mt-stat-cause")).toHaveText("(Plein soleil)");
+  // La précision n'est pas touchée par le soleil : ni valeur corrigée, ni cause.
+  const accuracy = tooltip.getByTestId("move-tooltip-accuracy");
+  await expect(accuracy.getByTestId("mt-stat-effective")).toHaveCount(0);
+  await expect(accuracy.getByTestId("mt-stat-cause")).toHaveCount(0);
 });

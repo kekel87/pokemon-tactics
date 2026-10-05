@@ -372,6 +372,7 @@ describe("événements de partie", () => {
           knockedOutCause: null,
         },
       ],
+      aiTeams: [],
     });
 
     expect(stub.beacon.envelopes[0]).toMatchObject({ kind: "battle_ended" });

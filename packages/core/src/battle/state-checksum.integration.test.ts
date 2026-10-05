@@ -1,15 +1,18 @@
 import { pocArena } from "@pokemon-tactic/data";
 import { describe, expect, it } from "vitest";
 import { ActionKind } from "../enums/action-kind";
+import { BattleEventType } from "../enums/battle-event-type";
 import { Direction } from "../enums/direction";
 import { PlacementMode } from "../enums/placement-mode";
 import { PlayerController } from "../enums/player-controller";
 import { PlayerId } from "../enums/player-id";
+import { buildMoveTestEngine, MockPokemon } from "../testing";
 import { buildTestEngineFromPlacements } from "../testing/build-test-engine";
 import type { Action } from "../types/action";
 import type { BattleState } from "../types/battle-state";
 import type { PlacementTeam } from "../types/placement-team";
 import type { PokemonInstance } from "../types/pokemon-instance";
+import { createPrng } from "../utils/prng";
 import { PlacementPhase } from "./PlacementPhase";
 import { runReplay } from "./replay-runner";
 import { battleStateChecksum } from "./state-checksum";
@@ -191,5 +194,65 @@ describe("battleStateChecksum — parité entre deux moteurs", () => {
     // C'est pourquoi on ne compare QUE des empreintes de même index d'ancrage : sinon, tout écart
     // d'un tour serait lu comme une divergence.
     expect(battleStateChecksum(mine.state)).not.toBe(battleStateChecksum(theirs.state));
+  });
+
+  it("agrees with its peer right after a real K.O., then keeps agreeing", () => {
+    // Dette du Lot B4, fermée au plan 227 : `handleKo` remet une vingtaine de champs à zéro, et
+    // c'est là qu'un faux positif guetterait. Sur pocArena les équipes naissent aux deux bouts de
+    // la carte ; ici on les pose au contact, PV de la cible au plus bas, aléa graine partagée.
+    const koBattle = () => {
+      const attacker = MockPokemon.fresh(MockPokemon.base, {
+        id: "attacker",
+        playerId: PlayerId.Player1,
+        position: { x: 0, y: 0 },
+        moveIds: ["tackle"],
+        derivedStats: { movement: 3, jump: 1, initiative: 100 },
+      });
+      const target = MockPokemon.fresh(MockPokemon.base, {
+        id: "target",
+        playerId: PlayerId.Player2,
+        position: { x: 1, y: 0 },
+        currentHp: 1,
+        derivedStats: { movement: 3, jump: 1, initiative: 50 },
+      });
+      const bystander = MockPokemon.fresh(MockPokemon.base, {
+        id: "bystander",
+        playerId: PlayerId.Player2,
+        position: { x: 4, y: 0 },
+        derivedStats: { movement: 3, jump: 1, initiative: 5 },
+      });
+      return buildMoveTestEngine([attacker, target, bystander], { random: createPrng(7) });
+    };
+    const mine = koBattle();
+    const theirs = koBattle();
+    const tackle: Action = {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "tackle",
+      targetPosition: { x: 1, y: 0 },
+    };
+
+    const result = mine.engine.submitAction(PlayerId.Player1, tackle);
+    theirs.engine.submitAction(PlayerId.Player1, tackle);
+
+    // Sans K.O. réel, ce test ne prouverait rien : il ne passe que si la cible est bien tombée.
+    expect(
+      result.events.some(
+        (event) => event.type === BattleEventType.PokemonKo && event.pokemonId === "target",
+      ),
+    ).toBe(true);
+    expect(battleStateChecksum(mine.state)).toBe(battleStateChecksum(theirs.state));
+
+    for (let turn = 0; turn < 4; turn += 1) {
+      endTurn(mine.engine, mine.state);
+      endTurn(theirs.engine, theirs.state);
+      expect(battleStateChecksum(mine.state), `tour ${turn}`).toBe(
+        battleStateChecksum(theirs.state),
+      );
+    }
+
+    // Et le pair qui se reconnecte reconstruit l'état en rejouant le journal, K.O. compris.
+    const replayed = runReplay(mine.engine.exportReplay(), () => koBattle().engine);
+    expect(battleStateChecksum(replayed.getGameState(""))).toBe(battleStateChecksum(mine.state));
   });
 });

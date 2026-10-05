@@ -916,7 +916,6 @@ export interface Translations {
   "battleLog.stat.hp": string;
   "moveContext.charge": string;
   "moveContext.helpingHand": string;
-  "moveContext.effective": string;
   "moveContext.burnHalves": string;
   "battleLog.stat.spAttack": string;
   "battleLog.stat.spDefense": string;

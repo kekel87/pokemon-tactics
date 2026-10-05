@@ -1,11 +1,14 @@
 import type {
   AbilityHandler,
+  AuraCheckContext,
   BattleEvent,
   BattleStartContext,
   PokemonInstance,
   StatusType as StatusTypeAlias,
+  VolatileStatus,
 } from "@pokemon-tactic/core";
 import {
+  applyOpponentStatDrop,
   applyTransform,
   BattleEventType,
   Category,
@@ -13,12 +16,10 @@ import {
   effectiveAbilityId,
   isImmuneToStatusByType,
   isMajorStatus,
-  isProtectedFromStatDecrease,
   manhattanDistance,
   moveHasSecondaryEffect,
   PokemonGender,
   PokemonType,
-  ProtectionReason,
   recycleConsumedItem,
   resolveBaseTypes,
   StatName,
@@ -236,6 +237,70 @@ const sturdy: AbilityHandler = {
   id: "sturdy",
 };
 
+/** An ability immune to the listed statuses, announcing itself when it blocks one. */
+function blocksStatuses(
+  abilityId: string,
+  statuses: readonly StatusTypeAlias[],
+): NonNullable<AbilityHandler["onStatusBlocked"]> {
+  return (context) =>
+    statuses.includes(context.status)
+      ? {
+          blocked: true,
+          events: [
+            {
+              type: BattleEventType.AbilityActivated,
+              pokemonId: context.self.id,
+              abilityId,
+              targetIds: [context.self.id],
+            },
+          ],
+        }
+      : { blocked: false, events: [] };
+}
+
+/**
+ * One Intimidation hit on `target`, pushing its events; says whether Attack actually dropped and
+ * which Acharné / Battant boost it woke, both kept on the status so the aura can undo them.
+ *
+ * Canon order (plan 227): an ability immune to Intimidation itself (Tempo Perso, Attention, Benêt,
+ * Querelleur — via `onStatusBlocked` on the Intimidated status), then the blockers of any
+ * opponent stat drop (Corps Sain, Hyper Cutter, Talisman Sain, Brume), then the drop, then
+ * Acharné / Battant. A blocked target still receives the status (with `statChangeApplied: false`)
+ * so the aura does not fire again on every check while the Pokemon stays adjacent.
+ */
+function intimidateTarget(
+  context: AuraCheckContext,
+  target: PokemonInstance,
+  events: BattleEvent[],
+): Pick<VolatileStatus, "statChangeApplied" | "retaliation"> {
+  const immunity = context.abilityRegistry?.getForPokemon(target)?.onStatusBlocked?.({
+    self: target,
+    status: StatusType.Intimidated,
+    source: context.self,
+    weather: context.readWeather(),
+  });
+  if (immunity?.blocked) {
+    events.push(...immunity.events);
+    return { statChangeApplied: false };
+  }
+
+  const {
+    events: dropEvents,
+    actualChange,
+    retaliation,
+  } = applyOpponentStatDrop({
+    state: context.state,
+    abilityRegistry: context.abilityRegistry,
+    itemRegistry: context.itemRegistry,
+    target,
+    source: context.self,
+    stat: StatName.Attack,
+    stages: -1,
+  });
+  events.push(...dropEvents);
+  return { statChangeApplied: actualChange < 0, retaliation };
+}
+
 const intimidate: AbilityHandler = {
   id: "intimidate",
   onAuraCheck: (context) => {
@@ -260,53 +325,22 @@ const intimidate: AbilityHandler = {
         continue;
       }
 
-      if (pokemon.abilityId === "own-tempo") {
-        events.push({
-          type: BattleEventType.AbilityActivated,
-          pokemonId: pokemon.id,
-          abilityId: "own-tempo",
-          targetIds: [pokemon.id],
-        });
-        continue;
-      }
-
-      const mistProtection = isProtectedFromStatDecrease(context.state, context.self, pokemon);
-      let statChangeApplied = false;
-
-      if (mistProtection.protected) {
-        events.push({
-          type: BattleEventType.StatChangeBlocked,
-          pokemonId: pokemon.id,
-          stat: StatName.Attack,
-          reason: ProtectionReason.Mist,
-          protectingCasterId: mistProtection.casterId,
-        });
-      } else {
-        const currentStage = pokemon.statStages[StatName.Attack];
-        const newStage = Math.max(-6, currentStage - 1);
-        statChangeApplied = newStage !== currentStage;
-        pokemon.statStages[StatName.Attack] = newStage;
-        if (statChangeApplied) {
-          events.push({
-            type: BattleEventType.StatChanged,
-            targetId: pokemon.id,
-            stat: StatName.Attack,
-            stages: -1,
-          });
-        }
-      }
+      const outcome = intimidateTarget(context, pokemon, events);
       pokemon.volatileStatuses.push({
         type: StatusType.Intimidated,
         remainingTurns: -1,
         sourceId: context.self.id,
-        statChangeApplied,
+        ...outcome,
       });
       targetIds.push(pokemon.id);
-      events.push({
-        type: BattleEventType.StatusApplied,
-        targetId: pokemon.id,
-        status: StatusType.Intimidated,
-      });
+      // Annoncé seulement s'il a été subi : un blocage s'annonce déjà par son talent ou son objet.
+      if (outcome.statChangeApplied) {
+        events.push({
+          type: BattleEventType.StatusApplied,
+          targetId: pokemon.id,
+          status: StatusType.Intimidated,
+        });
+      }
     }
 
     if (targetIds.length > 0) {
@@ -530,22 +564,7 @@ const sandVeil: AbilityHandler = {
 
 const ownTempo: AbilityHandler = {
   id: "own-tempo",
-  onStatusBlocked: (context) => {
-    if (context.status !== StatusType.Confused && context.status !== StatusType.Intimidated) {
-      return { blocked: false, events: [] };
-    }
-    return {
-      blocked: true,
-      events: [
-        {
-          type: BattleEventType.AbilityActivated,
-          pokemonId: context.self.id,
-          abilityId: "own-tempo",
-          targetIds: [context.self.id],
-        },
-      ],
-    };
-  },
+  onStatusBlocked: blocksStatuses("own-tempo", [StatusType.Confused, StatusType.Intimidated]),
 };
 
 const earlyBird: AbilityHandler = {
@@ -957,22 +976,7 @@ const hyperCutter: AbilityHandler = {
 
 const oblivious: AbilityHandler = {
   id: "oblivious",
-  onStatusBlocked: (context) => {
-    if (context.status !== StatusType.Infatuated) {
-      return { blocked: false, events: [] };
-    }
-    return {
-      blocked: true,
-      events: [
-        {
-          type: BattleEventType.AbilityActivated,
-          pokemonId: context.self.id,
-          abilityId: "oblivious",
-          targetIds: [context.self.id],
-        },
-      ],
-    };
-  },
+  onStatusBlocked: blocksStatuses("oblivious", [StatusType.Infatuated, StatusType.Intimidated]),
 };
 
 const flameBody: AbilityHandler = {
@@ -1154,8 +1158,10 @@ const shieldDust: AbilityHandler = {
   id: "shield-dust",
 };
 
+// Attention (inner-focus): immune to Intimidation (Gen 8+).
 const innerFocus: AbilityHandler = {
   id: "inner-focus",
+  onStatusBlocked: blocksStatuses("inner-focus", [StatusType.Intimidated]),
 };
 
 const chlorophyll: AbilityHandler = {
@@ -1331,9 +1337,10 @@ const unaware: AbilityHandler = {
 };
 
 // Querelleur (scrappy): Normal/Fighting moves ignore Ghost's type immunity.
-// Implemented by id in damage-calculator.ts + effect-processor.ts (marker handler).
+// Implemented by id in damage-calculator.ts + effect-processor.ts. Immune to Intimidation (Gen 8+).
 const scrappy: AbilityHandler = {
   id: "scrappy",
+  onStatusBlocked: blocksStatuses("scrappy", [StatusType.Intimidated]),
 };
 
 // Multi-Coups (skill-link): variable-hit moves always land the maximum number of hits.

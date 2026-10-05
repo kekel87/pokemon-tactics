@@ -24,6 +24,7 @@ export type * from "./map-format";
 export type * from "./move-definition";
 export type * from "./move-flags";
 export type * from "./move-preview";
+export type * from "./opponent-stat-drop";
 export type * from "./placement-entry";
 export type * from "./placement-team";
 export type * from "./pokemon-definition";

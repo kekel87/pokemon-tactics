@@ -105,6 +105,18 @@ export interface TelemetryTeam {
   readonly members?: readonly TelemetryTeamMember[];
 }
 
+/**
+ * Les espèces d'un camp tenu par l'IA (plan 227) — l'adversaire d'un affrontement, rien d'autre.
+ *
+ * 🔴 Limite posée par l'humain le 2026-10-05 : les statistiques d'USAGE ne montrent que les équipes
+ * bâties et jouées par les joueurs. Ce camp ne sert donc QU'À dire contre quoi un Pokemon humain a
+ * gagné ou perdu ; il n'entre jamais dans une composition, ni dans `outcomes`.
+ */
+export interface TelemetryAiTeam {
+  readonly side: number;
+  readonly species: readonly string[];
+}
+
 export interface BattleStartedPayload {
   readonly battleId: string;
   readonly mode: string;
@@ -201,6 +213,8 @@ export interface BattleEndedPayload {
   readonly turns: number;
   /** Seulement pour les équipes `human-built`, les seules dont on ait la composition. */
   readonly outcomes: readonly TelemetryMemberOutcome[];
+  /** Les camps de l'IA, pour les affrontements seulement (plan 227). Vide en ligne. */
+  readonly aiTeams: readonly TelemetryAiTeam[];
 }
 
 /**

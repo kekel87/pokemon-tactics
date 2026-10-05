@@ -1,3 +1,5 @@
+import type { AbilityHandlerRegistry } from "../battle/ability-handler-registry";
+import type { HeldItemHandlerRegistry } from "../battle/held-item-handler-registry";
 import type { PokemonType } from "../enums/pokemon-type";
 import type { StatName } from "../enums/stat-name";
 import type { StatusType } from "../enums/status-type";
@@ -142,6 +144,17 @@ export interface AuraCheckContext {
   self: PokemonInstance;
   state: BattleState;
   pokemonTypesMap: Map<string, PokemonType[]>;
+  /**
+   * Registries of the affected Pokemon's ability and held item (plan 227): Intimidation runs the
+   * same stat-drop blockers as a move (Corps Sain, Talisman Sain…) and wakes Acharné / Battant.
+   */
+  abilityRegistry: AbilityHandlerRegistry | undefined;
+  itemRegistry: HeldItemHandlerRegistry | undefined;
+  /**
+   * Effective weather at check time, for `onStatusBlocked` (None if suppressed). A function: the
+   * aura pass runs after every action, and only a fresh Intimidation target ever needs it.
+   */
+  readWeather: () => Weather;
 }
 
 export interface BlockResult {

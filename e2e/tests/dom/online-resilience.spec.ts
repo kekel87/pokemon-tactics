@@ -2,6 +2,15 @@ import { expect, test } from "../../fixtures";
 import { OnlineSession } from "../../pages/online-session";
 import { COMBAT_CHROME_ROOT, COMBAT_CHROME_SCROLLERS, Responsive } from "../../pages/responsive";
 
+/**
+ * Le temps que l'hôte constate la perte du pair. Le bandeau passe d'abord par « Connexion
+ * instable » (ICE dégradé, décision #956) avant que le canal ne tombe vraiment, et ce passage
+ * suit les minuteries ICE du navigateur : sur la CI il a dépassé 5 s dans 6 exécutions sur 54
+ * (plan 227). On attend l'état final, pas la transition : « Connexion instable » peut ne jamais
+ * s'afficher quand le canal tombe d'un coup.
+ */
+const PEER_LOSS_DETECTION_MS = 15_000;
+
 /*
  * Cahier §11 — robustesse du jeu en ligne (plan 202, Lot B3) : couper le canal d'un pair et revenir.
  *
@@ -148,7 +157,7 @@ test("§11.3 en ligne : le canal tombe, le pair revient, rattrape, et se fait fo
     await host.scene.endTurn();
     // Et il le CONSTATE, au lieu d'attendre un tour qui ne viendrait jamais : le bandeau remplace le
     // silence de la phase `waiting_remote`, qui ne disait rien de ce qui se passe.
-    await expect(host.notice.notice).toBeVisible({ timeout: 15_000 });
+    await expect(host.notice.notice).toBeVisible({ timeout: PEER_LOSS_DETECTION_MS });
 
     /*
      * — Le retour ——————————————————————————————————————————————————————————————————————————————————
@@ -196,8 +205,10 @@ test("§11.3 en ligne : le canal tombe, le pair revient, rattrape, et se fait fo
      * libellé et le décompte sans dépenser la fenêtre de retour.
      */
     const lateGuest = await session.loseGuestTab();
-    await expect(host.notice.notice).toBeVisible({ timeout: 15_000 });
-    await expect(host.notice.label).toContainText("En attente de reconnexion du Joueur 2");
+    await expect(host.notice.notice).toBeVisible({ timeout: PEER_LOSS_DETECTION_MS });
+    await expect(host.notice.label).toContainText("En attente de reconnexion du Joueur 2", {
+      timeout: PEER_LOSS_DETECTION_MS,
+    });
     // Le décompte est le propre de cet état — le seul des trois à en porter un.
     await expect(host.notice.countdown).toHaveText(/^\d+\s*s$/);
 
@@ -349,7 +360,7 @@ test("§11.5 en ligne : c'est l'HÔTE qui tombe, et l'invité le rappelle jusqu'
       .toBeGreaterThan(0);
 
     const returningHost = await session.loseHostTab();
-    await expect(session.guest.notice.notice).toBeVisible({ timeout: 15_000 });
+    await expect(session.guest.notice.notice).toBeVisible({ timeout: PEER_LOSS_DETECTION_MS });
 
     await returningHost.menu.resume.click();
     await returningHost.scene.waitReady(30_000);

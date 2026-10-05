@@ -7,6 +7,7 @@ function collector(trackedSides: number[] = [0, 1], source = TeamSource.HumanBui
   return createBattleTelemetryCollector({
     battleId: "abcd1234",
     trackedSources: new Map(trackedSides.map((side) => [side, source])),
+    aiTeams: [],
     startedAt: 0,
     now: () => 90_000,
   });
@@ -137,6 +138,7 @@ describe("provenance et camp portés par chaque issue (plan 212, Lot E)", () => 
         [0, TeamSource.HumanBuilt],
         [1, TeamSource.HumanRandom],
       ]),
+      aiTeams: [],
       startedAt: 0,
       now: () => 90_000,
     });
@@ -162,6 +164,7 @@ describe("provenance et camp portés par chaque issue (plan 212, Lot E)", () => 
     const target = createBattleTelemetryCollector({
       battleId: "abcd1234",
       trackedSources: new Map([[1, TeamSource.HumanRandom]]),
+      aiTeams: [],
       startedAt: 0,
       now: () => 90_000,
     });

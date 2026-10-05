@@ -143,6 +143,12 @@ export interface BattleEndedPayload {
   durationMs: number;
   turns: number;
   outcomes: MemberOutcomePayload[];
+  /**
+   * Les camps de l'IA (plan 227), absents des lignes d'avant. Ne servent qu'aux AFFRONTEMENTS : la
+   * limite de l'humain du 2026-10-05 tient les espèces de l'IA hors de tout usage et de tout `n` de
+   * la cohorte de force.
+   */
+  aiTeams?: { side: number; species: string[] }[];
 }
 
 /**
@@ -307,6 +313,14 @@ export interface Report {
   /** Combien de fois chaque espèce était dans le camp vainqueur. À lire sur `speciesAppearances`. */
   speciesWins: Tally;
   /**
+   * Affrontements (plan 227) : clé `espèce|adversaire`, une fois par partie et par paire. L'espèce
+   * est toujours tenue par un HUMAIN ; l'adversaire peut être humain ou de l'IA. Les forfaits n'y
+   * entrent pas — une partie qui ne s'est pas jouée ne dit rien de qui bat qui.
+   */
+  matchupAppearances: Tally;
+  /** Combien de ces affrontements l'espèce a gagnés. À lire sur `matchupAppearances`. */
+  matchupWins: Tally;
+  /**
    * Tombé sans avoir lancé une seule attaque. Signal d'initiative, pas de puissance : un Pokemon qui
    * meurt avant de jouer n'est pas faible, il est lent. Gratuit à partir de ce qu'on collecte déjà.
    */
@@ -431,6 +445,70 @@ export const ONLINE_MODE = "online";
  */
 const SHARED_BATTLE_ID_SINCE = Date.UTC(2026, 8, 10);
 
+interface MatchupBattle {
+  winnerSide: number | null;
+  /** Espèces tenues par un humain, par camp : les seuls SUJETS d'un affrontement. */
+  humanSides: Map<number, Set<string>>;
+  /** Toutes les espèces, IA comprise, par camp : les ADVERSAIRES. */
+  allSides: Map<number, Set<string>>;
+}
+
+function speciesOfSide(sides: Map<number, Set<string>>, side: number): Set<string> {
+  let species = sides.get(side);
+  if (!species) {
+    species = new Set();
+    sides.set(side, species);
+  }
+  return species;
+}
+
+/** Une ligne de fin dans sa partie ; en ligne, chaque pair n'en apporte que son camp. */
+function collectMatchupSides(
+  battles: Map<string, MatchupBattle>,
+  payload: BattleEndedPayload,
+): void {
+  if (payload.draw || payload.endReason === END_REASON_FORFEIT) {
+    return;
+  }
+  let battle = battles.get(payload.battleId);
+  if (!battle) {
+    battle = { winnerSide: payload.winnerSide, humanSides: new Map(), allSides: new Map() };
+    battles.set(payload.battleId, battle);
+  }
+  for (const outcome of payload.outcomes) {
+    if (outcome.side !== undefined) {
+      speciesOfSide(battle.humanSides, outcome.side).add(outcome.species);
+      speciesOfSide(battle.allSides, outcome.side).add(outcome.species);
+    }
+  }
+  for (const team of payload.aiTeams ?? []) {
+    for (const species of team.species) {
+      speciesOfSide(battle.allSides, team.side).add(species);
+    }
+  }
+}
+
+function countMatchups(report: Report, battles: Map<string, MatchupBattle>): void {
+  for (const battle of battles.values()) {
+    for (const [side, ownSpecies] of battle.humanSides) {
+      const opponents = new Set(
+        [...battle.allSides].flatMap(([otherSide, species]) =>
+          otherSide === side ? [] : [...species],
+        ),
+      );
+      for (const species of ownSpecies) {
+        for (const opponent of opponents) {
+          const key = `${species}|${opponent}`;
+          bump(report.matchupAppearances, key);
+          if (battle.winnerSide === side) {
+            bump(report.matchupWins, key);
+          }
+        }
+      }
+    }
+  }
+}
+
 export function buildReport(rows: EventRow[], days: number): Report {
   const report: Report = {
     days,
@@ -464,6 +542,8 @@ export function buildReport(rows: EventRow[], days: number): Report {
     movesCastAll: new Map(),
     speciesAppearances: new Map(),
     speciesWins: new Map(),
+    matchupAppearances: new Map(),
+    matchupWins: new Map(),
     diedWithoutActing: new Map(),
     knockOutCauses: new Map(),
     battlesAbandoned: 0,
@@ -527,22 +607,20 @@ export function buildReport(rows: EventRow[], days: number): Report {
    * une ligne d'erreur. Une partie locale n'est donc jamais candidate, quelle que soit la collision.
    */
   /*
-   * ⚠️ LIMITE CONNUE, relevée en revue de code et laissée telle quelle. Cet ensemble ne se peuple
-   * que depuis les `battle_started`, et les deux consommateurs bornent leur requête à N jours. Une
-   * partie en ligne dont les départs tombent AVANT la borne et les fins dedans n'est donc pas
-   * reconnue : ses deux fins comptent double, et `abandonRate` peut même passer négatif puisque
-   * `battlesStarted` n'a rien vu.
-   *
-   * Non réparable sans ajouter `mode` à `BattleEndedPayload`, ce que le plan 204 exclut (il
-   * n'ajoute aucun champ de payload). Portée réelle : les seules parties à cheval sur une borne
-   * glissante, soit quelques minutes par fenêtre. À savoir en lisant un taux d'abandon aberrant.
+   * 🔴 FIN SANS DÉPART DANS LA FENÊTRE (plan 227). Les deux consommateurs bornent leur requête à N
+   * jours : une partie commencée avant la borne et finie dedans n'a que sa fin dans `rows`. Comptée,
+   * elle gonflait `battlesEnded` au-dessus de `battlesStarted` — taux d'abandon NÉGATIF — et, en
+   * ligne, ses deux fins comptaient double puisque `onlineBattleIds` ne la connaissait pas. On
+   * l'écarte entière, issues comprises : la fenêtre ne mesure que les parties qu'elle a vues naître.
    */
+  const startedBattleIds = new Set<string>();
   const onlineBattleIds = new Set<string>();
   for (const row of rows) {
     if (row.kind !== "battle_started") {
       continue;
     }
     const payload = JSON.parse(row.payload) as BattleStartedPayload;
+    startedBattleIds.add(payload.battleId);
     if (payload.mode === ONLINE_MODE) {
       onlineBattleIds.add(payload.battleId);
     }
@@ -556,6 +634,8 @@ export function buildReport(rows: EventRow[], days: number): Report {
    */
   const countedStarts = new Set<string>();
   const countedEnds = new Set<string>();
+  /** Les camps de chaque partie finie, recollés sur les deux lignes d'une partie en ligne. */
+  const matchupBattles = new Map<string, MatchupBattle>();
 
   for (const row of rows) {
     if (row.kind === "session") {
@@ -698,6 +778,9 @@ export function buildReport(rows: EventRow[], days: number): Report {
     }
 
     const payload = JSON.parse(row.payload) as BattleEndedPayload;
+    if (!startedBattleIds.has(payload.battleId)) {
+      continue;
+    }
     // Même règle qu'au démarrage, avec son propre ensemble (plan 204). La PREMIÈRE ligne vue donne
     // la durée et le nombre de tours : chaque pair mesure depuis son propre `startedAt`, aucune
     // n'est plus vraie que l'autre, et moyenner deux mesures du même phénomène n'apporterait rien.
@@ -715,6 +798,7 @@ export function buildReport(rows: EventRow[], days: number): Report {
       // laisserait croire à une perte.
       bump(report.battlesByEndReason, payload.endReason ?? END_REASON_UNKNOWN);
     }
+    collectMatchupSides(matchupBattles, payload);
     // Les issues par Pokemon se cumulent sur les deux lignes, comme les équipes : `outcomes` suit
     // les camps dont la composition a voyagé, donc un camp par pair en ligne.
     for (const outcome of payload.outcomes) {
@@ -763,6 +847,7 @@ export function buildReport(rows: EventRow[], days: number): Report {
     }
   }
 
+  countMatchups(report, matchupBattles);
   report.uniqueVisitors = visitors.size;
   /*
    * 🔴 Le total brut ne se montre JAMAIS tel quel. Le sel du haché tourne chaque jour
@@ -911,6 +996,8 @@ export const INPUT_LABELS: Record<string, string> = {
  * retombe sur `battlesEnded` — sans quoi on croirait à une perte.
  */
 export const END_REASON_UNKNOWN = "unknown";
+/** Recopié de `BattleEndReason.Forfeit` (app), comme `ONLINE_MODE` : écarte les forfaits des affrontements. */
+const END_REASON_FORFEIT = "forfeit";
 
 /**
  * Au-delà de ce tour, un départ n'est plus « rapide » (plan 224). Aligné sur la tranche basse de

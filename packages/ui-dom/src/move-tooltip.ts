@@ -10,7 +10,7 @@ import {
   TargetingKind,
 } from "@pokemon-tactic/core";
 import { getTypeName } from "@pokemon-tactic/data";
-import type { AttackSubmenuMoveView } from "@pokemon-tactic/render-ports";
+import type { AttackSubmenuMoveView, ContextualStat } from "@pokemon-tactic/render-ports";
 import {
   type BlockedMoveTag,
   type MoveIntent,
@@ -391,16 +391,22 @@ function renderGrid(cells: PatternCell[][], intent: MoveIntent): HTMLElement {
 }
 
 /** One `Label value` cell of the numbers row — label bold, value regular (human 2026-08-03). */
-function statCell(label: string, value: string, effective?: number): HTMLElement {
-  const cell = el("span", "mt-stat");
+function statCell(
+  label: string,
+  value: string,
+  contextual?: ContextualStat | null,
+  testId?: string,
+): HTMLElement {
+  const cell = el("span", "mt-stat", testId);
   const name = el("span", "mt-stat-label");
   name.textContent = label;
   const figure = el("span", "mt-stat-value");
   figure.textContent = value;
   cell.append(name, figure);
-  if (effective === undefined) {
+  if (!contextual) {
     return cell;
   }
+  const effective = contextual.effective;
   /*
    * Valeur du contexte (plan 192) : la fiche reste lisible mais barrée, l'effective prend la place
    * du chiffre qui compte. Deux éléments plutôt qu'un texte « 90 → 135 » pour que le style puisse
@@ -411,6 +417,13 @@ function statCell(label: string, value: string, effective?: number): HTMLElement
   actual.textContent = String(effective);
   actual.dataset.tone = effective > Number(value) ? "buff" : "danger";
   cell.append(actual);
+  // La cause à côté de la valeur qu'elle change (plan 227) : une note commune « Modifiée par »
+  // ne disait pas si c'était la puissance ou la précision.
+  if (contextual.causes.length > 0) {
+    const causes = el("span", "mt-stat-cause", "mt-stat-cause");
+    causes.textContent = `(${contextual.causes.join(", ")})`;
+    cell.append(causes);
+  }
   return cell;
 }
 
@@ -457,12 +470,14 @@ export function createMoveTooltip(config: UiDomConfig): MoveTooltip {
         statCell(
           config.translate("move.power.label"),
           move.power > 0 ? `${move.power}` : "—",
-          contextual?.power?.effective,
+          contextual?.power,
+          "move-tooltip-power",
         ),
         statCell(
           config.translate("move.accuracy.label"),
           move.accuracy > 0 ? `${move.accuracy}` : "—",
-          contextual?.accuracy?.effective,
+          contextual?.accuracy,
+          "move-tooltip-accuracy",
         ),
       );
       // CT: pips coloured by weight (light → green, heavy → red, same language as the move row's
@@ -484,7 +499,7 @@ export function createMoveTooltip(config: UiDomConfig): MoveTooltip {
       main.append(stats);
 
       /*
-       * Pourquoi les chiffres diffèrent, et la brûlure (plan 192).
+       * La brûlure (plan 192) — les autres causes sont nommées à côté de leur chiffre (plan 227).
        *
        * La brûlure est annoncée en clair au lieu d'être pliée dans la puissance : elle divise la
        * statistique d'Attaque du lanceur, pas la puissance du move — écrire « Puis 100 → 50 »
@@ -492,18 +507,9 @@ export function createMoveTooltip(config: UiDomConfig): MoveTooltip {
        * change le classement entre un move physique et un move spécial.
        */
       if (contextual !== null) {
-        const notes: string[] = [];
-        if (contextual.causes.length > 0) {
-          notes.push(
-            `${config.translate("moveContext.effective")} : ${contextual.causes.join(", ")}`,
-          );
-        }
         if (contextual.burnHalvesDamage) {
-          notes.push(config.translate("moveContext.burnHalves"));
-        }
-        if (notes.length > 0) {
           const context = el("div", "mt-context");
-          context.textContent = notes.join(" · ");
+          context.textContent = config.translate("moveContext.burnHalves");
           main.append(context);
         }
       }
