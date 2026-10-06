@@ -174,3 +174,80 @@ test.describe("au doigt", () => {
     await expect(tooltip.bubble).toBeHidden();
   });
 });
+
+test.describe("au doigt, téléphone paysage", () => {
+  // Pointeur grossier : la boîte du talent est agrandie jusqu'au plancher de cible tactile
+  // (`--it-overhang`, plan 225). L'anneau d'Inspecter entourait cette boîte agrandie et débordait sur
+  // la barre de PV (retour humain 2026-10-06) ; il est désormais dessiné par un `::before` qui épouse
+  // le texte (plan 230). On le MESURE : le pseudo-élément n'est pas un nœud, donc pas de locator.
+  test.use({ hasTouch: true, viewport: { width: 851, height: 393 } });
+
+  /** Écart toléré entre l'anneau et le texte : 2 px de trait + 1 px de décalage, plus l'écart entre
+   *  la hauteur de ligne (que l'anneau suit) et la boîte des glyphes (que la Range mesure). */
+  const RING_SLACK_PX = 6;
+
+  test("§4.23 l'anneau d'Inspecter sur le talent encadre le texte, pas la barre de PV", async ({
+    page,
+    bootSandbox,
+  }) => {
+    await bootSandbox(INSPECT_INFO);
+    const panel = new InfoPanel(page);
+    const tooltip = new InfoTooltip(page);
+    await expect(panel.talent).toBeVisible();
+    const talent = ((await panel.talent.textContent()) ?? "").trim();
+
+    await page.keyboard.press("KeyI");
+    await expect(tooltip.title).toHaveText(talent);
+
+    const hpBar = await panel.hpBar.boundingBox();
+    if (hpBar === null) {
+      throw new Error("barre de PV sans boîte");
+    }
+    const { ring, text } = await panel.talent.evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      const ringStyle = getComputedStyle(element, "::before");
+      const px = (value: string): number => Number.parseFloat(value) || 0;
+      // Le `::before` est en absolu dans la boîte de REMPLISSAGE du talent (qui est `relative`) ;
+      // ses `inset` se lisent résolus en px. Le trait est un `outline`, donc HORS de sa boîte.
+      const paddingLeft = box.left + element.clientLeft;
+      const paddingTop = box.top + element.clientTop;
+      const outset = px(ringStyle.outlineWidth) + px(ringStyle.outlineOffset);
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      const glyphs = range.getBoundingClientRect();
+      return {
+        ring: {
+          content: ringStyle.content,
+          left: paddingLeft + px(ringStyle.left) - outset,
+          top: paddingTop + px(ringStyle.top) - outset,
+          right: paddingLeft + element.clientWidth - px(ringStyle.right) + outset,
+          bottom: paddingTop + element.clientHeight - px(ringStyle.bottom) + outset,
+        },
+        text: { left: glyphs.left, top: glyphs.top, right: glyphs.right, bottom: glyphs.bottom },
+      };
+    });
+
+    // L'anneau existe bien sur le pseudo-élément (sinon les mesures ne disent rien).
+    expect(ring.content).not.toBe("none");
+
+    // Il encadre le texte, à quelques px près de chaque côté — ni tassé dessus, ni gonflé jusqu'à la
+    // cible tactile.
+    for (const [outer, inner] of [
+      [text.left, ring.left],
+      [ring.right, text.right],
+      [text.top, ring.top],
+      [ring.bottom, text.bottom],
+    ] as const) {
+      expect(outer - inner).toBeGreaterThanOrEqual(-1);
+      expect(outer - inner).toBeLessThanOrEqual(RING_SLACK_PX);
+    }
+
+    // Et il ne mord pas sur la barre de PV, juste au-dessus de la ligne du talent.
+    const overlapsHpBar =
+      ring.left < hpBar.x + hpBar.width &&
+      ring.right > hpBar.x &&
+      ring.top < hpBar.y + hpBar.height &&
+      ring.bottom > hpBar.y;
+    expect(overlapsHpBar).toBe(false);
+  });
+});

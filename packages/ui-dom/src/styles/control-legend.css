@@ -216,7 +216,7 @@
   }
 
   @media (pointer: coarse) {
-    :where(:not([data-input-source])) .cl-hint {
+    :where(:root:not([data-input-source])) .cl-hint {
       display: none;
     }
   }
@@ -349,7 +349,7 @@
 
   /* Au doigt, rien à annoncer : on fait glisser le plateau à deux doigts, sans touche ni bouton. */
   @media (pointer: coarse) {
-    :where(:not([data-input-source])) .cl-row-pan {
+    :where(:root:not([data-input-source])) .cl-row-pan {
       display: none;
     }
   }

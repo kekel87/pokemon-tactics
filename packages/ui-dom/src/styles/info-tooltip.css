@@ -55,6 +55,8 @@
    * an element that has something to explain catches it back.
    */
   [data-describe] {
+    --it-ring-width: 2px;
+    --it-ring-offset: 1px;
     pointer-events: auto;
     cursor: help;
   }
@@ -85,12 +87,39 @@
       padding-block: var(--it-overhang);
       margin-block: calc(-1 * var(--it-overhang));
     }
+
+    /*
+     * That grown box is the hit area, not the talent: an outline around it spilled over the HP bar
+     * and the row below on a phone, and a negative `outline-offset` shrinks it on all four sides
+     * (collapsed onto the middle of the word). The ring is drawn by a pseudo-element hugging the
+     * text instead. While it shows, the box reserves the ring's room on every side, with the same
+     * compensated padding, so the clipping cannot cut it — and only while it shows, so the hit area
+     * keeps its size the rest of the time.
+     */
+    .ip-talent[data-describe].it-anchor {
+      --it-ring-room: calc(var(--it-ring-width) + var(--it-ring-offset));
+      --it-ring-block: max(var(--it-overhang), var(--it-ring-room));
+      outline: none;
+      padding: var(--it-ring-block) var(--it-ring-room);
+      margin: calc(-1 * var(--it-ring-block)) calc(-1 * var(--it-ring-room));
+
+      &::before {
+        content: "";
+        position: absolute;
+        inset-block: var(--it-ring-block);
+        inset-inline: var(--it-ring-room);
+        outline: var(--it-ring-width) solid var(--color-accent);
+        outline-offset: var(--it-ring-offset);
+        border-radius: var(--bc-radius-sm);
+        pointer-events: none;
+      }
+    }
   }
 
   /* The element being explained — what inspect mode is on, at the keyboard and the gamepad. */
   .it-anchor {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 1px;
+    outline: var(--it-ring-width) solid var(--color-accent);
+    outline-offset: var(--it-ring-offset);
     border-radius: var(--bc-radius-sm);
   }
 }

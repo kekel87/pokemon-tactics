@@ -2,6 +2,7 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "../../fixtures";
 import { DUEL } from "../../fixtures/sandbox-configs";
 import type { CombatScene, MeshScreenBox } from "../../pages/CombatScene";
+import { connectPad, holdPadUntil, PadButton, withFakeGamepad } from "../../pages/gamepad";
 
 // Cahier §4.18 — boussole tapable (plan 183) + légende de contrôles caméra (plan 185).
 //
@@ -306,4 +307,68 @@ test("§4.18 la légende ne bouge pas quand la timeline perd son entrée active"
   const areaAfter = await screenBox(scene, TAP_AREA);
   expect(areaAfter.left).toBeCloseTo(areaBefore.left, 0);
   expect(areaAfter.top).toBeCloseTo(areaBefore.top, 0);
+});
+
+test.describe("§4.18 pointeur grossier avec un périphérique branché (plan 230)", () => {
+  // `hasTouch` fait matcher `@media (pointer: coarse)` : c'est là que vit la règle « rien d'observé →
+  // pas d'indice ». Elle portait `:not([data-input-source])` sur N'IMPORTE QUEL ancêtre, donc restait
+  // vraie à jamais (`<body>` n'a pas l'attribut) : sur un téléphone avec une manette ou un clavier,
+  // capuchons et ligne panoramique ne s'affichaient jamais. Téléphone paysage, taille de référence.
+  test.use({ hasTouch: true, viewport: { width: 851, height: 393 } });
+
+  /** Un capuchon (`.cl-hint`) : celui du défilement de l'ordre de jeu, toujours monté, qui porte
+   *  une touche ET un bouton de manette — donc visible aux deux sources. */
+  const HINT = "timeline-scroll-up-key-hint";
+  const PAN_ROW = "control-legend-pan";
+
+  test("§4.18 au clavier, les capuchons et la ligne caméra apparaissent ; un tap les remasque", async ({
+    page,
+    bootSandbox,
+  }) => {
+    const scene = await bootSandbox(DUEL);
+    await waitPinned(page, scene);
+    const hint = page.getByTestId(HINT);
+    const panRow = page.getByTestId(PAN_ROW);
+
+    // Rien d'observé : au doigt par défaut, rien à annoncer.
+    await expect(hint).toBeHidden();
+    await expect(panRow).toBeHidden();
+
+    // Une vraie frappe (rotation caméra, sans effet sur la partie) : le suivi de source publie
+    // `keyboard` sur `<html>`, et la règle par défaut doit cesser de s'appliquer.
+    await page.keyboard.press("KeyE");
+    await expect(hint).toBeVisible();
+    await expect(panRow).toBeVisible();
+
+    // Un VRAI tap (`locator.tap()` émet du tactile ; un `click()` serait une souris) : retour au doigt.
+    // Sur le bouton Attaque, qui ne fait qu'ouvrir la liste des capacités.
+    await page.getByRole("button", { name: "Attaque", exact: true }).tap();
+    await expect(hint).toBeHidden();
+    await expect(panRow).toBeHidden();
+  });
+
+  test("§4.18 à la manette, les capuchons et la ligne caméra apparaissent", async ({
+    page,
+    bootSandbox,
+  }) => {
+    await withFakeGamepad(page);
+    const scene = await bootSandbox(DUEL);
+    await connectPad(page);
+    await waitPinned(page, scene);
+    const hint = page.getByTestId(HINT);
+    const panRow = page.getByTestId(PAN_ROW);
+
+    // Brancher la manette ne suffit pas (dernier geste gagnant, plan 184) : il faut un appui.
+    await expect(hint).toBeHidden();
+    await expect(panRow).toBeHidden();
+
+    // LB tourne la caméra d'un cran — sans effet sur la partie. Maintenu jusqu'à l'effet : un appui
+    // bref peut tomber entre deux lectures du poller.
+    await holdPadUntil(page, PadButton.LeftBumper, () => hint.isVisible());
+    await expect(hint).toBeVisible();
+    await expect(panRow).toBeVisible();
+    // À la manette, la ligne panoramique annonce le stick droit, pas les touches.
+    await expect(page.getByTestId("legend-glyph-pan-stick")).toBeVisible();
+    await expect(page.getByTestId("legend-cap-pan-up")).toBeHidden();
+  });
 });
