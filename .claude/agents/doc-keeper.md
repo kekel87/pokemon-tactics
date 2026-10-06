@@ -31,6 +31,12 @@ chiffres, et rien de plus :
 Ce sont les deux proxies de « le lot était-il bien calibré ». Le dev se faisant désormais d'un trait
 sur un lot entier, ils servent à ajuster la taille des lots sur des chiffres plutôt qu'au ressenti.
 
+🔴 **En silence.** Le relevé des 24-48 h des lots précédents se fait ici, de toi-même, en lisant
+`git log` depuis leur commit (un `fix` qui touche le même périmètre compte). Tu ne le présentes
+jamais comme « à faire » et tu n'écris rien dans l'agenda à ce sujet. Seule exception, à signaler
+dans ton rapport : **deux lots de suite avec au moins un correctif** — c'est le signal que les lots
+sont trop gros.
+
 ## 🔴 La mémoire du projet est un GRAPHE, plus des fichiers
 
 Depuis le plan 200, `STATUS.md`, `docs/decisions.md`, `docs/next.md`, `docs/backlog.md`,

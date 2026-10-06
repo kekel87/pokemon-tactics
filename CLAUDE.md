@@ -263,4 +263,6 @@ scénario sandbox à la fois, lancé par Claude, validé par l'humain. Tous vali
 - **Métriques de calibrage des lots** — `doc-keeper` consigne au graphe, à chaque lot : le **nombre
   de retours de l'humain en recette** et le **nombre de correctifs dans les 24-48 h suivant le
   commit**. Ce sont les deux proxies de « le lot était-il bien calibré ». Au bout de quelques lots,
-  on ajuste la taille des lots sur des chiffres au lieu du ressenti
+  on ajuste la taille des lots sur des chiffres au lieu du ressenti. 🔴 **Tâche de fond, muette**
+  (humain, 2026-10-06 : « fais ça sans m'embêter ») : jamais une étape à proposer, jamais dans le
+  pointeur d'agenda, jamais en chat — sauf **signal** : deux lots de suite avec un correctif
