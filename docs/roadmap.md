@@ -4,9 +4,6 @@
 >
 > **Le raisonnement vit dans le graphe, pas ici.** Ce document liste *quoi*, avec juste assez de
 > contexte pour décider ; le *pourquoi* s'ouvre avec `node scripts/memory/query.mjs --open <entité>`.
->
-> 🔴 **Dépôt public.** Aucun chiffre de production ici (visites, parties, abandons, appareils, durées) :
-> la télémétrie reste dans le graphe et `pnpm stats`.
 
 ## Où on en est
 
