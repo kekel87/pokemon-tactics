@@ -456,7 +456,7 @@ export interface KickMessage {
  * 🔴 C'est ce « déjà » qui gouverne tout le traitement à la réception. `executeAction` soumet puis
  * diffuse : quand ce message arrive, l'émetteur a avancé. Refuser l'action ne le fait pas revenir en
  * arrière — un refus n'est donc pas une correction, c'est le constat d'une divergence. D'où le
- * barème (décision D1) plutôt que le « rejeter, redemander » que `docs/multiplayer.md` décrivait.
+ * barème (décision D1, § Anti-triche de `docs/multiplayer.md`) plutôt qu'un « rejeter, redemander ».
  */
 export interface ActionMessage {
   type: "action";

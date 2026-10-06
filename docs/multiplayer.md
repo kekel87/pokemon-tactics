@@ -1,71 +1,12 @@
 # Multijoueur P2P — Architecture et design
 
-> Document de référence pour l'implémentation du multijoueur (Phase 7).
-> Écrit le 2026-04-06, **révisé le 2026-08-29** après une passe d'audit de faisabilité, puis
-> **corrigé le 2026-09-04 par le Lot B1, qui est le premier à avoir été implémenté**, puis
-> **corrigé le 2026-09-09 par le Lot B3, implémenté et validé en recette humaine**, puis
-> **corrigé le 2026-09-10 par le Lot B4 (détection de désync)** — codé, e2e et recette humaine
-> encore en cours (plan 203).
-> Décisions associées : #209-212 (fondations), #862-870 (révision), #895-912 (Lot B1),
-> #946-#967 (Lot B3, plan 202 — chrono, chien de garde, abandon, reconnexion),
-> #968+ (Lot B4, plan 203 — somme de contrôle, forfait sur divergence).
-
----
-
-## Ce que la révision de 2026-08-29 a changé
-
-Le document d'avril reposait sur deux prémisses qui ne tiennent plus. Elles sont corrigées ici, mais
-il faut savoir qu'elles ont existé — plusieurs décisions d'août ont été prises en s'y appuyant.
-
-1. **« Le jeu est à information complète, il n'y a rien à cacher. »** Faux depuis le plan 176
-   (2026-08-05) : le fog ennemi existe. Voir § Fog.
-2. **« Un serveur autoritaire arrivera en Phase 7. »** Quatre décisions d'août (#728, #732, #751, et
-   le plan 181) y renvoyaient. Il n'y en aura pas — décision #862. Voir § Pourquoi pas de serveur.
-
-Corrigés au passage : les scènes Phaser (§ Écrans), l'absence du plan 181 dans le schéma de resync
-(§ Reconnexion), et les mentions « WebSocket » de `roadmap.md` / `game-design.md` §14, reliquats
-d'avant la décision #209.
-
----
-
-## Ce que le Lot B1 a changé, en le codant (2026-09-04)
-
-Le Lot B1 (plan 199 — transport, salon, lancement) est **livré**. Cinq points de ce document, écrits
-avant tout code, se sont révélés faux ou impraticables à l'écriture. Ils sont corrigés dans les
-sections concernées ; les voici groupés, parce que plusieurs décisions d'août s'appuyaient dessus.
-
-1. **Plus de lien d'invitation** (#895). Il serait construit depuis l'origine courante, laquelle vaut
-   `html-classic.itch.zone/…` dans l'iframe itch.io — un lien qu'on ne peut ni prévoir ni partager.
-   Le **code seul**, en 5 caractères.
-2. **Le format se choisit AVANT la création** (#896), dans l'écran `lobby`. Il fixe le nombre de
-   places avant la naissance du code, ce qui supprime le cas « l'hôte change de format alors que
-   quelqu'un est entré », qui aurait demandé d'éjecter un joueur.
-3. **Pas de second écran de salon** (#897). La salle d'attente **est** l'écran de sélection
-   d'équipe, qui porte déjà les lignes par camp depuis le plan 188.
-4. **L'IA est autorisée en ligne** (#901). Ce document disait le contraire ; vérification faite,
-   l'IA est **pure** à état et générateur donnés (aucun `Math.random` ni `Date.now` dans
-   `packages/core/src/ai/`), donc une graine dérivée par place suffit, sans un seul message.
-5. **Le refus de version ne porte pas sur `buildVersion`** (#900). `__APP_VERSION__` vient de
-   `git describe`, change à **chaque commit**, et diffère entre les déploiements Pages et itch.io :
-   refuser dessus **interdirait le jeu entre plateformes**. Une constante `NETWORK_VERSION`,
-   incrémentée à la main, la remplace.
-
-🔴 **La règle à retenir de tout ça** : `NETWORK_VERSION` (`packages/network/src/protocol.ts`)
-**s'incrémente à la main** dès que toucher au moteur, aux données de jeu ou au protocole peut faire
-diverger deux pairs. On l'oubliera au moins une fois ; le filet **existe désormais** : la somme de
-contrôle du Lot B4 (§ Détection de désync) transforme l'oubli en erreur lisible au lieu d'un combat
-qui part en silence — mais elle ne remplace pas la discipline d'incrémenter la version, elle ne
-fait que rattraper l'oubli une fois qu'il a eu lieu.
-
-**Deux pièges de déterminisme trouvés en écrivant**, tous deux corrigés :
-
-- **Le placement automatique tirait au hasard localement** (`PlacementPhase`), depuis un tirage
-  `crypto.getRandomValues` propre à chaque pair. Sans graine venue de l'hôte, deux joueurs avaient
-  **deux plateaux différents avant le premier tour**. Le setup diffusé porte donc **trois** graines :
-  combat, placement, IA (#902).
-- **Le lancement doit être accusé** (#903). Sans accusé, un pair qui manque le `start` reste sur
-  l'écran d'équipe pendant que les autres jouent, et **aucun moment n'existe** où quelqu'un s'en
-  aperçoit : il attend un tour qui n'arrivera jamais.
+> Document de référence **de l'état actuel** du multijoueur. L'historique (révisions du document,
+> bumps de `NETWORK_VERSION`, mesures datées, correctifs de recette) vit dans le graphe de mémoire :
+> `historique-versions-reseau-network-version`, `historique-multiplayer-md-revisions-et-corrections`,
+> `implementation-multiplayer-*`.
+> Décisions associées : #209-212 (fondations), #862-870 (cadrage), #895-912 (salon),
+> #939-967 (combat, chrono, chien de garde, abandon, reconnexion), #968+ (somme de contrôle),
+> #1024-1028 (FFA en réseau).
 
 ---
 
@@ -75,7 +16,7 @@ fait que rattraper l'oubli une fois qu'il a eu lieu.
 2. **Exécution dupliquée** — chaque joueur fait tourner son propre BattleEngine
 3. **Seules les actions transitent** — pas d'état complet, pas de sync lourde
 4. **Anti-triche par validation** — chaque joueur vérifie les actions de l'autre
-5. **Détection de désync** — checksum périodique du BattleState
+5. **Détection de désync** — somme de contrôle de l'état de combat après chaque action
 
 ---
 
@@ -97,12 +38,11 @@ après **60 jours sans activité du dépôt** : le gardien s'endort précisémen
 devait couvrir.
 
 Le coût réel n'était d'ailleurs pas que la pause : un compte à maintenir, des politiques RLS, le
-premier backend d'un projet aujourd'hui 100 % statique, et une politique de free tier qui peut
-changer sans nous.
+premier backend d'un projet 100 % statique, et une politique de free tier qui peut changer sans nous.
 
-**Cloudflare Workers** revient plus tard dans ce document — pas comme arbitre du combat, mais pour la
-télémétrie (§ Télémétrie), puis éventuellement le signaling et le relais de secours (§ Quand le NAT
-gagne). Il n'a pas le comportement de mise en pause. **Rien de tout cela n'est en V1.**
+**Cloudflare Workers** n'est pas un arbitre du combat : il sert la télémétrie, le registre des salons
+et le relais de secours (§ Cloudflare Workers, § Télémétrie). Il n'a pas le comportement de mise en
+pause.
 
 ---
 
@@ -122,9 +62,41 @@ Les deux joueurs ont le même BattleEngine avec le même seed PRNG. Quand un jou
 
 ---
 
+## Versionnage réseau
+
+🔴 **`NETWORK_VERSION`** (`packages/network/src/protocol.ts`) **s'incrémente à la main** dès que toucher
+au moteur, aux données de jeu, à l'IA ou au protocole peut faire diverger deux pairs. Elle est
+comparée **strictement** à la poignée de main (`hello` / `welcome`, refus `version_incompatible`,
+message symétrique : on n'accuse aucun des deux camps).
+
+**La question à se poser n'est pas « ai-je touché `protocol.ts` ? »** mais « un pair d'hier et un
+pair d'aujourd'hui calculeraient-ils la même chose ? ». Sont concernés : la forme d'un message, une
+règle de lecture (ex. quand refuser une action, comment prononcer un forfait), un champ de l'état
+**haché** par la somme de contrôle, et toute décision de l'IA (rejouée à l'identique chez chaque pair
+depuis une graine partagée — son verdict fait partie du contrat). Un seul incrément peut couvrir
+plusieurs commits d'un même lot : la version dit « ces deux builds ne jouent pas la même partie »,
+pas « voici combien de fois on l'a touchée ».
+
+**Pourquoi pas `buildVersion`** (#900) : `__APP_VERSION__` vient de `git describe`, change à
+**chaque commit** et diffère entre les déploiements Pages et itch.io — refuser dessus interdirait le
+jeu entre plateformes, et deux `git describe` ne s'ordonnent pas.
+
+On l'oubliera au moins une fois ; le filet est la somme de contrôle (§ Détection de désync), qui
+transforme l'oubli en erreur lisible au lieu d'un combat qui part en silence — mais elle ne remplace
+pas la discipline, elle rattrape l'oubli une fois qu'il a eu lieu.
+
+**Où écrire le POURQUOI de chaque incrément** : dans un commentaire de `protocol.ts` (« N → N+1,
+date, plan, raison ») **et** dans l'entité du graphe `historique-versions-reseau-network-version`
+(une observation par version). Pas dans ce document.
+
+**Ce que les pairs doivent partager se publie, il ne se devine pas** : la carte résolue, le
+`formatKey`, les graines — jamais redérivés localement depuis un état de salon qui peut différer.
+
+---
+
 ## Flow d'une partie
 
-### 1. Connexion (code de partie) — LIVRÉ (plan 199)
+### 1. Connexion (code de partie)
 
 **Le code est l'adressage** (#898). L'hôte prend l'identifiant `pkmntac-<CODE>-1`, la place *n* est
 `pkmntac-<CODE>-n`. Personne n'annonce qu'il est l'hôte : c'est le fait d'avoir pris la place 1 qui
@@ -132,10 +104,10 @@ le définit, et la prise d'identifiant étant exclusive, deux pairs ne peuvent p
 titulaires tous les deux.
 
 ```
-Hôte : menu → Combat → En ligne → lobby (format + « Créer »)
-  → écran de terrain (aperçu 3D)
+Hôte : menu → Combat → En ligne → lobby (« Créer »)
   → écran de sélection d'équipe : LE CODE NAÎT ICI, et s'y affiche
-     (là où l'hôte attend, donc là où il le partage)
+     (là où l'hôte attend, donc là où il le partage) ; la carte vient de ses préférences,
+     le format d'ouverture est le duel, tous deux modifiables depuis la salle d'attente
 
 Invité : menu → Combat → En ligne → lobby (saisie du code + « Rejoindre »)
   → il tente la place 2 ; prise → la place 3 ; etc. jusqu'au nombre de places du format
@@ -149,8 +121,8 @@ Trois propriétés tombent de ce seul choix d'adressage :
   coordonne, et deux arrivants simultanés ne peuvent pas obtenir la même place.
 - **Le maillage complet** (#899) : tout le monde joint tout le monde en connaissant le seul code —
   c'est ce qui fait qu'un hôte qui part n'emporte pas les connexions des autres entre eux.
-- **La reconnexion sans serveur** (Lot B3) : celui qui revient réclame **la même place**, à une
-  adresse que les autres connaissent déjà, même si l'hôte est parti entre-temps.
+- **La reconnexion sans serveur** : celui qui revient réclame **la même place**, à une adresse que
+  les autres connaissent déjà.
 
 Le code fait **5 caractères** d'un alphabet de 32 sans ambiguïté (les 26 lettres moins `I` et `O`,
 les chiffres `2` à `9`), soit ~33 millions de combinaisons. Affiché d'un bloc (`A7K2M`), jamais avec
@@ -167,8 +139,9 @@ sa page suffirait à se voir refuser sa propre place. En revanche le **balayage*
 arrivant ne réessaie pas — là, « occupée » est la réponse normale, et insister ajouterait plusieurs
 secondes par place déjà prise.
 
-Pas de comptes, pas de matchmaking, **pas de lien d'invitation** (#895) : le code se partage par
-Discord, SMS, ou tout autre moyen.
+Pas de comptes, pas de matchmaking, **pas de lien d'invitation** (#895 : il serait construit depuis
+l'origine courante, qui vaut `html-classic.itch.zone/…` dans l'iframe itch.io) : le code se partage
+par Discord, SMS, ou tout autre moyen.
 
 **La saisie du code passe par une roue de caractères** — cinq emplacements montrant leurs voisins
 d'alphabet — et non par un champ texte. Motif : un champ texte n'est **pas saisissable à la manette**
@@ -176,7 +149,7 @@ d'alphabet — et non par un champ texte. Motif : un champ texte n'est **pas sai
 la source active, et perdre le focus à chaque bascule. Un seul widget sert les quatre entrées : les
 lettres au clavier, les directions et `A` au pad, la tape au doigt, le clic et la molette à la souris.
 
-### 2. Sélection d'équipe — LIVRÉ (plan 199)
+### 2. Sélection d'équipe
 
 **Il n'y a pas d'écran de salon séparé** (#897) : l'écran de sélection d'équipe **est** la salle
 d'attente. Ce qu'il gagne en mode réseau :
@@ -190,7 +163,6 @@ d'attente. Ce qu'il gagne en mode réseau :
 | Les équipes des **autres humains sont masquées** | Fuite d'information, sinon : le jeu masque déjà l'objet tenu et le talent de l'adversaire (#729). On voit la sienne et celles que personne ne tient |
 | **Tout le monde a « Prêt / Pas prêt »**, l'hôte compris | Lui seul garde « Lancer » en plus. Et c'est **sa** confirmation qui gèle les paramètres de partie — réversible d'un « Pas prêt ». Les geler sur le « prêt » d'un invité lui retirait une décision qui n'était pas la sienne |
 | « Prêt » | Remplace « Lancer » pour les invités. L'hôte garde « Lancer », actif quand tout le monde est prêt, et peut **forcer** en repassant les lignes qui traînent en IA |
-| Sélecteur de format masqué | Il est gravé depuis le `lobby` |
 
 ```
 Chacun compose les lignes qu'il possède : la sienne, plus les lignes IA pour l'hôte
@@ -201,8 +173,42 @@ Chacun compose les lignes qu'il possède : la sienne, plus les lignes IA pour l'
 ```
 
 Le setup diffusé porte : l'**identifiant stable de carte** (jamais l'URL — elle dépend de la base de
-déploiement et n'est pas un contrat entre deux pairs), le format, les options de partie, la
-composition de **chaque** place, et les **trois graines** (combat, placement, IA).
+déploiement et n'est pas un contrat entre deux pairs), le format (`formatKey`), les options de
+partie, la composition de **chaque** place, les **quatre graines** (combat, placement, IA, équipe) et
+un `battleId` (télémétrie).
+
+🔴 **Le lancement doit être accusé** (#903). Sans accusé, un pair qui manque le `start` reste sur
+l'écran d'équipe pendant que les autres jouent, et aucun moment n'existe où quelqu'un s'en aperçoit.
+
+🔴 **Aucun tirage local sans graine venue de l'hôte** (#902) : le placement automatique, l'IA et le
+tirage d'équipe « Aléatoire » dérivent tous d'une graine du `start`. Un tirage propre à chaque pair
+donnerait deux plateaux différents avant le premier tour.
+
+**Le niveau de l'IA se choisit place par place** (`aiDifficulty`, optionnel sur `NetworkSeatState` et
+`StartSeat`). 🔴 **On ne pose pas la clé plutôt que de l'écrire à `undefined`** : la sérialisation
+BinaryPack de PeerJS transforme un `undefined` en `null` sur le fil, et le garde de type rejetait
+alors le `room_state` en entier.
+
+**L'équipe « Aléatoire » n'est qu'une intention** (`NetworkTeamSelection.random`) : l'équipe ne
+transite jamais, chaque pair la dérive localement à partir de la graine `team` de la place. Le tirage
+est **différé au lancement** pour tous les camps aléatoires, IA comprise, solo comme en ligne — une
+équipe aléatoire non tirée n'est pas cachée, elle n'existe pas encore (ce qui laisse intacte #729).
+Règles à respecter :
+
+- `deriveTeamSeedsBySeat` (copie conforme de `deriveAiSeedsBySeat`, via `deriveSeedsBySeat` : toutes
+  les places dérivées d'un coup, dans l'ordre croissant, jamais à la demande) doit rendre des
+  **entiers** : `createPrng` commence par `seed | 0`, une graine flottante de `[0, 1)` s'y écraserait
+  à zéro et toutes les places tireraient les mêmes Pokemon — sans désync, donc sans signal en jeu.
+- `id` et `createdAt` d'une équipe tirée (non déterministes) restent **hors** du `BattleState` :
+  `generateRandomTeamSlots` ne rend que les six emplacements, jamais l'enveloppe `TeamSet`, sinon la
+  somme de contrôle diverge à la première vérification.
+- Le pool du tirage : Pokemon au dernier stade qui ont un build, une espèce par famille, objets
+  uniques (decision-1136).
+
+**Le niveau appartient au Pokemon** (`BattleSetupConfig.levelOverrides`, par emplacement) et c'est le
+**format de partie** qui le normalise : `BattleFormatRules.adjustLevel`, posé à 50 par le mode Combat
+dans `buildBattle` — le chemin que la partie vive et la reprise partagent. La formule de dégâts lit
+`attacker.level`.
 
 ### 3. Combat
 
@@ -230,14 +236,14 @@ Chaque moteur détecte la victoire indépendamment, à N camps comme à deux
 
 ⚠️ **Un camp éliminé avant la fin ne ferme rien.** La partie continue tant qu'il reste au moins deux
 camps vivants (`checkVictory`, `playersAlive.size <= 1`). Le joueur éliminé voit un dialogue à deux
-issues — retour au menu / mode spectateur, caméra libre — livré au plan 210 :
-`docs/plans/210-joueur-elimine-et-mode-spectateur.md`.
+issues — retour au menu / mode spectateur, caméra libre (plan 210 : graphe, `plan-210`). Un combat en
+ligne pose `reviveDefeatedCamps: false`.
 
 ---
 
 ## Protocole de messages
 
-**Ce qui est LIVRÉ** (Lot B1, `packages/network/src/protocol.ts`) :
+`packages/network/src/protocol.ts`. L'union des messages :
 
 ```typescript
 type NetworkMessage =
@@ -248,87 +254,43 @@ type NetworkMessage =
   | { type: "ready"; seat: number; ready: boolean }
   | { type: "start"; options: …; seeds: NetworkSeeds; seats: readonly StartSeat[] }
   | { type: "start_ack"; seat: number }
-  | { type: "bye"; seat: number };
-```
-
-**Ce que le Lot B2 a ajouté** (plan 201) :
-
-```typescript
-  | { type: "action"; seat: number; actionIndex: number; action: Action }
+  | { type: "bye"; seat: number }
+  | { type: "action"; seat: number; actionIndex: number; action: Action }   // + timedOut?: true
   | { type: "forfeit"; seat: number; forfeitedSeat: number; reason: NetworkForfeitReason }
-```
-
-`actionIndex` est le nombre d'actions enregistrées chez l'émetteur **avant** celle-ci : un détecteur
-de désync du pauvre (décision D3), qui dit « nous ne sommes pas au même point » au lieu d'appliquer
-une action au mauvais acteur. `forfeitedSeat` désigne la place éliminée, qui n'est pas celle de
-l'émetteur quand c'est un constat de divergence — et **`NETWORK_VERSION` est passée à 2**.
-
-**Ce que le Lot B3 a ajouté** (plan 202) :
-
-```typescript
   | { type: "resync_request"; seat: number; actionIndex: number }
   | { type: "resync"; seat: number; fromIndex: number; actions: readonly Action[] }
-```
-
-Le message `action` gagne `timedOut?: true` (auto-déclaré par l'émetteur, décision #955). Le
-rattrapage d'un revenant : « j'en suis là, donne-moi la suite » / la queue du journal — et
-**`NETWORK_VERSION` est passée à 3**.
-
-**Ce que le Lot B4 a ajouté** (plan 203) :
-
-```typescript
   | { type: "checksum"; seat: number; actionIndex: number; digest: string }
+  | { type: "placement"; seat: number; placements: readonly NetworkPlacement[] };
 ```
 
-Une empreinte de l'état de combat (`battleStateChecksum`, `packages/core`), émise après chaque
-action complétée et une fois au lancement (`actionIndex` 0, après le placement). Comparée par pair
-et par ancrage ; à l'écart, `forfeitSeat(...)` avec `NetworkForfeitReason.EtatDivergent` — **et
-`NETWORK_VERSION` est passée à 4**. Détail : § Détection de désync.
+(`start` porte aussi `battleId` et `formatKey`, voir ci-dessous.)
 
-**Ce que le plan 204 a ajouté** (hors lot, dette de télémétrie soldée avant la Phase 8) : le message
-`start` porte un champ `battleId: string` de plus, tiré par l'hôte — **et `NETWORK_VERSION` est
-passée à 5**.
+- **`action`** : `actionIndex` est le nombre d'actions enregistrées chez l'émetteur **avant** celle-ci —
+  un détecteur de désync du pauvre (D3) qui dit « nous ne sommes pas au même point » au lieu
+  d'appliquer une action au mauvais acteur. `timedOut?: true` est auto-déclaré par l'émetteur
+  (#955). Un **tampon de réordonnancement par index** absorbe l'ordre de livraison d'un maillage
+  (le Charge Time fournit l'ordre *logique* : un seul acteur à la fois, #1024).
+- **`forfeit`** : `forfeitedSeat` désigne la place éliminée, qui n'est pas celle de l'émetteur quand
+  c'est un constat de divergence.
+- **`resync_request` / `resync`** : le rattrapage d'un revenant — « j'en suis là, donne-moi la suite » /
+  la queue du journal.
+- **`checksum`** : voir § Détection de désync.
+- **`start.battleId`** : tiré par l'hôte, **transporté sans jamais être lu** par `packages/network` ;
+  il sert à la télémétrie, pour que les `battle_started` / `battle_ended` des deux pairs se rattachent
+  à la même partie (une partie en ligne compterait sinon pour deux).
+- **`start.formatKey`** : publié par l'hôte, jamais redérivé par chaque pair (en mode carte
+  « Aléatoire », l'invité dériverait depuis une carte qui n'est pas celle jouée). `launch()` refuse
+  un format vide comme il refuse la sentinelle de tirage, et l'écran de combat **jette** au lieu de
+  replier sur le premier format de la carte quand la partie est en ligne.
+- **La carte « Aléatoire »** : en ligne, l'hôte peut la tenir secrète jusqu'au lancement ; le
+  `room_state` annonce la sentinelle, mais le message `start` publie toujours la carte **résolue**.
 
-C'est le seul champ du protocole que `packages/network` **transporte sans jamais le lire**. Il sert
-à la télémétrie : les deux pairs émettent chacun leur `battle_started` et leur `battle_ended`, et
-sans identifiant commun rien à la lecture ne disait que ces lignes étaient la même partie — une
-partie en ligne comptait pour deux dans les parties, les cartes, les formats, les durées et le taux
-d'abandon. Les compositions d'équipes, elles, étaient déjà justes : chaque pair ne déclare que son
-camp (plan 201, étape 7), et l'agrégation les cumule toujours sur les deux lignes.
-
-**Ce que le plan 208 a ajouté** (2026-09-11/13, suppression de l'écran `map-select` au profit d'une
-modale, § Écrans à ajouter/modifier) : en ligne, l'hôte peut désormais tirer une carte « Aléatoire »
-tenue secrète jusqu'au lancement ; le message `start` publie la carte **résolue**, jamais la sentinelle
-— **et `NETWORK_VERSION` est passée à 6**.
-
-**Ce que le plan 209 a changé** (2026-09-14, le FFA en réseau) : **aucun message n'a changé de forme**,
-mais les **règles de lecture**, oui. Un client d'avant refuse une action dont l'index est en avance là
-où un client d'après la garde (Lot C1), et prononce un forfait bilatéral là où l'autre vote à la
-minorité (Lot C2). Deux pairs de versions différentes élimineraient des joueurs honnêtes sans
-qu'aucun message ne paraisse malformé — **et `NETWORK_VERSION` est passée à 7**. (Consigné ici après
-coup, le 2026-09-15 : le plan 209 avait incrémenté la constante sans l'écrire dans cette liste.)
-
-**Ce que le plan 210 a changé** (2026-09-15, le joueur éliminé) : aucun message non plus, mais la
-**somme de contrôle d'état**. `canonicalize` sérialise tout l'état et n'omet que les `undefined` ; un
-combat en ligne pose désormais `reviveDefeatedCamps: false`, champ qu'un build d'avant ignore. Deux
-pairs de versions différentes divergeraient donc dès la première empreinte, sans même jouer — et la
-règle de Vœu Soin sur un camp rayé change d'issue de l'un à l'autre. **`NETWORK_VERSION` est passée à
-8.** L'incrément avait été oublié, et c'est la revue de code qui l'a rattrapé.
-
-**Ce que le plan 211 a ajouté** (2026-09-15, le placement à la main en ligne) :
-
-```typescript
-  | { type: "placement"; seat: number; placements: readonly NetworkPlacement[] }
-```
+### Le message `placement`
 
 Le placement d'un camp **en un seul envoi**, émis quand ce joueur a fini — pas une pose à la fois. Le
 placement en ligne est **simultané** (chacun pose quand il veut, on démarre quand tous ont fini) et
-**caché** jusqu'au lancement : il n'y a donc rien à montrer aux autres en cours de route, et le lot
-évite d'avoir à départager un ordre d'arrivée pose par pose. Le repli du chrono emprunte le même
-chemin — à l'expiration, le client pose lui-même ce qui reste et envoie ce message-ci. **Et
-`NETWORK_VERSION` est passée à 9.**
-
-Trois règles qui ne se voient pas dans la forme du message :
+**caché** jusqu'au lancement. Le repli du chrono emprunte le même chemin : à l'expiration, le client
+pose lui-même ce qui reste et envoie ce message. Trois règles :
 
 - **Une place ne pose qu'une fois.** Un deuxième message pour la même place vient d'un revenant qui
   rediffuse après reconnexion ; le rejouer doublerait ses Pokemon. Le premier reçu fait foi
@@ -339,70 +301,20 @@ Trois règles qui ne se voient pas dans la forme du message :
 - 🔴 **L'ordre de réception ne devient JAMAIS l'ordre d'application.** Les poses sont rangées par
   place croissante avant que le moteur ne soit bâti (`getPlacements()` du core). Deux pairs qui
   appliqueraient les mêmes poses dans deux ordres différents construiraient deux états différents,
-  et le détecteur du Lot B4 tuerait la partie avant le premier tour — le défaut même que ce plan
-  répare.
+  et le détecteur de désync tuerait la partie avant le premier tour.
 
-**Ce que la revue de code du plan 211 a ajouté** (2026-09-15, même lot) : le `start` porte un champ
-`formatKey` de plus — **et `NETWORK_VERSION` est passée à 10**.
+### Ce qui reste hors V1
 
-Chaque pair **redérivait** le format de son côté, à partir du nombre de camps et de la carte de SON
-salon ; en mode carte « Aléatoire », l'invité dérivait donc depuis une carte qui n'est pas celle qui
-sera jouée. L'écran de combat repliait ensuite **en silence** sur le premier format de la carte quand
-il ne retrouvait pas la clé : d'autres zones de départ, une autre taille d'équipe, sans un mot.
+`rematch` et `chat`. Le **nom de joueur est écarté de la V1** (#906) : il revient avec le compte et
+le classement ; la salle d'attente affiche « Joueur 2 ».
 
-Inerte tant que toutes les cartes livrées s'accordent sur la taille d'équipe d'un nombre de camps
-donné — vrai des neuf actuelles, mesuré — mais la portée avait grandi avec le placement à la main :
-ce repli gouvernait désormais les douze poses échangées sur le réseau, là où il ne touchait qu'un
-tirage local. Deux gardes ferment le sujet : `launch()` refuse un format vide comme il refuse déjà la
-sentinelle de tirage, et l'écran de combat **jette** au lieu de replier quand la partie est en ligne.
-
-C'est la même leçon que la carte résolue du plan 208 : **ce que les pairs doivent partager se publie,
-il ne se devine pas.**
-
-**Plan 202, Lot final** (2026-09-15) : le duel divergent ne prononce plus de forfait bilatéral, il
-ARRÊTE la partie sans vainqueur — **et `NETWORK_VERSION` est passée à 11**. Aucun message ne change de
-forme ; ce sont les RÈGLES DE LECTURE de `forfeit` qui changent, à l'émission comme à la réception. Un
-pair resté en 10 reçoit `forfeit(place, diverged)`, l'applique, et **se déclare vainqueur**, pendant
-que le neuf lit « Partie interrompue » : un seul des deux gagne, l'autre ne comprend pas.
-
-**Plan 214, Lot A** (2026-09-16) : le niveau de l'IA se choisit place par place, donc `NetworkSeatState`
-et `StartSeat` portent un champ `aiDifficulty` optionnel de plus — **et `NETWORK_VERSION` est passée à
-12**. Premier incrément de la série à toucher vraiment la forme d'un message. Piège rencontré au
-passage, consigné parce qu'il ne se devine pas : la sérialisation **BinaryPack** de PeerJS transforme
-un `undefined` en `null` sur le fil, et le garde de type rejetait alors le `room_state` en entier. On
-ne pose donc pas la clé plutôt que de l'écrire à `undefined`.
-
-**Plan 214, Lots B à F** (2026-09-17) : **`NETWORK_VERSION` est passée à 13**, et cette fois AUCUN
-message ne change — c'est **l'IA qui décide autrement**. Elle est rejouée à l'identique chez chaque
-pair depuis une graine partagée, donc son verdict fait partie du contrat au même titre qu'un champ de
-trame. Trois causes cumulées : le palier Facile n'estime plus les dégâts (`ai/naive-damage.ts`), Facile
-et Moyenne ne lisent plus l'objet ni le talent qu'un joueur ne verrait pas (`ai/hidden-info.ts`), et
-surtout le tirage `typeBlindChance` a DISPARU — le flux du générateur pseudo-aléatoire est donc décalé
-d'un cran à chaque décision, ce qui suffit à lui seul à faire jouer deux coups différents.
-
-⚠️ Un seul incrément couvre les cinq commits d'IA de ce plan, dont quatre l'avaient oublié. La version
-dit « ces deux builds ne jouent pas la même partie », pas « voici combien de fois on l'a touchée ».
-
-⚠️ Ces trois entrées ont été écrites **après coup**, le 2026-09-17 : le journal s'était arrêté à 10
-alors que la constante était passée à 12. L'explication vivait dans `protocol.ts` et nulle part
-ailleurs. Tenir la constante à jour ne suffit pas — ce journal est le seul endroit qui dise POURQUOI un
-vieux build ne peut plus jouer avec un neuf.
-
-🔴 **Leçon des incréments 9 et 10** : ni l'un ni l'autre ne touchait la forme d'un message. Le
-réflexe « je n'ai pas changé le protocole, donc pas d'incrément » est faux dès qu'une règle de lecture
-ou un champ de l'état HACHÉ change. La question à se poser n'est pas « ai-je touché `protocol.ts` ? »
-mais « un pair d'hier et un pair d'aujourd'hui calculeraient-ils la même chose ? ».
-
-**Ce qui reste à écrire** : `rematch` et `chat` (hors V1). Le **nom de joueur a été écarté de la V1**
-(#906) : il revient avec le compte et le classement ; la salle d'attente affiche « Joueur 2 ».
-
-🔴 **En attendant `rematch` : « Recommencer » est GARDÉ, pas câblé** (revue du plan 204). Le menu de
-combat et le menu du placement n'offrent l'entrée que hors ligne — son rappel (`onReplay` du chrome)
-remonte le setup en local, ce qui donnerait un hot-seat sur les deux camps avec le salon encore tenu.
-Une option absente (`onRestart?`), jamais un booléen `canReplay` sur l'entrée elle-même : un appelant
-ne peut pas cacher l'entrée en gardant le rappel vivant. Même garde des deux côtés du passage de
-relais (`localPlayerIds === undefined` en combat, `setup.localSeat === undefined` au placement) — le
-dialogue de victoire la portait déjà (`canReplay`), le menu non, d'où l'asymétrie refermée ici.
+🔴 **En attendant `rematch` : « Recommencer » est GARDÉ, pas câblé** (#1038). Le menu de combat et le
+menu du placement n'offrent l'entrée que hors ligne — son rappel (`onReplay` du chrome) remonte le
+setup en local, ce qui donnerait un hot-seat sur les deux camps avec le salon encore tenu. Une option
+absente (`onRestart?`), jamais un booléen `canReplay` sur l'entrée elle-même : un appelant ne peut pas
+cacher l'entrée en gardant le rappel vivant. Même garde des deux côtés (`localPlayerIds === undefined`
+en combat, `setup.localSeat === undefined` au placement) ; le dialogue de victoire la porte déjà
+(`canReplay`).
 
 **Pas de message `timeout`** — c'est délibéré, voir § Chronomètre.
 
@@ -423,8 +335,6 @@ Il y a un chrono. Il est **local et auto-déclarant** : quand le tien expire, **
 soumet l'action par défaut** (passer le tour) et la diffuse comme n'importe quelle autre action.
 L'autre pair reçoit une action ordinaire et la valide comme le reste.
 
-**Tranché avec l'humain le 2026-09-08** (plan 202, étape 1) :
-
 | Réglage | Valeur | Motif |
 |---|---|---|
 | Durée | **60 s** | Une seule fenêtre doit couvrir déplacement + sous-menu + choix d'attaque + visée + confirmation + orientation, au pad et au doigt, sur une grille iso avec hauteurs. Le 45 s du VGC est un précédent pour un **choix unique**, pas pour un tour tactique multi-étapes |
@@ -438,19 +348,17 @@ Deux conséquences heureuses :
 - **Ça traverse le replay tout seul.** L'action de timeout entre dans `exportReplay()` comme les
   autres → la reprise du plan 181 la rejoue à l'identique, sans cas particulier.
 
-⚠️ **« La dérive va dans le bon sens, gratuitement » — vrai seulement de ton PROPRE chrono, pas du
-chien de garde d'en face.** Le raisonnement — tu démarres ton chrono en finissant d'appliquer
-l'action précédente, le pair distant démarre le sien en la **recevant** ~150 ms plus tard, donc son
-chrono expire après le tien — ne protège que contre ton propre minuteur. Si tu mets ton onglet en
-arrière-plan **pendant ton propre tour**, ton minuteur ralentit (Chrome ~1/s, puis ~1/min après
-5 min d'inactivité) donc tu ne t'auto-passes pas — mais le chien de garde de l'adversaire, lui,
-tourne sur **sa propre** horloge murale en temps réel, et te forfaite à 75 s, connexion intacte.
-Les deux minuteurs n'ont pas la même base de temps. **Risque assumé** : passé cinq minutes
-d'arrière-plan pendant son propre tour, le joueur *est* parti.
+⚠️ **La dérive d'horloge ne protège que de ton PROPRE chrono, pas du chien de garde d'en face.** Tu
+démarres ton chrono en finissant d'appliquer l'action précédente, le pair distant démarre le sien en
+la **recevant** ~150 ms plus tard : son chrono expire après le tien. Mais si tu mets ton onglet en
+arrière-plan **pendant ton propre tour**, ton minuteur ralentit (Chrome ~1/s, puis ~1/min après 5 min
+d'inactivité) donc tu ne t'auto-passes pas — alors que le chien de garde de l'adversaire tourne sur
+**sa propre** horloge murale en temps réel et te forfaite à 75 s, connexion intacte. **Risque
+assumé** : passé cinq minutes d'arrière-plan pendant son propre tour, le joueur *est* parti.
 
 🔴 **Parade retenue : une échéance en horloge murale, jamais un `setTimeout` unique de 60 s.**
-L'orchestrateur retient `deadlineAt = now() + durationMs` et se réveille périodiquement pour
-comparer, plutôt que de planifier un unique minuteur de 60 000 ms qui se déclencherait très en
+L'orchestrateur retient `deadlineAt = now() + durationMs` et se réveille périodiquement (250 ms)
+pour comparer, plutôt que de planifier un unique minuteur de 60 000 ms qui se déclencherait très en
 retard sur un onglet ralenti. Avec une échéance, un réveil tardif constate immédiatement le
 dépassement et soumet l'action au lieu d'attendre un minuteur suivant.
 
@@ -468,7 +376,7 @@ chrono, c'est le problème de **déconnexion** (§ Gestion de la déconnexion). 
 minuteurs de navigateur (couvert par la marge du chien de garde ci-dessous) et le **déchargement
 complet** de l'onglet sous pression mémoire iOS, qui détruit le contexte JS et la connexion WebRTC.
 Le premier se rythme ; le second n'a rien à voir avec le chrono, c'est le chemin de reconnexion
-(§ Gestion de la déconnexion, Lot B3).
+(§ Gestion de la déconnexion).
 
 Le chien de garde vaut **chrono + 15 s = 75 s** au premier déclenchement — la marge de #865, qui
 couvre l'animation d'une attaque de zone à plusieurs cibles plus une latence honnête — sinon un
@@ -489,25 +397,20 @@ temps de l'adversaire : Showdown est à choix simultané, où le temps de réfle
 l'incertitude, alors qu'ici le tour est séquentiel et le plateau visible — on est plus près d'une
 pendule d'échecs, où les deux cadrans se voient toujours.
 
-> **Réglé** (noté par le plan 187, corrigé au Lot B3, étape 6) : ouvrir le menu de combat **grignote
-> le temps du joueur sans le dire**, puisque rien n'est mis en pause (décision #819, cadrage « un
-> seul comportement dès le solo »). Une pastille « le temps continue » l'annonce désormais sur la
-> modale.
+Ouvrir le menu de combat **grignote le temps du joueur**, rien n'étant mis en pause (#819, un seul
+comportement dès le solo) : une pastille « le temps continue » l'annonce sur la modale.
 
 ---
 
 ## Fog — cosmétique en ligne (décision #863)
 
-**Le document d'avril affirmait qu'il n'y avait rien à cacher. C'est faux depuis le plan 176.**
-
-Le fog ennemi existe : PV en pourcentage seul, objet tenu et talent en `???` tant qu'ils ne sont pas
-révélés. Mais il est appliqué **côté vue** (`packages/view-core`) —
+Le fog ennemi existe (plan 176) : PV en pourcentage seul, objet tenu et talent en `???` tant qu'ils
+ne sont pas révélés. Mais il est appliqué **côté vue** (`packages/view-core`) —
 `BattleEngine.getGameState(_playerId)` reste un passthrough qui ignore son argument et rend l'état
 complet par référence.
 
 En exécution dupliquée, **chaque pair détient donc l'état complet**, et un client modifié voit à
-travers le fog : PV exacts, objet, talent. C'était précisément le contraire de ce que l'ancienne
-section « Anti-triche » promettait.
+travers le fog : PV exacts, objet, talent.
 
 **Décision : on assume.** Le fog reste une rétention d'affichage, pas un secret — il fuit déjà en
 local par le journal de combat et les dégâts flottants, qui gardent leurs chiffres absolus
@@ -524,14 +427,13 @@ passage au combat. Comme le fog, ce caché est **un caché d'écran, pas un secr
 dans la mémoire du client d'en face pendant tout le reste de la phase. Un client honnête ne l'affiche
 qu'au lancement ; un client modifié a déjà tout.
 
-**Décision : on assume**, même modèle de confiance que ci-dessus — arbitrage humain du 2026-09-15.
+**Décision : on assume**, même modèle de confiance que ci-dessus (arbitrage humain).
 
 🔴 **Mais ne pas confondre les deux fuites.** Le fog laisse filer des PV exacts, un objet, un talent :
 des détails chiffrés, qui se révèlent de toute façon au combat. Ici, c'est **tout le déploiement
 adverse**, et la fuite ne dégrade pas une information, elle **défait la prémisse entière de la
 phase** — « personne ne peut adapter son placement à celui d'en face » devient faux pour qui triche.
-Même nature de décision, deux ordres de grandeur d'écart. C'est écrit ici pour que le jour où
-quelqu'un relira #863, il ne prenne pas l'un pour l'autre.
+Même nature de décision, deux ordres de grandeur d'écart.
 
 **La parade existe et a été écartée sciemment** : envoyer une *empreinte* de son placement en
 finissant, et les positions en clair seulement quand tout le monde est prêt — chacun vérifiant
@@ -544,7 +446,7 @@ condition que celle qui ferait revisiter le fog.
 
 ## Anti-triche
 
-### Validation des actions — LIVRÉ (plan 201, Lot B2)
+### Validation des actions
 
 Chaque action reçue est validée. **Quatre contrôles**, du moins cher au plus révélateur :
 
@@ -556,9 +458,9 @@ action reçue → même index d'action que chez nous ?        non → refus (des
              → sinon appliquée, et le compteur retombe à 0
 ```
 
-🔴 **Le « rejeter, redemander » de la version d'avril était impraticable** (décision D1) :
-`executeAction` soumet à son propre moteur **puis** diffuse, donc quand on refuse, l'émetteur a déjà
-avancé — renvoyer la même action ne répare rien, on est déjà divergents. Le barème devient :
+🔴 **Pas de « rejeter, redemander »** (D1) : `executeAction` soumet à son propre moteur **puis**
+diffuse, donc quand on refuse, l'émetteur a déjà avancé — renvoyer la même action ne répare rien, on
+est déjà divergents. Le barème :
 
 | Refus **consécutif** | Effet |
 |---|---|
@@ -574,8 +476,8 @@ que la case visée, l'orchestrateur ajoute `retreatPosition` après coup et le m
 L'inclure refuserait **Demi-Tour, Change Éclair et Eau Revoir**, éliminant un joueur honnête en trois
 attaques.
 
-🔴 **Ce n'est pas une accusation de triche** (décision D5). En 1v1, personne ne peut dire qui s'est
-écarté — un client modifié peut *feindre* de constater une divergence. Le message porte donc la cause
+🔴 **Ce n'est pas une accusation de triche** (D5). En 1v1, personne ne peut dire qui s'est écarté —
+un client modifié peut *feindre* de constater une divergence. Le message porte donc la cause
 `diverged` et le joueur lit « les parties ne concordent plus », jamais « vous avez triché ». Même
 symétrie que le refus de version (#900).
 
@@ -583,49 +485,46 @@ symétrie que le refus de version (#900).
 coûte rien — son moteur local l'a acceptée. Le seul qui paie est le récepteur, en attente. Un pair
 qui refuse délibérément des actions **légitimes** élimine donc l'autre à coût nul, et `forfeitedSeat`
 n'étant pas authentifiable, il peut même le désigner directement. Sans effet dans le cadrage du jeu
-(§ Fog, #863) ; le recours serait du côté de la somme de contrôle du Lot B4.
+(§ Fog, #863) ; le recours serait du côté de la somme de contrôle.
 
-### Détection de désync (Lot B4, plan 203, décisions #968+)
+### Détection de désync
 
-**Livré.** À **chaque action complétée** (`CHECKSUM_EVERY_N_ACTIONS = 1`), plus une empreinte au
-lancement (`actionIndex` 0, après le placement) : les deux pairs comparent un hash de leur
-`BattleState`.
+À **chaque action complétée** (`CHECKSUM_EVERY_N_ACTIONS = 1`), plus une empreinte au lancement
+(`actionIndex` 0, après le placement) : les pairs comparent un hash de leur `BattleState`.
 
 ```
 battleStateChecksum(state) chez A === battleStateChecksum(state) chez B, au même actionIndex ?
   Oui → rien ne se passe (ni message ni journal)
-  Non → forfeitSeat(..., NetworkForfeitReason.EtatDivergent) — « les parties ne concordent plus »
+  Non → constat de divergence (NetworkForfeitReason.EtatDivergent) — « les parties ne concordent plus »
 ```
 
-⚠️ **Ce modèle à deux pairs est celui du duel.** À 3 camps et plus, la comparaison devient un vote —
-voir § 3+ joueurs, « Le désaccord à N témoins ».
+En **duel**, le constat de divergence ne prononce pas de forfait bilatéral : il **ARRÊTE la partie sans
+vainqueur** (« Partie interrompue », decision-1060), à l'émission comme à la réception. À 3 camps et
+plus, la comparaison devient un vote — voir § 3+ joueurs, « Le désaccord à N témoins ».
 
-🔴 **Constat et forfait, rien de plus — pas de reconstruction depuis le replay.** Le document
-annonçait ici une reconstruction ; le plan-cadre 195 aussi. **Amendé en implémentant** : en 1v1,
-personne ne peut dire qui s'est écarté (#943), donc « réparer » voudrait dire adopter la version
-d'en face sans preuve, et le rattrapage du Lot B3 n'envoie de toute façon que la queue du journal
-(`fromIndex`), pas l'état complet. Le but — rendre l'écart **lisible** au lieu de silencieux — est
-servi sans reconstruction.
+🔴 **Constat, rien de plus — pas de reconstruction depuis le replay.** En 1v1 personne ne peut dire
+qui s'est écarté (#943), donc « réparer » voudrait dire adopter la version d'en face sans preuve, et
+le rattrapage du journal (`resync`) n'envoie que la queue des actions, pas l'état complet. Le but —
+rendre l'écart **lisible** au lieu de silencieux — est servi sans reconstruction.
 
 **Sérialisation canonique** (`packages/core/src/battle/state-checksum.ts`, pur, générique et
-récursif — jamais une projection énumérée des ~100 champs de `PokemonInstance`) : clés d'objet
-triées par point de code, clés à valeur `undefined` omises (charnière : `handleKo` remet une
-vingtaine de champs à `undefined` plutôt que de les supprimer), `Map` triée par clé et émise en
-liste de paires, **tableaux non triés** (leur ordre est sémantique — `fieldTerrains`, `statusEffects`,
-`auras`), flottants quantifiés à un nombre fixe de décimales, `-0` normalisé en `0`, `NaN`/`Infinity`
-levés comme erreur. Toute la grille est incluse, `height`/`terrain` compris. Hachage **non
-cryptographique** (FNV-1a 64 bits) : détecte la divergence accidentelle, ne résiste à aucune
-contrefaçon — cohérent avec #943, rien n'étant authentifié de toute façon. Coût mesuré :
-**0,299 ms** par empreinte sur `simple-arena` (12×20 = 240 tuiles, 4 Pokémon), pour un texte
-canonique de 25 330 caractères. La plus grande carte du roster (`le-mur`, 16×16) n'est qu'à ×1,1, et
-le réseau étant en 1v1 il n'y a jamais plus de 4 Pokémon : la cadence de 1 action est confirmée par
-le chiffre, pas par l'intuition (#969).
+récursif — jamais une projection énumérée des ~100 champs de `PokemonInstance` ; il vit dans le core
+parce que c'est un module qui connaît la forme de l'état, decision-971) : clés d'objet triées par
+point de code, clés à valeur `undefined` omises (charnière : `handleKo` remet une vingtaine de champs
+à `undefined` plutôt que de les supprimer), `Map` triée par clé et émise en liste de paires,
+**tableaux non triés** (leur ordre est sémantique — `fieldTerrains`, `statusEffects`, `auras`),
+flottants quantifiés à un nombre fixe de décimales, `-0` normalisé en `0`, `NaN`/`Infinity` levés
+comme erreur. Toute la grille est incluse, `height`/`terrain` compris. Hachage **non cryptographique**
+(FNV-1a 64 bits) : détecte la divergence accidentelle, ne résiste à aucune contrefaçon — cohérent avec
+#943, rien n'étant authentifié de toute façon. Coût : **0,299 ms** par empreinte sur `simple-arena`
+(12×20 = 240 tuiles, 4 Pokémon), texte canonique de 25 330 caractères ; la plus grande carte
+(`le-mur`, 16×16) est à ×1,1 — la cadence de 1 action est confirmée par le chiffre (#969).
 
 🔴 **Ce n'est pas un anti-triche, et la cadence n'y change rien.** Rien ne lie l'empreinte émise à
 l'état réellement détenu — un client modifié fait tourner un état honnête à côté et émet l'empreinte
-honnête. Ce qui empêche de tricher reste la validation d'actions (#211, Lot B2). Le seul gain
-contre un menteur : un constat de divergence **fabriqué** alors que les empreintes concordent
-devient contredisable (nuance à #943).
+honnête. Ce qui empêche de tricher reste la validation d'actions (#211). Le seul gain contre un
+menteur : un constat de divergence **fabriqué** alors que les empreintes concordent devient
+contredisable (nuance à #943).
 
 Deux compteurs de télémétrie, et il en faut bien deux (#976) : `checksum-mismatch`, distinct de
 `forfeit-diverged` — leur **écart** dit combien de forfaits pour divergence viennent d'actions
@@ -651,9 +550,9 @@ Joueur B disparaît
   → Si le délai expire : victoire par forfait pour A
 ```
 
-(Lot B3, plan 202, étapes 2, 4 et 5 — décisions #950-#952, #954-#955, #957, #960, #961)
+(Décisions #950-#952, #954-#955, #957, #960, #961.)
 
-### Le seuil d'absence à N camps (Lot C3, décision #1028)
+### Le seuil d'absence à N camps (décision #1028)
 
 Le chien de garde ci-dessus couvre le silence réseau ; **un pair présent sur le fil mais qui laisse
 passer son tour** (écran verrouillé, alt-tab prolongé) est couvert séparément par
@@ -672,14 +571,13 @@ toujours agir douze combattants par round quel que soit le format (`MAX_POKEMON_
 occuperait sa place plus d'une demi-heure et déciderait du sort des autres. Une vraie proportionnalité
 (« ~6 min quel que soit le format ») donnerait **1 seul tour toléré** dès six camps, donc éliminer sur
 un accident isolé — exactement ce que le mécanisme existe pour éviter. Le plancher de **deux** est un
-compromis assumé : ~6 min en duel, ~24 min à douze, deux fois mieux qu'avant mais pas le même ordre de
-grandeur. ⚠️ Ce que ce n'est pas non plus : les autres camps ne sont pas bloqués pendant ce temps, ils
-jouent — seule l'**occupation de la place** est le problème, pas un temps mort partagé.
+compromis assumé : ~6 min en duel, ~24 min à douze. ⚠️ Les autres camps ne sont pas bloqués pendant
+ce temps, ils jouent — seule l'**occupation de la place** est le problème, pas un temps mort partagé.
 
-La forme définitive reste ouverte (questions du plan 209) : elle attend une mesure de cadence réelle,
-la télémétrie n'ayant jamais observé que du 1v1.
+La forme définitive reste ouverte : elle attend une mesure de cadence réelle, la télémétrie n'ayant
+jamais observé que du 1v1.
 
-### Signal précoce, avant le chien de garde (Lot B3, étape 3, décision #956)
+### Signal précoce, avant le chien de garde (décision #956)
 
 `connectionState` de la `RTCPeerConnection`, exposé par PeerJS, donne un signal **gratuit et bien
 plus rapide** que le chien de garde : ICE Consent Freshness (RFC 7675) fait émettre une requête
@@ -690,10 +588,9 @@ instable »), il ne déclenche **jamais** de forfait à lui seul : `disconnected
 tout seul, et éliminer quelqu'un sur un état rétablissable serait pire que d'attendre le chien de
 garde.
 
-### Reconnexion — la brique existe déjà (plan 181)
+### Reconnexion (plan 181)
 
-Le plan 181 « reprise de combat en cours » a livré exactement le chemin dont la reconnexion a besoin,
-et il tourne en production depuis le 2026-08-14 :
+La reprise de combat en cours (plan 181) est le chemin dont la reconnexion se sert :
 
 - la sauvegarde est `{ setup + seed + actions }`, jamais de l'état dérivé ;
 - `resumeBattle` reconstruit le moteur avec `creationRng: createPrng(seed)`, rejoue les actions,
@@ -701,103 +598,78 @@ et il tourne en production depuis le 2026-08-14 :
 - la persistance est un **port** `load` / `save` / `clear` (décision #751), pas un accès direct à
   `localStorage` — donc la source du journal peut changer sans toucher à l'écran de combat.
 
-En multijoueur, le pair qui revient rejoue par **ce même chemin**. Deux des trois inconnues d'alors
-sont déjà réglées par le Lot B1, comme effet de bord du salon plutôt que de la reconnexion
-elle-même : le setup diffusé porte l'**identifiant stable de carte** (jamais l'URL, § Sélection
-d'équipe) et la **version de protocole au handshake** est `NETWORK_VERSION`, **pas** `buildVersion`
-(#900, § Protocole) — `buildVersion` reste le garde-fou du solo (décision #748), un autre mécanisme.
-Ce que le **Lot B3** (livré le 2026-09-09) y a ajouté :
+En multijoueur, le pair qui revient rejoue par **ce même chemin**. Le setup diffusé porte
+l'**identifiant stable de carte** (jamais l'URL, § Sélection d'équipe) et la version de protocole au
+handshake est `NETWORK_VERSION`, **pas** `buildVersion` (§ Versionnage réseau) — `buildVersion` reste
+le garde-fou du solo (décision #748), un autre mécanisme.
 
-- politique de reconnexion **en combat** (délai, qui attend, ce que voit l'autre) — les délais de
-  grâce du salon (10 s après un `bye`, 45 s après un silence, #905) en sont le **prototype**, mais
-  pas le patron final : en combat, contrairement au salon, fermer l'onglet (la croix) **ne déclare
-  aucune intention** — l'intention se déclare par le menu de combat (« Abandonner », « Quitter »).
-  Voici comment c'est transposé (Lot B3, plan 202, étape 2, corrigé en recette humaine par la
-  décision #961) : **75 s** — pas 45 s — après un **silence** (aucun `bye` reçu), et **30 s**
-  (`BATTLE_GRACE_SHORT_MS`) dans les deux autres cas — une **fermeture d'onglet**, ou une **deuxième
-  chute** de la même place.
+**Politique de reconnexion en combat.** Contrairement au salon, fermer l'onglet (la croix) **ne
+déclare aucune intention** — l'intention se déclare par le menu de combat (« Abandonner »,
+« Quitter »). D'où : **75 s** après un **silence** (aucun `bye` reçu), et **30 s**
+(`BATTLE_GRACE_SHORT_MS`) dans les deux autres cas — une **fermeture d'onglet**, ou une **deuxième
+chute** de la même place. Le **salon**, lui, garde ses délais (#905) : 10 s après un `bye`, 45 s après
+un silence — là, la place se libère et personne ne perd de partie.
 
-  🔴 **Le combat ne réutilise PAS `GRACE_AFTER_SILENCE_MS` (45 s), malgré la ressemblance des
-  valeurs** (décision #950). Un délai de grâce de 45 s en combat tomberait pile quand un chrono de
-  tour honnête de 60 s approche de son échéance : le joueur qui joue à la dernière seconde se ferait
-  passer pour absent — exactement ce contre quoi #865 met en garde. Le chien de garde de combat est
-  donc **dérivé du chrono lui-même** (chrono + 15 s = 75 s), pas du salon.
+🔴 **Le combat ne réutilise PAS `GRACE_AFTER_SILENCE_MS` (45 s), malgré la ressemblance des
+valeurs** (#950). Un délai de 45 s tomberait pile quand un chrono honnête de 60 s approche de son
+échéance : le joueur qui joue à la dernière seconde passerait pour absent (#865). Le chien de garde
+de combat est **dérivé du chrono lui-même** (chrono + 15 s).
 
-  🔴 **Le `bye` de fermeture d'onglet vaut 30 s en combat, et non plus 10 s** (décision #961, amende
-  #950). Le 10 s était hérité du salon et n'avait jamais été réexaminé pour le combat : il produisait
-  une absurdité mesurée à la main — fermer sa fenêtre poliment donnait **moins** de temps (10 s) à
-  l'adversaire qu'arracher son câble (75 s). Le motif de #905, « l'intention est connue », vaut dans
-  une salle d'attente où partir ne coûte rien ; en combat l'intention se déclare par le **menu**
-  (« Abandonner », « Quitter »), jamais par la croix de la fenêtre — la croix, c'est l'accident, celui
-  que la reprise existe pour absorber. Et 30 s plutôt que 75 : celui qui reste ne doit pas attendre
-  une minute et quart contre quelqu'un qui est vraiment parti, et il peut toujours abandonner
-  lui-même. Le **même** chiffre sert à la deuxième chute d'une place — un seul chiffre à retenir,
-  demandé par l'humain. Le **salon**, lui, garde ses valeurs de #905 (10 s / 45 s) : là, la place se
-  libère et personne ne perd de partie. `room.ts` tient le minuteur du canal refermé et ne décide
-  rien (`onPeerAbsent`) ; `online-battle.ts`, qui tient à la fois le salon et l'orchestrateur, décide
-  et déclenche le forfait (décision #951).
+🔴 **Le `bye` de fermeture d'onglet vaut 30 s en combat, et non 10 s** (#961). Fermer sa fenêtre
+poliment ne doit pas donner **moins** de temps à l'adversaire qu'arracher son câble ; la croix, c'est
+l'accident que la reprise existe pour absorber. Et 30 s plutôt que 75 : celui qui reste ne doit pas
+attendre une minute et quart contre quelqu'un de vraiment parti — il peut toujours abandonner lui-même.
+Le **même** chiffre sert à la deuxième chute d'une place : un seul chiffre à retenir.
 
-### La limite mesurée : un hôte tué net ne revient pas (décision #966)
+`room.ts` tient le minuteur du canal refermé et ne décide rien (`onPeerAbsent`) ; `online-battle.ts`,
+qui tient à la fois le salon et l'orchestrateur, décide et déclenche le forfait (#951).
 
-**Chiffres mesurés le 2026-09-09** contre le service public de PeerJS, en WebSocket nu — pas
-supposés, et la mesure a fait tomber deux hypothèses au passage :
+### La limite : un hôte tué net ne revient pas (décision #966)
+
+Délai avant que l'adresse d'un pair parti soit libre sur le service public de PeerJS (mesuré, en
+WebSocket nu) :
 
 | Comment le pair est parti | Délai avant que son adresse soit libre |
 |---|---|
 | **proprement** (« Quitter », ou une croix dont le message de départ part) | **110 ms** |
 | **brutalement** (onglet tué avant d'avoir pu parler) | **99 s** |
 
-Un **hôte** parti brutalement **ne peut donc pas revenir** : il lui faudrait 99 s pour reprendre son
-adresse, alors que l'adversaire ne l'attend au maximum que 75 s (§ Gestion de la déconnexion). Aucun
-budget de réessais n'y change quoi que ce soit — insister plus longtemps ne ramènerait personne dans
-une partie déjà perdue par forfait.
+Un pair parti brutalement **ne peut donc pas revenir** dans les 75 s que l'adversaire attend au
+maximum ; aucun budget de réessais n'y change rien. La place qui héberge étant une valeur publiée au
+registre (plan 209), un hôte qui ne revient pas est **remplacé** au lieu d'être attendu. Un invité
+qui revient réclame sa place dans les mêmes conditions, mais il n'est pas le point de rendez-vous : il
+compose, donc son retour ne dépend pas de la libération d'une adresse que quelqu'un d'autre attend.
 
-**Pourquoi cela ne touchait que l'hôte** (avant le plan 209) : il devait récupérer une adresse
-**précise**, le code de salon étant son adresse (#904). Depuis, la place qui héberge est une valeur
-publiée au registre : un hôte qui ne revient pas est remplacé au lieu d'être attendu. Un invité qui revient réclame la sienne dans les mêmes conditions, mais
-l'invité n'est pas le point de rendez-vous : c'est lui qui compose, donc son retour ne dépend pas de
-la libération d'une adresse que quelqu'un d'autre attend.
-
-**Ce qui a été écarté**, et pourquoi : allonger la grâce du silence à 110 s dégraderait le cas
-courant — l'adversaire attendrait deux minutes devant un écran figé — pour sauver le cas rare. La
-vraie correction de fond serait de **ne plus dériver l'adresse de la place**, ce qui demande un point
-de rendez-vous tiers (le Worker Cloudflare du Lot A existe déjà) : c'est un lot à part, pas un
-réglage.
+**Écarté** : allonger la grâce du silence à 110 s dégraderait le cas courant (l'adversaire attendrait
+deux minutes devant un écran figé) pour sauver le cas rare. La vraie correction de fond serait de
+**ne plus dériver l'adresse de la place**, ce qui demande un point de rendez-vous tiers (le Worker
+`RoomRendezvous` existe) : un lot à part, pas un réglage.
 
 ⚠️ **Deux hypothèses infirmées, à ne pas ressusciter.** Il n'y a **aucune limitation par IP** sur le
-service public — 25 prises d'adresse d'affilée passent sans un refus — donc jouer à deux depuis la
-même machine n'y est pour rien. Et un barème de réessais **serré** rend les choses pires, pas
-meilleures : treize essais en 53 s faisaient se gêner les sockets entre elles côté client, et le
-refus devenait « connexion impossible » au lieu de « place occupée », donc un abandon immédiat au
-lieu d'un réessai.
+service public — jouer à deux depuis la même machine n'y est pour rien. Et un barème de réessais
+**serré** rend les choses pires : les sockets se gênent entre elles côté client, et le refus devenait
+« connexion impossible » au lieu de « place occupée », donc un abandon immédiat au lieu d'un réessai.
 
 ### L'hôte ne rappelle jamais — l'asymétrie de qui compose (décisions #957, #960)
 
-**Qui compose est asymétrique, et le document d'origine ne le disait pas** : l'invité appelle
-l'hôte à une adresse dérivée du code ; l'hôte n'appelle **jamais** personne, il écoute. Un hôte qui
-recharge sa page reprend bien son adresse et redevient joignable (§ Connexion) — mais **personne ne
-le rappelle**. Sans correctif, l'invité restait devant son délai de grâce en entier face à un hôte
-pourtant revenu et joignable, puis prononçait un forfait sur un adversaire présent.
+**Qui compose est asymétrique** : l'invité appelle l'hôte à une adresse dérivée du code ; l'hôte
+n'appelle **jamais** personne, il écoute. Un hôte qui recharge sa page reprend bien son adresse et
+redevient joignable (§ Connexion) — mais **personne ne le rappelle**.
 
-**Correctif : `scheduleHostRedial`** — pendant sa fenêtre de grâce, l'invité **recompose** l'adresse
-de l'hôte toutes les `HOST_REDIAL_INTERVAL_MS` (2 s) au lieu d'attendre un appel qui ne viendra
-jamais. Ce trou ne se voit pas en testant la reconnexion de l'invité (qui, elle, compose) — il ne se
-révèle qu'en testant le retour de l'**hôte**.
+**`scheduleHostRedial`** : pendant sa fenêtre de grâce, l'invité **recompose** l'adresse de l'hôte
+toutes les `HOST_REDIAL_INTERVAL_MS` (2 s) au lieu d'attendre un appel qui ne viendra jamais. Ce trou
+ne se voit pas en testant la reconnexion de l'invité (qui compose) — il ne se révèle qu'en testant le
+retour de l'**hôte**.
 
-**Deux couches supplémentaires du même trou** (décision #960), trouvées en écrivant : un salon
-revenu (l'hôte qui recharge) n'avait **ni** délai de grâce en cours **ni** état de places à
-présenter — il refusait donc le canal entrant de l'invité qui le rappelait, puis se refermait à la
-présentation. `handleHello` doit désormais envoyer l'état du salon **au revenant, à lui seul**,
-avant même que `waitForWelcome` ne se dise entré — sans quoi l'arrivant lisait une configuration
-vide et croyait à une incompatibilité de version.
+Un salon revenu (l'hôte qui recharge) n'a ni délai de grâce en cours ni état de places à présenter :
+`handleHello` doit envoyer l'état du salon **au revenant, à lui seul**, avant même que
+`waitForWelcome` ne se dise entré — sans quoi l'arrivant lit une configuration vide et croit à une
+incompatibilité de version.
 
 ### Abandon volontaire
 
-**« Abandonner » existe déjà** dans le menu de combat (plan 187), avec sa confirmation et sa
-navigation clavier/manette. Ce qui manque n'est pas le contrôle mais son **effet en ligne** :
-aujourd'hui son `onAbandon` fait `onBattleClosed()` puis `onExit()` — il quitte **sans prévenir
-l'adversaire**, qui reste devant un tour qui ne viendra jamais. **C'était un bug, réparé par le Lot
-B3** (plan 202, étape 6), pas une fonctionnalité créée de zéro.
+« Abandonner » est dans le menu de combat (plan 187), avec sa confirmation et sa navigation
+clavier/manette. En ligne, il doit **prévenir l'adversaire** :
 
 ```
 Joueur clique "Abandonner" (confirmé) ou ferme l'onglet
@@ -806,21 +678,17 @@ Joueur clique "Abandonner" (confirmé) ou ferme l'onglet
   → L'autre joueur gagne par forfait
 ```
 
-Le `bye` doit partir à la **fermeture d'onglet** (`pagehide`), pas seulement sur un clic
-« Quitter ».
+Le `bye` doit partir à la **fermeture d'onglet** (`pagehide`), pas seulement sur un clic « Quitter ».
 
-**Une phrase par raison, pas un message unique** — correctif de recette humaine : le journal de
-combat disait « les parties ne concordent plus » (la phrase de la divergence, § Anti-triche) pour
-**tout** forfait, y compris un abandon volontaire tout juste confirmé au menu. `ForfeitReason`
-distingue désormais `resigned` (abandon), `disconnected` (chien de garde) et `desynced`
-(divergence), chacun avec sa propre phrase.
+**Une phrase par raison**, pas un message unique : `ForfeitReason` distingue `resigned` (abandon),
+`disconnected` (chien de garde) et `desynced` (divergence), chacun avec sa propre phrase dans le
+journal de combat.
 
-**Le bandeau de connexion se tait dès que le combat est terminé** — correctif de recette humaine :
-il continuait sinon d'afficher « en attente de reconnexion… » ou l'avertissement AFK par-dessus
-l'écran de victoire.
+**Le bandeau de connexion se tait dès que le combat est terminé** : il n'affiche plus « en attente de
+reconnexion… » ni l'avertissement AFK par-dessus l'écran de victoire.
 
 🔴 **L'abandon (et le forfait de chien de garde) contourne les clauses de survie — statu quo
-assumé** (décision #953) : `forfeit()` met les PV à 0 en dur, donc hors du pipeline de dégâts —
+assumé** (#953) : `forfeit()` met les PV à 0 en dur, donc hors du pipeline de dégâts —
 **Ténacité**, **Fermeté** et **Ceinture Force** ne se déclenchent jamais. Un abandon n'est pas un
 dégât, c'est un renoncement. Les cascades de K.O., elles, restent préservées (**Lien du Destin**,
 **Rancune**, **Représailles**) : même bloc `handleKo` que pour un K.O. ordinaire.
@@ -832,18 +700,13 @@ dégât, c'est un renoncement. Les cascades de K.O., elles, restent préservées
 Limites assumées, chacune avec son entrée de backlog dans le graphe de mémoire — aucune n'est une
 régression, ce sont des choix de V1.
 
-⚠️ **Liste relue le 2026-09-16, deux puces retirées parce qu'elles étaient devenues fausses** :
-l'élection d'un nouvel hôte (livrée au plan 209, Lot C5 — la place qui héberge est une valeur
-publiée dans le registre, donc remplaçable ; la migration est même comptée depuis le plan 212) et
-`battle_started` non émis en ligne (émis depuis le plan 201, et le plan 204 a réglé le double
-comptage entre pairs). Les deux traînaient depuis la clôture du Lot B3 le 2026-09-09.
-
 - **Sauvegarde partagée entre deux onglets d'un même profil** — deux onglets du même navigateur, sur
   le même profil, se disputent la même clé de sauvegarde de reprise. Backlog :
   `backlog-sauvegarde-partagee-entre-onglets-meme-profil`.
-- **Délai réel de libération d'adresse du cloud PeerJS non mesuré** — observé à l'écriture jusqu'à
-  ~1 minute (§ Risques, plan 202), jamais confirmé sur le vrai service public. Backlog :
-  `backlog-delai-liberation-peerjs-cloud`.
+- **Délai réel de libération d'adresse du cloud PeerJS** — mesuré à 110 ms / 99 s (§ La limite), mais
+  non confirmé dans toutes les conditions. Backlog : `backlog-delai-liberation-peerjs-cloud`.
+- **Cadence d'un round à N camps** — pire cas théorique 12 actions × 60 s = 12 min par round ; le
+  seuil d'absence (§ Le seuil d'absence à N camps) attend une mesure de cadence réelle.
 
 ---
 
@@ -866,82 +729,68 @@ fixe**, pas la 4G.
 **TURN** est l'abandon : un relais que les deux joignent en sortant. Marche toujours, coûte de la
 bande passante, donc quasi jamais gratuit sérieusement.
 
-🔴 **Les TURN gratuits de `peerjs` sont morts — mesuré le 2026-09-19** (plan 216, bug 1) :
-`eu-0.turn.peerjs.com` et `us-0.turn.peerjs.com` n'ont plus d'enregistrement DNS `A`, vérifié sur
-trois résolveurs indépendants (`1.1.1.1`, `8.8.8.8`, `9.9.9.9`), et un vrai Chromium ne gather plus
-aucun candidat ICE `relay` (`701 TURN host lookup received error`). Sans TURN il ne restait que le
-STUN — qui ne franchit ni le NAT symétrique ni le CGNAT, exactement le cas ci-dessus — d'où un jeu en
-ligne devenu inutilisable depuis des données mobiles ou un wifi d'hôtel. Le repli tiers évident,
-`openrelay.metered.ca`, a été mesuré mort aussi (`400 TURN allocate error`) : le free tier public a
-fermé, ce qui confirme la remarque plus bas — un TURN tiers gratuit est le composant le plus fragile
-de la chaîne.
+🔴 **Les TURN gratuits de `peerjs` sont morts** : `eu-0.turn.peerjs.com` et `us-0.turn.peerjs.com`
+n'ont plus d'enregistrement DNS `A`, et un vrai Chromium ne gather plus aucun candidat ICE `relay`.
+Le repli tiers `openrelay.metered.ca` est mort aussi (le free tier public a fermé) : un TURN tiers
+gratuit est le composant le plus fragile de la chaîne. Sans TURN il ne reste que le STUN, qui ne
+franchit ni le NAT symétrique ni le CGNAT — d'où le **relais de secours** ci-dessous
+(§ Cloudflare Workers), qui traite ces paires. La configuration ICE (`ice-servers.ts`) ne passe que
+deux STUN vivants (`stun.cloudflare.com`, `stun.l.google.com`).
 
-**Bonne nouvelle** : en **IPv6 il n'y a pas de NAT du tout**. L'IPv6 mondial a franchi 50 % en mars
-2026 et l'Arcep classe la France parmi les leaders, en notant que les clients sans IPv6 sont
-désormais sur des réseaux en fin de vie (cuivre éteint en 2030). Deux joueurs français sur fibre ont
-de bonnes chances de se connecter en direct. Le « ~10 % de connexions nécessitant un TURN » cité en
-avril est une moyenne mondiale, pessimiste pour notre cas réel.
-
-✅ **LIVRÉ (plan 216)** : le relais de secours ci-dessous (§ Cloudflare Workers) remplace le besoin
-d'un TURN — c'est lui, et non plus une résignation, qui traite les paires en NAT symétrique ou en
-CGNAT. Les hôtes TURN morts ont en outre été retirés de la configuration ICE (`ice-servers.ts`), qui
-ne passe plus que deux STUN vivants (`stun.cloudflare.com`, `stun.l.google.com`) — un gain de
-latence même sur les paires qui n'ont jamais besoin du relais.
+En **IPv6 il n'y a pas de NAT du tout** : deux joueurs sur fibre ont de bonnes chances de se
+connecter en direct. Le « ~10 % de connexions nécessitant un TURN » est une moyenne mondiale,
+pessimiste pour notre cas réel.
 
 ---
 
-## Cloudflare Workers — ce qui viendra après la V1 (décision #869)
+## Cloudflare Workers (décision #869)
 
-Pas un arbitre du combat. Trois usages, **dans cet ordre** :
+Pas un arbitre du combat. Trois usages :
 
 1. **Télémétrie** (§ suivant) — c'est ce qui justifie le compte, le `wrangler.toml` et l'étape de
-   déploiement CI. Le reste devient nettement moins cher une fois cette marche franchie.
-2. **Signaling** — un Durable Object par code de partie remplace PeerJS Cloud : namespace à nous,
-   plus de collisions (#866), plus de dépendance au SLA inexistant de `peerjs.com`. ~100 lignes.
+   déploiement CI.
+2. **Registre des salons (signaling partiel)** — `RoomRendezvous`, un Durable Object qui tient la
+   correspondance *code de salon → place qui héberge*. Il découple le code de salon de l'identité de
+   l'hôte, ce qui permet la migration d'hôte (#904). Il ne remplace pas encore PeerJS : les canaux
+   passent toujours par PeerJS. Un signaling complet (un Durable Object par code de partie : namespace
+   à nous, plus de collisions #866, plus de dépendance au SLA inexistant de `peerjs.com`, ~100 lignes)
+   reste une suite possible. Le registre est **optionnel** : injoignable, le jeu retombe sur la place
+   1 et pas de migration.
+3. **Relais de secours quand le NAT gagne** — `RoomRelay`, un Durable Object par code de partie. Une
+   seule WebSocket par joueur ; les canaux vers chaque pair sont multiplexés dessus, adressés par une
+   trame `<to>|<from>|<charge utile JSON>` — l'adresse HORS du JSON, pour que le relais n'ait jamais
+   à désérialiser la charge, même pour la router.
 
-   🔴 **Un premier Durable Object existe depuis le plan 209** : `RoomRendezvous`, qui tient la
-   correspondance *code de salon → place qui héberge*. Il ne remplace pas encore le signaling — les
-   canaux passent toujours par PeerJS — mais il découple le code de salon de l'identité de l'hôte,
-   ce qui était le vrai blocage de la migration d'hôte (#904). Il est **optionnel** : injoignable,
-   le jeu retombe sur le comportement d'avant, place 1 et pas de migration.
-3. **Relais de secours quand le NAT gagne — ✅ LIVRÉ (plan 216, bug 1).** Un second Durable Object,
-   `RoomRelay`, un objet par code de partie. Une seule WebSocket par joueur ; les canaux vers chaque
-   pair sont multiplexés dessus, adressés par une trame `<to>|<from>|<charge utile JSON>` — l'adresse
-   HORS du JSON, pour que le relais n'ait jamais à désérialiser la charge, même pour la router.
+   Le direct (PeerJS) reste la règle, gratuit et plus rapide. Le relais n'est essayé que quand
+   `connect()` échoue en `ConnexionImpossible` ou `DelaiDepasse`, et **par pair, pas par salon** —
+   seuls les canaux qui échouent basculent. `claim()`, et non `connect()`, ouvre la socket : côté
+   salon, seul l'invité appelle `connect`, un relais qui n'apparaîtrait qu'au premier repli
+   n'existerait jamais côté hôte.
 
-   Jamais tenté en premier : le direct (PeerJS) reste la règle, gratuit et plus rapide. Le relais
-   n'est essayé que quand `connect()` échoue en `ConnexionImpossible` ou `DelaiDepasse`, et **par
-   pair, pas par salon** — seuls les canaux qui échouent basculent. `claim()`, et non `connect()`,
-   ouvre la socket : côté salon, seul l'invité appelle `connect`, un relais qui n'apparaîtrait qu'au
-   premier repli n'aurait donc jamais existé côté hôte.
+   L'API Hibernation garde les clients connectés sans facturer la durée d'inactivité — exactement le
+   profil d'un jeu où rien ne se passe pendant 60 s entre deux coups — et **supprime le besoin d'un
+   TURN tiers**. Un garde-fou de quota (`RELAY_DAILY_LIMIT`, ~60 % du palier gratuit de requêtes)
+   refuse l'ouverture d'un salon **neuf** une fois ce seuil atteint — jamais une partie déjà en cours —
+   pour protéger le registre des salons et la télémétrie, qui partagent le même compte. Le compteur
+   vit dans le stockage SQLite de l'objet (une écriture D1 par salon, à sa fermeture, jamais une par
+   message) ; `pnpm stats` affiche la consommation du jour en pourcentage du palier.
 
-   L'API Hibernation garde les clients connectés au réseau Cloudflare sans facturer la durée
-   d'inactivité — exactement le profil d'un jeu où rien ne se passe pendant 60 s entre deux coups —
-   et **cela supprime le besoin d'un TURN tiers**. Un garde-fou de quota (`RELAY_DAILY_LIMIT`, ~60 %
-   du palier gratuit de requêtes) refuse l'ouverture d'un salon **neuf** une fois ce seuil atteint —
-   jamais une partie déjà en cours — pour protéger le registre des salons et la télémétrie, qui
-   partagent le même compte. Le compteur vit dans le stockage SQLite de l'objet (une écriture D1 par
-   salon, à sa fermeture, jamais une par message) ; `pnpm stats` affiche la consommation du jour en
-   pourcentage du palier.
+   🔴 **Le TURN Cloudflare est écarté** (arbitrage humain) : il exige un profil de facturation même
+   pour son palier gratuit, et poser une carte ferait sortir le compte du régime « ça s'arrête au lieu
+   de facturer » pour un régime où le dépassement se paie, sans plafond dur en retour. Le compte
+   reste sans carte.
 
-   🔴 **Le TURN Cloudflare a été écarté (arbitrage humain, 2026-09-19)**, pas retenu comme
-   alternative au relais WebSocket : il exige un profil de facturation même pour son palier gratuit,
-   et surtout poser une carte ferait sortir le compte du projet du régime « ça s'arrête au lieu de
-   facturer » pour un régime où le dépassement se paie, sans plafond dur en retour. Le compte reste
-   sans carte.
-
-Limites du plan gratuit vérifiées le 2026-08-29 : Workers 100 000 requêtes/jour et 10 ms de CPU par
-invocation (**temps CPU**, l'attente I/O n'est pas comptée) ; Durable Objects 100 000 requêtes/jour,
-13 000 GB-s, **backend SQLite obligatoire en gratuit** (le backend clé-valeur est payant) ; D1
-5 M lignes lues et 100 000 lignes écrites/jour, 5 Go.
+Limites du plan gratuit : Workers 100 000 requêtes/jour et 10 ms de CPU par invocation (**temps CPU**,
+l'attente I/O n'est pas comptée) ; Durable Objects 100 000 requêtes/jour, 13 000 GB-s, **backend
+SQLite obligatoire en gratuit** (le backend clé-valeur est payant) ; D1 5 M lignes lues et 100 000
+lignes écrites/jour, 5 Go.
 
 ---
 
 ## Télémétrie (décisions #867, #868, #870)
 
 Rattachée à la Phase 7 par choix humain — c'est le même chantier « serveur » — **bien qu'elle soit
-indépendante du réseau et concerne d'abord le solo**, c'est-à-dire 100 % du jeu aujourd'hui. Elle peut
-donc être la première tranche livrée de la phase.
+indépendante du réseau et concerne d'abord le solo**, c'est-à-dire 100 % du jeu aujourd'hui.
 
 **Pourquoi quitter Goatcounter** : il est sur toutes les grandes listes de filtrage (EasyPrivacy,
 EasyList Privacy, AdGuard, StevenBlack), donc les données sont faussées par les bloqueurs — et
@@ -958,16 +807,13 @@ combat (#870), même mur que le fog.
 **Forme** : deux événements groupés par partie — `battle_started` (carte, format, nombre d'équipes,
 humain/IA) et `battle_ended` (durée, tours, camp vainqueur, Pokemon et moves utilisés). L'écart entre
 les deux donne gratuitement le taux d'abandon. **Une seule requête par partie**, jamais une par move.
+En ligne, chaque pair émet les siens ; `battleId` (§ Protocole) les rattache à la même partie.
 
 **Schéma** : événement brut en JSON, **agrégation à la lecture**. La contrainte serrée est
-100 000 lignes écrites/jour.
-
-⚠️ **Chiffre corrigé le 2026-08-31** (vérification web, plan 196) : la doc D1 précise qu'une écriture
-sur une table indexée compte **deux lignes** — celle de la table et celle de l'index. Avec deux
-événements par partie, une partie coûte donc **~4 lignes**, pas 2 : le plafond réel est de l'ordre de
-**~25 000 parties/jour**, non ~50 000 comme écrit ici le 2026-08-29. Sans conséquence pratique à notre
-échelle, et le rapport de force avec un schéma éclaté (une ligne par Pokemon et par move, ~45× plus
-coûteux) reste intact — c'est lui qui justifie le brut.
+100 000 lignes écrites/jour : une écriture sur une table indexée compte **deux lignes** (table +
+index), donc une partie (deux événements) coûte ~4 lignes, soit un plafond de l'ordre de
+**~25 000 parties/jour**. Le rapport de force avec un schéma éclaté (une ligne par Pokemon et par
+move, ~45× plus coûteux) justifie le brut.
 
 ⚠️ **RGPD** : en collectant nous-mêmes, nous devenons **responsable du traitement**. Goatcounter
 offrait le sans-cookie et la conformité clés en main (#215) ; ici c'est à faire **exprès** — aucun
@@ -988,19 +834,19 @@ non une fois par joueur.
 
 ## 3+ joueurs
 
-Topologie étoile implicite : chaque joueur envoie ses actions à **tous** les autres. Pas de host
-central.
+Pas de host central : chaque joueur envoie ses actions à **tous** les autres (maillage complet).
 
 ```
 3 joueurs : A ←→ B ←→ C ←→ A (mesh complet)
 ```
 
-Pour N joueurs, chaque joueur a N-1 connexions. Avec max 12 joueurs, c'est 66 connexions mesh.
+Pour N joueurs, chaque joueur a N-1 connexions. Avec max 12 joueurs, c'est 66 liens. **Le réseau
+accepte les cinq formats** (2, 3, 4, 6 et 12 camps).
 
-### ✅ MESURÉ le 2026-09-14 — le maillage tient à douze
+### Le maillage tient à douze
 
-Le harnais est `e2e/tests/bench/mesh-scaling.spec.ts`, dans son propre projet Playwright que
-`PT_BENCH=1` fait exister (sans quoi la suite GitHub ouvrirait douze navigateurs par tranche) :
+Harnais : `e2e/tests/bench/mesh-scaling.spec.ts`, dans son propre projet Playwright que `PT_BENCH=1`
+fait exister (sans quoi la suite GitHub ouvrirait douze navigateurs par tranche) :
 
 ```
 PT_BENCH=1 npx playwright test --project=bench
@@ -1013,105 +859,56 @@ PT_BENCH=1 npx playwright test --project=bench
 | 6 camps  | 15 | 30 / 30 — **100 %** | 1 345 ms |
 | 12 camps | 66 | 132 / 132 — **100 %** | 1 304 ms |
 
-**Aucune extrémité en échec, à aucun format.** Le temps d'entrée est plat : +6 % entre deux et douze
-camps, pour six fois plus de pairs et soixante-six fois plus de liens. La crainte d'un effondrement
-quadratique ne se vérifie pas. Le repli en topologie étoile n'est donc **pas** nécessaire — il reste
-disponible (§ Workers) mais rien ne l'appelle.
+Temps d'entrée plat (+6 % entre deux et douze camps). Le repli en topologie étoile n'est donc **pas**
+nécessaire — il reste disponible (§ Cloudflare Workers) mais rien ne l'appelle.
 
 🔴 **Ce que ces chiffres ne valent PAS.** Le harnais tourne sous `peerIce=off`, tout le monde sur la
 boucle locale : c'est un **plancher**, le coût du montage tel que notre code l'ordonne, sans une
-milliseconde de réseau réel. Le temps d'entrée entre deux machines derrière deux NAT ne se mesure
-pas ici, il se mesure à deux postes.
+milliseconde de réseau réel. Le temps d'entrée entre deux machines derrière deux NAT se mesure à
+deux postes.
 
-### Ce que la mesure a trouvé au passage : `connectToMesh` était sérialisé
+### `connectToMesh` : parallèle, et l'échec est attribuable à sa connexion
 
-La sonde horodate chaque négociation du dernier arrivé. À douze camps, ses onze négociations
-s'enchaînaient **sans le moindre chevauchement** — chacune n'ouvrait qu'une fois la précédente
-connectée :
+`Room.connectToMesh` négocie les liens **en parallèle** (`Promise.all` sur des tâches qui avalent leur
+échec : un pair manquant n'empêche personne d'entrer). Le vrai enjeu est `CONNECT_TIMEOUT_MS = 15_000`
+(`transport.ts`) : en série, une seule place morte retardait toutes les suivantes de quinze secondes
+chacune.
 
-```
-[1093→1097] [1100→1104] [1105→1108] [1108→1111] … [1129→1132]
-```
-
-`Room.connectToMesh` les `await`ait dans une boucle `for`. Sur la boucle locale ça ne coûte rien
-(~3,5 ms la négociation, donc ~39 ms perdus dans 1,3 s d'entrée), et c'est exactement pourquoi
-personne ne l'avait jamais vu.
-
-**Le vrai coût n'est pas la lenteur, c'est `CONNECT_TIMEOUT_MS = 15_000`** (`transport.ts`). Un pair
-injoignable devait épuiser ses quinze secondes **avant que le suivant ne soit seulement tenté**. Une
-seule place morte retardait donc les dix autres, l'une après l'autre — le contraire exact de ce que
-promet le commentaire du `catch` (« un pair injoignable n'empêche pas d'entrer »). Et le défaut
-grandit avec le nombre de joueurs, c'est-à-dire précisément là où on s'inquiétait.
-
-#### ✅ Corrigé le 2026-09-15 — mais en deux temps, et l'ordre était tout
-
-Une première tentative de `Promise.all`, le 2026-09-14, a été **annulée le jour même** après revue de
-code. Elle échangeait un défaut de **dégradation** contre un défaut de **rupture** :
-
-`waitForConnectionOpen` (`peer-connection.ts`) écoutait l'échec sur l'objet **`peer` partagé**, pas
-sur la connexion. Ce n'était pas un choix : `peerjs` émet par `this.emit("error", …)` sur le Peer, et
-pour `peer-unavailable` l'identité de la cible n'existe que dans le **texte** du message
-(`peerjs@1.5.5`, `bundler.mjs:1575` et `:951`). Onze négociations en vol, c'était onze écouteurs sur
-le même émetteur : **une seule place absente rejetait les onze promesses**, et le `catch` les avalait
-en silence. Le dernier arrivant se retrouvait avec le seul canal de l'hôte — or l'hôte ne relaie pas,
+🔴 **Règle : paralléliser n'est sûr que si l'échec est attribuable.** `waitForConnectionOpen`
+(`peer-connection.ts`) n'écoute pas l'objet `peer` partagé sans filtre : `peerErrorConcerns` décide
+quelle connexion un échec concerne. Trois cas : une cause globalement fatale (`network`,
+`socket-error`, `server-error`…) vaut pour tout le monde et rejette ; `peer-unavailable` ne rejette
+que la connexion que son **message** nomme (`peerjs` n'expose l'identité de la cible que dans le
+texte) ; tout le reste, `webrtc` en tête, n'est attribuable à personne et ne rejette **rien** — le
+minuteur de 15 s est par promesse. Sans cela, une seule place absente rejetterait les onze promesses
+et le dernier arrivant se retrouverait avec le seul canal de l'hôte — or l'hôte ne relaie pas,
 **le maillage EST le transport**.
 
-**La correction s'est donc faite dans l'autre sens**, et c'est l'enseignement à retenir :
+**Le filet** : la diaphonie est éprouvée dans `peer-connection.test.ts`, contre le double `FakePeer`
+qui est un vrai émetteur partagé (pair absent nommé, cause fatale, `webrtc` inattribuable,
+`peer-unavailable` sans message) — hors d'atteinte de `testing/fake-transport.ts` et du banc de
+mesure. `room.integration.test.ts` garde qu'une place morte ne coûte que son propre lien.
 
-1. **D'abord rendre l'échec attribuable à sa connexion** — `peerErrorConcerns`. Trois cas : une cause
-   globalement fatale (`network`, `socket-error`, `server-error`…) vaut pour tout le monde et rejette
-   ; `peer-unavailable` ne rejette que la connexion que son message **nomme** ; tout le reste,
-   `webrtc` en tête, n'est attribuable à personne et ne rejette **rien** — le minuteur de 15 s, lui,
-   est par promesse. Une négociation réellement perdue attend donc son délai, payé **une fois** pour
-   toutes celles qui courent ensemble.
-2. **Ensuite seulement, paralléliser.** `Promise.all` sur des tâches qui avalent leur échec ne rejette
-   jamais : la sémantique d'origine — un pair manquant n'empêche personne d'entrer — est conservée.
+⚠️ **Ce qui reste non mesuré** : la **cadence** d'un round (voir § Ce qui reste ouvert).
 
-**Le filet, qui n'existait pas** : la diaphonie est éprouvée dans `peer-connection.test.ts`, contre le
-double `FakePeer` qui est un vrai émetteur partagé (quatre cas : pair absent nommé, cause fatale,
-`webrtc` inattribuable, `peer-unavailable` sans message). Elle est **hors d'atteinte** de
-`testing/fake-transport.ts`, qui jette localement pour le seul appel concerné, et du banc de mesure,
-qui tourne avec douze pairs tous joignables. Et `room.integration.test.ts` garde qu'une place morte ne
-coûte que son propre lien.
-
-⚠️ **Ce qui reste non mesuré, et qui n'a rien à voir avec le montage** : la **cohérence** à douze —
-12 copies du moteur à garder identiques, et **aucune politique définie pour une désync partielle**
-(3 pairs sur 12 divergent — qui a raison ?). Et la **cadence** d'un round : le pire cas théorique
-connu est 12 actions × 60 s = 12 min par round, soit ~11 min d'attente entre deux tours d'un même
-joueur. Aucun des deux ne se règle en accélérant le maillage.
-
-🔴 **LEVÉ par le plan 209 (2026-09-14).** Le Lot B2 avait rendu cette limite concrète : `actionIndex`
-(§ Protocole) suppose un canal **ordonné**, vrai **par connexion** mais faux entre les canaux qu'un
-maillage écrit en parallèle — une action en avance était refusée puis perdue, et trois refus
-éliminaient un joueur honnête.
-
-Ce qui l'a levée tient en une phrase : **le jeu avait déjà un ordre total**, il le tient du Charge
-Time (un seul acteur à la fois, donc jamais deux émetteurs légitimes). Ce qui manquait n'était pas
-l'ordre *logique* mais l'ordre de *livraison* — un tampon de réordonnancement par index suffit, sans
-horloge logique (décision #1024) ni relais. **Le réseau accepte désormais les cinq formats**, et
-l'écran `lobby` **offre** de nouveau le choix, avant la naissance du code.
-
-### Le désaccord à N témoins (Lot C2, décision #1026)
+### Le désaccord à N témoins (décision #1026)
 
 `compareDigests` (§ Détection de désync) devient `evaluateDigests` à 3 camps et plus : au lieu
 d'accuser l'autre pair, on regroupe **toutes** les empreintes connues au même `actionIndex` — la
 mienne comprise — et le groupe minoritaire est forfaité, moi compris s'il y a lieu. Trois issues : un
 groupe strictement majoritaire → les autres groupes sont forfaités ; égalité au sommet → **personne**
 n'est accusé (*Age of Empires*, *Factorio* font pareil : constater la divergence, ne jamais
-réconcilier) ; moins de deux empreintes connues → on attend. Le duel garde son constat symétrique de
-la section ci-dessus : à deux témoins, tout désaccord est une égalité 1-1, la majorité n'y détecterait
-plus rien. Toujours pas un anti-triche (seuil byzantin 3f+1, hors de portée à 3 ou 4 camps) — un outil
-de diagnostic contre la divergence accidentelle, comme la section ci-dessus.
+réconcilier) ; moins de deux empreintes connues → on attend. Le duel garde son constat symétrique : à
+deux témoins, tout désaccord est une égalité 1-1, la majorité n'y détecterait plus rien. Toujours pas
+un anti-triche (seuil byzantin 3f+1, hors de portée à 3 ou 4 camps) — un outil de diagnostic contre la
+divergence accidentelle.
 
-**Le quorum exclut les places forfaitées, pas les places éliminées au combat.** Un pair **parti** fige
-son empreinte à son dernier index pendant que les survivants avancent : compté, il fabriquerait un
-faux positif à chaque action, donc `forfeitedSeats` en sort. Un pair **éliminé au combat** qui
-continue de regarder ne fige rien : son moteur reçoit et applique les mêmes actions que les autres,
-donc son empreinte avance pareil — il reste un témoin **valide**, et un témoin honnête de plus rend le
-vote de minorité plus sûr. ⚠️ **Rectifié au cadrage du plan 210 (décision #1045)** : la rédaction
-initiale du Lot C2 promettait d'exclure « les places forfaitées ou éliminées » sur un raisonnement qui
-ne valait que pour un départ, jamais pour une élimination — voir
-`docs/plans/210-joueur-elimine-et-mode-spectateur.md`.
+**Le quorum exclut les places forfaitées, pas les places éliminées au combat** (#1045). Un pair
+**parti** fige son empreinte à son dernier index pendant que les survivants avancent : compté, il
+fabriquerait un faux positif à chaque action, donc `forfeitedSeats` en sort. Un pair **éliminé au
+combat** qui continue de regarder ne fige rien : son moteur applique les mêmes actions que les autres,
+son empreinte avance pareil — il reste un témoin **valide**, et un témoin honnête de plus rend le
+vote de minorité plus sûr.
 
 ---
 
@@ -1124,18 +921,19 @@ ne valait que pour un départ, jamais pour une élimination — voir
 - API simple : `new Peer()` → `peer.connect(id)` → `conn.send(data)`
 - ~50KB gzipped
 - **Pas de SLA.** Historique de `429 Rate Limited` documenté, auto-hébergement recommandé par la doc
-  dès qu'il y a du trafic. C'est ce qui fait du signaling maison (§ Workers) une suite naturelle.
+  dès qu'il y a du trafic. C'est ce qui fait du signaling maison (§ Cloudflare Workers) une suite
+  naturelle.
 
 ### STUN / TURN
 
 - **STUN** — découvre l'IP publique. Gratuit (Google, Twilio fournissent des serveurs). Le jeu passe
-  désormais une liste explicite (`ice-servers.ts`) qui écrase les défauts de `peerjs` : deux STUN
-  vivants, et rien d'autre.
+  une liste explicite (`ice-servers.ts`) qui écrase les défauts de `peerjs` : deux STUN vivants, et
+  rien d'autre.
 - **TURN** — relayait le trafic si la connexion directe échouait. Les TURN gratuits de `peerjs` ont
-  disparu (mesuré le 2026-09-19, § Le NAT). **Remplacé par notre propre relais WebSocket sur Durable
-  Object** (plan 216, § Cloudflare Workers), livré, plutôt que par un TURN tiers — Cloudflare exige
-  une carte bancaire même en palier gratuit, et les free tier publics (`peerjs`, `openrelay.metered.ca`)
-  sont les plus fragiles de tous, ce qu'ils viennent de démontrer.
+  disparu (§ Le NAT). **Remplacé par notre propre relais WebSocket sur Durable Object**
+  (§ Cloudflare Workers) plutôt que par un TURN tiers — Cloudflare exige une carte bancaire même en
+  palier gratuit, et les free tier publics (`peerjs`, `openrelay.metered.ca`) sont les plus fragiles
+  de tous.
 
 ---
 
@@ -1150,42 +948,42 @@ ne valait que pour un départ, jamais pour une élimination — voir
 | Replay (`exportReplay` / `runReplay`) | Reconnexion et resync — **éprouvé en production** depuis le plan 181 |
 | Port de persistance `load`/`save`/`clear` (#751) | La source du journal peut devenir le pair distant sans toucher l'écran de combat |
 | Core découplé du renderer | Le réseau s'insère entre les deux sans tout casser |
-| **Hot-seat N joueurs déjà livré** | `humanPlayerIds` dans l'orchestrateur, Humain/IA par camp au team-select (plan 188), jusqu'à 12 équipes. **Le tour distant se greffe là où le tour hot-seat existe déjà** — le plus gros cadeau de la Phase 6.5 |
-| Couche d'entrée device-agnostique (plans 184-186) | Un lobby doit être jouable à la manette : la couche existe, la saisie d'un code reste à cadrer |
-| `AiTeamController` | Remplacement si un joueur se déconnecte — voir le paragraphe suivant |
+| **Hot-seat N joueurs** | `humanPlayerIds` dans l'orchestrateur, Humain/IA par camp au team-select (plan 188), jusqu'à 12 équipes. **Le tour distant se greffe là où le tour hot-seat existe déjà** |
+| Couche d'entrée device-agnostique (plans 184-186) | Le lobby est jouable à la manette (saisie du code par la roue de caractères, § Connexion) |
+| `AiTeamController` | Remplacement si un joueur se déconnecte |
 
-✅ **L'IA tourne bien sur les deux pairs, résolu au Lot B1 (#901).** En solo elle est seedée sur
-`createPrng(Date.now())` (`combat-screen.ts:782`) ; ce seed-là diverge d'un pair à l'autre, mais ça
-n'a plus d'importance en ligne : le setup diffusé porte une graine d'IA dérivée **par place**, et
-c'est suffisant, l'IA étant **pure** à état et générateur donnés (aucun `Math.random` ni `Date.now`
-dans `packages/core/src/ai/`). Pas de « pair émetteur » à désigner — cette idée, notée par le plan 181
-et reprise sans vérification par le document d'avril, est **annulée** par #901.
+✅ **L'IA tourne sur les deux pairs** (#901). En solo elle est seedée sur `createPrng(Date.now())` ;
+ce seed-là diverge d'un pair à l'autre, mais ça n'a plus d'importance en ligne : le setup diffusé
+porte une graine d'IA dérivée **par place**, et c'est suffisant, l'IA étant **pure** à état et
+générateur donnés (aucun `Math.random` ni `Date.now` dans `packages/core/src/ai/`). Pas de « pair
+émetteur » à désigner.
 
 ---
 
 ## Le paquet `packages/network/`
 
-**Créé au Lot B1.** Pur : aucune dépendance d'interface, et du moteur il ne connaît que des **types**.
+Pur : aucune dépendance d'interface, et du moteur il ne connaît que des **types** (plus quelques
+énumérations fermées de `protocol.ts`, pour valider au bord du réseau — pas une porte ouverte à de la
+logique).
 
 ```
 packages/network/src/
-  protocol.ts            LIVRÉ — messages, NETWORK_VERSION, causes de refus, graines
-  room-code.ts           LIVRÉ — alphabet, génération, adresses dérivées du code, parsePeerId
-  transport.ts           LIVRÉ — le contrat commun + la prise d'identifiant à réessais
-  peer-connection.ts     LIVRÉ — la mise en œuvre PeerJS
-  fallback-transport.ts  LIVRÉ (plan 216) — la cascade direct → relais, transparente pour room.ts
-  relay-connection.ts    LIVRÉ (plan 216) — le transport WebSocket vers le Durable Object de relais
-  fake-transport.ts      LIVRÉ — canal en mémoire : c'est lui qui rend le salon testable sans réseau
-  room.ts                LIVRÉ — état de salon, arrivées, départs, lancement accusé,
-                         routage action/forfeit/checksum/resync (B2, B3, B4 — pas de
-                         `network-controller.ts` séparé, ce fichier suffit)
+  protocol.ts            messages, NETWORK_VERSION, causes de refus, graines
+  room-code.ts           alphabet, génération, adresses dérivées du code, parsePeerId
+  transport.ts           le contrat commun + la prise d'identifiant à réessais
+  peer-connection.ts     la mise en œuvre PeerJS
+  fallback-transport.ts  la cascade direct → relais, transparente pour room.ts
+  relay-connection.ts    le transport WebSocket vers le Durable Object de relais
+  fake-transport.ts      canal en mémoire : c'est lui qui rend le salon testable sans réseau
+  room.ts                état de salon, arrivées, départs, lancement accusé,
+                         routage action/forfeit/checksum/resync/placement
+                         (pas de `network-controller.ts` séparé, ce fichier suffit)
 ```
 
-🔴 **`checksum.ts` ne vit pas ici.** Le plan-cadre 195 le plaçait dans ce paquet ; **amendé en
-implémentant le Lot B4** (plan 203) : la sérialisation canonique et le hash du `BattleState`
-vivent dans `packages/core/src/battle/state-checksum.ts`. Motif : c'est un module **pur qui connaît
-la forme de l'état de combat** — sa place est auprès de l'état, pas du transport. Le salon ne gagne
-qu'un type de message, un envoi, un rappel et une branche de routage (une trentaine de lignes).
+🔴 **`checksum.ts` ne vit pas ici** : la sérialisation canonique et le hash du `BattleState` vivent dans
+`packages/core/src/battle/state-checksum.ts`. C'est un module **pur qui connaît la forme de l'état de
+combat** — sa place est auprès de l'état, pas du transport. Le salon ne porte qu'un type de message,
+un envoi, un rappel et une branche de routage.
 
 Le **canal en mémoire n'est pas un artifice de test** : c'est lui qui permet de faire tourner deux
 salons — ou douze — dans le même processus, donc de couvrir l'allocation concurrente, les départs et
@@ -1194,36 +992,31 @@ Internet tombe.
 
 ---
 
-## Écrans à ajouter/modifier
+## Écrans
 
-> Le document d'avril parlait de `LobbyScene`, `TeamSelectScene` et `BattleScene`. **Ces scènes
-> n'existent plus** : depuis la migration Babylon (Phase 5), l'application est une **FSM d'écrans
-> DOM** décrite par `ScreenId` et `SCREEN_TRANSITIONS` dans `packages/app/src/app/screens.ts`.
+L'application est une **FSM d'écrans DOM** décrite par `ScreenId` et `SCREEN_TRANSITIONS` dans
+`packages/app/src/app/screens.ts`.
 
-- **`lobby`** — **LIVRÉ** : format (avant la création) puis « Créer » / « Rejoindre ». Câblé dans
-  `SCREEN_TRANSITIONS` depuis `battle-mode`, droit vers `team-select` (hôte et invité) : **il n'y a
-  plus d'écran `map-select`** (plan 208, 2026-09-11/13) — la route est supprimée du graphe de
-  navigation, le choix de carte devient une modale (`ui/map-select/MapPickerModal.ts`) ouverte depuis
-  le bandeau de partie de `team-select`, pour ne plus démonter l'écran (et perdre la composition
-  d'équipe en cours) à chaque changement de carte.
-- **`team-select`** — **LIVRÉ** : la salle d'attente. Le troisième état de ligne n'est pas un
-  contrôleur mais un état de **salon** — le moteur ne connaît qu'« humain » ou « IA », et un joueur
-  distant est un humain, simplement pas celui qui est devant cet écran.
-- **`combat`** — Lot B2 : `runBattle` distinguera tour local et tour distant. Le point d'accroche
-  `humanPlayerIds` porte déjà la distinction humain/IA. Le Lot B1 y a déjà mis les **trois graines**
-  du setup, seule chose dont le combat ait besoin pour être identique sur les deux pairs.
+- **`lobby`** : « Créer » / « Rejoindre » (roue de caractères). Va droit vers `team-select`, hôte
+  comme invité : il n'y a **pas d'écran `map-select`**. Le choix de carte est une modale
+  (`ui/map-select/MapPickerModal.ts`) ouverte depuis le bandeau de partie de `team-select`, pour ne
+  pas démonter l'écran (et perdre la composition d'équipe en cours) à chaque changement de carte.
+  Le lobby ouvre en duel (`OPENING_TEAM_COUNT`) et **ne porte pas de sélecteur de format** : le choix
+  se fait dans la salle d'attente (§ Sélection d'équipe). Un invité ne quitte le lobby que si la
+  partie existe (il se connecte **avant** de naviguer).
+- **`team-select`** : la salle d'attente. Le troisième état de ligne n'est pas un contrôleur mais un
+  état de **salon** — le moteur ne connaît qu'« humain » ou « IA », et un joueur distant est un
+  humain, simplement pas celui qui est devant cet écran.
+- **`combat`** : `runBattle` distingue tour local et tour distant (`humanPlayerIds` porte la
+  distinction humain/IA ; `localPlayerIds` n'est défini qu'en ligne).
 
 🔴 **Le salon n'appartient à AUCUN écran** (`packages/app/src/network/online-room.ts`). Il est détenu
-par la session et **survit à l'entrée en combat**.
-
-Ce n'est pas une élégance, c'est un correctif : quand il appartenait à l'écran de sélection d'équipe,
-entrer en combat le détruisait, et `peerjs` **jette** le tampon d'un canal qu'on détruit — l'accusé de
-lancement de l'invité pouvait donc ne jamais partir, l'hôte annulait, et son annulation n'atteignait
-plus personne. Un salon qui doit vivre plus longtemps que l'écran qui le crée ne peut pas lui
-appartenir. Il se ferme sur les deux vrais chemins de sortie : « Retour » depuis la salle d'attente,
-et **tout retour au menu principal** — `combat` ne transite que vers lui, donc l'écran de combat n'a
-pas à connaître le réseau. C'est aussi ce dont le Lot B2 a besoin, où les actions s'échangent pendant
-le combat.
+par la session et **survit à l'entrée en combat**. Un salon qui doit vivre plus longtemps que l'écran
+qui le crée ne peut pas lui appartenir : `peerjs` **jette** le tampon d'un canal qu'on détruit,
+l'accusé de lancement de l'invité pouvait donc ne jamais partir et l'annulation de l'hôte
+n'atteignait plus personne. Il se ferme sur les deux vrais chemins de sortie : « Retour » depuis la
+salle d'attente, et **tout retour au menu principal** — `combat` ne transite que vers lui, donc
+l'écran de combat n'a pas à connaître le réseau.
 
 ⚠️ **Corollaire pour tout écran qui s'y branche** : ses écouteurs doivent être soldés à son
 démontage. Le salon leur survivant, les oublier fait rendre un écran détruit à chaque message reçu.
@@ -1232,20 +1025,14 @@ démontage. Le salon leur survivant, les oublier fait rendre un écran détruit 
 
 ## Comment les joueurs se trouvent
 
-### V1 : code de partie seul — LIVRÉ (#895)
+**Code de partie seul** (#895). Pas de matchmaking. Les joueurs se trouvent par leurs propres moyens
+(Discord, SMS, en personne) et partagent **un code**.
 
-Pas de matchmaking. Les joueurs se trouvent par leurs propres moyens (Discord, SMS, en personne) et
-partagent **un code**. Pas de lien d'invitation : il serait construit depuis l'origine courante,
-laquelle vaut `html-classic.itch.zone/…` dans l'iframe itch.io.
-
-⚠️ **Le réseau n'est plus restreint au 1v1** (décision D6/#944, plan 201, **renversée** le 2026-09-14
-par le plan 209, Lot C3 — pas un acquis). Les cinq formats sont ouverts en ligne (2, 3, 4, 6 et 12
-camps), `ONLINE_TEAM_COUNT` a disparu, et le sélecteur de format **est revenu** — mais pas ici :
-l'écran `lobby` ouvre toujours en duel (`OPENING_TEAM_COUNT`) et **ne porte pas de sélecteur**, le
-choix se fait ensuite dans la **salle d'attente** (§ Sélection d'équipe). `Room.setTeamCount`
-recompose les places sans toucher au **code** du salon — l'adresse ne dépend pas du format. Rétrécir
-le format **éjecte les derniers arrivés** (places hautes, jamais la première), prévenus avant que leur
-canal ne se ferme.
+**Les cinq formats sont ouverts en ligne** (2, 3, 4, 6 et 12 camps ; décision D6/#944 renversée par le
+plan 209) — l'écran `lobby` ouvre en duel et le choix se fait dans la **salle d'attente**.
+`Room.setTeamCount` recompose les places sans toucher au **code** du salon — l'adresse ne dépend pas
+du format. Rétrécir le format **éjecte les derniers arrivés** (places hautes, jamais la première),
+prévenus avant que leur canal ne se ferme.
 
 ```
 Écran `lobby` :
@@ -1271,31 +1058,26 @@ l'hôte attend, donc là qu'il le partage.
 C'est suffisant pour une communauté naissante. Un matchmaking avec personne en ligne, c'est une salle
 d'attente vide — pire qu'un code.
 
-### Matchmaking — écarté, pas reporté (2026-08-29)
-
-La V2 « matchmaking via Supabase Realtime » du document d'avril est **écartée** avec le reste de
-Supabase (#862). Si le besoin se représente un jour, il se ferait sur un Durable Object
-(§ Workers) — mais l'objection ci-dessus reste : elle est produit, pas technique.
+**Matchmaking — écarté, pas reporté** (#862) : la V2 « matchmaking via Supabase Realtime » est
+écartée avec le reste de Supabase. Si le besoin se représente un jour, il se ferait sur un Durable
+Object (§ Cloudflare Workers) — mais l'objection reste : elle est produit, pas technique.
 
 ---
 
 ## Tests
 
-### 1. Tests unitaires (protocole) — LIVRÉ
+### 1. Tests unitaires (protocole)
 
 Pas besoin de réseau : alphabet et génération de code, adresses dérivées, reconnaissance des
-messages, refus de version, dérivation des graines d'IA, prise d'identifiant à réessais.
+messages, refus de version, dérivation des graines d'IA et d'équipe, prise d'identifiant à réessais.
 
-### 2. Tests d'intégration (deux salons en mémoire) — LIVRÉ
+### 2. Tests d'intégration (salons en mémoire)
 
 Plusieurs `Room` dans le **même processus**, par le canal en mémoire : allocation de places
 concurrente, maillage, arrivée et départ (propre et silencieux), hôte qui part, refus au-delà du
 format, refus de version, lancement accusé, **lancement annulé quand un accusé manque**.
 
-Le Lot B2 y ajoutera deux `BattleEngine` communiquant par le même canal, pour vérifier que les états
-restent identiques sur un combat complet.
-
-### 3. Tests E2E (Playwright) — LIVRÉ, un seul scénario
+### 3. Tests E2E (Playwright) — un seul scénario
 
 `e2e/tests/dom/online-lobby.spec.ts` : deux contextes de navigateur, l'un crée, l'autre saisit le
 code au clavier et rejoint, les deux entrent en combat (assertion sur le **signal de disponibilité de
@@ -1307,67 +1089,8 @@ d'un tiers sans engagement de service : une coupure d'Internet rendrait le gate 
 ligne de notre code ait changé. La surcharge passe par `?peerPort=`, **verrouillée sur `DEV` ou
 `VITE_E2E`** comme `?seed=` — sans ce verrou, ce serait une porte ouverte à l'interception de
 parties. Les serveurs STUN/TURN sont désactivés pour les mêmes raisons : les deux pairs sont sur la
-boucle locale, et attendre la résolution de `*.turn.peerjs.com` faisait dépasser le scénario.
+boucle locale.
 
-⚠️ **Coût machine** : la suite complète est à ~520 tests et tourne sous plafond CPU
-(`scripts/with-cpu-cap.sh`). D'où **un seul** scénario à deux contextes (mesuré ~9 s isolé) ; tout ce
-qui se teste sans réseau reste en intégration, qui ne coûte rien.
-
-**Plan 215** (2026-09-18) : **`NETWORK_VERSION` est passée à 14** — le niveau de combat cesse d'être
-une constante. La formule de dégâts lit désormais le niveau de l'**attaquant** (`attacker.level`) au
-lieu d'un `BATTLE_LEVEL = 50` recopié dans sept fichiers, et `PendingStrike.frozenOffense` gagne un
-champ `level`, gelé au lancement de Prescience comme le reste du côté offensif (le lanceur peut être
-K.O. à l'impact).
-
-⚠️ **Aucun dégât ne change aujourd'hui** : tout le roster se joue au niveau 50, donc la constante et
-`attacker.level` donnent le même nombre. Ce qui change est la **forme de l'état** — un `frozenOffense`
-porte une clé de plus, donc deux pairs de builds différents calculent deux sommes de contrôle
-différentes dès qu'une Prescience est en vol. C'est exactement le cas que la version réseau existe
-pour refuser à l'entrée, plutôt que de le laisser finir en divergence au milieu d'un combat.
-
-Le niveau appartient désormais au **Pokemon** (`BattleSetupConfig.levelOverrides`, par emplacement),
-et c'est le **format de partie** qui le normalise : `BattleFormatRules.adjustLevel`, posé à 50 par le
-mode Combat dans `buildBattle` — le chemin que la partie vive et la reprise partagent, pour la même
-raison structurelle que `reviveDefeatedCamps`. Le vocabulaire (`adjustLevel` qui réécrit, par
-opposition à `maxLevel` qui refuserait une équipe) est repris de Pokemon Showdown, vérifié dans
-`sim/dex-formats.ts`.
-
----
-
-**Plan 216** (2026-09-19) : **`NETWORK_VERSION` est passée à 15.** Deux raisons indépendantes, une
-seule version — le bug 1 (relais WebSocket, ci-dessus) ne touche à aucun message du protocole et
-n'en aurait pas exigé.
-
-- Le tirage d'une équipe « Aléatoire » descend au lancement (bug 2) : le salon n'affiche plus la
-  ligne de portraits tant que le camp n'a pas été tiré, pour fermer la vitrine à relances. `Aléatoire`
-  n'est donc plus qu'une **intention** portée par `NetworkTeamSelection.random`, et l'équipe elle-même
-  ne transite jamais — chaque pair la dérive localement.
-- `NetworkSeeds` gagne une **quatrième graine**, `team`, dérivée par place comme `ai` (décision #901)
-  via `deriveTeamSeedsBySeat`, copie conforme de `deriveAiSeedsBySeat` (même corps, `deriveSeedsBySeat`,
-  pour ne pas dupliquer l'invariant : toutes les places sont dérivées d'un coup, dans l'ordre croissant,
-  jamais à la demande). Un pair d'avant la version 15 n'émet ni ne lit `random` ni `seeds.team` : il
-  composerait une équipe vide ou différente, et les deux pairs divergeraient sans qu'aucun message ne
-  paraisse malformé — le mode d'échec exact que la version protège.
-- 🔴 **Piège trouvé après la recette, pas avant** : `deriveTeamSeedsBySeat` doit rendre des **entiers**.
-  `createPrng` (`packages/core/src/utils/prng.ts`) commence par `let state = seed | 0` ; une graine
-  flottante de `[0, 1)`, ce qu'une dérivation naïve aurait produit, s'y écrase à **zéro**. Sans la
-  mise à l'échelle (`Math.floor(unit * 2 ** 31)`), toutes les places auraient tiré le même état de
-  générateur — donc les six mêmes Pokemon pour tous les camps aléatoires. Le défaut ne produit aucune
-  désync (tous les pairs se trompent pareil), donc rien ne l'aurait signalé en jeu ; seul un test qui
-  compare deux graines dérivées entre elles l'attrape.
-- `id` et `createdAt` d'une équipe tirée (non déterministes) restent **hors** de ce qui alimente le
-  `BattleState` : `generateRandomTeamSlots` ne rend que les six emplacements, jamais l'enveloppe
-  `TeamSet`. Sans cette séparation, la somme de contrôle du Lot B4 aurait divergé à la première
-  vérification pour un horodatage.
-- Le différé s'applique à **tous les camps aléatoires, IA comprise, et en solo comme en ligne**
-  (arbitrage humain, 2026-09-19) : une équipe aléatoire non tirée n'est pas cachée, elle n'existe pas
-  encore — ce qui laisse intacte la décision #729 (« les lignes IA restent visibles de tous »), qui ne
-  parlait que de ce qui existe déjà.
-
-⚠️ **Bug structurel trouvé par la revue, pas prévu au plan** : la première version de la cascade
-direct → relais n'ouvrait la socket du relais qu'en repli d'un `connect()` en échec — or côté salon,
-seul l'invité appelle `connect`, l'hôte est passif. Un relais qui ne naîtrait que d'un repli
-n'existerait donc **jamais côté hôte**, et les enveloppes de l'invité tomberaient dans le vide.
-Corrigé en ouvrant la socket de relais dès `claim()`, le seul point que les deux bouts traversent.
-
-**Plan 232** (2026-10-06) : **`NETWORK_VERSION` est passée à 18.** Le tirage d'une équipe « Aléatoire » change (pool restreint aux Pokemon au dernier stade avec build, une espèce par famille, objets uniques) : depuis une même graine, un pair d'avant composerait une autre équipe sans qu'aucun message ne paraisse malformé. Voir graphe : `decision-1136`.
+⚠️ **Coût machine** : la suite complète tourne sous plafond CPU (`scripts/with-cpu-cap.sh`). D'où
+**un seul** scénario à deux contextes ; tout ce qui se teste sans réseau reste en intégration, qui ne
+coûte rien.
