@@ -1,6 +1,8 @@
-import { Nature, type TeamSet, type TeamSlot } from "@pokemon-tactic/core";
+import type { PokemonGender, TeamSet, TeamSlot } from "@pokemon-tactic/core";
+import type { OpSet } from "@pokemon-tactic/data";
 import { countAction, TelemetryAction } from "../analytics/telemetry";
 import { Language, t } from "../i18n";
+import { resolveSlotGender } from "./gender-helpers";
 import { saveTeam } from "./team-storage";
 
 export function generateTeamId(): string {
@@ -52,13 +54,29 @@ export function formatTeamDate(timestamp: number, language: Language): string {
   });
 }
 
-export function defaultSlot(pokemonId: string, abilityId: string): TeamSlot {
+/**
+ * Un emplacement tiré d'un build — partagé par le bouton « appliquer un build » et le tirage
+ * aléatoire. Genre : celui déjà choisi, sinon celui qu'impose le build (Attraction de Ronflex),
+ * sinon tiré (avec `rng` pour un tirage rejoué).
+ */
+export function slotFromOpSet(
+  opSet: OpSet,
+  currentGender: PokemonGender | undefined,
+  rng?: () => number,
+): TeamSlot {
+  const gender = resolveSlotGender(
+    opSet.pokemonId,
+    currentGender ?? opSet.gender ?? undefined,
+    rng,
+  );
   return {
-    pokemonId,
-    ability: abilityId,
-    nature: Nature.Hardy,
-    moveIds: [],
-    statSpread: {},
+    pokemonId: opSet.pokemonId,
+    ability: opSet.ability,
+    nature: opSet.nature,
+    moveIds: opSet.moveIds.slice(0, 4),
+    statSpread: { ...opSet.statSpread },
+    ...(opSet.heldItemId === null ? {} : { heldItemId: opSet.heldItemId }),
+    ...(gender === undefined ? {} : { gender }),
   };
 }
 

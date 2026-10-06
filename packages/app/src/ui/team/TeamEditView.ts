@@ -10,7 +10,7 @@ import { t } from "../../i18n";
 import { InputSource } from "../../input/input-source";
 import { resolveSlotGender } from "../../team/gender-helpers";
 import { getOpSetsByPokemonId } from "../../team/team-builder-data";
-import { SaveDebouncer, touchTeam } from "../../team/team-helpers";
+import { SaveDebouncer, slotFromOpSet, touchTeam } from "../../team/team-helpers";
 import { loadTeam, saveTeam } from "../../team/team-storage";
 import { renderPreservingFocus } from "../dom/preserve-focus";
 import { screenHeader, screenHeaderSpacer } from "../dom/screens/elements";
@@ -382,21 +382,7 @@ export class TeamEditView {
       if (set === undefined) {
         return slot;
       }
-      const next: TeamSlot = {
-        pokemonId: slot.pokemonId,
-        ability: set.ability,
-        nature: set.nature,
-        moveIds: [...set.moveIds].slice(0, 4),
-        statSpread: { ...set.statSpread },
-      };
-      if (set.heldItemId !== null) {
-        next.heldItemId = set.heldItemId;
-      }
-      const gender = resolveSlotGender(slot.pokemonId, slot.gender);
-      if (gender !== undefined) {
-        next.gender = gender;
-      }
-      return next;
+      return slotFromOpSet(set, slot.gender);
     });
   }
 

@@ -60,3 +60,4 @@ Les seuls sur lesquels on travaille.
 | 226 | [Plan 226 — Évoluroc selon la règle officielle, et les textes officiels d'abord](./226-evoluroc-et-textes-officiels.md) | done |
 | 227 | [Plan 227 — Dépilage du backlog d'octobre](./227-depilage-backlog-octobre.md) | done |
 | 228 | [Plan 228 — Modifier son équipe sans quitter l'écran de sélection](./228-editer-equipe-sans-quitter-selection.md) | done |
+| 232 | [Plan 232 — Équipes aléatoires : dernier stade avec build seulement](./232-equipes-aleatoires-equilibrees.md) | done |

@@ -113,7 +113,11 @@ import {
  * de puissance, Cœur Soin de 30 % à 50 %, et les attaques apprenables de six Pokemon changent. Deux
  * builds ne calculent plus les mêmes dégâts ni n'acceptent les mêmes équipes.
  */
-export const NETWORK_VERSION = 17;
+/**
+ * 17 → 18 (2026-10-06, plan 232) : l'équipe aléatoire ne se tire plus que parmi les Pokemon au
+ * dernier stade qui ont un build. Depuis une même graine, deux builds ne tirent plus la même équipe.
+ */
+export const NETWORK_VERSION = 18;
 
 /**
  * Durée d'un tour en ligne — **déplacée dans `timings.ts`**, réexportée ici (plan 213).

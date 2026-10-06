@@ -1,51 +1,34 @@
 import type { TeamSet, TeamSlot } from "@pokemon-tactic/core";
-import { resolveSlotGender } from "./gender-helpers";
-import { getOpSetsByPokemonId, getPlayablePokemon } from "./team-builder-data";
-import { defaultSlot, generateTeamId } from "./team-helpers";
+import { isFinalEvolutionStage, type OpSet } from "@pokemon-tactic/data";
+import {
+  getOpSetsByPokemonId,
+  getPlayablePokemon,
+  getTeamBuilderRegistry,
+} from "./team-builder-data";
+import { generateTeamId, slotFromOpSet } from "./team-helpers";
 
 export interface RandomGeneratorOptions {
   name: string;
   rng?: () => number;
 }
 
-function pickWithoutReplacement<T>(items: readonly T[], count: number, rng: () => number): T[] {
-  const pool = [...items];
-  const out: T[] = [];
-  for (let i = 0; i < count && pool.length > 0; i++) {
-    const idx = Math.floor(rng() * pool.length);
-    const picked = pool[idx];
-    if (picked === undefined) {
-      continue;
-    }
-    out.push(picked);
-    pool.splice(idx, 1);
-  }
-  return out;
-}
+const RANDOM_TEAM_SIZE = 6;
 
-function applyOpSetIfAvailable(
-  pokemonId: string,
-  fallbackAbility: string,
-  rng: () => number,
-): TeamSlot {
-  const opSets = getOpSetsByPokemonId(pokemonId);
-  const set = opSets[0];
-  const slot: TeamSlot =
-    set === undefined
-      ? defaultSlot(pokemonId, fallbackAbility)
-      : {
-          pokemonId,
-          ability: set.ability,
-          nature: set.nature,
-          moveIds: [...set.moveIds].slice(0, 4),
-          statSpread: { ...set.statSpread },
-          ...(set.heldItemId === null ? {} : { heldItemId: set.heldItemId }),
-        };
-  const gender = resolveSlotGender(pokemonId, undefined, rng);
-  if (gender !== undefined) {
-    slot.gender = gender;
-  }
-  return slot;
+let randomTeamPoolCache: readonly (readonly OpSet[])[] | null = null;
+
+/**
+ * Le vivier du tirage aléatoire (plan 232) : les builds de chaque Pokemon jouable à son dernier stade
+ * qui en a au moins un. Tout se déduit des données — une espèce qui gagne un build, ou une génération
+ * ajoutée, y entre sans toucher ici.
+ *
+ * ⚠️ Changer ce vivier (code ou données) change l'équipe tirée depuis une graine : `NETWORK_VERSION`.
+ */
+function randomTeamPool(): readonly (readonly OpSet[])[] {
+  randomTeamPoolCache ??= getPlayablePokemon().flatMap((pokemon) => {
+    const opSets = getOpSetsByPokemonId(pokemon.id);
+    return isFinalEvolutionStage(pokemon.id) && opSets.length > 0 ? [opSets] : [];
+  });
+  return randomTeamPoolCache;
 }
 
 /**
@@ -61,13 +44,36 @@ function applyOpSetIfAvailable(
  * Ce qui doit être partagé se dérive de la graine ; l'identité et l'horodatage restent locaux.
  */
 export function generateRandomTeamSlots(rng: () => number): TeamSlot[] {
-  return pickWithoutReplacement(getPlayablePokemon(), 6, rng).map((pokemon) =>
-    applyOpSetIfAvailable(
-      pokemon.id,
-      pokemon.abilities.primary ?? pokemon.definition.abilityId ?? "",
-      rng,
-    ),
-  );
+  const remaining = [...randomTeamPool()];
+  const { getSpeciesRoot } = getTeamBuilderRegistry().validator;
+  const usedSpeciesRoots = new Set<string>();
+  const usedItemIds = new Set<string>();
+  const slots: TeamSlot[] = [];
+  /*
+   * Une équipe tirée obéit aux mêmes règles qu'une équipe composée à la main (`validateTeamSet`) :
+   * une espèce par famille (Aquali et Pyroli s'excluent), un objet une seule fois. Un Pokemon dont la
+   * famille est prise est écarté ; sinon on garde son premier build à objet libre, et s'il n'en a
+   * aucun, on l'écarte aussi.
+   */
+  while (slots.length < RANDOM_TEAM_SIZE && remaining.length > 0) {
+    const [opSets] = remaining.splice(Math.floor(rng() * remaining.length), 1);
+    const opSet = opSets?.find(
+      (candidate) => candidate.heldItemId === null || !usedItemIds.has(candidate.heldItemId),
+    );
+    if (opSet === undefined) {
+      continue;
+    }
+    const speciesRoot = getSpeciesRoot(opSet.pokemonId);
+    if (usedSpeciesRoots.has(speciesRoot)) {
+      continue;
+    }
+    usedSpeciesRoots.add(speciesRoot);
+    if (opSet.heldItemId !== null) {
+      usedItemIds.add(opSet.heldItemId);
+    }
+    slots.push(slotFromOpSet(opSet, undefined, rng));
+  }
+  return slots;
 }
 
 export function generateRandomTeam(options: RandomGeneratorOptions): TeamSet {

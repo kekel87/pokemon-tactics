@@ -156,8 +156,8 @@ d'apparition n'indique une priorité.
 > rythme mesuré (≈1,6 partie/jour), une espèce apparaît **une fois tous les 17 jours** ; `n=30` par
 > espèce ≈ **16 mois** (décision #1069).
 >
-> Réserves pour le retour : le *build* des équipes aléatoires n'est pas tiré au hasard (`opSets[0]`
-> toujours) et 21 parties sur 22 sont contre l'IA. → graphe : `plan-212`.
+> Réserves pour le retour : le *build* des équipes aléatoires n'est plus toujours `opSets[0]` depuis le plan 232 (premier
+> build dont l'objet est libre, pas un tirage au hasard) et 21 parties sur 22 sont contre l'IA. → graphe : `plan-212`.
 >
 > Ce qui parlerait vite, en revanche, ce sont les questions qui **poolent** le trafic au lieu de le
 > fragmenter par espèce : abandon et sa posture, causes de K.O. globales, durée, tours. Déjà mesurées.

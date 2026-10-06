@@ -1369,3 +1369,5 @@ direct → relais n'ouvrait la socket du relais qu'en repli d'un `connect()` en 
 seul l'invité appelle `connect`, l'hôte est passif. Un relais qui ne naîtrait que d'un repli
 n'existerait donc **jamais côté hôte**, et les enveloppes de l'invité tomberaient dans le vide.
 Corrigé en ouvrant la socket de relais dès `claim()`, le seul point que les deux bouts traversent.
+
+**Plan 232** (2026-10-06) : **`NETWORK_VERSION` est passée à 18.** Le tirage d'une équipe « Aléatoire » change (pool restreint aux Pokemon au dernier stade avec build, une espèce par famille, objets uniques) : depuis une même graine, un pair d'avant composerait une autre équipe sans qu'aucun message ne paraisse malformé. Voir graphe : `decision-1136`.

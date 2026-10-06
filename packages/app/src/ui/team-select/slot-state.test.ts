@@ -115,7 +115,7 @@ describe("buildTeamSelections — la frontière entre état local et contrat sé
   });
 });
 
-const GRAINE_4242 = ["farfetch-d", "golbat", "kabutops", "ponyta", "exeggcute", "gloom"];
+const GRAINE_4242 = ["exeggutor", "articuno", "onix", "golduck", "rapidash", "lickitung"];
 
 describe("buildTeamSelections — le tirage différé au lancement", () => {
   it("tire six Pokemon pour un camp aléatoire, depuis la graine de son index", () => {

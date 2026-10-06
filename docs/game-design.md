@@ -61,6 +61,7 @@ Combat tactique sur grille isométrique :
 - **Layout 3 colonnes** : PlayersColumn gauche + TeamList vertical central + PlayersColumn droite (seulement si N > 6, plan 086).
 - **Encadrés d'équipe** : couleur `TEAM_COLORS[index]` — 12 couleurs distinctes (décision #202-204)
 - **Sélection** : liste centrale des équipes saved (localStorage) + ligne "🎲 Aléatoire" en bas. Clic ligne → assignée au joueur actif, badge `[Ji]` ajouté, joueur actif avance. Mirror autorisé (plusieurs joueurs même teamId). Décisions #326-332.
+- **Équipe Aléatoire** (plan 232, décision #1136) : 6 Pokemon tirés parmi ceux qui sont au dernier stade d'évolution jouable ET ont au moins un build, un par famille, objets tenus tous différents. Le tirage est déterministe (une graine par place).
 - **AI default = équipe Aléatoire ephémère** (re-roll à création colonne, plan 086 décision #330).
 - **Toggle Humain/IA** : IA vs IA possible sur toutes les équipes (décision #185). Switch → reset assignment + re-roll random si AI.
 - **Bouton "Remplir IA aléatoire"** : bulk re-roll toutes colonnes AI (plan 086).

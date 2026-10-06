@@ -2982,6 +2982,21 @@
       "gender": "male",
       "source": "custom",
       "notes": "Plan 154 — Attraction immobilise un adversaire de sexe opposé une fois sur deux : Ronflex mise sur son endurance (Repos + Amnésie) pour neutraliser un attaquant physique pendant qu'il stabilise ses PV."
+    },
+    {
+      "id": "ditto-imposter-scarf",
+      "pokemonId": "ditto",
+      "name": "Imposter Scarf",
+      "role": "pivot",
+      "ability": "imposter",
+      "heldItemId": "choice-scarf",
+      "nature": "relaxed",
+      "moveIds": ["transform"],
+      "statSpread": { "hp": 32, "defense": 32, "spDefense": 2 },
+      "gender": "genderless",
+      "source": "smogon",
+      "sourceUrl": "https://www.smogon.com/dex/sv/pokemon/ditto/",
+      "notes": "Plan 232 — Métamorph manquait au fichier (le seul des 81). Imposteur copie l'adversaire à l'entrée, Morphing est son unique attaque ; le Mouchoir Choix le fait passer devant sa copie. PV et défenses sont les seules stats que la copie n'écrase pas."
     }
   ]
 }

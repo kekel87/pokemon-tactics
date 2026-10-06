@@ -7,6 +7,7 @@ export { loadAllPokemonTypes, loadData } from "./load-data";
 export { pocArena, sandboxArena } from "./maps/index";
 export type { OpSet } from "./op-sets/load-op-sets";
 export { getAllOpSets, getOpSetsForPokemon } from "./op-sets/load-op-sets";
+export { isFinalEvolutionStage } from "./playable/final-evolution-stage";
 export { playablePokemon } from "./playable/playable-pokemon";
 export type {
   PlayablePokemonCustom,
