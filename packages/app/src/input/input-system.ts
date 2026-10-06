@@ -158,6 +158,19 @@ export function createInputSystem(): InputSystem {
   };
 
   /*
+   * Souris ou doigt, relevé sur TOUTE la page, menus compris — et c'est aussi le seul relevé du
+   * plateau : la capture sur `window` voit passer chaque `pointerdown` du canvas. Passif : on observe,
+   * on ne consomme rien. Bouton principal seulement : un clic droit ou le bouton « précédent » de la
+   * souris n'est pas un choix d'appareil, et retirerait le focus au joueur clavier ou manette.
+   */
+  const onPointerDown = (event: PointerEvent): void => {
+    if (event.button !== 0) {
+      return;
+    }
+    tracker.note(event.pointerType === "touch" ? InputSource.Touch : InputSource.Pointer);
+  };
+
+  /*
    * `Alt+Tab` pendant un maintien envoie le `keyup` à l'AUTRE fenêtre : sans ces deux écouteurs, la
    * touche resterait tenue et le plateau glisserait tout seul au retour. `visibilitychange` couvre le
    * changement d'onglet, que `blur` ne signale pas partout.
@@ -171,6 +184,7 @@ export function createInputSystem(): InputSystem {
 
   window.addEventListener("keydown", onKeyDown);
   window.addEventListener("keyup", onKeyUp);
+  window.addEventListener("pointerdown", onPointerDown, { capture: true, passive: true });
   window.addEventListener("blur", onWindowBlur);
   globalThis.document?.addEventListener("visibilitychange", onVisibilityChange);
 
@@ -229,6 +243,7 @@ export function createInputSystem(): InputSystem {
       endCapture();
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("pointerdown", onPointerDown, { capture: true });
       window.removeEventListener("blur", onWindowBlur);
       globalThis.document?.removeEventListener("visibilitychange", onVisibilityChange);
       holdSource.dispose();

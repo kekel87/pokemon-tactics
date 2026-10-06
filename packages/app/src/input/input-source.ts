@@ -30,7 +30,10 @@ export interface InputSourceTracker {
 }
 
 /**
- * @param onChange notified only when the active source actually changes (not on every input).
+ * @param onChange notified on the FIRST observation, then only when the active source actually
+ * changes (not on every input). The first one is published even when it confirms `initial`: the
+ * assumed source is a guess, and `<html>` stays without `data-input-source` until a real input says
+ * which device it is.
  * @param initial the source assumed before anything has been observed.
  */
 export function createInputSourceTracker(
@@ -38,13 +41,15 @@ export function createInputSourceTracker(
   initial: InputSource = InputSource.Pointer,
 ): InputSourceTracker {
   let active = initial;
+  let hasObserved = false;
   let lastX: number | null = null;
   let lastY: number | null = null;
 
   const set = (source: InputSource): void => {
-    if (source === active) {
+    if (hasObserved && source === active) {
       return;
     }
+    hasObserved = true;
     active = source;
     onChange?.(source);
   };

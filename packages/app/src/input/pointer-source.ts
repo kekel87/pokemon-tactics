@@ -103,15 +103,10 @@ export function attachPointerSource(options: PointerSourceOptions): PointerSourc
     return { x: event.clientX - rect.left, y: event.clientY - rect.top };
   };
 
-  const noteSource = (kind: PointerKind): void => {
-    tracker.note(kind === PointerKind.Touch ? InputSource.Touch : InputSource.Pointer);
-  };
-
   const onPointerDown = (event: PointerEvent): void => {
     if (event.button !== 0) {
       return;
     }
-    noteSource(pointerKindOf(event));
     activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     // Keep receiving moves even if the finger slides off the canvas mid-drag. Only for a real
     // pointer: capturing an id the browser never issued (a synthetic tap from the e2e hook) throws

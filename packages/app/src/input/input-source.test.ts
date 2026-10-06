@@ -15,9 +15,28 @@ describe("createInputSourceTracker", () => {
     expect(tracker.current()).toBe(InputSource.Touch);
   });
 
-  it("notifies only on an actual change", () => {
+  it("publishes nothing before any observation", () => {
+    const onChange = vi.fn();
+    createInputSourceTracker(onChange, InputSource.Pointer);
+
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("publishes the first observation even when it confirms the initial source", () => {
     const onChange = vi.fn();
     const tracker = createInputSourceTracker(onChange, InputSource.Pointer);
+
+    tracker.note(InputSource.Pointer);
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledWith(InputSource.Pointer);
+  });
+
+  it("then notifies only on an actual change", () => {
+    const onChange = vi.fn();
+    const tracker = createInputSourceTracker(onChange, InputSource.Pointer);
+    tracker.note(InputSource.Pointer);
+    onChange.mockClear();
 
     tracker.note(InputSource.Pointer);
     expect(onChange).not.toHaveBeenCalled();

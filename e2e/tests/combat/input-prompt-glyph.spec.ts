@@ -153,8 +153,8 @@ test.describe("§4.8 pointeur grossier (au doigt)", () => {
   test("§4.8 la visée directionnelle affiche le suffixe « ×2 »", async ({ page, bootSandbox }) => {
     await bootSandbox(DUEL_DIRECTIONAL);
 
-    await page.getByRole("button", { name: "Attaque", exact: true }).click();
-    await page.getByTestId("move-item").first().click();
+    await page.getByRole("button", { name: "Attaque", exact: true }).tap();
+    await page.getByTestId("move-item").first().tap();
 
     await expect(page.getByTestId(GLYPH)).toHaveAttribute("data-glyph", "act-twice");
     expect(await suffix(page.getByTestId(GLYPH))).toBe('"×2"');
@@ -166,8 +166,8 @@ test.describe("§4.8 pointeur grossier (au doigt)", () => {
   }) => {
     await bootSandbox(DUEL);
 
-    await page.getByRole("button", { name: "Attaque", exact: true }).click();
-    await page.getByTestId("move-item").first().click();
+    await page.getByRole("button", { name: "Attaque", exact: true }).tap();
+    await page.getByTestId("move-item").first().tap();
 
     // « Le tap, tu le remplaces partout » (demande humaine 2026-08-24) : la main du pack de curseurs
     // remplace celle d'input-prompts, ici comme dans la légende de contrôles. La FEUILLE et sa
@@ -181,8 +181,8 @@ test.describe("§4.8 pointeur grossier (au doigt)", () => {
   test("§4.8 une phase à geste simple n'affiche pas de suffixe", async ({ page, bootSandbox }) => {
     await bootSandbox(DUEL);
 
-    await page.getByRole("button", { name: "Attaque", exact: true }).click();
-    await page.getByTestId("move-item").first().click(); // Griffe → ciblage, un seul tap
+    await page.getByRole("button", { name: "Attaque", exact: true }).tap();
+    await page.getByTestId("move-item").first().tap(); // Griffe → ciblage, un seul tap
 
     await expect(page.getByTestId(GLYPH)).toHaveAttribute("data-glyph", "act");
     expect(await suffix(page.getByTestId(GLYPH))).toBe("none");

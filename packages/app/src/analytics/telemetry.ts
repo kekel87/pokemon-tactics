@@ -314,7 +314,10 @@ function screenBucket(): string {
   return NARROW_SCREEN_BUCKET;
 }
 
-/** Source d'entrée active, telle que l'`input-system` la publie sur la racine du document. */
+/**
+ * Source d'entrée active, telle que l'`input-system` la publie sur la racine du document. `null` tant
+ * que le joueur n'a fait aucun geste.
+ */
 function activeInputSource(): string | null {
   return document.documentElement.dataset.inputSource ?? null;
 }

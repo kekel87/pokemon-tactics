@@ -1,9 +1,16 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { CapturedInput } from "./bindings-store.js";
+import { InputSource } from "./input-source.js";
 import { createInputSystem, type InputSystem } from "./input-system.js";
 
+const handlers = new Map<string, (event: unknown) => void>();
+
+function pointerDown(event: Partial<PointerEvent>): void {
+  handlers.get("pointerdown")?.({ button: 0, pointerType: "mouse", ...event });
+}
+
 function stubWindow(): (event: Partial<KeyboardEvent>) => void {
-  const handlers = new Map<string, (event: unknown) => void>();
+  handlers.clear();
   vi.stubGlobal("window", {
     addEventListener: (type: string, handler: (event: unknown) => void) =>
       handlers.set(type, handler),
@@ -144,5 +151,48 @@ describe("mode capture (plan 186)", () => {
     system.beginCapture(() => undefined);
 
     expect(first).toEqual([null]);
+  });
+});
+
+describe("relevé de la source pointeur sur toute la page (plan 229)", () => {
+  it("note le doigt sur un pointerdown tactile", () => {
+    stubWindow();
+    system = createInputSystem();
+
+    pointerDown({ pointerType: "touch" });
+
+    expect(system.tracker.current()).toBe(InputSource.Touch);
+  });
+
+  it.each(["mouse", "pen"])("note la souris sur un pointerdown %s", (pointerType) => {
+    const press = stubWindow();
+    system = createInputSystem();
+    press({ code: "KeyQ" });
+
+    pointerDown({ pointerType });
+
+    expect(system.tracker.current()).toBe(InputSource.Pointer);
+  });
+
+  it("ignore un bouton autre que le principal", () => {
+    const press = stubWindow();
+    system = createInputSystem();
+    press({ code: "KeyQ" });
+
+    pointerDown({ pointerType: "touch", button: 2 });
+
+    expect(system.tracker.current()).toBe(InputSource.Keyboard);
+  });
+
+  it("n'écoute plus après dispose", () => {
+    stubWindow();
+    system = createInputSystem();
+    const tracker = system.tracker;
+    system.dispose();
+    system = null;
+
+    pointerDown({ pointerType: "touch" });
+
+    expect(tracker.current()).toBe(InputSource.Pointer);
   });
 });
