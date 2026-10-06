@@ -202,6 +202,7 @@ Tu ne peux pas lancer d'agent — l'orchestrateur (`/publish`) lance `wiki-keepe
 - Ajouter entrée `vYYYY.MM.XX` dans `Changelog.md` + `Changelog-FR.md`
 - Mettre à jour `Mechanics.md` + `Mécaniques.md` si nouvelles mécaniques
 - Mettre à jour `Home.md` + `Accueil.md` si liens distribution changent
+- Mettre à jour `Roadmap.md` + `Feuille-de-route.md` depuis `docs/roadmap.md` (« où on en est » à la version publiée) — **à chaque release**, sans sujet interne ni chiffre de télémétrie
 
 Le wiki étant un repo séparé, signaler à humain les fichiers modifiés + commit msg suggéré `wiki: vYYYY.MM.XX content sync — <highlights>`.
 

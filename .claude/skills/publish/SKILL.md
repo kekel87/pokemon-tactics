@@ -51,7 +51,7 @@ Un subagent ne peut ni poser de question à l'humain ni lancer d'autres agents. 
 
 **Post-publish (main loop)** :
 - 🔴 **AFFICHER LE DEVLOG ITCH VERBATIM — OBLIGATOIRE.** Le devlog markdown généré en Phase 2 doit être **collé intégralement en chat dans un bloc de code** (titre, type, date, visibility, puis le body markdown complet). NE JAMAIS le résumer, paraphraser ou renvoyer vers le rapport de l'agent : l'humain doit pouvoir le copier-coller directement dans le dashboard itch.io. Récidive connue (feedback humain répété).
-- Lance l'agent `wiki-keeper` en background avec le brief de la synthèse (sync Changelog/Mechanics/Home EN+FR).
+- Lance l'agent `wiki-keeper` en background avec le brief de la synthèse (sync Changelog/Mechanics/Home **et Roadmap/Feuille-de-route** EN+FR, alignées sur `docs/roadmap.md` sans sujet interne ni chiffre de télémétrie). La Roadmap manquait à cette liste et est restée figée de v2026.7.2 à v2026.10.2.
 
 ## Garanties
 
