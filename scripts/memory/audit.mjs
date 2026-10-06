@@ -33,7 +33,7 @@ const LONGUEUR_RECOPIE = 80;
 const MOTS_GENERIQUES = new Set(
   (
     "decision plan backlog agenda historique resolu resolue question ouverte revision " +
-    "reflexion statut feedback recette idee bis fait maj"
+    "reflexion statut feedback retour traite recette idee bis fait maj"
   ).split(" "),
 );
 /** Un nom réduit à un seul mot distinctif ne se compare à rien de façon fiable. */

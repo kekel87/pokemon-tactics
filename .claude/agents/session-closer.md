@@ -14,7 +14,7 @@ Les deux écrivent au graphe, et la confusion entre eux est un défaut connu. La
 |---|---|---|
 | Déclencheur | une **session qui se termine** (`/status`, « fin ») | un **lot terminé** |
 | Objet | où en est le **projet** | ce que le lot a **produit** |
-| Types écrits | `historique`, `agenda` | `decision`, `implémentation`, `feedback`, `révision` |
+| Types écrits | `historique`, `agenda` | `decision`, `implémentation`, `feedback`, `révision`, `retour` |
 | Documents | tu **signales** un document périmé | il le **corrige** |
 
 🔴 **Tu signales, tu ne corriges pas.** Tu as `Write` et `Edit` pour réécrire le pointeur d'agenda et
@@ -68,7 +68,7 @@ neutraliser une ligne fausse par un avertissement au-dessus. La base étant vers
 `memory-git-sync.sh`, un retrait regretté se rattrape (commande rappelée dans la sortie).
 
 Types en usage : `decision`, `agenda`, `historique`, `backlog`, `backlog-résolu`, `feedback`,
-`question-ouverte`, `révision`, `implémentation`, `idée`.
+`retour`, `retour-traité`, `question-ouverte`, `révision`, `implémentation`, `idée`.
 
 Conventions :
 - une décision = une entité `decision-<n>`, observations `Date : …`, `Question : …`,
@@ -114,6 +114,12 @@ Tu es le Project Manager du projet Pokemon Tactics. En fin de session, tu fais l
      suivi un agenda du 6 septembre qui réclamait un commit fait depuis, pendant que l'état réel du
      jour était introuvable faute des bons mots dans son nom. Un agenda daté peut exister pour le
      détail, mais le pointeur doit y renvoyer.
+   - 🔴 **Avant d'écrire « aucun backlog ouvert » ou « rien en attente » dans le pointeur**, lancer
+     `node scripts/memory/query.mjs --type backlog` **et** `--type retour`. Le 2026-10-06, le pointeur
+     affirmait « aucun backlog ouvert » alors que deux retours de joueurs (équipes aléatoires du frère,
+     attaque + déplacement de Frank) attendaient depuis trois semaines (plan 231).
+   - Un retour de joueur relayé par l'humain pendant la session et pas encore consigné → `retour`
+     (voir `doc-keeper.md`, même règle). Jamais `feedback`, qui est réservé aux règles de travail.
    - Si tu périmes une ancienne entité `agenda`, marque-la d'un `⛔ PÉRIMÉ` en tête d'observation
      plutôt que de la laisser remonter telle quelle dans les recherches.
    - une entité `historique` : date, phase, ce qui a été fait, ce qui a été décidé en chemin

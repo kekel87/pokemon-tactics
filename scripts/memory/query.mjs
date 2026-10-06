@@ -26,12 +26,14 @@ if (!args.length || args[0] === "--help" || args[0] === "-h") {
 
   query.mjs --open <nom> ...   observations COMPLÈTES d'une ou plusieurs entités
   query.mjs --stats            taille et composition du graphe
+  query.mjs --type <type>      TOUTES les entités d'un type, avec leur première ligne
+      (« --type retour » = les retours de joueurs encore ouverts)
   query.mjs --add <type> <nom> <observation> [obs...]     crée ou complète une entité
   query.mjs --link <de> <relation> <vers>                 relie deux entités ; le verbe
       appartient au vocabulaire FERMÉ de relations.mjs (refus sinon, liste en retour)
   query.mjs --resolve <nom> <observation> [obs...]        SOLDE une entité : consigne
       la ou les observations de clôture ET bascule son type (backlog → backlog-résolu,
-      question-ouverte → question-résolue). Un seul geste : c'est de la séparation des
+      question-ouverte → question-résolue, retour → retour-traité). Un seul geste : c'est de la séparation des
       deux que venait la dérive — voir --retype.
   query.mjs --retype <nom> <type>                         change le type d'une entité
       (bascule brute, sans rien consigner ; préférez --resolve pour solder)
@@ -93,6 +95,7 @@ if (args[0] === "--add") {
 const TYPE_SOLDE = new Map([
   ["backlog", "backlog-résolu"],
   ["question-ouverte", "question-résolue"],
+  ["retour", "retour-traité"],
 ]);
 
 /** Bascule le type ET la ligne `kind='type'` de l'index FTS, que le trigger tient à jour. */
@@ -289,6 +292,31 @@ if (args[0] === "--stats") {
     .prepare("SELECT entity_type t, COUNT(*) c FROM entities GROUP BY t ORDER BY c DESC")
     .all()) {
     console.log(`  ${String(row.c).padStart(5)}  ${row.t}`);
+  }
+  process.exit(0);
+}
+if (args[0] === "--type") {
+  // Une liste exhaustive ne se trouve pas par mots-clés : les retours ouverts du
+  // 2026-09-19 sont restés invisibles parce qu'on les cherchait (plan 231).
+  const type = args[1];
+  if (!type) {
+    console.error("usage : --type <type>");
+    process.exit(1);
+  }
+  const entites = store.db
+    .prepare(
+      "SELECT e.name nom, (SELECT content FROM observations o WHERE o.entity_name = e.name " +
+        "ORDER BY o.id LIMIT 1) premiere, (SELECT content FROM observations o WHERE " +
+        "o.entity_name = e.name AND o.content LIKE 'Source :%' ORDER BY o.id LIMIT 1) source " +
+        "FROM entities e WHERE e.entity_type = ? ORDER BY e.name",
+    )
+    .all(type);
+  console.log(`${entites.length} entité(s) [${type}]`);
+  for (const e of entites) {
+    console.log(`  - ${e.nom} — ${(e.premiere ?? "").slice(0, 160)}`);
+    if (e.source && e.source !== e.premiere) {
+      console.log(`      ${e.source.slice(0, 160)}`);
+    }
   }
   process.exit(0);
 }

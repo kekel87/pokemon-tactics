@@ -92,7 +92,7 @@ gh issue close NUMBER --comment "Duplicate of #XX" --reason "not planned"
 
 ### 6. Synchroniser avec le backlog local
 
-Si un feedback ou bug vient d'une issue GitHub et n'est pas encore dans le graphe (entités `backlog`), le **proposer à l'humain** — 🔴 jamais l'inscrire de sa propre initiative. La formulation attendue : « je l'ai trouvé — on le corrige, ou on le range ? » pour centraliser le suivi.
+Si un feedback ou bug vient d'une issue GitHub et n'est pas encore dans le graphe (entités `retour`, `retour-traité` et `backlog` — `node scripts/memory/query.mjs --type retour`), le **proposer à l'humain** — 🔴 jamais l'inscrire de sa propre initiative. La formulation attendue : « je l'ai trouvé — on le corrige, ou on le range ? » pour centraliser le suivi. S'il dit « on le range » : type **`retour`** (plan 231), avec `Source : issue #NUMBER` et `Date : …` — jamais `feedback`, réservé aux règles de travail.
 
 ## Règles
 

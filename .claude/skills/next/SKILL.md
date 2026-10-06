@@ -43,7 +43,8 @@ node scripts/memory/query.mjs --open <nom-d-entité>
 ```
 
 Types d'entités utiles ici : `agenda` (l'agenda persistant), `historique` (le journal de session),
-`backlog` (dette ouverte), `decision` (les ~930 décisions numérotées), `feedback` (les règles de
+`backlog` (dette ouverte), `retour` (ce que les joueurs ont dit du jeu, encore non traité),
+`decision` (les ~930 décisions numérotées), `feedback` (les règles de
 travail données par l'humain).
 
 🔴 **Le mode recherche tronque les observations.** Dès qu'une entrée compte, relis-la avec `--open`,
@@ -58,6 +59,13 @@ Lis ensuite, seulement si le sujet l'exige : `docs/roadmap.md` (phases), `docs/p
 en cours, puis **une recommandation** claire parmi eux. Une ligne par candidat.
 
 **2. Reporté / à refaire** — les entités `agenda` et `backlog` encore ouvertes. Si rien, le dire.
+Puis une ligne **« Retours ouverts »** : chaque `retour` avec sa source (qui) et sa date.
+
+🔴 **Lister, ne pas chercher** : `node scripts/memory/query.mjs --type retour` et `--type backlog`
+rendent la liste COMPLÈTE. Ne jamais conclure « rien d'ouvert » sur la foi du pointeur ni d'une
+recherche par mots-clés — le 2026-10-06, le pointeur disait « aucun backlog ouvert » pendant que
+deux retours de joueurs (frère, Frank) attendaient depuis trois semaines, rangés dans des types que
+ce skill ne lisait pas (plan 231).
 
 **3. Fait récemment** — 3 à 5 items. Croiser avec `git log -5` pour repérer les incohérences.
 

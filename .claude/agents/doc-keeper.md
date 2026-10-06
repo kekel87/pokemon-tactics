@@ -14,7 +14,7 @@ descriptions interchangeables). La ligne est nette :
 |---|---|---|
 | Déclencheur | un **lot terminé** | une **session qui se termine** (`/status`, « fin ») |
 | Objet | ce que le lot a **produit** | où en est le **projet** |
-| Types écrits | `decision`, `implémentation`, `feedback`, `révision`, `backlog-résolu` | `historique`, `agenda` |
+| Types écrits | `decision`, `implémentation`, `feedback`, `révision`, `backlog-résolu`, `retour`, `retour-traité` | `historique`, `agenda` |
 | Documents | met à jour `docs/` | **signale** un document périmé, ne le corrige pas |
 
 🔴 Tu n'écris **jamais** d'entité `historique` ni `agenda`. Le hook `block-backlog-write.py` refuse
@@ -71,7 +71,9 @@ neutraliser une ligne fausse par un avertissement au-dessus. La base étant vers
 `memory-git-sync.sh`, un retrait regretté se rattrape (commande rappelée dans la sortie).
 
 Types en usage : `decision`, `agenda`, `historique`, `backlog`, `backlog-résolu`, `feedback`,
-`question-ouverte`, `révision`, `implémentation`, `idée`.
+`retour`, `retour-traité`, `question-ouverte`, `révision`, `implémentation`, `idée`.
+
+🔴 **Un retour de joueur → type `retour`, jamais `feedback` / `idée` / `backlog`** (plan 231). Tout ce qu'une personne qui a **joué** dit du jeu — le frère de l'humain, Frank, l'humain en partie libre, une issue GitHub, un commentaire itch.io — se consigne en `retour` avec une ligne `Source : …` et une ligne `Date : …`, puis se solde par `--resolve` (`retour` → `retour-traité`). `feedback` est réservé aux **règles de travail** données par l'humain. Les retours faits **en recette** restent hors du système : ils se traitent dans l'itération du plan en cours. Origine : deux retours rangés en `feedback` et en `idée` sont restés invisibles à `/next` pendant trois semaines.
 
 Conventions :
 - une décision = une entité `decision-<n>`, observations `Date : …`, `Question : …`,
@@ -83,7 +85,8 @@ Conventions :
   `INVALID AAAA-MM-JJ: raison — `, texte d'origine gardé, plus servi par la recherche ni le
   hook), PUIS le fait juste s'ajoute avec `--add`. Jamais un « ⛔ PÉRIMÉ » écrit au-dessus ;
 - un bug résolu se solde avec **`--resolve`**, qui consigne la clôture ET bascule le type
-  (`backlog` → `backlog-résolu`, `question-ouverte` → `question-résolue`) en un seul geste ;
+  (`backlog` → `backlog-résolu`, `question-ouverte` → `question-résolue`, `retour` →
+  `retour-traité`) en un seul geste ;
   on ne supprime rien. 🔴 **Ne jamais se contenter d'ajouter une observation « ✅ RÉSOLU »** :
   l'entrée resterait ouverte pour `--stats` et pour toute reprise de session. C'est exactement
   ce qui est arrivé — le 2026-09-14, **24 entrées de backlog** portaient leur constat de

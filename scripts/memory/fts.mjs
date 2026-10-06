@@ -43,6 +43,7 @@ const POIDS_TYPE = {
   révision: 1.3,
   agenda: 1.2,
   backlog: 1.1,
+  retour: 1.1,
   plan: 1.0,
   historique: 1.0,
   feedback: 1.15,

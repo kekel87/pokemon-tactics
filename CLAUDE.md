@@ -38,6 +38,7 @@ maintenus normalement.
 | `docs/plans/` | Plan en cours avant coder |
 | Graphe, entité `plan-196` | Avant toucher à la télémétrie, au Worker Cloudflare ou à `pnpm stats` |
 | `docs/multiplayer.md` | **Avant tout code réseau/multijoueur** — architecture P2P, protocole, adressage, `NETWORK_VERSION`, déterminisme. Manquait à cette table jusqu'au 2026-09-04 |
+| Graphe, entités `retour` — `node scripts/memory/query.mjs --type retour` | Ce que les joueurs (frère, Frank, issues, itch.io) ont dit du jeu et qui n'est pas traité. À lister à chaque `/next`, et à consigner dès que l'humain relaie un retour — jamais en `feedback` (= règles de travail). Les retours de recette n'y vont pas |
 | Graphe, entités `recette` | Cahier de recette visuelle — avant valider un changement de rendu, avant release |
 | `.claude/rules/e2e.md` | Conventions harness Playwright e2e (fixtures, POMs, seed, hook scène) |
 | `.claude/rules/multi-input.md` | **Avant d'ajouter/déplacer un contrôle d'interface** — les 4 axes obligatoires (clavier, manette, tactile, responsive) + recette de mesure |
