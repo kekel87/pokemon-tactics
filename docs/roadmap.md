@@ -4,6 +4,9 @@
 >
 > **Le raisonnement vit dans le graphe, pas ici.** Ce document liste *quoi*, avec juste assez de
 > contexte pour décider ; le *pourquoi* s'ouvre avec `node scripts/memory/query.mjs --open <entité>`.
+>
+> 🔴 **Dépôt public.** Aucun chiffre de production ici (visites, parties, abandons, appareils, durées) :
+> la télémétrie reste dans le graphe et `pnpm stats`.
 
 ## Où on en est
 
@@ -12,11 +15,7 @@ modifiable sans quitter l'écran de sélection. Avant elle, `v2026.10.1` (espagn
 combat) et la série `v2026.9.x` (multijoueur P2P 2 à 12 joueurs sans compte, niveaux de l'IA, relais
 NAT). Détail dans « Ce qui est fait » ; → graphe : `release-v2026.10.2`.
 
-14 jours de production (plan 212, mi-septembre) : **36 visites · 22 parties commencées · 5 terminées (77 %
-d'abandon) · 21 parties sur 22 contre l'IA · 36 % de tactile**.
-
-🔴 **Le chiffre qui oriente ce document : 21 sur 22 contre l'IA.** Le jeu réellement joué est un jeu
-**solo**. Ce qui sert le solo sert presque toutes les sessions ; ce qui est adjacent au réseau en sert
+🔴 **Le jeu réellement joué est un jeu solo.** Ce qui sert le solo sert presque toutes les sessions ; ce qui est adjacent au réseau en sert
 une poignée.
 
 ## Comment lire
@@ -106,7 +105,6 @@ d'apparition n'indique une priorité.
       cadré depuis son ajout (commit `f805821`, 2026-04-02), aucun retour de playtest. ⚠️ « Passer les
       animations d'attaque » suppose des VFX qui n'existent pas. Durées centralisées
       (`render-babylon/src/constants.ts`), accroche UI en place (`settings-panel.ts`).
-- [ ] **Sauvegarde auto (localStorage)**
 
 ---
 
