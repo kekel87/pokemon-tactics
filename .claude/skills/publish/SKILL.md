@@ -37,13 +37,21 @@ Un subagent ne peut ni poser de question à l'humain ni lancer d'autres agents. 
    sur GitHub à chaque `push` vers `main` et chaque nuit, sans bloquer. C'est la contrepartie de les
    avoir sortis du chemin bloquant — leur verdict compte toujours, il se lit juste ici. Rouge → on
    ne publie pas, on corrige d'abord.
-4. **Rapporte** tag proposé + changelog + résultat CI + verdict e2e, puis s'arrête
+4. **Rapporte** tag proposé + changelog + résultat CI + verdict e2e + **chemin du fichier de notes**, puis s'arrête
 
 **Validation (main loop)** : affiche le rapport, `AskUserQuestion` — l'humain confirme/override tag + changelog. Refus → stop.
+La question nomme la cible en toutes lettres : « publier la release vX sur le dépôt public
+kekel87/pokemon-tactics ? ».
+
+**Publication (main loop, PAS l'agent)** : sur accord, la session principale lance elle-même
+`gh release create vX --title "vX" --notes-file <chemin> --target main`. 🔴 Jamais déléguée au
+`publisher` : la règle par défaut **« Create Public Surface »** du mode auto refuse `gh release
+create` sur un dépôt public dès que l'accord ne vient pas directement de l'humain — une consigne
+transmise à un sous-agent ne compte pas, et la règle `allow` du projet n'y change rien. Refusé ainsi
+deux releases de suite (v2026.10.2, v2026.10.3).
 - 🔴 **LANGUE = ANGLAIS.** Le changelog GitHub ET le devlog itch sont **en anglais** (audience internationale itch/GitHub). NE PAS les traduire en FR. La règle « noms FR officiels » ne concerne QUE la communication chat avec l'humain, PAS les artefacts publiés. Quand tu présentes le changelog pour validation, colle-le **verbatim en anglais** — ne le résume/reformule/traduis pas en FR (une présentation FR a déjà induit une sur-correction erronée).
 
-**Phase 2 — relance du même agent via `SendMessage`** (tag validé dans le message) :
-4. **Publish** via `gh release create vYYYY.MM.XX --notes-file ...` (trigger workflow `itch-deploy`)
+**Phase 2 — relance du même agent via `SendMessage`** (URL de la release déjà publiée dans le message) :
 5. **Watch** workflow `itch-deploy` (`gh run watch`) — report ✅/❌
 6. **Génère devlog itch** (markdown ready-to-paste pour dashboard itch.io)
 7. **Update refs projet** : le graphe de mémoire (entités `historique`, `backlog` → `backlog-résolu`) et `docs/roadmap.md`
