@@ -36,10 +36,16 @@ function makeAtlas(): AtlasIndex {
     ["Attack-South", [frame(10), frame(11)]],
     ["Faint-South", [frame(20), frame(21)]],
     ["Hurt-South", [frame(30)]],
+    ["Shoot-South", [frame(40), frame(41), frame(42)]],
+    ["Charge-South", [frame(50), frame(51)]],
   ]);
   return {
     framesByKey,
     durationsByAnimation: new Map(),
+    hitFrameByAnimation: new Map([
+      ["Shoot", 1],
+      ["Charge", 0],
+    ]),
     atlasWidth: 240,
     atlasHeight: 24,
     footOffsetY: 4,
@@ -137,6 +143,7 @@ describe("PmdAnimationController fallbacks", () => {
     controller.bindAtlas({
       framesByKey: new Map([["Hover-South", [frame(0)]]]),
       durationsByAnimation: new Map(),
+      hitFrameByAnimation: new Map(),
       atlasWidth: 24,
       atlasHeight: 24,
       footOffsetY: 0,
@@ -159,5 +166,153 @@ describe("PmdAnimationController metrics", () => {
     controller.refreshFrameMetrics();
     expect(controller.frameWorldHeight).toBeCloseTo(1);
     expect(controller.frameWorldWidth).toBeCloseTo(1);
+  });
+});
+
+describe("PmdAnimationController impact frame", () => {
+  it("fires onHit when the zero-based hitFrame shows, before the animation completes", () => {
+    const controller = makeController("Idle");
+    const calls: string[] = [];
+    controller.playOnce("Shoot", {
+      onHit: () => calls.push("hit"),
+      onComplete: () => calls.push("complete"),
+    });
+    expect(calls).toEqual([]);
+    controller.tick(100, 0);
+    expect(controller.currentFrame()).toEqual(frame(41));
+    expect(calls).toEqual(["hit"]);
+    controller.tick(100, 0);
+    controller.tick(100, 0);
+    expect(calls).toEqual(["hit", "complete"]);
+  });
+
+  it("fires onHit straight away when the hitFrame is the first frame", () => {
+    const controller = makeController("Idle");
+    let hits = 0;
+    controller.playOnce("Charge", { onHit: () => (hits += 1) });
+    expect(hits).toBe(1);
+    controller.tick(100, 0);
+    controller.tick(100, 0);
+    expect(hits).toBe(1);
+  });
+
+  it("fires onHit with onComplete on the last frame when the animation has no hitFrame", () => {
+    const controller = makeController("Idle");
+    const calls: string[] = [];
+    controller.playOnce("Attack", {
+      onHit: () => calls.push("hit"),
+      onComplete: () => calls.push("complete"),
+    });
+    controller.tick(100, 0);
+    expect(calls).toEqual([]);
+    controller.tick(100, 0);
+    expect(calls).toEqual(["hit", "complete"]);
+  });
+
+  it("drops a pending onHit when another one-shot replaces the animation", () => {
+    const controller = makeController("Idle");
+    let hits = 0;
+    controller.playOnce("Shoot", { onHit: () => (hits += 1) });
+    controller.playOnce("Attack");
+    controller.tick(100, 0);
+    controller.tick(100, 0);
+    expect(hits).toBe(0);
+  });
+});
+
+describe("PmdAnimationController hit-stop", () => {
+  it("holds the attack frame while the hit-stop runs down, then resumes", () => {
+    const controller = makeController("Idle");
+    controller.playOnce("Shoot");
+    controller.tick(100, 0);
+    controller.holdFrame(150);
+    controller.tick(100, 0);
+    expect(controller.currentFrame()).toEqual(frame(41));
+    controller.tick(100, 0);
+    expect(controller.currentFrame()).toEqual(frame(41));
+    controller.tick(100, 0);
+    expect(controller.currentFrame()).toEqual(frame(42));
+  });
+
+  it("freezes the resting loop too (a struck target)", () => {
+    const controller = makeController("Idle");
+    controller.holdFrame(100);
+    controller.tick(100, 0);
+    expect(controller.currentFrame()).toEqual(frame(0));
+    controller.tick(100, 0);
+    expect(controller.currentFrame()).toEqual(frame(1));
+  });
+
+  it("keeps the longer hold when a shorter one comes in", () => {
+    const controller = makeController("Idle");
+    controller.holdFrame(200);
+    controller.holdFrame(50);
+    controller.tick(100, 0);
+    controller.tick(100, 0);
+    expect(controller.currentFrame()).toEqual(frame(0));
+  });
+
+  it("runs the hold down in combat time", () => {
+    const controller = makeController("Idle");
+    controller.holdFrame(100);
+    controller.tick(10, 0, 100);
+    controller.tick(100, 0, 100);
+    expect(controller.currentFrame()).toEqual(frame(1));
+  });
+});
+
+describe("PmdAnimationController white flash", () => {
+  it("shows white for its duration of combat time, then clears", () => {
+    const controller = makeController("Idle");
+    expect(controller.whiteFlashLevel()).toBe(0);
+    controller.flashWhite(100);
+    expect(controller.whiteFlashLevel()).toBe(1);
+    controller.tick(60, 0);
+    expect(controller.whiteFlashLevel()).toBe(1);
+    controller.tick(40, 0);
+    expect(controller.whiteFlashLevel()).toBe(0);
+  });
+
+  it("keeps the longer flash when a shorter one comes in", () => {
+    const controller = makeController("Idle");
+    controller.flashWhite(200);
+    controller.flashWhite(50);
+    controller.tick(100, 0);
+    expect(controller.whiteFlashLevel()).toBe(1);
+  });
+});
+
+describe("PmdAnimationController transient reset", () => {
+  it("returns to the resting pose with no hold, flash or damage blink left", () => {
+    const controller = makeController("Idle");
+    controller.playOnce("Shoot");
+    controller.tick(100, 0);
+    controller.holdFrame(500);
+    controller.flashWhite(500);
+    controller.flashDamage();
+
+    controller.resetTransientEffects();
+
+    expect(controller.currentAnimation).toBe("Idle");
+    expect(controller.currentFrame()).toEqual(frame(0));
+    expect(controller.whiteFlashLevel()).toBe(0);
+    expect(controller.tint()).toEqual({ r: 1, g: 1, b: 1 });
+    controller.tick(100, 0);
+    expect(controller.currentFrame()).toEqual(frame(1));
+  });
+});
+
+describe("PmdAnimationController combat time", () => {
+  it("plays a one-shot on the combat delta", () => {
+    const controller = makeController("Idle");
+    controller.playOnce("Shoot");
+    controller.tick(50, 0, 100);
+    expect(controller.currentFrame()).toEqual(frame(41));
+  });
+
+  it("keeps the resting loop on real time whatever the combat delta", () => {
+    const controller = makeController("Idle");
+    controller.tick(100, 0, 400);
+    expect(controller.currentFrame()).toEqual(frame(1));
   });
 });

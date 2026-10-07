@@ -35,7 +35,9 @@ import { initTelemetry } from "./analytics/telemetry.js";
 import { initBrowserBack } from "./app/browser-back.js";
 import { type Navigate, ScreenManager } from "./app/screen-manager.js";
 import { loadPersistedScreen } from "./app/screen-persistence.js";
+import { atelierBootConfig } from "./atelier-boot.js";
 import { createCombatScreen, mountSandboxStudio } from "./babylon/combat-screen.js";
+import { mountMoveWorkshop } from "./babylon/move-workshop.js";
 import { getLanguage, initLanguage, onLanguageChange } from "./i18n/index.js";
 import { initBindings } from "./input/bindings-store.js";
 import { initInputSystem } from "./input/input-system.js";
@@ -187,7 +189,11 @@ async function boot(root: HTMLElement): Promise<void> {
   // menu principal (la racine sort de toute façon) ; visible seulement sur une reprise directe d'un
   // écran non-racine, où il faut un geste APRÈS le splash.
   initBrowserBack(() => manager.current === "main-menu");
-  if (sandboxEnabled) {
+  if (atelierBootConfig.enabled) {
+    // Atelier des attaques (plan 233, `pnpm dev:atelier`): a dev screen mounted directly, like the
+    // sandbox studio, with no way back to the menu — it is its own app.
+    mountMoveWorkshop(root, atelierBootConfig.config, backend);
+  } else if (sandboxEnabled) {
     // The sandbox studio is mounted directly (not via the manager), so "Back to
     // menu" is a boot-level entry, not a guarded in-app navigation: tear down the
     // studio chrome + battle, then `start` (unguarded) the main menu.

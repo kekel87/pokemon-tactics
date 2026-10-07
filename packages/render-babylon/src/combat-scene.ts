@@ -15,12 +15,14 @@ import type {
   TilePointerSource,
 } from "@pokemon-tactic/render-ports";
 import {
+  combatClock,
   FLYING_GLIDE_CANDIDATES,
   getFlyingAnimationMode,
   getResolvedAtlas,
   isFlyoverTerrain,
   isLiquidGroup,
   loadTiledMap,
+  MAX_ACTION_PAUSE_MS,
   type MovementStep,
   type MovementVerticalMode,
   movementVerticalMode,
@@ -145,6 +147,9 @@ function jumpVerticalProgress(progress: number, ascent: boolean): number {
   const dropStart = 1 - BABYLON_JUMP_VERTICAL_LEAD;
   return easeInQuad(Math.max(0, (progress - dropStart) / BABYLON_JUMP_VERTICAL_LEAD));
 }
+
+/** How often a hidden tab advances the combat clock (no animation frames there, plan 233). */
+const HIDDEN_TAB_TICK_MS = 100;
 
 /** Min world-Y delta that turns a logically-flat move into a stair step (a liquid dip). */
 const LIQUID_STEP_EPSILON = 0.01;
@@ -727,11 +732,11 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
   let lastTime = performance.now();
   // Reused each frame so the shared view-projection matrix is built once, not per sprite.
   const viewProjection = new Matrix();
-  engine.runRenderLoop(() => {
-    const now = performance.now();
-    const deltaMs = now - lastTime;
-    lastTime = now;
-
+  // This scene drives the combat clock (plan 233): every combat animation reads its delta.
+  const clockDriver = combatClock.attach();
+  /** One frame of the combat: advance the clock, then every sprite; `render` paints it. */
+  const advanceFrame = (deltaMs: number, render: boolean): void => {
+    combatClock.frame(clockDriver, deltaMs);
     isoCamera.tick(deltaMs);
 
     camera.getViewMatrix().multiplyToRef(camera.getProjectionMatrix(), viewProjection);
@@ -739,8 +744,36 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       billboard.update(deltaMs, isoCamera.azimuth, viewProjection);
     }
     spriteHud.update();
-    scene.render();
+    if (render) {
+      scene.render();
+    } else {
+      // Glides, shakes and floating texts run on the before-render hook: fire it without painting.
+      scene.onBeforeRenderObservable.notifyObservers(scene);
+    }
+  };
+  const tick = (render: boolean): void => {
+    const now = performance.now();
+    const deltaMs = now - lastTime;
+    lastTime = now;
+    advanceFrame(deltaMs, render);
+  };
+  engine.runRenderLoop(() => {
+    if (!document.hidden) {
+      tick(true);
+    }
   });
+  // A hidden tab gets no animation frames, yet the combat must go on (an AI vs AI or online game in
+  // the background): the clock then advances on a timer, without painting.
+  let hiddenTicker: ReturnType<typeof setInterval> | null = null;
+  const onVisibilityChange = (): void => {
+    if (document.hidden && hiddenTicker === null) {
+      hiddenTicker = setInterval(() => tick(false), HIDDEN_TAB_TICK_MS);
+    } else if (!document.hidden && hiddenTicker !== null) {
+      clearInterval(hiddenTicker);
+      hiddenTicker = null;
+    }
+  };
+  document.addEventListener("visibilitychange", onVisibilityChange);
 
   /**
    * Sink a standing Y onto a liquid tile's floor (plan 166): a grounded mon plants its
@@ -816,7 +849,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       // cut a diagonal through the cliff/water instead of stepping.
       const ascent = to.y >= from.y;
       renderObserver = scene.onBeforeRenderObservable.add(() => {
-        elapsed += scene.getEngine().getDeltaTime();
+        elapsed += combatClock.deltaMs;
         const progress = Math.min(1, elapsed / durationMs);
         if (!midpointFired && progress >= 0.5) {
           midpointFired = true;
@@ -855,6 +888,8 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       isFlying: boolean;
       isGhost: boolean;
       onTileReached?: (tile: { x: number; y: number }) => void;
+      /** Keep the pose already playing (a dash runs on its attack swing) — no Walk / Hop / landing. */
+      keepPose?: boolean;
     },
   ): Promise<void> {
     const last = path.at(-1);
@@ -914,13 +949,16 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       // then again at the tile boundary (destination) so the mode switches as the sprite arrives,
       // not the instant it leaves — matches where the sprite physically is.
       const playFlatCrossing = (terrain: string | undefined): void => {
+        if (options.keepPose) {
+          return;
+        }
         if (isFlying && isFlyoverTerrain(terrain)) {
           entry.billboard.playFirstAvailable(FLYING_GLIDE_CANDIDATES, "Walk");
         } else {
           entry.billboard.setAnimation("Walk");
         }
       };
-      if (isJump) {
+      if (isJump && !options.keepPose) {
         // Cliff up/down (or a flyer clearing a gap): the height-based pose holds for the whole arc —
         // Hop on the ground, glide for a flyer. A stair step / flat move keeps the walk (glide) pose.
         if (getFlyingAnimationMode(movementStep) === "glide") {
@@ -946,7 +984,9 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       previousHeight = stepHeight;
       options.onTileReached?.({ x: to.x, y: to.y });
     }
-    applyLandingRestingAnimation(entry, isFlying, last);
+    if (!options.keepPose) {
+      applyLandingRestingAnimation(entry, isFlying, last);
+    }
     moveEntryToTile(entry, last.x, last.y);
   }
 
@@ -1031,7 +1071,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
         resolve();
       };
       renderObserver = scene.onBeforeRenderObservable.add(() => {
-        elapsed += scene.getEngine().getDeltaTime();
+        elapsed += combatClock.deltaMs;
         const progress = Math.min(1, elapsed / BABYLON_KNOCKBACK_SHAKE_DURATION_MS);
         if (progress >= 1) {
           finish();
@@ -1077,17 +1117,21 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
             isFlying: moveOptions?.isFlying ?? false,
             isGhost: moveOptions?.isGhost ?? false,
             onTileReached: moveOptions?.onTileReached,
+            keepPose: moveOptions?.keepPose ?? false,
           }),
         impactGlide: (tile, impactOptions) =>
           impactGlide(created, tile, impactOptions?.hurt ?? false),
         impactShake: () => impactShake(created),
-        playAttack: (direction, animationName) =>
-          new Promise<void>((resolve) => {
-            created.billboard.setWorldFacing(worldFacingFromDirection(direction));
-            // Fall back to "Attack" when the sprite lacks the category anim (parity).
-            const chosen = created.billboard.hasAnimation(animationName) ? animationName : "Attack";
+        playAttack: (direction, animationName) => {
+          created.billboard.setWorldFacing(worldFacingFromDirection(direction));
+          // Fall back to "Attack" when the sprite lacks the category anim (parity).
+          const chosen = created.billboard.hasAnimation(animationName) ? animationName : "Attack";
+          let landImpact: () => void = () => undefined;
+          const impact = new Promise<void>((resolve) => {
+            landImpact = resolve;
+          });
+          const done = new Promise<void>((resolve) => {
             let settled = false;
-            let timer: ReturnType<typeof setTimeout> | undefined;
             // Bias the lunge nearer so a coplanar front tile can't clip the enlarged
             // attack frame (taller terrain still occludes + X-rays the attacker normally).
             created.billboard.setAttacking(true);
@@ -1097,14 +1141,21 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
               }
               settled = true;
               created.billboard.setAttacking(false);
-              if (timer) {
-                clearTimeout(timer);
-              }
+              // A cut-short animation (safety timer, re-sync) still lands its blow.
+              landImpact();
               resolve();
             };
-            timer = setTimeout(finish, BABYLON_ATTACK_ANIMATION_MAX_MS);
-            created.billboard.playOnce(chosen, { onComplete: finish });
-          }),
+            // The safety net leaves room for the hit-stop, which holds the attacker mid-swing.
+            void combatClock
+              .wait(BABYLON_ATTACK_ANIMATION_MAX_MS + MAX_ACTION_PAUSE_MS)
+              .then(finish);
+            created.billboard.playOnce(chosen, { onComplete: finish, onHit: landImpact });
+          });
+          return { impact, done };
+        },
+        holdFrame: (durationMs) => created.billboard.holdFrame(durationMs),
+        resetPresentation: () => created.billboard.resetPresentation(),
+        flashWhite: (durationMs) => created.billboard.flashWhite(durationMs),
         setActive: (active) => created.billboard.setActive(active),
         setGroundedByGravity: (grounded) => {
           // Land the flyer (stop flapping → ground idle) or let it float again. Runs on every
@@ -1354,7 +1405,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
         label.dispose();
       };
       renderObserver = scene.onBeforeRenderObservable.add(() => {
-        elapsed += scene.getEngine().getDeltaTime();
+        elapsed += combatClock.deltaMs;
         if (elapsed < 0) {
           return;
         }
@@ -1370,8 +1421,17 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       });
       disposeObserver = scene.onDisposeObservable.add(finish);
     },
+    stepFrame: (combatMs) => {
+      combatClock.step(combatMs);
+      advanceFrame(0, false);
+    },
     dispose: () => {
       loadCancelled = true;
+      combatClock.detach(clockDriver);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      if (hiddenTicker !== null) {
+        clearInterval(hiddenTicker);
+      }
       canvas.removeEventListener("wheel", onWheel);
       window.removeEventListener("resize", onResize);
       uninstallE2eSceneHook();

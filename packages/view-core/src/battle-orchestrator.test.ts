@@ -3,6 +3,8 @@ import {
   ActionError,
   ActionKind,
   type BattleEngine,
+  type BattleEvent,
+  BattleEventType,
   type BattleState,
   Direction,
   Grid,
@@ -13,7 +15,8 @@ import {
   TargetingKind,
   Weather,
 } from "@pokemon-tactic/core";
-import { describe, expect, it } from "vitest";
+import { type PresentationCue, PresentationCueKind } from "@pokemon-tactic/render-ports";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   type ActionMenuView,
   type AttackSubmenuView,
@@ -31,6 +34,7 @@ import {
   type TurnClockView,
   type TurnInfoView,
 } from "./battle-orchestrator.js";
+import { CombatSpeed, hitStopMs, setCombatSpeed } from "./combat-pacing.js";
 
 function createFakeTurnClock(durationMs: number) {
   let nowMs = 0;
@@ -147,6 +151,9 @@ function setup(
     /** Refus du moteur au forfait — camp déjà éliminé, ou combat déjà terminé. */
     forfeitRefused?: boolean;
     turnClock?: BattleOrchestratorConfig["turnClock"];
+    submittedEvents?: readonly BattleEvent[];
+    board?: Partial<BoardView>;
+    onPresentationCue?: BattleOrchestratorConfig["onPresentationCue"];
   },
 ): Harness {
   const submitted: Action[] = [];
@@ -176,7 +183,7 @@ function setup(
         return { success: false, events: [], error: ActionError.InvalidAction };
       }
       submitted.push(action);
-      return { success: true, events: [] };
+      return { success: true, events: options?.submittedEvents ?? [] };
     },
     get actionLogLength() {
       return submitted.length;
@@ -207,7 +214,9 @@ function setup(
     clearPreview: () => undefined,
     moveTo: () => undefined,
     moveAlongPath: () => Promise.resolve(),
-    playAttack: () => Promise.resolve(),
+    playAttack: () => ({ impact: Promise.resolve(), done: Promise.resolve() }),
+    holdFrame: () => undefined,
+    flashWhite: () => undefined,
     impactGlide: () => Promise.resolve(),
     impactShake: () => Promise.resolve(),
     setFacing: () => undefined,
@@ -238,6 +247,7 @@ function setup(
       pickerCallbacks = callbacks;
       return { dispose: () => undefined };
     },
+    ...options?.board,
   };
 
   const chrome: BattleChrome = {
@@ -290,6 +300,9 @@ function setup(
         closures.interrupted += 1;
       },
       ...(options?.turnClock === undefined ? {} : { turnClock: options.turnClock }),
+      ...(options?.onPresentationCue === undefined
+        ? {}
+        : { onPresentationCue: options.onPresentationCue }),
     },
     {
       translate: (key) => key,
@@ -1359,5 +1372,319 @@ describe("BattleOrchestrator — chronomètre de tour (plan 202)", () => {
 
     expect(harness.turnClockViews.at(-1)).toBeNull();
     expect(clock.isArmed()).toBe(false);
+  });
+});
+
+const TARGET_ID = "p2-bulbizarre";
+const SECOND_TARGET_ID = "p2-carapuce";
+
+interface Deferred {
+  promise: Promise<void>;
+  resolve: () => void;
+}
+
+function deferred(): Deferred {
+  let resolve: () => void = () => undefined;
+  const promise = new Promise<void>((settle) => {
+    resolve = settle;
+  });
+  return { promise, resolve };
+}
+
+const moveStarted = (moveId = "tackle"): BattleEvent => ({
+  type: BattleEventType.MoveStarted,
+  attackerId: ACTIVE_ID,
+  moveId,
+  direction: Direction.North,
+});
+
+const damageDealt = (
+  targetId: string,
+  effectiveness = 1,
+  extra: { recoil?: boolean } = {},
+): BattleEvent => ({
+  type: BattleEventType.DamageDealt,
+  targetId,
+  amount: 5,
+  effectiveness,
+  ...extra,
+});
+
+interface StagingHarness {
+  log: string[];
+  cues: PresentationCue[];
+  holds: { pokemonId: string; durationMs: number }[];
+  impact: Deferred;
+  done: Deferred;
+  playAttack: ReturnType<typeof vi.fn>;
+}
+
+function stageEvents(events: readonly BattleEvent[]): StagingHarness {
+  const log: string[] = [];
+  const cues: PresentationCue[] = [];
+  const holds: { pokemonId: string; durationMs: number }[] = [];
+  const impact = deferred();
+  const done = deferred();
+  const playAttack = vi.fn(() => ({ impact: impact.promise, done: done.promise }));
+  void impact.promise.then(() => log.push("impact"));
+  void done.promise.then(() => log.push("done"));
+  const destination = { x: 5, y: 4 };
+  const harness = setup([moveAction(destination)], undefined, {
+    submittedEvents: events,
+    onPresentationCue: (cue) => cues.push(cue),
+    board: {
+      playAttack,
+      flashDamage: (id) => log.push(`flashDamage:${id}`),
+      updateHp: (id) => log.push(`updateHp:${id}`),
+      impactGlide: (id) => {
+        log.push(`impactGlide:${id}`);
+        return Promise.resolve();
+      },
+      moveAlongPath: (id, _path, options) => {
+        log.push(options?.keepPose ? `moveAlongPath:${id}:keepPose` : `moveAlongPath:${id}`);
+        return Promise.resolve();
+      },
+      holdFrame: (pokemonId, durationMs) => holds.push({ pokemonId, durationMs }),
+      flashWhite: (id) => log.push(`flashWhite:${id}`),
+    },
+  });
+  for (const [id, position] of [
+    [TARGET_ID, { x: 4, y: 3 }],
+    [SECOND_TARGET_ID, { x: 3, y: 3 }],
+  ] as const) {
+    harness.state.pokemon.set(id, {
+      ...activePokemon(),
+      id,
+      playerId: "player-2",
+      position,
+    } as PokemonInstance);
+  }
+  harness.orchestrator.start();
+  harness.lastActionMenu().onMove();
+  log.length = 0;
+  harness.orchestrator.onTileClick(destination);
+  return { log, cues, holds, impact, done, playAttack };
+}
+
+async function playWholeAttack(events: readonly BattleEvent[]): Promise<StagingHarness> {
+  const staging = stageEvents(events);
+  staging.impact.resolve();
+  staging.done.resolve();
+  await vi.advanceTimersByTimeAsync(5000);
+  return staging;
+}
+
+const STAGING_CUE_KINDS: ReadonlySet<string> = new Set([
+  PresentationCueKind.AttackStart,
+  PresentationCueKind.Impact,
+  PresentationCueKind.Hit,
+  PresentationCueKind.HitStop,
+  PresentationCueKind.AttackEnd,
+]);
+
+function stagingCues(cues: readonly PresentationCue[]): PresentationCue[] {
+  return cues.filter((cue) => STAGING_CUE_KINDS.has(cue.kind));
+}
+
+function hitStops(cues: readonly PresentationCue[]): PresentationCue[] {
+  return cues.filter((cue) => cue.kind === PresentationCueKind.HitStop);
+}
+
+const KNOCKBACK: BattleEvent = {
+  type: BattleEventType.KnockbackApplied,
+  pokemonId: TARGET_ID,
+  from: { x: 4, y: 3 },
+  to: { x: 4, y: 2 },
+};
+
+const WALK: BattleEvent = {
+  type: BattleEventType.PokemonMoved,
+  pokemonId: TARGET_ID,
+  path: [{ x: 4, y: 3 }],
+};
+
+describe("BattleOrchestrator — le coup tombe au bon moment (plan 233)", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    setCombatSpeed(CombatSpeed.Normal);
+    vi.useRealTimers();
+  });
+
+  it("lands a single blow's damage after the impact and before the swing ends", async () => {
+    const staging = stageEvents([moveStarted(), damageDealt(TARGET_ID)]);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(staging.log).toEqual([]);
+
+    staging.impact.resolve();
+    await vi.advanceTimersByTimeAsync(0);
+    staging.done.resolve();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(staging.log.slice(0, 4)).toEqual([
+      "impact",
+      `flashDamage:${TARGET_ID}`,
+      `updateHp:${TARGET_ID}`,
+      "done",
+    ]);
+  });
+
+  it.each([
+    ["a knockback", KNOCKBACK, `impactGlide:${TARGET_ID}`],
+    ["a walk", WALK, `moveAlongPath:${TARGET_ID}`],
+    [
+      "the recoil on the attacker",
+      damageDealt(ACTIVE_ID, 1, { recoil: true }),
+      `flashDamage:${ACTIVE_ID}`,
+    ],
+  ])("waits for the swing to end before %s", async (_label, followUp, marker) => {
+    const staging = stageEvents([moveStarted(), damageDealt(TARGET_ID), followUp]);
+    staging.impact.resolve();
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(staging.log).not.toContain(marker);
+
+    staging.done.resolve();
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(staging.log.indexOf(marker)).toBeGreaterThan(staging.log.indexOf("done"));
+  });
+
+  it("sets a dash off at the impact, running on the swing, and lands its blow on arrival", async () => {
+    const staging = stageEvents([
+      moveStarted("take-down"),
+      {
+        type: BattleEventType.PokemonMoved,
+        pokemonId: ACTIVE_ID,
+        path: [ACTIVE_POSITION, { x: 4, y: 3 }],
+      },
+      damageDealt(TARGET_ID, 2),
+    ]);
+    staging.impact.resolve();
+    await vi.advanceTimersByTimeAsync(1000);
+
+    expect(staging.log.filter((entry) => !entry.startsWith("updateHp:"))).toEqual([
+      "impact",
+      `moveAlongPath:${ACTIVE_ID}:keepPose`,
+      `flashDamage:${TARGET_ID}`,
+    ]);
+    const pauseMs = hitStopMs(2, false);
+    expect(staging.holds).toEqual([
+      { pokemonId: ACTIVE_ID, durationMs: pauseMs },
+      { pokemonId: TARGET_ID, durationMs: pauseMs },
+    ]);
+    staging.done.resolve();
+  });
+
+  it("emits the presentation cues in order, the hit-stop graded by effectiveness", async () => {
+    const staging = await playWholeAttack([moveStarted(), damageDealt(TARGET_ID, 2)]);
+    const pauseMs = hitStopMs(2, false);
+
+    expect(stagingCues(staging.cues)).toEqual([
+      { kind: PresentationCueKind.AttackStart, attackerId: ACTIVE_ID, moveId: "tackle" },
+      { kind: PresentationCueKind.Impact, attackerId: ACTIVE_ID, moveId: "tackle" },
+      { kind: PresentationCueKind.Hit, targetId: TARGET_ID, effectiveness: 2, critical: false },
+      { kind: PresentationCueKind.HitStop, durationMs: pauseMs },
+      { kind: PresentationCueKind.AttackEnd, attackerId: ACTIVE_ID, moveId: "tackle" },
+    ]);
+    expect(staging.holds).toEqual([
+      { pokemonId: ACTIVE_ID, durationMs: pauseMs },
+      { pokemonId: TARGET_ID, durationMs: pauseMs },
+    ]);
+  });
+
+  it("pairs a critical hit with its blow and grades the hit-stop as a critical", async () => {
+    const staging = await playWholeAttack([
+      moveStarted(),
+      { type: BattleEventType.CriticalHit, targetId: TARGET_ID },
+      damageDealt(TARGET_ID, 0.5),
+    ]);
+
+    expect(stagingCues(staging.cues)).toContainEqual({
+      kind: PresentationCueKind.Hit,
+      targetId: TARGET_ID,
+      effectiveness: 0.5,
+      critical: true,
+    });
+    expect(hitStops(staging.cues)).toEqual([
+      { kind: PresentationCueKind.HitStop, durationMs: hitStopMs(0.5, true) },
+    ]);
+  });
+
+  it("holds an area attack once, on its strongest blow, attacker and every target together", async () => {
+    const staging = await playWholeAttack([
+      moveStarted(),
+      damageDealt(TARGET_ID, 1),
+      damageDealt(SECOND_TARGET_ID, 4),
+    ]);
+    const pauseMs = hitStopMs(4, false);
+
+    expect(hitStops(staging.cues)).toEqual([
+      { kind: PresentationCueKind.HitStop, durationMs: pauseMs },
+    ]);
+    expect(staging.holds).toEqual([
+      { pokemonId: ACTIVE_ID, durationMs: pauseMs },
+      { pokemonId: TARGET_ID, durationMs: pauseMs },
+      { pokemonId: SECOND_TARGET_ID, durationMs: pauseMs },
+    ]);
+  });
+
+  it("holds nothing on an immune target", async () => {
+    const staging = await playWholeAttack([moveStarted(), damageDealt(TARGET_ID, 0)]);
+
+    expect(hitStops(staging.cues)).toEqual([]);
+    expect(staging.holds).toEqual([]);
+  });
+
+  it("holds a multi-hit move on its last blow only", async () => {
+    const staging = await playWholeAttack([
+      moveStarted(),
+      damageDealt(TARGET_ID),
+      damageDealt(TARGET_ID),
+      damageDealt(TARGET_ID),
+    ]);
+    const pauseMs = hitStopMs(1, false);
+
+    expect(stagingCues(staging.cues).map((cue) => cue.kind)).toEqual([
+      PresentationCueKind.AttackStart,
+      PresentationCueKind.Impact,
+      PresentationCueKind.Hit,
+      PresentationCueKind.Hit,
+      PresentationCueKind.Hit,
+      PresentationCueKind.HitStop,
+      PresentationCueKind.AttackEnd,
+    ]);
+    expect(staging.holds).toEqual([
+      { pokemonId: ACTIVE_ID, durationMs: pauseMs },
+      { pokemonId: TARGET_ID, durationMs: pauseMs },
+    ]);
+  });
+
+  it("caps the action's total hit-stop at 250 ms", async () => {
+    const staging = await playWholeAttack([
+      moveStarted(),
+      damageDealt(TARGET_ID, 4),
+      damageDealt(SECOND_TARGET_ID, 4),
+      damageDealt(TARGET_ID, 4),
+      damageDealt(SECOND_TARGET_ID, 4),
+    ]);
+    const firstPauseMs = hitStopMs(4, false);
+
+    expect(hitStops(staging.cues)).toEqual([
+      { kind: PresentationCueKind.HitStop, durationMs: firstPauseMs },
+      { kind: PresentationCueKind.HitStop, durationMs: 250 - firstPauseMs },
+    ]);
+  });
+
+  it("skips the swing in Instant speed and flashes the attacker white", async () => {
+    setCombatSpeed(CombatSpeed.Instant);
+    const staging = stageEvents([moveStarted(), damageDealt(TARGET_ID, 4)]);
+    await vi.advanceTimersByTimeAsync(1000);
+
+    expect(staging.playAttack).not.toHaveBeenCalled();
+    expect(staging.log).toContain(`flashWhite:${ACTIVE_ID}`);
+    expect(staging.log).toContain(`flashDamage:${TARGET_ID}`);
+    expect(staging.holds).toEqual([]);
+    expect(stagingCues(staging.cues).at(-1)?.kind).toBe(PresentationCueKind.AttackEnd);
   });
 });

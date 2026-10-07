@@ -32,6 +32,12 @@ interface SpriteState {
   terrain: string | undefined;
 }
 
+/** A battle-log line, paired with the animation a given sprite was playing the instant it was written. */
+export interface LogLineAnimation {
+  text: string;
+  animation: string | null;
+}
+
 /** Page Object for the Babylon combat scene — queries the read-only `__ptE2e__` scene-graph
  *  hook (semantic assertions: mesh count / group / position), never pixels. */
 export class CombatScene {
@@ -214,6 +220,48 @@ export class CombatScene {
         (
           globalThis as { __ptE2e__?: { spriteStates(): SpriteState[] } }
         ).__ptE2e__?.spriteStates() ?? [],
+    );
+  }
+
+  /**
+   * Plan 233 — start pairing every battle-log line with the animation `pokemonId`'s sprite plays at
+   * the very moment the line is written. The log row is appended synchronously by the same
+   * orchestrator beat that drains the HP bar, and a MutationObserver callback runs before the next
+   * rendered frame: the pairing is exact, no timing guess. Read back with {@link logLineAnimations}.
+   */
+  async recordAnimationAtLogLines(pokemonId: string): Promise<void> {
+    await this.page.evaluate((watchedId) => {
+      const host = globalThis as {
+        __ptE2e__?: { spriteStates(): SpriteState[] };
+        __ptLogAnimations__?: LogLineAnimation[];
+      };
+      const recorded: LogLineAnimation[] = [];
+      host.__ptLogAnimations__ = recorded;
+      const selector = '[data-testid="battle-log-entry"]';
+      new MutationObserver((mutations) => {
+        const entries = mutations
+          .flatMap((mutation) => [...mutation.addedNodes])
+          .filter((node): node is HTMLElement => node instanceof HTMLElement)
+          .flatMap((node) =>
+            node.matches(selector) ? [node] : [...node.querySelectorAll(selector)],
+          );
+        if (entries.length === 0) {
+          return;
+        }
+        const animation =
+          host.__ptE2e__?.spriteStates().find((state) => state.pokemonId === watchedId)
+            ?.animation ?? null;
+        for (const entry of entries) {
+          recorded.push({ text: entry.textContent ?? "", animation });
+        }
+      }).observe(document.body, { childList: true, subtree: true });
+    }, pokemonId);
+  }
+
+  /** The lines recorded since {@link recordAnimationAtLogLines}. */
+  logLineAnimations(): Promise<LogLineAnimation[]> {
+    return this.page.evaluate(
+      () => (globalThis as { __ptLogAnimations__?: LogLineAnimation[] }).__ptLogAnimations__ ?? [],
     );
   }
 

@@ -1,3 +1,4 @@
+import { COMBAT_SPEEDS, CombatSpeed, setCombatSpeed } from "@pokemon-tactic/view-core";
 import { DEFAULT_MAP_ID } from "../maps/random-map-id";
 
 const STORAGE_KEY = "pt-settings";
@@ -39,6 +40,11 @@ export interface GameSettings {
    * droite) : les deux conventions sont opposées et le bon défaut dépend du joueur.
    */
   invertRightStick: boolean;
+  /**
+   * Vitesse des combats (plan 233) : réglage d'interface, purement local — il ne touche ni au moteur
+   * ni au réseau, donc il s'applique en direct, y compris en plein combat (menu de combat).
+   */
+  combatSpeed: CombatSpeed;
 }
 
 const DEFAULT_SETTINGS: GameSettings = {
@@ -46,6 +52,7 @@ const DEFAULT_SETTINGS: GameSettings = {
   autoPlacement: true,
   lastMapId: DEFAULT_MAP_ID,
   invertRightStick: false,
+  combatSpeed: CombatSpeed.Normal,
 };
 
 let currentSettings: GameSettings = DEFAULT_SETTINGS;
@@ -77,6 +84,10 @@ function mergeWithDefaults(parsed: Record<string, unknown>): GameSettings {
       writable[key] = value;
     }
   }
+  // Une chaîne ne suffit pas : seule une vitesse connue passe.
+  if (!COMBAT_SPEEDS.includes(merged.combatSpeed)) {
+    merged.combatSpeed = DEFAULT_SETTINGS.combatSpeed;
+  }
   return merged;
 }
 
@@ -100,6 +111,7 @@ function loadSettings(): GameSettings {
 
 export function initSettings(): void {
   currentSettings = loadSettings();
+  setCombatSpeed(currentSettings.combatSpeed);
 }
 
 export function getSettings(): GameSettings {
@@ -108,5 +120,6 @@ export function getSettings(): GameSettings {
 
 export function updateSettings(patch: Partial<GameSettings>): void {
   currentSettings = { ...currentSettings, ...patch };
+  setCombatSpeed(currentSettings.combatSpeed);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(currentSettings));
 }

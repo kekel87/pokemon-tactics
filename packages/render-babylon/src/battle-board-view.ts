@@ -54,7 +54,12 @@ export function createBattleBoardView(
     moveAlongPath: (pokemonId, path, options) =>
       handles.get(pokemonId)?.moveAlongPath(path, options) ?? Promise.resolve(),
     playAttack: (pokemonId, direction, animationName) =>
-      handles.get(pokemonId)?.playAttack(direction, animationName) ?? Promise.resolve(),
+      handles.get(pokemonId)?.playAttack(direction, animationName) ?? {
+        impact: Promise.resolve(),
+        done: Promise.resolve(),
+      },
+    holdFrame: (pokemonId, durationMs) => handles.get(pokemonId)?.holdFrame(durationMs),
+    flashWhite: (pokemonId, durationMs) => handles.get(pokemonId)?.flashWhite(durationMs),
     impactGlide: (pokemonId, tile, options) =>
       handles.get(pokemonId)?.impactGlide(tile, options) ?? Promise.resolve(),
     impactShake: (pokemonId) => handles.get(pokemonId)?.impactShake() ?? Promise.resolve(),

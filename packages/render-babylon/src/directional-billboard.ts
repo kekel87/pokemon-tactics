@@ -12,7 +12,9 @@ import type { Scene } from "@babylonjs/core/scene";
 import {
   type AtlasFrame,
   type AtlasJson,
+  combatClock,
   indexAtlasDurations,
+  indexAtlasHitFrames,
   indexFramesByDirection,
   PmdAnimationController,
   type PmdDirection,
@@ -53,6 +55,7 @@ import {
 } from "./constants.js";
 import { createWaterFoamMaterial, type WaterFoamMaterial } from "./shaders/water-foam-material.js";
 import { SpriteDepthPlugin } from "./sprite-depth-plugin.js";
+import { SpriteFlashPlugin } from "./sprite-flash-plugin.js";
 
 /** Waterline foam band width relative to the shadow diameter (the mon's footprint, ≈ body width). */
 const WATER_FOAM_WIDTH_FACTOR = 1.8;
@@ -68,6 +71,7 @@ interface AtlasBundle {
   texture: Texture;
   framesByKey: Map<string, AtlasFrame[]>;
   durationsByAnimation: Map<string, number[]>;
+  hitFrameByAnimation: Map<string, number>;
   atlasWidth: number;
   atlasHeight: number;
   footOffsetY: number;
@@ -136,6 +140,7 @@ export class DirectionalBillboard {
   private readonly shadowMaterial: StandardMaterial;
   /** Flattens the sprite's depth to its foot point (native occlusion without self-clip). */
   private readonly depthPlugin: SpriteDepthPlugin;
+  private readonly flashPlugin: SpriteFlashPlugin;
   /** Team-coloured X-ray plane drawn only where the sprite is occluded by terrain. */
   private readonly silhouettePlane: Mesh;
   private readonly silhouetteMaterial: StandardMaterial;
@@ -221,6 +226,7 @@ export class DirectionalBillboard {
     // occludes it while its own tile, shadow and equal-height neighbours never clip it.
     this.plane.renderingGroupId = BABYLON_SPRITE_RENDERING_GROUP;
     this.depthPlugin = new SpriteDepthPlugin(this.material);
+    this.flashPlugin = new SpriteFlashPlugin(this.material);
 
     // Flat ground shadow disc under the sprite. Sits just above the tile top.
     this.shadowMaterial = new StandardMaterial("pokemon_shadow_mat", options.scene);
@@ -326,6 +332,7 @@ export class DirectionalBillboard {
       texture,
       framesByKey,
       durationsByAnimation: indexAtlasDurations(atlas.atlasJson.meta.animations),
+      hitFrameByAnimation: indexAtlasHitFrames(atlas.atlasJson.meta.animations),
       atlasWidth: size.width,
       atlasHeight: size.height,
       footOffsetY: atlas.offsets.footOffsetY,
@@ -354,6 +361,7 @@ export class DirectionalBillboard {
     this.controller.bindAtlas({
       framesByKey: bundle.framesByKey,
       durationsByAnimation: bundle.durationsByAnimation,
+      hitFrameByAnimation: bundle.hitFrameByAnimation,
       atlasWidth: bundle.atlasWidth,
       atlasHeight: bundle.atlasHeight,
       footOffsetY: bundle.footOffsetY,
@@ -424,7 +432,10 @@ export class DirectionalBillboard {
     this.controller.setRestingAnimation(animation);
   }
 
-  playOnce(animation: string, options: { freeze?: boolean; onComplete?: () => void } = {}): void {
+  playOnce(
+    animation: string,
+    options: { freeze?: boolean; onComplete?: () => void; onHit?: () => void } = {},
+  ): void {
     this.controller.playOnce(animation, options);
     this.applyFrame();
   }
@@ -453,6 +464,25 @@ export class DirectionalBillboard {
     if (this.controller.flashDamage()) {
       this.applyFrame();
     }
+  }
+
+  /** Back to the resting pose with no transient effect (move workshop replays). */
+  resetPresentation(): void {
+    this.controller.resetTransientEffects();
+    this.attacking = false;
+    this.applyFrame();
+    this.applyTint();
+  }
+
+  /** Hit-stop: hold the current frame for `durationMs` of combat time. */
+  holdFrame(durationMs: number): void {
+    this.controller.holdFrame(durationMs);
+  }
+
+  /** Impact white flash for `durationMs` of combat time. */
+  flashWhite(durationMs: number): void {
+    this.controller.flashWhite(durationMs);
+    this.applyTint();
   }
 
   setPreviewFlash(active: boolean): void {
@@ -512,7 +542,12 @@ export class DirectionalBillboard {
   }
 
   update(deltaMs: number, cameraAzimuth: number, viewProjection: Matrix): void {
-    const { frameChanged } = this.controller.tick(deltaMs, cameraAzimuth);
+    // The resting loop keeps real time — frozen too while the combat clock is paused (scrubbing).
+    const { frameChanged } = this.controller.tick(
+      combatClock.isPaused ? 0 : deltaMs,
+      cameraAzimuth,
+      combatClock.deltaMs,
+    );
     if (frameChanged) {
       this.applyFrame();
     }
@@ -543,6 +578,7 @@ export class DirectionalBillboard {
     const tint = this.controller.tint();
     this.emissiveScratch.set(tint.r, tint.g, tint.b);
     this.material.emissiveColor = this.emissiveScratch;
+    this.flashPlugin.whiteLevel = this.controller.whiteFlashLevel();
   }
 
   /** Point the texture at the current frame sub-rect (V flipped) and refresh the size. */

@@ -31,6 +31,9 @@ d'apparition n'indique une priorité.
 > Présentation et game feel. Sert tous les arrivants, donc surtout les 21 parties sur 22 contre l'IA.
 
 - [ ] **VFX d'attaque — effets visuels des capacités.** 🔴 Le manque le plus visible du jeu.
+      **Lot 1 fait** (plan 233, 2026-10-08 : impact calé sur la HitFrame, micro-pause, vitesse des
+      combats, atelier des attaques `pnpm dev:atelier`). **Restent** : lot 2 (effets : génériques
+      forme × type, puis dédiés) et lot 3 (son) — `decision-1137`.
       L'**effet de la capacité** (flammes, éclair, onde, impact), pas l'animation du Pokemon, qui
       existe. `design-system.md` §89 : *« pas de particules, pas d'effets visuels par type »*.
       `playAttackAnimation` fait avancer le sprite, point — **Lance-Flammes et Vibrobscur tapent pareil

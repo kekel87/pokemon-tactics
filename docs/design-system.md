@@ -441,6 +441,29 @@ Plan 071. Caractères Unicode `♂` / `♀` rendus dans le panneau info (DOM, `u
 | Noir ombre | `#000000` | Ombre ellipse sous sprites (alpha 0.35) |
 | Blanc bordure | `#ffffff` | Bordure cercle sprite (alpha 0.6) |
 
+### Impact d'un coup (plan 233)
+
+Le coup porte à la **frame d'impact** du sprite (`hitFrame` PMDCollab), plus à la fin de l'animation.
+Au même instant : micro-pause (attaquant et cible figés), assombrissement de la cible (le clignotement
+de dégât existant, `DAMAGE_FLASH_*` — gris foncé, pas rouge), pose Hurt (tenue pendant la micro-pause),
+barre de PV et chiffre. Micro-pause dans `packages/view-core/src/combat-pacing.ts` (`hitStopMs`) :
+
+| Efficacité | Micro-pause |
+|---|---|
+| ×0 / ×0,25 | 0 |
+| ×0,5 | 40 ms |
+| ×1 | 90 ms |
+| ×2 | 150 ms |
+| ×4 | 220 ms |
+
+- Critique : max(efficacité, 150 ms). Zone : une seule micro-pause (la plus forte). Multi-coups : au
+  dernier coup seulement. Plafond **250 ms** par action (`MAX_ACTION_PAUSE_MS`).
+- **Flash blanc et secousse d'impact essayés puis retirés en recette** (2026-10-07) : 1 image (17 ms)
+  et 0,06 case d'amplitude, invisibles à vitesse normale. Le flash blanc (`SpriteFlashPlugin`, mélange
+  vers `#ffffff` par uniform) ne sert plus qu'à signaler l'attaquant en *Instantanée* (~200 ms réelles).
+- Toutes les durées sont en **temps de combat nominal** ; l'horloge de combat (`combatClock`) applique
+  la vitesse : *Rapide* ×2, *Instantanée* ×4 sans animation d'attaque ni micro-pause. La boucle de
+  repos (Idle) garde le temps réel.
 ---
 
 ## Écran de victoire — récapitulatif (plan 197)

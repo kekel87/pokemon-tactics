@@ -1,0 +1,374 @@
+@layer components {
+  /* Atelier des attaques (plan 233) : panneau à gauche, scène à droite, chrome de combat masqué. */
+  body[data-atelier="true"] {
+    display: grid;
+    grid-template-columns: minmax(320px, 26rem) 1fr;
+    grid-template-rows: 1fr auto;
+    grid-template-areas:
+      "panel stage"
+      "panel sequence";
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    background: var(--color-bg-base);
+  }
+
+  body[data-atelier="true"] #game-root {
+    grid-area: stage;
+    position: relative;
+    inset: auto;
+    min-width: 0;
+    min-height: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* L'atelier n'a pas d'interface de combat : son panneau est toute l'interface. */
+  body[data-atelier="true"] .ui-screen {
+    display: none;
+  }
+
+  .aw-panel {
+    grid-area: panel;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    min-height: 0;
+    padding: var(--spacing-md);
+    background: var(--color-bg-elevated);
+    border-right: 1px solid var(--color-border-surface);
+    color: var(--color-text-secondary);
+    overflow: hidden;
+  }
+
+  .aw-title {
+    margin: 0;
+    color: var(--color-accent);
+    font-size: var(--font-size-md);
+  }
+
+  .aw-search,
+  .aw-filter {
+    min-height: var(--target-min);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border-surface);
+    color: var(--color-text-primary);
+    font: inherit;
+  }
+
+  .aw-filters,
+  .aw-cast {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+  }
+
+  .aw-filters .aw-filter {
+    flex: 1 1 40%;
+    min-width: 0;
+  }
+
+  .aw-count,
+  .aw-hint {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .aw-list {
+    flex: 1 1 0;
+    min-height: 8rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow-y: auto;
+    border: 1px solid var(--color-border-surface);
+    background: var(--color-bg-surface);
+  }
+
+  .aw-move {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    align-items: center;
+    gap: var(--spacing-sm);
+    width: 100%;
+    min-height: var(--target-min);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: none;
+    border: none;
+    color: var(--color-text-secondary);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .aw-move:hover,
+  .aw-move:focus-visible {
+    background: var(--color-bg-elevated-hover);
+  }
+
+  .aw-move[aria-current="true"] {
+    background: var(--color-bg-elevated-hover);
+    color: var(--color-accent);
+  }
+
+  .aw-type-icon,
+  .aw-category-icon {
+    height: 1.25em;
+    image-rendering: pixelated;
+  }
+
+  .aw-move-pattern {
+    color: var(--color-text-muted);
+  }
+
+  .aw-sheet-title {
+    margin: 0;
+    color: var(--color-text-primary);
+    font-size: var(--font-size-md);
+  }
+
+  .aw-facts {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0 var(--spacing-md);
+    margin: var(--spacing-xs) 0 0;
+  }
+
+  .aw-facts dt {
+    color: var(--color-text-muted);
+  }
+
+  .aw-facts dd {
+    margin: 0;
+    color: var(--color-text-primary);
+  }
+
+
+  .aw-loop,
+  .aw-labelled {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    min-height: var(--target-min);
+  }
+
+  /* Séquence (plan 233) : une feuille d'exposition à la Blender / pistes à la Unity Timeline. */
+  .aw-sequence {
+    grid-area: sequence;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--color-bg-elevated);
+    border-top: 1px solid var(--color-border-surface);
+    color: var(--color-text-secondary);
+  }
+
+  .aw-transport {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  .aw-tracks {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: var(--spacing-md);
+  }
+
+  .aw-track-labels,
+  .aw-track-area {
+    display: grid;
+    grid-auto-rows: 1.75rem;
+  }
+
+  .aw-track-label {
+    display: flex;
+    align-items: center;
+    color: var(--color-text-muted);
+  }
+
+  /* Press and drag anywhere on the tracks to scrub. */
+  .aw-track-area {
+    position: relative;
+    cursor: ew-resize;
+    touch-action: none;
+    user-select: none;
+  }
+
+  .aw-ruler,
+  .aw-lane {
+    position: relative;
+    border-bottom: 1px solid var(--color-border-surface);
+  }
+
+  .aw-lane {
+    background: var(--color-bg-surface);
+  }
+
+  .aw-future {
+    opacity: 0.4;
+  }
+
+  .aw-tick {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    padding-left: var(--spacing-xs);
+    border-left: 1px solid var(--color-border-surface);
+    color: var(--color-text-dim);
+    font-size: var(--font-size-xs);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.75rem;
+  }
+
+  .aw-clip,
+  .aw-frame {
+    position: absolute;
+    top: 15%;
+    height: 70%;
+    box-sizing: border-box;
+    overflow: hidden;
+    background: var(--track-color, var(--color-bg-elevated-hover));
+    border: 1px solid var(--color-border-faint);
+  }
+
+  /* Where the blow lands: a thin line over the frame cells, which stay readable. */
+  .aw-marker {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--color-accent);
+    translate: -50% 0;
+  }
+
+  .aw-marker::after {
+    content: attr(data-label);
+    position: absolute;
+    left: 100%;
+    top: 0;
+    padding-left: var(--spacing-xs);
+    color: var(--color-accent);
+    font-size: var(--font-size-xs);
+    white-space: nowrap;
+  }
+
+  /* A sprite effect on the attacker itself (Instantanée highlight), told apart from the targets'. */
+  .aw-on-attacker {
+    border-style: dashed;
+  }
+
+  /* One colour per track, so each reads at a glance. */
+  .aw-track-attacker {
+    --track-color: var(--color-track-attacker);
+  }
+
+  .aw-track-hitStop {
+    --track-color: var(--color-track-hit-stop);
+  }
+
+  .aw-track-targets {
+    --track-color: var(--color-accent);
+  }
+
+  .aw-track-movement {
+    --track-color: var(--color-track-movement);
+  }
+
+  .aw-track-reaction {
+    --track-color: var(--color-track-reaction);
+  }
+
+  .aw-track-whiteFlash {
+    --track-color: var(--color-track-white-flash);
+  }
+
+  .aw-track-whiteFlash .aw-clip::after {
+    color: var(--color-text-dark);
+  }
+
+  .aw-track-damageFlash {
+    --track-color: var(--color-track-damage-flash);
+  }
+
+  .aw-key {
+    position: absolute;
+    top: 50%;
+    width: 0.75rem;
+    height: 0.75rem;
+    background: var(--track-color, var(--color-accent));
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+
+  .aw-clip::after,
+  .aw-frame::after,
+  .aw-key::after {
+    content: attr(data-label);
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    padding-left: var(--spacing-xs);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-xs);
+    white-space: nowrap;
+    translate: 0 -50%;
+  }
+
+  .aw-clip::after,
+  .aw-frame::after {
+    left: var(--spacing-xs);
+  }
+
+  /* The diamond is rotated: its label is drawn un-rotated next to it. */
+  .aw-key::after {
+    transform: rotate(-45deg);
+    transform-origin: left center;
+    left: 120%;
+    top: -20%;
+  }
+
+  .aw-playhead {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--color-accent);
+    pointer-events: none;
+  }
+
+  /* Same height for the whole bar: the transport glyphs (⏮ ◀ ▶) come from a taller fallback font
+   * than the text buttons, so the height is set, not left to the line box. */
+  .aw-transport .tb-btn {
+    box-sizing: border-box;
+    block-size: max(var(--target-min), 2em);
+    padding-block: 0;
+    line-height: 1;
+  }
+
+  .aw-transport-button {
+    min-width: var(--target-min);
+  }
+
+  .aw-clock {
+    margin-left: auto;
+    color: var(--color-text-primary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .aw-ruler-spacer {
+    display: flex;
+    align-items: center;
+    color: var(--color-text-dim);
+    font-size: var(--font-size-xs);
+  }
+
+  .aw-legend {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+  }
+}

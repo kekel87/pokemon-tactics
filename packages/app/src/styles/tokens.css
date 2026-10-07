@@ -118,6 +118,13 @@
   /* TurnTimeline CT bar (barre de charge et son fond). */
   --color-timeline-ct: #44aaff;
   --color-timeline-ct-bg: #223344;
+  /* Atelier des attaques (plan 233) : une couleur par piste de la séquence. */
+  --color-track-attacker: var(--blue-600);
+  --color-track-hit-stop: var(--gray-600);
+  --color-track-movement: var(--green-700);
+  --color-track-reaction: var(--red-700);
+  --color-track-white-flash: var(--gray-300);
+  --color-track-damage-flash: var(--gray-700);
   --color-text-primary: var(--gray-100);
   --color-text-secondary: var(--gray-200);
   --color-text-muted: var(--gray-400);

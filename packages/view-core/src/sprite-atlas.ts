@@ -11,6 +11,8 @@
 export interface AtlasAnimationDurations {
   /** Per-frame PMD tick counts; length = the animation's frame count. */
   durations?: number[];
+  /** Frame index where the blow lands (PMDCollab AnimData `HitFrame`), on attack animations. */
+  hitFrame?: number;
 }
 
 export interface SpriteFrameTiming {
@@ -36,6 +38,22 @@ export function indexAtlasDurations(
     }
   }
   return durationsByAnimation;
+}
+
+/** Index an atlas's impact frame (`hitFrame`) by animation name, for the attacks that carry one. */
+export function indexAtlasHitFrames(
+  animations: Record<string, AtlasAnimationDurations> | undefined,
+): Map<string, number> {
+  const hitFrameByAnimation = new Map<string, number>();
+  if (!animations) {
+    return hitFrameByAnimation;
+  }
+  for (const [name, meta] of Object.entries(animations)) {
+    if (meta.hitFrame !== undefined) {
+      hitFrameByAnimation.set(name, meta.hitFrame);
+    }
+  }
+  return hitFrameByAnimation;
 }
 
 /**

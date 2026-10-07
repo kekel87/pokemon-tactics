@@ -144,6 +144,7 @@ pokemon-tactics/
 │   │   │   ├── floating-text-content.ts # contenu textes flottants
 │   │   │   ├── movement-animation.ts    # logique animation déplacement
 │   │   │   ├── animation-queue.ts       # AnimationQueue
+│   │   │   ├── combat-pacing.ts         # combatClock : horloge de combat unique (plan 233)
 │   │   │   ├── battle-setup.ts          # BattleSetup
 │   │   │   ├── sandbox-setup.ts         # SandboxSetup
 │   │   │   ├── ai/                      # AiTeamController, DummyAiController
@@ -649,6 +650,14 @@ un par camp, la forme à plat n'ayant qu'un Pokemon de chaque côté.
 
 > Sprite Dummy = sprite PMDCollab `#0000 form 1` (sprite générique).
 > Fix connexe (plan 167) : `dexNumber` propagé sur les entrées Pokemon `custom` — Métamorph (Ditto) reprend sa place #132 dans le picker (décision #702).
+
+### Horloge de combat et vitesse (plan 233)
+
+`combatClock` (`packages/view-core/src/combat-pacing.ts`) est l'**horloge unique** de la mise en scène : images des sprites, glissades, textes flottants, attentes de l'orchestrateur, filet de sécurité d'une attaque. Temps de combat = temps réel × vitesse ; pausable et steppable (`CombatScene.stepFrame`) ; seule la dernière scène la pilote ; elle avance onglet caché ; les minuteries sont liées à leur scène. L'ambiance (vent, scintillement, curseur) reste en temps réel. Réglage « Vitesse des combats » (normale / rapide / instantanée) : local, en direct, sans effet sur le core ni le réseau. L'impact d'une attaque est calé sur la `hitFrame` PMDCollab (`playAttack` expose `impact` et `done`).
+
+### Atelier des attaques (dev seulement, plan 233)
+
+`pnpm dev:atelier ['{"move":"flamethrower","attacker":"charizard","target":"venusaur"}']` (variable Vite `VITE_ATELIER`, `packages/app/src/atelier-boot.ts`, `babylon/move-workshop.ts`, `babylon/move-workshop-timeline.ts`). Écran dédié, scène montée une fois ; rejouer recrée moteur et orchestrateur sur la même scène (pas d'écran de chargement). Liste filtrable (type, catégorie, patron, style = drapeaux), fiche, cibles en formation, séquence type dope sheet avec curseur à traîner (scrub) et ralentis ×0,25 / ×0,1, tous pilotés par `combatClock`.
 
 ---
 

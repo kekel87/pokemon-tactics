@@ -36,6 +36,9 @@ import { AnimationCategory, moveAnimationCategory } from "@pokemon-tactic/data";
 import {
   BattleOutcomeKind,
   getTeamColorByPlayerId,
+  MovementPhase,
+  PresentationCueKind,
+  SpriteEffect,
   type StateChecksumDeps,
   type TilePointerSource,
 } from "@pokemon-tactic/render-ports";
@@ -48,6 +51,7 @@ import {
   buildTimelineView,
   buildWeatherView,
 } from "./battle-views.js";
+import { combatClock, hitStopMs, isInstantCombat, MAX_ACTION_PAUSE_MS } from "./combat-pacing.js";
 import { buildCombatPreviewView, type CombatPreviewResult } from "./combat-preview-view.js";
 import {
   AURA_INDICATOR_SYMBOL,
@@ -245,6 +249,43 @@ const INPUT_CONTEXT_BY_PHASE: Readonly<Record<InputState["phase"], InputContext>
   battle_over: "menu",
 };
 
+/** Displacements that carry the attacker to its target before the blow (dash moves). */
+const DISPLACEMENT_EVENT_TYPES = new Set<string>([
+  BattleEventType.PokemonMoved,
+  BattleEventType.PokemonDashed,
+  BattleEventType.Teleported,
+]);
+
+/**
+ * Instantanée: how long the attacker flashes, so the player still sees who struck — in combat time,
+ * ~200 ms real at the ×4 Instantanée clock.
+ */
+const INSTANT_ATTACKER_HIGHLIGHT_MS = 800;
+
+type DamageDealtEvent = Extract<BattleEvent, { type: typeof BattleEventType.DamageDealt }>;
+type MoveStartedEvent = Extract<BattleEvent, { type: typeof BattleEventType.MoveStarted }>;
+
+/** One blow of a move on one target, with what its impact is graded on. */
+interface Strike {
+  targetId: string;
+  effectiveness: number;
+  critical: boolean;
+}
+
+/** The attack being staged inside one `applyEvents` batch (plan 233). */
+interface AttackStaging {
+  attackerId: string;
+  moveId: string;
+  /** The animation's end, awaited before the next displacement / beat. */
+  done: Promise<void> | null;
+  /** The attack animation is still playing (a dash keeps running on it, not on Walk). */
+  swinging: boolean;
+  /** Blows whose impact still has to play when their DamageDealt comes up. */
+  pendingStrikes: Map<DamageDealtEvent, Strike>;
+  /** Hit-stop left for this action, all targets and hits together. */
+  pauseBudgetMs: number;
+}
+
 const BOARD_EVENT_TYPES = new Set<string>([
   BattleEventType.PokemonMoved,
   BattleEventType.PokemonDashed,
@@ -264,6 +305,24 @@ const BOARD_EVENT_TYPES = new Set<string>([
   BattleEventType.DrewAttention,
   // Interversion (plan 155): re-sync so both swapped mons glide to their new tiles at the swap beat.
   BattleEventType.AlliesSwapped,
+]);
+
+/**
+ * Events that wait for the attack animation in flight to end (plan 233): the blow's own reactions
+ * play during the swing, but every board re-sync (a sprite moving or turning) and every new beat
+ * waits for it — derived from `BOARD_EVENT_TYPES`, so a new re-sync event waits by default.
+ */
+const AFTER_ATTACK_EVENT_TYPES = new Set<string>([
+  ...BOARD_EVENT_TYPES,
+  BattleEventType.MoveStarted,
+  BattleEventType.KnockbackApplied,
+  BattleEventType.KnockbackBlocked,
+  BattleEventType.IceSlideApplied,
+  BattleEventType.TurnEnded,
+  // The KO / revive beats re-sync the board too (syncBoard), which would cut the swing short.
+  BattleEventType.PokemonKo,
+  BattleEventType.PokemonEliminated,
+  BattleEventType.PokemonRevived,
 ]);
 
 function semiInvulnerableDisplay(
@@ -2217,12 +2276,46 @@ export class BattleOrchestrator {
       }
     }
 
-    for (const event of events) {
+    let attack: AttackStaging | null = null;
+
+    for (const [index, event] of events.entries()) {
       if (this.disposed) {
         return;
       }
       if (consumedHazardEvents.has(event)) {
         continue;
+      }
+      if (attack && AFTER_ATTACK_EVENT_TYPES.has(event.type)) {
+        // A new move or the turn's end closes the attack; anything else only waits for its swing.
+        const closes =
+          event.type === BattleEventType.MoveStarted || event.type === BattleEventType.TurnEnded;
+        await (closes ? this.endAttack(attack) : this.finishAttack(attack));
+        if (this.disposed) {
+          return;
+        }
+        if (closes) {
+          attack = null;
+        }
+      }
+      // Damage on the attacker itself (recoil) kicks its Hurt pose: let the swing finish first.
+      if (
+        attack?.done &&
+        event.type === BattleEventType.DamageDealt &&
+        event.targetId === attack.attackerId &&
+        !attack.pendingStrikes.has(event)
+      ) {
+        await this.finishAttack(attack);
+        if (this.disposed) {
+          return;
+        }
+      }
+      // A deferred blow (multi-hit, dash) lands before its number and damage blink show.
+      if (event.type === BattleEventType.DamageDealt) {
+        const strike = attack?.pendingStrikes.get(event);
+        if (attack && strike) {
+          attack.pendingStrikes.delete(event);
+          this.playStrike(attack, strike);
+        }
       }
       this.feedback.report(event);
       if (
@@ -2233,10 +2326,10 @@ export class BattleOrchestrator {
         // Land the flyer(s) just grounded (Gravité zone / Anti-Air) BEFORE the immediate terrain/hazard
         // damage floats, so a mon visibly touches down first instead of dying mid-air.
         this.refreshGravityGrounding();
-        await delay(BATTLE_STEP_DELAY_MS);
+        await combatBeat(BATTLE_STEP_DELAY_MS);
       }
       if (event.type === BattleEventType.DamageDealt && "targetId" in event) {
-        this.board.flashDamage(event.targetId);
+        this.flashDamage(event.targetId);
         const target = this.state.pokemon.get(event.targetId);
         if (target && (hitsByTarget.get(event.targetId) ?? 0) > 1 && event.amount > 0) {
           // Multi-hit: step the bar down one hit at a time, paced to the floating
@@ -2248,7 +2341,7 @@ export class BattleOrchestrator {
           const running = Math.max(0, preHp - event.amount);
           steppedHpByTarget.set(event.targetId, running);
           this.board.updateHp(event.targetId, running, target.maxHp);
-          await delay(BATTLE_TEXT_QUEUE_DELAY_MS);
+          await combatBeat(BATTLE_TEXT_QUEUE_DELAY_MS);
         } else if (target) {
           // Single hit: drain the world HP bar in step with the flash.
           this.board.updateHp(event.targetId, target.currentHp, target.maxHp);
@@ -2257,19 +2350,16 @@ export class BattleOrchestrator {
       if (event.type === BattleEventType.SuperFangApplied) {
         // Croc Fatal deals fixed HP damage without a Damage effect — mirror the single-hit reaction
         // (red flash + bar drain) so it reads as an attack, not a passive HP tick.
-        this.board.flashDamage(event.targetId);
+        this.flashDamage(event.targetId);
         const target = this.state.pokemon.get(event.targetId);
         if (target) {
           this.board.updateHp(event.targetId, target.currentHp, target.maxHp);
         }
       }
       if (event.type === BattleEventType.MoveStarted) {
-        // Face the target and play the move's category animation (plan 122 4c-3).
-        await this.board.playAttack(
-          event.attackerId,
-          event.direction,
-          attackAnimationName(event.moveId),
-        );
+        // Face the target and play the move's category animation (plan 122 4c-3) up to the blow:
+        // its reactions then play during the rest of the swing (plan 233).
+        attack = await this.stageAttack(event, events, index);
         if (this.disposed) {
           return;
         }
@@ -2282,10 +2372,27 @@ export class BattleOrchestrator {
         const mover = this.state.pokemon.get(event.pokemonId);
         // Gravité / Anti-Air: a grounded flyer walks like a land mon (no glide/hover) — mirror the core grounding.
         const moverGrounded = mover !== undefined && isEffectivelyGrounded(this.state, mover);
+        this.config.onPresentationCue?.({
+          kind: PresentationCueKind.Movement,
+          pokemonId: event.pokemonId,
+          phase: MovementPhase.Start,
+        });
         await this.board.moveAlongPath(event.pokemonId, event.path, {
           isFlying: moverTypes.includes(PokemonType.Flying) && !moverGrounded,
           isGhost: moverTypes.includes(PokemonType.Ghost),
           onTileReached: this.entryHazardTickFor(event.pokemonId, hazardTriggersByMover),
+          // A dash runs on its attack swing, set off at the swing's impact (playtest 2026-10-07). The
+          // engine reports the run as an ordinary PokemonMoved: it is the attacker moving mid-attack,
+          // before its blows land.
+          keepPose:
+            attack?.attackerId === event.pokemonId &&
+            attack.pendingStrikes.size > 0 &&
+            attack.swinging,
+        });
+        this.config.onPresentationCue?.({
+          kind: PresentationCueKind.Movement,
+          pokemonId: event.pokemonId,
+          phase: MovementPhase.End,
         });
         if (this.disposed) {
           return;
@@ -2297,8 +2404,18 @@ export class BattleOrchestrator {
       ) {
         // Glide to the pushed tile instead of snapping (plan 123 4d-2). Knockback
         // plays the Hurt pose; the ice slide just drifts.
+        this.config.onPresentationCue?.({
+          kind: PresentationCueKind.Movement,
+          pokemonId: event.pokemonId,
+          phase: MovementPhase.Start,
+        });
         await this.board.impactGlide(event.pokemonId, event.to, {
           hurt: event.type === BattleEventType.KnockbackApplied,
+        });
+        this.config.onPresentationCue?.({
+          kind: PresentationCueKind.Movement,
+          pokemonId: event.pokemonId,
+          phase: MovementPhase.End,
         });
         if (this.disposed) {
           return;
@@ -2319,7 +2436,7 @@ export class BattleOrchestrator {
         }
       } else if (event.type === BattleEventType.SubstituteDamaged) {
         // The doll absorbs the hit: flash it (the floating "-N" comes from feedback).
-        this.board.flashDamage(event.pokemonId);
+        this.flashDamage(event.pokemonId);
       } else if (event.type === BattleEventType.SubstituteBroken) {
         // Doll destroyed: reveal the real sprite again.
         this.board.setSubstitute(event.pokemonId, false);
@@ -2341,7 +2458,7 @@ export class BattleOrchestrator {
         const victim = this.state.pokemon.get(event.pokemonId);
         if (victim) {
           this.board.updateHp(event.pokemonId, victim.currentHp, victim.maxHp);
-          this.board.flashDamage(event.pokemonId);
+          this.flashDamage(event.pokemonId);
         }
       } else if (event.type === BattleEventType.PainSplitApplied) {
         // Balance: both mons settle at the pooled HP. Refresh both bars (one heals, one is chipped).
@@ -2351,13 +2468,13 @@ export class BattleOrchestrator {
             this.board.updateHp(id, mon.currentHp, mon.maxHp);
           }
         }
-        this.board.flashDamage(event.targetId);
+        this.flashDamage(event.targetId);
       } else if (event.type === BattleEventType.EndeavorApplied) {
         // Effort: target HP set down to the caster's. Drain its bar + flash.
         const target = this.state.pokemon.get(event.targetId);
         if (target) {
           this.board.updateHp(event.targetId, target.currentHp, target.maxHp);
-          this.board.flashDamage(event.targetId);
+          this.flashDamage(event.targetId);
         }
       } else if (event.type === BattleEventType.FutureSightStruck) {
         // Prescience landing: drain + flash every occupant of the AoE (KO handled separately).
@@ -2365,7 +2482,7 @@ export class BattleOrchestrator {
           const mon = this.state.pokemon.get(hit.pokemonId);
           if (mon) {
             this.board.updateHp(hit.pokemonId, mon.currentHp, mon.maxHp);
-            this.board.flashDamage(hit.pokemonId);
+            this.flashDamage(hit.pokemonId);
           }
         }
       } else if (
@@ -2380,29 +2497,171 @@ export class BattleOrchestrator {
           this.board.hurtAnimationDurationMs(event.pokemonId),
           DAMAGE_FLASH_TOTAL_MS,
         );
-        await delay(hurtMs);
+        await combatBeat(hurtMs);
         if (this.disposed) {
           return;
         }
+        this.config.onPresentationCue?.({
+          kind: PresentationCueKind.Faint,
+          pokemonId: event.pokemonId,
+        });
         // syncBoard plays the Faint pose (freeze on the last frame); wait its real
         // length so the fall plays out fully before the next beat, falling back
         // to the fixed step delay.
         this.syncBoard();
-        await delay(this.board.koAnimationDurationMs(event.pokemonId) || BATTLE_STEP_DELAY_MS);
+        await combatBeat(this.board.koAnimationDurationMs(event.pokemonId) || BATTLE_STEP_DELAY_MS);
       } else if (event.type === BattleEventType.PokemonRevived) {
         // Vœu Soin (healing-wish): bring the target back / top it off, then let the beat breathe.
         this.syncBoard();
-        await delay(BATTLE_STEP_DELAY_MS);
+        await combatBeat(BATTLE_STEP_DELAY_MS);
       } else if (BOARD_EVENT_TYPES.has(event.type)) {
         this.syncBoard();
-        await delay(BATTLE_STEP_DELAY_MS);
+        await combatBeat(BATTLE_STEP_DELAY_MS);
       }
       // Keep the info panel HP/badges live as damage, status and KO events drain.
       this.refreshInfoPanel();
     }
+    if (attack) {
+      await this.endAttack(attack);
+      if (this.disposed) {
+        return;
+      }
+    }
     this.syncBoard();
     this.refreshInfoPanel();
     this.refreshTileInfo();
+  }
+
+  /**
+   * Plan 233: play a move's animation up to its hit frame. The blow's impact (white flash, shake,
+   * hit-stop) plays right there — unless the attacker first dashes to its target or the move strikes
+   * several times, in which case each blow plays its impact as its DamageDealt comes up.
+   */
+  private async stageAttack(
+    event: MoveStartedEvent,
+    events: readonly BattleEvent[],
+    index: number,
+  ): Promise<AttackStaging> {
+    const { attackerId, moveId } = event;
+    const { strikes, displacedBeforeHit } = collectStrikes(events, index, attackerId);
+    const attack: AttackStaging = {
+      attackerId,
+      moveId,
+      done: null,
+      swinging: false,
+      pendingStrikes: strikes,
+      pauseBudgetMs: MAX_ACTION_PAUSE_MS,
+    };
+    this.config.onPresentationCue?.({ kind: PresentationCueKind.AttackStart, attackerId, moveId });
+    if (isInstantCombat()) {
+      // Instantanée: no swing at all — face the target and land the blow straight away.
+      this.board.setFacing(attackerId, event.direction);
+      this.flashWhite(attackerId, INSTANT_ATTACKER_HIGHLIGHT_MS);
+      // No swing to wait for, but the attack still ends — its cue marks the beat.
+      attack.done = Promise.resolve();
+    } else {
+      const playback = this.board.playAttack(
+        attackerId,
+        event.direction,
+        attackAnimationName(moveId),
+      );
+      attack.done = playback.done;
+      attack.swinging = true;
+      void playback.done.then(() => {
+        attack.swinging = false;
+      });
+      await playback.impact;
+    }
+    this.config.onPresentationCue?.({ kind: PresentationCueKind.Impact, attackerId, moveId });
+    if (displacedBeforeHit) {
+      // A dash sets off on the swing's impact frame (playtest 2026-10-07): the run carries the blow
+      // instead of waiting for the whole swing in place, the swing playing on during the run.
+      attack.done = Promise.resolve();
+    }
+    const struckTargets = new Set([...strikes.values()].map((strike) => strike.targetId));
+    const multiHit = struckTargets.size < strikes.size;
+    if (!multiHit && !displacedBeforeHit) {
+      const landed = [...strikes.values()];
+      strikes.clear();
+      this.playImpact(attack, landed);
+    }
+    return attack;
+  }
+
+  /** A blow whose impact was deferred to its own DamageDealt (multi-hit, dash). */
+  private playStrike(attack: AttackStaging, strike: Strike): void {
+    const moreBlowsOnTarget = [...attack.pendingStrikes.values()].some(
+      (pending) => pending.targetId === strike.targetId,
+    );
+    if (moreBlowsOnTarget) {
+      // An intermediate blow of a multi-hit move: no hit-stop (it would pile up).
+      this.config.onPresentationCue?.({ kind: PresentationCueKind.Hit, ...strike });
+      return;
+    }
+    this.playImpact(attack, [strike]);
+  }
+
+  /**
+   * Land blows at once: the attacker and its targets hold their frame for the strongest blow's
+   * hit-stop, within the action budget. Nothing waits for it: the blow's damage (darkening blink,
+   * Hurt pose, bar, number) lands on the same beat, the Hurt pose itself held by the freeze.
+   */
+  private playImpact(attack: AttackStaging, strikes: readonly Strike[]): void {
+    let pauseMs = 0;
+    for (const strike of strikes) {
+      this.config.onPresentationCue?.({ kind: PresentationCueKind.Hit, ...strike });
+      pauseMs = Math.max(pauseMs, hitStopMs(strike.effectiveness, strike.critical));
+    }
+    pauseMs = Math.min(pauseMs, attack.pauseBudgetMs);
+    if (pauseMs <= 0) {
+      return;
+    }
+    attack.pauseBudgetMs -= pauseMs;
+    this.config.onPresentationCue?.({ kind: PresentationCueKind.HitStop, durationMs: pauseMs });
+    this.board.holdFrame(attack.attackerId, pauseMs);
+    for (const strike of strikes) {
+      this.board.holdFrame(strike.targetId, pauseMs);
+    }
+  }
+
+  /** Darkening damage blink (+ Hurt pose) on a Pokémon, announced to the presentation cues. */
+  private flashDamage(pokemonId: string): void {
+    this.board.flashDamage(pokemonId);
+    this.cueSpriteEffect(pokemonId, SpriteEffect.DamageFlash, DAMAGE_FLASH_TOTAL_MS);
+  }
+
+  private flashWhite(pokemonId: string, durationMs: number): void {
+    this.board.flashWhite(pokemonId, durationMs);
+    this.cueSpriteEffect(pokemonId, SpriteEffect.WhiteFlash, durationMs);
+  }
+
+  private cueSpriteEffect(pokemonId: string, effect: SpriteEffect, durationMs: number): void {
+    this.config.onPresentationCue?.({
+      kind: PresentationCueKind.SpriteEffect,
+      pokemonId,
+      effect,
+      durationMs,
+    });
+  }
+
+  /** Wait for the attack animation in flight to end. */
+  private async finishAttack(attack: AttackStaging): Promise<void> {
+    const done = attack.done;
+    attack.done = null;
+    await done;
+  }
+
+  /**
+   * The attack's whole action is over — swing, dash and every blow — and its cue fires. Not at the
+   * swing's end: a dash move lands its blow after the swing, at the end of the run.
+   */
+  private async endAttack(attack: AttackStaging): Promise<void> {
+    await this.finishAttack(attack);
+    this.config.onPresentationCue?.({
+      kind: PresentationCueKind.AttackEnd,
+      attackerId: attack.attackerId,
+      moveId: attack.moveId,
+    });
   }
 
   /** Re-sync every billboard with engine state (positions, facing, KO, semi-invulnerable). */
@@ -2491,7 +2750,7 @@ export class BattleOrchestrator {
         ) {
           runningHp = Math.max(0, runningHp - event.damage);
           this.board.updateHp(mover.id, runningHp, mover.maxHp);
-          this.board.flashDamage(mover.id);
+          this.flashDamage(mover.id);
         }
       }
     };
@@ -2813,7 +3072,7 @@ export class BattleOrchestrator {
 }
 
 /** The one-shot billboard animation for a move's category (Shoot/Charge/Attack). */
-function attackAnimationName(moveId: string): string {
+export function attackAnimationName(moveId: string): string {
   const category = moveAnimationCategory[moveId] ?? AnimationCategory.Contact;
   if (category === AnimationCategory.Shoot) {
     return "Shoot";
@@ -2881,6 +3140,49 @@ function positionEquals(a: Position | undefined, b: Position): boolean {
   return a !== undefined && a.x === b.x && a.y === b.y;
 }
 
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+/** A pacing wait between combat beats, on the combat clock (plan 233). */
+function combatBeat(ms: number): Promise<void> {
+  return combatClock.wait(ms);
+}
+
+/**
+ * The blows of the move started at `startIndex`: its DamageDealt events (recoil excluded) up to the
+ * next move or the turn's end, each paired with the CriticalHit the engine emits just before it.
+ * Also tells whether the ATTACKER is carried to its target (dash) before the first blow.
+ */
+function collectStrikes(
+  events: readonly BattleEvent[],
+  startIndex: number,
+  attackerId: string,
+): { strikes: Map<DamageDealtEvent, Strike>; displacedBeforeHit: boolean } {
+  const strikes = new Map<DamageDealtEvent, Strike>();
+  const criticalTargets = new Set<string>();
+  let displacedBeforeHit = false;
+  for (let cursor = startIndex + 1; cursor < events.length; cursor++) {
+    const event = events[cursor];
+    if (!event) {
+      break;
+    }
+    if (event.type === BattleEventType.MoveStarted || event.type === BattleEventType.TurnEnded) {
+      break;
+    }
+    if (
+      strikes.size === 0 &&
+      DISPLACEMENT_EVENT_TYPES.has(event.type) &&
+      "pokemonId" in event &&
+      event.pokemonId === attackerId
+    ) {
+      displacedBeforeHit = true;
+    }
+    if (event.type === BattleEventType.CriticalHit) {
+      criticalTargets.add(event.targetId);
+    } else if (event.type === BattleEventType.DamageDealt && !event.recoil) {
+      strikes.set(event, {
+        targetId: event.targetId,
+        effectiveness: event.effectiveness,
+        critical: criticalTargets.delete(event.targetId),
+      });
+    }
+  }
+  return { strikes, displacedBeforeHit };
 }

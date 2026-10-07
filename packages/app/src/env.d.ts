@@ -3,6 +3,8 @@
 interface ImportMetaEnv {
   readonly VITE_SANDBOX?: string;
   readonly VITE_SANDBOX_CONFIG?: string;
+  readonly VITE_ATELIER?: string;
+  readonly VITE_ATELIER_CONFIG?: string;
   readonly VITE_E2E?: string;
 }
 

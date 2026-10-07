@@ -494,7 +494,7 @@ function onlinePlacementFor(
  * is built and which AI hook is installed (`wireTurnReady`). Tile clicks +
  * Escape/Space are routed to the orchestrator (the latter via the AbortController).
  */
-function runBattle(options: {
+export function runBattle(options: {
   backend: RendererBackend;
   combat: CombatScene;
   stage: GameStage;
@@ -587,6 +587,8 @@ function runBattle(options: {
   onBattleClosed?: () => void;
   /** Temps de jeu cumulé de la partie, pour la durée du récapitulatif de victoire (plan 197). */
   getElapsedMs: () => number;
+  /** Les temps forts de la mise en scène (plan 233) — l'atelier des attaques en trace sa séquence. */
+  onPresentationCue?: BattleOrchestratorConfig["onPresentationCue"];
 }): BattleOrchestrator {
   const {
     backend,
@@ -615,6 +617,7 @@ function runBattle(options: {
     onActionCommitted,
     onBattleClosed,
     getElapsedMs,
+    onPresentationCue,
   } = options;
   const board = backend.createBattleBoardView(combat, handles);
   const inputSystem = getInputSystem();
@@ -1007,6 +1010,7 @@ function runBattle(options: {
         onBattleClosed?.();
       },
       onActionCommitted,
+      onPresentationCue,
       getElapsedMs,
     },
     presentationContext,
@@ -1587,7 +1591,7 @@ function runResolvedBattle(options: {
  * is `{teamCount}v{maxPokemonPerTeam}`), and the number drives the team colour and the X-ray
  * silhouette. Hard-coding two teams silently repainted players 3+ in the enemy's colour.
  */
-function spawnBillboardsFromState(
+export function spawnBillboardsFromState(
   combat: CombatScene,
   state: BattleState,
 ): Map<string, CombatPokemonHandle> {
@@ -1821,7 +1825,7 @@ const SANDBOX_DEFAULT_MAP_URL = "assets/maps/dev/sandbox-flat.tmj";
  * input system is absent (a boot path that never called `initInputSystem`), which leaves the scene
  * inert rather than half-wired.
  */
-function attachPointerSourceForScene(
+export function attachPointerSourceForScene(
   canvas: HTMLCanvasElement,
   scene: CombatScene,
 ): PointerSource | null {

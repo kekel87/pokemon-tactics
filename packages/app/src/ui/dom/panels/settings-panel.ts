@@ -1,3 +1,4 @@
+import { CombatSpeed, nextCombatSpeed } from "@pokemon-tactic/view-core";
 import { countAction, TelemetryAction } from "../../../analytics/telemetry";
 import { getLanguage, nextLanguage, setLanguage, t } from "../../../i18n";
 import {
@@ -7,8 +8,15 @@ import {
   toggleFullscreen,
 } from "../../../platform/fullscreen";
 import { shouldOfferIosInstall } from "../../../platform/pwa";
+import { getSettings, updateSettings } from "../../../settings";
 import { el, menuButton } from "../screens/elements";
 import { EMBEDDED_PANEL_CLASS, type Panel, type PanelOptions } from "./panel";
+
+const COMBAT_SPEED_ACTION: Record<CombatSpeed, TelemetryAction> = {
+  [CombatSpeed.Normal]: TelemetryAction.CombatSpeedNormal,
+  [CombatSpeed.Fast]: TelemetryAction.CombatSpeedFast,
+  [CombatSpeed.Instant]: TelemetryAction.CombatSpeedInstant,
+};
 
 export interface SettingsPanelOptions extends PanelOptions {
   /** Ouvrir les Contrôles — un écran de la FSM côté Réglages, un niveau de plus côté modale. */
@@ -99,6 +107,21 @@ export function createSettingsPanel(options: SettingsPanelOptions): Panel {
       hint.textContent = t("settings.installAppIosHint");
       rows.append(row(t("settings.installApp"), hint));
     }
+
+    // Vitesse des combats (plan 233) : bascule à trois crans, appliquée en direct — y compris depuis
+    // le menu de combat, puisque ce n'est qu'un réglage d'affichage.
+    const combatSpeedToggle = menuButton(
+      t(`settings.combatSpeed.${getSettings().combatSpeed}`),
+      () => {
+        const speed = nextCombatSpeed(getSettings().combatSpeed);
+        // Réglages réellement touchés (plan 196) : le cran choisi, pour savoir lequel reste.
+        countAction(COMBAT_SPEED_ACTION[speed]);
+        updateSettings({ combatSpeed: speed });
+        combatSpeedToggle.textContent = t(`settings.combatSpeed.${getSettings().combatSpeed}`);
+      },
+    );
+    combatSpeedToggle.dataset.testid = "setting-combat-speed";
+    rows.append(row(t("settings.combatSpeed"), combatSpeedToggle));
 
     const controls = menuButton(t("settings.configure"), onOpenControls);
     controls.dataset.testid = "setting-controls";

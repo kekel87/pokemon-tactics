@@ -78,6 +78,10 @@ export const TelemetryAction = {
   /** Réglages réellement touchés. */
   LanguageChange: "language-change",
   FullscreenToggle: "fullscreen-toggle",
+  /** La vitesse des combats (plan 233) : un compteur par cran choisi, pour savoir lequel reste. */
+  CombatSpeedNormal: "combat-speed-normal",
+  CombatSpeedFast: "combat-speed-fast",
+  CombatSpeedInstant: "combat-speed-instant",
   /** Ce que le plan 187 a livré sert-il, et par quelle sortie part-on ? */
   CombatMenuOpen: "combat-menu-open",
   CombatMenuRestart: "combat-menu-restart",

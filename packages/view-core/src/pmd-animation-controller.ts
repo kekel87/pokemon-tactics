@@ -56,6 +56,8 @@ export interface AtlasFrame {
 /** Per-animation PMD `<Durations>` (per-frame tick counts) keyed by animation name. */
 export interface AtlasAnimationMeta {
   durations?: number[];
+  /** Frame index where the blow lands (PMDCollab AnimData `HitFrame`), on attack animations. */
+  hitFrame?: number;
 }
 
 /** Minimal atlas JSON shape the controller indexes (frames + per-animation meta). */
@@ -71,6 +73,8 @@ export interface AtlasJson {
 export interface AtlasIndex {
   framesByKey: Map<string, AtlasFrame[]>;
   durationsByAnimation: Map<string, number[]>;
+  /** Impact frame per attack animation (`hitFrame`); absent → the blow lands on the last frame. */
+  hitFrameByAnimation: Map<string, number>;
   atlasWidth: number;
   atlasHeight: number;
   footOffsetY: number;
@@ -165,6 +169,7 @@ export function synthesizeFlyingIdle(framesByKey: Map<string, AtlasFrame[]>): vo
 export class PmdAnimationController {
   private framesByKey = new Map<string, AtlasFrame[]>();
   private durationsByAnimation = new Map<string, number[]>();
+  private hitFrameByAnimation = new Map<string, number>();
   private atlasWidth = 1;
   private atlasHeight = 1;
   private footOffsetY: number;
@@ -178,7 +183,11 @@ export class PmdAnimationController {
   private oneShotComplete = false;
   private freezeOnComplete = false;
   private onAnimationComplete: (() => void) | null = null;
+  private onAnimationHit: (() => void) | null = null;
   private frameElapsedMs = 0;
+  /** Hit-stop: the displayed frame holds (no frame advance) while this runs down. */
+  private holdRemainingMs = 0;
+  private whiteFlashRemainingMs = 0;
 
   private pixelsPerWorldUnit: number;
   private frameWorldWidthValue = 1;
@@ -227,6 +236,7 @@ export class PmdAnimationController {
   bindAtlas(index: AtlasIndex): void {
     this.framesByKey = index.framesByKey;
     this.durationsByAnimation = index.durationsByAnimation;
+    this.hitFrameByAnimation = index.hitFrameByAnimation;
     this.atlasWidth = index.atlasWidth;
     this.atlasHeight = index.atlasHeight;
     this.footOffsetY = index.footOffsetY;
@@ -330,13 +340,53 @@ export class PmdAnimationController {
   /**
    * Play a one-shot animation (Attack/Shoot/Hop/Hurt/Charge…). On its last frame it
    * reverts to the resting animation, unless `freeze` (Faint/KO) keeps it on the
-   * last frame. `onComplete` fires once when the last frame is reached.
+   * last frame. `onComplete` fires once when the last frame is reached. `onHit` fires
+   * once when the animation's impact frame (`hitFrame`) shows — or with `onComplete`
+   * when the animation carries none.
    */
-  playOnce(animation: string, options: { freeze?: boolean; onComplete?: () => void } = {}): void {
+  playOnce(
+    animation: string,
+    options: { freeze?: boolean; onComplete?: () => void; onHit?: () => void } = {},
+  ): void {
     this.startAnimation(animation, {
       freezeOnComplete: options.freeze ?? false,
       onComplete: options.onComplete ?? null,
     });
+    this.onAnimationHit = options.onHit ?? null;
+    this.fireHitIfReached();
+  }
+
+  /** Back to the resting pose with no hit-stop, flash or blink running (move workshop replays). */
+  resetTransientEffects(): void {
+    this.holdRemainingMs = 0;
+    this.whiteFlashRemainingMs = 0;
+    this.flashTicksLeft = 0;
+    this.flashElapsedMs = 0;
+    this.startAnimation(this.restingAnimation, { freezeOnComplete: false, onComplete: null });
+  }
+
+  /** Hit-stop: hold the displayed frame for `durationMs` of combat time. */
+  holdFrame(durationMs: number): void {
+    this.holdRemainingMs = Math.max(this.holdRemainingMs, durationMs);
+  }
+
+  /** Flash the sprite white for `durationMs` of combat time (Instantanée: shows who struck). */
+  flashWhite(durationMs: number): void {
+    this.whiteFlashRemainingMs = Math.max(this.whiteFlashRemainingMs, durationMs);
+  }
+
+  /** 1 while the white flash shows, else 0 — the renderer blends the sprite toward white. */
+  whiteFlashLevel(): number {
+    return this.whiteFlashRemainingMs > 0 ? 1 : 0;
+  }
+
+  private fireHitIfReached(): void {
+    const hitFrame = this.hitFrameByAnimation.get(this.animation);
+    if (this.onAnimationHit && hitFrame !== undefined && this.currentFrameIndex >= hitFrame) {
+      const onHit = this.onAnimationHit;
+      this.onAnimationHit = null;
+      onHit();
+    }
   }
 
   /** Play the first available candidate (looping), else the fallback. Used for the flying glide. */
@@ -355,6 +405,7 @@ export class PmdAnimationController {
     this.oneShotComplete = false;
     this.freezeOnComplete = options.freezeOnComplete;
     this.onAnimationComplete = options.onComplete;
+    this.onAnimationHit = null;
     this.currentFrameIndex = 0;
     this.frameElapsedMs = 0;
   }
@@ -453,7 +504,7 @@ export class PmdAnimationController {
    * holds each frame for its own PMD duration (frame-rate independent), and a KO'd
    * sprite only keeps playing its Faint one-shot until it freezes.
    */
-  tick(deltaMs: number, cameraAzimuth: number): PmdTickResult {
+  tick(deltaMs: number, cameraAzimuth: number, combatDeltaMs = deltaMs): PmdTickResult {
     let frameChanged = false;
 
     const nextDirection = computeDisplayDirection(this.worldFacing.value, cameraAzimuth);
@@ -462,9 +513,22 @@ export class PmdAnimationController {
       frameChanged = true;
     }
 
+    // Combat time: the hit-stop, the flashes and everything the combat plays (attack, hurt, faint,
+    // walk) follow the combat speed; only the resting loop keeps its natural pace.
+    this.whiteFlashRemainingMs = Math.max(0, this.whiteFlashRemainingMs - combatDeltaMs);
+    // A held frame (hit-stop) freezes whatever plays, the resting loop included (a struck target).
+    const held = this.holdRemainingMs > 0;
+    this.holdRemainingMs = Math.max(0, this.holdRemainingMs - combatDeltaMs);
+    let frameDeltaMs = combatDeltaMs;
+    if (held) {
+      frameDeltaMs = 0;
+    } else if (this.animation === this.restingAnimation) {
+      frameDeltaMs = deltaMs;
+    }
+
     const faintStillPlaying = this.knockedOut && !this.currentLoops && !this.oneShotComplete;
     if (!this.knockedOut || faintStillPlaying) {
-      this.frameElapsedMs += deltaMs;
+      this.frameElapsedMs += frameDeltaMs;
       let frameDuration = this.currentFrameDurationMs();
       while (this.frameElapsedMs >= frameDuration) {
         this.frameElapsedMs -= frameDuration;
@@ -478,7 +542,7 @@ export class PmdAnimationController {
     this.pulseElapsedMs = this.pulsing
       ? (this.pulseElapsedMs + deltaMs) % this.config.pulsePeriodMs
       : this.pulseElapsedMs;
-    this.advanceFlash(deltaMs);
+    this.advanceFlash(combatDeltaMs);
     if (this.previewFlashing && this.flashTicksLeft <= 0 && !this.knockedOut) {
       this.previewFlashElapsedMs =
         (this.previewFlashElapsedMs + deltaMs) % this.config.previewFlashPeriodMs;
@@ -520,9 +584,13 @@ export class PmdAnimationController {
     const lastIndex = (frames?.length ?? 1) - 1;
     if (this.currentFrameIndex < lastIndex) {
       this.currentFrameIndex += 1;
+      this.fireHitIfReached();
       return true;
     }
     this.oneShotComplete = true;
+    const onHit = this.onAnimationHit;
+    this.onAnimationHit = null;
+    onHit?.();
     const onComplete = this.onAnimationComplete;
     this.onAnimationComplete = null;
     if (!this.freezeOnComplete) {

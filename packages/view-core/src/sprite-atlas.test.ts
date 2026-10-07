@@ -3,6 +3,7 @@ import {
   animationTotalDurationMs,
   frameDurationMs,
   indexAtlasDurations,
+  indexAtlasHitFrames,
   type SpriteFrameTiming,
 } from "./sprite-atlas.js";
 
@@ -22,6 +23,30 @@ describe("indexAtlasDurations", () => {
 
   it("Given no animations, returns an empty map", () => {
     expect(indexAtlasDurations(undefined).size).toBe(0);
+  });
+});
+
+describe("indexAtlasHitFrames", () => {
+  it("Given attack animations with a hitFrame, keys them by name", () => {
+    const result = indexAtlasHitFrames({
+      Attack: { durations: [2, 3, 4], hitFrame: 2 },
+      Shoot: { hitFrame: 1 },
+    });
+    expect(result.get("Attack")).toBe(2);
+    expect(result.get("Shoot")).toBe(1);
+  });
+
+  it("Given a hitFrame of 0, keeps it", () => {
+    expect(indexAtlasHitFrames({ Charge: { hitFrame: 0 } }).get("Charge")).toBe(0);
+  });
+
+  it("Given animations without a hitFrame, drops them", () => {
+    const result = indexAtlasHitFrames({ Idle: { durations: [8] }, Walk: {} });
+    expect(result.size).toBe(0);
+  });
+
+  it("Given no animations, returns an empty map", () => {
+    expect(indexAtlasHitFrames(undefined).size).toBe(0);
   });
 });
 

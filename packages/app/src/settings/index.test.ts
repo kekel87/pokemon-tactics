@@ -1,3 +1,4 @@
+import { CombatSpeed, isInstantCombat } from "@pokemon-tactic/view-core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createLocalStorageStub, type LocalStorageStub } from "../testing/local-storage-stub";
 import { getSettings, initSettings, updateSettings } from "./index";
@@ -9,6 +10,7 @@ const DEFAULTS = {
   autoPlacement: true,
   lastMapId: "simple-arena",
   invertRightStick: false,
+  combatSpeed: CombatSpeed.Normal,
 };
 
 describe("préférences persistées", () => {
@@ -26,7 +28,7 @@ describe("préférences persistées", () => {
   it("part sur les défauts quand rien n'est enregistré", () => {
     initSettings();
 
-    expect(getSettings()).toMatchObject({ autoPlacement: true, damagePreview: true });
+    expect(getSettings()).toEqual(DEFAULTS);
   });
 
   it("relit les deux paramètres de partie enregistrés", () => {
@@ -59,6 +61,7 @@ describe("préférences persistées", () => {
       damagePreview: false,
       lastMapId: "simple-arena",
       invertRightStick: true,
+      combatSpeed: CombatSpeed.Normal,
     });
   });
 
@@ -91,6 +94,39 @@ describe("préférences persistées", () => {
     initSettings();
 
     expect(getSettings().damagePreview).toBe(true);
+    expect(getSettings().autoPlacement).toBe(false);
+  });
+
+  it("relit la vitesse des combats enregistrée et l'applique au rythme des combats", () => {
+    stub.entries.set(STORAGE_KEY, JSON.stringify({ combatSpeed: CombatSpeed.Instant }));
+
+    initSettings();
+
+    expect(getSettings().combatSpeed).toBe(CombatSpeed.Instant);
+    expect(isInstantCombat()).toBe(true);
+  });
+
+  it("écrit la vitesse des combats choisie dans le magasin", () => {
+    initSettings();
+
+    updateSettings({ combatSpeed: CombatSpeed.Instant });
+    updateSettings({ combatSpeed: CombatSpeed.Fast });
+
+    expect(isInstantCombat()).toBe(false);
+    expect(JSON.parse(stub.entries.get(STORAGE_KEY) ?? "{}")).toMatchObject({
+      combatSpeed: CombatSpeed.Fast,
+    });
+  });
+
+  it("rejette une vitesse des combats inconnue et garde la vitesse normale", () => {
+    stub.entries.set(
+      STORAGE_KEY,
+      JSON.stringify({ combatSpeed: "ludicrous", autoPlacement: false }),
+    );
+
+    initSettings();
+
+    expect(getSettings().combatSpeed).toBe(CombatSpeed.Normal);
     expect(getSettings().autoPlacement).toBe(false);
   });
 });

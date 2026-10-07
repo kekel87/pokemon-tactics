@@ -314,6 +314,8 @@ export class SettingsScreen {
   readonly installHint: Locator;
   /** Ligne « Contrôles » → écran de remapping (plan 186). */
   readonly controls: Locator;
+  /** « Vitesse des combats » (plan 233) : bascule à trois crans Normale → Rapide → Instantanée. */
+  readonly combatSpeedToggle: Locator;
   constructor(page: Page) {
     this.title = page.getByRole("heading", { name: "Paramètres" });
     this.back = page.getByRole("button", { name: "Retour" });
@@ -321,6 +323,7 @@ export class SettingsScreen {
     this.fullscreenToggle = page.getByTestId("setting-fullscreen");
     this.installHint = page.getByTestId("setting-install-hint");
     this.controls = page.getByTestId("setting-controls");
+    this.combatSpeedToggle = page.getByTestId("setting-combat-speed");
   }
 }
 

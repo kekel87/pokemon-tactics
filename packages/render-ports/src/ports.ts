@@ -8,6 +8,7 @@ import type {
   SemiInvulnerableDisplay,
 } from "@pokemon-tactic/core";
 import { AuraKind } from "@pokemon-tactic/core";
+import type { AttackPlayback } from "./combat-scene.js";
 import type {
   BattleOutcomeSummary,
   ConnectionNoticeView,
@@ -38,6 +39,59 @@ export type EliminatedChoice = (typeof EliminatedChoice)[keyof typeof Eliminated
  * object that only renders. No backend imports the orchestrator — only this
  * contract.
  */
+
+/** What a presentation cue announces (plan 233). */
+export const PresentationCueKind = {
+  AttackStart: "attack-start",
+  Impact: "impact",
+  Hit: "hit",
+  SpriteEffect: "sprite-effect",
+  Movement: "movement",
+  HitStop: "hit-stop",
+  AttackEnd: "attack-end",
+  Faint: "faint",
+} as const;
+export type PresentationCueKind = (typeof PresentationCueKind)[keyof typeof PresentationCueKind];
+
+/** A timed sprite effect: the darkening damage blink, or a white flash (Instantanée: who struck). */
+export const SpriteEffect = {
+  WhiteFlash: "white-flash",
+  DamageFlash: "damage-flash",
+} as const;
+export type SpriteEffect = (typeof SpriteEffect)[keyof typeof SpriteEffect];
+
+export const MovementPhase = {
+  Start: "start",
+  End: "end",
+} as const;
+export type MovementPhase = (typeof MovementPhase)[keyof typeof MovementPhase];
+
+/**
+ * Presentation cues (plan 233): the beats a combat emits as it plays. A cue carries no time — it
+ * fires at its beat. `Impact` is the attack's hit frame; `Hit` each blow landing on a target.
+ */
+export type PresentationCue =
+  | { kind: typeof PresentationCueKind.AttackStart; attackerId: string; moveId: string }
+  | { kind: typeof PresentationCueKind.Impact; attackerId: string; moveId: string }
+  | {
+      kind: typeof PresentationCueKind.Hit;
+      targetId: string;
+      effectiveness: number;
+      critical: boolean;
+    }
+  /** A sprite effect starts on a Pokémon. */
+  | {
+      kind: typeof PresentationCueKind.SpriteEffect;
+      pokemonId: string;
+      effect: SpriteEffect;
+      durationMs: number;
+    }
+  /** A Pokémon starts / stops gliding across tiles (a walk, a dash, a knockback). */
+  | { kind: typeof PresentationCueKind.Movement; pokemonId: string; phase: MovementPhase }
+  /** The attacker and its targets hold their frame for `durationMs` of combat time (hit-stop). */
+  | { kind: typeof PresentationCueKind.HitStop; durationMs: number }
+  | { kind: typeof PresentationCueKind.AttackEnd; attackerId: string; moveId: string }
+  | { kind: typeof PresentationCueKind.Faint; pokemonId: string };
 
 /** Which highlight layer the board should paint (mapped to the renderer's HighlightKind by the adapter). */
 export type BoardHighlight = "move" | "attack" | "retreat" | "enemy";
@@ -154,11 +208,21 @@ export interface BoardView {
       isGhost: boolean;
       /** Fired as the sprite arrives on each path tile — used to tick entry hazards per tile. */
       onTileReached?: (tile: Position) => void;
+      /** Keep the pose already playing (a dash runs on its attack swing) instead of Walk / Hop. */
+      keepPose?: boolean;
     },
   ): Promise<void>;
   setFacing(pokemonId: string, direction: Direction): void;
-  /** Face a direction and play a one-shot attack animation, resolving when it ends. */
-  playAttack(pokemonId: string, direction: Direction, animationName: string): Promise<void>;
+  /**
+   * Face a direction and play a one-shot attack animation. `impact` resolves when the blow lands
+   * (the sprite's hit frame), `done` when the animation ends.
+   */
+  playAttack(pokemonId: string, direction: Direction, animationName: string): AttackPlayback;
+  /** Hit-stop: hold the current sprite frame for `durationMs` of combat time. */
+  holdFrame(pokemonId: string, durationMs: number): void;
+  /** White flash on a sprite for `durationMs` of combat time (Instantanée: who struck). */
+  flashWhite(pokemonId: string, durationMs: number): void;
+
   /** Glide a Pokémon to a tile without changing facing (knockback / ice-slide). */
   impactGlide(pokemonId: string, tile: Position, options?: { hurt?: boolean }): Promise<void>;
   /** Hurt pose + brief shake (knockback blocked), resolving when it ends. */
@@ -476,6 +540,11 @@ export interface BattleOrchestratorConfig {
    * reload can resume it (plan 181); the orchestrator itself knows nothing of storage.
    */
   onActionCommitted?: () => void;
+  /**
+   * Fired at each beat of a combat's presentation (plan 233): the hook effects (lot 2) and sound
+   * (lot 3) attach to, instead of hard-coded delays. The move workshop draws its sequence from them.
+   */
+  onPresentationCue?: (cue: PresentationCue) => void;
   /**
    * Une action que le jouever **local** vient de soumettre, à diffuser aux pairs (plan 201).
    * `actionIndex` est le nombre d'actions enregistrées avant celle-ci.

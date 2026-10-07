@@ -1,4 +1,5 @@
 import type { BattleEvent, BattleState } from "@pokemon-tactic/core";
+import { combatClock } from "./combat-pacing.js";
 import { BATTLE_TEXT_QUEUE_DELAY_MS } from "./constants.js";
 import { type FloatingTextContext, floatingTextsFor } from "./floating-text-content.js";
 
@@ -33,7 +34,7 @@ export function createFloatingTextSpawner(
   const nextSpawnAt = new Map<string, number>();
 
   const acquireDelay = (pokemonId: string): number => {
-    const now = performance.now();
+    const now = combatClock.now();
     const earliest = nextSpawnAt.get(pokemonId) ?? now;
     nextSpawnAt.set(pokemonId, Math.max(earliest, now) + BATTLE_TEXT_QUEUE_DELAY_MS);
     return Math.max(0, earliest - now);

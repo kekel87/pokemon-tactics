@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "vite",
     "dev:sandbox": "node scripts/sandbox.js",
+    "dev:atelier": "node scripts/atelier.js",
     "build": "vite build",
     "typecheck": "tsc --noEmit"
   },

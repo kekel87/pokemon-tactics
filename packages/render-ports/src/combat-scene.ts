@@ -91,6 +91,12 @@ export interface DamageEstimateView {
  */
 export type TilePointerSource = "pointer" | "touch";
 
+/** An attack animation in flight: the blow lands at `impact`, the animation ends at `done`. */
+export interface AttackPlayback {
+  impact: Promise<void>;
+  done: Promise<void>;
+}
+
 export interface CombatSceneSpawn {
   pokemonId: string;
   spawn: { x: number; y: number };
@@ -110,9 +116,17 @@ export interface CombatPokemonHandle {
       isFlying?: boolean;
       isGhost?: boolean;
       onTileReached?: (tile: { x: number; y: number }) => void;
+      keepPose?: boolean;
     },
   ): Promise<void>;
-  playAttack(direction: Direction, animationName: string): Promise<void>;
+  playAttack(direction: Direction, animationName: string): AttackPlayback;
+  holdFrame(durationMs: number): void;
+  /**
+   * Drop every transient presentation state — hit-stop, flashes, blink, one-shot pose, attack depth
+   * bias — back to the resting pose. The move workshop reuses its sprites from one replay to the next.
+   */
+  resetPresentation(): void;
+  flashWhite(durationMs: number): void;
   impactGlide(tile: { x: number; y: number }, options?: { hurt?: boolean }): Promise<void>;
   impactShake(): Promise<void>;
   setActive(active: boolean): void;
@@ -144,6 +158,11 @@ export interface CombatScene {
   /** Resolves once the map AND every sprite added so far have loaded — for the loading overlay
    *  to fade only on a paintable scene (call after the initial spawns are placed). */
   whenReady(): Promise<void>;
+  /**
+   * Advance the combat by `combatMs` of combat time right now, without painting (plan 233). With
+   * the combat clock paused, the move workshop scrubs an attack by stepping it frame by frame.
+   */
+  stepFrame(combatMs: number): void;
   setTileHighlights(kind: HighlightKind, positions: readonly TileHighlightPosition[]): void;
   setSpawnZoneHighlights(zones: readonly SpawnZoneHighlight[]): void;
   setTileOutline(positions: readonly TileHighlightPosition[], beneficial?: boolean): void;
