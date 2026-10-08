@@ -99,6 +99,44 @@ describe("BattleEngine.executeUseMove — valid move hits and deals damage", () 
     expect(eventTypes).not.toContain(BattleEventType.TurnEnded);
     expect(eventTypes).not.toContain(BattleEventType.TurnStarted);
   });
+
+  it("MoveStarted carries the aimed tile and the tiles the move affects", () => {
+    const { moves } = loadData();
+    const registry = buildMoveRegistry(moves);
+    const attacker = freshPokemon(MockPokemon.bulbasaur, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      derivedStats: { ...MockPokemon.bulbasaur.derivedStats, initiative: 100 },
+      moveIds: ["razor-leaf"],
+    });
+    const defender = freshPokemon(MockPokemon.charmander, {
+      id: "defender",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 0 },
+    });
+    const state = MockBattle.stateFrom([attacker, defender]);
+    const engine = new BattleEngine(state, registry, typeChart, pokemonTypes);
+    engine.pinActiveForTest("attacker");
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "razor-leaf",
+      targetPosition: { x: 1, y: 0 },
+    });
+
+    vi.restoreAllMocks();
+    const moveStarted = result.events.find((event) => event.type === BattleEventType.MoveStarted);
+    expect(moveStarted).toMatchObject({ targetPosition: { x: 1, y: 0 } });
+    expect(
+      moveStarted?.type === BattleEventType.MoveStarted && moveStarted.affectedTiles,
+    ).toContainEqual({
+      x: 1,
+      y: 0,
+    });
+  });
 });
 
 describe("BattleEngine.executeUseMove — unknown move", () => {

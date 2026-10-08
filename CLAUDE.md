@@ -71,7 +71,7 @@ Règles détaillées par package : `.claude/rules/*.md` (chargées via frontmatt
 ## Interdits
 
 - `any` sans justification
-- Commiter assets non libres de droits
+- Commiter les **sources** d'assets non libres : elles se téléchargent par script et restent gitignorées ; seul le paquet empaqueté est commité (`sprites.bin`, `item-icons.png`, `move-effects.png` — décision 1138)
 - Charger toute doc en contexte quand 1 fichier suffit
 - **Git** : commit/add/push/amend autorisés **sans validation du message** — Claude suit la convention (titre seul, court, 1 scope max sinon aucun), commit et push, sans rien proposer en chat. Reste soumis au workflow : les commits arrivent au menu de finalisation, jamais pendant le dev. Destructeurs interdits (checkout, reset, merge, restore, clean, rm, branch -d, tag -d) — bloqués par deny-list. **`git rebase` autorisé** (l'humain déteste les merges → intégration worktree → main par rebase, jamais merge). **Exception merge : `git merge --ff-only` autorisé** (non destructif ; autres merges = humain via GUI). Garde dans hook `block-forbidden-commands.sh`
 - **Infra** : install global, modif nvm/npm config interdit. Bloqué par hook

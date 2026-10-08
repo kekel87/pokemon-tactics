@@ -10,12 +10,14 @@ import {
   Category,
   type Direction,
   directionFromTo,
+  EffectKind,
   effectiveMoveIds,
   enumerateHitAndRunRetreatTiles,
   FieldGlobalKind,
   FieldTerrain,
   type ForfeitReason,
   isEffectivelyGrounded,
+  isMajorStatus,
   isUproarLocked,
   isWithinAuraRadius,
   type MoveDefinition,
@@ -32,10 +34,11 @@ import {
   TargetingKind,
   Weather,
 } from "@pokemon-tactic/core";
-import { AnimationCategory, moveAnimationCategory } from "@pokemon-tactic/data";
 import {
   BattleOutcomeKind,
   getTeamColorByPlayerId,
+  MoveEffectForm,
+  type MoveEffectPlayback,
   MovementPhase,
   PresentationCueKind,
   SpriteEffect,
@@ -71,6 +74,14 @@ import {
   UPROAR_AURA_INDICATOR_SYMBOL,
 } from "./constants.js";
 import { buildMoveContextualView } from "./move-contextual-view.js";
+import {
+  CastPose,
+  castPose,
+  LUNGE_FORMS,
+  moveEffectForm,
+  STRIKE_MARK_FORMS,
+  targetRelation,
+} from "./move-effect-form.js";
 import { moveIntent, selfPreviewRadius } from "./move-intent.js";
 import { isLegalRemoteAction } from "./remote-action.js";
 import { buildSecondaryEffectChip } from "./secondary-effect-chip.js";
@@ -276,8 +287,18 @@ interface Strike {
 interface AttackStaging {
   attackerId: string;
   moveId: string;
+  /** The move's type as it struck (morphs included): it tints the blows' sparks. */
+  moveType: PokemonType;
   /** The animation's end, awaited before the next displacement / beat. */
   done: Promise<void> | null;
+  /** The move effects it set off (plan 234), awaited before the attack ends — not before a dash. */
+  effectsDone: Promise<void>[];
+  /** A draining move: each target it lands on sends bubbles back to the caster. */
+  drains: boolean;
+  /** A rush trailing after-images of the caster, turned off when the attack ends. */
+  trailing: boolean;
+  /** The move's effect form (plan 234): melee families mark each blow instead of a spark. */
+  form: MoveEffectForm | null;
   /** The attack animation is still playing (a dash keeps running on it, not on Walk). */
   swinging: boolean;
   /** Blows whose impact still has to play when their DamageDealt comes up. */
@@ -2277,6 +2298,8 @@ export class BattleOrchestrator {
     }
 
     let attack: AttackStaging | null = null;
+    // One stat effect per Pokémon and direction per batch: a move raising two stats reads as one rise.
+    const statEffectsShown = new Set<string>();
 
     for (const [index, event] of events.entries()) {
       if (this.disposed) {
@@ -2356,6 +2379,11 @@ export class BattleOrchestrator {
           this.board.updateHp(event.targetId, target.currentHp, target.maxHp);
         }
       }
+      if (event.type === BattleEventType.MoveCharging) {
+        this.playChargeEffect(event.pokemonId, event.moveId);
+      }
+      this.playEventEffects(event, attack, statEffectsShown);
+
       if (event.type === BattleEventType.MoveStarted) {
         // Face the target and play the move's category animation (plan 122 4c-3) up to the blow:
         // its reactions then play during the rest of the swing (plan 233).
@@ -2544,10 +2572,23 @@ export class BattleOrchestrator {
   ): Promise<AttackStaging> {
     const { attackerId, moveId } = event;
     const { strikes, displacedBeforeHit } = collectStrikes(events, index, attackerId);
+    const move = this.moveDefinitions.get(event.resolvedMoveId ?? moveId);
+    const caster = this.state.pokemon.get(attackerId)?.position;
+    const form = move
+      ? moveEffectForm(
+          move,
+          targetRelation(move, caster ? { caster, affectedTiles: event.affectedTiles } : undefined),
+        )
+      : null;
     const attack: AttackStaging = {
       attackerId,
       moveId,
+      moveType: event.resolvedType ?? move?.type ?? PokemonType.Normal,
       done: null,
+      effectsDone: [],
+      drains: move?.effects.some((effect) => effect.kind === EffectKind.Drain) === true,
+      trailing: false,
+      form,
       swinging: false,
       pendingStrikes: strikes,
       pauseBudgetMs: MAX_ACTION_PAUSE_MS,
@@ -2560,10 +2601,14 @@ export class BattleOrchestrator {
       // No swing to wait for, but the attack still ends — its cue marks the beat.
       attack.done = Promise.resolve();
     } else {
+      // Melee families lunge at their target on the blow, as PMD Origins' contact poses do.
       const playback = this.board.playAttack(
         attackerId,
         event.direction,
-        attackAnimationName(moveId),
+        form === null || !move ? CastPose.Attack : castPose(form, move),
+        {
+          lunge: form !== null && LUNGE_FORMS.has(form),
+        },
       );
       attack.done = playback.done;
       attack.swinging = true;
@@ -2573,6 +2618,21 @@ export class BattleOrchestrator {
       await playback.impact;
     }
     this.config.onPresentationCue?.({ kind: PresentationCueKind.Impact, attackerId, moveId });
+    // Melee families mark each blow as it lands (`playImpactSpark`), not the swing itself.
+    if (move && form !== null && !STRIKE_MARK_FORMS.has(form) && !isInstantCombat()) {
+      // Plan 234: the move's effect leaves on the swing's impact frame; a travelling one (a
+      // projectile, a beam) carries the blow, which then lands on its arrival.
+      if (form === MoveEffectForm.Rush) {
+        attack.trailing = true;
+        this.board.setAfterImages(attackerId, true);
+      }
+      const effect = this.playMoveEffect(event, form, attack.moveType);
+      attack.effectsDone.push(effect.done);
+      await effect.impact;
+      if (this.disposed) {
+        return attack;
+      }
+    }
     if (displacedBeforeHit) {
       // A dash sets off on the swing's impact frame (playtest 2026-10-07): the run carries the blow
       // instead of waiting for the whole swing in place, the swing playing on during the run.
@@ -2588,6 +2648,199 @@ export class BattleOrchestrator {
     return attack;
   }
 
+  /** A two-turn move's first turn: the caster gathers power, tinted by the move's type (plan 234). */
+  private playChargeEffect(pokemonId: string, moveId: string): void {
+    const caster = this.state.pokemon.get(pokemonId);
+    const move = this.moveDefinitions.get(moveId);
+    if (!caster || !move || isInstantCombat()) {
+      return;
+    }
+    const playback = this.board.playMoveEffect(pokemonId, {
+      form: MoveEffectForm.Charge,
+      type: move.type,
+      targetPosition: caster.position,
+      affectedTiles: [caster.position],
+      effectiveness: 1,
+    });
+    this.cueEffect(MoveEffectForm.Charge, playback);
+  }
+
+  /**
+   * An effect on one Pokémon, where it stands now (plan 234): a stat change, a heal, a status, a
+   * shield, a blocked status — or a recoil's spark (`type` then tints it).
+   */
+  private playEffectOn(
+    pokemonId: string,
+    form: MoveEffectForm,
+    details: { status?: StatusType; type?: PokemonType } = {},
+  ): void {
+    const pokemon = this.state.pokemon.get(pokemonId);
+    if (!pokemon || isInstantCombat()) {
+      return;
+    }
+    const playback = this.board.playMoveEffect(pokemonId, {
+      form,
+      type: details.type ?? PokemonType.Normal,
+      targetPosition: pokemon.position,
+      affectedTiles: [],
+      effectiveness: 1,
+      ...(details.status === undefined ? {} : { status: details.status }),
+    });
+    this.cueEffect(form, playback);
+  }
+
+  /** The effects a battle event shows on a Pokémon, beyond the move's own (plan 234). */
+  private playEventEffects(
+    event: BattleEvent,
+    attack: AttackStaging | null,
+    statEffectsShown: Set<string>,
+  ): void {
+    switch (event.type) {
+      case BattleEventType.StatChanged: {
+        const key = `${event.targetId}:${Math.sign(event.stages)}`;
+        if (event.stages !== 0 && !statEffectsShown.has(key)) {
+          statEffectsShown.add(key);
+          this.playEffectOn(
+            event.targetId,
+            event.stages > 0 ? MoveEffectForm.StatUp : MoveEffectForm.StatDown,
+          );
+        }
+        break;
+      }
+      case BattleEventType.StatusApplied:
+        this.playEffectOn(event.targetId, MoveEffectForm.Status, { status: event.status });
+        break;
+      case BattleEventType.TurnStarted: {
+        // A lasting (major) status bites or holds the Pokémon back at the start of its turn.
+        const status = this.state.pokemon
+          .get(event.pokemonId)
+          ?.statusEffects.find((effect) => isMajorStatus(effect.type))?.type;
+        if (status !== undefined) {
+          this.playEffectOn(event.pokemonId, MoveEffectForm.Status, { status });
+        }
+        break;
+      }
+      case BattleEventType.ConfusionTriggered:
+        this.playEffectOn(event.pokemonId, MoveEffectForm.Status, { status: StatusType.Confused });
+        break;
+      case BattleEventType.InfatuationTriggered:
+        this.playEffectOn(event.pokemonId, MoveEffectForm.Status, {
+          status: StatusType.Infatuated,
+        });
+        break;
+      case BattleEventType.HpRestored:
+      case BattleEventType.WishHealed:
+        this.playEffectOn(event.pokemonId, MoveEffectForm.Heal);
+        break;
+      case BattleEventType.DefenseTriggered:
+        if (event.blocked) {
+          this.playEffectOn(event.defenderId, MoveEffectForm.Shield);
+        }
+        break;
+      case BattleEventType.StatusBlocked:
+        this.playEffectOn(event.pokemonId, MoveEffectForm.Blocked);
+        break;
+      case BattleEventType.DamageDealt:
+        if (event.recoil === true) {
+          this.playEffectOn(event.targetId, MoveEffectForm.Impact, {
+            type: attack?.moveType ?? PokemonType.Normal,
+          });
+        }
+        break;
+      default:
+        break;
+    }
+  }
+
+  /** A draining blow: bubbles fly back from its target to the caster (plan 234), as in the series. */
+  private playDrainEffect(attack: AttackStaging, strike: Strike): void {
+    const target = this.state.pokemon.get(strike.targetId);
+    if (
+      !attack.drains ||
+      !target ||
+      strike.targetId === attack.attackerId ||
+      strike.effectiveness <= 0 ||
+      isInstantCombat()
+    ) {
+      return;
+    }
+    const playback = this.board.playMoveEffect(attack.attackerId, {
+      form: MoveEffectForm.Drain,
+      type: attack.moveType,
+      targetPosition: target.position,
+      affectedTiles: [],
+      effectiveness: 1,
+      targetPokemonId: strike.targetId,
+    });
+    attack.effectsDone.push(playback.done);
+    this.cueEffect(MoveEffectForm.Drain, playback);
+  }
+
+  /** Start a move's visual effect (plan 234), announced to the presentation cues. */
+  private playMoveEffect(
+    event: MoveStartedEvent,
+    form: MoveEffectForm,
+    type: PokemonType,
+  ): MoveEffectPlayback {
+    const playback = this.board.playMoveEffect(event.attackerId, {
+      form,
+      type,
+      targetPosition: event.targetPosition,
+      affectedTiles: event.affectedTiles,
+      effectiveness: 1,
+    });
+    this.cueEffect(form, playback);
+    return playback;
+  }
+
+  /**
+   * A blow's visual on its target (one per blow, none on an immunity or in Instantanée): the melee
+   * family's own mark, tinted by the type and struck from the caster; a blade's sweep already
+   * covers it; any other move shows the generic spark.
+   */
+  private playImpactSpark(attack: AttackStaging, strike: Strike): void {
+    const target = this.state.pokemon.get(strike.targetId);
+    if (strike.effectiveness <= 0 || isInstantCombat() || !target) {
+      return;
+    }
+    if (attack.form === MoveEffectForm.Blade) {
+      return;
+    }
+    if (attack.form !== null && STRIKE_MARK_FORMS.has(attack.form)) {
+      const playback = this.board.playMoveEffect(attack.attackerId, {
+        form: attack.form,
+        type: attack.moveType,
+        targetPosition: target.position,
+        affectedTiles: [target.position],
+        effectiveness: strike.effectiveness,
+        targetPokemonId: strike.targetId,
+      });
+      this.cueEffect(attack.form, playback);
+      return;
+    }
+    // Played from the struck Pokémon's tile as the board shows it now (a knockback comes after).
+    const playback = this.board.playMoveEffect(strike.targetId, {
+      form: MoveEffectForm.Impact,
+      type: attack.moveType,
+      targetPosition: target.position,
+      affectedTiles: [],
+      effectiveness: strike.effectiveness,
+    });
+    this.cueEffect(MoveEffectForm.Impact, playback);
+  }
+
+  private cueEffect(form: MoveEffectForm, playback: MoveEffectPlayback): void {
+    if (playback.durationMs <= 0) {
+      return;
+    }
+    this.config.onPresentationCue?.({
+      kind: PresentationCueKind.Effect,
+      form,
+      durationMs: playback.durationMs,
+      impactMs: playback.impactMs,
+    });
+  }
+
   /** A blow whose impact was deferred to its own DamageDealt (multi-hit, dash). */
   private playStrike(attack: AttackStaging, strike: Strike): void {
     const moreBlowsOnTarget = [...attack.pendingStrikes.values()].some(
@@ -2596,6 +2849,7 @@ export class BattleOrchestrator {
     if (moreBlowsOnTarget) {
       // An intermediate blow of a multi-hit move: no hit-stop (it would pile up).
       this.config.onPresentationCue?.({ kind: PresentationCueKind.Hit, ...strike });
+      this.playImpactSpark(attack, strike);
       return;
     }
     this.playImpact(attack, [strike]);
@@ -2610,6 +2864,8 @@ export class BattleOrchestrator {
     let pauseMs = 0;
     for (const strike of strikes) {
       this.config.onPresentationCue?.({ kind: PresentationCueKind.Hit, ...strike });
+      this.playImpactSpark(attack, strike);
+      this.playDrainEffect(attack, strike);
       pauseMs = Math.max(pauseMs, hitStopMs(strike.effectiveness, strike.critical));
     }
     pauseMs = Math.min(pauseMs, attack.pauseBudgetMs);
@@ -2657,6 +2913,10 @@ export class BattleOrchestrator {
    */
   private async endAttack(attack: AttackStaging): Promise<void> {
     await this.finishAttack(attack);
+    await Promise.all(attack.effectsDone);
+    if (attack.trailing) {
+      this.board.setAfterImages(attack.attackerId, false);
+    }
     this.config.onPresentationCue?.({
       kind: PresentationCueKind.AttackEnd,
       attackerId: attack.attackerId,
@@ -3069,18 +3329,6 @@ export class BattleOrchestrator {
     }
     return actions.find((action) => positionEquals(action.targetPosition, tile));
   }
-}
-
-/** The one-shot billboard animation for a move's category (Shoot/Charge/Attack). */
-export function attackAnimationName(moveId: string): string {
-  const category = moveAnimationCategory[moveId] ?? AnimationCategory.Contact;
-  if (category === AnimationCategory.Shoot) {
-    return "Shoot";
-  }
-  if (category === AnimationCategory.Charge) {
-    return "Charge";
-  }
-  return "Attack";
 }
 
 /** Resolve a move's blocked tag, semantic (no i18n key). */

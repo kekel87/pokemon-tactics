@@ -15,14 +15,21 @@ import {
   combatClock,
   indexAtlasDurations,
   indexAtlasHitFrames,
+  indexAtlasLungeFrames,
   indexFramesByDirection,
+  type LungeFrames,
   PmdAnimationController,
   type PmdDirection,
   type SemiInvulnerableDisplay,
+  type SpriteOffsets,
   synthesizeFlyingIdle,
 } from "@pokemon-tactic/view-core";
 import {
+  BABYLON_AFTERIMAGE_ALPHA,
+  BABYLON_AFTERIMAGE_EVERY_MS,
+  BABYLON_AFTERIMAGE_LIFE_MS,
   BABYLON_ATTACK_DEPTH_BIAS,
+  BABYLON_ATTACK_LUNGE_DISTANCE,
   BABYLON_CONFUSION_WOBBLE_ANGLE,
   BABYLON_CONFUSION_WOBBLE_PERIOD_MS,
   BABYLON_DAMAGE_FLASH_DIM_EMISSIVE,
@@ -72,11 +79,13 @@ interface AtlasBundle {
   framesByKey: Map<string, AtlasFrame[]>;
   durationsByAnimation: Map<string, number[]>;
   hitFrameByAnimation: Map<string, number>;
+  lungeFramesByAnimation: Map<string, LungeFrames>;
   atlasWidth: number;
   atlasHeight: number;
   footOffsetY: number;
   headOffsetY: number;
   shadowRadius: number;
+  attackHeads: SpriteOffsets["attackHeads"];
 }
 
 /** Pre-resolved sprite data from the in-memory bundle (plan 135) — no per-sprite fetch. */
@@ -85,7 +94,7 @@ export interface ResolvedAtlas {
   atlasBlobUrl: string;
   atlasJson: AtlasJson;
   /** PMD grounding offsets (foot/head in px, raw shadow size index). */
-  offsets: { footOffsetY: number; headOffsetY: number; shadowSize: number };
+  offsets: SpriteOffsets;
 }
 
 export interface DirectionalBillboardOptions {
@@ -136,6 +145,20 @@ export class DirectionalBillboard {
   private substituteAtlas: AtlasBundle | null = null;
   private substituteActive = false;
   private activeTexture!: Texture;
+  private activeAttackHeads: SpriteOffsets["attackHeads"];
+  /** World direction (unit) of the melee lunge in progress, scaled by the controller's fraction. */
+  private readonly lungeDirection = new Vector3();
+  /** A rush leaves after-images (plan 234): spawned on the combat clock while this is on. */
+  private trailing = false;
+  private afterImageCountdownMs = 0;
+  private readonly afterImages: {
+    mesh: Mesh;
+    material: StandardMaterial;
+    texture: Texture;
+    /** The atlas texture the copy was made from (a substitute doll swaps it). */
+    source: Texture;
+    remainingMs: number;
+  }[] = [];
   private readonly shadow: Mesh;
   private readonly shadowMaterial: StandardMaterial;
   /** Flattens the sprite's depth to its foot point (native occlusion without self-clip). */
@@ -333,10 +356,12 @@ export class DirectionalBillboard {
       framesByKey,
       durationsByAnimation: indexAtlasDurations(atlas.atlasJson.meta.animations),
       hitFrameByAnimation: indexAtlasHitFrames(atlas.atlasJson.meta.animations),
+      lungeFramesByAnimation: indexAtlasLungeFrames(atlas.atlasJson.meta.animations),
       atlasWidth: size.width,
       atlasHeight: size.height,
       footOffsetY: atlas.offsets.footOffsetY,
       headOffsetY: atlas.offsets.headOffsetY,
+      attackHeads: atlas.offsets.attackHeads,
       shadowRadius:
         BABYLON_SHADOW_RADIUS_BY_SIZE[atlas.offsets.shadowSize] ?? BABYLON_SHADOW_RADIUS_DEFAULT,
     };
@@ -345,6 +370,7 @@ export class DirectionalBillboard {
   /** Point the displayed texture + controller atlas index + silhouette + shadow at `bundle`. */
   private bindActiveAtlas(bundle: AtlasBundle): void {
     this.activeTexture = bundle.texture;
+    this.activeAttackHeads = bundle.attackHeads;
     this.material.diffuseTexture = bundle.texture;
     this.silhouetteMaterial.opacityTexture = bundle.texture;
     this.shadow.scaling.set(bundle.shadowRadius, bundle.shadowRadius, 1);
@@ -362,6 +388,7 @@ export class DirectionalBillboard {
       framesByKey: bundle.framesByKey,
       durationsByAnimation: bundle.durationsByAnimation,
       hitFrameByAnimation: bundle.hitFrameByAnimation,
+      lungeFramesByAnimation: bundle.lungeFramesByAnimation,
       atlasWidth: bundle.atlasWidth,
       atlasHeight: bundle.atlasHeight,
       footOffsetY: bundle.footOffsetY,
@@ -434,10 +461,86 @@ export class DirectionalBillboard {
 
   playOnce(
     animation: string,
-    options: { freeze?: boolean; onComplete?: () => void; onHit?: () => void } = {},
+    options: {
+      freeze?: boolean;
+      onComplete?: () => void;
+      onHit?: () => void;
+      /** World direction to lunge towards (a melee blow, plan 234). */
+      lungeTowards?: Vector3;
+    } = {},
   ): void {
-    this.controller.playOnce(animation, options);
+    const { lungeTowards, ...playback } = options;
+    if (lungeTowards) {
+      this.lungeDirection.copyFrom(lungeTowards).normalize();
+    }
+    this.controller.playOnce(animation, { ...playback, lunge: lungeTowards !== undefined });
     this.applyFrame();
+  }
+
+  /** Trail after-images while rushing (plan 234, PMD Origins' AfterImageEmitter), or stop. */
+  setAfterImages(active: boolean): void {
+    this.trailing = active;
+    this.afterImageCountdownMs = 0;
+  }
+
+  /** Leave a fading copy of the frame now shown where the sprite stands. */
+  private spawnAfterImage(): void {
+    let ghost = this.afterImages.find((candidate) => candidate.remainingMs <= 0);
+    if (!ghost) {
+      const mesh = MeshBuilder.CreatePlane(
+        "pokemon_afterimage",
+        { width: 1, height: 1 },
+        this.options.scene,
+      );
+      const material = new StandardMaterial("pokemon_afterimage_mat", this.options.scene);
+      material.emissiveColor = new Color3(1, 1, 1);
+      material.disableLighting = true;
+      material.useAlphaFromDiffuseTexture = true;
+      material.backFaceCulling = false;
+      material.transparencyMode = Material.MATERIAL_ALPHABLEND;
+      material.alpha = BABYLON_AFTERIMAGE_ALPHA;
+      material.disableDepthWrite = true;
+      const texture = this.activeTexture.clone();
+      material.diffuseTexture = texture;
+      mesh.material = material;
+      mesh.billboardMode = Mesh.BILLBOARDMODE_Y;
+      mesh.renderingGroupId = BABYLON_SPRITE_RENDERING_GROUP;
+      mesh.isPickable = false;
+      ghost = { mesh, material, texture, source: this.activeTexture, remainingMs: 0 };
+      this.afterImages.push(ghost);
+    }
+    if (ghost.source !== this.activeTexture) {
+      // The atlas changed since this copy was made (a substitute doll): copy the new one.
+      ghost.texture.dispose();
+      ghost.texture = this.activeTexture.clone();
+      ghost.source = this.activeTexture;
+      ghost.material.diffuseTexture = ghost.texture;
+    }
+    ghost.texture.uOffset = this.activeTexture.uOffset;
+    ghost.texture.vOffset = this.activeTexture.vOffset;
+    ghost.texture.uScale = this.activeTexture.uScale;
+    ghost.texture.vScale = this.activeTexture.vScale;
+    ghost.mesh.position.copyFrom(this.plane.getAbsolutePosition());
+    ghost.mesh.scaling.copyFrom(this.plane.scaling);
+    ghost.mesh.setEnabled(true);
+    ghost.remainingMs = BABYLON_AFTERIMAGE_LIFE_MS;
+  }
+
+  private updateAfterImages(combatDeltaMs: number): void {
+    for (const ghost of this.afterImages) {
+      if (ghost.remainingMs > 0) {
+        ghost.remainingMs -= combatDeltaMs;
+        ghost.mesh.setEnabled(ghost.remainingMs > 0);
+      }
+    }
+    if (!this.trailing) {
+      return;
+    }
+    this.afterImageCountdownMs -= combatDeltaMs;
+    if (this.afterImageCountdownMs <= 0) {
+      this.afterImageCountdownMs = BABYLON_AFTERIMAGE_EVERY_MS;
+      this.spawnAfterImage();
+    }
   }
 
   playFirstAvailable(candidates: readonly string[], fallback: string): string {
@@ -554,6 +657,7 @@ export class DirectionalBillboard {
     this.applyTransform();
     this.applyTint();
     this.plane.rotation.z = this.controller.wobbleRoll();
+    this.updateAfterImages(combatClock.deltaMs);
     this.updateFootDepth(viewProjection);
     if (this.submerged) {
       this.foamTimeSeconds += deltaMs / 1000;
@@ -571,6 +675,13 @@ export class DirectionalBillboard {
     const baseY = this.controller.footLiftY();
     this.plane.position.y = baseY;
     this.silhouettePlane.position.y = baseY;
+    // The melee lunge carries the whole sprite towards its target (the shadow stays on the tile).
+    this.spritePivot.position
+      .copyFrom(this.lungeDirection)
+      .scaleInPlace(this.controller.lungeFraction() * BABYLON_ATTACK_LUNGE_DISTANCE);
+    const trembleX = this.controller.hurtTrembleOffsetPx() / this.options.pixelsPerWorldUnit;
+    this.plane.position.x = trembleX;
+    this.silhouettePlane.position.x = trembleX;
   }
 
   /** Write the controller's current tint multiplier onto the unlit emissive colour. */
@@ -612,12 +723,38 @@ export class DirectionalBillboard {
     this.foamMaterial.setFootDepth(footDepth);
   }
 
+  /**
+   * World position of the head on the attack frame now shown (plan 234): where a breath or a shot
+   * leaves from. Null when the sprite carries no head mark for this animation and facing.
+   */
+  attackHeadWorldPosition(): Vector3 | null {
+    const head =
+      this.activeAttackHeads?.[this.controller.currentAnimation]?.[this.controller.direction];
+    const frame = this.controller.currentFrame();
+    if (!head || !frame) {
+      return null;
+    }
+    const { w: frameWidth, h: frameHeight } = frame.frame;
+    // The unit plane spans -0.5..0.5 on both axes; pixel centres, Y down in the frame.
+    const local = new Vector3(
+      (head[0] + 0.5) / frameWidth - 0.5,
+      0.5 - (head[1] + 0.5) / frameHeight,
+      0,
+    );
+    return Vector3.TransformCoordinates(local, this.plane.computeWorldMatrix(true));
+  }
+
   /** Y offset (world units) from the root to the top of the current sprite frame, for HUD anchoring. */
   get spriteTopOffsetY(): number {
     return this.controller.spriteTopOffsetY;
   }
 
   dispose(): void {
+    for (const ghost of this.afterImages) {
+      ghost.material.dispose();
+      ghost.texture.dispose();
+      ghost.mesh.dispose();
+    }
     this.material.dispose();
     this.baseAtlas?.texture.dispose();
     this.substituteAtlas?.texture.dispose();

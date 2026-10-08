@@ -4,6 +4,7 @@ import {
   frameDurationMs,
   indexAtlasDurations,
   indexAtlasHitFrames,
+  indexAtlasLungeFrames,
   type SpriteFrameTiming,
 } from "./sprite-atlas.js";
 
@@ -47,6 +48,29 @@ describe("indexAtlasHitFrames", () => {
 
   it("Given no animations, returns an empty map", () => {
     expect(indexAtlasHitFrames(undefined).size).toBe(0);
+  });
+});
+
+describe("indexAtlasLungeFrames", () => {
+  it("Given an animation with rush, hit and return frames, keys its lunge by name", () => {
+    const result = indexAtlasLungeFrames({
+      Attack: { hitFrame: 2, rushFrame: 0, returnFrame: 3 },
+    });
+    expect(result.get("Attack")).toEqual({ rush: 0, hit: 2, return: 3 });
+  });
+
+  it("Given an animation missing any of the three marks, drops it", () => {
+    const result = indexAtlasLungeFrames({
+      Shoot: { hitFrame: 1 },
+      Strike: { rushFrame: 0, returnFrame: 2 },
+      Swipe: { rushFrame: 0, hitFrame: 1 },
+      Jab: { hitFrame: 1, returnFrame: 2 },
+    });
+    expect(result.size).toBe(0);
+  });
+
+  it("Given no animations, returns an empty map", () => {
+    expect(indexAtlasLungeFrames(undefined).size).toBe(0);
   });
 });
 

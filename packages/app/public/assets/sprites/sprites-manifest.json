@@ -157,158 +157,5610 @@
     "zubat": { "png": [35254500, 77545], "json": [35332045, 218150] }
   },
   "offsets": {
-    "bulbasaur": { "footOffsetY": 4, "headOffsetY": 0, "shadowSize": 1 },
-    "venusaur": { "footOffsetY": 4, "headOffsetY": 6, "shadowSize": 2 },
-    "charmander": { "footOffsetY": 4, "headOffsetY": -4, "shadowSize": 1 },
-    "charizard": { "footOffsetY": 4, "headOffsetY": -8, "shadowSize": 2 },
-    "squirtle": { "footOffsetY": 4, "headOffsetY": -4, "shadowSize": 1 },
-    "blastoise": { "footOffsetY": 4, "headOffsetY": -5, "shadowSize": 2 },
-    "pidgey": { "footOffsetY": 4, "headOffsetY": -1, "shadowSize": 0 },
-    "pikachu": { "footOffsetY": 4, "headOffsetY": -6, "shadowSize": 1 },
-    "raichu": { "footOffsetY": 4, "headOffsetY": -7, "shadowSize": 1 },
-    "sandshrew": { "footOffsetY": 4, "headOffsetY": -2, "shadowSize": 1 },
-    "nidoran-m": { "footOffsetY": 4, "headOffsetY": 6, "shadowSize": 1 },
-    "jigglypuff": { "footOffsetY": 4, "headOffsetY": 0, "shadowSize": 1 },
-    "meowth": { "footOffsetY": 4, "headOffsetY": -4, "shadowSize": 1 },
-    "abra": { "footOffsetY": 4, "headOffsetY": -7, "shadowSize": 1 },
-    "alakazam": { "footOffsetY": 4, "headOffsetY": -5, "shadowSize": 1 },
-    "machop": { "footOffsetY": 4, "headOffsetY": -4, "shadowSize": 1 },
-    "machamp": { "footOffsetY": 4, "headOffsetY": -12, "shadowSize": 1 },
-    "tentacool": { "footOffsetY": 4, "headOffsetY": -4, "shadowSize": 1 },
-    "geodude": { "footOffsetY": 4, "headOffsetY": 0, "shadowSize": 1 },
-    "growlithe": { "footOffsetY": 4, "headOffsetY": -6, "shadowSize": 1 },
-    "magnemite": { "footOffsetY": 4, "headOffsetY": -1, "shadowSize": 0 },
-    "seel": { "footOffsetY": 4, "headOffsetY": 0, "shadowSize": 1 },
-    "gastly": { "footOffsetY": 4, "headOffsetY": -1, "shadowSize": 1 },
-    "lickitung": { "footOffsetY": 4, "headOffsetY": -8, "shadowSize": 2 },
-    "kangaskhan": { "footOffsetY": 4, "headOffsetY": -6, "shadowSize": 2 },
-    "gyarados": { "footOffsetY": 4, "headOffsetY": -22, "shadowSize": 2 },
-    "ditto": { "footOffsetY": 4, "headOffsetY": -2, "shadowSize": 2 },
-    "eevee": { "footOffsetY": 4, "headOffsetY": -3, "shadowSize": 1 },
-    "vaporeon": { "footOffsetY": 4, "headOffsetY": -7, "shadowSize": 1 },
-    "flareon": { "footOffsetY": 4, "headOffsetY": -3, "shadowSize": 1 },
-    "jolteon": { "footOffsetY": 4, "headOffsetY": -3, "shadowSize": 1 },
-    "snorlax": { "footOffsetY": 4, "headOffsetY": -11, "shadowSize": 2 },
-    "dragonite": { "footOffsetY": 4, "headOffsetY": -13, "shadowSize": 2 },
-    "nidoqueen": { "footOffsetY": 4, "headOffsetY": -5, "shadowSize": 1 },
-    "nidoking": { "footOffsetY": 4, "headOffsetY": -6, "shadowSize": 2 },
-    "primeape": { "footOffsetY": 4, "headOffsetY": -2, "shadowSize": 1 },
-    "arcanine": { "footOffsetY": 4, "headOffsetY": -6, "shadowSize": 2 },
-    "poliwrath": { "footOffsetY": 4, "headOffsetY": -10, "shadowSize": 2 },
-    "golem": { "footOffsetY": 4, "headOffsetY": -1, "shadowSize": 1 },
-    "slowbro": { "footOffsetY": 4, "headOffsetY": -3, "shadowSize": 1 },
-    "gengar": { "footOffsetY": 4, "headOffsetY": -2, "shadowSize": 2 },
-    "hypno": { "footOffsetY": 4, "headOffsetY": -6, "shadowSize": 1 },
-    "exeggutor": { "footOffsetY": 4, "headOffsetY": -6, "shadowSize": 1 },
-    "marowak": { "footOffsetY": 4, "headOffsetY": -4, "shadowSize": 1 },
-    "hitmonlee": { "footOffsetY": 4, "headOffsetY": -7, "shadowSize": 1 },
-    "hitmonchan": { "footOffsetY": 4, "headOffsetY": -9, "shadowSize": 1 },
-    "rhydon": { "footOffsetY": 4, "headOffsetY": -8, "shadowSize": 2 },
-    "starmie": { "footOffsetY": 4, "headOffsetY": -2, "shadowSize": 1 },
-    "scyther": { "footOffsetY": 4, "headOffsetY": -6, "shadowSize": 1 },
-    "pinsir": { "footOffsetY": 4, "headOffsetY": -4, "shadowSize": 1 },
-    "kabutops": { "footOffsetY": 4, "headOffsetY": -7, "shadowSize": 1 },
-    "aerodactyl": { "footOffsetY": 4, "headOffsetY": -8, "shadowSize": 1 },
-    "sandslash": { "footOffsetY": 4, "headOffsetY": -1, "shadowSize": 1 },
-    "ninetales": { "footOffsetY": 4, "headOffsetY": -1, "shadowSize": 1 },
-    "wigglytuff": { "footOffsetY": 4, "headOffsetY": -3, "shadowSize": 1 },
-    "vileplume": { "footOffsetY": 4, "headOffsetY": 0, "shadowSize": 1 },
-    "golduck": { "footOffsetY": 4, "headOffsetY": -7, "shadowSize": 1 },
-    "tentacruel": { "footOffsetY": 4, "headOffsetY": -4, "shadowSize": 1 },
-    "magneton": { "footOffsetY": 4, "headOffsetY": -6, "shadowSize": 1 },
-    "dewgong": { "footOffsetY": 4, "headOffsetY": -6, "shadowSize": 1 },
-    "cloyster": { "footOffsetY": 4, "headOffsetY": 2, "shadowSize": 2 },
-    "haunter": { "footOffsetY": 4, "headOffsetY": -4, "shadowSize": 2 },
-    "kingler": { "footOffsetY": 4, "headOffsetY": 3, "shadowSize": 1 },
-    "electrode": { "footOffsetY": 4, "headOffsetY": 2, "shadowSize": 1 },
-    "jynx": { "footOffsetY": 4, "headOffsetY": -7, "shadowSize": 2 },
-    "electabuzz": { "footOffsetY": 4, "headOffsetY": -5, "shadowSize": 1 },
-    "magmar": { "footOffsetY": 4, "headOffsetY": -6, "shadowSize": 1 },
-    "lapras": { "footOffsetY": 4, "headOffsetY": -12, "shadowSize": 2 },
-    "porygon": { "footOffsetY": 4, "headOffsetY": 0, "shadowSize": 1 },
-    "omastar": { "footOffsetY": 4, "headOffsetY": 1, "shadowSize": 1 },
-    "arbok": { "footOffsetY": 4, "headOffsetY": -11, "shadowSize": 2 },
-    "clefable": { "footOffsetY": 4, "headOffsetY": -3, "shadowSize": 1 },
-    "parasect": { "footOffsetY": 4, "headOffsetY": 2, "shadowSize": 2 },
-    "dugtrio": { "footOffsetY": 4, "headOffsetY": 0, "shadowSize": 2 },
-    "persian": { "footOffsetY": 4, "headOffsetY": -9, "shadowSize": 1 },
-    "victreebel": { "footOffsetY": 4, "headOffsetY": -12, "shadowSize": 1 },
-    "rapidash": { "footOffsetY": 4, "headOffsetY": -7, "shadowSize": 1 },
-    "dodrio": { "footOffsetY": 4, "headOffsetY": -10, "shadowSize": 1 },
-    "muk": { "footOffsetY": 4, "headOffsetY": -2, "shadowSize": 2 },
-    "onix": { "footOffsetY": 4, "headOffsetY": -16, "shadowSize": 2 },
-    "weezing": { "footOffsetY": 4, "headOffsetY": -7, "shadowSize": 2 },
-    "chansey": { "footOffsetY": 4, "headOffsetY": -5, "shadowSize": 2 },
-    "tangela": { "footOffsetY": 4, "headOffsetY": -3, "shadowSize": 2 },
-    "seadra": { "footOffsetY": 4, "headOffsetY": -11, "shadowSize": 1 },
-    "mr-mime": { "footOffsetY": 4, "headOffsetY": -7, "shadowSize": 1 },
-    "tauros": { "footOffsetY": 4, "headOffsetY": 2, "shadowSize": 1 },
-    "butterfree": { "footOffsetY": 4, "headOffsetY": -7, "shadowSize": 1 },
-    "beedrill": { "footOffsetY": 4, "headOffsetY": -24, "shadowSize": 1 },
-    "pidgeot": { "footOffsetY": 4, "headOffsetY": -8, "shadowSize": 1 },
-    "raticate": { "footOffsetY": 4, "headOffsetY": -3, "shadowSize": 1 },
-    "fearow": { "footOffsetY": 4, "headOffsetY": 3, "shadowSize": 1 },
-    "golbat": { "footOffsetY": 4, "headOffsetY": -8, "shadowSize": 1 },
-    "venomoth": { "footOffsetY": 4, "headOffsetY": -6, "shadowSize": 1 },
-    "farfetch-d": { "footOffsetY": 4, "headOffsetY": -4, "shadowSize": 1 },
-    "seaking": { "footOffsetY": 4, "headOffsetY": -1, "shadowSize": 1 },
-    "articuno": { "footOffsetY": 4, "headOffsetY": -9, "shadowSize": 2 },
-    "zapdos": { "footOffsetY": 4, "headOffsetY": -16, "shadowSize": 2 },
-    "moltres": { "footOffsetY": 4, "headOffsetY": -16, "shadowSize": 2 },
-    "mewtwo": { "footOffsetY": 4, "headOffsetY": -11, "shadowSize": 1 },
-    "mew": { "footOffsetY": 4, "headOffsetY": -10, "shadowSize": 1 },
-    "dummy": { "footOffsetY": 4, "headOffsetY": -3, "shadowSize": 1 },
-    "bellsprout": { "footOffsetY": 4, "headOffsetY": -1, "shadowSize": 0 },
-    "caterpie": { "footOffsetY": 4, "headOffsetY": 2, "shadowSize": 0 },
-    "charmeleon": { "footOffsetY": 4, "headOffsetY": -2, "shadowSize": 1 },
-    "clefairy": { "footOffsetY": 4, "headOffsetY": -2, "shadowSize": 1 },
-    "cubone": { "footOffsetY": 4, "headOffsetY": -1, "shadowSize": 1 },
-    "diglett": { "footOffsetY": 4, "headOffsetY": 1, "shadowSize": 1 },
-    "doduo": { "footOffsetY": 4, "headOffsetY": -8, "shadowSize": 1 },
-    "dragonair": { "footOffsetY": 4, "headOffsetY": -28, "shadowSize": 2 },
-    "dratini": { "footOffsetY": 4, "headOffsetY": -3, "shadowSize": 1 },
-    "drowzee": { "footOffsetY": 4, "headOffsetY": -5, "shadowSize": 1 },
-    "ekans": { "footOffsetY": 4, "headOffsetY": -7, "shadowSize": 1 },
-    "exeggcute": { "footOffsetY": 4, "headOffsetY": 2, "shadowSize": 1 },
-    "gloom": { "footOffsetY": 4, "headOffsetY": -2, "shadowSize": 1 },
-    "goldeen": { "footOffsetY": 4, "headOffsetY": 2, "shadowSize": 1 },
-    "graveler": { "footOffsetY": 4, "headOffsetY": -5, "shadowSize": 1 },
-    "grimer": { "footOffsetY": 4, "headOffsetY": -3, "shadowSize": 2 },
-    "horsea": { "footOffsetY": 4, "headOffsetY": -7, "shadowSize": 1 },
-    "ivysaur": { "footOffsetY": 4, "headOffsetY": -12, "shadowSize": 1 },
-    "kabuto": { "footOffsetY": 4, "headOffsetY": 1, "shadowSize": 1 },
-    "kadabra": { "footOffsetY": 4, "headOffsetY": -11, "shadowSize": 1 },
-    "kakuna": { "footOffsetY": 4, "headOffsetY": -7, "shadowSize": 1 },
-    "koffing": { "footOffsetY": 4, "headOffsetY": -5, "shadowSize": 1 },
-    "krabby": { "footOffsetY": 4, "headOffsetY": 1, "shadowSize": 1 },
-    "machoke": { "footOffsetY": 4, "headOffsetY": -9, "shadowSize": 1 },
-    "magikarp": { "footOffsetY": 4, "headOffsetY": 4, "shadowSize": 1 },
-    "mankey": { "footOffsetY": 4, "headOffsetY": -2, "shadowSize": 1 },
-    "metapod": { "footOffsetY": 4, "headOffsetY": 1, "shadowSize": 1 },
-    "nidoran-f": { "footOffsetY": 4, "headOffsetY": -1, "shadowSize": 1 },
-    "nidorina": { "footOffsetY": 4, "headOffsetY": 2, "shadowSize": 1 },
-    "nidorino": { "footOffsetY": 4, "headOffsetY": 4, "shadowSize": 2 },
-    "oddish": { "footOffsetY": 4, "headOffsetY": -1, "shadowSize": 0 },
-    "omanyte": { "footOffsetY": 4, "headOffsetY": 3, "shadowSize": 1 },
-    "paras": { "footOffsetY": 4, "headOffsetY": 3, "shadowSize": 1 },
-    "pidgeotto": { "footOffsetY": 4, "headOffsetY": -5, "shadowSize": 1 },
-    "poliwag": { "footOffsetY": 4, "headOffsetY": -4, "shadowSize": 1 },
-    "poliwhirl": { "footOffsetY": 4, "headOffsetY": -8, "shadowSize": 1 },
-    "ponyta": { "footOffsetY": 4, "headOffsetY": -1, "shadowSize": 0 },
-    "psyduck": { "footOffsetY": 4, "headOffsetY": -3, "shadowSize": 1 },
-    "rattata": { "footOffsetY": 4, "headOffsetY": 4, "shadowSize": 1 },
-    "rhyhorn": { "footOffsetY": 4, "headOffsetY": 5, "shadowSize": 2 },
-    "shellder": { "footOffsetY": 4, "headOffsetY": 0, "shadowSize": 1 },
-    "slowpoke": { "footOffsetY": 4, "headOffsetY": 6, "shadowSize": 1 },
-    "spearow": { "footOffsetY": 4, "headOffsetY": -1, "shadowSize": 0 },
-    "staryu": { "footOffsetY": 4, "headOffsetY": -1, "shadowSize": 1 },
-    "venonat": { "footOffsetY": 4, "headOffsetY": -1, "shadowSize": 1 },
-    "voltorb": { "footOffsetY": 4, "headOffsetY": 1, "shadowSize": 1 },
-    "vulpix": { "footOffsetY": 4, "headOffsetY": 2, "shadowSize": 1 },
-    "wartortle": { "footOffsetY": 4, "headOffsetY": -3, "shadowSize": 1 },
-    "weedle": { "footOffsetY": 4, "headOffsetY": -6, "shadowSize": 0 },
-    "weepinbell": { "footOffsetY": 4, "headOffsetY": 2, "shadowSize": 1 },
-    "zubat": { "footOffsetY": 4, "headOffsetY": -12, "shadowSize": 0 }
+    "bulbasaur": {
+      "footOffsetY": 4,
+      "headOffsetY": 0,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 51],
+          "SouthEast": [48, 43],
+          "East": [50, 30],
+          "NorthEast": [48, 13],
+          "North": [31, 12],
+          "NorthWest": [14, 13],
+          "West": [12, 30],
+          "SouthWest": [14, 43]
+        },
+        "Shoot": {
+          "South": [15, 9],
+          "SouthEast": [18, 7],
+          "East": [21, 4],
+          "NorthEast": [19, 4],
+          "North": [15, 3],
+          "NorthWest": [11, 4],
+          "West": [10, 4],
+          "SouthWest": [12, 7]
+        },
+        "Charge": {
+          "South": [15, 17],
+          "SouthEast": [22, 18],
+          "East": [24, 15],
+          "NorthEast": [22, 8],
+          "North": [15, 6],
+          "NorthWest": [8, 8],
+          "West": [6, 15],
+          "SouthWest": [8, 18]
+        }
+      }
+    },
+    "venusaur": {
+      "footOffsetY": 4,
+      "headOffsetY": 6,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 55],
+          "SouthEast": [56, 52],
+          "East": [59, 35],
+          "NorthEast": [51, 20],
+          "North": [37, 23],
+          "NorthWest": [21, 20],
+          "West": [13, 35],
+          "SouthWest": [16, 52]
+        },
+        "Shoot": {
+          "South": [20, 15],
+          "SouthEast": [24, 12],
+          "East": [26, 9],
+          "NorthEast": [24, 6],
+          "North": [20, 6],
+          "NorthWest": [16, 6],
+          "West": [14, 9],
+          "SouthWest": [16, 12]
+        },
+        "Charge": {
+          "South": [16, 10],
+          "SouthEast": [17, 9],
+          "East": [18, 8],
+          "NorthEast": [18, 6],
+          "North": [16, 6],
+          "NorthWest": [14, 6],
+          "West": [14, 8],
+          "SouthWest": [15, 9]
+        }
+      }
+    },
+    "charmander": {
+      "footOffsetY": 4,
+      "headOffsetY": -4,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [32, 47],
+          "SouthEast": [53, 47],
+          "East": [55, 27],
+          "NorthEast": [56, 7],
+          "North": [31, 3],
+          "NorthWest": [7, 7],
+          "West": [7, 27],
+          "SouthWest": [9, 47]
+        },
+        "Charge": {
+          "South": [16, 18],
+          "SouthEast": [17, 17],
+          "East": [20, 16],
+          "NorthEast": [20, 14],
+          "North": [15, 12],
+          "NorthWest": [11, 14],
+          "West": [10, 16],
+          "SouthWest": [13, 17]
+        },
+        "Shoot": {
+          "South": [16, 18],
+          "SouthEast": [17, 17],
+          "East": [20, 16],
+          "NorthEast": [20, 14],
+          "North": [15, 12],
+          "NorthWest": [11, 14],
+          "West": [10, 16],
+          "SouthWest": [13, 17]
+        }
+      }
+    },
+    "charizard": {
+      "footOffsetY": 4,
+      "headOffsetY": -8,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [39, 37],
+          "SouthEast": [45, 36],
+          "East": [47, 37],
+          "NorthEast": [46, 33],
+          "North": [37, 30],
+          "NorthWest": [34, 33],
+          "West": [32, 37],
+          "SouthWest": [34, 36]
+        },
+        "Shoot": {
+          "South": [27, 32],
+          "SouthEast": [36, 26],
+          "East": [41, 23],
+          "NorthEast": [39, 16],
+          "North": [27, 13],
+          "NorthWest": [15, 16],
+          "West": [13, 23],
+          "SouthWest": [18, 26]
+        },
+        "Charge": {
+          "South": [23, 29],
+          "SouthEast": [31, 24],
+          "East": [35, 20],
+          "NorthEast": [33, 13],
+          "North": [23, 8],
+          "NorthWest": [13, 13],
+          "West": [12, 20],
+          "SouthWest": [16, 24]
+        }
+      }
+    },
+    "squirtle": {
+      "footOffsetY": 4,
+      "headOffsetY": -4,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 37],
+          "SouthEast": [39, 37],
+          "East": [42, 32],
+          "NorthEast": [41, 22],
+          "North": [31, 22],
+          "NorthWest": [21, 22],
+          "West": [20, 32],
+          "SouthWest": [23, 37]
+        },
+        "Shoot": {
+          "South": [19, 19],
+          "SouthEast": [26, 17],
+          "East": [27, 14],
+          "NorthEast": [26, 11],
+          "North": [19, 7],
+          "NorthWest": [13, 11],
+          "West": [12, 14],
+          "SouthWest": [13, 17]
+        },
+        "Charge": {
+          "South": [15, 17],
+          "SouthEast": [21, 15],
+          "East": [22, 14],
+          "NorthEast": [20, 10],
+          "North": [15, 8],
+          "NorthWest": [11, 10],
+          "West": [8, 14],
+          "SouthWest": [9, 15]
+        }
+      }
+    },
+    "blastoise": {
+      "footOffsetY": 4,
+      "headOffsetY": -5,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [34, 36],
+          "SouthEast": [41, 36],
+          "East": [43, 28],
+          "NorthEast": [42, 22],
+          "North": [30, 19],
+          "NorthWest": [21, 22],
+          "West": [20, 28],
+          "SouthWest": [21, 36]
+        },
+        "Shoot": {
+          "South": [23, 26],
+          "SouthEast": [31, 26],
+          "East": [36, 23],
+          "NorthEast": [34, 17],
+          "North": [24, 11],
+          "NorthWest": [13, 17],
+          "West": [11, 23],
+          "SouthWest": [15, 26]
+        },
+        "Charge": {
+          "South": [19, 17],
+          "SouthEast": [26, 17],
+          "East": [31, 15],
+          "NorthEast": [29, 10],
+          "North": [20, 4],
+          "NorthWest": [10, 10],
+          "West": [8, 15],
+          "SouthWest": [12, 17]
+        }
+      }
+    },
+    "pidgey": {
+      "footOffsetY": 4,
+      "headOffsetY": -1,
+      "shadowSize": 0,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 42],
+          "SouthEast": [41, 36],
+          "East": [43, 29],
+          "NorthEast": [40, 23],
+          "North": [31, 21],
+          "NorthWest": [23, 23],
+          "West": [20, 29],
+          "SouthWest": [22, 34]
+        },
+        "Shoot": {
+          "South": [11, 16],
+          "SouthEast": [16, 15],
+          "East": [19, 12],
+          "NorthEast": [15, 8],
+          "North": [11, 8],
+          "NorthWest": [8, 8],
+          "West": [4, 12],
+          "SouthWest": [7, 15]
+        },
+        "Charge": {
+          "South": [11, 14],
+          "SouthEast": [16, 13],
+          "East": [19, 10],
+          "NorthEast": [15, 6],
+          "North": [11, 6],
+          "NorthWest": [8, 6],
+          "West": [4, 10],
+          "SouthWest": [7, 13]
+        }
+      }
+    },
+    "pikachu": {
+      "footOffsetY": 4,
+      "headOffsetY": -6,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [39, 35],
+          "SouthEast": [50, 35],
+          "East": [52, 32],
+          "NorthEast": [52, 19],
+          "North": [39, 21],
+          "NorthWest": [27, 19],
+          "West": [27, 32],
+          "SouthWest": [29, 35]
+        },
+        "Shoot": {
+          "South": [19, 18],
+          "SouthEast": [19, 18],
+          "East": [21, 23],
+          "NorthEast": [20, 23],
+          "North": [18, 23],
+          "NorthWest": [19, 23],
+          "West": [18, 23],
+          "SouthWest": [20, 18]
+        },
+        "Charge": {
+          "South": [19, 12],
+          "SouthEast": [24, 13],
+          "East": [27, 14],
+          "NorthEast": [25, 10],
+          "North": [18, 9],
+          "NorthWest": [14, 10],
+          "West": [12, 14],
+          "SouthWest": [15, 13]
+        }
+      }
+    },
+    "raichu": {
+      "footOffsetY": 4,
+      "headOffsetY": -7,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 34],
+          "SouthEast": [49, 35],
+          "East": [49, 30],
+          "NorthEast": [48, 14],
+          "North": [35, 16],
+          "NorthWest": [22, 14],
+          "West": [22, 29],
+          "SouthWest": [22, 35]
+        },
+        "Shoot": {
+          "South": [19, 18],
+          "SouthEast": [20, 17],
+          "East": [22, 21],
+          "NorthEast": [20, 24],
+          "North": [19, 22],
+          "NorthWest": [20, 23],
+          "West": [17, 21],
+          "SouthWest": [19, 17]
+        },
+        "Charge": {
+          "South": [19, 13],
+          "SouthEast": [22, 11],
+          "East": [25, 8],
+          "NorthEast": [23, 12],
+          "North": [19, 6],
+          "NorthWest": [15, 12],
+          "West": [14, 8],
+          "SouthWest": [17, 11]
+        }
+      }
+    },
+    "sandshrew": {
+      "footOffsetY": 4,
+      "headOffsetY": -2,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 40],
+          "SouthEast": [40, 40],
+          "East": [40, 36],
+          "NorthEast": [40, 31],
+          "North": [35, 31],
+          "NorthWest": [31, 31],
+          "West": [31, 36],
+          "SouthWest": [31, 40]
+        },
+        "Charge": {
+          "South": [12, 17],
+          "SouthEast": [15, 16],
+          "East": [17, 16],
+          "NorthEast": [14, 12],
+          "North": [13, 13],
+          "NorthWest": [9, 12],
+          "West": [6, 16],
+          "SouthWest": [8, 18]
+        },
+        "Shoot": {
+          "South": [12, 17],
+          "SouthEast": [15, 16],
+          "East": [17, 16],
+          "NorthEast": [14, 12],
+          "North": [13, 13],
+          "NorthWest": [9, 12],
+          "West": [6, 16],
+          "SouthWest": [8, 18]
+        }
+      }
+    },
+    "nidoran-m": {
+      "footOffsetY": 4,
+      "headOffsetY": 6,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 46],
+          "SouthEast": [44, 44],
+          "East": [45, 34],
+          "NorthEast": [45, 23],
+          "North": [31, 18],
+          "NorthWest": [18, 23],
+          "West": [18, 34],
+          "SouthWest": [19, 44]
+        },
+        "Shoot": {
+          "South": [19, 26],
+          "SouthEast": [27, 25],
+          "East": [27, 24],
+          "NorthEast": [29, 20],
+          "North": [19, 17],
+          "NorthWest": [10, 20],
+          "West": [12, 24],
+          "SouthWest": [12, 25]
+        },
+        "Charge": {
+          "South": [15, 23],
+          "SouthEast": [22, 22],
+          "East": [22, 20],
+          "NorthEast": [24, 15],
+          "North": [15, 12],
+          "NorthWest": [7, 15],
+          "West": [9, 20],
+          "SouthWest": [9, 22]
+        }
+      }
+    },
+    "jigglypuff": {
+      "footOffsetY": 4,
+      "headOffsetY": 0,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [36, 43],
+          "SouthEast": [42, 43],
+          "East": [43, 39],
+          "NorthEast": [42, 33],
+          "North": [36, 32],
+          "NorthWest": [30, 33],
+          "West": [29, 39],
+          "SouthWest": [30, 43]
+        },
+        "Shoot": {
+          "South": [16, 13],
+          "SouthEast": [15, 13],
+          "East": [18, 16],
+          "NorthEast": [15, 18],
+          "North": [16, 18],
+          "NorthWest": [17, 18],
+          "West": [14, 16],
+          "SouthWest": [16, 13]
+        },
+        "Charge": {
+          "South": [12, 13],
+          "SouthEast": [16, 13],
+          "East": [17, 13],
+          "NorthEast": [15, 11],
+          "North": [12, 10],
+          "NorthWest": [9, 11],
+          "West": [7, 13],
+          "SouthWest": [8, 13]
+        }
+      }
+    },
+    "meowth": {
+      "footOffsetY": 4,
+      "headOffsetY": -4,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [32, 41],
+          "SouthEast": [37, 41],
+          "East": [39, 36],
+          "NorthEast": [38, 26],
+          "North": [31, 27],
+          "NorthWest": [25, 26],
+          "West": [24, 36],
+          "SouthWest": [26, 41]
+        },
+        "Shoot": {
+          "South": [11, 13],
+          "SouthEast": [14, 12],
+          "East": [16, 11],
+          "NorthEast": [13, 9],
+          "North": [11, 7],
+          "NorthWest": [10, 9],
+          "West": [7, 11],
+          "SouthWest": [9, 12]
+        },
+        "Charge": {
+          "South": [12, 15],
+          "SouthEast": [15, 15],
+          "East": [14, 15],
+          "NorthEast": [14, 13],
+          "North": [12, 12],
+          "NorthWest": [9, 13],
+          "West": [9, 15],
+          "SouthWest": [9, 15]
+        }
+      }
+    },
+    "abra": {
+      "footOffsetY": 4,
+      "headOffsetY": -7,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 37],
+          "SouthEast": [42, 36],
+          "East": [44, 33],
+          "NorthEast": [40, 25],
+          "North": [37, 26],
+          "NorthWest": [31, 25],
+          "West": [27, 33],
+          "SouthWest": [31, 37]
+        },
+        "Shoot": {
+          "South": [20, 27],
+          "SouthEast": [22, 25],
+          "East": [24, 22],
+          "NorthEast": [23, 18],
+          "North": [20, 16],
+          "NorthWest": [16, 18],
+          "West": [15, 22],
+          "SouthWest": [17, 25]
+        },
+        "Charge": {
+          "South": [16, 11],
+          "SouthEast": [15, 9],
+          "East": [16, 9],
+          "NorthEast": [19, 8],
+          "North": [16, 7],
+          "NorthWest": [12, 8],
+          "West": [15, 9],
+          "SouthWest": [16, 9]
+        }
+      }
+    },
+    "alakazam": {
+      "footOffsetY": 4,
+      "headOffsetY": -5,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 33],
+          "SouthEast": [41, 31],
+          "East": [44, 31],
+          "NorthEast": [39, 27],
+          "North": [35, 28],
+          "NorthWest": [31, 28],
+          "West": [28, 31],
+          "SouthWest": [31, 32]
+        },
+        "Shoot": {
+          "South": [16, 19],
+          "SouthEast": [22, 18],
+          "East": [24, 15],
+          "NorthEast": [23, 13],
+          "North": [16, 9],
+          "NorthWest": [8, 13],
+          "West": [7, 15],
+          "SouthWest": [9, 18]
+        },
+        "Charge": {
+          "South": [19, 20],
+          "SouthEast": [26, 19],
+          "East": [29, 17],
+          "NorthEast": [24, 15],
+          "North": [19, 13],
+          "NorthWest": [15, 15],
+          "West": [12, 17],
+          "SouthWest": [15, 19]
+        }
+      }
+    },
+    "machop": {
+      "footOffsetY": 4,
+      "headOffsetY": -4,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [30, 41],
+          "SouthEast": [40, 41],
+          "East": [41, 36],
+          "NorthEast": [38, 29],
+          "North": [32, 29],
+          "NorthWest": [24, 29],
+          "West": [21, 36],
+          "SouthWest": [22, 41]
+        },
+        "Shoot": {
+          "South": [11, 12],
+          "SouthEast": [15, 12],
+          "East": [16, 11],
+          "NorthEast": [15, 8],
+          "North": [11, 8],
+          "NorthWest": [7, 8],
+          "West": [6, 11],
+          "SouthWest": [8, 12]
+        },
+        "Charge": {
+          "South": [11, 15],
+          "SouthEast": [12, 14],
+          "East": [14, 14],
+          "NorthEast": [16, 11],
+          "North": [11, 10],
+          "NorthWest": [7, 11],
+          "West": [9, 14],
+          "SouthWest": [10, 14]
+        }
+      }
+    },
+    "machamp": {
+      "footOffsetY": 4,
+      "headOffsetY": -12,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [36, 37],
+          "SouthEast": [44, 36],
+          "East": [41, 29],
+          "NorthEast": [35, 27],
+          "North": [30, 28],
+          "NorthWest": [34, 25],
+          "West": [32, 29],
+          "SouthWest": [28, 35]
+        },
+        "Charge": {
+          "South": [19, 16],
+          "SouthEast": [21, 16],
+          "East": [26, 14],
+          "NorthEast": [24, 11],
+          "North": [19, 10],
+          "NorthWest": [14, 11],
+          "West": [12, 14],
+          "SouthWest": [17, 16]
+        },
+        "Shoot": {
+          "South": [19, 16],
+          "SouthEast": [21, 16],
+          "East": [26, 14],
+          "NorthEast": [24, 11],
+          "North": [19, 10],
+          "NorthWest": [14, 11],
+          "West": [12, 14],
+          "SouthWest": [17, 16]
+        }
+      }
+    },
+    "tentacool": {
+      "footOffsetY": 4,
+      "headOffsetY": -4,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [32, 40],
+          "SouthEast": [37, 41],
+          "East": [36, 35],
+          "NorthEast": [40, 27],
+          "North": [32, 30],
+          "NorthWest": [26, 27],
+          "West": [25, 35],
+          "SouthWest": [27, 41]
+        },
+        "Shoot": {
+          "South": [24, 27],
+          "SouthEast": [28, 26],
+          "East": [31, 23],
+          "NorthEast": [29, 22],
+          "North": [24, 23],
+          "NorthWest": [21, 22],
+          "West": [17, 23],
+          "SouthWest": [20, 26]
+        },
+        "Charge": {
+          "South": [16, 21],
+          "SouthEast": [19, 20],
+          "East": [21, 17],
+          "NorthEast": [19, 16],
+          "North": [16, 15],
+          "NorthWest": [15, 16],
+          "West": [11, 17],
+          "SouthWest": [13, 20]
+        }
+      }
+    },
+    "geodude": {
+      "footOffsetY": 4,
+      "headOffsetY": 0,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 36],
+          "SouthEast": [31, 35],
+          "East": [31, 40],
+          "NorthEast": [35, 46],
+          "North": [40, 44],
+          "NorthWest": [39, 42],
+          "West": [37, 36],
+          "SouthWest": [36, 32]
+        },
+        "Shoot": {
+          "South": [24, 26],
+          "SouthEast": [28, 26],
+          "East": [29, 23],
+          "NorthEast": [30, 16],
+          "North": [24, 9],
+          "NorthWest": [17, 16],
+          "West": [18, 23],
+          "SouthWest": [19, 26]
+        },
+        "Charge": {
+          "South": [16, 20],
+          "SouthEast": [17, 20],
+          "East": [19, 20],
+          "NorthEast": [20, 17],
+          "North": [15, 16],
+          "NorthWest": [11, 17],
+          "West": [12, 20],
+          "SouthWest": [14, 20]
+        }
+      }
+    },
+    "growlithe": {
+      "footOffsetY": 4,
+      "headOffsetY": -6,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [36, 49],
+          "SouthEast": [50, 46],
+          "East": [51, 40],
+          "NorthEast": [50, 30],
+          "North": [35, 23],
+          "NorthWest": [21, 30],
+          "West": [20, 40],
+          "SouthWest": [21, 46]
+        },
+        "Shoot": {
+          "South": [20, 17],
+          "SouthEast": [21, 14],
+          "East": [25, 16],
+          "NorthEast": [24, 15],
+          "North": [20, 13],
+          "NorthWest": [15, 15],
+          "West": [14, 16],
+          "SouthWest": [18, 14]
+        },
+        "Charge": {
+          "South": [16, 16],
+          "SouthEast": [21, 15],
+          "East": [24, 14],
+          "NorthEast": [23, 10],
+          "North": [15, 6],
+          "NorthWest": [8, 10],
+          "West": [7, 14],
+          "SouthWest": [10, 15]
+        }
+      }
+    },
+    "magnemite": {
+      "footOffsetY": 4,
+      "headOffsetY": -1,
+      "shadowSize": 0,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 35],
+          "SouthEast": [38, 31],
+          "East": [38, 34],
+          "NorthEast": [38, 30],
+          "North": [35, 33],
+          "NorthWest": [33, 30],
+          "West": [32, 34],
+          "SouthWest": [33, 32]
+        },
+        "Shoot": {
+          "South": [15, 16],
+          "SouthEast": [19, 15],
+          "East": [19, 14],
+          "NorthEast": [19, 11],
+          "North": [15, 12],
+          "NorthWest": [12, 11],
+          "West": [11, 14],
+          "SouthWest": [12, 16]
+        },
+        "Charge": {
+          "South": [11, 15],
+          "SouthEast": [14, 14],
+          "East": [14, 14],
+          "NorthEast": [14, 12],
+          "North": [11, 13],
+          "NorthWest": [9, 11],
+          "West": [8, 14],
+          "SouthWest": [9, 15]
+        }
+      }
+    },
+    "seel": {
+      "footOffsetY": 4,
+      "headOffsetY": 0,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 25],
+          "SouthEast": [41, 26],
+          "East": [45, 21],
+          "NorthEast": [42, 17],
+          "North": [35, 17],
+          "NorthWest": [29, 17],
+          "West": [26, 21],
+          "SouthWest": [30, 26]
+        },
+        "Shoot": {
+          "South": [19, 16],
+          "SouthEast": [23, 14],
+          "East": [26, 16],
+          "NorthEast": [24, 14],
+          "North": [19, 11],
+          "NorthWest": [15, 14],
+          "West": [13, 16],
+          "SouthWest": [16, 14]
+        },
+        "Charge": {
+          "South": [15, 19],
+          "SouthEast": [23, 18],
+          "East": [25, 16],
+          "NorthEast": [22, 11],
+          "North": [15, 8],
+          "NorthWest": [9, 11],
+          "West": [6, 16],
+          "SouthWest": [8, 18]
+        }
+      }
+    },
+    "gastly": {
+      "footOffsetY": 4,
+      "headOffsetY": -1,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [32, 43],
+          "SouthEast": [39, 43],
+          "East": [39, 39],
+          "NorthEast": [41, 30],
+          "North": [31, 24],
+          "NorthWest": [22, 30],
+          "West": [24, 39],
+          "SouthWest": [24, 43]
+        },
+        "Shoot": {
+          "South": [23, 37],
+          "SouthEast": [34, 37],
+          "East": [35, 29],
+          "NorthEast": [36, 18],
+          "North": [23, 10],
+          "NorthWest": [11, 18],
+          "West": [12, 29],
+          "SouthWest": [13, 37]
+        },
+        "Charge": {
+          "South": [19, 27],
+          "SouthEast": [24, 27],
+          "East": [25, 25],
+          "NorthEast": [26, 20],
+          "North": [19, 12],
+          "NorthWest": [13, 20],
+          "West": [14, 25],
+          "SouthWest": [15, 27]
+        }
+      }
+    },
+    "lickitung": {
+      "footOffsetY": 4,
+      "headOffsetY": -8,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 36],
+          "SouthEast": [44, 37],
+          "East": [48, 32],
+          "NorthEast": [50, 26],
+          "North": [45, 25],
+          "NorthWest": [36, 21],
+          "West": [30, 29],
+          "SouthWest": [29, 36]
+        },
+        "Shoot": {
+          "South": [21, 15],
+          "SouthEast": [30, 13],
+          "East": [25, 16],
+          "NorthEast": [20, 18],
+          "North": [36, 21],
+          "NorthWest": [35, 18],
+          "West": [30, 16],
+          "SouthWest": [25, 13]
+        },
+        "Charge": {
+          "South": [16, 13],
+          "SouthEast": [20, 12],
+          "East": [22, 12],
+          "NorthEast": [21, 9],
+          "North": [16, 7],
+          "NorthWest": [10, 9],
+          "West": [9, 12],
+          "SouthWest": [11, 12]
+        }
+      }
+    },
+    "kangaskhan": {
+      "footOffsetY": 4,
+      "headOffsetY": -6,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [29, 45],
+          "SouthEast": [44, 45],
+          "East": [49, 37],
+          "NorthEast": [52, 29],
+          "North": [43, 27],
+          "NorthWest": [32, 26],
+          "West": [22, 29],
+          "SouthWest": [16, 42]
+        },
+        "Shoot": {
+          "South": [23, 28],
+          "SouthEast": [37, 28],
+          "East": [39, 23],
+          "NorthEast": [33, 16],
+          "North": [24, 16],
+          "NorthWest": [14, 16],
+          "West": [8, 23],
+          "SouthWest": [10, 28]
+        },
+        "Charge": {
+          "South": [16, 9],
+          "SouthEast": [18, 11],
+          "East": [23, 7],
+          "NorthEast": [19, 10],
+          "North": [16, 11],
+          "NorthWest": [12, 10],
+          "West": [8, 7],
+          "SouthWest": [13, 11]
+        }
+      }
+    },
+    "gyarados": {
+      "footOffsetY": 4,
+      "headOffsetY": -22,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [52, 56],
+          "SouthEast": [79, 54],
+          "East": [87, 45],
+          "NorthEast": [77, 31],
+          "North": [53, 24],
+          "NorthWest": [26, 31],
+          "West": [16, 45],
+          "SouthWest": [24, 54]
+        },
+        "Shoot": {
+          "South": [52, 34],
+          "SouthEast": [62, 33],
+          "East": [65, 29],
+          "NorthEast": [58, 32],
+          "North": [52, 28],
+          "NorthWest": [45, 32],
+          "West": [38, 29],
+          "SouthWest": [41, 33]
+        },
+        "Charge": {
+          "South": [48, 52],
+          "SouthEast": [74, 46],
+          "East": [81, 35],
+          "NorthEast": [68, 28],
+          "North": [49, 18],
+          "NorthWest": [28, 28],
+          "West": [14, 35],
+          "SouthWest": [21, 46]
+        }
+      }
+    },
+    "ditto": {
+      "footOffsetY": 4,
+      "headOffsetY": -2,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 43],
+          "SouthEast": [40, 41],
+          "East": [44, 35],
+          "NorthEast": [40, 27],
+          "North": [31, 30],
+          "NorthWest": [23, 27],
+          "West": [18, 35],
+          "SouthWest": [23, 41]
+        },
+        "Charge": {
+          "South": [11, 16],
+          "SouthEast": [15, 16],
+          "East": [16, 15],
+          "NorthEast": [14, 14],
+          "North": [11, 14],
+          "NorthWest": [9, 13],
+          "West": [7, 15],
+          "SouthWest": [9, 15]
+        },
+        "Shoot": {
+          "South": [11, 16],
+          "SouthEast": [15, 16],
+          "East": [16, 15],
+          "NorthEast": [14, 14],
+          "North": [11, 14],
+          "NorthWest": [9, 13],
+          "West": [7, 15],
+          "SouthWest": [9, 15]
+        }
+      }
+    },
+    "eevee": {
+      "footOffsetY": 4,
+      "headOffsetY": -3,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 39],
+          "SouthEast": [44, 35],
+          "East": [46, 31],
+          "NorthEast": [44, 15],
+          "North": [32, 13],
+          "NorthWest": [19, 15],
+          "West": [17, 31],
+          "SouthWest": [19, 35]
+        },
+        "Shoot": {
+          "South": [15, 16],
+          "SouthEast": [22, 16],
+          "East": [25, 14],
+          "NorthEast": [23, 12],
+          "North": [16, 11],
+          "NorthWest": [8, 12],
+          "West": [6, 14],
+          "SouthWest": [9, 16]
+        },
+        "Charge": {
+          "South": [12, 15],
+          "SouthEast": [17, 15],
+          "East": [20, 14],
+          "NorthEast": [18, 13],
+          "North": [12, 12],
+          "NorthWest": [5, 13],
+          "West": [3, 14],
+          "SouthWest": [6, 15]
+        }
+      }
+    },
+    "vaporeon": {
+      "footOffsetY": 4,
+      "headOffsetY": -7,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 43],
+          "SouthEast": [49, 42],
+          "East": [53, 34],
+          "NorthEast": [48, 25],
+          "North": [35, 28],
+          "NorthWest": [23, 25],
+          "West": [18, 34],
+          "SouthWest": [22, 42]
+        },
+        "Shoot": {
+          "South": [27, 31],
+          "SouthEast": [33, 30],
+          "East": [37, 30],
+          "NorthEast": [31, 32],
+          "North": [27, 32],
+          "NorthWest": [24, 32],
+          "West": [18, 30],
+          "SouthWest": [22, 30]
+        },
+        "Charge": {
+          "South": [27, 34],
+          "SouthEast": [36, 33],
+          "East": [37, 33],
+          "NorthEast": [34, 29],
+          "North": [27, 24],
+          "NorthWest": [22, 29],
+          "West": [18, 33],
+          "SouthWest": [19, 33]
+        }
+      }
+    },
+    "flareon": {
+      "footOffsetY": 4,
+      "headOffsetY": -3,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 45],
+          "SouthEast": [50, 44],
+          "East": [52, 33],
+          "NorthEast": [50, 21],
+          "North": [30, 20],
+          "NorthWest": [13, 21],
+          "West": [11, 33],
+          "SouthWest": [13, 44]
+        },
+        "Shoot": {
+          "South": [19, 21],
+          "SouthEast": [33, 18],
+          "East": [35, 15],
+          "NorthEast": [31, 9],
+          "North": [18, 5],
+          "NorthWest": [8, 9],
+          "West": [4, 15],
+          "SouthWest": [6, 18]
+        },
+        "Charge": {
+          "South": [15, 19],
+          "SouthEast": [27, 16],
+          "East": [30, 15],
+          "NorthEast": [25, 11],
+          "North": [15, 7],
+          "NorthWest": [6, 11],
+          "West": [1, 15],
+          "SouthWest": [4, 16]
+        }
+      }
+    },
+    "jolteon": {
+      "footOffsetY": 4,
+      "headOffsetY": -3,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 44],
+          "SouthEast": [47, 42],
+          "East": [47, 34],
+          "NorthEast": [44, 25],
+          "North": [30, 26],
+          "NorthWest": [19, 25],
+          "West": [16, 34],
+          "SouthWest": [18, 42]
+        },
+        "Shoot": {
+          "South": [23, 24],
+          "SouthEast": [32, 21],
+          "East": [32, 19],
+          "NorthEast": [28, 19],
+          "North": [23, 20],
+          "NorthWest": [19, 19],
+          "West": [15, 19],
+          "SouthWest": [15, 21]
+        },
+        "Charge": {
+          "South": [24, 28],
+          "SouthEast": [31, 26],
+          "East": [34, 24],
+          "NorthEast": [33, 20],
+          "North": [24, 19],
+          "NorthWest": [14, 20],
+          "West": [13, 24],
+          "SouthWest": [16, 26]
+        }
+      }
+    },
+    "snorlax": {
+      "footOffsetY": 4,
+      "headOffsetY": -11,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 38],
+          "SouthEast": [40, 37],
+          "East": [42, 32],
+          "NorthEast": [39, 23],
+          "North": [31, 26],
+          "NorthWest": [24, 23],
+          "West": [21, 32],
+          "SouthWest": [23, 37]
+        },
+        "Shoot": {
+          "South": [20, 10],
+          "SouthEast": [17, 9],
+          "East": [19, 14],
+          "NorthEast": [16, 17],
+          "North": [19, 16],
+          "NorthWest": [23, 17],
+          "West": [20, 14],
+          "SouthWest": [22, 9]
+        },
+        "Charge": {
+          "South": [15, 18],
+          "SouthEast": [24, 16],
+          "East": [25, 14],
+          "NorthEast": [21, 11],
+          "North": [15, 10],
+          "NorthWest": [10, 11],
+          "West": [6, 14],
+          "SouthWest": [7, 16]
+        }
+      }
+    },
+    "dragonite": {
+      "footOffsetY": 4,
+      "headOffsetY": -13,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [36, 33],
+          "SouthEast": [43, 33],
+          "East": [47, 27],
+          "NorthEast": [44, 20],
+          "North": [34, 21],
+          "NorthWest": [27, 20],
+          "West": [24, 27],
+          "SouthWest": [28, 33]
+        },
+        "Shoot": {
+          "South": [23, 30],
+          "SouthEast": [36, 28],
+          "East": [36, 24],
+          "NorthEast": [35, 17],
+          "North": [23, 12],
+          "NorthWest": [12, 17],
+          "West": [11, 24],
+          "SouthWest": [11, 28]
+        },
+        "Charge": {
+          "South": [19, 18],
+          "SouthEast": [24, 20],
+          "East": [26, 18],
+          "NorthEast": [27, 17],
+          "North": [19, 13],
+          "NorthWest": [12, 17],
+          "West": [13, 18],
+          "SouthWest": [15, 20]
+        }
+      }
+    },
+    "nidoqueen": {
+      "footOffsetY": 4,
+      "headOffsetY": -5,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 44],
+          "SouthEast": [44, 43],
+          "East": [48, 37],
+          "NorthEast": [46, 25],
+          "North": [35, 24],
+          "NorthWest": [25, 25],
+          "West": [23, 37],
+          "SouthWest": [27, 43]
+        },
+        "Shoot": {
+          "South": [23, 30],
+          "SouthEast": [30, 29],
+          "East": [34, 24],
+          "NorthEast": [32, 15],
+          "North": [23, 12],
+          "NorthWest": [14, 15],
+          "West": [12, 24],
+          "SouthWest": [16, 29]
+        },
+        "Charge": {
+          "South": [15, 20],
+          "SouthEast": [20, 19],
+          "East": [22, 16],
+          "NorthEast": [22, 10],
+          "North": [15, 6],
+          "NorthWest": [8, 10],
+          "West": [8, 16],
+          "SouthWest": [10, 19]
+        }
+      }
+    },
+    "nidoking": {
+      "footOffsetY": 4,
+      "headOffsetY": -6,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [36, 32],
+          "SouthEast": [41, 34],
+          "East": [45, 33],
+          "NorthEast": [40, 30],
+          "North": [36, 30],
+          "NorthWest": [27, 31],
+          "West": [27, 34],
+          "SouthWest": [30, 34]
+        },
+        "Shoot": {
+          "South": [26, 9],
+          "SouthEast": [18, 8],
+          "East": [19, 14],
+          "NorthEast": [24, 19],
+          "North": [18, 17],
+          "NorthWest": [23, 19],
+          "West": [28, 14],
+          "SouthWest": [29, 8]
+        },
+        "Charge": {
+          "South": [16, 13],
+          "SouthEast": [17, 13],
+          "East": [18, 15],
+          "NorthEast": [19, 17],
+          "North": [16, 13],
+          "NorthWest": [12, 17],
+          "West": [13, 15],
+          "SouthWest": [14, 13]
+        }
+      }
+    },
+    "primeape": {
+      "footOffsetY": 4,
+      "headOffsetY": -2,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [34, 35],
+          "SouthEast": [41, 34],
+          "East": [44, 31],
+          "NorthEast": [42, 24],
+          "North": [35, 20],
+          "NorthWest": [30, 22],
+          "West": [27, 31],
+          "SouthWest": [29, 34]
+        },
+        "Charge": {
+          "South": [15, 18],
+          "SouthEast": [17, 18],
+          "East": [21, 16],
+          "NorthEast": [18, 15],
+          "North": [15, 12],
+          "NorthWest": [12, 14],
+          "West": [10, 17],
+          "SouthWest": [13, 18]
+        },
+        "Shoot": {
+          "South": [15, 18],
+          "SouthEast": [17, 18],
+          "East": [21, 16],
+          "NorthEast": [18, 15],
+          "North": [15, 12],
+          "NorthWest": [12, 14],
+          "West": [10, 17],
+          "SouthWest": [13, 18]
+        }
+      }
+    },
+    "arcanine": {
+      "footOffsetY": 4,
+      "headOffsetY": -6,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [36, 48],
+          "SouthEast": [56, 50],
+          "East": [59, 34],
+          "NorthEast": [56, 21],
+          "North": [36, 19],
+          "NorthWest": [15, 21],
+          "West": [12, 34],
+          "SouthWest": [17, 48]
+        },
+        "Shoot": {
+          "South": [24, 18],
+          "SouthEast": [25, 16],
+          "East": [29, 19],
+          "NorthEast": [26, 22],
+          "North": [24, 17],
+          "NorthWest": [20, 22],
+          "West": [18, 19],
+          "SouthWest": [22, 17]
+        },
+        "Charge": {
+          "South": [20, 18],
+          "SouthEast": [26, 17],
+          "East": [30, 15],
+          "NorthEast": [27, 13],
+          "North": [20, 7],
+          "NorthWest": [11, 13],
+          "West": [9, 15],
+          "SouthWest": [13, 18]
+        }
+      }
+    },
+    "poliwrath": {
+      "footOffsetY": 4,
+      "headOffsetY": -10,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [34, 34],
+          "SouthEast": [39, 31],
+          "East": [42, 30],
+          "NorthEast": [37, 26],
+          "North": [37, 27],
+          "NorthWest": [34, 26],
+          "West": [29, 30],
+          "SouthWest": [33, 31]
+        },
+        "Shoot": {
+          "South": [24, 22],
+          "SouthEast": [25, 21],
+          "East": [29, 21],
+          "NorthEast": [27, 19],
+          "North": [24, 19],
+          "NorthWest": [20, 19],
+          "West": [18, 21],
+          "SouthWest": [23, 21]
+        },
+        "Charge": {
+          "South": [20, 11],
+          "SouthEast": [22, 10],
+          "East": [25, 9],
+          "NorthEast": [24, 7],
+          "North": [20, 6],
+          "NorthWest": [15, 7],
+          "West": [14, 9],
+          "SouthWest": [18, 10]
+        }
+      }
+    },
+    "golem": {
+      "footOffsetY": 4,
+      "headOffsetY": -1,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [36, 42],
+          "SouthEast": [54, 42],
+          "East": [57, 23],
+          "NorthEast": [54, 8],
+          "North": [36, 6],
+          "NorthWest": [17, 8],
+          "West": [14, 23],
+          "SouthWest": [17, 42]
+        },
+        "Shoot": {
+          "South": [24, 23],
+          "SouthEast": [32, 23],
+          "East": [36, 19],
+          "NorthEast": [36, 12],
+          "North": [24, 7],
+          "NorthWest": [11, 12],
+          "West": [11, 19],
+          "SouthWest": [15, 23]
+        },
+        "Charge": {
+          "South": [16, 20],
+          "SouthEast": [20, 20],
+          "East": [24, 19],
+          "NorthEast": [24, 15],
+          "North": [16, 10],
+          "NorthWest": [7, 15],
+          "West": [7, 19],
+          "SouthWest": [11, 20]
+        }
+      }
+    },
+    "slowbro": {
+      "footOffsetY": 4,
+      "headOffsetY": -3,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 38],
+          "SouthEast": [42, 37],
+          "East": [43, 33],
+          "NorthEast": [40, 26],
+          "North": [31, 23],
+          "NorthWest": [23, 26],
+          "West": [20, 33],
+          "SouthWest": [21, 37]
+        },
+        "Shoot": {
+          "South": [24, 29],
+          "SouthEast": [38, 27],
+          "East": [41, 19],
+          "NorthEast": [39, 9],
+          "North": [22, 5],
+          "NorthWest": [8, 9],
+          "West": [6, 19],
+          "SouthWest": [9, 27]
+        },
+        "Charge": {
+          "South": [15, 21],
+          "SouthEast": [25, 19],
+          "East": [28, 15],
+          "NorthEast": [26, 9],
+          "North": [15, 5],
+          "NorthWest": [5, 9],
+          "West": [3, 15],
+          "SouthWest": [6, 19]
+        }
+      }
+    },
+    "gengar": {
+      "footOffsetY": 4,
+      "headOffsetY": -2,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [34, 43],
+          "SouthEast": [44, 42],
+          "East": [46, 37],
+          "NorthEast": [41, 29],
+          "North": [36, 29],
+          "NorthWest": [29, 29],
+          "West": [24, 37],
+          "SouthWest": [28, 43]
+        },
+        "Shoot": {
+          "South": [28, 44],
+          "SouthEast": [44, 43],
+          "East": [47, 31],
+          "NorthEast": [47, 18],
+          "North": [29, 11],
+          "NorthWest": [7, 18],
+          "West": [7, 31],
+          "SouthWest": [10, 43]
+        },
+        "Charge": {
+          "South": [15, 20],
+          "SouthEast": [19, 20],
+          "East": [22, 19],
+          "NorthEast": [22, 17],
+          "North": [16, 11],
+          "NorthWest": [8, 17],
+          "West": [8, 19],
+          "SouthWest": [11, 20]
+        }
+      }
+    },
+    "hypno": {
+      "footOffsetY": 4,
+      "headOffsetY": -6,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 40],
+          "SouthEast": [43, 38],
+          "East": [47, 32],
+          "NorthEast": [47, 25],
+          "North": [35, 23],
+          "NorthWest": [23, 25],
+          "West": [24, 33],
+          "SouthWest": [26, 39]
+        },
+        "Shoot": {
+          "South": [25, 13],
+          "SouthEast": [24, 13],
+          "East": [27, 16],
+          "NorthEast": [27, 20],
+          "North": [33, 20],
+          "NorthWest": [32, 19],
+          "West": [28, 15],
+          "SouthWest": [27, 14]
+        },
+        "Charge": {
+          "South": [19, 17],
+          "SouthEast": [25, 18],
+          "East": [28, 17],
+          "NorthEast": [26, 13],
+          "North": [19, 9],
+          "NorthWest": [12, 12],
+          "West": [10, 14],
+          "SouthWest": [13, 16]
+        }
+      }
+    },
+    "exeggutor": {
+      "footOffsetY": 4,
+      "headOffsetY": -6,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [43, 43],
+          "SouthEast": [57, 37],
+          "East": [59, 33],
+          "NorthEast": [52, 18],
+          "North": [43, 21],
+          "NorthWest": [34, 18],
+          "West": [28, 33],
+          "SouthWest": [29, 37]
+        },
+        "Shoot": {
+          "South": [31, 11],
+          "SouthEast": [26, 12],
+          "East": [27, 15],
+          "NorthEast": [21, 18],
+          "North": [31, 20],
+          "NorthWest": [41, 18],
+          "West": [35, 15],
+          "SouthWest": [36, 12]
+        },
+        "Charge": {
+          "South": [19, 25],
+          "SouthEast": [25, 22],
+          "East": [26, 23],
+          "NorthEast": [23, 17],
+          "North": [19, 16],
+          "NorthWest": [15, 17],
+          "West": [12, 23],
+          "SouthWest": [14, 22]
+        }
+      }
+    },
+    "marowak": {
+      "footOffsetY": 4,
+      "headOffsetY": -4,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 45],
+          "SouthEast": [42, 42],
+          "East": [46, 39],
+          "NorthEast": [48, 27],
+          "North": [37, 25],
+          "NorthWest": [25, 30],
+          "West": [27, 39],
+          "SouthWest": [27, 44]
+        },
+        "Shoot": {
+          "South": [19, 12],
+          "SouthEast": [18, 14],
+          "East": [17, 18],
+          "NorthEast": [14, 22],
+          "North": [28, 23],
+          "NorthWest": [36, 19],
+          "West": [32, 13],
+          "SouthWest": [27, 8]
+        },
+        "Charge": {
+          "South": [16, 18],
+          "SouthEast": [18, 17],
+          "East": [22, 15],
+          "NorthEast": [22, 9],
+          "North": [17, 5],
+          "NorthWest": [8, 12],
+          "West": [10, 15],
+          "SouthWest": [10, 17]
+        }
+      }
+    },
+    "hitmonlee": {
+      "footOffsetY": 4,
+      "headOffsetY": -7,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [34, 35],
+          "SouthEast": [42, 35],
+          "East": [43, 29],
+          "NorthEast": [44, 20],
+          "North": [36, 23],
+          "NorthWest": [29, 17],
+          "West": [27, 27],
+          "SouthWest": [29, 34]
+        },
+        "Charge": {
+          "South": [20, 20],
+          "SouthEast": [23, 18],
+          "East": [24, 15],
+          "NorthEast": [23, 13],
+          "North": [21, 10],
+          "NorthWest": [16, 13],
+          "West": [16, 15],
+          "SouthWest": [17, 18]
+        },
+        "Shoot": {
+          "South": [20, 20],
+          "SouthEast": [23, 18],
+          "East": [24, 15],
+          "NorthEast": [23, 13],
+          "North": [21, 10],
+          "NorthWest": [16, 13],
+          "West": [16, 15],
+          "SouthWest": [17, 18]
+        }
+      }
+    },
+    "hitmonchan": {
+      "footOffsetY": 4,
+      "headOffsetY": -9,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 28],
+          "SouthEast": [32, 27],
+          "East": [33, 28],
+          "NorthEast": [33, 28],
+          "North": [31, 25],
+          "NorthWest": [29, 28],
+          "West": [29, 28],
+          "SouthWest": [30, 27]
+        },
+        "Charge": {
+          "South": [12, 16],
+          "SouthEast": [15, 15],
+          "East": [16, 14],
+          "NorthEast": [15, 12],
+          "North": [11, 9],
+          "NorthWest": [7, 12],
+          "West": [6, 14],
+          "SouthWest": [7, 15]
+        },
+        "Shoot": {
+          "South": [12, 16],
+          "SouthEast": [15, 15],
+          "East": [16, 14],
+          "NorthEast": [15, 12],
+          "North": [11, 9],
+          "NorthWest": [7, 12],
+          "West": [6, 14],
+          "SouthWest": [7, 15]
+        }
+      }
+    },
+    "rhydon": {
+      "footOffsetY": 4,
+      "headOffsetY": -8,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 36],
+          "SouthEast": [43, 35],
+          "East": [47, 33],
+          "NorthEast": [45, 24],
+          "North": [36, 25],
+          "NorthWest": [26, 24],
+          "West": [24, 33],
+          "SouthWest": [28, 35]
+        },
+        "Shoot": {
+          "South": [23, 13],
+          "SouthEast": [25, 12],
+          "East": [27, 12],
+          "NorthEast": [27, 9],
+          "North": [23, 10],
+          "NorthWest": [20, 9],
+          "West": [20, 12],
+          "SouthWest": [22, 12]
+        },
+        "Charge": {
+          "South": [23, 23],
+          "SouthEast": [27, 24],
+          "East": [31, 24],
+          "NorthEast": [30, 18],
+          "North": [23, 14],
+          "NorthWest": [17, 18],
+          "West": [16, 24],
+          "SouthWest": [20, 24]
+        }
+      }
+    },
+    "starmie": {
+      "footOffsetY": 4,
+      "headOffsetY": -2,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [32, 21],
+          "SouthEast": [27, 21],
+          "East": [27, 26],
+          "NorthEast": [27, 31],
+          "North": [32, 31],
+          "NorthWest": [37, 31],
+          "West": [37, 26],
+          "SouthWest": [37, 21]
+        },
+        "Shoot": {
+          "South": [16, 14],
+          "SouthEast": [16, 13],
+          "East": [16, 16],
+          "NorthEast": [12, 15],
+          "North": [16, 15],
+          "NorthWest": [18, 15],
+          "West": [16, 16],
+          "SouthWest": [16, 13]
+        },
+        "Charge": {
+          "South": [16, 17],
+          "SouthEast": [18, 16],
+          "East": [21, 16],
+          "NorthEast": [17, 15],
+          "North": [15, 14],
+          "NorthWest": [15, 15],
+          "West": [10, 16],
+          "SouthWest": [13, 16]
+        }
+      }
+    },
+    "scyther": {
+      "footOffsetY": 4,
+      "headOffsetY": -6,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [36, 49],
+          "SouthEast": [46, 47],
+          "East": [48, 39],
+          "NorthEast": [49, 25],
+          "North": [36, 25],
+          "NorthWest": [22, 25],
+          "West": [23, 39],
+          "SouthWest": [26, 47]
+        },
+        "Shoot": {
+          "South": [24, 10],
+          "SouthEast": [20, 10],
+          "East": [19, 17],
+          "NorthEast": [21, 20],
+          "North": [24, 23],
+          "NorthWest": [26, 20],
+          "West": [28, 17],
+          "SouthWest": [28, 10]
+        },
+        "Charge": {
+          "South": [20, 17],
+          "SouthEast": [22, 17],
+          "East": [25, 16],
+          "NorthEast": [25, 13],
+          "North": [21, 13],
+          "NorthWest": [15, 13],
+          "West": [14, 15],
+          "SouthWest": [16, 17]
+        }
+      }
+    },
+    "pinsir": {
+      "footOffsetY": 4,
+      "headOffsetY": -4,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [32, 45],
+          "SouthEast": [39, 43],
+          "East": [45, 37],
+          "NorthEast": [38, 28],
+          "North": [31, 27],
+          "NorthWest": [26, 28],
+          "West": [21, 36],
+          "SouthWest": [25, 41]
+        },
+        "Charge": {
+          "South": [19, 26],
+          "SouthEast": [19, 28],
+          "East": [24, 23],
+          "NorthEast": [21, 19],
+          "North": [20, 16],
+          "NorthWest": [17, 19],
+          "West": [14, 23],
+          "SouthWest": [19, 28]
+        },
+        "Shoot": {
+          "South": [19, 26],
+          "SouthEast": [19, 28],
+          "East": [24, 23],
+          "NorthEast": [21, 19],
+          "North": [20, 16],
+          "NorthWest": [17, 19],
+          "West": [14, 23],
+          "SouthWest": [19, 28]
+        }
+      }
+    },
+    "kabutops": {
+      "footOffsetY": 4,
+      "headOffsetY": -7,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [33, 37],
+          "SouthEast": [45, 34],
+          "East": [48, 24],
+          "NorthEast": [51, 14],
+          "North": [32, 12],
+          "NorthWest": [12, 14],
+          "West": [15, 24],
+          "SouthWest": [18, 34]
+        },
+        "Shoot": {
+          "South": [20, 21],
+          "SouthEast": [28, 20],
+          "East": [32, 16],
+          "NorthEast": [32, 12],
+          "North": [20, 12],
+          "NorthWest": [8, 12],
+          "West": [8, 16],
+          "SouthWest": [12, 20]
+        },
+        "Charge": {
+          "South": [20, 17],
+          "SouthEast": [27, 15],
+          "East": [31, 12],
+          "NorthEast": [31, 9],
+          "North": [20, 9],
+          "NorthWest": [9, 9],
+          "West": [9, 12],
+          "SouthWest": [13, 15]
+        }
+      }
+    },
+    "aerodactyl": {
+      "footOffsetY": 4,
+      "headOffsetY": -8,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 44],
+          "SouthEast": [46, 44],
+          "East": [49, 30],
+          "NorthEast": [50, 12],
+          "North": [32, 14],
+          "NorthWest": [13, 12],
+          "West": [14, 30],
+          "SouthWest": [17, 44]
+        },
+        "Shoot": {
+          "South": [28, 3],
+          "SouthEast": [15, 1],
+          "East": [10, 13],
+          "NorthEast": [13, 29],
+          "North": [28, 34],
+          "NorthWest": [42, 29],
+          "West": [45, 13],
+          "SouthWest": [40, 1]
+        },
+        "Charge": {
+          "South": [19, 29],
+          "SouthEast": [27, 26],
+          "East": [32, 24],
+          "NorthEast": [29, 18],
+          "North": [19, 18],
+          "NorthWest": [10, 18],
+          "West": [7, 24],
+          "SouthWest": [12, 26]
+        }
+      }
+    },
+    "sandslash": {
+      "footOffsetY": 4,
+      "headOffsetY": -1,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 46],
+          "SouthEast": [41, 45],
+          "East": [42, 40],
+          "NorthEast": [41, 31],
+          "North": [35, 30],
+          "NorthWest": [29, 31],
+          "West": [28, 40],
+          "SouthWest": [29, 45]
+        },
+        "Charge": {
+          "South": [15, 21],
+          "SouthEast": [19, 19],
+          "East": [22, 17],
+          "NorthEast": [21, 14],
+          "North": [16, 12],
+          "NorthWest": [9, 14],
+          "West": [8, 17],
+          "SouthWest": [11, 19]
+        },
+        "Shoot": {
+          "South": [15, 21],
+          "SouthEast": [19, 19],
+          "East": [22, 17],
+          "NorthEast": [21, 14],
+          "North": [16, 12],
+          "NorthWest": [9, 14],
+          "West": [8, 17],
+          "SouthWest": [11, 19]
+        }
+      }
+    },
+    "ninetales": {
+      "footOffsetY": 4,
+      "headOffsetY": -1,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 41],
+          "SouthEast": [39, 41],
+          "East": [41, 34],
+          "NorthEast": [39, 24],
+          "North": [32, 23],
+          "NorthWest": [24, 24],
+          "West": [22, 34],
+          "SouthWest": [24, 41]
+        },
+        "Shoot": {
+          "South": [23, 25],
+          "SouthEast": [32, 23],
+          "East": [34, 16],
+          "NorthEast": [35, 9],
+          "North": [24, 6],
+          "NorthWest": [12, 9],
+          "West": [13, 16],
+          "SouthWest": [15, 23]
+        },
+        "Charge": {
+          "South": [19, 23],
+          "SouthEast": [26, 21],
+          "East": [28, 16],
+          "NorthEast": [27, 11],
+          "North": [20, 8],
+          "NorthWest": [12, 11],
+          "West": [11, 16],
+          "SouthWest": [13, 21]
+        }
+      }
+    },
+    "wigglytuff": {
+      "footOffsetY": 4,
+      "headOffsetY": -3,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 42],
+          "SouthEast": [40, 41],
+          "East": [42, 36],
+          "NorthEast": [38, 26],
+          "North": [33, 30],
+          "NorthWest": [25, 26],
+          "West": [21, 35],
+          "SouthWest": [25, 41]
+        },
+        "Shoot": {
+          "South": [19, 22],
+          "SouthEast": [19, 21],
+          "East": [22, 24],
+          "NorthEast": [20, 24],
+          "North": [19, 25],
+          "NorthWest": [19, 24],
+          "West": [17, 24],
+          "SouthWest": [20, 21]
+        },
+        "Charge": {
+          "South": [11, 16],
+          "SouthEast": [15, 15],
+          "East": [18, 13],
+          "NorthEast": [17, 10],
+          "North": [11, 10],
+          "NorthWest": [6, 10],
+          "West": [5, 13],
+          "SouthWest": [8, 15]
+        }
+      }
+    },
+    "vileplume": {
+      "footOffsetY": 4,
+      "headOffsetY": 0,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [34, 51],
+          "SouthEast": [47, 51],
+          "East": [49, 35],
+          "NorthEast": [49, 20],
+          "North": [36, 20],
+          "NorthWest": [21, 20],
+          "West": [21, 35],
+          "SouthWest": [23, 51]
+        },
+        "Shoot": {
+          "South": [19, 13],
+          "SouthEast": [14, 13],
+          "East": [11, 15],
+          "NorthEast": [14, 19],
+          "North": [19, 17],
+          "NorthWest": [24, 19],
+          "West": [27, 15],
+          "SouthWest": [24, 13]
+        },
+        "Charge": {
+          "South": [16, 11],
+          "SouthEast": [18, 10],
+          "East": [22, 10],
+          "NorthEast": [17, 10],
+          "North": [15, 11],
+          "NorthWest": [13, 10],
+          "West": [8, 10],
+          "SouthWest": [12, 10]
+        }
+      }
+    },
+    "golduck": {
+      "footOffsetY": 4,
+      "headOffsetY": -7,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [38, 49],
+          "SouthEast": [51, 51],
+          "East": [54, 33],
+          "NorthEast": [54, 18],
+          "North": [33, 18],
+          "NorthWest": [16, 18],
+          "West": [16, 33],
+          "SouthWest": [19, 51]
+        },
+        "Shoot": {
+          "South": [18, 5],
+          "SouthEast": [15, 7],
+          "East": [15, 11],
+          "NorthEast": [15, 15],
+          "North": [21, 15],
+          "NorthWest": [23, 15],
+          "West": [23, 11],
+          "SouthWest": [23, 7]
+        },
+        "Charge": {
+          "South": [15, 18],
+          "SouthEast": [21, 17],
+          "East": [24, 16],
+          "NorthEast": [23, 15],
+          "North": [15, 12],
+          "NorthWest": [7, 15],
+          "West": [6, 16],
+          "SouthWest": [9, 17]
+        }
+      }
+    },
+    "tentacruel": {
+      "footOffsetY": 4,
+      "headOffsetY": -4,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [32, 36],
+          "SouthEast": [38, 34],
+          "East": [38, 34],
+          "NorthEast": [37, 26],
+          "North": [32, 28],
+          "NorthWest": [27, 26],
+          "West": [26, 34],
+          "SouthWest": [26, 34]
+        },
+        "Shoot": {
+          "South": [20, 19],
+          "SouthEast": [20, 18],
+          "East": [21, 21],
+          "NorthEast": [18, 21],
+          "North": [20, 20],
+          "NorthWest": [22, 21],
+          "West": [19, 21],
+          "SouthWest": [20, 18]
+        },
+        "Charge": {
+          "South": [16, 17],
+          "SouthEast": [18, 18],
+          "East": [18, 18],
+          "NorthEast": [16, 16],
+          "North": [16, 14],
+          "NorthWest": [16, 16],
+          "West": [14, 18],
+          "SouthWest": [14, 18]
+        }
+      }
+    },
+    "magneton": {
+      "footOffsetY": 4,
+      "headOffsetY": -6,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [36, 31],
+          "SouthEast": [41, 32],
+          "East": [42, 28],
+          "NorthEast": [42, 22],
+          "North": [36, 22],
+          "NorthWest": [30, 22],
+          "West": [30, 28],
+          "SouthWest": [31, 32]
+        },
+        "Shoot": {
+          "South": [16, 21],
+          "SouthEast": [20, 21],
+          "East": [20, 18],
+          "NorthEast": [20, 13],
+          "North": [16, 13],
+          "NorthWest": [12, 13],
+          "West": [12, 18],
+          "SouthWest": [12, 21]
+        },
+        "Charge": {
+          "South": [16, 14],
+          "SouthEast": [17, 14],
+          "East": [18, 14],
+          "NorthEast": [18, 12],
+          "North": [16, 12],
+          "NorthWest": [14, 12],
+          "West": [14, 14],
+          "SouthWest": [15, 14]
+        }
+      }
+    },
+    "dewgong": {
+      "footOffsetY": 4,
+      "headOffsetY": -6,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 40],
+          "SouthEast": [47, 40],
+          "East": [51, 34],
+          "NorthEast": [48, 25],
+          "North": [35, 24],
+          "NorthWest": [23, 25],
+          "West": [20, 34],
+          "SouthWest": [24, 40]
+        },
+        "Shoot": {
+          "South": [23, 23],
+          "SouthEast": [32, 20],
+          "East": [34, 15],
+          "NorthEast": [33, 9],
+          "North": [23, 7],
+          "NorthWest": [14, 9],
+          "West": [13, 15],
+          "SouthWest": [15, 20]
+        },
+        "Charge": {
+          "South": [23, 19],
+          "SouthEast": [34, 16],
+          "East": [34, 14],
+          "NorthEast": [31, 13],
+          "North": [23, 11],
+          "NorthWest": [16, 13],
+          "West": [13, 14],
+          "SouthWest": [13, 16]
+        }
+      }
+    },
+    "cloyster": {
+      "footOffsetY": 4,
+      "headOffsetY": 2,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 43],
+          "SouthEast": [41, 42],
+          "East": [45, 39],
+          "NorthEast": [44, 34],
+          "North": [35, 26],
+          "NorthWest": [26, 34],
+          "West": [25, 39],
+          "SouthWest": [29, 42]
+        },
+        "Shoot": {
+          "South": [19, 26],
+          "SouthEast": [20, 25],
+          "East": [24, 25],
+          "NorthEast": [23, 27],
+          "North": [19, 21],
+          "NorthWest": [15, 27],
+          "West": [14, 25],
+          "SouthWest": [18, 25]
+        },
+        "Charge": {
+          "South": [19, 26],
+          "SouthEast": [29, 25],
+          "East": [29, 22],
+          "NorthEast": [27, 20],
+          "North": [19, 12],
+          "NorthWest": [13, 20],
+          "West": [9, 22],
+          "SouthWest": [13, 24]
+        }
+      }
+    },
+    "haunter": {
+      "footOffsetY": 4,
+      "headOffsetY": -4,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 40],
+          "SouthEast": [44, 41],
+          "East": [42, 36],
+          "NorthEast": [42, 23],
+          "North": [35, 27],
+          "NorthWest": [29, 23],
+          "West": [29, 36],
+          "SouthWest": [27, 41]
+        },
+        "Shoot": {
+          "South": [28, 30],
+          "SouthEast": [38, 29],
+          "East": [39, 22],
+          "NorthEast": [40, 11],
+          "North": [28, 6],
+          "NorthWest": [15, 11],
+          "West": [16, 22],
+          "SouthWest": [17, 29]
+        },
+        "Charge": {
+          "South": [20, 23],
+          "SouthEast": [23, 22],
+          "East": [24, 22],
+          "NorthEast": [25, 18],
+          "North": [20, 13],
+          "NorthWest": [14, 18],
+          "West": [15, 22],
+          "SouthWest": [16, 22]
+        }
+      }
+    },
+    "kingler": {
+      "footOffsetY": 4,
+      "headOffsetY": 3,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [39, 41],
+          "SouthEast": [44, 38],
+          "East": [39, 31],
+          "NorthEast": [38, 29],
+          "North": [33, 30],
+          "NorthWest": [29, 35],
+          "West": [32, 40],
+          "SouthWest": [34, 43]
+        },
+        "Shoot": {
+          "South": [24, 34],
+          "SouthEast": [28, 33],
+          "East": [31, 29],
+          "NorthEast": [29, 23],
+          "North": [24, 19],
+          "NorthWest": [17, 22],
+          "West": [16, 28],
+          "SouthWest": [19, 33]
+        },
+        "Charge": {
+          "South": [24, 24],
+          "SouthEast": [26, 23],
+          "East": [29, 21],
+          "NorthEast": [27, 17],
+          "North": [24, 14],
+          "NorthWest": [19, 16],
+          "West": [18, 20],
+          "SouthWest": [21, 23]
+        }
+      }
+    },
+    "electrode": {
+      "footOffsetY": 4,
+      "headOffsetY": 2,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [32, 39],
+          "SouthEast": [34, 38],
+          "East": [35, 39],
+          "NorthEast": [38, 32],
+          "North": [32, 28],
+          "NorthWest": [26, 33],
+          "West": [28, 38],
+          "SouthWest": [29, 38]
+        },
+        "Charge": {
+          "South": [12, 20],
+          "SouthEast": [15, 19],
+          "East": [16, 19],
+          "NorthEast": [19, 11],
+          "North": [12, 7],
+          "NorthWest": [5, 12],
+          "West": [7, 18],
+          "SouthWest": [8, 19]
+        },
+        "Shoot": {
+          "South": [12, 20],
+          "SouthEast": [15, 19],
+          "East": [16, 19],
+          "NorthEast": [19, 11],
+          "North": [12, 7],
+          "NorthWest": [5, 12],
+          "West": [7, 18],
+          "SouthWest": [8, 19]
+        }
+      }
+    },
+    "jynx": {
+      "footOffsetY": 4,
+      "headOffsetY": -7,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [34, 34],
+          "SouthEast": [42, 33],
+          "East": [46, 28],
+          "NorthEast": [44, 19],
+          "North": [36, 19],
+          "NorthWest": [28, 20],
+          "West": [23, 28],
+          "SouthWest": [27, 33]
+        },
+        "Shoot": {
+          "South": [23, 16],
+          "SouthEast": [21, 16],
+          "East": [24, 18],
+          "NorthEast": [24, 20],
+          "North": [23, 18],
+          "NorthWest": [22, 20],
+          "West": [22, 18],
+          "SouthWest": [25, 16]
+        },
+        "Charge": {
+          "South": [11, 11],
+          "SouthEast": [13, 11],
+          "East": [16, 10],
+          "NorthEast": [15, 9],
+          "North": [11, 7],
+          "NorthWest": [7, 9],
+          "West": [7, 10],
+          "SouthWest": [10, 11]
+        }
+      }
+    },
+    "electabuzz": {
+      "footOffsetY": 4,
+      "headOffsetY": -5,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [36, 36],
+          "SouthEast": [40, 36],
+          "East": [45, 32],
+          "NorthEast": [46, 20],
+          "North": [36, 23],
+          "NorthWest": [24, 22],
+          "West": [26, 32],
+          "SouthWest": [30, 38]
+        },
+        "Shoot": {
+          "South": [23, 19],
+          "SouthEast": [22, 19],
+          "East": [27, 21],
+          "NorthEast": [23, 24],
+          "North": [23, 23],
+          "NorthWest": [23, 23],
+          "West": [20, 21],
+          "SouthWest": [25, 19]
+        },
+        "Charge": {
+          "South": [19, 22],
+          "SouthEast": [23, 20],
+          "East": [27, 19],
+          "NorthEast": [24, 18],
+          "North": [18, 14],
+          "NorthWest": [16, 17],
+          "West": [12, 19],
+          "SouthWest": [16, 20]
+        }
+      }
+    },
+    "magmar": {
+      "footOffsetY": 4,
+      "headOffsetY": -6,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [34, 42],
+          "SouthEast": [46, 41],
+          "East": [50, 34],
+          "NorthEast": [49, 24],
+          "North": [36, 18],
+          "NorthWest": [23, 24],
+          "West": [22, 33],
+          "SouthWest": [26, 39]
+        },
+        "Shoot": {
+          "South": [19, 22],
+          "SouthEast": [24, 22],
+          "East": [26, 21],
+          "NorthEast": [26, 17],
+          "North": [19, 12],
+          "NorthWest": [12, 17],
+          "West": [12, 21],
+          "SouthWest": [14, 22]
+        },
+        "Charge": {
+          "South": [14, 20],
+          "SouthEast": [21, 19],
+          "East": [21, 18],
+          "NorthEast": [21, 15],
+          "North": [15, 7],
+          "NorthWest": [10, 15],
+          "West": [9, 18],
+          "SouthWest": [10, 19]
+        }
+      }
+    },
+    "lapras": {
+      "footOffsetY": 4,
+      "headOffsetY": -12,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [43, 43],
+          "SouthEast": [62, 42],
+          "East": [68, 34],
+          "NorthEast": [67, 24],
+          "North": [43, 22],
+          "NorthWest": [19, 24],
+          "West": [18, 34],
+          "SouthWest": [24, 42]
+        },
+        "Shoot": {
+          "South": [31, 16],
+          "SouthEast": [30, 16],
+          "East": [31, 17],
+          "NorthEast": [30, 21],
+          "North": [31, 16],
+          "NorthWest": [32, 21],
+          "West": [31, 17],
+          "SouthWest": [32, 16]
+        },
+        "Charge": {
+          "South": [23, 21],
+          "SouthEast": [28, 20],
+          "East": [30, 17],
+          "NorthEast": [29, 16],
+          "North": [23, 11],
+          "NorthWest": [17, 16],
+          "West": [16, 17],
+          "SouthWest": [19, 20]
+        }
+      }
+    },
+    "porygon": {
+      "footOffsetY": 4,
+      "headOffsetY": 0,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [32, 38],
+          "SouthEast": [43, 36],
+          "East": [48, 28],
+          "NorthEast": [45, 19],
+          "North": [32, 18],
+          "NorthWest": [18, 19],
+          "West": [15, 28],
+          "SouthWest": [19, 36]
+        },
+        "Shoot": {
+          "South": [20, 1],
+          "SouthEast": [11, 4],
+          "East": [12, 10],
+          "NorthEast": [12, 15],
+          "North": [19, 16],
+          "NorthWest": [28, 15],
+          "West": [28, 11],
+          "SouthWest": [28, 4]
+        },
+        "Charge": {
+          "South": [15, 24],
+          "SouthEast": [24, 22],
+          "East": [28, 18],
+          "NorthEast": [25, 9],
+          "North": [16, 5],
+          "NorthWest": [6, 9],
+          "West": [3, 18],
+          "SouthWest": [7, 23]
+        }
+      }
+    },
+    "omastar": {
+      "footOffsetY": 4,
+      "headOffsetY": 1,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [40, 51],
+          "SouthEast": [50, 50],
+          "East": [54, 42],
+          "NorthEast": [51, 34],
+          "North": [40, 36],
+          "NorthWest": [29, 34],
+          "West": [26, 42],
+          "SouthWest": [30, 50]
+        },
+        "Shoot": {
+          "South": [24, 23],
+          "SouthEast": [27, 22],
+          "East": [31, 21],
+          "NorthEast": [27, 24],
+          "North": [24, 23],
+          "NorthWest": [21, 24],
+          "West": [17, 21],
+          "SouthWest": [21, 22]
+        },
+        "Charge": {
+          "South": [16, 20],
+          "SouthEast": [22, 19],
+          "East": [24, 16],
+          "NorthEast": [21, 16],
+          "North": [16, 16],
+          "NorthWest": [11, 16],
+          "West": [8, 16],
+          "SouthWest": [10, 19]
+        }
+      }
+    },
+    "arbok": {
+      "footOffsetY": 4,
+      "headOffsetY": -11,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [39, 29],
+          "SouthEast": [43, 32],
+          "East": [46, 27],
+          "NorthEast": [44, 23],
+          "North": [39, 28],
+          "NorthWest": [34, 23],
+          "West": [35, 27],
+          "SouthWest": [35, 30]
+        },
+        "Shoot": {
+          "South": [35, 42],
+          "SouthEast": [59, 36],
+          "East": [64, 26],
+          "NorthEast": [60, 8],
+          "North": [35, 5],
+          "NorthWest": [8, 8],
+          "West": [5, 27],
+          "SouthWest": [12, 39]
+        },
+        "Charge": {
+          "South": [19, 22],
+          "SouthEast": [27, 20],
+          "East": [30, 15],
+          "NorthEast": [29, 7],
+          "North": [19, 8],
+          "NorthWest": [8, 8],
+          "West": [6, 15],
+          "SouthWest": [10, 20]
+        }
+      }
+    },
+    "clefable": {
+      "footOffsetY": 4,
+      "headOffsetY": -3,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [37, 35],
+          "SouthEast": [41, 34],
+          "East": [45, 32],
+          "NorthEast": [45, 28],
+          "North": [34, 23],
+          "NorthWest": [27, 27],
+          "West": [26, 32],
+          "SouthWest": [30, 34]
+        },
+        "Charge": {
+          "South": [15, 17],
+          "SouthEast": [18, 17],
+          "East": [21, 15],
+          "NorthEast": [19, 14],
+          "North": [15, 13],
+          "NorthWest": [12, 14],
+          "West": [10, 15],
+          "SouthWest": [13, 17]
+        }
+      }
+    },
+    "parasect": {
+      "footOffsetY": 4,
+      "headOffsetY": 2,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [36, 32],
+          "SouthEast": [32, 27],
+          "East": [26, 30],
+          "NorthEast": [30, 29],
+          "North": [36, 30],
+          "NorthWest": [41, 29],
+          "West": [45, 30],
+          "SouthWest": [39, 27]
+        },
+        "Shoot": {
+          "South": [17, 30],
+          "SouthEast": [22, 29],
+          "East": [24, 31],
+          "NorthEast": [19, 27],
+          "North": [14, 26],
+          "NorthWest": [12, 27],
+          "West": [7, 31],
+          "SouthWest": [9, 29]
+        },
+        "Charge": {
+          "South": [16, 19],
+          "SouthEast": [21, 19],
+          "East": [24, 18],
+          "NorthEast": [18, 15],
+          "North": [15, 15],
+          "NorthWest": [13, 15],
+          "West": [7, 18],
+          "SouthWest": [10, 19]
+        }
+      }
+    },
+    "dugtrio": {
+      "footOffsetY": 4,
+      "headOffsetY": 0,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [38, 52],
+          "SouthEast": [51, 49],
+          "East": [55, 37],
+          "NorthEast": [55, 25],
+          "North": [39, 24],
+          "NorthWest": [28, 22],
+          "West": [22, 33],
+          "SouthWest": [23, 51]
+        },
+        "Charge": {
+          "South": [18, 18],
+          "SouthEast": [23, 17],
+          "East": [26, 15],
+          "NorthEast": [23, 10],
+          "North": [20, 11],
+          "NorthWest": [19, 11],
+          "West": [12, 10],
+          "SouthWest": [13, 16]
+        },
+        "Shoot": {
+          "South": [18, 18],
+          "SouthEast": [23, 17],
+          "East": [26, 15],
+          "NorthEast": [23, 10],
+          "North": [20, 11],
+          "NorthWest": [19, 11],
+          "West": [12, 10],
+          "SouthWest": [13, 16]
+        }
+      }
+    },
+    "persian": {
+      "footOffsetY": 4,
+      "headOffsetY": -9,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 31],
+          "SouthEast": [42, 29],
+          "East": [43, 32],
+          "NorthEast": [36, 27],
+          "North": [31, 22],
+          "NorthWest": [27, 27],
+          "West": [20, 32],
+          "SouthWest": [21, 29]
+        },
+        "Shoot": {
+          "South": [23, 14],
+          "SouthEast": [26, 15],
+          "East": [26, 14],
+          "NorthEast": [25, 19],
+          "North": [23, 16],
+          "NorthWest": [22, 19],
+          "West": [21, 14],
+          "SouthWest": [21, 15]
+        },
+        "Charge": {
+          "South": [15, 18],
+          "SouthEast": [20, 16],
+          "East": [24, 14],
+          "NorthEast": [20, 12],
+          "North": [15, 11],
+          "NorthWest": [11, 12],
+          "West": [7, 14],
+          "SouthWest": [11, 16]
+        }
+      }
+    },
+    "victreebel": {
+      "footOffsetY": 4,
+      "headOffsetY": -12,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [36, 32],
+          "SouthEast": [40, 32],
+          "East": [40, 29],
+          "NorthEast": [40, 24],
+          "North": [35, 25],
+          "NorthWest": [31, 23],
+          "West": [31, 29],
+          "SouthWest": [32, 32]
+        },
+        "Shoot": {
+          "South": [28, 16],
+          "SouthEast": [23, 16],
+          "East": [24, 21],
+          "NorthEast": [24, 24],
+          "North": [27, 24],
+          "NorthWest": [31, 24],
+          "West": [31, 20],
+          "SouthWest": [32, 17]
+        },
+        "Charge": {
+          "South": [16, 12],
+          "SouthEast": [15, 12],
+          "East": [16, 13],
+          "NorthEast": [16, 12],
+          "North": [15, 12],
+          "NorthWest": [15, 12],
+          "West": [15, 12],
+          "SouthWest": [16, 13]
+        }
+      }
+    },
+    "rapidash": {
+      "footOffsetY": 4,
+      "headOffsetY": -7,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [36, 48],
+          "SouthEast": [50, 45],
+          "East": [54, 38],
+          "NorthEast": [51, 25],
+          "North": [36, 23],
+          "NorthWest": [21, 25],
+          "West": [17, 37],
+          "SouthWest": [22, 45]
+        },
+        "Shoot": {
+          "South": [24, 17],
+          "SouthEast": [22, 17],
+          "East": [25, 20],
+          "NorthEast": [22, 23],
+          "North": [24, 20],
+          "NorthWest": [26, 23],
+          "West": [23, 20],
+          "SouthWest": [26, 17]
+        },
+        "Charge": {
+          "South": [20, 28],
+          "SouthEast": [30, 25],
+          "East": [34, 22],
+          "NorthEast": [30, 15],
+          "North": [20, 12],
+          "NorthWest": [10, 15],
+          "West": [5, 21],
+          "SouthWest": [10, 25]
+        }
+      }
+    },
+    "dodrio": {
+      "footOffsetY": 4,
+      "headOffsetY": -10,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 53],
+          "SouthEast": [48, 48],
+          "East": [53, 39],
+          "NorthEast": [46, 24],
+          "North": [35, 25],
+          "NorthWest": [25, 24],
+          "West": [18, 39],
+          "SouthWest": [23, 48]
+        },
+        "Charge": {
+          "South": [19, 29],
+          "SouthEast": [31, 23],
+          "East": [36, 22],
+          "NorthEast": [29, 18],
+          "North": [20, 10],
+          "NorthWest": [10, 18],
+          "West": [3, 22],
+          "SouthWest": [8, 23]
+        },
+        "Shoot": {
+          "South": [19, 29],
+          "SouthEast": [31, 23],
+          "East": [36, 22],
+          "NorthEast": [29, 18],
+          "North": [20, 10],
+          "NorthWest": [10, 18],
+          "West": [3, 22],
+          "SouthWest": [8, 23]
+        }
+      }
+    },
+    "muk": {
+      "footOffsetY": 4,
+      "headOffsetY": -2,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 54],
+          "SouthEast": [50, 50],
+          "East": [57, 39],
+          "NorthEast": [53, 16],
+          "North": [35, 16],
+          "NorthWest": [17, 16],
+          "West": [13, 39],
+          "SouthWest": [20, 50]
+        },
+        "Shoot": {
+          "South": [27, 27],
+          "SouthEast": [28, 25],
+          "East": [27, 24],
+          "NorthEast": [31, 23],
+          "North": [27, 20],
+          "NorthWest": [25, 22],
+          "West": [27, 25],
+          "SouthWest": [26, 25]
+        },
+        "Charge": {
+          "South": [16, 18],
+          "SouthEast": [17, 18],
+          "East": [18, 19],
+          "NorthEast": [19, 14],
+          "North": [15, 10],
+          "NorthWest": [11, 14],
+          "West": [12, 19],
+          "SouthWest": [13, 18]
+        }
+      }
+    },
+    "onix": {
+      "footOffsetY": 4,
+      "headOffsetY": -16,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [64, 75],
+          "SouthEast": [91, 70],
+          "East": [100, 55],
+          "NorthEast": [90, 38],
+          "North": [63, 26],
+          "NorthWest": [37, 38],
+          "West": [27, 55],
+          "SouthWest": [36, 70]
+        },
+        "Shoot": {
+          "South": [48, 38],
+          "SouthEast": [53, 31],
+          "East": [56, 30],
+          "NorthEast": [55, 25],
+          "North": [48, 19],
+          "NorthWest": [40, 25],
+          "West": [39, 30],
+          "SouthWest": [42, 31]
+        },
+        "Charge": {
+          "South": [28, 40],
+          "SouthEast": [39, 33],
+          "East": [42, 26],
+          "NorthEast": [41, 15],
+          "North": [28, 9],
+          "NorthWest": [14, 15],
+          "West": [13, 26],
+          "SouthWest": [16, 33]
+        }
+      }
+    },
+    "weezing": {
+      "footOffsetY": 4,
+      "headOffsetY": -7,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [30, 39],
+          "SouthEast": [40, 39],
+          "East": [46, 36],
+          "NorthEast": [50, 27],
+          "North": [42, 23],
+          "NorthWest": [30, 24],
+          "West": [27, 33],
+          "SouthWest": [27, 38]
+        },
+        "Shoot": {
+          "South": [14, 18],
+          "SouthEast": [28, 19],
+          "East": [34, 16],
+          "NorthEast": [38, 20],
+          "North": [33, 22],
+          "NorthWest": [21, 13],
+          "West": [9, 17],
+          "SouthWest": [9, 18]
+        },
+        "Charge": {
+          "South": [14, 23],
+          "SouthEast": [22, 22],
+          "East": [27, 24],
+          "NorthEast": [30, 19],
+          "North": [26, 16],
+          "NorthWest": [19, 17],
+          "West": [14, 22],
+          "SouthWest": [13, 22]
+        }
+      }
+    },
+    "chansey": {
+      "footOffsetY": 4,
+      "headOffsetY": -5,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [32, 40],
+          "SouthEast": [37, 40],
+          "East": [42, 35],
+          "NorthEast": [40, 26],
+          "North": [31, 27],
+          "NorthWest": [23, 26],
+          "West": [21, 35],
+          "SouthWest": [26, 40]
+        },
+        "Shoot": {
+          "South": [16, 7],
+          "SouthEast": [16, 10],
+          "East": [21, 9],
+          "NorthEast": [21, 8],
+          "North": [16, 4],
+          "NorthWest": [10, 8],
+          "West": [10, 9],
+          "SouthWest": [15, 10]
+        },
+        "Charge": {
+          "South": [16, 15],
+          "SouthEast": [18, 15],
+          "East": [22, 15],
+          "NorthEast": [20, 12],
+          "North": [16, 11],
+          "NorthWest": [11, 12],
+          "West": [9, 15],
+          "SouthWest": [13, 15]
+        }
+      }
+    },
+    "tangela": {
+      "footOffsetY": 4,
+      "headOffsetY": -3,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [30, 47],
+          "SouthEast": [48, 38],
+          "East": [50, 24],
+          "NorthEast": [48, 9],
+          "North": [32, 13],
+          "NorthWest": [14, 9],
+          "West": [12, 24],
+          "SouthWest": [14, 38]
+        },
+        "Shoot": {
+          "South": [31, 35],
+          "SouthEast": [36, 33],
+          "East": [38, 32],
+          "NorthEast": [35, 27],
+          "North": [32, 29],
+          "NorthWest": [27, 27],
+          "West": [24, 32],
+          "SouthWest": [26, 33]
+        },
+        "Charge": {
+          "South": [16, 21],
+          "SouthEast": [20, 20],
+          "East": [22, 19],
+          "NorthEast": [20, 17],
+          "North": [16, 15],
+          "NorthWest": [11, 17],
+          "West": [9, 19],
+          "SouthWest": [10, 20]
+        }
+      }
+    },
+    "seadra": {
+      "footOffsetY": 4,
+      "headOffsetY": -11,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 37],
+          "SouthEast": [48, 36],
+          "East": [52, 27],
+          "NorthEast": [51, 14],
+          "North": [35, 18],
+          "NorthWest": [19, 15],
+          "West": [19, 27],
+          "SouthWest": [23, 36]
+        },
+        "Shoot": {
+          "South": [23, 17],
+          "SouthEast": [26, 17],
+          "East": [29, 17],
+          "NorthEast": [25, 16],
+          "North": [23, 14],
+          "NorthWest": [21, 16],
+          "West": [17, 17],
+          "SouthWest": [20, 17]
+        },
+        "Charge": {
+          "South": [15, 17],
+          "SouthEast": [23, 15],
+          "East": [25, 12],
+          "NorthEast": [23, 6],
+          "North": [15, 10],
+          "NorthWest": [7, 6],
+          "West": [6, 12],
+          "SouthWest": [8, 15]
+        }
+      }
+    },
+    "mr-mime": {
+      "footOffsetY": 4,
+      "headOffsetY": -7,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [37, 43],
+          "SouthEast": [42, 43],
+          "East": [45, 36],
+          "NorthEast": [42, 28],
+          "North": [36, 30],
+          "NorthWest": [29, 28],
+          "West": [26, 36],
+          "SouthWest": [30, 43]
+        },
+        "Shoot": {
+          "South": [27, 22],
+          "SouthEast": [31, 24],
+          "East": [33, 22],
+          "NorthEast": [30, 19],
+          "North": [28, 17],
+          "NorthWest": [25, 19],
+          "West": [22, 22],
+          "SouthWest": [24, 24]
+        },
+        "Charge": {
+          "South": [20, 18],
+          "SouthEast": [22, 18],
+          "East": [22, 17],
+          "NorthEast": [20, 16],
+          "North": [20, 13],
+          "NorthWest": [19, 16],
+          "West": [17, 17],
+          "SouthWest": [17, 18]
+        }
+      }
+    },
+    "tauros": {
+      "footOffsetY": 4,
+      "headOffsetY": 2,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 46],
+          "SouthEast": [48, 45],
+          "East": [46, 37],
+          "NorthEast": [49, 22],
+          "North": [35, 19],
+          "NorthWest": [21, 22],
+          "West": [24, 37],
+          "SouthWest": [24, 45]
+        },
+        "Charge": {
+          "South": [17, 10],
+          "SouthEast": [25, 10],
+          "East": [27, 10],
+          "NorthEast": [24, 7],
+          "North": [20, 9],
+          "NorthWest": [15, 7],
+          "West": [13, 10],
+          "SouthWest": [14, 10]
+        },
+        "Shoot": {
+          "South": [17, 10],
+          "SouthEast": [25, 10],
+          "East": [27, 10],
+          "NorthEast": [24, 7],
+          "North": [20, 9],
+          "NorthWest": [15, 7],
+          "West": [13, 10],
+          "SouthWest": [14, 10]
+        }
+      }
+    },
+    "butterfree": {
+      "footOffsetY": 4,
+      "headOffsetY": -7,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 37],
+          "SouthEast": [45, 36],
+          "East": [47, 31],
+          "NorthEast": [45, 19],
+          "North": [35, 25],
+          "NorthWest": [26, 19],
+          "West": [25, 31],
+          "SouthWest": [27, 36]
+        },
+        "Shoot": {
+          "South": [19, 16],
+          "SouthEast": [21, 17],
+          "East": [22, 16],
+          "NorthEast": [22, 17],
+          "North": [19, 15],
+          "NorthWest": [17, 17],
+          "West": [17, 16],
+          "SouthWest": [18, 17]
+        },
+        "Charge": {
+          "South": [15, 18],
+          "SouthEast": [19, 19],
+          "East": [20, 17],
+          "NorthEast": [20, 15],
+          "North": [15, 13],
+          "NorthWest": [11, 15],
+          "West": [11, 17],
+          "SouthWest": [12, 19]
+        }
+      }
+    },
+    "beedrill": {
+      "footOffsetY": 4,
+      "headOffsetY": -24,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 41],
+          "SouthEast": [40, 38],
+          "East": [40, 32],
+          "NorthEast": [42, 23],
+          "North": [31, 22],
+          "NorthWest": [20, 23],
+          "West": [22, 32],
+          "SouthWest": [22, 38]
+        },
+        "Shoot": {
+          "South": [23, 25],
+          "SouthEast": [24, 24],
+          "East": [27, 24],
+          "NorthEast": [26, 26],
+          "North": [23, 22],
+          "NorthWest": [20, 26],
+          "West": [19, 24],
+          "SouthWest": [22, 24]
+        },
+        "Charge": {
+          "South": [15, 26],
+          "SouthEast": [20, 25],
+          "East": [23, 21],
+          "NorthEast": [22, 19],
+          "North": [15, 15],
+          "NorthWest": [8, 19],
+          "West": [7, 21],
+          "SouthWest": [10, 25]
+        }
+      }
+    },
+    "pidgeot": {
+      "footOffsetY": 4,
+      "headOffsetY": -8,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 42],
+          "SouthEast": [48, 36],
+          "East": [51, 27],
+          "NorthEast": [45, 24],
+          "North": [35, 17],
+          "NorthWest": [23, 24],
+          "West": [19, 27],
+          "SouthWest": [22, 36]
+        },
+        "Shoot": {
+          "South": [15, 20],
+          "SouthEast": [23, 17],
+          "East": [26, 14],
+          "NorthEast": [22, 11],
+          "North": [15, 10],
+          "NorthWest": [8, 11],
+          "West": [4, 14],
+          "SouthWest": [7, 17]
+        },
+        "Charge": {
+          "South": [15, 19],
+          "SouthEast": [23, 16],
+          "East": [26, 13],
+          "NorthEast": [22, 10],
+          "North": [15, 9],
+          "NorthWest": [8, 10],
+          "West": [4, 13],
+          "SouthWest": [7, 16]
+        }
+      }
+    },
+    "raticate": {
+      "footOffsetY": 4,
+      "headOffsetY": -3,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 41],
+          "SouthEast": [56, 40],
+          "East": [54, 23],
+          "NorthEast": [54, 8],
+          "North": [36, 8],
+          "NorthWest": [17, 8],
+          "West": [17, 23],
+          "SouthWest": [15, 40]
+        },
+        "Shoot": {
+          "South": [16, 9],
+          "SouthEast": [21, 8],
+          "East": [20, 2],
+          "NorthEast": [21, 5],
+          "North": [16, 6],
+          "NorthWest": [10, 5],
+          "West": [11, 2],
+          "SouthWest": [10, 8]
+        },
+        "Charge": {
+          "South": [16, 18],
+          "SouthEast": [21, 16],
+          "East": [23, 14],
+          "NorthEast": [23, 12],
+          "North": [16, 10],
+          "NorthWest": [8, 12],
+          "West": [8, 14],
+          "SouthWest": [10, 16]
+        }
+      }
+    },
+    "fearow": {
+      "footOffsetY": 4,
+      "headOffsetY": 3,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [32, 47],
+          "SouthEast": [44, 43],
+          "East": [53, 28],
+          "NorthEast": [49, 13],
+          "North": [32, 12],
+          "NorthWest": [15, 13],
+          "West": [11, 28],
+          "SouthWest": [18, 43]
+        },
+        "Shoot": {
+          "South": [24, 32],
+          "SouthEast": [35, 30],
+          "East": [40, 24],
+          "NorthEast": [35, 14],
+          "North": [24, 12],
+          "NorthWest": [13, 14],
+          "West": [8, 24],
+          "SouthWest": [13, 30]
+        },
+        "Charge": {
+          "South": [20, 34],
+          "SouthEast": [31, 32],
+          "East": [36, 26],
+          "NorthEast": [31, 16],
+          "North": [20, 14],
+          "NorthWest": [9, 16],
+          "West": [4, 26],
+          "SouthWest": [9, 32]
+        }
+      }
+    },
+    "golbat": {
+      "footOffsetY": 4,
+      "headOffsetY": -8,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [36, 40],
+          "SouthEast": [42, 40],
+          "East": [43, 36],
+          "NorthEast": [43, 31],
+          "North": [36, 28],
+          "NorthWest": [29, 31],
+          "West": [29, 36],
+          "SouthWest": [31, 40]
+        },
+        "Shoot": {
+          "South": [20, 23],
+          "SouthEast": [24, 23],
+          "East": [23, 21],
+          "NorthEast": [25, 21],
+          "North": [20, 19],
+          "NorthWest": [15, 21],
+          "West": [17, 21],
+          "SouthWest": [16, 23]
+        },
+        "Charge": {
+          "South": [20, 24],
+          "SouthEast": [22, 24],
+          "East": [23, 24],
+          "NorthEast": [22, 23],
+          "North": [20, 20],
+          "NorthWest": [18, 23],
+          "West": [17, 24],
+          "SouthWest": [19, 24]
+        }
+      }
+    },
+    "venomoth": {
+      "footOffsetY": 4,
+      "headOffsetY": -6,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 42],
+          "SouthEast": [42, 41],
+          "East": [44, 35],
+          "NorthEast": [44, 23],
+          "North": [35, 27],
+          "NorthWest": [27, 23],
+          "West": [27, 35],
+          "SouthWest": [29, 41]
+        },
+        "Shoot": {
+          "South": [19, 20],
+          "SouthEast": [22, 19],
+          "East": [25, 19],
+          "NorthEast": [24, 12],
+          "North": [19, 13],
+          "NorthWest": [15, 12],
+          "West": [14, 19],
+          "SouthWest": [17, 19]
+        },
+        "Charge": {
+          "South": [15, 19],
+          "SouthEast": [18, 18],
+          "East": [21, 18],
+          "NorthEast": [20, 13],
+          "North": [15, 12],
+          "NorthWest": [11, 13],
+          "West": [10, 18],
+          "SouthWest": [13, 18]
+        }
+      }
+    },
+    "farfetch-d": {
+      "footOffsetY": 4,
+      "headOffsetY": -4,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [44, 48],
+          "SouthEast": [59, 45],
+          "East": [59, 33],
+          "NorthEast": [59, 18],
+          "North": [43, 20],
+          "NorthWest": [28, 18],
+          "West": [28, 33],
+          "SouthWest": [29, 45]
+        },
+        "Charge": {
+          "South": [15, 14],
+          "SouthEast": [18, 14],
+          "East": [19, 12],
+          "NorthEast": [16, 9],
+          "North": [12, 9],
+          "NorthWest": [5, 12],
+          "West": [6, 13],
+          "SouthWest": [8, 15]
+        },
+        "Shoot": {
+          "South": [15, 14],
+          "SouthEast": [18, 14],
+          "East": [19, 12],
+          "NorthEast": [16, 9],
+          "North": [12, 9],
+          "NorthWest": [5, 12],
+          "West": [6, 13],
+          "SouthWest": [8, 15]
+        }
+      }
+    },
+    "seaking": {
+      "footOffsetY": 4,
+      "headOffsetY": -1,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 42],
+          "SouthEast": [44, 39],
+          "East": [46, 32],
+          "NorthEast": [45, 22],
+          "North": [30, 21],
+          "NorthWest": [19, 22],
+          "West": [18, 32],
+          "SouthWest": [20, 39]
+        },
+        "Shoot": {
+          "South": [20, 20],
+          "SouthEast": [25, 17],
+          "East": [26, 18],
+          "NorthEast": [24, 19],
+          "North": [20, 13],
+          "NorthWest": [16, 19],
+          "West": [14, 18],
+          "SouthWest": [15, 17]
+        },
+        "Charge": {
+          "South": [16, 15],
+          "SouthEast": [24, 12],
+          "East": [25, 12],
+          "NorthEast": [22, 11],
+          "North": [16, 4],
+          "NorthWest": [10, 11],
+          "West": [7, 12],
+          "SouthWest": [8, 12]
+        }
+      }
+    },
+    "articuno": {
+      "footOffsetY": 4,
+      "headOffsetY": -9,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [44, 59],
+          "SouthEast": [62, 58],
+          "East": [63, 50],
+          "NorthEast": [58, 40],
+          "North": [44, 39],
+          "NorthWest": [29, 40],
+          "West": [24, 50],
+          "SouthWest": [25, 58]
+        },
+        "Shoot": {
+          "South": [52, 28],
+          "SouthEast": [52, 29],
+          "East": [54, 25],
+          "NorthEast": [49, 24],
+          "North": [52, 30],
+          "NorthWest": [54, 24],
+          "West": [49, 25],
+          "SouthWest": [51, 29]
+        },
+        "Charge": {
+          "South": [36, 32],
+          "SouthEast": [45, 32],
+          "East": [48, 29],
+          "NorthEast": [44, 26],
+          "North": [36, 24],
+          "NorthWest": [28, 26],
+          "West": [24, 29],
+          "SouthWest": [26, 32]
+        }
+      }
+    },
+    "zapdos": {
+      "footOffsetY": 4,
+      "headOffsetY": -16,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [40, 47],
+          "SouthEast": [59, 46],
+          "East": [64, 34],
+          "NorthEast": [60, 24],
+          "North": [40, 19],
+          "NorthWest": [20, 24],
+          "West": [14, 34],
+          "SouthWest": [20, 46]
+        },
+        "Shoot": {
+          "South": [36, 6],
+          "SouthEast": [27, 7],
+          "East": [25, 12],
+          "NorthEast": [27, 21],
+          "North": [36, 21],
+          "NorthWest": [45, 21],
+          "West": [45, 12],
+          "SouthWest": [44, 7]
+        },
+        "Charge": {
+          "South": [28, 29],
+          "SouthEast": [37, 25],
+          "East": [40, 19],
+          "NorthEast": [36, 17],
+          "North": [28, 15],
+          "NorthWest": [20, 17],
+          "West": [16, 19],
+          "SouthWest": [18, 25]
+        }
+      }
+    },
+    "moltres": {
+      "footOffsetY": 4,
+      "headOffsetY": -16,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [51, 61],
+          "SouthEast": [73, 67],
+          "East": [77, 52],
+          "NorthEast": [70, 39],
+          "North": [51, 40],
+          "NorthWest": [33, 39],
+          "West": [26, 52],
+          "SouthWest": [30, 67]
+        },
+        "Shoot": {
+          "South": [47, 39],
+          "SouthEast": [65, 39],
+          "East": [72, 35],
+          "NorthEast": [65, 22],
+          "North": [47, 20],
+          "NorthWest": [30, 22],
+          "West": [23, 35],
+          "SouthWest": [30, 39]
+        },
+        "Charge": {
+          "South": [47, 38],
+          "SouthEast": [60, 38],
+          "East": [67, 37],
+          "NorthEast": [60, 31],
+          "North": [47, 29],
+          "NorthWest": [35, 31],
+          "West": [28, 37],
+          "SouthWest": [35, 38]
+        }
+      }
+    },
+    "mewtwo": {
+      "footOffsetY": 4,
+      "headOffsetY": -11,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [39, 37],
+          "SouthEast": [48, 37],
+          "East": [51, 33],
+          "NorthEast": [49, 25],
+          "North": [39, 24],
+          "NorthWest": [30, 25],
+          "West": [28, 33],
+          "SouthWest": [31, 37]
+        },
+        "Shoot": {
+          "South": [21, 19],
+          "SouthEast": [29, 18],
+          "East": [26, 20],
+          "NorthEast": [23, 23],
+          "North": [31, 26],
+          "NorthWest": [32, 23],
+          "West": [29, 20],
+          "SouthWest": [26, 18]
+        },
+        "Charge": {
+          "South": [15, 18],
+          "SouthEast": [19, 18],
+          "East": [22, 18],
+          "NorthEast": [19, 15],
+          "North": [15, 12],
+          "NorthWest": [13, 15],
+          "West": [9, 18],
+          "SouthWest": [12, 18]
+        }
+      }
+    },
+    "mew": {
+      "footOffsetY": 4,
+      "headOffsetY": -10,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 38],
+          "SouthEast": [39, 40],
+          "East": [40, 34],
+          "NorthEast": [39, 28],
+          "North": [32, 27],
+          "NorthWest": [26, 27],
+          "West": [23, 33],
+          "SouthWest": [24, 39]
+        },
+        "Shoot": {
+          "South": [20, 19],
+          "SouthEast": [20, 18],
+          "East": [22, 17],
+          "NorthEast": [20, 15],
+          "North": [19, 16],
+          "NorthWest": [19, 15],
+          "West": [17, 16],
+          "SouthWest": [19, 18]
+        },
+        "Charge": {
+          "South": [19, 16],
+          "SouthEast": [21, 15],
+          "East": [22, 14],
+          "NorthEast": [20, 12],
+          "North": [19, 13],
+          "NorthWest": [19, 12],
+          "West": [17, 13],
+          "SouthWest": [19, 15]
+        }
+      }
+    },
+    "dummy": {
+      "footOffsetY": 4,
+      "headOffsetY": -3,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 38],
+          "SouthEast": [45, 37],
+          "East": [48, 31],
+          "NorthEast": [48, 23],
+          "North": [36, 23],
+          "NorthWest": [24, 23],
+          "West": [23, 31],
+          "SouthWest": [26, 37]
+        },
+        "Charge": {
+          "South": [11, 14],
+          "SouthEast": [17, 13],
+          "East": [20, 11],
+          "NorthEast": [18, 8],
+          "North": [12, 7],
+          "NorthWest": [6, 8],
+          "West": [3, 11],
+          "SouthWest": [6, 13]
+        },
+        "Shoot": {
+          "South": [11, 14],
+          "SouthEast": [17, 13],
+          "East": [20, 11],
+          "NorthEast": [18, 8],
+          "North": [12, 7],
+          "NorthWest": [6, 8],
+          "West": [3, 11],
+          "SouthWest": [6, 13]
+        }
+      }
+    },
+    "bellsprout": {
+      "footOffsetY": 4,
+      "headOffsetY": -1,
+      "shadowSize": 0,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 37],
+          "SouthEast": [43, 38],
+          "East": [45, 34],
+          "NorthEast": [44, 26],
+          "North": [35, 28],
+          "NorthWest": [27, 26],
+          "West": [26, 34],
+          "SouthWest": [27, 39]
+        },
+        "Shoot": {
+          "South": [18, 14],
+          "SouthEast": [24, 13],
+          "East": [28, 11],
+          "NorthEast": [28, 13],
+          "North": [21, 16],
+          "NorthWest": [11, 13],
+          "West": [11, 11],
+          "SouthWest": [15, 13]
+        },
+        "Charge": {
+          "South": [14, 12],
+          "SouthEast": [22, 11],
+          "East": [27, 7],
+          "NorthEast": [24, 6],
+          "North": [17, 10],
+          "NorthWest": [7, 6],
+          "West": [4, 7],
+          "SouthWest": [9, 11]
+        }
+      }
+    },
+    "caterpie": {
+      "footOffsetY": 4,
+      "headOffsetY": 2,
+      "shadowSize": 0,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 41],
+          "SouthEast": [45, 39],
+          "East": [53, 29],
+          "NorthEast": [47, 18],
+          "North": [31, 13],
+          "NorthWest": [16, 18],
+          "West": [10, 29],
+          "SouthWest": [18, 39]
+        },
+        "Shoot": {
+          "South": [16, 20],
+          "SouthEast": [19, 23],
+          "East": [16, 21],
+          "NorthEast": [21, 21],
+          "North": [15, 16],
+          "NorthWest": [11, 20],
+          "West": [15, 21],
+          "SouthWest": [14, 25]
+        },
+        "Charge": {
+          "South": [12, 13],
+          "SouthEast": [16, 12],
+          "East": [15, 9],
+          "NorthEast": [15, 8],
+          "North": [12, 9],
+          "NorthWest": [8, 8],
+          "West": [8, 9],
+          "SouthWest": [7, 12]
+        }
+      }
+    },
+    "charmeleon": {
+      "footOffsetY": 4,
+      "headOffsetY": -2,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [33, 38],
+          "SouthEast": [38, 36],
+          "East": [41, 36],
+          "NorthEast": [41, 33],
+          "North": [35, 34],
+          "NorthWest": [30, 33],
+          "West": [30, 36],
+          "SouthWest": [33, 36]
+        },
+        "Shoot": {
+          "South": [23, 7],
+          "SouthEast": [24, 6],
+          "East": [23, 11],
+          "NorthEast": [24, 13],
+          "North": [24, 10],
+          "NorthWest": [23, 13],
+          "West": [24, 11],
+          "SouthWest": [23, 6]
+        },
+        "Charge": {
+          "South": [15, 10],
+          "SouthEast": [17, 9],
+          "East": [18, 11],
+          "NorthEast": [19, 10],
+          "North": [16, 7],
+          "NorthWest": [12, 10],
+          "West": [13, 11],
+          "SouthWest": [14, 9]
+        }
+      }
+    },
+    "clefairy": {
+      "footOffsetY": 4,
+      "headOffsetY": -2,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [36, 41],
+          "SouthEast": [42, 41],
+          "East": [45, 40],
+          "NorthEast": [42, 32],
+          "North": [34, 32],
+          "NorthWest": [29, 30],
+          "West": [26, 39],
+          "SouthWest": [29, 41]
+        },
+        "Charge": {
+          "South": [11, 18],
+          "SouthEast": [15, 16],
+          "East": [19, 16],
+          "NorthEast": [15, 12],
+          "North": [11, 12],
+          "NorthWest": [7, 12],
+          "West": [4, 16],
+          "SouthWest": [8, 16]
+        }
+      }
+    },
+    "cubone": {
+      "footOffsetY": 4,
+      "headOffsetY": -1,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 42],
+          "SouthEast": [41, 41],
+          "East": [42, 34],
+          "NorthEast": [43, 25],
+          "North": [33, 21],
+          "NorthWest": [21, 24],
+          "West": [18, 33],
+          "SouthWest": [21, 41]
+        },
+        "Charge": {
+          "South": [16, 19],
+          "SouthEast": [20, 17],
+          "East": [22, 17],
+          "NorthEast": [22, 14],
+          "North": [16, 8],
+          "NorthWest": [11, 15],
+          "West": [9, 15],
+          "SouthWest": [9, 17]
+        },
+        "Shoot": {
+          "South": [16, 19],
+          "SouthEast": [20, 17],
+          "East": [22, 17],
+          "NorthEast": [22, 14],
+          "North": [16, 8],
+          "NorthWest": [11, 15],
+          "West": [9, 15],
+          "SouthWest": [9, 17]
+        }
+      }
+    },
+    "diglett": {
+      "footOffsetY": 4,
+      "headOffsetY": 1,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 41],
+          "SouthEast": [45, 39],
+          "East": [44, 30],
+          "NorthEast": [45, 19],
+          "North": [31, 16],
+          "NorthWest": [17, 19],
+          "West": [18, 30],
+          "SouthWest": [18, 39]
+        },
+        "Charge": {
+          "South": [11, 14],
+          "SouthEast": [14, 13],
+          "East": [16, 13],
+          "NorthEast": [15, 11],
+          "North": [11, 10],
+          "NorthWest": [7, 11],
+          "West": [6, 13],
+          "SouthWest": [8, 13]
+        },
+        "Shoot": {
+          "South": [11, 14],
+          "SouthEast": [14, 13],
+          "East": [16, 13],
+          "NorthEast": [15, 11],
+          "North": [11, 10],
+          "NorthWest": [7, 11],
+          "West": [6, 13],
+          "SouthWest": [8, 13]
+        }
+      }
+    },
+    "doduo": {
+      "footOffsetY": 4,
+      "headOffsetY": -8,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [39, 43],
+          "SouthEast": [50, 38],
+          "East": [56, 34],
+          "NorthEast": [54, 21],
+          "North": [39, 21],
+          "NorthWest": [25, 21],
+          "West": [23, 34],
+          "SouthWest": [29, 38]
+        },
+        "Charge": {
+          "South": [15, 20],
+          "SouthEast": [22, 19],
+          "East": [25, 15],
+          "NorthEast": [20, 12],
+          "North": [16, 9],
+          "NorthWest": [10, 12],
+          "West": [5, 15],
+          "SouthWest": [8, 19]
+        },
+        "Shoot": {
+          "South": [15, 20],
+          "SouthEast": [22, 19],
+          "East": [25, 15],
+          "NorthEast": [20, 12],
+          "North": [16, 9],
+          "NorthWest": [10, 12],
+          "West": [5, 15],
+          "SouthWest": [8, 19]
+        }
+      }
+    },
+    "dragonair": {
+      "footOffsetY": 4,
+      "headOffsetY": -28,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [39, 39],
+          "SouthEast": [53, 36],
+          "East": [56, 32],
+          "NorthEast": [55, 26],
+          "North": [40, 23],
+          "NorthWest": [27, 30],
+          "West": [26, 33],
+          "SouthWest": [29, 35]
+        },
+        "Shoot": {
+          "South": [31, 22],
+          "SouthEast": [29, 20],
+          "East": [35, 22],
+          "NorthEast": [35, 25],
+          "North": [31, 27],
+          "NorthWest": [28, 25],
+          "West": [30, 22],
+          "SouthWest": [35, 20]
+        },
+        "Charge": {
+          "South": [19, 22],
+          "SouthEast": [28, 20],
+          "East": [30, 18],
+          "NorthEast": [29, 17],
+          "North": [20, 15],
+          "NorthWest": [12, 17],
+          "West": [11, 18],
+          "SouthWest": [13, 20]
+        }
+      }
+    },
+    "dratini": {
+      "footOffsetY": 4,
+      "headOffsetY": -3,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [32, 47],
+          "SouthEast": [44, 45],
+          "East": [46, 38],
+          "NorthEast": [46, 27],
+          "North": [32, 25],
+          "NorthWest": [19, 30],
+          "West": [17, 38],
+          "SouthWest": [19, 45]
+        },
+        "Shoot": {
+          "South": [24, 10],
+          "SouthEast": [24, 10],
+          "East": [26, 7],
+          "NorthEast": [24, 13],
+          "North": [24, 14],
+          "NorthWest": [24, 12],
+          "West": [20, 6],
+          "SouthWest": [24, 10]
+        },
+        "Charge": {
+          "South": [16, 18],
+          "SouthEast": [20, 17],
+          "East": [21, 17],
+          "NorthEast": [22, 15],
+          "North": [16, 12],
+          "NorthWest": [11, 16],
+          "West": [11, 17],
+          "SouthWest": [12, 17]
+        }
+      }
+    },
+    "drowzee": {
+      "footOffsetY": 4,
+      "headOffsetY": -5,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [40, 43],
+          "SouthEast": [54, 44],
+          "East": [54, 36],
+          "NorthEast": [53, 23],
+          "North": [38, 17],
+          "NorthWest": [25, 23],
+          "West": [24, 36],
+          "SouthWest": [24, 44]
+        },
+        "Shoot": {
+          "South": [27, 12],
+          "SouthEast": [23, 12],
+          "East": [22, 16],
+          "NorthEast": [24, 20],
+          "North": [27, 17],
+          "NorthWest": [32, 20],
+          "West": [34, 16],
+          "SouthWest": [32, 12]
+        },
+        "Charge": {
+          "South": [19, 20],
+          "SouthEast": [26, 16],
+          "East": [30, 14],
+          "NorthEast": [28, 7],
+          "North": [19, 5],
+          "NorthWest": [11, 7],
+          "West": [8, 14],
+          "SouthWest": [13, 16]
+        }
+      }
+    },
+    "ekans": {
+      "footOffsetY": 4,
+      "headOffsetY": -7,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [34, 53],
+          "SouthEast": [45, 34],
+          "East": [49, 25],
+          "NorthEast": [47, 16],
+          "North": [36, 17],
+          "NorthWest": [24, 17],
+          "West": [24, 24],
+          "SouthWest": [24, 36]
+        },
+        "Shoot": {
+          "South": [29, 49],
+          "SouthEast": [51, 41],
+          "East": [55, 30],
+          "NorthEast": [50, 16],
+          "North": [31, 10],
+          "NorthWest": [11, 18],
+          "West": [9, 31],
+          "SouthWest": [13, 41]
+        },
+        "Charge": {
+          "South": [13, 16],
+          "SouthEast": [16, 13],
+          "East": [21, 13],
+          "NorthEast": [22, 10],
+          "North": [17, 9],
+          "NorthWest": [10, 11],
+          "West": [12, 12],
+          "SouthWest": [13, 15]
+        }
+      }
+    },
+    "exeggcute": {
+      "footOffsetY": 4,
+      "headOffsetY": 2,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 45],
+          "SouthEast": [43, 45],
+          "East": [44, 34],
+          "NorthEast": [44, 21],
+          "North": [32, 22],
+          "NorthWest": [19, 21],
+          "West": [19, 34],
+          "SouthWest": [20, 45]
+        },
+        "Shoot": {
+          "South": [24, 33],
+          "SouthEast": [30, 32],
+          "East": [31, 25],
+          "NorthEast": [29, 19],
+          "North": [24, 19],
+          "NorthWest": [18, 19],
+          "West": [16, 25],
+          "SouthWest": [17, 32]
+        },
+        "Charge": {
+          "South": [16, 18],
+          "SouthEast": [18, 18],
+          "East": [17, 17],
+          "NorthEast": [16, 13],
+          "North": [16, 12],
+          "NorthWest": [14, 14],
+          "West": [14, 17],
+          "SouthWest": [14, 18]
+        }
+      }
+    },
+    "gloom": {
+      "footOffsetY": 4,
+      "headOffsetY": -2,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 53],
+          "SouthEast": [51, 53],
+          "East": [50, 39],
+          "NorthEast": [49, 24],
+          "North": [35, 23],
+          "NorthWest": [22, 24],
+          "West": [21, 39],
+          "SouthWest": [21, 53]
+        },
+        "Shoot": {
+          "South": [24, 6],
+          "SouthEast": [18, 3],
+          "East": [17, 6],
+          "NorthEast": [19, 11],
+          "North": [24, 11],
+          "NorthWest": [28, 11],
+          "West": [30, 6],
+          "SouthWest": [29, 3]
+        },
+        "Charge": {
+          "South": [20, 12],
+          "SouthEast": [26, 13],
+          "East": [30, 11],
+          "NorthEast": [25, 7],
+          "North": [20, 6],
+          "NorthWest": [14, 7],
+          "West": [9, 11],
+          "SouthWest": [13, 13]
+        }
+      }
+    },
+    "goldeen": {
+      "footOffsetY": 4,
+      "headOffsetY": 2,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 44],
+          "SouthEast": [44, 42],
+          "East": [45, 35],
+          "NorthEast": [42, 26],
+          "North": [31, 23],
+          "NorthWest": [22, 26],
+          "West": [19, 35],
+          "SouthWest": [20, 42]
+        },
+        "Shoot": {
+          "South": [16, 15],
+          "SouthEast": [19, 14],
+          "East": [21, 13],
+          "NorthEast": [18, 12],
+          "North": [16, 12],
+          "NorthWest": [14, 12],
+          "West": [11, 13],
+          "SouthWest": [13, 14]
+        },
+        "Charge": {
+          "South": [16, 14],
+          "SouthEast": [22, 13],
+          "East": [24, 11],
+          "NorthEast": [21, 7],
+          "North": [16, 7],
+          "NorthWest": [11, 7],
+          "West": [8, 11],
+          "SouthWest": [10, 13]
+        }
+      }
+    },
+    "graveler": {
+      "footOffsetY": 4,
+      "headOffsetY": -5,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [39, 37],
+          "SouthEast": [46, 37],
+          "East": [49, 33],
+          "NorthEast": [50, 27],
+          "North": [39, 29],
+          "NorthWest": [29, 27],
+          "West": [30, 33],
+          "SouthWest": [33, 37]
+        },
+        "Shoot": {
+          "South": [19, 36],
+          "SouthEast": [24, 36],
+          "East": [24, 34],
+          "NorthEast": [26, 33],
+          "North": [19, 30],
+          "NorthWest": [12, 33],
+          "West": [14, 34],
+          "SouthWest": [14, 36]
+        },
+        "Charge": {
+          "South": [19, 17],
+          "SouthEast": [24, 17],
+          "East": [25, 15],
+          "NorthEast": [26, 14],
+          "North": [19, 10],
+          "NorthWest": [12, 14],
+          "West": [14, 15],
+          "SouthWest": [15, 17]
+        }
+      }
+    },
+    "grimer": {
+      "footOffsetY": 4,
+      "headOffsetY": -3,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [32, 44],
+          "SouthEast": [38, 40],
+          "East": [42, 36],
+          "NorthEast": [35, 32],
+          "North": [32, 26],
+          "NorthWest": [28, 32],
+          "West": [21, 36],
+          "SouthWest": [25, 40]
+        },
+        "Shoot": {
+          "South": [23, 19],
+          "SouthEast": [22, 16],
+          "East": [23, 23],
+          "NorthEast": [23, 26],
+          "North": [24, 21],
+          "NorthWest": [24, 26],
+          "West": [24, 23],
+          "SouthWest": [25, 16]
+        },
+        "Charge": {
+          "South": [20, 19],
+          "SouthEast": [25, 19],
+          "East": [26, 16],
+          "NorthEast": [26, 12],
+          "North": [20, 6],
+          "NorthWest": [13, 12],
+          "West": [13, 16],
+          "SouthWest": [14, 19]
+        }
+      }
+    },
+    "horsea": {
+      "footOffsetY": 4,
+      "headOffsetY": -7,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [32, 35],
+          "SouthEast": [42, 35],
+          "East": [45, 26],
+          "NorthEast": [46, 17],
+          "North": [32, 16],
+          "NorthWest": [18, 17],
+          "West": [19, 26],
+          "SouthWest": [22, 35]
+        },
+        "Shoot": {
+          "South": [20, 12],
+          "SouthEast": [21, 14],
+          "East": [22, 13],
+          "NorthEast": [23, 11],
+          "North": [20, 11],
+          "NorthWest": [17, 11],
+          "West": [18, 13],
+          "SouthWest": [19, 14]
+        },
+        "Charge": {
+          "South": [16, 20],
+          "SouthEast": [23, 19],
+          "East": [26, 15],
+          "NorthEast": [26, 12],
+          "North": [16, 5],
+          "NorthWest": [6, 12],
+          "West": [6, 15],
+          "SouthWest": [9, 19]
+        }
+      }
+    },
+    "ivysaur": {
+      "footOffsetY": 4,
+      "headOffsetY": -12,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 28],
+          "SouthEast": [33, 25],
+          "East": [32, 22],
+          "NorthEast": [33, 19],
+          "North": [31, 21],
+          "NorthWest": [29, 19],
+          "West": [30, 22],
+          "SouthWest": [30, 25]
+        },
+        "Shoot": {
+          "South": [15, 12],
+          "SouthEast": [16, 9],
+          "East": [17, 9],
+          "NorthEast": [16, 10],
+          "North": [15, 8],
+          "NorthWest": [14, 10],
+          "West": [13, 9],
+          "SouthWest": [14, 9]
+        },
+        "Charge": {
+          "South": [15, 8],
+          "SouthEast": [15, 5],
+          "East": [16, 5],
+          "NorthEast": [15, 5],
+          "North": [15, 4],
+          "NorthWest": [15, 5],
+          "West": [14, 5],
+          "SouthWest": [15, 5]
+        }
+      }
+    },
+    "kabuto": {
+      "footOffsetY": 4,
+      "headOffsetY": 1,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 43],
+          "SouthEast": [47, 41],
+          "East": [50, 28],
+          "NorthEast": [45, 13],
+          "North": [31, 14],
+          "NorthWest": [18, 13],
+          "West": [13, 28],
+          "SouthWest": [16, 41]
+        },
+        "Shoot": {
+          "South": [15, 13],
+          "SouthEast": [19, 14],
+          "East": [22, 11],
+          "NorthEast": [18, 7],
+          "North": [15, 9],
+          "NorthWest": [13, 7],
+          "West": [9, 11],
+          "SouthWest": [12, 14]
+        },
+        "Charge": {
+          "South": [16, 14],
+          "SouthEast": [20, 13],
+          "East": [20, 9],
+          "NorthEast": [17, 7],
+          "North": [16, 9],
+          "NorthWest": [14, 7],
+          "West": [11, 9],
+          "SouthWest": [11, 13]
+        }
+      }
+    },
+    "kadabra": {
+      "footOffsetY": 4,
+      "headOffsetY": -11,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [36, 42],
+          "SouthEast": [43, 41],
+          "East": [47, 37],
+          "NorthEast": [44, 30],
+          "North": [38, 29],
+          "NorthWest": [28, 28],
+          "West": [25, 36],
+          "SouthWest": [29, 42]
+        },
+        "Shoot": {
+          "South": [24, 17],
+          "SouthEast": [26, 16],
+          "East": [30, 15],
+          "NorthEast": [29, 13],
+          "North": [24, 11],
+          "NorthWest": [20, 14],
+          "West": [18, 15],
+          "SouthWest": [22, 16]
+        },
+        "Charge": {
+          "South": [20, 22],
+          "SouthEast": [23, 19],
+          "East": [26, 19],
+          "NorthEast": [24, 17],
+          "North": [20, 14],
+          "NorthWest": [16, 17],
+          "West": [14, 20],
+          "SouthWest": [18, 19]
+        }
+      }
+    },
+    "kakuna": {
+      "footOffsetY": 4,
+      "headOffsetY": -7,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [32, 27],
+          "SouthEast": [27, 26],
+          "East": [29, 28],
+          "NorthEast": [29, 28],
+          "North": [32, 30],
+          "NorthWest": [34, 28],
+          "West": [34, 28],
+          "SouthWest": [36, 26]
+        },
+        "Charge": {
+          "South": [11, 16],
+          "SouthEast": [15, 15],
+          "East": [16, 14],
+          "NorthEast": [15, 13],
+          "North": [12, 13],
+          "NorthWest": [8, 13],
+          "West": [7, 14],
+          "SouthWest": [8, 15]
+        },
+        "Shoot": {
+          "South": [11, 16],
+          "SouthEast": [15, 15],
+          "East": [16, 14],
+          "NorthEast": [15, 13],
+          "North": [12, 13],
+          "NorthWest": [8, 13],
+          "West": [7, 14],
+          "SouthWest": [8, 15]
+        }
+      }
+    },
+    "koffing": {
+      "footOffsetY": 4,
+      "headOffsetY": -5,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 45],
+          "SouthEast": [45, 43],
+          "East": [47, 35],
+          "NorthEast": [41, 29],
+          "North": [35, 27],
+          "NorthWest": [30, 29],
+          "West": [24, 35],
+          "SouthWest": [26, 43]
+        },
+        "Shoot": {
+          "South": [20, 12],
+          "SouthEast": [20, 13],
+          "East": [23, 11],
+          "NorthEast": [19, 15],
+          "North": [20, 14],
+          "NorthWest": [19, 15],
+          "West": [15, 11],
+          "SouthWest": [18, 13]
+        },
+        "Charge": {
+          "South": [19, 23],
+          "SouthEast": [22, 23],
+          "East": [25, 21],
+          "NorthEast": [23, 22],
+          "North": [19, 21],
+          "NorthWest": [15, 22],
+          "West": [13, 21],
+          "SouthWest": [16, 23]
+        }
+      }
+    },
+    "krabby": {
+      "footOffsetY": 4,
+      "headOffsetY": 1,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [40, 43],
+          "SouthEast": [42, 42],
+          "East": [40, 37],
+          "NorthEast": [38, 33],
+          "North": [31, 34],
+          "NorthWest": [29, 37],
+          "West": [32, 42],
+          "SouthWest": [33, 46]
+        },
+        "Shoot": {
+          "South": [20, 28],
+          "SouthEast": [23, 28],
+          "East": [28, 24],
+          "NorthEast": [26, 19],
+          "North": [20, 16],
+          "NorthWest": [13, 19],
+          "West": [11, 24],
+          "SouthWest": [16, 28]
+        },
+        "Charge": {
+          "South": [16, 18],
+          "SouthEast": [17, 18],
+          "East": [21, 16],
+          "NorthEast": [18, 14],
+          "North": [16, 12],
+          "NorthWest": [13, 14],
+          "West": [10, 16],
+          "SouthWest": [14, 18]
+        }
+      }
+    },
+    "machoke": {
+      "footOffsetY": 4,
+      "headOffsetY": -9,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 32],
+          "SouthEast": [38, 31],
+          "East": [44, 31],
+          "NorthEast": [41, 29],
+          "North": [34, 23],
+          "NorthWest": [29, 29],
+          "West": [26, 31],
+          "SouthWest": [32, 31]
+        },
+        "Charge": {
+          "South": [20, 16],
+          "SouthEast": [20, 18],
+          "East": [23, 15],
+          "NorthEast": [25, 16],
+          "North": [17, 11],
+          "NorthWest": [15, 16],
+          "West": [15, 15],
+          "SouthWest": [19, 17]
+        },
+        "Shoot": {
+          "South": [20, 16],
+          "SouthEast": [20, 18],
+          "East": [23, 15],
+          "NorthEast": [25, 16],
+          "North": [17, 11],
+          "NorthWest": [15, 16],
+          "West": [15, 15],
+          "SouthWest": [19, 17]
+        }
+      }
+    },
+    "magikarp": {
+      "footOffsetY": 4,
+      "headOffsetY": 4,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 51],
+          "SouthEast": [53, 49],
+          "East": [58, 28],
+          "NorthEast": [54, 6],
+          "North": [32, 5],
+          "NorthWest": [9, 8],
+          "West": [7, 29],
+          "SouthWest": [9, 48]
+        },
+        "Shoot": {
+          "South": [15, 28],
+          "SouthEast": [23, 26],
+          "East": [28, 20],
+          "NorthEast": [24, 12],
+          "North": [16, 11],
+          "NorthWest": [7, 14],
+          "West": [5, 21],
+          "SouthWest": [7, 25]
+        },
+        "Charge": {
+          "South": [16, 24],
+          "SouthEast": [21, 22],
+          "East": [26, 16],
+          "NorthEast": [23, 12],
+          "North": [15, 9],
+          "NorthWest": [8, 13],
+          "West": [6, 17],
+          "SouthWest": [8, 21]
+        }
+      }
+    },
+    "mankey": {
+      "footOffsetY": 4,
+      "headOffsetY": -2,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 35],
+          "SouthEast": [33, 34],
+          "East": [36, 35],
+          "NorthEast": [34, 34],
+          "North": [31, 33],
+          "NorthWest": [29, 34],
+          "West": [27, 34],
+          "SouthWest": [30, 33]
+        },
+        "Charge": {
+          "South": [15, 15],
+          "SouthEast": [18, 15],
+          "East": [21, 15],
+          "NorthEast": [18, 12],
+          "North": [15, 13],
+          "NorthWest": [12, 12],
+          "West": [10, 15],
+          "SouthWest": [13, 15]
+        },
+        "Shoot": {
+          "South": [15, 15],
+          "SouthEast": [18, 15],
+          "East": [21, 15],
+          "NorthEast": [18, 12],
+          "North": [15, 13],
+          "NorthWest": [12, 12],
+          "West": [10, 15],
+          "SouthWest": [13, 15]
+        }
+      }
+    },
+    "metapod": {
+      "footOffsetY": 4,
+      "headOffsetY": 1,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 48],
+          "SouthEast": [41, 46],
+          "East": [46, 43],
+          "NorthEast": [44, 31],
+          "North": [35, 31],
+          "NorthWest": [27, 31],
+          "West": [25, 43],
+          "SouthWest": [30, 46]
+        },
+        "Shoot": {
+          "South": [15, 17],
+          "SouthEast": [19, 19],
+          "East": [20, 13],
+          "NorthEast": [17, 14],
+          "North": [15, 15],
+          "NorthWest": [14, 14],
+          "West": [11, 13],
+          "SouthWest": [12, 19]
+        },
+        "Charge": {
+          "South": [11, 17],
+          "SouthEast": [16, 18],
+          "East": [18, 11],
+          "NorthEast": [15, 11],
+          "North": [11, 10],
+          "NorthWest": [8, 11],
+          "West": [5, 11],
+          "SouthWest": [7, 18]
+        }
+      }
+    },
+    "nidoran-f": {
+      "footOffsetY": 4,
+      "headOffsetY": -1,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 40],
+          "SouthEast": [43, 35],
+          "East": [43, 28],
+          "NorthEast": [42, 19],
+          "North": [31, 15],
+          "NorthWest": [20, 19],
+          "West": [19, 28],
+          "SouthWest": [19, 35]
+        },
+        "Shoot": {
+          "South": [15, 26],
+          "SouthEast": [22, 24],
+          "East": [24, 19],
+          "NorthEast": [24, 15],
+          "North": [15, 12],
+          "NorthWest": [6, 15],
+          "West": [6, 19],
+          "SouthWest": [8, 24]
+        },
+        "Charge": {
+          "South": [11, 21],
+          "SouthEast": [17, 19],
+          "East": [19, 15],
+          "NorthEast": [19, 12],
+          "North": [11, 9],
+          "NorthWest": [4, 12],
+          "West": [4, 15],
+          "SouthWest": [6, 19]
+        }
+      }
+    },
+    "nidorina": {
+      "footOffsetY": 4,
+      "headOffsetY": 2,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 43],
+          "SouthEast": [39, 43],
+          "East": [42, 36],
+          "NorthEast": [41, 26],
+          "North": [31, 28],
+          "NorthWest": [21, 26],
+          "West": [20, 36],
+          "SouthWest": [23, 43]
+        },
+        "Shoot": {
+          "South": [19, 24],
+          "SouthEast": [25, 23],
+          "East": [28, 21],
+          "NorthEast": [27, 17],
+          "North": [19, 15],
+          "NorthWest": [11, 17],
+          "West": [10, 21],
+          "SouthWest": [13, 23]
+        },
+        "Charge": {
+          "South": [11, 18],
+          "SouthEast": [15, 18],
+          "East": [18, 15],
+          "NorthEast": [17, 11],
+          "North": [11, 11],
+          "NorthWest": [5, 11],
+          "West": [4, 15],
+          "SouthWest": [7, 18]
+        }
+      }
+    },
+    "nidorino": {
+      "footOffsetY": 4,
+      "headOffsetY": 4,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 55],
+          "SouthEast": [46, 52],
+          "East": [48, 45],
+          "NorthEast": [51, 34],
+          "North": [35, 28],
+          "NorthWest": [20, 34],
+          "West": [23, 45],
+          "SouthWest": [25, 52]
+        },
+        "Shoot": {
+          "South": [22, 11],
+          "SouthEast": [23, 8],
+          "East": [26, 16],
+          "NorthEast": [20, 17],
+          "North": [36, 21],
+          "NorthWest": [34, 17],
+          "West": [28, 16],
+          "SouthWest": [31, 8]
+        },
+        "Charge": {
+          "South": [19, 27],
+          "SouthEast": [26, 24],
+          "East": [28, 21],
+          "NorthEast": [31, 15],
+          "North": [19, 10],
+          "NorthWest": [8, 15],
+          "West": [11, 21],
+          "SouthWest": [13, 24]
+        }
+      }
+    },
+    "oddish": {
+      "footOffsetY": 4,
+      "headOffsetY": -1,
+      "shadowSize": 0,
+      "attackHeads": {
+        "Attack": {
+          "South": [36, 52],
+          "SouthEast": [51, 52],
+          "East": [53, 38],
+          "NorthEast": [50, 23],
+          "North": [36, 24],
+          "NorthWest": [21, 23],
+          "West": [18, 38],
+          "SouthWest": [20, 52]
+        },
+        "Shoot": {
+          "South": [24, 14],
+          "SouthEast": [21, 13],
+          "East": [23, 15],
+          "NorthEast": [22, 18],
+          "North": [24, 17],
+          "NorthWest": [25, 18],
+          "West": [24, 15],
+          "SouthWest": [26, 13]
+        },
+        "Charge": {
+          "South": [12, 15],
+          "SouthEast": [13, 15],
+          "East": [15, 15],
+          "NorthEast": [13, 14],
+          "North": [12, 15],
+          "NorthWest": [10, 14],
+          "West": [8, 15],
+          "SouthWest": [10, 15]
+        }
+      }
+    },
+    "omanyte": {
+      "footOffsetY": 4,
+      "headOffsetY": 3,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [40, 50],
+          "SouthEast": [51, 47],
+          "East": [53, 41],
+          "NorthEast": [51, 31],
+          "North": [39, 33],
+          "NorthWest": [28, 31],
+          "West": [26, 41],
+          "SouthWest": [28, 47]
+        },
+        "Shoot": {
+          "South": [12, 19],
+          "SouthEast": [18, 18],
+          "East": [20, 16],
+          "NorthEast": [17, 13],
+          "North": [11, 11],
+          "NorthWest": [6, 13],
+          "West": [3, 16],
+          "SouthWest": [5, 18]
+        },
+        "Charge": {
+          "South": [12, 20],
+          "SouthEast": [18, 19],
+          "East": [20, 17],
+          "NorthEast": [17, 14],
+          "North": [11, 12],
+          "NorthWest": [6, 14],
+          "West": [3, 17],
+          "SouthWest": [5, 19]
+        }
+      }
+    },
+    "paras": {
+      "footOffsetY": 4,
+      "headOffsetY": 3,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [32, 31],
+          "SouthEast": [36, 31],
+          "East": [38, 30],
+          "NorthEast": [35, 27],
+          "North": [32, 28],
+          "NorthWest": [28, 27],
+          "West": [25, 30],
+          "SouthWest": [27, 31]
+        },
+        "Shoot": {
+          "South": [16, 28],
+          "SouthEast": [22, 27],
+          "East": [24, 25],
+          "NorthEast": [21, 21],
+          "North": [14, 19],
+          "NorthWest": [10, 21],
+          "West": [7, 25],
+          "SouthWest": [9, 27]
+        },
+        "Charge": {
+          "South": [11, 16],
+          "SouthEast": [17, 16],
+          "East": [20, 12],
+          "NorthEast": [16, 8],
+          "North": [11, 7],
+          "NorthWest": [7, 8],
+          "West": [3, 12],
+          "SouthWest": [6, 16]
+        }
+      }
+    },
+    "pidgeotto": {
+      "footOffsetY": 4,
+      "headOffsetY": -5,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 46],
+          "SouthEast": [42, 39],
+          "East": [46, 28],
+          "NorthEast": [42, 26],
+          "North": [31, 19],
+          "NorthWest": [20, 26],
+          "West": [16, 28],
+          "SouthWest": [20, 37]
+        },
+        "Shoot": {
+          "South": [15, 19],
+          "SouthEast": [22, 16],
+          "East": [25, 12],
+          "NorthEast": [22, 10],
+          "North": [15, 8],
+          "NorthWest": [8, 10],
+          "West": [5, 12],
+          "SouthWest": [8, 16]
+        },
+        "Charge": {
+          "South": [15, 20],
+          "SouthEast": [22, 18],
+          "East": [25, 14],
+          "NorthEast": [23, 12],
+          "North": [15, 9],
+          "NorthWest": [7, 12],
+          "West": [5, 14],
+          "SouthWest": [8, 18]
+        }
+      }
+    },
+    "poliwag": {
+      "footOffsetY": 4,
+      "headOffsetY": -4,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [36, 45],
+          "SouthEast": [51, 38],
+          "East": [55, 27],
+          "NorthEast": [50, 10],
+          "North": [36, 10],
+          "NorthWest": [21, 10],
+          "West": [16, 27],
+          "SouthWest": [19, 38]
+        },
+        "Shoot": {
+          "South": [20, 23],
+          "SouthEast": [27, 21],
+          "East": [32, 17],
+          "NorthEast": [29, 11],
+          "North": [20, 7],
+          "NorthWest": [10, 11],
+          "West": [7, 17],
+          "SouthWest": [12, 21]
+        },
+        "Charge": {
+          "South": [20, 9],
+          "SouthEast": [23, 9],
+          "East": [25, 6],
+          "NorthEast": [22, 7],
+          "North": [20, 5],
+          "NorthWest": [17, 7],
+          "West": [14, 6],
+          "SouthWest": [16, 9]
+        }
+      }
+    },
+    "poliwhirl": {
+      "footOffsetY": 4,
+      "headOffsetY": -8,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [37, 38],
+          "SouthEast": [43, 37],
+          "East": [45, 32],
+          "NorthEast": [44, 23],
+          "North": [35, 25],
+          "NorthWest": [28, 23],
+          "West": [27, 32],
+          "SouthWest": [29, 37]
+        },
+        "Shoot": {
+          "South": [28, 16],
+          "SouthEast": [22, 16],
+          "East": [20, 21],
+          "NorthEast": [20, 25],
+          "North": [28, 28],
+          "NorthWest": [36, 25],
+          "West": [36, 21],
+          "SouthWest": [34, 16]
+        },
+        "Charge": {
+          "South": [16, 13],
+          "SouthEast": [18, 13],
+          "East": [21, 11],
+          "NorthEast": [20, 8],
+          "North": [16, 9],
+          "NorthWest": [12, 8],
+          "West": [11, 11],
+          "SouthWest": [14, 12]
+        }
+      }
+    },
+    "ponyta": {
+      "footOffsetY": 4,
+      "headOffsetY": -1,
+      "shadowSize": 0,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 40],
+          "SouthEast": [43, 40],
+          "East": [47, 33],
+          "NorthEast": [46, 24],
+          "North": [31, 22],
+          "NorthWest": [17, 24],
+          "West": [16, 33],
+          "SouthWest": [20, 40]
+        },
+        "Shoot": {
+          "South": [19, 11],
+          "SouthEast": [21, 10],
+          "East": [21, 11],
+          "NorthEast": [21, 15],
+          "North": [19, 12],
+          "NorthWest": [18, 15],
+          "West": [18, 11],
+          "SouthWest": [18, 10]
+        },
+        "Charge": {
+          "South": [15, 19],
+          "SouthEast": [20, 19],
+          "East": [23, 16],
+          "NorthEast": [23, 14],
+          "North": [15, 8],
+          "NorthWest": [8, 14],
+          "West": [8, 16],
+          "SouthWest": [10, 20]
+        }
+      }
+    },
+    "psyduck": {
+      "footOffsetY": 4,
+      "headOffsetY": -3,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 50],
+          "SouthEast": [53, 48],
+          "East": [51, 34],
+          "NorthEast": [54, 17],
+          "North": [35, 14],
+          "NorthWest": [16, 17],
+          "West": [19, 34],
+          "SouthWest": [18, 48]
+        },
+        "Shoot": {
+          "South": [15, 19],
+          "SouthEast": [15, 18],
+          "East": [17, 19],
+          "NorthEast": [18, 23],
+          "North": [15, 20],
+          "NorthWest": [12, 23],
+          "West": [13, 19],
+          "SouthWest": [15, 18]
+        },
+        "Charge": {
+          "South": [12, 19],
+          "SouthEast": [15, 18],
+          "East": [17, 16],
+          "NorthEast": [17, 15],
+          "North": [8, 12],
+          "NorthWest": [5, 15],
+          "West": [5, 16],
+          "SouthWest": [7, 18]
+        }
+      }
+    },
+    "rattata": {
+      "footOffsetY": 4,
+      "headOffsetY": 4,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [32, 38],
+          "SouthEast": [41, 38],
+          "East": [44, 30],
+          "NorthEast": [41, 17],
+          "North": [32, 23],
+          "NorthWest": [22, 17],
+          "West": [19, 30],
+          "SouthWest": [22, 38]
+        },
+        "Shoot": {
+          "South": [16, 22],
+          "SouthEast": [19, 23],
+          "East": [23, 21],
+          "NorthEast": [22, 17],
+          "North": [16, 13],
+          "NorthWest": [9, 17],
+          "West": [8, 21],
+          "SouthWest": [12, 23]
+        },
+        "Charge": {
+          "South": [16, 20],
+          "SouthEast": [20, 21],
+          "East": [24, 17],
+          "NorthEast": [23, 11],
+          "North": [16, 7],
+          "NorthWest": [8, 11],
+          "West": [7, 17],
+          "SouthWest": [11, 21]
+        }
+      }
+    },
+    "rhyhorn": {
+      "footOffsetY": 4,
+      "headOffsetY": 5,
+      "shadowSize": 2,
+      "attackHeads": {
+        "Attack": {
+          "South": [32, 47],
+          "SouthEast": [42, 46],
+          "East": [45, 40],
+          "NorthEast": [44, 31],
+          "North": [32, 26],
+          "NorthWest": [18, 31],
+          "West": [18, 40],
+          "SouthWest": [21, 46]
+        },
+        "Shoot": {
+          "South": [20, 28],
+          "SouthEast": [23, 28],
+          "East": [27, 28],
+          "NorthEast": [26, 25],
+          "North": [20, 18],
+          "NorthWest": [13, 25],
+          "West": [12, 28],
+          "SouthWest": [16, 28]
+        },
+        "Charge": {
+          "South": [16, 22],
+          "SouthEast": [21, 22],
+          "East": [25, 20],
+          "NorthEast": [24, 16],
+          "North": [16, 8],
+          "NorthWest": [7, 16],
+          "West": [6, 20],
+          "SouthWest": [10, 22]
+        }
+      }
+    },
+    "shellder": {
+      "footOffsetY": 4,
+      "headOffsetY": 0,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 39],
+          "SouthEast": [44, 39],
+          "East": [45, 33],
+          "NorthEast": [44, 28],
+          "North": [35, 23],
+          "NorthWest": [26, 28],
+          "West": [25, 33],
+          "SouthWest": [26, 39]
+        },
+        "Shoot": {
+          "South": [19, 18],
+          "SouthEast": [20, 17],
+          "East": [24, 19],
+          "NorthEast": [22, 20],
+          "North": [19, 15],
+          "NorthWest": [16, 20],
+          "West": [14, 19],
+          "SouthWest": [18, 17]
+        },
+        "Charge": {
+          "South": [11, 14],
+          "SouthEast": [14, 13],
+          "East": [15, 12],
+          "NorthEast": [16, 9],
+          "North": [11, 7],
+          "NorthWest": [6, 9],
+          "West": [7, 12],
+          "SouthWest": [9, 13]
+        }
+      }
+    },
+    "slowpoke": {
+      "footOffsetY": 4,
+      "headOffsetY": 6,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [32, 50],
+          "SouthEast": [48, 49],
+          "East": [50, 35],
+          "NorthEast": [49, 16],
+          "North": [32, 18],
+          "NorthWest": [14, 16],
+          "West": [13, 35],
+          "SouthWest": [15, 49]
+        },
+        "Shoot": {
+          "South": [16, 23],
+          "SouthEast": [18, 22],
+          "East": [20, 22],
+          "NorthEast": [19, 20],
+          "North": [16, 20],
+          "NorthWest": [12, 20],
+          "West": [11, 22],
+          "SouthWest": [13, 22]
+        },
+        "Charge": {
+          "South": [16, 27],
+          "SouthEast": [23, 25],
+          "East": [26, 21],
+          "NorthEast": [23, 15],
+          "North": [16, 12],
+          "NorthWest": [8, 15],
+          "West": [5, 21],
+          "SouthWest": [8, 25]
+        }
+      }
+    },
+    "spearow": {
+      "footOffsetY": 4,
+      "headOffsetY": -1,
+      "shadowSize": 0,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 48],
+          "SouthEast": [35, 41],
+          "East": [38, 37],
+          "NorthEast": [38, 31],
+          "North": [31, 29],
+          "NorthWest": [24, 31],
+          "West": [24, 37],
+          "SouthWest": [27, 39]
+        },
+        "Shoot": {
+          "South": [15, 18],
+          "SouthEast": [21, 17],
+          "East": [24, 15],
+          "NorthEast": [23, 13],
+          "North": [15, 12],
+          "NorthWest": [7, 13],
+          "West": [6, 15],
+          "SouthWest": [9, 17]
+        },
+        "Charge": {
+          "South": [11, 15],
+          "SouthEast": [17, 14],
+          "East": [20, 12],
+          "NorthEast": [19, 10],
+          "North": [11, 9],
+          "NorthWest": [3, 10],
+          "West": [2, 12],
+          "SouthWest": [5, 14]
+        }
+      }
+    },
+    "staryu": {
+      "footOffsetY": 4,
+      "headOffsetY": -1,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [32, 22],
+          "SouthEast": [27, 22],
+          "East": [27, 27],
+          "NorthEast": [27, 32],
+          "North": [32, 32],
+          "NorthWest": [37, 32],
+          "West": [37, 27],
+          "SouthWest": [37, 22]
+        },
+        "Shoot": {
+          "South": [20, 25],
+          "SouthEast": [24, 24],
+          "East": [26, 22],
+          "NorthEast": [24, 18],
+          "North": [20, 15],
+          "NorthWest": [18, 18],
+          "West": [14, 22],
+          "SouthWest": [16, 24]
+        },
+        "Charge": {
+          "South": [12, 17],
+          "SouthEast": [15, 16],
+          "East": [17, 14],
+          "NorthEast": [15, 10],
+          "North": [12, 7],
+          "NorthWest": [10, 10],
+          "West": [6, 14],
+          "SouthWest": [8, 16]
+        }
+      }
+    },
+    "venonat": {
+      "footOffsetY": 4,
+      "headOffsetY": -1,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 43],
+          "SouthEast": [49, 37],
+          "East": [54, 29],
+          "NorthEast": [49, 11],
+          "North": [35, 11],
+          "NorthWest": [22, 11],
+          "West": [17, 29],
+          "SouthWest": [22, 37]
+        },
+        "Shoot": {
+          "South": [27, 33],
+          "SouthEast": [30, 31],
+          "East": [33, 31],
+          "NorthEast": [30, 28],
+          "North": [27, 27],
+          "NorthWest": [24, 28],
+          "West": [21, 31],
+          "SouthWest": [24, 31]
+        },
+        "Charge": {
+          "South": [11, 18],
+          "SouthEast": [14, 17],
+          "East": [16, 17],
+          "NorthEast": [14, 15],
+          "North": [11, 14],
+          "NorthWest": [9, 15],
+          "West": [6, 17],
+          "SouthWest": [8, 17]
+        }
+      }
+    },
+    "voltorb": {
+      "footOffsetY": 4,
+      "headOffsetY": 1,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 53],
+          "SouthEast": [57, 50],
+          "East": [63, 36],
+          "NorthEast": [63, 14],
+          "North": [35, 13],
+          "NorthWest": [9, 15],
+          "West": [9, 37],
+          "SouthWest": [13, 50]
+        },
+        "Charge": {
+          "South": [11, 14],
+          "SouthEast": [17, 12],
+          "East": [17, 12],
+          "NorthEast": [17, 6],
+          "North": [11, 5],
+          "NorthWest": [7, 5],
+          "West": [7, 13],
+          "SouthWest": [7, 13]
+        },
+        "Shoot": {
+          "South": [11, 14],
+          "SouthEast": [17, 12],
+          "East": [17, 12],
+          "NorthEast": [17, 6],
+          "North": [11, 5],
+          "NorthWest": [7, 5],
+          "West": [7, 13],
+          "SouthWest": [7, 13]
+        }
+      }
+    },
+    "vulpix": {
+      "footOffsetY": 4,
+      "headOffsetY": 2,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [35, 51],
+          "SouthEast": [51, 46],
+          "East": [54, 31],
+          "NorthEast": [54, 11],
+          "North": [35, 11],
+          "NorthWest": [17, 11],
+          "West": [17, 31],
+          "SouthWest": [20, 46]
+        },
+        "Shoot": {
+          "South": [19, 12],
+          "SouthEast": [19, 10],
+          "East": [21, 10],
+          "NorthEast": [19, 14],
+          "North": [19, 11],
+          "NorthWest": [20, 14],
+          "West": [18, 10],
+          "SouthWest": [20, 10]
+        },
+        "Charge": {
+          "South": [15, 20],
+          "SouthEast": [19, 19],
+          "East": [22, 16],
+          "NorthEast": [22, 12],
+          "North": [15, 8],
+          "NorthWest": [8, 12],
+          "West": [8, 16],
+          "SouthWest": [11, 19]
+        }
+      }
+    },
+    "wartortle": {
+      "footOffsetY": 4,
+      "headOffsetY": -3,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 47],
+          "SouthEast": [46, 45],
+          "East": [50, 33],
+          "NorthEast": [47, 20],
+          "North": [32, 17],
+          "NorthWest": [17, 20],
+          "West": [15, 34],
+          "SouthWest": [16, 45]
+        },
+        "Shoot": {
+          "South": [16, 22],
+          "SouthEast": [23, 23],
+          "East": [28, 20],
+          "NorthEast": [21, 12],
+          "North": [16, 7],
+          "NorthWest": [10, 12],
+          "West": [4, 20],
+          "SouthWest": [7, 23]
+        },
+        "Charge": {
+          "South": [16, 22],
+          "SouthEast": [21, 21],
+          "East": [26, 18],
+          "NorthEast": [20, 12],
+          "North": [16, 11],
+          "NorthWest": [12, 12],
+          "West": [6, 18],
+          "SouthWest": [10, 21]
+        }
+      }
+    },
+    "weedle": {
+      "footOffsetY": 4,
+      "headOffsetY": -6,
+      "shadowSize": 0,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 49],
+          "SouthEast": [49, 48],
+          "East": [52, 33],
+          "NorthEast": [52, 20],
+          "North": [31, 15],
+          "NorthWest": [10, 20],
+          "West": [10, 33],
+          "SouthWest": [13, 48]
+        },
+        "Shoot": {
+          "South": [18, 23],
+          "SouthEast": [19, 22],
+          "East": [21, 19],
+          "NorthEast": [21, 19],
+          "North": [10, 16],
+          "NorthWest": [9, 19],
+          "West": [9, 19],
+          "SouthWest": [13, 22]
+        },
+        "Charge": {
+          "South": [11, 14],
+          "SouthEast": [20, 13],
+          "East": [21, 10],
+          "NorthEast": [18, 7],
+          "North": [11, 4],
+          "NorthWest": [4, 7],
+          "West": [1, 10],
+          "SouthWest": [2, 13]
+        }
+      }
+    },
+    "weepinbell": {
+      "footOffsetY": 4,
+      "headOffsetY": 2,
+      "shadowSize": 1,
+      "attackHeads": {
+        "Attack": {
+          "South": [31, 47],
+          "SouthEast": [39, 47],
+          "East": [40, 42],
+          "NorthEast": [41, 31],
+          "North": [31, 33],
+          "NorthWest": [22, 31],
+          "West": [22, 42],
+          "SouthWest": [24, 47]
+        },
+        "Shoot": {
+          "South": [19, 20],
+          "SouthEast": [17, 20],
+          "East": [18, 25],
+          "NorthEast": [19, 26],
+          "North": [19, 26],
+          "NorthWest": [20, 26],
+          "West": [20, 25],
+          "SouthWest": [22, 20]
+        },
+        "Charge": {
+          "South": [11, 19],
+          "SouthEast": [15, 19],
+          "East": [16, 18],
+          "NorthEast": [17, 14],
+          "North": [11, 13],
+          "NorthWest": [6, 14],
+          "West": [6, 18],
+          "SouthWest": [8, 19]
+        }
+      }
+    },
+    "zubat": {
+      "footOffsetY": 4,
+      "headOffsetY": -12,
+      "shadowSize": 0,
+      "attackHeads": {
+        "Attack": {
+          "South": [36, 33],
+          "SouthEast": [44, 32],
+          "East": [46, 27],
+          "NorthEast": [43, 20],
+          "North": [36, 20],
+          "NorthWest": [29, 20],
+          "West": [26, 27],
+          "SouthWest": [28, 32]
+        },
+        "Shoot": {
+          "South": [16, 16],
+          "SouthEast": [22, 15],
+          "East": [22, 12],
+          "NorthEast": [21, 10],
+          "North": [16, 11],
+          "NorthWest": [11, 10],
+          "West": [10, 12],
+          "SouthWest": [10, 15]
+        },
+        "Charge": {
+          "South": [16, 17],
+          "SouthEast": [20, 16],
+          "East": [22, 15],
+          "NorthEast": [19, 12],
+          "North": [16, 12],
+          "NorthWest": [13, 12],
+          "West": [10, 15],
+          "SouthWest": [12, 16]
+        }
+      }
+    }
   },
   "portraits": {
     "bulbasaur": 0,

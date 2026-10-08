@@ -25,7 +25,6 @@ import {
   mountGameStage,
 } from "@pokemon-tactic/ui-dom";
 import {
-  attackAnimationName,
   type BattleOrchestrator,
   type BattleSetupResult,
   CombatSpeed,
@@ -34,11 +33,14 @@ import {
   getResolvedAtlas,
   IMPACT_FRAME_MS,
   loadTiledMap,
+  moveEffectForm,
+  movePose,
   PMD_DEFAULT_FRAME_TICKS,
   PMD_TICK_DURATION_MS,
   type SandboxConfig,
   sandboxInstanceId,
   setCombatSpeed,
+  targetRelation,
 } from "@pokemon-tactic/view-core";
 import type { AtelierConfig } from "../atelier-boot.js";
 import { getLanguage, t } from "../i18n/index.js";
@@ -137,6 +139,8 @@ export function mountMoveWorkshop(
 
   let attacker = config.attacker ?? DEFAULT_ATTACKER;
   let target = config.target ?? DEFAULT_TARGET;
+  /** Aim the farthest target in reach instead of the nearest, to watch a projectile fly. */
+  let aimFar = false;
   let loop = false;
   let speedIndex = WORKSHOP_SPEEDS.indexOf(NORMAL_SPEED);
   const currentSpeed = (): WorkshopSpeed => WORKSHOP_SPEEDS[speedIndex] ?? NORMAL_SPEED;
@@ -266,10 +270,15 @@ export function mountMoveWorkshop(
     .sort((a, b) => compare(a.label, b.label));
   const attackerSelect = pokemonSelect("atelier-attacker", attacker);
   const targetSelect = pokemonSelect("atelier-target", target);
+  const aimFarLabel = el("label", "aw-loop");
+  const aimFarBox = el("input", undefined, "atelier-aim-far");
+  aimFarBox.type = "checkbox";
+  aimFarLabel.append(aimFarBox, textSpan(t("atelier.aimFar")));
   const cast = el("div", "aw-cast");
   cast.append(
     labelled(t("atelier.attacker"), attackerSelect),
     labelled(t("atelier.target"), targetSelect),
+    aimFarLabel,
   );
 
   panel.append(title, search, filters, count, list, sheet, keysHint, cast);
@@ -349,6 +358,8 @@ export function mountMoveWorkshop(
     // The dead run's pending waits (its attack's safety net…) must not fire into the new one.
     combatClock.clearTimers();
     orchestrator = null;
+    // Nor its effects still in flight (a projectile half-way, a fading puff).
+    combat.clearMoveEffects();
 
     const map = await mapReady;
     if (battleSignal.aborted) {
@@ -385,10 +396,12 @@ export function mountMoveWorkshop(
     }
     awaitingAttackEnd = true;
     timeline.prepare(
-      [row.move.id, attacker, target, currentSpeed().speed === CombatSpeed.Instant].join("|"),
+      [row.move.id, attacker, target, aimFar, currentSpeed().speed === CombatSpeed.Instant].join(
+        "|",
+      ),
       currentSpeed().speed === CombatSpeed.Instant
         ? { durationsMs: [], hitFrame: null }
-        : attackFrames(row.move.id, attacker),
+        : attackFrames(row.move, attacker),
       animationFrames(target, "Hurt").durationsMs,
     );
     orchestrator = runBattle({
@@ -404,14 +417,16 @@ export function mountMoveWorkshop(
       wireTurnReady: (built) => {
         // Speed stages don't decide the first turn: a slower attacker would leave a target to act
         // first, and the workshop would wait for it forever. The targets pass until the attacker
-        // has struck, then the run stops on a target's turn.
-        let struck = false;
+        // has struck — twice for a two-turn move (charge, then release) — then the run stops on a
+        // target's turn.
+        const turnsNeeded = row.move.twoTurnCharge === true ? 2 : 1;
+        let attackerTurns = 0;
         return (activePokemonId) => {
-          if (activePokemonId === attackerInstanceId(attacker)) {
-            struck = true;
-            return strike(built, row.move.id);
+          if (activePokemonId === attackerInstanceId(attacker) && attackerTurns < turnsNeeded) {
+            attackerTurns++;
+            return strike(built, row.move.id, aimFar);
           }
-          return struck ? false : passTurn(built);
+          return attackerTurns >= turnsNeeded ? false : passTurn(built);
         };
       },
       enemyInfoHidden: false,
@@ -570,6 +585,14 @@ export function mountMoveWorkshop(
     },
     { signal },
   );
+  aimFarBox.addEventListener(
+    "change",
+    () => {
+      aimFar = aimFarBox.checked;
+      void prime();
+    },
+    { signal },
+  );
   // The workshop owns its keys: ↑/↓ walk the filtered list, ←/→ step a frame, Space plays/pauses.
   document.addEventListener(
     "keydown",
@@ -685,8 +708,8 @@ function battleConfig(
 }
 
 /** The attacker's attack animation frame by frame — the one the combat plays for this move. */
-function attackFrames(moveId: string, attacker: string): AttackFrames {
-  return animationFrames(attacker, attackAnimationName(moveId));
+function attackFrames(move: MoveDefinition, attacker: string): AttackFrames {
+  return animationFrames(attacker, movePose(move));
 }
 
 /** One animation of a species' sprite, frame by frame (falls back to Attack, as the combat does). */
@@ -740,9 +763,10 @@ function attackerInstanceId(attacker: string): string {
 
 /**
  * The attacker's turn: play the move on the best target — a tile holding a target, on the
- * attacker's own row first, nearest first — then end the turn facing the targets.
+ * attacker's own row first, nearest first (farthest first with `aimFar`) — then end the turn facing
+ * the targets.
  */
-function strike(built: BattleSetupResult, moveId: string): BattleEvent[] {
+function strike(built: BattleSetupResult, moveId: string, aimFar: boolean): BattleEvent[] {
   const events: BattleEvent[] = [];
   const occupied = new Set(
     [...built.state.pokemon.values()]
@@ -755,7 +779,8 @@ function strike(built: BattleSetupResult, moveId: string): BattleEvent[] {
     }
     const { x, y } = action.targetPosition;
     const onTarget = occupied.has(`${x},${y}`) ? 1000 : 0;
-    return onTarget - Math.abs(y - ATTACKER_TILE.y) * 10 - Math.abs(x - ATTACKER_TILE.x);
+    const reach = Math.abs(x - ATTACKER_TILE.x);
+    return onTarget - Math.abs(y - ATTACKER_TILE.y) * 10 + (aimFar ? reach : -reach);
   };
   const moveActions = built.engine
     .getLegalActions(PlayerId.Player2)
@@ -796,7 +821,10 @@ function renderSheet(sheet: HTMLElement, move: MoveDefinition, name: string): vo
     ["atelier.pattern", patternLabel(move.targeting.kind)],
     ["atelier.range", rangeLabel(move.targeting)],
     ["atelier.flags", flags.length > 0 ? flags.join(", ") : "—"],
-    ["atelier.effect", t("atelier.effectNone")],
+    [
+      "atelier.effect",
+      t(`atelier.form.${moveEffectForm(move, targetRelation(move))}` as TranslationKey),
+    ],
   ];
   for (const [label, value] of entries) {
     const term = el("dt");

@@ -1,5 +1,4 @@
 export { abilityHandlers } from "./abilities/ability-definitions";
-export { AnimationCategory, moveAnimationCategory } from "./base/animation-category";
 export { getMoveName, getPokemonName, getTypeName, localizedText } from "./i18n/index";
 export { itemHandlers } from "./items/item-definitions";
 export type { GameData } from "./load-data";

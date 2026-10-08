@@ -1983,6 +1983,8 @@ export class BattleEngine {
       attackerId: pokemon.id,
       moveId,
       direction: pokemon.orientation,
+      targetPosition: { ...targetPosition },
+      affectedTiles: affectedTiles.map((tile) => ({ ...tile })),
       ...(didMorph ? { resolvedMoveId: effectiveMove.id } : {}),
       ...(effectiveMove.fieldTerrainBoostedType === true && pulseType !== effectiveMove.type
         ? { resolvedType: pulseType }

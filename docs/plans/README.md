@@ -62,3 +62,4 @@ Les seuls sur lesquels on travaille.
 | 228 | [Plan 228 — Modifier son équipe sans quitter l'écran de sélection](./228-editer-equipe-sans-quitter-selection.md) | done |
 | 232 | [Plan 232 — Équipes aléatoires : dernier stade avec build seulement](./232-equipes-aleatoires-equilibrees.md) | done |
 | 233 | [Plan 233 — VFX lot 1 : le coup tombe au bon moment](./233-vfx-lot1-timing-impact.md) | done |
+| 234 | [Plan 234 — VFX lot 2a : un effet pour chaque attaque, par forme × type](./234-vfx-lot2a-effets-generiques.md) | done |

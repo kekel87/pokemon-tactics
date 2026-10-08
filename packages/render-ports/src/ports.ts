@@ -8,7 +8,8 @@ import type {
   SemiInvulnerableDisplay,
 } from "@pokemon-tactic/core";
 import { AuraKind } from "@pokemon-tactic/core";
-import type { AttackPlayback } from "./combat-scene.js";
+import type { AttackOptions, AttackPlayback } from "./combat-scene.js";
+import type { MoveEffectForm, MoveEffectPlayback, MoveEffectSpec } from "./move-effect.js";
 import type {
   BattleOutcomeSummary,
   ConnectionNoticeView,
@@ -50,6 +51,7 @@ export const PresentationCueKind = {
   HitStop: "hit-stop",
   AttackEnd: "attack-end",
   Faint: "faint",
+  Effect: "effect",
 } as const;
 export type PresentationCueKind = (typeof PresentationCueKind)[keyof typeof PresentationCueKind];
 
@@ -91,7 +93,14 @@ export type PresentationCue =
   /** The attacker and its targets hold their frame for `durationMs` of combat time (hit-stop). */
   | { kind: typeof PresentationCueKind.HitStop; durationMs: number }
   | { kind: typeof PresentationCueKind.AttackEnd; attackerId: string; moveId: string }
-  | { kind: typeof PresentationCueKind.Faint; pokemonId: string };
+  | { kind: typeof PresentationCueKind.Faint; pokemonId: string }
+  /** A move effect starts (plan 234): it reaches its target `impactMs` in, and lasts `durationMs`. */
+  | {
+      kind: typeof PresentationCueKind.Effect;
+      form: MoveEffectForm;
+      durationMs: number;
+      impactMs: number;
+    };
 
 /** Which highlight layer the board should paint (mapped to the renderer's HighlightKind by the adapter). */
 export type BoardHighlight = "move" | "attack" | "retreat" | "enemy";
@@ -217,7 +226,20 @@ export interface BoardView {
    * Face a direction and play a one-shot attack animation. `impact` resolves when the blow lands
    * (the sprite's hit frame), `done` when the animation ends.
    */
-  playAttack(pokemonId: string, direction: Direction, animationName: string): AttackPlayback;
+  playAttack(
+    pokemonId: string,
+    direction: Direction,
+    animationName: string,
+    options?: AttackOptions,
+  ): AttackPlayback;
+  /** Trail after-images of a Pokémon while it rushes (plan 234), or stop. */
+  setAfterImages(pokemonId: string, active: boolean): void;
+  /**
+   * Play a move's visual effect from a Pokémon's tile as it stands now (plan 234): the caster's, or
+   * the struck one's for a blow's spark. `impact` resolves when the effect reaches its target — a
+   * projectile's arrival — so the blow lands then.
+   */
+  playMoveEffect(pokemonId: string, spec: MoveEffectSpec): MoveEffectPlayback;
   /** Hit-stop: hold the current sprite frame for `durationMs` of combat time. */
   holdFrame(pokemonId: string, durationMs: number): void;
   /** White flash on a sprite for `durationMs` of combat time (Instantanée: who struck). */

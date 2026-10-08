@@ -1,5 +1,6 @@
 import type { Direction } from "@pokemon-tactic/core";
 import type { HighlightKind } from "./highlight-kind.js";
+import type { MoveEffectPlayback, MoveEffectSpec } from "./move-effect.js";
 import type {
   AuraRingSpec,
   DirectionPickerCallbacks,
@@ -91,6 +92,12 @@ export interface DamageEstimateView {
  */
 export type TilePointerSource = "pointer" | "touch";
 
+/** How an attack animation plays (plan 234). */
+export interface AttackOptions {
+  /** Lunge at the target between the swing's rush and hit frames, back by its return frame. */
+  lunge?: boolean;
+}
+
 /** An attack animation in flight: the blow lands at `impact`, the animation ends at `done`. */
 export interface AttackPlayback {
   impact: Promise<void>;
@@ -119,7 +126,13 @@ export interface CombatPokemonHandle {
       keepPose?: boolean;
     },
   ): Promise<void>;
-  playAttack(direction: Direction, animationName: string): AttackPlayback;
+  playAttack(direction: Direction, animationName: string, options?: AttackOptions): AttackPlayback;
+  /** Trail after-images while rushing (plan 234), or stop. */
+  setAfterImages(active: boolean): void;
+  /** The tile this Pokémon's sprite stands on now (it may still be gliding there). */
+  currentTile(): { x: number; y: number };
+  /** Play a move's visual effect from this Pokémon's tile (plan 234). */
+  playMoveEffect(spec: MoveEffectSpec): MoveEffectPlayback;
   holdFrame(durationMs: number): void;
   /**
    * Drop every transient presentation state — hit-stop, flashes, blink, one-shot pose, attack depth
@@ -174,6 +187,8 @@ export interface CombatScene {
   /** Permanent ground rings outlining each active aura zone (plan 182; empty clears). */
   setAuraRings(rings: readonly AuraRingSpec[]): void;
   clearHighlights(): void;
+  /** Drop every move effect in flight (the workshop's replay). */
+  clearMoveEffects(): void;
   addPokemon(entry: CombatSceneSpawn): CombatPokemonHandle;
   removePokemon(handle: CombatPokemonHandle): void;
   showDirectionPicker(

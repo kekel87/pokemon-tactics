@@ -283,3 +283,80 @@ export const BABYLON_TILE_CENTER_MARKER_COLOR = { r: 1, g: 1, b: 0 } as const;
 export const BABYLON_TILE_GRID_COLOR = { r: 0, g: 1, b: 1 } as const;
 /** World-Y lift of the debug tile-grid lines above the tile top (z-fight guard). */
 export const BABYLON_TILE_GRID_Z_OFFSET = 0.01;
+
+/** Move effects (plan 234): one PMDO particle frame lasts this long, in combat ms. */
+export const BABYLON_MOVE_EFFECT_FRAME_MS = 50;
+/** Shortest flight, so an adjacent shot still reads as a shot. */
+export const BABYLON_MOVE_EFFECT_MIN_FLIGHT_MS = 120;
+/** World-Y of an effect above its tile top (about a sprite's chest). */
+export const BABYLON_MOVE_EFFECT_LIFT = 0.55;
+/** Pull towards the camera so an effect on a Pokémon's tile draws over its sprite. */
+export const BABYLON_MOVE_EFFECT_CAMERA_PULL = 0.6;
+/** Delay between two tiles of a spreading effect (cone, zone, wave), per tile of distance. */
+export const BABYLON_MOVE_EFFECT_SPREAD_MS_PER_TILE = 60;
+/** Stat strokes: how far they travel (world units), how many, and how long each lives. */
+export const BABYLON_MOVE_EFFECT_STAT_TRAVEL = 0.7;
+export const BABYLON_MOVE_EFFECT_STAT_STROKES = 4;
+export const BABYLON_MOVE_EFFECT_STAT_LIFE_MS = 420;
+/** Drain bubbles: how many, and how long each takes back to the caster. */
+export const BABYLON_MOVE_EFFECT_DRAIN_BUBBLES = 5;
+export const BABYLON_MOVE_EFFECT_DRAIN_FLIGHT_MS = 420;
+/** Status pictures that drift up (bubbles, Z, hearts): how many, and how far (world units). */
+export const BABYLON_MOVE_EFFECT_STATUS_RISERS = 3;
+export const BABYLON_MOVE_EFFECT_STATUS_DRIFT = 0.35;
+/** Restored HP: how many times the ground ring pulses, and how many sparkles rise. */
+export const BABYLON_MOVE_EFFECT_HEAL_RINGS = 3;
+export const BABYLON_MOVE_EFFECT_HEAL_SPARKLES = 6;
+/*
+ * Plan 234, after PMD Origins' engine (RogueEssence): its reference pace is 10 tiles/s — 6 frames
+ * at 60 fps per tile — for rays, shots and growing rings alike.
+ */
+/** PMD Origins' pace: one tile every this long (rays growing, rings spreading). A ray then stays lit for the linger, and cuts out at once. */
+export const BABYLON_MOVE_EFFECT_TILE_MS = 100;
+/** Shots fly at that same pace. */
+export const BABYLON_MOVE_EFFECT_PROJECTILE_TILES_PER_SECOND = 1000 / BABYLON_MOVE_EFFECT_TILE_MS;
+export const BABYLON_MOVE_EFFECT_BEAM_LINGER_MS = 100;
+/** A ray's frames (its body pulses thin to thick) and its thickness against the sprite density. */
+export const BABYLON_MOVE_EFFECT_BEAM_FRAME_MS = 33;
+export const BABYLON_MOVE_EFFECT_BEAM_SCALE = 0.3;
+/** A jet: how many particles, one every this long, each flying the whole line. */
+export const BABYLON_MOVE_EFFECT_STREAM_SHOTS = 8;
+export const BABYLON_MOVE_EFFECT_STREAM_EVERY_MS = 83;
+/** A fan (breath, wind): bursts of particles released within ±45° of the blow's direction. */
+export const BABYLON_MOVE_EFFECT_FAN_BURSTS = 4;
+export const BABYLON_MOVE_EFFECT_FAN_PER_BURST = 2;
+export const BABYLON_MOVE_EFFECT_FAN_EVERY_MS = 100;
+/** Power gathering: particles converging from this radius, one every this long, each this long. */
+export const BABYLON_MOVE_EFFECT_GATHER_COUNT = 8;
+export const BABYLON_MOVE_EFFECT_GATHER_EVERY_MS = 33;
+export const BABYLON_MOVE_EFFECT_GATHER_TRAVEL_MS = 267;
+export const BABYLON_MOVE_EFFECT_GATHER_RADIUS = 1;
+/** Rings laid on the ground: lift above the tile top, and their flattening in perspective. */
+export const BABYLON_MOVE_EFFECT_GROUND_LIFT = 0.05;
+export const BABYLON_MOVE_EFFECT_GROUND_SQUASH = 0.5;
+/** A song's notes: how many, and how long each takes to drift to its tile. */
+export const BABYLON_MOVE_EFFECT_SONG_NOTES = 6;
+export const BABYLON_MOVE_EFFECT_SONG_TRAVEL_MS = 600;
+/** A melee lunge carries the sprite this far towards its target (16 px: two thirds of a tile). */
+export const BABYLON_ATTACK_LUNGE_DISTANCE = 2 / 3;
+/** A rush's after-images: one every this long, each lasting this long, at this opacity. */
+export const BABYLON_AFTERIMAGE_EVERY_MS = 33;
+export const BABYLON_AFTERIMAGE_LIFE_MS = 133;
+export const BABYLON_AFTERIMAGE_ALPHA = 0.5;
+/** Melee marks (plan 234): a bite at the mouth (0) to the target (1), else this far towards it. */
+export const BABYLON_MOVE_EFFECT_MARK_REACH = 0.35;
+/** A one-picture mark (a fist, a foot) still shows this long; a super-effective one is bigger. */
+export const BABYLON_MOVE_EFFECT_MARK_MIN_LIFE_MS = 300;
+export const BABYLON_MOVE_EFFECT_STRONG_MARK_SCALE = 1.3;
+/** Drained HP: small bubbles, on a low arc of varying height. */
+export const BABYLON_MOVE_EFFECT_DRAIN_BUBBLE_SCALE = 0.15;
+export const BABYLON_MOVE_EFFECT_DRAIN_ARC_MIN = 0.3;
+export const BABYLON_MOVE_EFFECT_DRAIN_ARC_SPREAD = 0.4;
+/** Gathered power: small orbs. A song's notes rise on a low arc. A gaze's glint, at the eye. */
+export const BABYLON_MOVE_EFFECT_GATHER_SCALE = 0.25;
+export const BABYLON_MOVE_EFFECT_SONG_ARC = 0.3;
+export const BABYLON_MOVE_EFFECT_GAZE_SCALE = 0.6;
+/** How many camera pulls further a blow's mark sits, to draw over the struck Pokémon. */
+export const BABYLON_MOVE_EFFECT_IN_FRONT_PULL = 2;
+/** Live particles at once (one sprite manager, one draw call). */
+export const BABYLON_MOVE_EFFECT_CAPACITY = 256;

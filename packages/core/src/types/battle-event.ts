@@ -68,6 +68,10 @@ export type BattleEvent =
       attackerId: string;
       moveId: string;
       direction: Direction;
+      /** The tile the caster aimed at (presentation: where a projectile or blast flies). */
+      targetPosition: Position;
+      /** Every tile the move resolves on, Blast interception included (presentation: effect footprint). */
+      affectedTiles: Position[];
       /** B4 morph: the move actually resolved (Nature Power → psychic, Terrain Pulse type morph). */
       resolvedMoveId?: string;
       /** B4 Terrain Pulse: the type the move morphed into (for the "becomes type X" log). */

@@ -1,5 +1,5 @@
 import type { Direction, Position } from "@pokemon-tactic/core";
-import { HighlightKind } from "@pokemon-tactic/render-ports";
+import { HighlightKind, SETTLED_MOVE_EFFECT } from "@pokemon-tactic/render-ports";
 import type {
   AttackPreviewKind,
   BoardHighlight,
@@ -53,11 +53,17 @@ export function createBattleBoardView(
     moveTo: (pokemonId, tile) => handles.get(pokemonId)?.moveTo(tile),
     moveAlongPath: (pokemonId, path, options) =>
       handles.get(pokemonId)?.moveAlongPath(path, options) ?? Promise.resolve(),
-    playAttack: (pokemonId, direction, animationName) =>
-      handles.get(pokemonId)?.playAttack(direction, animationName) ?? {
-        impact: Promise.resolve(),
-        done: Promise.resolve(),
-      },
+    playAttack: (pokemonId, direction, animationName, options) =>
+      handles.get(pokemonId)?.playAttack(direction, animationName, options) ?? SETTLED_MOVE_EFFECT,
+    setAfterImages: (pokemonId, active) => handles.get(pokemonId)?.setAfterImages(active),
+    playMoveEffect: (pokemonId, spec) => {
+      // Aim at the struck Pokémon where its sprite stands now, not at its final tile.
+      const target = spec.targetPokemonId ? handles.get(spec.targetPokemonId) : undefined;
+      const aimed = target
+        ? { ...spec, targetPosition: target.currentTile(), affectedTiles: [target.currentTile()] }
+        : spec;
+      return handles.get(pokemonId)?.playMoveEffect(aimed) ?? SETTLED_MOVE_EFFECT;
+    },
     holdFrame: (pokemonId, durationMs) => handles.get(pokemonId)?.holdFrame(durationMs),
     flashWhite: (pokemonId, durationMs) => handles.get(pokemonId)?.flashWhite(durationMs),
     impactGlide: (pokemonId, tile, options) =>

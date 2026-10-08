@@ -48,6 +48,7 @@ interface Recording {
   whiteFlashes: TrackItem[];
   damageFlashes: TrackItem[];
   movements: TrackItem[];
+  effects: TrackItem[];
 }
 
 const TRACKS = [
@@ -64,12 +65,8 @@ const TRACKS = [
   "targetSound",
 ] as const;
 type TrackId = (typeof TRACKS)[number];
-/** Tracks the next lots fill (effects: lot 2, sound: lot 3) — shown greyed until then. */
-const FUTURE_TRACKS: ReadonlySet<TrackId> = new Set<TrackId>([
-  "effects",
-  "attackerSound",
-  "targetSound",
-]);
+/** Tracks the next lot fills (sound: lot 3) — shown greyed until then. */
+const FUTURE_TRACKS: ReadonlySet<TrackId> = new Set<TrackId>(["attackerSound", "targetSound"]);
 
 /**
  * The workshop's sequence view (plan 233) — a dope sheet in the spirit of Blender's timeline and
@@ -303,6 +300,18 @@ export class MoveWorkshopTimeline {
         }
         break;
       }
+      case PresentationCueKind.Effect: {
+        const form = t(`atelier.form.${cue.form}` as TranslationKey);
+        recording.effects.push({
+          startMs: at,
+          durationMs: cue.durationMs,
+          label:
+            cue.impactMs > 0
+              ? `${form} · ${t("atelier.impact")} ${Math.round(cue.impactMs)} ms`
+              : `${form} · ${Math.round(cue.durationMs)} ms`,
+        });
+        break;
+      }
       case PresentationCueKind.Impact:
         // Shown on the attacker's frame cells: the hit frame is aligned on this measured instant.
         this.impactMs = at;
@@ -320,6 +329,7 @@ export class MoveWorkshopTimeline {
       ...recording.whiteFlashes,
       ...recording.damageFlashes,
       ...recording.movements,
+      ...recording.effects,
       ...this.reactionCells(),
     ].map((item) => item.startMs + (item.durationMs ?? 0));
     const latest = Math.max(
@@ -454,7 +464,7 @@ export class MoveWorkshopTimeline {
       reaction: this.reactionCells(),
       movement: recording.movements,
       faint: recording.faints,
-      effects: [],
+      effects: recording.effects,
       attackerSound: [],
       targetSound: [],
     };
@@ -490,6 +500,7 @@ function emptyRecording(): Recording {
     whiteFlashes: [],
     damageFlashes: [],
     movements: [],
+    effects: [],
   };
 }
 

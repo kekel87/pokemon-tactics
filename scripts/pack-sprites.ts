@@ -41,6 +41,8 @@ interface SpriteOffsets {
   footOffsetY: number;
   headOffsetY: number;
   shadowSize: number;
+  /** Head pixel on each attack animation's hit frame, per direction (plan 234). */
+  attackHeads?: Record<string, Record<string, [number, number]>>;
 }
 
 interface SpriteManifest {
@@ -119,11 +121,13 @@ async function main(): Promise<void> {
       footOffsetY?: number;
       headOffsetY?: number;
       shadowSize?: number;
+      attackHeads?: SpriteOffsets["attackHeads"];
     };
     offsets[name] = {
       footOffsetY: rawOffsets.footOffsetY ?? 4,
       headOffsetY: rawOffsets.headOffsetY ?? 0,
       shadowSize: rawOffsets.shadowSize ?? 1,
+      ...(rawOffsets.attackHeads ? { attackHeads: rawOffsets.attackHeads } : {}),
     };
 
     const portraitPath = join(dir, "portrait-normal.png");

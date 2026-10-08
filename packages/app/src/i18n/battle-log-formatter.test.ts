@@ -62,6 +62,8 @@ describe("journal de combat — rendu FR/EN avec les vraies locales", () => {
           attackerId: "pika",
           moveId: "thunderbolt",
           direction: Direction.North,
+          targetPosition: { x: 0, y: 0 },
+          affectedTiles: [],
         },
         frContext,
       ) as BattleLogEntry;
@@ -77,6 +79,8 @@ describe("journal de combat — rendu FR/EN avec les vraies locales", () => {
           attackerId: "pika",
           moveId: "thunderbolt",
           direction: Direction.North,
+          targetPosition: { x: 0, y: 0 },
+          affectedTiles: [],
         },
         enContext,
       ) as BattleLogEntry;

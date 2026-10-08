@@ -6,6 +6,8 @@
  * `babylon-constants.ts`). Only the Babylon-only palette stays declared locally.
  */
 
+import { PokemonType } from "@pokemon-tactic/core";
+
 export { teamColorByIndex } from "@pokemon-tactic/render-ports";
 export {
   BATTLE_TEXT_DURATION_MS,
@@ -48,3 +50,40 @@ export const TILE_PREVIEW_BLAST_INTERCEPT_COLOR = 0xffaa33;
 export const TILE_PREVIEW_ALPHA = 0.5;
 export const TILE_RANGE_OUTLINE_COLOR = 0xcc4444;
 export const TILE_RANGE_OUTLINE_ALPHA = 0.6;
+
+/**
+ * Move-effect tint per type (plan 234): the same palette as the DOM type badges
+ * (`--type-*` in `packages/app/src/styles/tokens.css`). The PMDO particles are white, the tint
+ * colours them; `MOVE_EFFECT_TINT_WHITE_MIX` lifts the darkest types so they stay visible.
+ */
+export const MOVE_EFFECT_TYPE_COLORS: Readonly<Record<PokemonType, number>> = {
+  [PokemonType.Normal]: 0x98a098,
+  [PokemonType.Fire]: 0xe02828,
+  [PokemonType.Water]: 0x2880e8,
+  [PokemonType.Grass]: 0x38a028,
+  [PokemonType.Electric]: 0xf8c000,
+  [PokemonType.Ice]: 0x38d8f8,
+  [PokemonType.Fighting]: 0xf88000,
+  [PokemonType.Poison]: 0x9040c8,
+  [PokemonType.Ground]: 0x905020,
+  [PokemonType.Flying]: 0x80b8e8,
+  [PokemonType.Psychic]: 0xe84078,
+  [PokemonType.Bug]: 0x90a018,
+  [PokemonType.Rock]: 0xa8a880,
+  [PokemonType.Ghost]: 0x704070,
+  [PokemonType.Dragon]: 0x5060e0,
+  [PokemonType.Dark]: 0x504038,
+  [PokemonType.Steel]: 0x60a0b8,
+  [PokemonType.Fairy]: 0xe870e8,
+};
+/** Stat changes read the series' way, whatever the stat or the move's type: red rising, blue falling. */
+export const MOVE_EFFECT_STAT_UP_COLOR = 0xf04a3a;
+export const MOVE_EFFECT_STAT_DOWN_COLOR = 0x4f8cff;
+/** Restored HP: the ground ring and the rising sparkles. */
+export const MOVE_EFFECT_HEAL_COLOR = 0xa8f0a0;
+/** Drained HP flies back to the caster as green bubbles. */
+export const MOVE_EFFECT_DRAIN_COLOR = 0x88e070;
+/** Share of white mixed into a move effect's type tint (0 = raw type colour). */
+export const MOVE_EFFECT_TINT_WHITE_MIX = 0.25;
+/** Impact sparks keep most of their own colour: a lighter touch of the type. */
+export const MOVE_EFFECT_SPARK_WHITE_MIX = 0.6;

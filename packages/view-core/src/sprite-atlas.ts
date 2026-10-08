@@ -13,6 +13,33 @@ export interface AtlasAnimationDurations {
   durations?: number[];
   /** Frame index where the blow lands (PMDCollab AnimData `HitFrame`), on attack animations. */
   hitFrame?: number;
+  /** Frames where a melee lunge starts and comes back (PMDCollab `RushFrame` / `ReturnFrame`). */
+  rushFrame?: number;
+  returnFrame?: number;
+}
+
+/** A melee animation's lunge marks: lunge from `rush` to `hit`, hold, come back from `return`. */
+export interface LungeFrames {
+  rush: number;
+  hit: number;
+  return: number;
+}
+
+/** Index the animations that carry a full lunge (rush, hit and return frames), by name. */
+export function indexAtlasLungeFrames(
+  animations: Record<string, AtlasAnimationDurations> | undefined,
+): Map<string, LungeFrames> {
+  const lungeFrames = new Map<string, LungeFrames>();
+  for (const [name, meta] of Object.entries(animations ?? {})) {
+    if (
+      meta.rushFrame !== undefined &&
+      meta.hitFrame !== undefined &&
+      meta.returnFrame !== undefined
+    ) {
+      lungeFrames.set(name, { rush: meta.rushFrame, hit: meta.hitFrame, return: meta.returnFrame });
+    }
+  }
+  return lungeFrames;
 }
 
 export interface SpriteFrameTiming {

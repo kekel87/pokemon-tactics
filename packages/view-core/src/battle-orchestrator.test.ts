@@ -15,7 +15,13 @@ import {
   TargetingKind,
   Weather,
 } from "@pokemon-tactic/core";
-import { type PresentationCue, PresentationCueKind } from "@pokemon-tactic/render-ports";
+import { loadData } from "@pokemon-tactic/data";
+import {
+  MoveEffectForm,
+  type PresentationCue,
+  PresentationCueKind,
+  SETTLED_MOVE_EFFECT,
+} from "@pokemon-tactic/render-ports";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   type ActionMenuView,
@@ -214,7 +220,9 @@ function setup(
     clearPreview: () => undefined,
     moveTo: () => undefined,
     moveAlongPath: () => Promise.resolve(),
-    playAttack: () => ({ impact: Promise.resolve(), done: Promise.resolve() }),
+    playAttack: () => SETTLED_MOVE_EFFECT,
+    playMoveEffect: () => SETTLED_MOVE_EFFECT,
+    setAfterImages: () => undefined,
     holdFrame: () => undefined,
     flashWhite: () => undefined,
     impactGlide: () => Promise.resolve(),
@@ -1396,6 +1404,8 @@ const moveStarted = (moveId = "tackle"): BattleEvent => ({
   attackerId: ACTIVE_ID,
   moveId,
   direction: Direction.North,
+  targetPosition: { x: 0, y: 0 },
+  affectedTiles: [],
 });
 
 const damageDealt = (
@@ -1419,7 +1429,10 @@ interface StagingHarness {
   playAttack: ReturnType<typeof vi.fn>;
 }
 
-function stageEvents(events: readonly BattleEvent[]): StagingHarness {
+function stageEvents(
+  events: readonly BattleEvent[],
+  options: { move?: MoveDefinition; board?: Partial<BoardView> } = {},
+): StagingHarness {
   const log: string[] = [];
   const cues: PresentationCue[] = [];
   const holds: { pokemonId: string; durationMs: number }[] = [];
@@ -1429,7 +1442,7 @@ function stageEvents(events: readonly BattleEvent[]): StagingHarness {
   void impact.promise.then(() => log.push("impact"));
   void done.promise.then(() => log.push("done"));
   const destination = { x: 5, y: 4 };
-  const harness = setup([moveAction(destination)], undefined, {
+  const harness = setup([moveAction(destination)], options.move, {
     submittedEvents: events,
     onPresentationCue: (cue) => cues.push(cue),
     board: {
@@ -1446,6 +1459,7 @@ function stageEvents(events: readonly BattleEvent[]): StagingHarness {
       },
       holdFrame: (pokemonId, durationMs) => holds.push({ pokemonId, durationMs }),
       flashWhite: (id) => log.push(`flashWhite:${id}`),
+      ...options.board,
     },
   });
   for (const [id, position] of [
@@ -1686,5 +1700,82 @@ describe("BattleOrchestrator — le coup tombe au bon moment (plan 233)", () => 
     expect(staging.log).toContain(`flashDamage:${TARGET_ID}`);
     expect(staging.holds).toEqual([]);
     expect(stagingCues(staging.cues).at(-1)?.kind).toBe(PresentationCueKind.AttackEnd);
+  });
+});
+
+const TIMED_EFFECT = {
+  impact: Promise.resolve(),
+  done: Promise.resolve(),
+  durationMs: 300,
+  impactMs: 120,
+};
+
+function gameMove(id: string): MoveDefinition {
+  const move = loadData().moves.find((candidate) => candidate.id === id);
+  if (!move) {
+    throw new Error(`unknown move ${id}`);
+  }
+  return move;
+}
+
+function effectForms(cues: readonly PresentationCue[]): MoveEffectForm[] {
+  return cues.flatMap((cue) => (cue.kind === PresentationCueKind.Effect ? [cue.form] : []));
+}
+
+async function playMoveWithEffects(
+  moveId: string,
+  board: Partial<BoardView> = { playMoveEffect: () => TIMED_EFFECT },
+): Promise<StagingHarness> {
+  const staging = stageEvents([moveStarted(moveId), damageDealt(TARGET_ID)], {
+    move: gameMove(moveId),
+    board,
+  });
+  staging.impact.resolve();
+  staging.done.resolve();
+  await vi.advanceTimersByTimeAsync(5000);
+  return staging;
+}
+
+describe("BattleOrchestrator — les effets des attaques (plan 234)", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    setCombatSpeed(CombatSpeed.Normal);
+    vi.useRealTimers();
+  });
+
+  it("cues a projectile's effect with its timings, then the blow's spark", async () => {
+    const staging = await playMoveWithEffects("ember");
+
+    expect(staging.cues).toContainEqual({
+      kind: PresentationCueKind.Effect,
+      form: MoveEffectForm.Projectile,
+      durationMs: 300,
+      impactMs: 120,
+    });
+    expect(effectForms(staging.cues)).toEqual([MoveEffectForm.Projectile, MoveEffectForm.Impact]);
+  });
+
+  it("marks a bite on its target in place of the generic spark", async () => {
+    const staging = await playMoveWithEffects("bite");
+
+    expect(effectForms(staging.cues)).toEqual([MoveEffectForm.Bite]);
+  });
+
+  it("cues nothing for an effect the scene has nothing to play", async () => {
+    const staging = await playMoveWithEffects("ember", {});
+
+    expect(effectForms(staging.cues)).toEqual([]);
+  });
+
+  it("plays no effect at all in Instant speed", async () => {
+    setCombatSpeed(CombatSpeed.Instant);
+    const playMoveEffect = vi.fn(() => TIMED_EFFECT);
+    const staging = await playMoveWithEffects("ember", { playMoveEffect });
+
+    expect(playMoveEffect).not.toHaveBeenCalled();
+    expect(effectForms(staging.cues)).toEqual([]);
   });
 });

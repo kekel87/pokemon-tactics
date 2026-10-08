@@ -100,6 +100,7 @@ This project is an AI-assisted development experiment. The human creator is **cr
 | [Pokepedia](https://www.pokepedia.fr/) | Type & status icons |
 | [Bulbagarden](https://archives.bulbagarden.net/) | Category icons (Sword & Shield) |
 | Custom isometric tileset — generated from PMDCollab textures | CC BY-NC 4.0 |
+| [PMDCollab/RawAsset](https://github.com/PMDCollab/RawAsset) — attack effect particles (PMD Origins) | © Nintendo / Spike Chunsoft, no license |
 
 See [CREDITS.md](CREDITS.md) for detailed per-Pokemon sprite credits.
 

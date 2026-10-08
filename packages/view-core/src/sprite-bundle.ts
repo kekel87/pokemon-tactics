@@ -27,6 +27,11 @@ export interface SpriteOffsets {
   footOffsetY: number;
   headOffsetY: number;
   shadowSize: number;
+  /**
+   * The head's pixel (from the frame's top-left) on each attack animation's hit frame, per PMD
+   * direction (plan 234): where a move effect leaves from. Absent from older bundles.
+   */
+  attackHeads?: Record<string, Partial<Record<string, readonly [number, number]>>>;
 }
 
 /** Cell geometry into `portraits.png` for CSS `background-position`. */

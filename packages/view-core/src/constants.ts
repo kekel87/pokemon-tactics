@@ -104,6 +104,12 @@ export const DAMAGE_FLASH_REPEAT = 2;
 export const DAMAGE_FLASH_TOTAL_MS = DAMAGE_FLASH_DURATION_MS * DAMAGE_FLASH_REPEAT * 2;
 /** Grey level a sprite dims to on a damage-flash dark half-cycle (0..1). */
 export const DAMAGE_FLASH_DIM = 0.25;
+/**
+ * Hurt tremble (plan 234, after PMD Origins' CharAnimHurt): while the damage blink runs, the sprite
+ * steps one game pixel aside and back every `HURT_TREMBLE_STEP_MS` of combat time.
+ */
+export const HURT_TREMBLE_PX = 1;
+export const HURT_TREMBLE_STEP_MS = 33;
 /** Dimmest grey of the confirm-attack preview pulse (0..1). */
 export const PREVIEW_FLASH_DIM = 0.35;
 export const PREVIEW_FLASH_PERIOD_MS = 600;

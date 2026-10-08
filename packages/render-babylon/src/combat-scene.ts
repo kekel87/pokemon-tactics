@@ -14,6 +14,7 @@ import type {
   ScreenDirection,
   TilePointerSource,
 } from "@pokemon-tactic/render-ports";
+import { SETTLED_MOVE_EFFECT } from "@pokemon-tactic/render-ports";
 import {
   combatClock,
   FLYING_GLIDE_CANDIDATES,
@@ -70,6 +71,7 @@ import {
   type FieldTerrains,
 } from "./babylon-field-terrains.js";
 import { BabylonHoverCursor } from "./babylon-hover-cursor.js";
+import { createMoveEffects, type MoveEffects } from "./babylon-move-effects.js";
 import { pickTile, type TilePick } from "./babylon-picking.js";
 import { createSpriteHud, type SpriteHudHandle } from "./babylon-sprite-hud.js";
 import { createTextPlane } from "./babylon-text-plane.js";
@@ -467,6 +469,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
   let pendingDistortionZones: readonly FieldTerrainSpec[] = [];
   // Permanent aura rings (plan 182) — stair-stepped ground outline per aura zone.
   let auraRings: AuraRings | null = null;
+  let moveEffects: MoveEffects | null = null;
   let pendingAuraRings: readonly AuraRingSpec[] = [];
   // Entry-hazard traps (plan 131) — stacked voxel GLB props per kind + layer count.
   let entryHazards: EntryHazards | null = null;
@@ -533,6 +536,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       entryHazards.set(pendingEntryHazards);
       auraRings = createAuraRings(scene, heightAt, width, height);
       auraRings.set(pendingAuraRings);
+      moveEffects = createMoveEffects(scene, surfaceHeightAt, width, height);
       for (const entry of billboards) {
         positionOnTile(entry);
       }
@@ -743,6 +747,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     for (const { billboard } of billboards) {
       billboard.update(deltaMs, isoCamera.azimuth, viewProjection);
     }
+    moveEffects?.update(combatClock.deltaMs);
     spriteHud.update();
     if (render) {
       scene.render();
@@ -801,6 +806,17 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       waterlineLocalY,
       submerged ? liquidFoamColorAt(entry.spawn.x, entry.spawn.y) : null,
     );
+  }
+
+  /** World direction from a Pokémon's tile to the next one along `direction` (its lunge). */
+  function lungeDirection(entry: BillboardEntry, direction: Direction): Vector3 {
+    if (!tileWorldTop) {
+      return Vector3.Zero();
+    }
+    const step = DIRECTION_NEIGHBOR[direction];
+    const here = tileWorldTop(entry.spawn.x, entry.spawn.y);
+    const next = tileWorldTop(entry.spawn.x + step.dx, entry.spawn.y + step.dy);
+    return new Vector3(next.x - here.x, 0, next.z - here.z);
   }
 
   /** Move a billboard to another tile, keeping the tile→billboard cursor lookup in sync. */
@@ -1122,7 +1138,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
         impactGlide: (tile, impactOptions) =>
           impactGlide(created, tile, impactOptions?.hurt ?? false),
         impactShake: () => impactShake(created),
-        playAttack: (direction, animationName) => {
+        playAttack: (direction, animationName, attackOptions) => {
           created.billboard.setWorldFacing(worldFacingFromDirection(direction));
           // Fall back to "Attack" when the sprite lacks the category anim (parity).
           const chosen = created.billboard.hasAnimation(animationName) ? animationName : "Attack";
@@ -1149,10 +1165,23 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
             void combatClock
               .wait(BABYLON_ATTACK_ANIMATION_MAX_MS + MAX_ACTION_PAUSE_MS)
               .then(finish);
-            created.billboard.playOnce(chosen, { onComplete: finish, onHit: landImpact });
+            created.billboard.playOnce(chosen, {
+              onComplete: finish,
+              onHit: landImpact,
+              lungeTowards:
+                attackOptions?.lunge === true ? lungeDirection(created, direction) : undefined,
+            });
           });
           return { impact, done };
         },
+        playMoveEffect: (spec) =>
+          moveEffects?.play(
+            created.spawn,
+            spec,
+            created.billboard.attackHeadWorldPosition() ?? undefined,
+          ) ?? SETTLED_MOVE_EFFECT,
+        setAfterImages: (active) => created.billboard.setAfterImages(active),
+        currentTile: () => ({ ...created.spawn }),
         holdFrame: (durationMs) => created.billboard.holdFrame(durationMs),
         resetPresentation: () => created.billboard.resetPresentation(),
         flashWhite: (durationMs) => created.billboard.flashWhite(durationMs),
@@ -1294,6 +1323,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       pendingEntryHazards = specs;
       entryHazards?.set(specs);
     },
+    clearMoveEffects: () => moveEffects?.clear(),
     setAuraRings: (specs) => {
       pendingAuraRings = specs;
       auraRings?.set(specs);
@@ -1444,6 +1474,7 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
       entryHazards?.dispose();
       spriteHud.dispose();
       auraRings?.dispose();
+      moveEffects?.dispose();
       for (const { billboard } of billboards) {
         billboard.dispose();
       }

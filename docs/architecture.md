@@ -659,6 +659,18 @@ un par camp, la forme à plat n'ayant qu'un Pokemon de chaque côté.
 
 `pnpm dev:atelier ['{"move":"flamethrower","attacker":"charizard","target":"venusaur"}']` (variable Vite `VITE_ATELIER`, `packages/app/src/atelier-boot.ts`, `babylon/move-workshop.ts`, `babylon/move-workshop-timeline.ts`). Écran dédié, scène montée une fois ; rejouer recrée moteur et orchestrateur sur la même scène (pas d'écran de chargement). Liste filtrable (type, catégorie, patron, style = drapeaux), fiche, cibles en formation, séquence type dope sheet avec curseur à traîner (scrub) et ralentis ×0,25 / ×0,1, tous pilotés par `combatClock`.
 
+### Effets visuels des attaques (plan 234)
+
+Chaîne **purement présentation** (aucun RNG, aucun état du core ; `MoveStarted` gagne seulement `targetPosition` et `affectedTiles`, sans incrément de `NETWORK_VERSION`, les événements ne passant pas sur le réseau) :
+
+1. **`view-core/src/move-effect-form.ts`** : `moveEffectForm(...)` déduit la **famille** de l'attaque (ciblage, catégorie, drapeaux + quelques listes tirées des fiches PMD Origins) et la **pose** du lanceur (remplace `moveAnimationCategory`, supprimé avec `packages/data/src/base/animation-category.ts`).
+2. **`render-ports/src/move-effect.ts`** : `MoveEffectForm` (les formes), `MoveEffectSpec` et le port `playMoveEffect(pokemonId, spec)` → `AttackPlayback` (`impact` / `done`). L'éclat d'impact est la forme `impact` jouée sur la case du touché.
+3. **`render-babylon`** : `babylon-move-effects.ts` (moteur : un `SpriteManager`, pool de particules, avancé par `combatClock`), `babylon-move-effect-layouts.ts` (disposition des particules par forme), `babylon-move-effect-particle.ts` (type `Particle`). Branché dans `combat-scene.ts` (création, `advanceFrame`, `dispose`).
+4. **Assets** : planche unique `packages/app/public/assets/effects/move-effects.png` (commitée) + index en module généré `render-babylon/src/move-effect-atlas.ts` (clés typées). Source PMDO téléchargée dans `assets-src/effects/pmdo/` (gitignorée) par `pnpm build-move-effects` (`scripts/build-move-effects.ts`).
+5. **Départ depuis la tête** : `scripts/extract-sprites.ts --attack-heads-only` relève les points d'ancrage PMDCollab au hit frame et les range dans les `offsets.json` / le manifeste ; les effets partent de la gueule (ajout par rapport à PMDO).
+
+L'orchestrateur attend l'arrivée d'un projectile ou d'un rayon avant de laisser le touché encaisser ; filet de sécurité en temps de combat. Instantanée : aucun effet. L'atelier affiche une piste « Effet » (cue `PresentationCueKind.Effect`). Couleurs et réglages : `docs/design-system.md`.
+
 ---
 
 ## 5c. InfoPanel enrichi — perspective allié (plan 174)

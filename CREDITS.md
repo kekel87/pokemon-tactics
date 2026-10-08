@@ -26,3 +26,9 @@ This project uses these assets under the CC BY-NC 4.0 license:
 - **Share-alike** — derivative works must use a compatible license
 
 For the full license text, see: https://creativecommons.org/licenses/by-nc/4.0/legalcode
+
+## Move Effects
+
+**Source:** [PMDCollab/RawAsset](https://github.com/PMDCollab/RawAsset) — the particle assets of [Pokémon Mystery Dungeon Origins](https://github.com/audinowho/PMDODump)
+
+The attack effect particles (impacts, projectiles, smoke, rings, beams) come from PMD Origins' raw assets, themselves taken from the Pokémon Mystery Dungeon games (© Nintendo, Creatures, GAME FREAK, Spike Chunsoft). They carry no license of their own. They are downloaded by `pnpm build-move-effects` and only the packed sheet `move-effects.png` ships with the game.

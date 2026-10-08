@@ -62,13 +62,21 @@ interface AtlasMetadata {
   >;
 }
 
+/** A pixel of an animation frame, from its top-left corner. */
+type FramePoint = [number, number];
+
 interface SpriteOffsets {
   footOffsetY: number;
   headOffsetY: number;
   bodyOffsetY: number;
   idleFrameHeight: number;
   shadowSize: number;
+  /** Where the head is on each attack animation's hit frame, per direction (plan 234). */
+  attackHeads?: Record<string, Record<string, FramePoint>>;
 }
+
+/** Attack animations whose move effect leaves from the head (a breath, a shot). */
+const LAUNCH_ANIMATIONS = ["Attack", "Shoot", "Charge"];
 
 const ALL_DIRECTION_NAMES: string[] = [
   "South",
@@ -366,6 +374,71 @@ async function parseOffsetsFromSheet(
   };
 }
 
+/** The first pixel of `sheet` matching `isMarker` inside one frame cell, from the cell's top-left. */
+async function findMarker(
+  sheet: Buffer,
+  cell: { left: number; top: number; width: number; height: number },
+  isMarker: (r: number, g: number, b: number) => boolean,
+): Promise<FramePoint | null> {
+  const { data, info } = await sharp(sheet).extract(cell).raw().ensureAlpha().toBuffer({
+    resolveWithObject: true,
+  });
+  for (let y = 0; y < info.height; y++) {
+    for (let x = 0; x < info.width; x++) {
+      const index = (y * info.width + x) * 4;
+      const [r = 0, g = 0, b = 0, a = 0] = data.subarray(index, index + 4);
+      if (a >= 250 && isMarker(r, g, b)) {
+        return [x, y];
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * The head on each attack animation's hit frame, per direction (plan 234): PMDCollab's
+ * `<Anim>-Offsets.png` marks it with a black pixel, frame by frame — the move effect leaves from it.
+ */
+async function parseAttackHeads(
+  spriteBaseUrl: string,
+  animations: readonly ParsedAnimation[],
+  directions: readonly string[],
+): Promise<Record<string, Record<string, FramePoint>>> {
+  const heads: Record<string, Record<string, FramePoint>> = {};
+  for (const animation of animations) {
+    const { hitFrame } = animation;
+    if (!LAUNCH_ANIMATIONS.includes(animation.name) || hitFrame === undefined) {
+      continue;
+    }
+    let sheet: Buffer;
+    try {
+      sheet = await fetchBuffer(
+        `${spriteBaseUrl}/${animation.sourceName ?? animation.name}-Offsets.png`,
+      );
+    } catch {
+      continue;
+    }
+    const byDirection: Record<string, FramePoint> = {};
+    for (const direction of directions) {
+      const head = await findMarker(
+        sheet,
+        {
+          left: hitFrame * animation.frameWidth,
+          top: ALL_DIRECTION_NAMES.indexOf(direction) * animation.frameHeight,
+          width: animation.frameWidth,
+          height: animation.frameHeight,
+        },
+        (r, g, b) => r < 30 && g < 30 && b < 30,
+      ).catch(() => null);
+      if (head) {
+        byDirection[direction] = head;
+      }
+    }
+    heads[animation.name] = byDirection;
+  }
+  return heads;
+}
+
 async function downloadPortrait(
   baseUrl: string,
   pokedexNumber: string,
@@ -472,6 +545,11 @@ async function extractPokemon(entry: PokedexEntry, config: SpriteConfig): Promis
       // Offsets sheet not available for all Pokemon
     }
   }
+  spriteOffsets.attackHeads = await parseAttackHeads(
+    spriteBaseUrl,
+    requestedAnimations,
+    config.directions,
+  );
   let credits = "";
   try {
     credits = await fetchText(`${spriteBaseUrl}/credits.txt`);
@@ -496,19 +574,34 @@ async function extractPokemon(entry: PokedexEntry, config: SpriteConfig): Promis
   writeFileSync(join(outputPath, "offsets.json"), JSON.stringify(spriteOffsets, null, 2));
 }
 
+/** Rewrite only the attack heads of an already extracted Pokémon's offsets.json. */
+async function refreshAttackHeads(entry: PokedexEntry, config: SpriteConfig): Promise<void> {
+  const spritePath = entry.form ? `${entry.number}/${entry.form}` : entry.number;
+  const spriteBaseUrl = `${config.baseUrl}/sprite/${spritePath}`;
+  const offsetsPath = join(ROOT_DIR, config.outputDir, entry.name, "offsets.json");
+  const offsets: SpriteOffsets = JSON.parse(readFileSync(offsetsPath, "utf-8"));
+  const animations = parseAnimData(await fetchText(`${spriteBaseUrl}/AnimData.xml`));
+  offsets.attackHeads = await parseAttackHeads(spriteBaseUrl, animations, config.directions);
+  writeFileSync(offsetsPath, JSON.stringify(offsets, null, 2));
+}
+
 async function main(): Promise<void> {
   const configPath = join(ROOT_DIR, "scripts/sprite-config.json");
   const config: SpriteConfig = JSON.parse(readFileSync(configPath, "utf-8"));
 
   // Optional CLI filter: `pnpm extract-sprites beedrill pikachu` re-extracts only those.
-  const onlyNames = new Set(process.argv.slice(2));
+  // `--attack-heads-only` refreshes just the attack heads in each offsets.json, sprites untouched.
+  const flags = process.argv.slice(2).filter((arg) => arg.startsWith("--"));
+  const onlyNames = new Set(process.argv.slice(2).filter((arg) => !arg.startsWith("--")));
   const entries =
     onlyNames.size > 0
       ? config.pokedexEntries.filter((entry) => onlyNames.has(entry.name))
       : config.pokedexEntries;
 
   for (const entry of entries) {
-    await extractPokemon(entry, config);
+    await (flags.includes("--attack-heads-only")
+      ? refreshAttackHeads(entry, config)
+      : extractPokemon(entry, config));
   }
 }
 

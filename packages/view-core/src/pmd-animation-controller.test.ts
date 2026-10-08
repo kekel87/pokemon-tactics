@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { HURT_TREMBLE_PX, HURT_TREMBLE_STEP_MS } from "./constants.js";
 import {
   type AtlasFrame,
   type AtlasIndex,
@@ -38,14 +39,16 @@ function makeAtlas(): AtlasIndex {
     ["Hurt-South", [frame(30)]],
     ["Shoot-South", [frame(40), frame(41), frame(42)]],
     ["Charge-South", [frame(50), frame(51)]],
+    ["Strike-South", [frame(60), frame(61), frame(62), frame(63), frame(64)]],
   ]);
   return {
     framesByKey,
-    durationsByAnimation: new Map(),
+    durationsByAnimation: new Map([["Strike", [1, 1, 1, 1, 1]]]),
     hitFrameByAnimation: new Map([
       ["Shoot", 1],
       ["Charge", 0],
     ]),
+    lungeFramesByAnimation: new Map([["Strike", { rush: 0, hit: 1, return: 2 }]]),
     atlasWidth: 240,
     atlasHeight: 24,
     footOffsetY: 4,
@@ -144,6 +147,7 @@ describe("PmdAnimationController fallbacks", () => {
       framesByKey: new Map([["Hover-South", [frame(0)]]]),
       durationsByAnimation: new Map(),
       hitFrameByAnimation: new Map(),
+      lungeFramesByAnimation: new Map(),
       atlasWidth: 24,
       atlasHeight: 24,
       footOffsetY: 0,
@@ -314,5 +318,85 @@ describe("PmdAnimationController combat time", () => {
     const controller = makeController("Idle");
     controller.tick(100, 0, 400);
     expect(controller.currentFrame()).toEqual(frame(1));
+  });
+});
+
+describe("PmdAnimationController lunge", () => {
+  it("stays in place up to the rush frame, then lunges until the hit frame", () => {
+    const controller = makeController("Idle");
+    controller.playOnce("Strike", { lunge: true });
+    expect(controller.lungeFraction()).toBe(0);
+    controller.tick(100, 0);
+    expect(controller.lungeFraction()).toBe(0);
+    controller.tick(50, 0);
+    expect(controller.lungeFraction()).toBeCloseTo(0.5);
+  });
+
+  it("holds the full lunge from the hit frame to the return frame, then comes back", () => {
+    const controller = makeController("Idle");
+    controller.playOnce("Strike", { lunge: true });
+    controller.tick(200, 0);
+    expect(controller.lungeFraction()).toBe(1);
+    controller.tick(99, 0);
+    expect(controller.lungeFraction()).toBe(1);
+    controller.tick(51, 0);
+    expect(controller.lungeFraction()).toBeCloseTo(0.75);
+    controller.tick(100, 0);
+    expect(controller.lungeFraction()).toBeCloseTo(0.25);
+  });
+
+  it("is back in place once the swing has ended", () => {
+    const controller = makeController("Idle");
+    controller.playOnce("Strike", { lunge: true });
+    controller.tick(500, 0);
+    expect(controller.currentAnimation).toBe("Idle");
+    expect(controller.lungeFraction()).toBe(0);
+  });
+
+  it("never lunges when the one-shot is not asked to", () => {
+    const controller = makeController("Idle");
+    controller.playOnce("Strike");
+    controller.tick(200, 0);
+    expect(controller.lungeFraction()).toBe(0);
+  });
+
+  it("never lunges on an animation without lunge marks", () => {
+    const controller = makeController("Idle");
+    controller.playOnce("Shoot", { lunge: true });
+    controller.tick(150, 0);
+    expect(controller.lungeFraction()).toBe(0);
+  });
+});
+
+describe("PmdAnimationController hurt tremble", () => {
+  it("is still when no damage blink runs", () => {
+    expect(makeController("Idle").hurtTrembleOffsetPx()).toBe(0);
+  });
+
+  it("steps one pixel aside and back while the damage blink runs", () => {
+    const controller = makeController("Idle");
+    controller.flashDamage();
+    expect(controller.hurtTrembleOffsetPx()).toBe(HURT_TREMBLE_PX);
+    controller.tick(HURT_TREMBLE_STEP_MS, 0);
+    expect(controller.hurtTrembleOffsetPx()).toBe(0);
+    controller.tick(HURT_TREMBLE_STEP_MS, 0);
+    expect(controller.hurtTrembleOffsetPx()).toBe(HURT_TREMBLE_PX);
+  });
+
+  it("stops once the damage blink is over", () => {
+    const controller = makeController("Idle");
+    controller.flashDamage();
+    for (let blink = 0; blink < CONFIG.flashRepeat * 2; blink++) {
+      controller.tick(CONFIG.flashDurationMs, 0);
+    }
+    expect(controller.hurtTrembleOffsetPx()).toBe(0);
+  });
+
+  it("starts over on a new blow", () => {
+    const controller = makeController("Idle");
+    controller.flashDamage();
+    controller.tick(HURT_TREMBLE_STEP_MS, 0);
+    controller.flashDamage();
+    expect(controller.hurtTrembleOffsetPx()).toBe(HURT_TREMBLE_PX);
   });
 });

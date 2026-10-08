@@ -1,5 +1,10 @@
 import type { SemiInvulnerableDisplay } from "@pokemon-tactic/core";
-import { animationTotalDurationMs, frameDurationMs as frameDurationMsFor } from "./sprite-atlas.js";
+import { HURT_TREMBLE_PX, HURT_TREMBLE_STEP_MS } from "./constants.js";
+import {
+  animationTotalDurationMs,
+  frameDurationMs as frameDurationMsFor,
+  type LungeFrames,
+} from "./sprite-atlas.js";
 import { computeDisplayDirection, DIRECTION_SECTORS, type PmdDirection } from "./sprite-facing.js";
 
 /**
@@ -75,6 +80,8 @@ export interface AtlasIndex {
   durationsByAnimation: Map<string, number[]>;
   /** Impact frame per attack animation (`hitFrame`); absent → the blow lands on the last frame. */
   hitFrameByAnimation: Map<string, number>;
+  /** Lunge marks per melee animation (rush, hit, return frames). */
+  lungeFramesByAnimation: Map<string, LungeFrames>;
   atlasWidth: number;
   atlasHeight: number;
   footOffsetY: number;
@@ -170,6 +177,9 @@ export class PmdAnimationController {
   private framesByKey = new Map<string, AtlasFrame[]>();
   private durationsByAnimation = new Map<string, number[]>();
   private hitFrameByAnimation = new Map<string, number>();
+  private lungeFramesByAnimation = new Map<string, LungeFrames>();
+  /** The one-shot playing lunges at its target (plan 234, PMD Origins' melee lunge). */
+  private lunging = false;
   private atlasWidth = 1;
   private atlasHeight = 1;
   private footOffsetY: number;
@@ -198,6 +208,8 @@ export class PmdAnimationController {
   private pulseElapsedMs = 0;
   private flashElapsedMs = 0;
   private flashTicksLeft = 0;
+  /** Combat time since the damage blink started: paces the hurt tremble. */
+  private trembleElapsedMs = 0;
   private previewFlashing = false;
   private previewFlashElapsedMs = 0;
   private confusionWobbling = false;
@@ -237,6 +249,7 @@ export class PmdAnimationController {
     this.framesByKey = index.framesByKey;
     this.durationsByAnimation = index.durationsByAnimation;
     this.hitFrameByAnimation = index.hitFrameByAnimation;
+    this.lungeFramesByAnimation = index.lungeFramesByAnimation;
     this.atlasWidth = index.atlasWidth;
     this.atlasHeight = index.atlasHeight;
     this.footOffsetY = index.footOffsetY;
@@ -346,13 +359,19 @@ export class PmdAnimationController {
    */
   playOnce(
     animation: string,
-    options: { freeze?: boolean; onComplete?: () => void; onHit?: () => void } = {},
+    options: {
+      freeze?: boolean;
+      onComplete?: () => void;
+      onHit?: () => void;
+      lunge?: boolean;
+    } = {},
   ): void {
     this.startAnimation(animation, {
       freezeOnComplete: options.freeze ?? false,
       onComplete: options.onComplete ?? null,
     });
     this.onAnimationHit = options.onHit ?? null;
+    this.lunging = options.lunge === true;
     this.fireHitIfReached();
   }
 
@@ -406,8 +425,51 @@ export class PmdAnimationController {
     this.freezeOnComplete = options.freezeOnComplete;
     this.onAnimationComplete = options.onComplete;
     this.onAnimationHit = null;
+    this.lunging = false;
     this.currentFrameIndex = 0;
     this.frameElapsedMs = 0;
+  }
+
+  /**
+   * How far into its lunge the sprite stands, 0 (in place) to 1 (full lunge): it lunges between the
+   * swing's rush and hit frames, holds until the return frame, then comes back by the last frame —
+   * PMD Origins' CharLungeAction, timed on each sprite's own frames.
+   */
+  lungeFraction(): number {
+    const marks = this.lungeFramesByAnimation.get(this.animation);
+    if (!this.lunging || !marks || this.oneShotComplete) {
+      return 0;
+    }
+    const durations = this.durationsByAnimation.get(this.animation) ?? [];
+    const timing = {
+      tickMs: this.config.tickDurationMs,
+      defaultTicks: this.config.defaultFrameTicks,
+      fallbackMs: this.config.frameDurationMs,
+    };
+    // A mark's time is the end of its frame (PMD Origins' RushTime / HitTime / ReturnTime).
+    const endOf = (frame: number): number => {
+      let total = 0;
+      for (let index = 0; index <= frame; index++) {
+        total += frameDurationMsFor(durations, index, timing);
+      }
+      return total;
+    };
+    const lastFrame = Math.max(0, durations.length - 1);
+    const now = endOf(this.currentFrameIndex - 1) + this.frameElapsedMs;
+    const rushEnd = endOf(marks.rush);
+    const hitEnd = endOf(marks.hit);
+    const returnEnd = endOf(marks.return);
+    const end = endOf(lastFrame);
+    if (now <= rushEnd) {
+      return 0;
+    }
+    if (now < hitEnd) {
+      return (now - rushEnd) / Math.max(1, hitEnd - rushEnd);
+    }
+    if (now < returnEnd) {
+      return 1;
+    }
+    return Math.max(0, 1 - (now - returnEnd) / Math.max(1, end - returnEnd));
   }
 
   setWorldFacing(angleRadians: number): void {
@@ -434,6 +496,7 @@ export class PmdAnimationController {
   flashDamage(): boolean {
     this.flashTicksLeft = this.config.flashRepeat * 2;
     this.flashElapsedMs = 0;
+    this.trembleElapsedMs = 0;
     const playHurt = !this.knockedOut && this.hasAnimation("Hurt");
     if (playHurt) {
       this.playOnce("Hurt");
@@ -560,6 +623,7 @@ export class PmdAnimationController {
       return;
     }
     this.flashElapsedMs += deltaMs;
+    this.trembleElapsedMs += deltaMs;
     if (this.flashElapsedMs < this.config.flashDurationMs) {
       return;
     }
@@ -642,6 +706,14 @@ export class PmdAnimationController {
       uScale: w / this.atlasWidth,
       vScale: h / this.atlasHeight,
     };
+  }
+
+  /** Sideways offset (game pixels) of the hurt tremble: one pixel aside every other step while hit. */
+  hurtTrembleOffsetPx(): number {
+    if (this.flashTicksLeft <= 0) {
+      return 0;
+    }
+    return Math.floor(this.trembleElapsedMs / HURT_TREMBLE_STEP_MS) % 2 === 0 ? HURT_TREMBLE_PX : 0;
   }
 
   /** Eased breathing factor in [pulseMinScale, pulseMaxScale]; 1 when not pulsing. */

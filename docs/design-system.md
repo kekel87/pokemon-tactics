@@ -1277,6 +1277,33 @@ Le proxy de picking de la boussole n'a donc plus de glyphe à englober : il rede
 (plancher 44 px), tout en gardant sa croissance **vers la droite seulement** — centré sur l'aiguille,
 son bord gauche mordait ~4 px sur le portrait de la timeline.
 
+#### Effets visuels des attaques (plan 234)
+
+Les effets génériques (planche PMDO blanche, teintée au rendu) tirent leurs couleurs de `packages/render-babylon/src/constants.ts` :
+
+- **`MOVE_EFFECT_TYPE_COLORS`** : une teinte par type (18). **Doublon assumé** des `--type-*` de `packages/app/src/styles/tokens.css` (le renderer n'importe pas le CSS) : les deux palettes se modifient **ensemble**.
+- **Statistiques** : `MOVE_EFFECT_STAT_UP_COLOR` (rouge, hausse) et `MOVE_EFFECT_STAT_DOWN_COLOR` (bleu, baisse), quelle que soit la stat ou le type du move (lecture de la série, pas une couleur par stat).
+- **PV** : `MOVE_EFFECT_HEAL_COLOR` (anneau et étincelles de soin), `MOVE_EFFECT_DRAIN_COLOR` (bulles d'absorption). Un soin n'a jamais une teinte « dégât ».
+- **Éclaircissement** : `MOVE_EFFECT_TINT_WHITE_MIX` (0,25) mêle du blanc à la teinte pour que les types sombres restent visibles ; `MOVE_EFFECT_SPARK_WHITE_MIX` (0,6) pour les étincelles d'impact, qui gardent presque leur couleur propre.
+
+Réglages de mouvement, dans `babylon-constants.ts`, en **temps de combat** (suivent la Vitesse, § `combatClock`) :
+
+| Famille | Constantes `BABYLON_*` | Valeur de référence |
+|---|---|---|
+| Rythme PMDO | `MOVE_EFFECT_TILE_MS`, `MOVE_EFFECT_PROJECTILE_TILES_PER_SECOND` | 100 ms par case (10 cases/s) pour rayons, tirs et anneaux |
+| Rayon | `MOVE_EFFECT_BEAM_LINGER_MS`, `_BEAM_FRAME_MS`, `_BEAM_SCALE` | maintien 100 ms puis coupure nette ; épaisseur 0,3 |
+| Jet / éventail | `MOVE_EFFECT_STREAM_*`, `MOVE_EFFECT_FAN_*` | 8 particules / 83 ms ; 4 salves × 2 dans ±45° |
+| Statut, soin, absorption, stats | `MOVE_EFFECT_STATUS_*`, `_HEAL_*`, `_DRAIN_*`, `_STAT_*` | pictures qui montent, 3 anneaux de soin, 5 bulles |
+| Rassemblement, chant | `MOVE_EFFECT_GATHER_*`, `_SONG_*` | 8 orbes ; 6 notes |
+| Marques de contact | `MOVE_EFFECT_MARK_*`, `_STRONG_MARK_SCALE` | portée 0,35 ; ×1,3 sur un super efficace |
+| Divers | `MOVE_EFFECT_LIFT`, `_CAMERA_PULL`, `_IN_FRONT_PULL`, `_GROUND_*`, `_CAPACITY` | 256 particules vivantes, un seul `SpriteManager` |
+| Avancée du lanceur | `BABYLON_ATTACK_LUNGE_DISTANCE` | 2/3 de case (16 px), rythme PMDO |
+| Images rémanentes (Ruée) | `BABYLON_AFTERIMAGE_EVERY_MS` / `_LIFE_MS` / `_ALPHA` | 33 ms / 133 ms / 50 % |
+
+Côté `packages/view-core/src/constants.ts` : `HURT_TREMBLE_PX` (1) et `HURT_TREMBLE_STEP_MS` (33) — le sprite touché tremble d'un pixel de jeu de part et d'autre pendant le clignotement de dégât (d'après `CharAnimHurt` de PMDO).
+
+Profondeur : `renderingGroupId = 0` comme tout le reste ; un effet posé sur la case d'un Pokemon est tiré vers la caméra (`_CAMERA_PULL`) pour passer devant son sprite.
+
 ---
 
 ## Principes de design

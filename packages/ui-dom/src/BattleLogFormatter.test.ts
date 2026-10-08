@@ -57,6 +57,8 @@ describe("BattleLogFormatter — contrat de clés i18n", () => {
         attackerId: "pika",
         moveId: "thunderbolt",
         direction: Direction.North,
+        targetPosition: { x: 0, y: 0 },
+        affectedTiles: [],
       }),
     ).toBe("battleLog.moveStarted.used|moveName=Tonnerre,name=Pikachu");
   });

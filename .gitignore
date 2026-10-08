@@ -116,3 +116,7 @@ assets-src/voxel/*.gltf
 # Bytecode Python des hooks
 __pycache__/
 *.pyc
+# Move-effect particle source folder (plan 234): PNGs downloaded from PMDCollab/RawAsset (PMD
+# Origins), regeneratable via `pnpm build-move-effects`. Only the packed sheet
+# (packages/app/public/assets/effects/move-effects.png) and its generated index ship.
+assets-src/effects/
