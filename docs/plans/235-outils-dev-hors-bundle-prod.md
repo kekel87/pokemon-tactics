@@ -102,8 +102,10 @@ objet exporté, le laisse dans le graphe.
 
 `vite.config.ts` : plugin `stripDevMapsPlugin` (calqué sur `stripPerPokemonSpriteFoldersPlugin`) qui
 supprime `assets/maps/dev/` (24 cartes, ~140 Ko) du dossier de sortie d'un build de prod. Le build
-e2e (`VITE_E2E=true`) les garde : ses specs les chargent. Effet de bord utile : le build de prod passe
-de 1012 à 988 fichiers, sous le plafond de 1000 du zip HTML5 itch.io.
+e2e (`VITE_E2E=true`) les garde : ses specs les chargent. Le build de prod perd 24 fichiers (~230 au
+total, très loin du plafond de 1000 du zip HTML5 itch.io). ⚠️ Un premier chiffre « 1012 → 988 » était
+FAUX : mesuré sur un build vers un `--outDir` de travail, où `stripPerPokemonSpriteFoldersPlugin` (qui
+vise `process.cwd()/dist` en dur) ne retire pas les 760 fichiers de sprites par Pokémon.
 
 Mesure finale du bundle (build de prod) : `main-*.js` 5 232 545 → 5 188 197 octets (gzip
 1 000 288 → 986 530, −13,8 Ko) ; `main-*.css` 115 616 → 103 060 (gzip 19 582 → 17 692, −1,9 Ko).
