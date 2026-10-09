@@ -1,5 +1,5 @@
 import { execSync } from "node:child_process";
-import { existsSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { visualizer } from "rollup-plugin-visualizer";
 import type { Plugin, PluginOption } from "vite";
@@ -68,44 +68,68 @@ function resolveAppVersion(): string {
   }
 }
 
-// Sprites ship as a 3-file bundle (`sprites.bin` + `sprites-manifest.json` +
-// `portraits.png`, plan 135), loaded at boot and sliced per-Pokemon at runtime. The
-// per-Pokemon source folders (`assets/sprites/pokemon/<name>/…`) are kept on disk as
-// editable source/cache but must NOT ship: shipping 4-5 files per Pokemon blows the
-// itch.io HTML5 zip 1000-file cap as the roster grows. Strip the whole folder from the
-// build output. Attribution (the per-folder `credits.txt`) stays in the repo AND in the
-// in-game Credits screen (PMDCollab SpriteCollab — CC BY-NC 4.0, with source link).
-function stripPerPokemonSpriteFoldersPlugin(): Plugin {
-  return {
-    name: "strip-per-pokemon-sprite-folders",
-    apply: "build",
-    closeBundle() {
-      const perPokemonDir = resolve(process.cwd(), "dist/assets/sprites/pokemon");
-      if (existsSync(perPokemonDir)) {
-        rmSync(perPokemonDir, { recursive: true, force: true });
-      }
-    },
-  };
-}
+/** itch.io refuses an HTML5 zip of more than `ITCH_FILE_LIMIT` files; warn ahead of it. */
+const ITCH_FILE_LIMIT = 1000;
+const ITCH_FILE_WARNING = 900;
 
-// Dev maps (`assets/maps/dev/` : sandbox, atelier, debug) only serve the sandbox studio, the move
-// workshop and the e2e suite — none of which ship (plan 235). Strip them from a production build;
-// the e2e build (`VITE_E2E=true`) keeps them, its specs load them through `?sandbox=` / `?config=`.
-function stripDevMapsPlugin(): Plugin {
+/**
+ * Folders of `public/` copied into the build output that must NOT ship (plan 236). Each one is a
+ * source the game never reads at runtime; the sprite folders are gitignored, so a CI checkout does
+ * not even have them, yet a local build must not differ from what itch.io receives. Any gitignored
+ * folder under `public/` (see `.gitignore`) belongs in this list.
+ */
+const NON_SHIPPED_ASSET_DIRS: readonly { path: string; keptForE2e: boolean }[] = [
+  // Sprites ship as a 3-file bundle (`sprites.bin` + `sprites-manifest.json` + `portraits.png`,
+  // plan 135), sliced per Pokemon at runtime. The per-Pokemon folders are the gitignored extraction
+  // cache (`pnpm extract-sprites`); shipping 4-5 files per Pokemon would blow the itch.io file cap.
+  // Attribution lives in the in-game Credits screen (PMDCollab SpriteCollab — CC BY-NC 4.0) and in
+  // `CREDITS.md`.
+  { path: "assets/sprites/pokemon", keptForE2e: false },
+  // Item icons ship as the single `item-icons.png` sheet (decision 1138); the per-item PNGs are its
+  // gitignored source (`pnpm extract-item-icons`), read only by `pnpm pack-sprites`.
+  { path: "assets/sprites/item-icons", keptForE2e: false },
+  // Dev maps (sandbox, atelier, debug) only serve the sandbox studio, the move workshop and the e2e
+  // suite (plan 235); the e2e build loads them through `?sandbox=` / `?config=`.
+  { path: "assets/maps/dev", keptForE2e: true },
+];
+
+/**
+ * Strip the non-shipped folders from the resolved output directory, then enforce the itch.io file
+ * cap on a production build: a warning from `ITCH_FILE_WARNING`, a failed build past
+ * `ITCH_FILE_LIMIT` — so the itch deploy stops before `butler` runs. The e2e build is never
+ * published and keeps the dev maps: no cap there.
+ */
+function stripNonShippedAssetsPlugin(): Plugin {
   let outDir = "";
   return {
-    name: "strip-dev-maps",
+    name: "strip-non-shipped-assets",
     apply: "build",
     configResolved(config) {
       outDir = resolve(config.root, config.build.outDir);
     },
     closeBundle() {
-      if (process.env.VITE_E2E === "true") {
+      const e2eBuild = process.env.VITE_E2E === "true";
+      for (const { path, keptForE2e } of NON_SHIPPED_ASSET_DIRS) {
+        if (!(e2eBuild && keptForE2e)) {
+          rmSync(resolve(outDir, path), { recursive: true, force: true });
+        }
+      }
+      if (e2eBuild) {
         return;
       }
-      const devMapsDir = resolve(outDir, "assets/maps/dev");
-      if (existsSync(devMapsDir)) {
-        rmSync(devMapsDir, { recursive: true, force: true });
+      const fileCount = readdirSync(outDir, { recursive: true, withFileTypes: true }).filter(
+        (entry) => entry.isFile(),
+      ).length;
+      console.log(`${fileCount} fichiers dans le build (plafond itch.io : ${ITCH_FILE_LIMIT})`);
+      if (fileCount > ITCH_FILE_LIMIT) {
+        throw new Error(
+          `Build de ${fileCount} fichiers : itch.io refuse un zip HTML5 de plus de ${ITCH_FILE_LIMIT} fichiers.`,
+        );
+      }
+      if (fileCount >= ITCH_FILE_WARNING) {
+        console.warn(
+          `⚠️ ${fileCount} fichiers dans le build : plafond itch.io (${ITCH_FILE_LIMIT}) proche.`,
+        );
       }
     },
   };
@@ -180,12 +204,7 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
-  plugins: [
-    visitBeaconPlugin(),
-    stripPerPokemonSpriteFoldersPlugin(),
-    stripDevMapsPlugin(),
-    ...bundleAuditPlugins(),
-  ],
+  plugins: [visitBeaconPlugin(), stripNonShippedAssetsPlugin(), ...bundleAuditPlugins()],
   server: {
     port: resolveDevPort(),
     /*
@@ -215,7 +234,7 @@ export default defineConfig({
         main: resolve(process.cwd(), "index.html"),
       },
       output: {
-        // itch.io HTML5 zips cap at 1000 files. Babylon dynamically imports each
+        // itch.io HTML5 zips cap at `ITCH_FILE_LIMIT` files. Babylon dynamically imports each
         // shader (`*.fragment.js` / `*.vertex.js`) as its own chunk → ~1000 tiny JS
         // files alone. Collapse all of @babylonjs into one vendor chunk so the deploy
         // stays well under the cap (shaders then load eagerly with the vendor bundle).
