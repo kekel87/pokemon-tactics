@@ -77,9 +77,7 @@ describe("strip-non-shipped-assets plugin", () => {
     rmSync(root, { recursive: true, force: true });
   });
 
-  it("removes the source sprite folders and the dev maps from a production build", () => {
-    writeFile("assets/sprites/pokemon/bulbasaur/Idle-Anim.png");
-    writeFile("assets/sprites/item-icons/leftovers.png");
+  it("removes the dev maps from a production build and keeps the shipped assets", () => {
     writeFile("assets/maps/dev/sandbox.tmj");
     writeFile("assets/sprites/item-icons.png");
     writeFile("assets/maps/forest.tmj");
@@ -87,8 +85,6 @@ describe("strip-non-shipped-assets plugin", () => {
 
     runPlugin(root);
 
-    expect(shipped("assets/sprites/pokemon")).toBe(false);
-    expect(shipped("assets/sprites/item-icons")).toBe(false);
     expect(shipped("assets/maps/dev")).toBe(false);
     expect(shipped("assets/sprites/item-icons.png")).toBe(true);
     expect(shipped("assets/maps/forest.tmj")).toBe(true);
@@ -97,15 +93,23 @@ describe("strip-non-shipped-assets plugin", () => {
 
   it("keeps the dev maps and skips the file cap on an e2e build", () => {
     vi.stubEnv("VITE_E2E", "true");
-    writeFile("assets/sprites/pokemon/bulbasaur/Idle-Anim.png");
     writeFile("assets/maps/dev/sandbox.tmj");
 
     runPlugin(root);
 
     expect(shipped("assets/maps/dev/sandbox.tmj")).toBe(true);
-    expect(shipped("assets/sprites/pokemon")).toBe(false);
     expect(console.log).not.toHaveBeenCalled();
     expect(console.warn).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["production", undefined],
+    ["e2e", "true"],
+  ])("refuses former sprite sources left under public/ on a %s build", (_build, e2eFlag) => {
+    vi.stubEnv("VITE_E2E", e2eFlag);
+    writeFile("assets/sprites/pokemon/bulbasaur/atlas.png");
+
+    expect(() => runPlugin(root)).toThrow(/assets-src/);
   });
 
   it("fails a production build of more than 1000 files, naming itch.io", () => {
@@ -114,9 +118,9 @@ describe("strip-non-shipped-assets plugin", () => {
     expect(() => runPlugin(root)).toThrow(/itch\.io/);
   });
 
-  it("does not count the stripped folders against the cap", () => {
+  it("does not count the stripped dev maps against the cap", () => {
     writeFiller(5);
-    writeFiller(3, "assets/sprites/pokemon");
+    writeFiller(3, "assets/maps/dev");
 
     runPlugin(root);
 

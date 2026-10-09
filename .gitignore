@@ -40,15 +40,14 @@ Thumbs.db
 # Reference data build cache (regeneratable)
 packages/data/.cache/
 
-# Per-Pokemon sprite source folders (plan 135): editable source/cache emitted by
-# `pnpm extract-sprites`, regeneratable from PMDCollab. Only the 3-file bundle ships
-# + is committed (sprites.bin, sprites-manifest.json, portraits.png). Run once to
-# untrack the legacy folders: `git rm -r --cached packages/app/public/assets/sprites/pokemon`
+# Sprite sources (plans 135, 168, 237): per-Pokemon folders emitted by `pnpm extract-sprites`
+# (PMDCollab) and per-item icons emitted by `pnpm extract-item-icons` (Pokemon Showdown), both
+# regeneratable. They live outside `public/` so Vite never copies them into a build; only the
+# packed bundle under `packages/app/public/assets/sprites/` ships and is committed.
+assets-src/sprites/
+# Former locations (before plan 237), still ignored so an older clone or worktree that has them
+# never commits them; the build refuses to ship them (`vite.config.ts`).
 packages/app/public/assets/sprites/pokemon/
-
-# Held item icon source folder (plan 168): PNGs downloaded from Pokemon Showdown,
-# regeneratable via `pnpm extract-item-icons`. Only the packed sheet (item-icons.png,
-# committed) ships — the per-item source PNGs stay out of git.
 packages/app/public/assets/sprites/item-icons/
 
 # Reference screenshots (local only)

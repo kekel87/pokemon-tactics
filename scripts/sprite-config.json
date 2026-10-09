@@ -637,5 +637,6 @@
     "SouthWest"
   ],
   "baseUrl": "https://raw.githubusercontent.com/PMDCollab/SpriteCollab/master",
-  "outputDir": "packages/app/public/assets/sprites/pokemon"
+  "outputDir": "assets-src/sprites/pokemon",
+  "itemIconsDir": "assets-src/sprites/item-icons"
 }

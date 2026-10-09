@@ -9,7 +9,7 @@
  *
  * This script downloads both, maps every `HeldItemId` (kebab) → Showdown id
  * (`toShowdownId`) → `spritenum`, and slices its 24×24 cell out of the sheet into
- * `packages/app/public/assets/sprites/item-icons/<kebab-id>.png`.
+ * `assets-src/sprites/item-icons/<kebab-id>.png`.
  *
  * The per-item PNGs are gitignored source/cache — `pack-sprites.ts` composites them
  * into the shipped `item-icons.png`. Run before `pnpm pack-sprites`.
@@ -17,14 +17,18 @@
  * Usage: pnpm extract-item-icons
  */
 
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import sharp from "sharp";
 import { HeldItemId } from "../packages/core/src/enums/held-item-id.js";
 import { toShowdownId } from "../packages/core/src/team/showdown-id.js";
 
 const ROOT_DIR = resolve(import.meta.dirname, "..");
-const OUTPUT_DIR = join(ROOT_DIR, "packages/app/public/assets/sprites/item-icons");
+/** Shared with `pack-sprites.ts` through `sprite-config.json`, so both sides agree on the folder. */
+const { itemIconsDir } = JSON.parse(
+  readFileSync(join(ROOT_DIR, "scripts/sprite-config.json"), "utf8"),
+) as { itemIconsDir: string };
+const OUTPUT_DIR = join(ROOT_DIR, itemIconsDir);
 const SHEET_URL = "https://play.pokemonshowdown.com/sprites/itemicons-sheet.png";
 const ITEMS_DATA_URL = "https://play.pokemonshowdown.com/data/items.js";
 const ICON_COLS = 16;

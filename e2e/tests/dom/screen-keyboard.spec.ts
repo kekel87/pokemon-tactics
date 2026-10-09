@@ -1,6 +1,11 @@
 import { expect, test } from "../../fixtures";
 import { MainMenu } from "../../pages/MainMenu";
-import { BattleModeScreen, MapSelectScreen, TeamSelectScreen } from "../../pages/screens";
+import {
+  BattleModeScreen,
+  CreditsScreen,
+  MapSelectScreen,
+  TeamSelectScreen,
+} from "../../pages/screens";
 
 // Navigation clavier des écrans de menu (plan 184). Cahier §4.19.
 //
@@ -63,10 +68,11 @@ test("§4.19 clavier : chaque écran de menu répond aux flèches et à Échap",
   await page.keyboard.press("Escape");
   await expect(menu.title).toBeVisible();
 
-  // Crédits.
+  // Crédits — les sources sont des liens (plan 237) : la première flèche atterrit sur un lien, pas
+  // sur un bouton. Le parcours lien par lien est dans `credits.spec.ts`.
   await menu.credits.click();
   await page.keyboard.press("ArrowDown");
-  await expect(page.locator("button:focus")).toHaveCount(1);
+  await expect(new CreditsScreen(page).links.first()).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(menu.title).toBeVisible();
 

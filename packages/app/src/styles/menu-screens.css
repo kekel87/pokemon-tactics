@@ -91,20 +91,101 @@
     text-align: end;
   }
 
-  .mn-credits {
-    display: flex;
-    flex-direction: column;
-    gap: clamp(8px, 2vmin, 24px);
-    max-inline-size: min(80vw, 900px);
-    text-align: center;
+  /* Mesuré à 568×320 et 667×375 : les attributions dépassent la hauteur du téléphone en paysage et
+     « Retour » sortait du cadre, sans défilement possible. `safe center` garde le centrage quand
+     tout tient et repasse en haut dès que ça déborde ; l'écran défile alors (même filet que
+     `lobby.css`). */
+  .mn-credits-screen {
+    justify-content: safe center;
+    overflow-y: auto;
+    padding-block: clamp(8px, 2vmin, 32px);
   }
 
-  .mn-credits-text {
+  .mn-credits {
+    --mn-credits-font: clamp(14px, 1.8vmin, 28px);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(4px, 0.8vmin, 12px);
+    /* En `em` : la largeur suit la police (vmin), donc l'écran reste aéré en 4K. */
+    inline-size: min(92vw, 42em);
+    font-size: var(--mn-credits-font);
+    line-height: var(--line-height-base);
+  }
+
+  .mn-credits-section {
+    display: flex;
+    align-items: center;
+    gap: var(--mn-gap);
+    margin-block: clamp(4px, 1vmin, 16px) 0;
+    margin-inline: 0;
+    font-size: calc(var(--mn-credits-font) * 0.85);
+    font-weight: normal;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+
+    &::after {
+      content: "";
+      flex: 1;
+      border-block-start: 1px solid var(--color-accent);
+      opacity: 0.5;
+    }
+  }
+
+  .mn-credits-list {
+    margin-block: 0;
+    padding-inline: 0;
+    list-style: none;
+  }
+
+  /* Libellé | source | licence : colonnes de largeur fixe, donc alignées sur toutes les lignes de
+     toutes les rubriques, qu'une ligne ait une licence ou non. */
+  .mn-credits-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 8em;
+    align-items: center;
+    column-gap: var(--mn-gap);
+    min-block-size: var(--target-min);
+  }
+
+  .mn-credits-label {
+    color: var(--color-text-muted);
+  }
+
+  /* Le lien occupe toute sa colonne (étirement par défaut d'un élément de grille, donc pas de
+     `justify-self` qui le rétrécirait) : la navigation spatiale compare des centres, et des liens de
+     largeurs différentes décalaient le leur au point qu'une flèche en sautait un (mesuré). */
+  .mn-credits-link {
+    display: flex;
+    align-items: center;
+    min-block-size: var(--target-min);
+    color: var(--color-accent);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .mn-credits-license {
+    justify-self: end;
+    padding: 0 var(--spacing-xs);
+    border: 1px solid var(--color-border-surface);
+    border-radius: var(--radius-sm);
+    font-size: calc(var(--mn-credits-font) * 0.75);
+    color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+
+  .mn-credits-disclaimer {
+    max-inline-size: min(92vw, 900px);
     margin: 0;
-    font-size: clamp(14px, 1.8vmin, 28px);
+    font-size: calc(var(--mn-credits-font) * 0.75);
     line-height: var(--line-height-base);
     color: var(--color-text-muted);
+    text-align: center;
     white-space: pre-line;
+    opacity: 0.8;
   }
 
   /* Le même panneau, monté dans la modale du menu de combat plutôt qu'en écran (plan 187). Seul le

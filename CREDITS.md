@@ -44,6 +44,13 @@ The 24×24 item icons are sliced from Pokémon Showdown's sheet, itself derived 
 (© Nintendo, Creatures, GAME FREAK). They carry no license of their own. They are downloaded by
 `pnpm extract-item-icons` and only the packed sheet `item-icons.png` ships with the game.
 
+## Type, category and status icons
+
+**Source:** [Poképédia](https://www.pokepedia.fr) — the icons of Pokémon Legends: Z-A
+
+The type, move category and status icons are downloaded from Poképédia (`scripts/download-type-icons.ts`,
+`scripts/download-status-icons.ts`) and come from the official game (© Nintendo, Creatures, GAME FREAK).
+
 ## Font
 
 "Pokémon Emerald Pro" by crystalwalrein — [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/)

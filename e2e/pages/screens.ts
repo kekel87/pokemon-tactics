@@ -359,9 +359,15 @@ export class CreditsScreen {
   /** A line of the fan-project disclaimer (proves content rendered, not just the title). */
   readonly disclaimer: Locator;
   readonly back: Locator;
+  /** Rubrique headings (`h2`) : Graphismes, Interface, Police, Code. */
+  readonly sections: Locator;
+  /** Every source link, in document order (`data-testid="credits-link"`). */
+  readonly links: Locator;
   constructor(page: Page) {
-    this.title = page.getByRole("heading", { name: "Crédits" });
+    this.title = page.getByRole("heading", { name: "Crédits", level: 1 });
     this.disclaimer = page.getByText(/projet de fan/i);
     this.back = page.getByRole("button", { name: "Retour" });
+    this.sections = page.getByRole("heading", { level: 2 });
+    this.links = page.getByTestId("credits-link");
   }
 }

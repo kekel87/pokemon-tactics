@@ -73,31 +73,25 @@ const ITCH_FILE_LIMIT = 1000;
 const ITCH_FILE_WARNING = 900;
 
 /**
- * Folders of `public/` copied into the build output that must NOT ship (plan 236). Each one is a
- * source the game never reads at runtime; the sprite folders are gitignored, so a CI checkout does
- * not even have them, yet a local build must not differ from what itch.io receives. Any gitignored
- * folder under `public/` (see `.gitignore`) belongs in this list.
+ * Dev maps (sandbox, atelier, debug) are the only folder of `public/` that must NOT ship: they serve
+ * the sandbox studio, the move workshop and the e2e suite (plan 235), and the e2e build loads them
+ * through `?sandbox=` / `?config=`. Asset sources (sprites, item icons, effects) live in
+ * `assets-src/`, outside `public/`, so Vite never copies them (plan 237) — keep it that way.
  */
-const NON_SHIPPED_ASSET_DIRS: readonly { path: string; keptForE2e: boolean }[] = [
-  // Sprites ship as a 3-file bundle (`sprites.bin` + `sprites-manifest.json` + `portraits.png`,
-  // plan 135), sliced per Pokemon at runtime. The per-Pokemon folders are the gitignored extraction
-  // cache (`pnpm extract-sprites`); shipping 4-5 files per Pokemon would blow the itch.io file cap.
-  // Attribution lives in the in-game Credits screen (PMDCollab SpriteCollab — CC BY-NC 4.0) and in
-  // `CREDITS.md`.
-  { path: "assets/sprites/pokemon", keptForE2e: false },
-  // Item icons ship as the single `item-icons.png` sheet (decision 1138); the per-item PNGs are its
-  // gitignored source (`pnpm extract-item-icons`), read only by `pnpm pack-sprites`.
-  { path: "assets/sprites/item-icons", keptForE2e: false },
-  // Dev maps (sandbox, atelier, debug) only serve the sandbox studio, the move workshop and the e2e
-  // suite (plan 235); the e2e build loads them through `?sandbox=` / `?config=`.
-  { path: "assets/maps/dev", keptForE2e: true },
-];
+const DEV_MAPS_DIR = "assets/maps/dev";
 
 /**
- * Strip the non-shipped folders from the resolved output directory, then enforce the itch.io file
- * cap on a production build: a warning from `ITCH_FILE_WARNING`, a failed build past
- * `ITCH_FILE_LIMIT` — so the itch deploy stops before `butler` runs. The e2e build is never
- * published and keeps the dev maps: no cap there.
+ * Former homes of the sprite sources (non-free, CC BY-NC, hundreds of files), moved to
+ * `assets-src/sprites/` by plan 237. An older clone or worktree may still have them under
+ * `public/`: the build refuses to ship them rather than letting them through silently.
+ */
+const FORMER_SOURCE_DIRS = ["assets/sprites/pokemon", "assets/sprites/item-icons"];
+
+/**
+ * Refuse any former sprite-source folder, on every build. Then, on a production build, strip the
+ * dev maps from the resolved output directory and enforce the itch.io file cap: a warning from
+ * `ITCH_FILE_WARNING`, a failed build past `ITCH_FILE_LIMIT` — so the itch deploy stops before
+ * `butler` runs. The e2e build is never published: it keeps the dev maps and has no cap.
  */
 function stripNonShippedAssetsPlugin(): Plugin {
   let outDir = "";
@@ -108,15 +102,16 @@ function stripNonShippedAssetsPlugin(): Plugin {
       outDir = resolve(config.root, config.build.outDir);
     },
     closeBundle() {
-      const e2eBuild = process.env.VITE_E2E === "true";
-      for (const { path, keptForE2e } of NON_SHIPPED_ASSET_DIRS) {
-        if (!(e2eBuild && keptForE2e)) {
-          rmSync(resolve(outDir, path), { recursive: true, force: true });
-        }
+      const leftovers = FORMER_SOURCE_DIRS.filter((path) => existsSync(resolve(outDir, path)));
+      if (leftovers.length > 0) {
+        throw new Error(
+          `Sources de sprites dans le build (${leftovers.join(", ")}) : déplace-les de public/ vers assets-src/sprites/ (plan 237).`,
+        );
       }
-      if (e2eBuild) {
+      if (process.env.VITE_E2E === "true") {
         return;
       }
+      rmSync(resolve(outDir, DEV_MAPS_DIR), { recursive: true, force: true });
       const fileCount = readdirSync(outDir, { recursive: true, withFileTypes: true }).filter(
         (entry) => entry.isFile(),
       ).length;

@@ -509,17 +509,19 @@ const es: Translations = {
   "credits.title": "Créditos",
   "credits.disclaimer":
     "Pokemon Tactics es un proyecto fan, sin ánimo de lucro.\nNo está afiliado, respaldado ni aprobado por\nNintendo, Game Freak ni The Pokemon Company.\nPokemon y todos los nombres relacionados son marcas\nregistradas de sus respectivos propietarios.",
-  "credits.sprites":
-    "Sprites: PMDCollab SpriteCollab — CC-BY-NC 4.0\nhttps://sprites.pmdcollab.org",
-  "credits.tileset":
-    "Tileset: casillas isométricas propias creadas a partir de texturas\nde Pokemon Mystery Dungeon (misma fuente que los sprites)",
-  "credits.font":
-    'Fuente: "Pokémon Emerald Pro" de crystalwalrein — CC-BY-SA 3.0\nhttps://fontstruct.com/fontstructions/show/832818',
-  "credits.inputPrompts":
-    'Iconos de controles: "Input Prompts Pixel 1-Bit" de Kenney — CC0\nhttps://kenney.nl/assets/input-prompts-pixel-1-bit',
-  "credits.cursors":
-    'Cursores y lupas: "Cursor Pixel Pack" de Kenney — CC0\nhttps://kenney.nl/assets/cursor-pixel-pack',
-  "credits.code": "Código: desarrollado con la ayuda de Claude (Anthropic)",
+  "credits.section.graphics": "Gráficos",
+  "credits.section.interface": "Interfaz",
+  "credits.section.font": "Fuente",
+  "credits.section.code": "Código",
+  "credits.label.sprites": "Sprites y retratos",
+  "credits.label.tileset": "Tileset (propio)",
+  "credits.label.moveEffects": "Efectos de ataque",
+  "credits.label.itemIcons": "Iconos de objetos",
+  "credits.label.uiIcons": "Tipos, categorías, estados",
+  "credits.label.inputPrompts": "Glifos de control",
+  "credits.label.cursors": "Cursores",
+  "credits.label.font": "Pokémon Emerald Pro",
+  "credits.label.code": "Desarrollado con la ayuda de",
   "credits.back": "Volver",
   "log.title": "Registro de combate",
   "weather.sun": "Sol abrasador",

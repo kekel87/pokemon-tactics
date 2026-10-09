@@ -37,7 +37,7 @@ packages/renderer/public/assets/
 2. Parser `AnimData.xml` pour les animations (Walk, Idle, Attack, Hurt, Sleep...)
 3. Générer un sprite atlas (JSON + PNG), engine-agnostic, consommé par Babylon
 4. Nommer : `kebab-case` du nom anglais (`bulbasaur`, `charmander`)
-5. Placer dans `packages/renderer/public/assets/sprites/pokemon/<name>/`
+5. Placer dans `assets-src/sprites/pokemon/<name>/` (source gitignorée), puis `pnpm pack-sprites` pour le paquet livré dans `packages/app/public/assets/sprites/`
 
 ### Conventions de nommage
 - Fichiers : `kebab-case` (`fire-tile.png`, `hp-bar.png`)

@@ -2,9 +2,10 @@
  * Sprite bundle packer (plan 135).
  *
  * Reads the per-Pokemon sprite folders emitted by `extract-sprites.ts`
- * (`<outputDir>/<name>/{atlas.png,atlas.json,offsets.json,portrait-normal.png}`)
- * and packs them into THREE shipped files, so the itch.io 1000-file limit no
- * longer scales with the roster size:
+ * (`assets-src/sprites/pokemon/<name>/{atlas.png,atlas.json,offsets.json,portrait-normal.png}`)
+ * and the item icons emitted by `extract-item-icons.ts` (`assets-src/sprites/item-icons/`),
+ * and packs them into shipped files under `packages/app/public/assets/sprites/`, so the
+ * itch.io 1000-file limit no longer scales with the roster size:
  *
  *   - `sprites.bin`            — every atlas.png + atlas.json concatenated raw.
  *   - `sprites-manifest.json`  — light index: byte ranges into the .bin, PMD
@@ -13,8 +14,8 @@
  *
  * Runtime (packages/view-core/src/sprite-bundle.ts) downloads the .bin once at
  * boot, then slices per-Pokemon blobs on demand (lazy GPU upload — VRAM stays
- * per-combatant). The per-Pokemon folders remain on disk as source/cache but are
- * gitignored and never shipped.
+ * per-combatant). The sources live gitignored in `assets-src/sprites/` (plan 237), outside
+ * `public/`, so Vite never copies them into a build.
  *
  * Usage: pnpm pack-sprites   (run after `pnpm extract-sprites`)
  */
@@ -27,6 +28,7 @@ import { HeldItemId } from "../packages/core/src/enums/held-item-id.js";
 interface SpriteConfig {
   pokedexEntries: { name: string }[];
   outputDir: string;
+  itemIconsDir: string;
 }
 
 /** Byte range `[offset, length]` into `sprites.bin`. */
@@ -62,6 +64,8 @@ interface SpriteManifest {
 }
 
 const ROOT_DIR = resolve(import.meta.dirname, "..");
+/** Where the shipped bundle is written — independent of the sources' `outputDir`. */
+const BUNDLE_DIR = join(ROOT_DIR, "packages/app/public/assets/sprites");
 const MANIFEST_VERSION = 2;
 const PORTRAIT_CELL = 40;
 const PORTRAIT_COLS = 32;
@@ -88,7 +92,12 @@ function resolvePackOrder(config: SpriteConfig, spritesRoot: string): string[] {
 async function main(): Promise<void> {
   const config = loadConfig();
   const spritesRoot = join(ROOT_DIR, config.outputDir);
-  const bundleDir = resolve(spritesRoot, "..");
+  const itemIconsSourceDir = join(ROOT_DIR, config.itemIconsDir);
+  if (!existsSync(spritesRoot)) {
+    throw new Error(
+      `No sprite sources at ${spritesRoot} — run extract-sprites first (sources live in assets-src/ since plan 237).`,
+    );
+  }
 
   const names = resolvePackOrder(config, spritesRoot);
   if (names.length === 0) {
@@ -145,16 +154,15 @@ async function main(): Promise<void> {
   }
 
   // item-icons.png — grid sheet of the held-item icons, indexed by HeldItemId.
-  // Source PNGs (24×24) live gitignored under `<bundleDir>/item-icons/`, produced
-  // by `extract-item-icons.ts`. Packed here into one sheet so the runtime loads a
+  // Source PNGs (24×24) live gitignored under `assets-src/sprites/item-icons/`,
+  // produced by `extract-item-icons.ts`. Packed here into one sheet so the runtime loads a
   // single image (mirror of portraits.png).
-  const itemIconsDir = join(bundleDir, "item-icons");
   const itemIcons: SpriteManifest["itemIcons"] = {};
   const itemIconComposites: sharp.OverlayOptions[] = [];
   let itemIconIndex = 0;
   const missingItemIcons: string[] = [];
   for (const itemId of Object.values(HeldItemId)) {
-    const iconPath = join(itemIconsDir, `${itemId}.png`);
+    const iconPath = join(itemIconsSourceDir, `${itemId}.png`);
     if (!existsSync(iconPath)) {
       missingItemIcons.push(itemId);
       continue;
@@ -177,7 +185,7 @@ async function main(): Promise<void> {
 
   // sprites.bin
   const bin = Buffer.concat(binChunks);
-  writeFileSync(join(bundleDir, "sprites.bin"), bin);
+  writeFileSync(join(BUNDLE_DIR, "sprites.bin"), bin);
 
   // item-icons.png — grid (cols × ceil(N/cols) cells of 24×24).
   const itemIconRows = Math.max(1, Math.ceil(itemIconIndex / ITEM_ICON_COLS));
@@ -192,7 +200,7 @@ async function main(): Promise<void> {
     .composite(itemIconComposites)
     .png()
     .toBuffer();
-  writeFileSync(join(bundleDir, "item-icons.png"), itemIconSheet);
+  writeFileSync(join(BUNDLE_DIR, "item-icons.png"), itemIconSheet);
 
   // portraits.png — grid sheet (cols × ceil(N/cols) cells of 40×40).
   const portraitRows = Math.max(1, Math.ceil(portraitIndex / PORTRAIT_COLS));
@@ -207,7 +215,7 @@ async function main(): Promise<void> {
     .composite(portraitComposites)
     .png()
     .toBuffer();
-  writeFileSync(join(bundleDir, "portraits.png"), portraitSheet);
+  writeFileSync(join(BUNDLE_DIR, "portraits.png"), portraitSheet);
 
   // sprites-manifest.json
   const manifest: SpriteManifest = {
@@ -219,7 +227,7 @@ async function main(): Promise<void> {
     portraits,
     itemIcons,
   };
-  writeFileSync(join(bundleDir, "sprites-manifest.json"), JSON.stringify(manifest));
+  writeFileSync(join(BUNDLE_DIR, "sprites-manifest.json"), JSON.stringify(manifest));
 
   const mb = (bytes: number): string => `${(bytes / 1_048_576).toFixed(1)} MB`;
   console.log(

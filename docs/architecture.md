@@ -246,9 +246,7 @@ pokemon-tactics/
 │   │   │       │   ├── sprites.bin          # Atlas PNG+JSON de tous les Pokemon concaténés (commité, shippé)
 │   │   │       │   ├── sprites-manifest.json # Index léger : byte-ranges, offsets PMD, index portraits (commité, shippé)
 │   │   │       │   ├── portraits.png        # Sheet unique portraits 40×40 grille 32 cols (commité, shippé)
-│   │   │       │   ├── item-icons.png       # Sheet unique icônes objets 24×24 grille 16 cols, 117 objets (plan 168, commité, shippé)
-│   │   │       │   ├── item-icons/          # Dossier per-item GITIGNORÉ (source/cache dev, non shippé, plan 168)
-│   │   │       │   └── pokemon/*/           # Dossiers per-Pokemon GITIGNORÉS (source/cache dev, non shippés)
+│   │   │       │   └── item-icons.png       # Sheet unique icônes objets 24×24 grille 16 cols, 117 objets (plan 168, commité, shippé) — sources dans assets-src/sprites/ (plan 237)
 │   │   │       ├── tilesets/terrain/        # tileset.png + tileset.tsj (Tiled externe partagé)
 │   │   │       ├── tilesets/terrain-3d/     # 15 textures PMD plates pour Babylon
 │   │   │       ├── maps/                    # Cartes Tiled (.tmj) servies au runtime
@@ -357,9 +355,9 @@ pokemon-tactics/
 │                                 #   + bench/ : mesures de maillage WebRTC (projet Playwright `bench`,
 │                                 #   n'existe que sous `PT_BENCH=1` — hors suite normale et hors CI)
 ├── scripts/                     # Outils de build one-shot (non packagés)
-│   ├── extract-sprites.ts       # Pipeline PMDCollab : télécharge sprites → dossiers per-Pokemon (atlas JSON+PNG, offsets) — source/cache dev, gitignorés (plan 135)
-│   ├── extract-item-icons.ts    # Plan 168 : fetch spritesheet Showdown itemicons-sheet.png, découpe 117 icônes 24×24 par spritenum → dossier per-item gitignoré
-│   ├── pack-sprites.ts          # Lit les dossiers per-Pokemon + per-item → émet sprites.bin + sprites-manifest.json + portraits.png + item-icons.png (plan 135, plan 168) dans public/assets/sprites/
+│   ├── extract-sprites.ts       # Pipeline PMDCollab : télécharge sprites → dossiers per-Pokemon (atlas JSON+PNG, offsets) dans `assets-src/sprites/pokemon/`, gitignorés (plans 135, 237)
+│   ├── extract-item-icons.ts    # Plan 168 : fetch spritesheet Showdown itemicons-sheet.png, découpe 117 icônes 24×24 par spritenum → `assets-src/sprites/item-icons/`, gitignoré (plans 168, 237)
+│   ├── pack-sprites.ts          # Lit les sources de `assets-src/sprites/` → émet sprites.bin + sprites-manifest.json + portraits.png + item-icons.png (plan 135, plan 168) dans public/assets/sprites/
 │   ├── download-status-icons.ts # Télécharge 14 assets statut ZA depuis Pokepedia (7 icônes 52x36 + 7 miniatures 172x36)
 │   ├── generate-golden-replay.ts # Génère packages/core/fixtures/replays/golden-replay.json (3v3 aggressive vs aggressive, seed 12345)
 │   ├── sprite-config.json       # +51 entrées (plan 135) + 1 (Ditto 0132, plan 157) → couvre les 151 Pokemon Gen 1 (complet)
@@ -960,12 +958,12 @@ PMDCollab GitHub (raw)
 scripts/extract-sprites.ts  ←  scripts/sprite-config.json (150 entrées Gen 1)
         │  (découpe frames via sharp, génère atlas, parse pixels offsets)
         ▼
-packages/app/public/assets/sprites/pokemon/{name}/  ← GITIGNORÉS (source/cache dev)
+assets-src/sprites/pokemon/{name}/  ← GITIGNORÉS, hors public/ (source/cache dev, plan 237)
   ├── atlas.json          # Descripteur d'atlas sprite (frames + metadata, compatible Babylon)
   ├── atlas.png           # Spritesheet combiné (toutes anims + directions)
   ├── portrait-normal.png # Portrait 40x40 (émotion Normal)
   ├── offsets.json        # Offsets par Pokemon : footOffsetY, headOffsetY, shadowSize
-  └── credits.txt         # Attribution artiste (CC BY-NC 4.0) — strippé du bundle dist
+  └── credits.txt         # Attribution artiste (CC BY-NC 4.0)
 
         │
         ▼ [pnpm pack-sprites]
