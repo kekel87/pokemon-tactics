@@ -36,15 +36,14 @@ import { initBrowserBack } from "./app/browser-back.js";
 import { type Navigate, ScreenManager } from "./app/screen-manager.js";
 import { loadPersistedScreen } from "./app/screen-persistence.js";
 import { atelierBootConfig } from "./atelier-boot.js";
-import { createCombatScreen, mountSandboxStudio } from "./babylon/combat-screen.js";
-import { mountMoveWorkshop } from "./babylon/move-workshop.js";
+import { createCombatScreen } from "./babylon/combat-screen.js";
 import { getLanguage, initLanguage, onLanguageChange } from "./i18n/index.js";
 import { initBindings } from "./input/bindings-store.js";
 import { initInputSystem } from "./input/input-system.js";
 import { resolveKeyLabels } from "./input/key-legend.js";
 import { startWakeLock } from "./platform/wake-lock.js";
 import { getRendererBackend } from "./renderer-backend.js";
-import { sandboxBootConfig, teardownSandboxStudioDom } from "./sandbox-boot.js";
+import { sandboxBootConfig } from "./sandbox-boot.js";
 import { initSettings } from "./settings/index.js";
 import {
   DEFAULT_SANDBOX_CONFIG,
@@ -129,12 +128,12 @@ const sandboxConfigParam = urlSandboxAllowed ? query.get("config") : null;
 const hasUrlSeed = query.has("seed");
 const sandboxUrlSeed = Number(query.get("seed"));
 const sandboxEnabled =
-  sandboxBootConfig.enabled ||
+  Boolean(import.meta.env.VITE_SANDBOX) ||
   (urlSandboxAllowed && (query.has("sandbox") || sandboxConfigParam !== null));
 
 function resolveSandboxConfig(): SandboxConfig {
-  if (sandboxBootConfig.config) {
-    return sandboxBootConfig.config;
+  if (sandboxBootConfig) {
+    return sandboxBootConfig;
   }
   if (sandboxConfigParam) {
     return normalizeSandboxConfig(JSON.parse(sandboxConfigParam));
@@ -189,24 +188,37 @@ async function boot(root: HTMLElement): Promise<void> {
   // menu principal (la racine sort de toute façon) ; visible seulement sur une reprise directe d'un
   // écran non-racine, où il faut un geste APRÈS le splash.
   initBrowserBack(() => manager.current === "main-menu");
-  if (atelierBootConfig.enabled) {
+  // Both dev tools are loaded on demand, behind guards written as literal `import.meta.env` reads:
+  // Vite folds them to `false` in a production build, so their chunks are never emitted (plan 235).
+  // A variable or an object property in the condition would keep them in the bundle. The sandbox
+  // guard therefore restates `sandboxEnabled` (VITE_SANDBOX) and `urlSandboxAllowed`
+  // (DEV / VITE_E2E): a new way to enable the studio must be added to both.
+  if (import.meta.env.VITE_ATELIER) {
     // Atelier des attaques (plan 233, `pnpm dev:atelier`): a dev screen mounted directly, like the
     // sandbox studio, with no way back to the menu — it is its own app.
-    mountMoveWorkshop(root, atelierBootConfig.config, backend);
-  } else if (sandboxEnabled) {
+    import("./babylon/move-workshop.js")
+      .then(({ mountMoveWorkshop }) => mountMoveWorkshop(root, atelierBootConfig, backend))
+      .catch(reportScreenError);
+  } else if (
+    (import.meta.env.VITE_SANDBOX || import.meta.env.DEV || import.meta.env.VITE_E2E === "true") &&
+    sandboxEnabled
+  ) {
     // The sandbox studio is mounted directly (not via the manager), so "Back to
-    // menu" is a boot-level entry, not a guarded in-app navigation: tear down the
-    // studio chrome + battle, then `start` (unguarded) the main menu.
-    const studio = mountSandboxStudio(
-      root,
-      sandboxConfig,
-      (id, params) => {
-        studio.dispose();
-        teardownSandboxStudioDom();
-        manager.start(id, params).catch(reportScreenError);
-      },
-      backend,
-    );
+    // menu" is a boot-level entry, not a guarded in-app navigation: `studio.dispose()` tears down
+    // the battle and the studio chrome, then `start` (unguarded) the main menu.
+    import("./babylon/sandbox-studio.js")
+      .then(({ mountSandboxStudio }) => {
+        const studio = mountSandboxStudio(
+          root,
+          sandboxConfig,
+          (id, params) => {
+            studio.dispose();
+            manager.start(id, params).catch(reportScreenError);
+          },
+          backend,
+        );
+      })
+      .catch(reportScreenError);
   } else if (query.has("combat")) {
     manager.start("combat", { mapUrl }).catch(reportScreenError);
   } else {

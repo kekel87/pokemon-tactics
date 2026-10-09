@@ -141,13 +141,6 @@
     &:hover { background: var(--color-btn-hover); }
   }
 
-  .lang-toggle-floating {
-    position: fixed;
-    top: var(--spacing-md);
-    left: var(--spacing-md);
-    z-index: var(--z-dropdown);
-  }
-
   .sb-section-title {
     margin: 0 0 var(--spacing-xs);
     padding: var(--spacing-xs) var(--spacing-sm);

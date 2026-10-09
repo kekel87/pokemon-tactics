@@ -32,7 +32,11 @@ function parseAtelierEnvConfig(): AtelierConfig {
   return config;
 }
 
-export const atelierBootConfig: { enabled: boolean; config: AtelierConfig } = {
-  enabled: Boolean(import.meta.env.VITE_ATELIER),
-  config: import.meta.env.VITE_ATELIER ? parseAtelierEnvConfig() : {},
-};
+/**
+ * Whether the workshop opens is read straight from `import.meta.env.VITE_ATELIER` in
+ * `babylon-boot.ts`, never from here: a guard behind an object property would keep the workshop in
+ * the production bundle (plan 235).
+ */
+export const atelierBootConfig: AtelierConfig = import.meta.env.VITE_ATELIER
+  ? parseAtelierEnvConfig()
+  : {};

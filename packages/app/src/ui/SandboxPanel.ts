@@ -23,10 +23,11 @@ import {
   replaceSelectOptions,
   type SelectOption,
 } from "@pokemon-tactic/ui-dom";
+import type { ResolvedSpawn } from "../babylon/sandbox-studio";
 import type { TranslationKey } from "../i18n";
 import { getLanguage, t } from "../i18n";
 import { MAPS_REGISTRY } from "../maps/maps-registry";
-import { getSandboxStudioDom } from "../sandbox-boot";
+import { getSandboxStudioDom } from "../sandbox-studio-dom";
 import { getAbilityInfo } from "../team/team-builder-data";
 import {
   type AiProfileKey,
@@ -216,9 +217,7 @@ export class SandboxPanel {
     dom.battleStrip.replaceChildren();
   }
 
-  setResolvedPositions(
-    resolved: { teamIndex: number; memberIndex: number; position: { x: number; y: number } }[],
-  ): void {
+  setResolvedPositions(resolved: readonly ResolvedSpawn[]): void {
     for (const { teamIndex, memberIndex, position } of resolved) {
       const member = this.teams[teamIndex]?.members[memberIndex];
       if (member) {

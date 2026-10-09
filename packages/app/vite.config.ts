@@ -88,6 +88,29 @@ function stripPerPokemonSpriteFoldersPlugin(): Plugin {
   };
 }
 
+// Dev maps (`assets/maps/dev/` : sandbox, atelier, debug) only serve the sandbox studio, the move
+// workshop and the e2e suite — none of which ship (plan 235). Strip them from a production build;
+// the e2e build (`VITE_E2E=true`) keeps them, its specs load them through `?sandbox=` / `?config=`.
+function stripDevMapsPlugin(): Plugin {
+  let outDir = "";
+  return {
+    name: "strip-dev-maps",
+    apply: "build",
+    configResolved(config) {
+      outDir = resolve(config.root, config.build.outDir);
+    },
+    closeBundle() {
+      if (process.env.VITE_E2E === "true") {
+        return;
+      }
+      const devMapsDir = resolve(outDir, "assets/maps/dev");
+      if (existsSync(devMapsDir)) {
+        rmSync(devMapsDir, { recursive: true, force: true });
+      }
+    },
+  };
+}
+
 // Bundle audit (Jalon 1 DoD): `BUNDLE_VISUALIZE=1 pnpm build` writes
 // `dist/stats.html` (treemap) to track the Babylon bundle vs the 180-220 kB gzip target.
 function bundleAuditPlugins(): PluginOption[] {
@@ -157,7 +180,12 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
-  plugins: [visitBeaconPlugin(), stripPerPokemonSpriteFoldersPlugin(), ...bundleAuditPlugins()],
+  plugins: [
+    visitBeaconPlugin(),
+    stripPerPokemonSpriteFoldersPlugin(),
+    stripDevMapsPlugin(),
+    ...bundleAuditPlugins(),
+  ],
   server: {
     port: resolveDevPort(),
     /*
