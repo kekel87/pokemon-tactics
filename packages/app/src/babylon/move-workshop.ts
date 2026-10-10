@@ -93,7 +93,6 @@ const WORKSHOP_SPEEDS: readonly WorkshopSpeed[] = [
   { label: "atelier.speedVerySlow", speed: CombatSpeed.Normal, slowMotion: 0.1 },
   { label: "atelier.speedSlow", speed: CombatSpeed.Normal, slowMotion: 0.25 },
   NORMAL_SPEED,
-  { label: "settings.combatSpeed.fast", speed: CombatSpeed.Fast, slowMotion: 1 },
   { label: "settings.combatSpeed.instant", speed: CombatSpeed.Instant, slowMotion: 1 },
 ];
 /** A scrub never steps more than this many frames (guards a run that never reaches its target). */
@@ -434,6 +433,7 @@ export function mountMoveWorkshop(
       humanPlayerIds: [PlayerId.Player1],
       getElapsedMs: () => 0,
       onPresentationCue: onCue,
+      turnCries: false,
     });
   }
 

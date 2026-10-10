@@ -90,6 +90,8 @@ export type BattleEvent =
       amount: number;
       effectiveness: number;
       recoil?: boolean;
+      /** Vampigraine's tick: the sower these HP go to (absent when it is no longer there to take them). */
+      drainedBy?: string;
       absorbedBySubstitute?: number;
       /** OHKO hit (K.O. en un coup): the floating text shows "K.O.!" instead of the (max-HP) number. */
       ohko?: boolean;

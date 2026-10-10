@@ -80,8 +80,13 @@ export const TelemetryAction = {
   FullscreenToggle: "fullscreen-toggle",
   /** La vitesse des combats (plan 233) : un compteur par cran choisi, pour savoir lequel reste. */
   CombatSpeedNormal: "combat-speed-normal",
-  CombatSpeedFast: "combat-speed-fast",
   CombatSpeedInstant: "combat-speed-instant",
+  /** Le son (plan 238) : le volume est-il touché, coupé, et quel cri de tour garde-t-on ? */
+  VolumeChange: "volume-change",
+  VolumeMute: "volume-mute",
+  TurnCriesNone: "turn-cries-none",
+  TurnCriesMine: "turn-cries-mine",
+  TurnCriesAll: "turn-cries-all",
   /** Ce que le plan 187 a livré sert-il, et par quelle sortie part-on ? */
   CombatMenuOpen: "combat-menu-open",
   CombatMenuRestart: "combat-menu-restart",

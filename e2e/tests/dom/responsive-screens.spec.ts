@@ -8,7 +8,12 @@ import {
   TEAM_SELECT_ROOT,
   TEAM_SELECT_SCROLLERS,
 } from "../../pages/responsive";
-import { BattleModeScreen, MapSelectScreen, TeamSelectScreen } from "../../pages/screens";
+import {
+  BattleModeScreen,
+  MapSelectScreen,
+  SettingsScreen,
+  TeamSelectScreen,
+} from "../../pages/screens";
 
 // Cahier §6.9 — écrans DOM sur petit écran (plan 179) : invite d'orientation, choix de la carte,
 // sélection d'équipe. Le rendu (densité, esthétique) reste 👁 ; ici on teste ce qui est
@@ -219,5 +224,35 @@ test.describe("§6.9 sélection d'équipe sur téléphone paysage", () => {
     await expect.poll(() => responsive.fontSizePx(teamSelect.title)).toBe(28);
     const desktopPortrait = await measurePickerPortrait(page, responsive, teamSelect);
     expect(phonePortrait?.height).toBeLessThan(desktopPortrait?.height ?? 0);
+  });
+});
+
+// Plan 238 : deux lignes de plus (Volume, Cri au début du tour) font déborder Paramètres sur le plus
+// petit paysage visé (568×320, de 3 px à la recette). Les écrans de menu DÉFILENT désormais quand ils
+// débordent : le titre, chaque réglage et « Retour » doivent pouvoir être amenés ENTIERS à l'écran —
+// un contenu centré qui déborde sans défiler perd son haut, qu'aucun défilement ne rattrape.
+test.describe("§6.7 Paramètres sur petit téléphone paysage", () => {
+  test.use({ viewport: { width: 568, height: 320 }, hasTouch: true });
+
+  test("§6.7 le titre, chaque réglage et Retour s'amènent entiers à l'écran", async ({ page }) => {
+    const menu = new MainMenu(page);
+    const settings = new SettingsScreen(page);
+    await menu.goto();
+    await menu.settings.click();
+    await expect(settings.title).toBeVisible();
+
+    for (const control of [
+      settings.back,
+      settings.controls,
+      settings.turnCriesToggle,
+      settings.volumeSlider,
+      settings.muteToggle,
+      settings.combatSpeedToggle,
+      settings.languageToggle,
+      settings.title,
+    ]) {
+      await control.scrollIntoViewIfNeeded();
+      await expect(control).toBeInViewport({ ratio: 1 });
+    }
   });
 });

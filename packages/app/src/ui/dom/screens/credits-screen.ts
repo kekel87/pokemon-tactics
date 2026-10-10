@@ -66,6 +66,26 @@ const CREDIT_SECTIONS: readonly CreditSection[] = [
     ],
   },
   {
+    title: "credits.section.sound",
+    entries: [
+      {
+        label: "credits.label.moveSounds",
+        source: "Pokémon Reborn",
+        url: "https://www.rebornevo.com",
+      },
+      {
+        label: "credits.label.hitSounds",
+        source: "PokeRogue",
+        url: "https://github.com/pagefaultgames/pokerogue-assets",
+      },
+      {
+        label: "credits.label.cries",
+        source: "PokeAPI",
+        url: "https://github.com/PokeAPI/cries",
+      },
+    ],
+  },
+  {
     title: "credits.section.font",
     entries: [
       {

@@ -11,7 +11,15 @@ import {
 import { MainMenu } from "../../pages/MainMenu";
 import { CreditsScreen } from "../../pages/screens";
 
-// Cahier §6.9 — écran Crédits (refonte plan 237 : 4 rubriques, sources en liens, disclaimer en bas).
+// Cahier §6.9 — écran Crédits (refonte plan 237 : rubriques, sources en liens, disclaimer en bas ;
+// rubrique « Son » ajoutée au plan 238).
+
+/** Rubrique « Son » (plan 238) : libellé de la ligne → adresse de sa source. */
+const SOUND_SOURCES = [
+  ["Bruitages d'attaque", "Pokémon Reborn", "https://www.rebornevo.com"],
+  ["Sons de coup", "PokeRogue", "https://github.com/pagefaultgames/pokerogue-assets"],
+  ["Cris", "PokeAPI", "https://github.com/PokeAPI/cries"],
+] as const;
 
 /** Sources liées, dans l'ordre du document — miroir de `CREDITS.md`. */
 const LINKED_SOURCES = [
@@ -21,8 +29,9 @@ const LINKED_SOURCES = [
   "Poképédia",
   "Kenney",
   "Kenney",
+  ...SOUND_SOURCES.map(([, source]) => source),
   "crystalwalrein",
-] as const;
+];
 
 /** Ouvre les Crédits AU CLAVIER : c'est ce chemin qui pose le focus de départ sur « Retour ». */
 async function openCreditsWithKeyboard(page: Page, menu: MainMenu): Promise<void> {
@@ -42,7 +51,7 @@ test("crédits : titre + contenu (disclaimer) + retour", async ({ page }) => {
   await menu.credits.click();
 
   await expect(credits.title).toBeVisible();
-  await expect(credits.sections).toHaveText(["Graphismes", "Interface", "Police", "Code"]);
+  await expect(credits.sections).toHaveText(["Graphismes", "Interface", "Son", "Police", "Code"]);
   await expect(credits.disclaimer).toBeVisible();
 
   await credits.back.click();
@@ -65,6 +74,13 @@ test("crédits : chaque source est un lien https qui s'ouvre dans un nouvel ongl
     await expect(link).toHaveAttribute("target", "_blank");
     // `noopener` coupe `window.opener` : l'onglet ouvert ne peut pas rediriger le jeu.
     await expect(link).toHaveAttribute("rel", /\bnoopener\b/);
+  }
+
+  for (const [label, source, url] of SOUND_SOURCES) {
+    await expect(page.getByText(label, { exact: true })).toBeVisible();
+    const link = credits.links.filter({ hasText: source });
+    await expect(link).toHaveCount(1);
+    await expect(link).toHaveAttribute("href", url);
   }
 });
 

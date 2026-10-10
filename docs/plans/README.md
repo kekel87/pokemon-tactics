@@ -63,3 +63,4 @@ Les seuls sur lesquels on travaille.
 | 232 | [Plan 232 — Équipes aléatoires : dernier stade avec build seulement](./232-equipes-aleatoires-equilibrees.md) | done |
 | 233 | [Plan 233 — VFX lot 1 : le coup tombe au bon moment](./233-vfx-lot1-timing-impact.md) | done |
 | 234 | [Plan 234 — VFX lot 2a : un effet pour chaque attaque, par forme × type](./234-vfx-lot2a-effets-generiques.md) | done |
+| 238 | [Plan 238 — Son lot 3 : attaques, coups, cris, et les réglages du son](./238-son-lot3-attaques-coups-cris.md) | done |

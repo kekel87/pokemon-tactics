@@ -96,8 +96,9 @@ export function directionalScore(
   const forward = direction === "down" || direction === "right";
   const centre = (box: NavigationBox) =>
     vertical ? (box.top + box.bottom) / 2 : (box.left + box.right) / 2;
-  const crossCentre = (box: NavigationBox) =>
-    vertical ? (box.left + box.right) / 2 : (box.top + box.bottom) / 2;
+  const crossStart = (box: NavigationBox) => (vertical ? box.left : box.top);
+  const crossEnd = (box: NavigationBox) => (vertical ? box.right : box.bottom);
+  const crossCentre = (box: NavigationBox) => (crossStart(box) + crossEnd(box)) / 2;
   const centreGap = centre(to) - centre(from);
   if (forward ? centreGap <= 0 : centreGap >= 0) {
     return null;
@@ -105,8 +106,15 @@ export function directionalScore(
   const edgeGap = EDGE_GAP[direction](from, to);
   // Deux contrôles qui se chevauchent sur l'axe sont au contact : pas de distance négative.
   const along = Math.max(0, edgeGap);
-  const cross = Math.abs(crossCentre(to) - crossCentre(from));
-  return along + cross * CROSS_AXIS_PENALTY;
+  // Sur l'axe transverse, deux mesures (plan 238). L'ÉCART entre les deux intervalles, nul quand
+  // ils se recouvrent, porte la pénalité forte : c'est lui qui dit « autre colonne ». Le DÉCALAGE
+  // des centres pèse un peu moins : assez pour préférer, parmi plusieurs contrôles qui recouvrent
+  // celui qu'on quitte, le plus en face — la roue de code sous « Créer », pas « Coller », plus
+  // près mais à son bord (mesuré à 1280×720 : 129 contre 78 + 46,5 × 1,5) — sans traiter un
+  // contrôle un peu plus étroit que sa colonne comme s'il était dans une autre.
+  const gap = Math.max(0, crossStart(to) - crossEnd(from), crossStart(from) - crossEnd(to));
+  const offset = Math.abs(crossCentre(to) - crossCentre(from));
+  return along + gap * CROSS_AXIS_PENALTY + offset * CENTRE_OFFSET_WEIGHT;
 }
 
 /**
@@ -115,6 +123,8 @@ export function directionalScore(
  * à deux colonnes saute en diagonale.
  */
 const CROSS_AXIS_PENALTY = 2;
+/** Poids du décalage des centres entre deux contrôles : moindre que la pénalité de colonne. */
+const CENTRE_OFFSET_WEIGHT = 1.5;
 
 /**
  * Déplace le focus vers le contrôle le plus proche dans une direction ÉCRAN — navigation spatiale,

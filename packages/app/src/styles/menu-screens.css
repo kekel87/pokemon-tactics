@@ -10,7 +10,11 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    /* `safe center` centre tant que tout tient et repasse en haut dès que ça déborde ; l'écran
+       défile alors. Mesuré à 568×320 : les Crédits d'abord, puis les Réglages depuis les deux
+       lignes du son (plan 238), où « Retour » sortait du cadre sans défilement possible. */
+    justify-content: safe center;
+    overflow-y: auto;
     gap: clamp(16px, 4vmin, 48px);
     background: var(--color-bg-base);
     font-family: var(--font-family);
@@ -34,8 +38,16 @@
     gap: var(--mn-gap);
   }
 
+  /* Largeur d'un bouton de menu — et du curseur de volume avec sa sourdine, qui tient sa place dans
+     une ligne de réglage. Posée sur les deux, pas sur `.mn-screen` : `menuButton()` sert aussi hors
+     de cet écran (salon, menu de combat), où une variable d'ancêtre n'existerait pas. */
+  .mn-btn,
+  .mn-volume {
+    --mn-control-width: clamp(240px, 28vmin, 460px);
+  }
+
   .mn-btn {
-    min-width: clamp(240px, 28vmin, 460px);
+    min-width: var(--mn-control-width);
     font-size: clamp(18px, 2.6vmin, 40px);
   }
 
@@ -78,6 +90,28 @@
     gap: clamp(24px, 6vmin, 96px);
   }
 
+  /* Volume (plan 238) : le curseur occupe la colonne des commandes, en face de ses voisines — c'est
+     ce qui le rend joignable par ↑ ↓ — et la sourdine en icône se pose à sa gauche, hors colonne. */
+  .mn-volume {
+    display: flex;
+    align-items: center;
+    gap: var(--mn-gap);
+
+    & input[type="range"] {
+      flex: none;
+      width: var(--mn-control-width);
+      min-height: var(--target-min);
+      accent-color: var(--color-accent);
+    }
+
+    & .mn-btn {
+      min-width: 0;
+      flex: none;
+      width: 2.2em;
+      padding-inline: 0;
+    }
+  }
+
   .mn-row-label {
     font-size: clamp(18px, 2.2vmin, 34px);
     color: var(--color-text-secondary);
@@ -91,13 +125,9 @@
     text-align: end;
   }
 
-  /* Mesuré à 568×320 et 667×375 : les attributions dépassent la hauteur du téléphone en paysage et
-     « Retour » sortait du cadre, sans défilement possible. `safe center` garde le centrage quand
-     tout tient et repasse en haut dès que ça déborde ; l'écran défile alors (même filet que
-     `lobby.css`). */
+  /* Les attributions dépassent la hauteur du téléphone en paysage : un peu d'air en haut et en bas
+     quand l'écran défile (le défilement lui-même vient de `.mn-screen`). */
   .mn-credits-screen {
-    justify-content: safe center;
-    overflow-y: auto;
     padding-block: clamp(8px, 2vmin, 32px);
   }
 

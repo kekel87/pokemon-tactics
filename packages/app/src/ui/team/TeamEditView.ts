@@ -6,6 +6,8 @@ import {
   type TeamSet,
   type TeamSlot,
 } from "@pokemon-tactic/core";
+import { playMenuCry } from "../../audio/audio-player";
+import { preloadSoundBundle } from "../../audio/sound-bank";
 import { t } from "../../i18n";
 import { InputSource } from "../../input/input-source";
 import { resolveSlotGender } from "../../team/gender-helpers";
@@ -262,12 +264,15 @@ export class TeamEditView {
     }
     const slot = this.team.slots[index];
     if (slot === undefined) {
+      // The first cry would otherwise wait on the whole sound bundle.
+      preloadSoundBundle();
       openPokemonPickerModal({
         excludePokemonIds: this.team.slots.map((s) => s.pokemonId),
         onSelect: (pokemon) => {
           if (this.team === null) {
             return;
           }
+          playMenuCry(pokemon.id);
           const fallbackAbility = pokemon.abilities.primary ?? pokemon.definition.abilityId ?? "";
           const newSlot: TeamSlot = {
             pokemonId: pokemon.id,

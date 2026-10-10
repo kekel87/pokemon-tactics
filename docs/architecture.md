@@ -651,7 +651,7 @@ un par camp, la forme à plat n'ayant qu'un Pokemon de chaque côté.
 
 ### Horloge de combat et vitesse (plan 233)
 
-`combatClock` (`packages/view-core/src/combat-pacing.ts`) est l'**horloge unique** de la mise en scène : images des sprites, glissades, textes flottants, attentes de l'orchestrateur, filet de sécurité d'une attaque. Temps de combat = temps réel × vitesse ; pausable et steppable (`CombatScene.stepFrame`) ; seule la dernière scène la pilote ; elle avance onglet caché ; les minuteries sont liées à leur scène. L'ambiance (vent, scintillement, curseur) reste en temps réel. Réglage « Vitesse des combats » (normale / rapide / instantanée) : local, en direct, sans effet sur le core ni le réseau. L'impact d'une attaque est calé sur la `hitFrame` PMDCollab (`playAttack` expose `impact` et `done`).
+`combatClock` (`packages/view-core/src/combat-pacing.ts`) est l'**horloge unique** de la mise en scène : images des sprites, glissades, textes flottants, attentes de l'orchestrateur, filet de sécurité d'une attaque. Temps de combat = temps réel × vitesse ; pausable et steppable (`CombatScene.stepFrame`) ; seule la dernière scène la pilote ; elle avance onglet caché ; les minuteries sont liées à leur scène. L'ambiance (vent, scintillement, curseur) reste en temps réel. Réglage « Vitesse des combats » (normale / instantanée ; Rapide supprimée au plan 238) : local, en direct, sans effet sur le core ni le réseau. L'impact d'une attaque est calé sur la `hitFrame` PMDCollab (`playAttack` expose `impact` et `done`).
 
 ### Atelier des attaques (dev seulement, plan 233)
 
@@ -668,6 +668,10 @@ Chaîne **purement présentation** (aucun RNG, aucun état du core ; `MoveStarte
 5. **Départ depuis la tête** : `scripts/extract-sprites.ts --attack-heads-only` relève les points d'ancrage PMDCollab au hit frame et les range dans les `offsets.json` / le manifeste ; les effets partent de la gueule (ajout par rapport à PMDO).
 
 L'orchestrateur attend l'arrivée d'un projectile ou d'un rayon avant de laisser le touché encaisser ; filet de sécurité en temps de combat. Instantanée : aucun effet. L'atelier affiche une piste « Effet » (cue `PresentationCueKind.Effect`). Couleurs et réglages : `docs/design-system.md`.
+
+### Son (plan 238)
+
+`packages/app/src/audio/` : `audio-player.ts` (Web Audio natif, déverrouillé au premier geste), `sound-bank.ts` (décodage à la demande + cache), `battle-audio.ts` (récepteur des repères `onPresentationCue` : `attack-start`, `hit`, `faint`, `turn-start`), `combat-voices.ts` (cris, suit pause / scrub / ralenti de l'atelier). Branché dans `runBattle`. `pnpm build-audio` (`scripts/build-audio.ts`, sources gitignorées dans `assets-src/audio/`) produit `packages/app/public/assets/audio/sounds.bin` (mp3 concaténés) + `sounds-manifest.json` (offsets, instants par attaque, coups, cris), commités. L'orchestrateur attend `presentationSettled` (fin de bruitage ≤ 2 s, cri de tour, séquence du K.O.). Volume (curseur + sourdine) et cri de tour (Aucun / Mes Pokémon / Tous) : réglages locaux.
 
 ---
 

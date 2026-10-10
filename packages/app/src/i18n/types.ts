@@ -416,8 +416,14 @@ export interface Translations {
   "settings.fullscreen": string;
   "settings.combatSpeed": string;
   "settings.combatSpeed.normal": string;
-  "settings.combatSpeed.fast": string;
   "settings.combatSpeed.instant": string;
+  "settings.volume": string;
+  "settings.volume.mute": string;
+  "settings.volume.unmute": string;
+  "settings.turnCries": string;
+  "settings.turnCries.none": string;
+  "settings.turnCries.mine": string;
+  "settings.turnCries.all": string;
   "settings.installApp": string;
   "settings.installAppIosHint": string;
   "settings.on": string;
@@ -513,6 +519,7 @@ export interface Translations {
   "credits.disclaimer": string;
   "credits.section.graphics": string;
   "credits.section.interface": string;
+  "credits.section.sound": string;
   "credits.section.font": string;
   "credits.section.code": string;
   "credits.label.sprites": string;
@@ -522,6 +529,9 @@ export interface Translations {
   "credits.label.uiIcons": string;
   "credits.label.inputPrompts": string;
   "credits.label.cursors": string;
+  "credits.label.moveSounds": string;
+  "credits.label.hitSounds": string;
+  "credits.label.cries": string;
   "credits.label.font": string;
   "credits.label.code": string;
   "credits.back": string;

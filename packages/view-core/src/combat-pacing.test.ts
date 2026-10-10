@@ -70,17 +70,11 @@ describe("hitStopMs", () => {
     setCombatSpeed(CombatSpeed.Instant);
     expect(hitStopMs(4, true)).toBe(0);
   });
-
-  it("Given the Fast speed, keeps the nominal hit-stop (the clock halves it)", () => {
-    setCombatSpeed(CombatSpeed.Fast);
-    expect(hitStopMs(2, false)).toBe(150);
-  });
 });
 
 describe("isInstantCombat", () => {
   it.each([
     [CombatSpeed.Normal, false],
-    [CombatSpeed.Fast, false],
     [CombatSpeed.Instant, true],
   ])("Given the %s speed, answers %s", (speed, expected) => {
     setCombatSpeed(speed);
@@ -89,9 +83,8 @@ describe("isInstantCombat", () => {
 });
 
 describe("nextCombatSpeed", () => {
-  it("cycles Normal → Fast → Instant → Normal", () => {
-    expect(nextCombatSpeed(CombatSpeed.Normal)).toBe(CombatSpeed.Fast);
-    expect(nextCombatSpeed(CombatSpeed.Fast)).toBe(CombatSpeed.Instant);
+  it("toggles Normal ⇄ Instant", () => {
+    expect(nextCombatSpeed(CombatSpeed.Normal)).toBe(CombatSpeed.Instant);
     expect(nextCombatSpeed(CombatSpeed.Instant)).toBe(CombatSpeed.Normal);
   });
 });
@@ -110,12 +103,12 @@ describe("combatClock driven by a scene", () => {
     expect(wait.resolved()).toBe(true);
   });
 
-  it("advances in combat time: Fast doubles the frame delta", async () => {
+  it("advances in combat time: Instant quadruples the frame delta", async () => {
     const driver = attachDriver();
-    setCombatSpeed(CombatSpeed.Fast);
+    setCombatSpeed(CombatSpeed.Instant);
     const wait = trackWait(100);
 
-    combatClock.frame(driver, 50);
+    combatClock.frame(driver, 25);
     await flushMicrotasks();
 
     expect(combatClock.deltaMs).toBe(100);
@@ -211,10 +204,10 @@ describe("combatClock driven by a scene", () => {
 describe("combatClock without a driving scene", () => {
   it("falls back to a real timer scaled by the combat speed", async () => {
     vi.useFakeTimers();
-    setCombatSpeed(CombatSpeed.Fast);
+    setCombatSpeed(CombatSpeed.Instant);
     const wait = trackWait(100);
 
-    await vi.advanceTimersByTimeAsync(49);
+    await vi.advanceTimersByTimeAsync(24);
     expect(wait.resolved()).toBe(false);
 
     await vi.advanceTimersByTimeAsync(1);

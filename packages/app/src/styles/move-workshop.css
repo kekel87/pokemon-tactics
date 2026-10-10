@@ -209,10 +209,6 @@
     background: var(--color-bg-surface);
   }
 
-  .aw-future {
-    opacity: 0.4;
-  }
-
   .aw-tick {
     position: absolute;
     top: 0;

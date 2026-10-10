@@ -69,6 +69,7 @@ import { AbandonSource, countAction, TelemetryAction } from "../analytics/teleme
 import { type BattleResumeSave, battleResumeStore } from "../app/battle-persistence.js";
 import type { Navigate, Screen } from "../app/screen-manager.js";
 import type { CombatSetup, ScreenParamsById } from "../app/screens.js";
+import { createBattleAudio } from "../audio/battle-audio";
 import { forcedBattleSeed } from "../capture-seed";
 import {
   FIELD_TERRAIN_COLOR_ELECTRIC,
@@ -580,6 +581,8 @@ export function runBattle(options: {
   getElapsedMs: () => number;
   /** Les temps forts de la mise en scène (plan 233) — l'atelier des attaques en trace sa séquence. */
   onPresentationCue?: BattleOrchestratorConfig["onPresentationCue"];
+  /** Faux dans l'atelier des attaques : il rejoue UNE attaque, le cri du tour suivant y détonne. */
+  turnCries?: boolean;
 }): BattleOrchestrator {
   const {
     backend,
@@ -612,6 +615,14 @@ export function runBattle(options: {
   } = options;
   const board = backend.createBattleBoardView(combat, handles);
   const inputSystem = getInputSystem();
+  // Le son du combat (plan 238) : branché ici pour que la partie, le bac à sable et l'atelier
+  // l'entendent tous trois.
+  const battleAudio = createBattleAudio({
+    speciesOf: (pokemonId) => battle.state.pokemon.get(pokemonId)?.definitionId,
+    isSoundMove: (moveId) => battle.moveDefinitions.get(moveId)?.flags?.sound === true,
+    turnCries: options.turnCries ?? true,
+  });
+  signal.addEventListener("abort", battleAudio.dispose, { once: true });
   // Host-injected i18n / asset-path deps for the reusable DOM chrome (plan 125 Phase 4).
   const uiConfig: UiDomConfig = {
     translate: (key, params) => t(key as TranslationKey, params),
@@ -1001,7 +1012,11 @@ export function runBattle(options: {
         onBattleClosed?.();
       },
       onActionCommitted,
-      onPresentationCue,
+      onPresentationCue: (cue) => {
+        battleAudio.onCue(cue);
+        onPresentationCue?.(cue);
+      },
+      presentationSettled: battleAudio.settled,
       getElapsedMs,
     },
     presentationContext,

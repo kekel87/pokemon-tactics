@@ -314,8 +314,14 @@ export class SettingsScreen {
   readonly installHint: Locator;
   /** Ligne « Contrôles » → écran de remapping (plan 186). */
   readonly controls: Locator;
-  /** « Vitesse des combats » (plan 233) : bascule à trois crans Normale → Rapide → Instantanée. */
+  /** « Vitesse des combats » (plan 233) : bascule Normale ⇄ Instantanée (« Rapide » retirée, plan 238). */
   readonly combatSpeedToggle: Locator;
+  /** Sourdine de la ligne « Volume » (plan 238) : son `aria-label` dit ce qu'un appui fera. */
+  readonly muteToggle: Locator;
+  /** Curseur de volume (plan 238), 0-100 par pas de 5 — par testid : un `getByRole("slider")` non scopé deviendrait ambigu au premier second curseur. */
+  readonly volumeSlider: Locator;
+  /** « Cri au début du tour » (plan 238) : bascule Mes Pokémon → Tous → Aucun. */
+  readonly turnCriesToggle: Locator;
   constructor(page: Page) {
     this.title = page.getByRole("heading", { name: "Paramètres" });
     this.back = page.getByRole("button", { name: "Retour" });
@@ -324,6 +330,9 @@ export class SettingsScreen {
     this.installHint = page.getByTestId("setting-install-hint");
     this.controls = page.getByTestId("setting-controls");
     this.combatSpeedToggle = page.getByTestId("setting-combat-speed");
+    this.muteToggle = page.getByTestId("setting-mute");
+    this.volumeSlider = page.getByTestId("setting-volume");
+    this.turnCriesToggle = page.getByTestId("setting-turn-cries");
   }
 }
 
@@ -359,7 +368,7 @@ export class CreditsScreen {
   /** A line of the fan-project disclaimer (proves content rendered, not just the title). */
   readonly disclaimer: Locator;
   readonly back: Locator;
-  /** Rubrique headings (`h2`) : Graphismes, Interface, Police, Code. */
+  /** Rubrique headings (`h2`) : Graphismes, Interface, Son, Police, Code. */
   readonly sections: Locator;
   /** Every source link, in document order (`data-testid="credits-link"`). */
   readonly links: Locator;

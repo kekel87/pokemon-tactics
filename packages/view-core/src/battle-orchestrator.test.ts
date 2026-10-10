@@ -160,6 +160,7 @@ function setup(
     submittedEvents?: readonly BattleEvent[];
     board?: Partial<BoardView>;
     onPresentationCue?: BattleOrchestratorConfig["onPresentationCue"];
+    presentationSettled?: BattleOrchestratorConfig["presentationSettled"];
   },
 ): Harness {
   const submitted: Action[] = [];
@@ -311,6 +312,9 @@ function setup(
       ...(options?.onPresentationCue === undefined
         ? {}
         : { onPresentationCue: options.onPresentationCue }),
+      ...(options?.presentationSettled === undefined
+        ? {}
+        : { presentationSettled: options.presentationSettled }),
     },
     {
       translate: (key) => key,
@@ -1411,7 +1415,7 @@ const moveStarted = (moveId = "tackle"): BattleEvent => ({
 const damageDealt = (
   targetId: string,
   effectiveness = 1,
-  extra: { recoil?: boolean } = {},
+  extra: { recoil?: boolean; drainedBy?: string } = {},
 ): BattleEvent => ({
   type: BattleEventType.DamageDealt,
   targetId,
@@ -1427,11 +1431,18 @@ interface StagingHarness {
   impact: Deferred;
   done: Deferred;
   playAttack: ReturnType<typeof vi.fn>;
+  harness: Harness;
 }
 
 function stageEvents(
   events: readonly BattleEvent[],
-  options: { move?: MoveDefinition; board?: Partial<BoardView> } = {},
+  options: {
+    move?: MoveDefinition;
+    board?: Partial<BoardView>;
+    humanPlayerIds?: readonly string[];
+    localPlayerIds?: readonly string[];
+    presentationSettled?: BattleOrchestratorConfig["presentationSettled"];
+  } = {},
 ): StagingHarness {
   const log: string[] = [];
   const cues: PresentationCue[] = [];
@@ -1442,9 +1453,11 @@ function stageEvents(
   void impact.promise.then(() => log.push("impact"));
   void done.promise.then(() => log.push("done"));
   const destination = { x: 5, y: 4 };
-  const harness = setup([moveAction(destination)], options.move, {
+  const { move, board, ...passthrough } = options;
+  const harness = setup([moveAction(destination)], move, {
     submittedEvents: events,
     onPresentationCue: (cue) => cues.push(cue),
+    ...passthrough,
     board: {
       playAttack,
       flashDamage: (id) => log.push(`flashDamage:${id}`),
@@ -1459,7 +1472,7 @@ function stageEvents(
       },
       holdFrame: (pokemonId, durationMs) => holds.push({ pokemonId, durationMs }),
       flashWhite: (id) => log.push(`flashWhite:${id}`),
-      ...options.board,
+      ...board,
     },
   });
   for (const [id, position] of [
@@ -1477,7 +1490,7 @@ function stageEvents(
   harness.lastActionMenu().onMove();
   log.length = 0;
   harness.orchestrator.onTileClick(destination);
-  return { log, cues, holds, impact, done, playAttack };
+  return { log, cues, holds, impact, done, playAttack, harness };
 }
 
 async function playWholeAttack(events: readonly BattleEvent[]): Promise<StagingHarness> {
@@ -1500,8 +1513,11 @@ function stagingCues(cues: readonly PresentationCue[]): PresentationCue[] {
   return cues.filter((cue) => STAGING_CUE_KINDS.has(cue.kind));
 }
 
-function hitStops(cues: readonly PresentationCue[]): PresentationCue[] {
-  return cues.filter((cue) => cue.kind === PresentationCueKind.HitStop);
+function cuesOfKind(
+  cues: readonly PresentationCue[],
+  kind: PresentationCueKind,
+): PresentationCue[] {
+  return cues.filter((cue) => cue.kind === kind);
 }
 
 const KNOCKBACK: BattleEvent = {
@@ -1597,7 +1613,13 @@ describe("BattleOrchestrator — le coup tombe au bon moment (plan 233)", () => 
     expect(stagingCues(staging.cues)).toEqual([
       { kind: PresentationCueKind.AttackStart, attackerId: ACTIVE_ID, moveId: "tackle" },
       { kind: PresentationCueKind.Impact, attackerId: ACTIVE_ID, moveId: "tackle" },
-      { kind: PresentationCueKind.Hit, targetId: TARGET_ID, effectiveness: 2, critical: false },
+      {
+        kind: PresentationCueKind.Hit,
+        targetId: TARGET_ID,
+        effectiveness: 2,
+        critical: false,
+        rankOnBeat: 0,
+      },
       { kind: PresentationCueKind.HitStop, durationMs: pauseMs },
       { kind: PresentationCueKind.AttackEnd, attackerId: ACTIVE_ID, moveId: "tackle" },
     ]);
@@ -1619,8 +1641,9 @@ describe("BattleOrchestrator — le coup tombe au bon moment (plan 233)", () => 
       targetId: TARGET_ID,
       effectiveness: 0.5,
       critical: true,
+      rankOnBeat: 0,
     });
-    expect(hitStops(staging.cues)).toEqual([
+    expect(cuesOfKind(staging.cues, PresentationCueKind.HitStop)).toEqual([
       { kind: PresentationCueKind.HitStop, durationMs: hitStopMs(0.5, true) },
     ]);
   });
@@ -1633,7 +1656,7 @@ describe("BattleOrchestrator — le coup tombe au bon moment (plan 233)", () => 
     ]);
     const pauseMs = hitStopMs(4, false);
 
-    expect(hitStops(staging.cues)).toEqual([
+    expect(cuesOfKind(staging.cues, PresentationCueKind.HitStop)).toEqual([
       { kind: PresentationCueKind.HitStop, durationMs: pauseMs },
     ]);
     expect(staging.holds).toEqual([
@@ -1646,7 +1669,7 @@ describe("BattleOrchestrator — le coup tombe au bon moment (plan 233)", () => 
   it("holds nothing on an immune target", async () => {
     const staging = await playWholeAttack([moveStarted(), damageDealt(TARGET_ID, 0)]);
 
-    expect(hitStops(staging.cues)).toEqual([]);
+    expect(cuesOfKind(staging.cues, PresentationCueKind.HitStop)).toEqual([]);
     expect(staging.holds).toEqual([]);
   });
 
@@ -1684,7 +1707,7 @@ describe("BattleOrchestrator — le coup tombe au bon moment (plan 233)", () => 
     ]);
     const firstPauseMs = hitStopMs(4, false);
 
-    expect(hitStops(staging.cues)).toEqual([
+    expect(cuesOfKind(staging.cues, PresentationCueKind.HitStop)).toEqual([
       { kind: PresentationCueKind.HitStop, durationMs: firstPauseMs },
       { kind: PresentationCueKind.HitStop, durationMs: 250 - firstPauseMs },
     ]);
@@ -1777,5 +1800,217 @@ describe("BattleOrchestrator — les effets des attaques (plan 234)", () => {
 
     expect(playMoveEffect).not.toHaveBeenCalled();
     expect(effectForms(staging.cues)).toEqual([]);
+  });
+});
+
+const TURN_STARTED: BattleEvent = { type: BattleEventType.TurnStarted, pokemonId: ACTIVE_ID };
+
+const KO: BattleEvent = {
+  type: BattleEventType.PokemonKo,
+  pokemonId: TARGET_ID,
+  countdownStart: 3,
+};
+
+const ELIMINATED: BattleEvent = { type: BattleEventType.PokemonEliminated, pokemonId: TARGET_ID };
+
+const REVIVED: BattleEvent = {
+  type: BattleEventType.PokemonRevived,
+  pokemonId: TARGET_ID,
+  hp: 10,
+  casterId: ACTIVE_ID,
+  revived: true,
+};
+
+async function playSeedTick(
+  extra: { drainedBy?: string } = {},
+): Promise<{ playMoveEffect: ReturnType<typeof vi.fn>; forms: MoveEffectForm[] }> {
+  const playMoveEffect = vi.fn(() => TIMED_EFFECT);
+  const staging = stageEvents([damageDealt(TARGET_ID, 1, extra)], { board: { playMoveEffect } });
+  await vi.advanceTimersByTimeAsync(5000);
+  return { playMoveEffect, forms: effectForms(staging.cues) };
+}
+
+describe("BattleOrchestrator — les repères du son (plan 238)", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    setCombatSpeed(CombatSpeed.Normal);
+    vi.useRealTimers();
+  });
+
+  it("cues no turn start on the battle's first turn", () => {
+    const cues: PresentationCue[] = [];
+    const harness = setup([moveAction({ x: 5, y: 4 })], undefined, {
+      humanPlayerIds: ["player-1"],
+      onPresentationCue: (cue) => cues.push(cue),
+    });
+
+    harness.orchestrator.start();
+
+    expect(cuesOfKind(cues, PresentationCueKind.TurnStart)).toEqual([]);
+  });
+
+  it("cues a turn start once the turn that began is handed over", async () => {
+    const staging = stageEvents([TURN_STARTED], { humanPlayerIds: ["player-1"] });
+    expect(cuesOfKind(staging.cues, PresentationCueKind.TurnStart)).toEqual([]);
+
+    await vi.advanceTimersByTimeAsync(5000);
+
+    expect(cuesOfKind(staging.cues, PresentationCueKind.TurnStart)).toEqual([
+      { kind: PresentationCueKind.TurnStart, pokemonId: ACTIVE_ID, local: true },
+    ]);
+  });
+
+  it("cues nothing when no turn started in the action played", async () => {
+    const staging = stageEvents([WALK], { humanPlayerIds: ["player-1"] });
+    await vi.advanceTimersByTimeAsync(5000);
+
+    expect(cuesOfKind(staging.cues, PresentationCueKind.TurnStart)).toEqual([]);
+  });
+
+  it.each([
+    ["no seat is declared", {}],
+    [
+      "the seat is played at another screen",
+      {
+        humanPlayerIds: ["player-1"],
+        localPlayerIds: ["player-2"],
+      },
+    ],
+  ])("marks the turn start as not local when %s", async (_label, seats) => {
+    const staging = stageEvents([TURN_STARTED], seats);
+    await vi.advanceTimersByTimeAsync(5000);
+
+    expect(cuesOfKind(staging.cues, PresentationCueKind.TurnStart)).toEqual([
+      { kind: PresentationCueKind.TurnStart, pokemonId: ACTIVE_ID, local: false },
+    ]);
+  });
+
+  it("holds the turn until what its cue started has settled", async () => {
+    const settled = deferred();
+    const staging = stageEvents([TURN_STARTED], {
+      humanPlayerIds: ["player-1"],
+      presentationSettled: () => settled.promise,
+    });
+    const menusBefore = staging.harness.actionMenuShownCount;
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(cuesOfKind(staging.cues, PresentationCueKind.TurnStart)).toHaveLength(1);
+    expect(staging.harness.actionMenuShownCount).toBe(menusBefore);
+
+    settled.resolve();
+    await vi.advanceTimersByTimeAsync(5000);
+
+    expect(staging.harness.actionMenuShownCount).toBe(menusBefore + 1);
+    expect(cuesOfKind(staging.cues, PresentationCueKind.TurnStart)).toHaveLength(1);
+  });
+
+  it("cues one faint for a K.O. followed by its elimination", async () => {
+    const staging = stageEvents([KO, ELIMINATED]);
+    await vi.advanceTimersByTimeAsync(10000);
+
+    expect(cuesOfKind(staging.cues, PresentationCueKind.Faint)).toEqual([
+      { kind: PresentationCueKind.Faint, pokemonId: TARGET_ID },
+    ]);
+  });
+
+  it("cues a faint again for a Pokémon knocked out after a revival", async () => {
+    const staging = stageEvents([KO, ELIMINATED, REVIVED, KO]);
+    await vi.advanceTimersByTimeAsync(20000);
+
+    expect(cuesOfKind(staging.cues, PresentationCueKind.Faint)).toHaveLength(2);
+  });
+
+  it("waits for the K.O. cry to settle before the fall", async () => {
+    const settled = deferred();
+    const setKnockedOut = vi.fn();
+    const staging = stageEvents([KO], {
+      presentationSettled: () => settled.promise,
+      board: { setKnockedOut },
+    });
+    staging.harness.state.pokemon.set(TARGET_ID, {
+      ...activePokemon(),
+      id: TARGET_ID,
+      playerId: "player-2",
+      currentHp: 0,
+    });
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(cuesOfKind(staging.cues, PresentationCueKind.Faint)).toHaveLength(1);
+    expect(setKnockedOut).not.toHaveBeenCalledWith(TARGET_ID, true);
+
+    settled.resolve();
+    await vi.advanceTimersByTimeAsync(5000);
+
+    expect(setKnockedOut).toHaveBeenCalledWith(TARGET_ID, true);
+  });
+
+  it("ranks the blows of an area attack landing on the same beat", async () => {
+    const staging = await playWholeAttack([
+      moveStarted(),
+      damageDealt(TARGET_ID, 1),
+      damageDealt(SECOND_TARGET_ID, 2),
+    ]);
+
+    expect(cuesOfKind(staging.cues, PresentationCueKind.Hit)).toEqual([
+      {
+        kind: PresentationCueKind.Hit,
+        targetId: TARGET_ID,
+        effectiveness: 1,
+        critical: false,
+        rankOnBeat: 0,
+      },
+      {
+        kind: PresentationCueKind.Hit,
+        targetId: SECOND_TARGET_ID,
+        effectiveness: 2,
+        critical: false,
+        rankOnBeat: 1,
+      },
+    ]);
+  });
+
+  it("waits for the attack's sounds to settle before handing the turn back", async () => {
+    const settled = deferred();
+    const staging = stageEvents([moveStarted(), damageDealt(TARGET_ID)], {
+      presentationSettled: () => settled.promise,
+    });
+    const menusBefore = staging.harness.actionMenuShownCount;
+    staging.impact.resolve();
+    staging.done.resolve();
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(stagingCues(staging.cues).at(-1)?.kind).toBe(PresentationCueKind.AttackEnd);
+    expect(staging.harness.actionMenuShownCount).toBe(menusBefore);
+
+    settled.resolve();
+    await vi.advanceTimersByTimeAsync(5000);
+
+    expect(staging.harness.actionMenuShownCount).toBe(menusBefore + 1);
+  });
+
+  it("flies a Vampigraine tick's HP back to the sower", async () => {
+    const tick = await playSeedTick({ drainedBy: ACTIVE_ID });
+
+    expect(tick.playMoveEffect).toHaveBeenCalledWith(
+      ACTIVE_ID,
+      expect.objectContaining({ form: MoveEffectForm.Drain, targetPokemonId: TARGET_ID }),
+    );
+    expect(tick.forms).toEqual([MoveEffectForm.Drain]);
+  });
+
+  it("shows no drain for a tick whose sower is gone", async () => {
+    const tick = await playSeedTick();
+
+    expect(tick.playMoveEffect).not.toHaveBeenCalled();
+    expect(tick.forms).toEqual([]);
+  });
+
+  it("shows no Vampigraine drain in Instant speed", async () => {
+    setCombatSpeed(CombatSpeed.Instant);
+
+    const tick = await playSeedTick({ drainedBy: ACTIVE_ID });
+
+    expect(tick.playMoveEffect).not.toHaveBeenCalled();
+    expect(tick.forms).toEqual([]);
   });
 });

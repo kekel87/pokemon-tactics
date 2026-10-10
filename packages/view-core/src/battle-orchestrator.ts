@@ -54,7 +54,13 @@ import {
   buildTimelineView,
   buildWeatherView,
 } from "./battle-views.js";
-import { combatClock, hitStopMs, isInstantCombat, MAX_ACTION_PAUSE_MS } from "./combat-pacing.js";
+import {
+  combatClock,
+  hitStopMs,
+  isInstantCombat,
+  KO_PAUSE_MS,
+  MAX_ACTION_PAUSE_MS,
+} from "./combat-pacing.js";
 import { buildCombatPreviewView, type CombatPreviewResult } from "./combat-preview-view.js";
 import {
   AURA_INDICATOR_SYMBOL,
@@ -441,6 +447,10 @@ export class BattleOrchestrator {
   private turnClockDeadlineAt: number | null = null;
   private turnClockCancel: (() => void) | null = null;
   private turnClockActionCounter: number | null = null;
+  /** The Pokémon whose turn just began and has not had its `turn-start` cue yet (plan 238). */
+  private turnToAnnounce: string | null = null;
+  /** The Pokémon whose K.O. fall has played, until a revival (plan 238). */
+  private readonly faintsPlayed = new Set<string>();
   /** Depuis quand l'animation en cours suspend le compte à rebours (`null` = pas suspendu). */
   private turnClockSuspendedAt: number | null = null;
 
@@ -856,6 +866,12 @@ export class BattleOrchestrator {
     return null;
   }
 
+  /** A seat played at this screen — every seat when no player is declared (an AI-only battle). */
+  private isLocalPlayer(playerId: string): boolean {
+    const locals = this.config.localPlayerIds ?? this.config.humanPlayerIds ?? [];
+    return locals.length === 0 || locals.includes(playerId);
+  }
+
   /**
    * Whose eyes the panels read through (plan 176). While the acting player is human, that is them
    * (hotseat hands the view over with the turn); during an AI turn the view stays with the human, so
@@ -1158,8 +1174,7 @@ export class BattleOrchestrator {
    */
   private expireTurnClock(): void {
     const active = this.activePokemon();
-    const locals = this.config.localPlayerIds ?? this.config.humanPlayerIds ?? [];
-    if (!active || (locals.length > 0 && !locals.includes(active.playerId))) {
+    if (!active || !this.isLocalPlayer(active.playerId)) {
       this.turnClockDeadlineAt = null;
       this.publishTurnClock();
       return;
@@ -1283,6 +1298,9 @@ export class BattleOrchestrator {
     this.refreshTileInfo();
     this.refreshTimeline();
     this.board.panCameraTo(active.position);
+    if (this.announceTurnStart(active)) {
+      return;
+    }
 
     const aiEvents = this.onTurnReady?.(active.id);
     if (aiEvents === "pending") {
@@ -1324,6 +1342,39 @@ export class BattleOrchestrator {
       return;
     }
     this.enterActionMenu();
+  }
+
+  /**
+   * The turn that just began gets its cue (plan 238), the camera turning to the newcomer, and its
+   * turn goes on once what the cue started has settled: an AI's action waits for the cry, so the
+   * two never play over each other. Whether there is anything to wait for is the receiver's call —
+   * nothing, for a turn played at this screen. True when the turn is deferred that way: `refreshUI`
+   * runs again once it is done.
+   */
+  private announceTurnStart(active: PokemonInstance): boolean {
+    const announced = this.turnToAnnounce === active.id;
+    this.turnToAnnounce = null;
+    const cue = this.config.onPresentationCue;
+    if (!announced || cue === undefined) {
+      return false;
+    }
+    const locals = this.config.localPlayerIds ?? this.config.humanPlayerIds ?? [];
+    cue({
+      kind: PresentationCueKind.TurnStart,
+      pokemonId: active.id,
+      local: locals.includes(active.playerId),
+    });
+    const settled = this.config.presentationSettled;
+    if (settled === undefined) {
+      return false;
+    }
+    this.queue.enqueue(async () => {
+      await settled();
+      if (!this.disposed) {
+        this.refreshUI();
+      }
+    });
+    return true;
   }
 
   private enterActionMenu(): void {
@@ -2382,6 +2433,10 @@ export class BattleOrchestrator {
       if (event.type === BattleEventType.MoveCharging) {
         this.playChargeEffect(event.pokemonId, event.moveId);
       }
+      if (event.type === BattleEventType.TurnStarted) {
+        // Announced from `refreshUI`, once the camera has turned to the newcomer.
+        this.turnToAnnounce = event.pokemonId;
+      }
       this.playEventEffects(event, attack, statEffectsShown);
 
       if (event.type === BattleEventType.MoveStarted) {
@@ -2514,9 +2569,12 @@ export class BattleOrchestrator {
           }
         }
       } else if (
-        event.type === BattleEventType.PokemonKo ||
-        event.type === BattleEventType.PokemonEliminated
+        (event.type === BattleEventType.PokemonKo ||
+          event.type === BattleEventType.PokemonEliminated) &&
+        !this.faintsPlayed.has(event.pokemonId)
       ) {
+        // A K.O. is followed by its Eliminated: one fall, one cry (plan 238 playtest heard two).
+        this.faintsPlayed.add(event.pokemonId);
         // Let the victim's damage reaction (Hurt pose + red flash) finish before the
         // Faint collapse: the preceding DamageDealt kicked the Hurt one-shot without
         // awaiting, so without this the KO cuts in the instant the hit lands. Wait the
@@ -2533,12 +2591,16 @@ export class BattleOrchestrator {
           kind: PresentationCueKind.Faint,
           pokemonId: event.pokemonId,
         });
+        // The cry first, heard whole, then the fall (PokeRogue's order, plan 238).
+        await this.config.presentationSettled?.();
         // syncBoard plays the Faint pose (freeze on the last frame); wait its real
         // length so the fall plays out fully before the next beat, falling back
         // to the fixed step delay.
         this.syncBoard();
         await combatBeat(this.board.koAnimationDurationMs(event.pokemonId) || BATTLE_STEP_DELAY_MS);
+        await combatBeat(KO_PAUSE_MS);
       } else if (event.type === BattleEventType.PokemonRevived) {
+        this.faintsPlayed.delete(event.pokemonId);
         // Vœu Soin (healing-wish): bring the target back / top it off, then let the beat breathe.
         this.syncBoard();
         await combatBeat(BATTLE_STEP_DELAY_MS);
@@ -2686,7 +2748,7 @@ export class BattleOrchestrator {
       effectiveness: 1,
       ...(details.status === undefined ? {} : { status: details.status }),
     });
-    this.cueEffect(form, playback);
+    this.cueEffect(form, playback, details.status);
   }
 
   /** The effects a battle event shows on a Pokémon, beyond the move's own (plan 234). */
@@ -2741,6 +2803,9 @@ export class BattleOrchestrator {
         this.playEffectOn(event.pokemonId, MoveEffectForm.Blocked);
         break;
       case BattleEventType.DamageDealt:
+        if (event.drainedBy !== undefined) {
+          this.playSeedDrain(event.targetId, event.drainedBy);
+        }
         if (event.recoil === true) {
           this.playEffectOn(event.targetId, MoveEffectForm.Impact, {
             type: attack?.moveType ?? PokemonType.Normal,
@@ -2750,6 +2815,23 @@ export class BattleOrchestrator {
       default:
         break;
     }
+  }
+
+  /** Vampigraine's tick, at the end of the seeded Pokémon's turn: its HP fly back to the sower. */
+  private playSeedDrain(seededId: string, sowerId: string): void {
+    const seeded = this.state.pokemon.get(seededId);
+    if (!seeded || isInstantCombat()) {
+      return;
+    }
+    const playback = this.board.playMoveEffect(sowerId, {
+      form: MoveEffectForm.Drain,
+      type: PokemonType.Grass,
+      targetPosition: seeded.position,
+      affectedTiles: [],
+      effectiveness: 1,
+      targetPokemonId: seeded.id,
+    });
+    this.cueEffect(MoveEffectForm.Drain, playback);
   }
 
   /** A draining blow: bubbles fly back from its target to the caster (plan 234), as in the series. */
@@ -2829,7 +2911,7 @@ export class BattleOrchestrator {
     this.cueEffect(MoveEffectForm.Impact, playback);
   }
 
-  private cueEffect(form: MoveEffectForm, playback: MoveEffectPlayback): void {
+  private cueEffect(form: MoveEffectForm, playback: MoveEffectPlayback, status?: StatusType): void {
     if (playback.durationMs <= 0) {
       return;
     }
@@ -2838,6 +2920,7 @@ export class BattleOrchestrator {
       form,
       durationMs: playback.durationMs,
       impactMs: playback.impactMs,
+      ...(status === undefined ? {} : { status }),
     });
   }
 
@@ -2848,7 +2931,7 @@ export class BattleOrchestrator {
     );
     if (moreBlowsOnTarget) {
       // An intermediate blow of a multi-hit move: no hit-stop (it would pile up).
-      this.config.onPresentationCue?.({ kind: PresentationCueKind.Hit, ...strike });
+      this.config.onPresentationCue?.({ kind: PresentationCueKind.Hit, ...strike, rankOnBeat: 0 });
       this.playImpactSpark(attack, strike);
       return;
     }
@@ -2862,8 +2945,8 @@ export class BattleOrchestrator {
    */
   private playImpact(attack: AttackStaging, strikes: readonly Strike[]): void {
     let pauseMs = 0;
-    for (const strike of strikes) {
-      this.config.onPresentationCue?.({ kind: PresentationCueKind.Hit, ...strike });
+    for (const [rankOnBeat, strike] of strikes.entries()) {
+      this.config.onPresentationCue?.({ kind: PresentationCueKind.Hit, ...strike, rankOnBeat });
       this.playImpactSpark(attack, strike);
       this.playDrainEffect(attack, strike);
       pauseMs = Math.max(pauseMs, hitStopMs(strike.effectiveness, strike.critical));
@@ -2922,6 +3005,7 @@ export class BattleOrchestrator {
       attackerId: attack.attackerId,
       moveId: attack.moveId,
     });
+    await this.config.presentationSettled?.();
   }
 
   /** Re-sync every billboard with engine state (positions, facing, KO, semi-invulnerable). */

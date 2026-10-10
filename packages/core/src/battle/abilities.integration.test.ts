@@ -1120,6 +1120,45 @@ describe("ability system integration", () => {
     ).toBe(true);
   });
 
+  it("overgrow stays silent when the blow that crosses 1/3 HP knocks its holder out", () => {
+    // Given a Bulbasaur above the pinch threshold, with only 1 HP left to lose
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      definitionId: "test",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 2 },
+      moveIds: ["scratch"],
+      derivedStats: { movement: 4, jump: 1, initiative: 100 },
+    });
+    const bulbasaur = MockPokemon.fresh(MockPokemon.base, {
+      id: "bulbasaur",
+      definitionId: "bulbasaur",
+      playerId: PlayerId.Player2,
+      position: { x: 1, y: 2 },
+      currentHp: 1,
+      maxHp: 2,
+      abilityId: "overgrow",
+    });
+
+    const { engine } = buildMoveTestEngine([attacker, bulbasaur]);
+
+    // When scratch knocks it out
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "scratch",
+      targetPosition: { x: 1, y: 2 },
+    });
+
+    // Then it is K.O. and overgrow was not announced
+    expect(result.events.some((e) => e.type === BattleEventType.PokemonKo)).toBe(true);
+    expect(
+      result.events.some(
+        (e) => e.type === BattleEventType.AbilityActivated && e.abilityId === "overgrow",
+      ),
+    ).toBe(false);
+  });
+
   it("overgrow emits AbilityActivated at battle start if HP starts below 1/3", () => {
     const attacker = MockPokemon.fresh(MockPokemon.base, {
       id: "attacker",

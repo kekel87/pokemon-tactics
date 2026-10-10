@@ -61,6 +61,10 @@ function nearestLivingEnemy(
 const PINCH_THRESHOLD = 1 / 3;
 
 function checkPinchThresholdCross(pokemon: PokemonInstance, abilityId: string): BattleEvent[] {
+  // A blow that knocks its holder out crosses the threshold too, but there is nothing left to boost.
+  if (pokemon.currentHp <= 0) {
+    return [];
+  }
   const ratio = pokemon.currentHp / pokemon.maxHp;
   if (ratio > PINCH_THRESHOLD) {
     pokemon.abilityFirstTriggered = false;

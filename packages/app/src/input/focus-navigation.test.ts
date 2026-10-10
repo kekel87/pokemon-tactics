@@ -126,12 +126,12 @@ describe("directionalScore", () => {
     const toEditIcon = directionalScore(teamButton, editIcon, "right");
     const toRowAbove = directionalScore(teamButton, rowAboveButton, "right");
     expect(toEditIcon).toBe(4);
-    expect(toRowAbove).toBe(60 * 2);
+    expect(toRowAbove).toBe(20 * 2 + 60 * 1.5);
   });
 
   it("revient sur le contrôle large par ←, et non sur la rangée du dessus", () => {
     expect(directionalScore(editIcon, teamButton, "left")).toBe(4);
-    expect(directionalScore(editIcon, rowAboveButton, "left")).toBe(64 + 60 * 2);
+    expect(directionalScore(editIcon, rowAboveButton, "left")).toBe(64 + 20 * 2 + 60 * 1.5);
   });
 
   it("écarte un candidat dont le centre n'est pas dans la direction pressée", () => {
@@ -152,8 +152,22 @@ describe("directionalScore", () => {
     expect(directionalScore(teamButton, overlapping, "right")).toBe(0);
   });
 
-  it("mesure la verticale bord à bord, avec l'écart d'axe pénalisé ×2", () => {
-    expect(directionalScore(teamButton, rowAboveButton, "up")).toBe(20 + 50 * 2);
-    expect(directionalScore(rowAboveButton, teamButton, "down")).toBe(20 + 50 * 2);
+  it("mesure la verticale bord à bord, le décalage des centres pesant ×1,5", () => {
+    expect(directionalScore(teamButton, rowAboveButton, "up")).toBe(20 + 50 * 1.5);
+    expect(directionalScore(rowAboveButton, teamButton, "down")).toBe(20 + 50 * 1.5);
+  });
+
+  it("préfère, parmi deux contrôles qui recouvrent celui qu'on quitte, le plus en face", () => {
+    const facing = { left: 120, right: 180, top: 160, bottom: 200 };
+    const atTheEdge = { left: 0, right: 60, top: 150, bottom: 200 };
+    const toFacing = directionalScore(teamButton, facing, "down");
+    const toEdge = directionalScore(teamButton, atTheEdge, "down");
+    expect(toFacing).toBe(20);
+    expect(toEdge).toBe(10 + 120 * 1.5);
+  });
+
+  it("pénalise ×2 l'écart transverse entre deux colonnes disjointes", () => {
+    const sideColumn = { left: 400, right: 480, top: 40, bottom: 80 };
+    expect(directionalScore(teamButton, sideColumn, "up")).toBe(20 + 100 * 2 + 290 * 1.5);
   });
 });

@@ -31,6 +31,7 @@
     "extract-sprites": "tsx scripts/extract-sprites.ts",
     "extract-item-icons": "tsx scripts/extract-item-icons.ts",
     "build-move-effects": "tsx scripts/build-move-effects.ts",
+    "build-audio": "tsx scripts/build-audio.ts",
     "pack-sprites": "tsx scripts/pack-sprites.ts",
     "download-status-icons": "tsx scripts/download-status-icons.ts",
     "replay:generate": "tsx scripts/generate-golden-replay.ts",

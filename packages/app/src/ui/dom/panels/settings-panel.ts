@@ -1,4 +1,4 @@
-import { CombatSpeed, nextCombatSpeed } from "@pokemon-tactic/view-core";
+import { CombatSpeed, nextCombatSpeed, nextInCycle } from "@pokemon-tactic/view-core";
 import { countAction, TelemetryAction } from "../../../analytics/telemetry";
 import { getLanguage, nextLanguage, setLanguage, t } from "../../../i18n";
 import {
@@ -8,15 +8,42 @@ import {
   toggleFullscreen,
 } from "../../../platform/fullscreen";
 import { shouldOfferIosInstall } from "../../../platform/pwa";
-import { getSettings, updateSettings } from "../../../settings";
+import {
+  getSettings,
+  MAX_VOLUME,
+  TURN_CRIES,
+  TurnCries,
+  updateSettings,
+  VOLUME_STEP,
+} from "../../../settings";
 import { el, menuButton } from "../screens/elements";
 import { EMBEDDED_PANEL_CLASS, type Panel, type PanelOptions } from "./panel";
 
 const COMBAT_SPEED_ACTION: Record<CombatSpeed, TelemetryAction> = {
   [CombatSpeed.Normal]: TelemetryAction.CombatSpeedNormal,
-  [CombatSpeed.Fast]: TelemetryAction.CombatSpeedFast,
   [CombatSpeed.Instant]: TelemetryAction.CombatSpeedInstant,
 };
+
+const TURN_CRIES_ACTION: Record<TurnCries, TelemetryAction> = {
+  [TurnCries.None]: TelemetryAction.TurnCriesNone,
+  [TurnCries.Mine]: TelemetryAction.TurnCriesMine,
+  [TurnCries.All]: TelemetryAction.TurnCriesAll,
+};
+
+/** The volume the mute button gives back when the slider sits at zero. */
+const UNMUTED_VOLUME = 50;
+
+/**
+ * The mute button: a speaker glyph (a text glyph like the chrome's other icon buttons, until the
+ * icon pack) named by what a press does.
+ */
+function refreshMuteToggle(button: HTMLButtonElement): void {
+  const settings = getSettings();
+  // A volume of zero is silence too: the button says so, and a press brings the sound back.
+  const muted = settings.muted || settings.volume === 0;
+  button.textContent = muted ? "🔇" : "🔊";
+  button.setAttribute("aria-label", t(muted ? "settings.volume.unmute" : "settings.volume.mute"));
+}
 
 export interface SettingsPanelOptions extends PanelOptions {
   /** Ouvrir les Contrôles — un écran de la FSM côté Réglages, un niveau de plus côté modale. */
@@ -108,7 +135,7 @@ export function createSettingsPanel(options: SettingsPanelOptions): Panel {
       rows.append(row(t("settings.installApp"), hint));
     }
 
-    // Vitesse des combats (plan 233) : bascule à trois crans, appliquée en direct — y compris depuis
+    // Vitesse des combats (plan 233) : bascule Normale / Instantanée, appliquée en direct — y compris depuis
     // le menu de combat, puisque ce n'est qu'un réglage d'affichage.
     const combatSpeedToggle = menuButton(
       t(`settings.combatSpeed.${getSettings().combatSpeed}`),
@@ -122,6 +149,66 @@ export function createSettingsPanel(options: SettingsPanelOptions): Panel {
     );
     combatSpeedToggle.dataset.testid = "setting-combat-speed";
     rows.append(row(t("settings.combatSpeed"), combatSpeedToggle));
+
+    // Le son (plan 238) : une sourdine en icône et un curseur de volume, comme une app ordinaire. La
+    // sourdine garde le volume ; toucher au curseur réactive le son.
+    const volumeControl = el("div", "mn-volume");
+    const volumeSlider = el("input", undefined, "setting-volume");
+    volumeSlider.type = "range";
+    volumeSlider.min = "0";
+    volumeSlider.max = String(MAX_VOLUME);
+    volumeSlider.step = String(VOLUME_STEP);
+    volumeSlider.value = String(getSettings().volume);
+    volumeSlider.setAttribute("aria-label", t("settings.volume"));
+    const toggleMute = (): void => {
+      const settings = getSettings();
+      if (!settings.muted && settings.volume === 0) {
+        // Le curseur à zéro n'a rien à retrouver : la sourdine rend un volume audible.
+        updateSettings({ volume: UNMUTED_VOLUME });
+        volumeSlider.value = String(UNMUTED_VOLUME);
+      } else {
+        if (!settings.muted) {
+          countAction(TelemetryAction.VolumeMute);
+        }
+        updateSettings({ muted: !settings.muted });
+      }
+      refreshMuteToggle(muteToggle);
+    };
+    const muteToggle = menuButton("", toggleMute);
+    muteToggle.dataset.testid = "setting-mute";
+    refreshMuteToggle(muteToggle);
+    // Au clavier et à la manette, ↑ ↓ arrivent sur le curseur, qui garde ← → pour lui : valider
+    // dessus coupe ou remet le son, sans avoir à rejoindre le bouton. Entrée au clavier ; à la
+    // manette, A produit un `click()` synthétique (`detail` nul), qu'un vrai clic de souris n'est pas.
+    volumeSlider.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        toggleMute();
+      }
+    });
+    volumeSlider.addEventListener("click", (event) => {
+      if (event.detail === 0) {
+        toggleMute();
+      }
+    });
+    volumeSlider.addEventListener("input", () => {
+      updateSettings({ volume: Number(volumeSlider.value), muted: false });
+      refreshMuteToggle(muteToggle);
+    });
+    // Une fois par ouverture du panneau : au clavier et à la manette, `change` part à chaque cran.
+    volumeSlider.addEventListener("change", () => countAction(TelemetryAction.VolumeChange), {
+      once: true,
+    });
+    volumeControl.append(muteToggle, volumeSlider);
+    rows.append(row(t("settings.volume"), volumeControl));
+
+    const turnCriesToggle = menuButton(t(`settings.turnCries.${getSettings().turnCries}`), () => {
+      const turnCries = nextInCycle(TURN_CRIES, getSettings().turnCries);
+      countAction(TURN_CRIES_ACTION[turnCries]);
+      updateSettings({ turnCries });
+      turnCriesToggle.textContent = t(`settings.turnCries.${turnCries}`);
+    });
+    turnCriesToggle.dataset.testid = "setting-turn-cries";
+    rows.append(row(t("settings.turnCries"), turnCriesToggle));
 
     const controls = menuButton(t("settings.configure"), onOpenControls);
     controls.dataset.testid = "setting-controls";

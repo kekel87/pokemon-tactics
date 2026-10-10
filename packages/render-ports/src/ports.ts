@@ -6,6 +6,7 @@ import type {
   MoveDefinition,
   Position,
   SemiInvulnerableDisplay,
+  StatusType,
 } from "@pokemon-tactic/core";
 import { AuraKind } from "@pokemon-tactic/core";
 import type { AttackOptions, AttackPlayback } from "./combat-scene.js";
@@ -52,6 +53,7 @@ export const PresentationCueKind = {
   AttackEnd: "attack-end",
   Faint: "faint",
   Effect: "effect",
+  TurnStart: "turn-start",
 } as const;
 export type PresentationCueKind = (typeof PresentationCueKind)[keyof typeof PresentationCueKind];
 
@@ -80,6 +82,8 @@ export type PresentationCue =
       targetId: string;
       effectiveness: number;
       critical: boolean;
+      /** Rank among the blows landing on this same beat (an area attack's targets), from 0. */
+      rankOnBeat: number;
     }
   /** A sprite effect starts on a Pokémon. */
   | {
@@ -100,7 +104,14 @@ export type PresentationCue =
       form: MoveEffectForm;
       durationMs: number;
       impactMs: number;
-    };
+      /** The status a `Status` effect shows. */
+      status?: StatusType;
+    }
+  /**
+   * A Pokémon's turn begins (plan 238), the camera on it — not the battle's first turn, which is its
+   * opening. `local`: a seat played at this screen controls it.
+   */
+  | { kind: typeof PresentationCueKind.TurnStart; pokemonId: string; local: boolean };
 
 /** Which highlight layer the board should paint (mapped to the renderer's HighlightKind by the adapter). */
 export type BoardHighlight = "move" | "attack" | "retreat" | "enemy";
@@ -567,6 +578,12 @@ export interface BattleOrchestratorConfig {
    * (lot 3) attach to, instead of hard-coded delays. The move workshop draws its sequence from them.
    */
   onPresentationCue?: (cue: PresentationCue) => void;
+  /**
+   * Resolves once what the cues started has played out — the attack's sounds, a K.O. cry (plan
+   * 238). The combat waits on it at an attack's end and before a K.O. fall, so a sound is never cut
+   * by the next beat. Absent: nothing to wait for.
+   */
+  presentationSettled?: () => Promise<void>;
   /**
    * Une action que le jouever **local** vient de soumettre, à diffuser aux pairs (plan 201).
    * `actionIndex` est le nombre d'actions enregistrées avant celle-ci.

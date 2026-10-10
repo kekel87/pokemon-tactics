@@ -119,3 +119,8 @@ __pycache__/
 # Origins), regeneratable via `pnpm build-move-effects`. Only the packed sheet
 # (packages/app/public/assets/effects/move-effects.png) and its generated index ship.
 assets-src/effects/
+
+# Sound sources (plan 238): PokeRogue move animations + sounds (mostly Pokémon Reborn rips) and
+# PokeAPI cries, regeneratable via `pnpm build-audio`. Only the packed bundle
+# (packages/app/public/assets/audio/sounds.bin + sounds-manifest.json) ships.
+assets-src/audio/

@@ -1,0 +1,2323 @@
+{
+  "sounds": {
+    "cry:abra": [0, 15091, 1189],
+    "cry:aerodactyl": [15091, 17599, 1408],
+    "cry:alakazam": [32690, 20107, 1596],
+    "cry:arbok": [52797, 12583, 970],
+    "cry:arcanine": [65380, 12583, 970],
+    "cry:articuno": [77963, 16972, 1346],
+    "cry:beedrill": [94935, 14464, 1127],
+    "cry:bellsprout": [109399, 6941, 501],
+    "cry:blastoise": [116340, 13837, 1096],
+    "cry:bulbasaur": [130177, 11956, 939],
+    "cry:butterfree": [142133, 9449, 720],
+    "cry:caterpie": [151582, 7568, 564],
+    "cry:chansey": [159150, 10703, 814],
+    "cry:charizard": [169853, 12897, 1002],
+    "cry:charmander": [182750, 9449, 720],
+    "cry:charmeleon": [192199, 12897, 1002],
+    "cry:clefable": [205096, 8195, 626],
+    "cry:clefairy": [213291, 7568, 564],
+    "cry:cloyster": [220859, 14464, 1127],
+    "cry:cubone": [235323, 9449, 720],
+    "cry:dewgong": [244772, 13837, 1096],
+    "cry:diglett": [258609, 13524, 1064],
+    "cry:ditto": [272133, 8822, 658],
+    "cry:dodrio": [280955, 14778, 1158],
+    "cry:doduo": [295733, 13524, 1064],
+    "cry:dragonair": [309257, 12583, 970],
+    "cry:dragonite": [321840, 13524, 1064],
+    "cry:dratini": [335364, 9449, 720],
+    "cry:drowzee": [344813, 18853, 1502],
+    "cry:dugtrio": [363666, 15718, 1252],
+    "cry:eevee": [379384, 10076, 783],
+    "cry:ekans": [389460, 14464, 1127],
+    "cry:electabuzz": [403924, 18226, 1440],
+    "cry:electrode": [422150, 16972, 1346],
+    "cry:exeggcute": [439122, 14778, 1158],
+    "cry:exeggutor": [453900, 20107, 1596],
+    "cry:farfetch-d": [474007, 7568, 564],
+    "cry:fearow": [481575, 11956, 939],
+    "cry:flareon": [493531, 16972, 1346],
+    "cry:gastly": [510503, 17285, 1377],
+    "cry:gengar": [527788, 11016, 845],
+    "cry:geodude": [538804, 16972, 1346],
+    "cry:gloom": [555776, 9135, 689],
+    "cry:golbat": [564911, 13210, 1033],
+    "cry:goldeen": [578121, 7881, 595],
+    "cry:golduck": [586002, 9449, 720],
+    "cry:golem": [595451, 14464, 1127],
+    "cry:graveler": [609915, 19480, 1565],
+    "cry:grimer": [629395, 7881, 595],
+    "cry:growlithe": [637276, 9762, 751],
+    "cry:gyarados": [647038, 13837, 1096],
+    "cry:haunter": [660875, 16345, 1283],
+    "cry:hitmonchan": [677220, 12583, 970],
+    "cry:hitmonlee": [689803, 12897, 1002],
+    "cry:horsea": [702700, 7568, 564],
+    "cry:hypno": [710268, 19480, 1565],
+    "cry:ivysaur": [729748, 11329, 877],
+    "cry:jigglypuff": [741077, 5374, 372],
+    "cry:jolteon": [746451, 11643, 908],
+    "cry:jynx": [758094, 28570, 2305],
+    "cry:kabuto": [786664, 9762, 751],
+    "cry:kabutops": [796426, 10703, 814],
+    "cry:kadabra": [807129, 15091, 1189],
+    "cry:kakuna": [822220, 12897, 1002],
+    "cry:kangaskhan": [835117, 12897, 1002],
+    "cry:kingler": [848014, 15718, 1252],
+    "cry:koffing": [863732, 13210, 1033],
+    "cry:krabby": [876942, 15718, 1252],
+    "cry:lapras": [892660, 11329, 877],
+    "cry:lickitung": [903989, 10076, 783],
+    "cry:machamp": [914065, 11643, 908],
+    "cry:machoke": [925708, 9449, 720],
+    "cry:machop": [935157, 10703, 814],
+    "cry:magikarp": [945860, 15405, 1221],
+    "cry:magmar": [961265, 13837, 1096],
+    "cry:magnemite": [975102, 13210, 1033],
+    "cry:magneton": [988312, 16972, 1346],
+    "cry:mankey": [1005284, 11329, 877],
+    "cry:marowak": [1016613, 11016, 845],
+    "cry:meowth": [1027629, 8195, 626],
+    "cry:metapod": [1035824, 15405, 1221],
+    "cry:mew": [1051229, 18853, 1502],
+    "cry:mewtwo": [1070082, 20107, 1596],
+    "cry:moltres": [1090189, 16972, 1346],
+    "cry:mr-mime": [1107161, 13210, 1033],
+    "cry:muk": [1120371, 11329, 877],
+    "cry:nidoking": [1131700, 17285, 1377],
+    "cry:nidoqueen": [1148985, 11643, 908],
+    "cry:nidoran-f": [1160628, 7881, 595],
+    "cry:nidoran-m": [1168509, 7881, 595],
+    "cry:nidorina": [1176390, 9449, 720],
+    "cry:nidorino": [1185839, 10703, 814],
+    "cry:ninetales": [1196542, 16345, 1283],
+    "cry:oddish": [1212887, 11329, 877],
+    "cry:omanyte": [1224216, 10703, 814],
+    "cry:omastar": [1234919, 10076, 783],
+    "cry:onix": [1244995, 17285, 1377],
+    "cry:paras": [1262280, 18853, 1502],
+    "cry:parasect": [1281133, 21360, 1721],
+    "cry:persian": [1302493, 12897, 1002],
+    "cry:pidgeot": [1315390, 12897, 1002],
+    "cry:pidgeotto": [1328287, 11016, 845],
+    "cry:pidgey": [1339303, 5374, 372],
+    "cry:pikachu": [1344677, 11956, 927],
+    "cry:pinsir": [1356633, 9449, 720],
+    "cry:poliwag": [1366082, 8822, 658],
+    "cry:poliwhirl": [1374904, 6314, 470],
+    "cry:poliwrath": [1381218, 10076, 783],
+    "cry:ponyta": [1391294, 19166, 1534],
+    "cry:porygon": [1410460, 13837, 1096],
+    "cry:primeape": [1424297, 11956, 939],
+    "cry:psyduck": [1436253, 11016, 845],
+    "cry:raichu": [1447269, 14464, 1127],
+    "cry:rapidash": [1461733, 16345, 1283],
+    "cry:raticate": [1478078, 7254, 532],
+    "cry:rattata": [1485332, 6000, 439],
+    "cry:rhydon": [1491332, 16972, 1346],
+    "cry:rhyhorn": [1508304, 14464, 1127],
+    "cry:sandshrew": [1522768, 7568, 564],
+    "cry:sandslash": [1530336, 9449, 720],
+    "cry:scyther": [1539785, 10076, 783],
+    "cry:seadra": [1549861, 7881, 595],
+    "cry:seaking": [1557742, 12583, 970],
+    "cry:seel": [1570325, 12583, 970],
+    "cry:shellder": [1582908, 11329, 877],
+    "cry:slowbro": [1594237, 10076, 783],
+    "cry:slowpoke": [1604313, 6314, 470],
+    "cry:snorlax": [1610627, 5687, 407],
+    "cry:spearow": [1616314, 11956, 939],
+    "cry:squirtle": [1628270, 11329, 877],
+    "cry:starmie": [1639599, 14778, 1158],
+    "cry:staryu": [1654377, 12897, 1002],
+    "cry:tangela": [1667274, 11956, 939],
+    "cry:tauros": [1679230, 13524, 1064],
+    "cry:tentacool": [1692754, 13837, 1096],
+    "cry:tentacruel": [1706591, 17285, 1377],
+    "cry:vaporeon": [1723876, 20420, 1628],
+    "cry:venomoth": [1744296, 13210, 1033],
+    "cry:venonat": [1757506, 14464, 1127],
+    "cry:venusaur": [1771970, 13524, 1064],
+    "cry:victreebel": [1785494, 13524, 1064],
+    "cry:vileplume": [1799018, 15718, 1252],
+    "cry:voltorb": [1814736, 16345, 1283],
+    "cry:vulpix": [1831081, 15718, 1252],
+    "cry:wartortle": [1846799, 12897, 1002],
+    "cry:weedle": [1859696, 11329, 877],
+    "cry:weepinbell": [1871025, 11329, 877],
+    "cry:weezing": [1882354, 14464, 1127],
+    "cry:wigglytuff": [1896818, 6314, 470],
+    "cry:zapdos": [1903132, 11643, 908],
+    "cry:zubat": [1914775, 12897, 1002],
+    "effect:stat-down": [1927672, 16658, 1326],
+    "effect:stat-up": [1944330, 16658, 1319],
+    "hit:normal": [1960988, 9449, 715],
+    "hit:strong": [1970437, 18853, 1510],
+    "hit:weak": [1989290, 6627, 487],
+    "move:Blow1.m4a": [1995917, 2928, 384],
+    "move:Blow3.m4a": [1998845, 2496, 291],
+    "move:Blow4.m4a": [2001341, 5088, 744],
+    "move:Blow5.m4a": [2006429, 2784, 338],
+    "move:Blow6.m4a": [2009213, 4656, 662],
+    "move:Darkness6.m4a": [2013869, 3216, 430],
+    "move:Explosion4.m4a": [2017085, 9552, 1487],
+    "move:Fire1.m4a": [2026637, 6240, 929],
+    "move:Fire2.m4a": [2032877, 8832, 1347],
+    "move:Fire5.m4a": [2041709, 8832, 1347],
+    "move:GEN8- Exclaim.wav": [2050541, 2829, 365],
+    "move:GEN8- Revelation Dance 1.m4a": [2053370, 6384, 953],
+    "move:Ice8.m4a": [2059754, 10704, 1672],
+    "move:Poison.m4a": [2070458, 10416, 1626],
+    "move:PRSFX- Absorb1.wav": [2080874, 2829, 362],
+    "move:PRSFX- Absorb2.wav": [2083703, 4125, 595],
+    "move:PRSFX- Acid Armor1.wav": [2087828, 8733, 1355],
+    "move:PRSFX- Acid Armor2.wav": [2096561, 3117, 419],
+    "move:PRSFX- Acid Spray.wav": [2099678, 9021, 1394],
+    "move:PRSFX- Acid.wav": [2108699, 5997, 905],
+    "move:PRSFX- Acrobatics1.wav": [2114696, 2685, 342],
+    "move:PRSFX- Acrobatics2.wav": [2117381, 3981, 574],
+    "move:PRSFX- Acrobatics3.wav": [2121362, 3837, 530],
+    "move:PRSFX- Acupressure1.wav": [2125199, 2541, 316],
+    "move:PRSFX- Acupressure2.wav": [2127740, 5565, 833],
+    "move:PRSFX- Aerial Ace.wav": [2133305, 5853, 886],
+    "move:PRSFX- After You1.wav": [2139158, 4413, 639],
+    "move:PRSFX- After You2.wav": [2143571, 5709, 850],
+    "move:PRSFX- Agility.wav": [2149280, 6573, 999],
+    "move:PRSFX- Air Cutter1.wav": [2155853, 8013, 1227],
+    "move:PRSFX- Air Cutter2.wav": [2163866, 4269, 611],
+    "move:PRSFX- Air Slash1.wav": [2168135, 5853, 880],
+    "move:PRSFX- Air Slash2.wav": [2173988, 3549, 494],
+    "move:PRSFX- Air Slash3.wav": [2177537, 6429, 982],
+    "move:PRSFX- Ally Switch.wav": [2183966, 5133, 753],
+    "move:PRSFX- Amnesia.wav": [2189099, 6285, 953],
+    "move:PRSFX- Ancient Power1.wav": [2195384, 8877, 1371],
+    "move:PRSFX- Ancient Power2.wav": [2204261, 3693, 521],
+    "move:PRSFX- Aqua Jet.wav": [2207954, 5853, 881],
+    "move:PRSFX- Aqua Ring1.wav": [2213807, 6302, 953],
+    "move:PRSFX- Aqua Ring2.wav": [2220109, 7005, 1059],
+    "move:PRSFX- Aqua Tail.wav": [2227114, 3693, 518],
+    "move:PRSFX- Aromatherapy.wav": [2230807, 19101, 3083],
+    "move:PRSFX- Assurance.wav": [2249908, 3117, 430],
+    "move:PRSFX- Astonish1.wav": [2253025, 4125, 598],
+    "move:PRSFX- Astonish2.wav": [2257150, 2829, 368],
+    "move:PRSFX- Attract.wav": [2259979, 7869, 1206],
+    "move:PRSFX- Attract1.wav": [2267848, 4269, 621],
+    "move:PRSFX- Attract2.wav": [2272117, 6141, 930],
+    "move:PRSFX- Aura Sphere1.wav": [2278258, 7725, 1196],
+    "move:PRSFX- Aura Sphere2.wav": [2285983, 10029, 1570],
+    "move:PRSFX- Aurora Beam.wav": [2296012, 10029, 1568],
+    "move:PRSFX- Avalanche.wav": [2306041, 8013, 1231],
+    "move:PRSFX- Baby Doll Eyes.wav": [2314054, 4989, 740],
+    "move:PRSFX- Barrier.wav": [2319043, 8301, 1276],
+    "move:PRSFX- Baton Pass1.wav": [2327344, 9453, 1467],
+    "move:PRSFX- Baton Pass2.wav": [2336797, 4269, 603],
+    "move:PRSFX- Beak Blast2.wav": [2341066, 2973, 393],
+    "move:PRSFX- Beak Blast3.wav": [2344039, 8013, 1227],
+    "move:PRSFX- Beak Blast4.wav": [2352052, 6573, 1002],
+    "move:PRSFX- Beat Up.wav": [2358625, 2685, 349],
+    "move:PRSFX- Belch1.wav": [2361310, 5853, 885],
+    "move:PRSFX- Belch2.wav": [2367163, 5277, 792],
+    "move:PRSFX- Belch3.wav": [2372440, 7149, 1090],
+    "move:PRSFX- Belly Drum.wav": [2379589, 7725, 1181],
+    "move:PRSFX- Bind.wav": [2387314, 4557, 650],
+    "move:PRSFX- Bite.wav": [2391871, 2973, 408],
+    "move:PRSFX- Blast Burn.wav": [2394844, 15357, 2464],
+    "move:PRSFX- Blast Burn2.wav": [2410201, 10461, 1646],
+    "move:PRSFX- Blast Burn3.wav": [2420662, 15069, 2402],
+    "move:PRSFX- Blaze Kick1.wav": [2435731, 5709, 846],
+    "move:PRSFX- Blaze Kick2.wav": [2441440, 3261, 440],
+    "move:PRSFX- Blizzard.wav": [2444701, 17373, 2805],
+    "move:PRSFX- Block.wav": [2462074, 4413, 638],
+    "move:PRSFX- Body Slam1.wav": [2466487, 2685, 338],
+    "move:PRSFX- Body Slam2.wav": [2469172, 5277, 779],
+    "move:PRSFX- Bone Rush1.wav": [2474449, 2685, 357],
+    "move:PRSFX- Bone Rush2.wav": [2477134, 1550, 156],
+    "move:PRSFX- Bonemerang1.wav": [2478684, 5421, 799],
+    "move:PRSFX- Bonemerang2.wav": [2484105, 2541, 317],
+    "move:PRSFX- Bounce3.wav": [2486646, 9741, 1517],
+    "move:PRSFX- Bounce4.wav": [2496387, 1965, 234],
+    "move:PRSFX- Brave Bird1.wav": [2498352, 13773, 2186],
+    "move:PRSFX- Brave Bird2.wav": [2512125, 5709, 851],
+    "move:PRSFX- Brick Break1.wav": [2517834, 2973, 386],
+    "move:PRSFX- Brick Break2.wav": [2520807, 6141, 924],
+    "move:PRSFX- Brine.wav": [2526948, 7725, 1179],
+    "move:PRSFX- Brutal Swing1.wav": [2534673, 5421, 794],
+    "move:PRSFX- Brutal Swing2.wav": [2540094, 18525, 2980],
+    "move:PRSFX- Brutal Swing3.wav": [2558619, 6429, 984],
+    "move:PRSFX- Bubblebeam.wav": [2565048, 10173, 1605],
+    "move:PRSFX- Bug Bite.wav": [2575221, 2973, 407],
+    "move:PRSFX- Bug Buzz.wav": [2578194, 8877, 1392],
+    "move:PRSFX- Bulk Up1.wav": [2587071, 3837, 530],
+    "move:PRSFX- Bulk Up2.wav": [2590908, 6573, 992],
+    "move:PRSFX- Bulldoze.wav": [2597481, 10046, 1563],
+    "move:PRSFX- Bullet Punch.wav": [2607527, 5277, 790],
+    "move:PRSFX- Bullet Seed.wav": [2612804, 4701, 694],
+    "move:PRSFX- Burn Up1.wav": [2617505, 5709, 846],
+    "move:PRSFX- Burn Up2.wav": [2623214, 15069, 2402],
+    "move:PRSFX- Burn.wav": [2638283, 2973, 393],
+    "move:PRSFX- Calm Mind.wav": [2641256, 8301, 1288],
+    "move:PRSFX- Charge Beam.wav": [2649557, 16941, 2730],
+    "move:PRSFX- Charge.wav": [2666498, 10029, 1562],
+    "move:PRSFX- Charm.wav": [2676527, 3981, 556],
+    "move:PRSFX- Circle Throw1.wav": [2680508, 2973, 396],
+    "move:PRSFX- Circle Throw2.wav": [2683481, 5565, 834],
+    "move:PRSFX- Clear Smog.wav": [2689046, 19245, 3105],
+    "move:PRSFX- Close Combat.wav": [2708291, 4701, 696],
+    "move:PRSFX- Coil.wav": [2712992, 6429, 974],
+    "move:PRSFX- Confide.wav": [2719421, 6861, 1039],
+    "move:PRSFX- Confuse Ray.wav": [2726282, 7005, 1076],
+    "move:PRSFX- Confused.wav": [2733287, 5133, 747],
+    "move:PRSFX- Confusion.wav": [2738420, 4413, 642],
+    "move:PRSFX- Conversion.wav": [2742833, 8013, 1236],
+    "move:PRSFX- Conversion2.wav": [2750846, 5565, 818],
+    "move:PRSFX- Cosmic Power.wav": [2756411, 15357, 2456],
+    "move:PRSFX- Counter1.wav": [2771768, 2253, 269],
+    "move:PRSFX- Counter2.wav": [2774021, 5133, 746],
+    "move:PRSFX- Covet1.wav": [2779154, 5438, 813],
+    "move:PRSFX- Crabhammer.wav": [2784592, 6717, 1013],
+    "move:PRSFX- Cross Chop1.wav": [2791309, 7005, 1058],
+    "move:PRSFX- Cross Chop2.wav": [2798314, 5421, 806],
+    "move:PRSFX- Cross Poison1.wav": [2803735, 7725, 1181],
+    "move:PRSFX- Cross Poison2.wav": [2811460, 3693, 520],
+    "move:PRSFX- Crunch.wav": [2815153, 5997, 891],
+    "move:PRSFX- Crush Claw.wav": [2821150, 4989, 726],
+    "move:PRSFX- Curse.wav": [2826139, 10605, 1664],
+    "move:PRSFX- Cut.wav": [2836744, 3981, 555],
+    "move:PRSFX- Dark Pulse1.wav": [2840725, 6141, 935],
+    "move:PRSFX- Dark Pulse2.wav": [2846866, 17805, 2869],
+    "move:PRSFX- Dazzling Gleam.wav": [2864671, 17085, 2757],
+    "move:PRSFX- Defense Curl1.wav": [2881756, 3693, 525],
+    "move:PRSFX- Defog.wav": [2885449, 9597, 1503],
+    "move:PRSFX- Detect.wav": [2895046, 4557, 666],
+    "move:PRSFX- Dig2.wav": [2899603, 3693, 521],
+    "move:PRSFX- Disable.wav": [2903296, 3693, 511],
+    "move:PRSFX- Discharge.wav": [2906989, 21405, 3467],
+    "move:PRSFX- Dive2.wav": [2928394, 3117, 426],
+    "move:PRSFX- Dive3.wav": [2931511, 5997, 893],
+    "move:PRSFX- Dizzy Punch1.wav": [2937508, 3693, 528],
+    "move:PRSFX- Double Edge1.wav": [2941201, 8445, 1308],
+    "move:PRSFX- Double Edge2.wav": [2949646, 4125, 594],
+    "move:PRSFX- Double Hit.wav": [2953771, 5277, 792],
+    "move:PRSFX- Double Kick.wav": [2959048, 2397, 306],
+    "move:PRSFX- Double Team.wav": [2961445, 5294, 775],
+    "move:PRSFX- Draco Meteor1.wav": [2966739, 9741, 1516],
+    "move:PRSFX- Draco Meteor2.wav": [2976480, 15789, 2530],
+    "move:PRSFX- Dragon Breath.wav": [2992269, 5853, 885],
+    "move:PRSFX- Dragon Claw.wav": [2998122, 5421, 814],
+    "move:PRSFX- Dragon Dance.wav": [3003543, 12189, 1933],
+    "move:PRSFX- Dragon Pulse.wav": [3015732, 18813, 3039],
+    "move:PRSFX- Dragon Rush1.wav": [3034545, 5997, 906],
+    "move:PRSFX- Dragon Rush2.wav": [3040542, 7005, 1072],
+    "move:PRSFX- Dragon Tail.wav": [3047547, 9165, 1438],
+    "move:PRSFX- Drain Punch1.wav": [3056712, 2541, 332],
+    "move:PRSFX- Drain Punch2.wav": [3059253, 6141, 930],
+    "move:PRSFX- Draining Kiss1.wav": [3065394, 7149, 1100],
+    "move:PRSFX- Draining Kiss2.wav": [3072543, 4557, 658],
+    "move:PRSFX- Dream Eater1.wav": [3077100, 12189, 1939],
+    "move:PRSFX- Dream Eater2.wav": [3089289, 4269, 618],
+    "move:PRSFX- Dream Eater3.wav": [3093558, 8301, 1283],
+    "move:PRSFX- Drill Peck.wav": [3101859, 8445, 1308],
+    "move:PRSFX- Drill Run.wav": [3110304, 10749, 1698],
+    "move:PRSFX- Dual Chop.wav": [3121053, 5853, 866],
+    "move:PRSFX- Dynamic Punch1.wav": [3126906, 7437, 1134],
+    "move:PRSFX- Dynamic Punch2.wav": [3134343, 6861, 1037],
+    "move:PRSFX- Earth Power.wav": [3141204, 23150, 3752],
+    "move:PRSFX- Earthquake1.wav": [3164354, 6285, 960],
+    "move:PRSFX- Earthquake2.wav": [3170639, 10046, 1563],
+    "move:PRSFX- Echoed Voice.wav": [3180685, 14925, 2389],
+    "move:PRSFX- Eerie Impulse.wav": [3195610, 7293, 1115],
+    "move:PRSFX- Electric Terrain.wav": [3202903, 9165, 1434],
+    "move:PRSFX- Electric Terrain2.wav": [3212068, 10029, 1580],
+    "move:PRSFX- Electro Ball2.wav": [3222097, 10029, 1571],
+    "move:PRSFX- Electroweb1.wav": [3232126, 4845, 707],
+    "move:PRSFX- Electroweb2.wav": [3236971, 4413, 636],
+    "move:PRSFX- Ember.wav": [3241384, 4701, 682],
+    "move:PRSFX- Encore.wav": [3246085, 17661, 2837],
+    "move:PRSFX- Endeavor1.wav": [3263746, 2397, 293],
+    "move:PRSFX- Endeavor2.wav": [3266143, 2397, 310],
+    "move:PRSFX- Endure.wav": [3268540, 10893, 1726],
+    "move:PRSFX- Energy Ball1.wav": [3279433, 4989, 734],
+    "move:PRSFX- Energy Ball2.wav": [3284422, 14205, 2261],
+    "move:PRSFX- Explosion.wav": [3298627, 9741, 1515],
+    "move:PRSFX- Extrasensory.wav": [3308368, 11342, 1790],
+    "move:PRSFX- Extremespeed1.wav": [3319710, 4701, 685],
+    "move:PRSFX- Extremespeed2.wav": [3324411, 2973, 386],
+    "move:PRSFX- Facade1.wav": [3327384, 2685, 349],
+    "move:PRSFX- Facade2.wav": [3330069, 2973, 399],
+    "move:PRSFX- Fake Out1.wav": [3333042, 12045, 1913],
+    "move:PRSFX- Fake Out2.wav": [3345087, 1677, 192],
+    "move:PRSFX- Fake Tears.wav": [3346764, 4125, 593],
+    "move:PRSFX- False Swipe.wav": [3350889, 2685, 340],
+    "move:PRSFX- Featherdance1.wav": [3353574, 5277, 788],
+    "move:PRSFX- Featherdance2.wav": [3358851, 11342, 1790],
+    "move:PRSFX- Feint Attack1.wav": [3370193, 7437, 1139],
+    "move:PRSFX- Feint Attack2.wav": [3377630, 4125, 588],
+    "move:PRSFX- Feint1.wav": [3381755, 1965, 238],
+    "move:PRSFX- Feint2.wav": [3383720, 2397, 302],
+    "move:PRSFX- Fell Stinger1.wav": [3386117, 2253, 285],
+    "move:PRSFX- Fell Stinger2.wav": [3388370, 6141, 915],
+    "move:PRSFX- Fell Stinger3.wav": [3394511, 10029, 1580],
+    "move:PRSFX- Final Gambit1.wav": [3404540, 18381, 2961],
+    "move:PRSFX- Final Gambit2.wav": [3422921, 5997, 890],
+    "move:PRSFX- Fire Blast.wav": [3428918, 24141, 3917],
+    "move:PRSFX- Fire Fang1.wav": [3453059, 6573, 1002],
+    "move:PRSFX- Fire Fang2.wav": [3459632, 2973, 408],
+    "move:PRSFX- Fire Pledge.wav": [3462605, 5565, 825],
+    "move:PRSFX- Fire Punch1.wav": [3468170, 3837, 541],
+    "move:PRSFX- Fire Punch2.wav": [3472007, 5133, 760],
+    "move:PRSFX- Fire Punch3.wav": [3477140, 2973, 393],
+    "move:PRSFX- Fire Spin.wav": [3480113, 4125, 599],
+    "move:PRSFX- Fissure.wav": [3484238, 15501, 2485],
+    "move:PRSFX- Flail.wav": [3499739, 3693, 516],
+    "move:PRSFX- Flame Charge1.wav": [3503432, 5565, 825],
+    "move:PRSFX- Flame Charge2.wav": [3508997, 4701, 675],
+    "move:PRSFX- Flame Wheel1.wav": [3513698, 6717, 1028],
+    "move:PRSFX- Flame Wheel2.wav": [3520415, 5133, 760],
+    "move:PRSFX- Flamethrower.wav": [3525548, 5853, 885],
+    "move:PRSFX- Flare Blitz1.wav": [3531401, 6141, 922],
+    "move:PRSFX- Flare Blitz2.wav": [3537542, 4269, 618],
+    "move:PRSFX- Flare Blitz3.wav": [3541811, 3261, 454],
+    "move:PRSFX- Flash Cannon.wav": [3545072, 19965, 3224],
+    "move:PRSFX- Flash.wav": [3565037, 4269, 603],
+    "move:PRSFX- Flatter.wav": [3569306, 17661, 2837],
+    "move:PRSFX- Fling1.wav": [3586967, 2109, 261],
+    "move:PRSFX- Fling2.wav": [3589076, 2541, 314],
+    "move:PRSFX- Fly2.wav": [3591617, 12189, 1939],
+    "move:PRSFX- Focus Blast1.wav": [3603806, 8589, 1327],
+    "move:PRSFX- Focus Energy.wav": [3612395, 5421, 814],
+    "move:PRSFX- Focus Punch1.wav": [3617816, 10893, 1726],
+    "move:PRSFX- Focus Punch2.wav": [3628709, 4413, 640],
+    "move:PRSFX- Follow Me.wav": [3633122, 8733, 1361],
+    "move:PRSFX- Force Palm1.wav": [3641855, 2973, 396],
+    "move:PRSFX- Force Palm2.wav": [3644828, 2397, 312],
+    "move:PRSFX- Foul Play1.wav": [3647225, 2685, 358],
+    "move:PRSFX- Foul Play2.wav": [3649910, 5133, 754],
+    "move:PRSFX- Freeze Dry1.wav": [3655043, 4125, 587],
+    "move:PRSFX- Freeze Dry2.wav": [3659168, 4845, 720],
+    "move:PRSFX- Freeze Dry3.wav": [3664013, 4845, 720],
+    "move:PRSFX- Freeze Shock1.wav": [3668858, 8877, 1376],
+    "move:PRSFX- Frenzy Plant1.wav": [3677735, 3998, 573],
+    "move:PRSFX- Frenzy Plant2.wav": [3681733, 5277, 782],
+    "move:PRSFX- Frozen.wav": [3687010, 4845, 720],
+    "move:PRSFX- Fury Attack.wav": [3691855, 4125, 587],
+    "move:PRSFX- Fury Cutter.wav": [3695980, 3981, 558],
+    "move:PRSFX- Fury Swipes.wav": [3699961, 2541, 317],
+    "move:PRSFX- Future Sight2.wav": [3702502, 19101, 3095],
+    "move:PRSFX- Gastro Acid.wav": [3721603, 6573, 987],
+    "move:PRSFX- Giga Drain1.wav": [3728176, 7725, 1178],
+    "move:PRSFX- Giga Drain2.wav": [3735901, 6141, 930],
+    "move:PRSFX- Giga Impact1.wav": [3742042, 8157, 1250],
+    "move:PRSFX- Giga Impact2.wav": [3750199, 7437, 1142],
+    "move:PRSFX- Glare.wav": [3757636, 7149, 1098],
+    "move:PRSFX- Grass Knot1.wav": [3764785, 7437, 1151],
+    "move:PRSFX- Grass Knot2.wav": [3772222, 4845, 704],
+    "move:PRSFX- Grass Pledge1.wav": [3777067, 4269, 622],
+    "move:PRSFX- Grass Pledge2.wav": [3781336, 6141, 922],
+    "move:PRSFX- Grassy Terrain.wav": [3787477, 26589, 4343],
+    "move:PRSFX- Gravity.wav": [3814066, 13485, 2138],
+    "move:PRSFX- Growth.wav": [3827551, 5997, 906],
+    "move:PRSFX- Grudge.wav": [3833548, 5709, 858],
+    "move:PRSFX- Guard Split.wav": [3839257, 8445, 1308],
+    "move:PRSFX- Guard Swap.wav": [3847702, 8445, 1308],
+    "move:PRSFX- Guillotine1.wav": [3856147, 6861, 1054],
+    "move:PRSFX- Guillotine2.wav": [3863008, 6285, 943],
+    "move:PRSFX- Gunk Shot.wav": [3869293, 20685, 3340],
+    "move:PRSFX- Gust.wav": [3889978, 16077, 2584],
+    "move:PRSFX- Gyro Ball1.wav": [3906055, 3549, 501],
+    "move:PRSFX- Gyro Ball2.wav": [3909604, 10893, 1706],
+    "move:PRSFX- HailMove.wav": [3920497, 4269, 603],
+    "move:PRSFX- Hammer Arm1.wav": [3924766, 3405, 464],
+    "move:PRSFX- Hammer Arm2.wav": [3928171, 7437, 1134],
+    "move:PRSFX- Harden.wav": [3935608, 4557, 654],
+    "move:PRSFX- Haze.wav": [3940165, 8877, 1380],
+    "move:PRSFX- Headbutt2.wav": [3949042, 3117, 417],
+    "move:PRSFX- Heal Order2.wav": [3952159, 10461, 1650],
+    "move:PRSFX- Healing Pulse.wav": [3962620, 13485, 2151],
+    "move:PRSFX- Healing Wish.wav": [3976105, 14493, 2317],
+    "move:PRSFX- Health Up.wav": [3990598, 4557, 650],
+    "move:PRSFX- Heart Swap.wav": [3995155, 8445, 1308],
+    "move:PRSFX- Heat Crash.wav": [4003600, 9885, 1540],
+    "move:PRSFX- Heat Wave.wav": [4013485, 13485, 2138],
+    "move:PRSFX- Heavy Slam1.wav": [4026970, 3837, 535],
+    "move:PRSFX- Heavy Slam2.wav": [4030807, 7869, 1215],
+    "move:PRSFX- Helping Hand.wav": [4038676, 3981, 558],
+    "move:PRSFX- Hex.wav": [4042657, 7005, 1058],
+    "move:PRSFX- Hi Jump Kick1.wav": [4049662, 3837, 535],
+    "move:PRSFX- Hi Jump Kick2.wav": [4053499, 7437, 1134],
+    "move:PRSFX- High Horse Power1.wav": [4060936, 12189, 1939],
+    "move:PRSFX- High Horse Power2.wav": [4073125, 4701, 678],
+    "move:PRSFX- Horn Attack.wav": [4077826, 2541, 321],
+    "move:PRSFX- Horn Drill1.wav": [4080367, 10749, 1698],
+    "move:PRSFX- Horn Drill2.wav": [4091116, 4701, 683],
+    "move:PRSFX- Horn Drill3.wav": [4095817, 19821, 3205],
+    "move:PRSFX- Hurricane.wav": [4115638, 23853, 3882],
+    "move:PRSFX- Hydro Cannon.wav": [4139491, 14510, 2312],
+    "move:PRSFX- Hydro Cannon1.wav": [4154001, 9741, 1518],
+    "move:PRSFX- Hydro Pump.wav": [4163742, 5421, 807],
+    "move:PRSFX- Hyper Beam.wav": [4169163, 15501, 2476],
+    "move:PRSFX- Hyper Fang.wav": [4184664, 2973, 408],
+    "move:PRSFX- Hypnosis.wav": [4187637, 17949, 2899],
+    "move:PRSFX- Ice Ball1.wav": [4205586, 4989, 734],
+    "move:PRSFX- Ice Ball2.wav": [4210575, 5133, 759],
+    "move:PRSFX- Ice Beam.wav": [4215708, 8301, 1293],
+    "move:PRSFX- Ice Fang1.wav": [4224009, 2973, 408],
+    "move:PRSFX- Ice Fang2.wav": [4226982, 4269, 624],
+    "move:PRSFX- Ice Punch1.wav": [4231251, 5565, 822],
+    "move:PRSFX- Ice Punch2.wav": [4236816, 4701, 688],
+    "move:PRSFX- Ice Shard.wav": [4241517, 5565, 822],
+    "move:PRSFX- Icicle Crash1.wav": [4247082, 3693, 517],
+    "move:PRSFX- Icicle Crash2.wav": [4250775, 11613, 1839],
+    "move:PRSFX- Icicle Spear.wav": [4262388, 4701, 688],
+    "move:PRSFX- Icy Wind1.wav": [4267089, 7293, 1126],
+    "move:PRSFX- Icy Wind2.wav": [4274382, 4701, 688],
+    "move:PRSFX- Imprison1.wav": [4279083, 7005, 1069],
+    "move:PRSFX- Imprison2.wav": [4286088, 3261, 454],
+    "move:PRSFX- Incinerate1.wav": [4289349, 4701, 682],
+    "move:PRSFX- Incinerate2.wav": [4294050, 12765, 2036],
+    "move:PRSFX- Inferno.wav": [4306815, 23421, 3815],
+    "move:PRSFX- Ingrain1.wav": [4330236, 4557, 653],
+    "move:PRSFX- Iron Defense.wav": [4334793, 9021, 1394],
+    "move:PRSFX- Iron Head.wav": [4343814, 3549, 501],
+    "move:PRSFX- Iron Tail1.wav": [4347363, 9021, 1394],
+    "move:PRSFX- Iron Tail2.wav": [4356384, 4845, 704],
+    "move:PRSFX- Karate Chop1.wav": [4361229, 2973, 386],
+    "move:PRSFX- Karate Chop2.wav": [4364202, 4845, 709],
+    "move:PRSFX- Kinesis.wav": [4369047, 8733, 1361],
+    "move:PRSFX- Knock Off.wav": [4377780, 3549, 500],
+    "move:PRSFX- Laser Focus1.wav": [4381329, 7149, 1088],
+    "move:PRSFX- Laser Focus2.wav": [4388478, 6285, 945],
+    "move:PRSFX- Last Resort1.wav": [4394763, 9021, 1402],
+    "move:PRSFX- Last Resort2.wav": [4403784, 3405, 464],
+    "move:PRSFX- Lava Plume.wav": [4407189, 15213, 2447],
+    "move:PRSFX- Leaf Blade.wav": [4422402, 9165, 1426],
+    "move:PRSFX- Leaf Storm1.wav": [4431567, 13629, 2164],
+    "move:PRSFX- Leaf Storm2.wav": [4445196, 10317, 1610],
+    "move:PRSFX- Leech Life1.wav": [4455513, 4125, 598],
+    "move:PRSFX- Leech Life2.wav": [4459638, 4125, 595],
+    "move:PRSFX- Leech Seed2.wav": [4463763, 6285, 941],
+    "move:PRSFX- Leech Seed3.wav": [4470048, 4557, 658],
+    "move:PRSFX- Leer.wav": [4474605, 6285, 945],
+    "move:PRSFX- Lick.wav": [4480890, 4701, 687],
+    "move:PRSFX- Light Screen.wav": [4485591, 12477, 1977],
+    "move:PRSFX- Liquidation1.wav": [4498068, 5565, 827],
+    "move:PRSFX- Liquidation2.wav": [4503633, 4557, 653],
+    "move:PRSFX- Liquidation3.wav": [4508190, 3549, 500],
+    "move:PRSFX- Liquidation4.wav": [4511739, 3693, 518],
+    "move:PRSFX- Lock On.wav": [4515432, 6573, 998],
+    "move:PRSFX- Lovely Kiss.wav": [4522005, 7149, 1100],
+    "move:PRSFX- Low Kick.wav": [4529154, 2829, 376],
+    "move:PRSFX- Low Sweep.wav": [4531983, 2973, 391],
+    "move:PRSFX- Mach Punch.wav": [4534956, 4269, 614],
+    "move:PRSFX- Magic Room.wav": [4539225, 12189, 1928],
+    "move:PRSFX- Magical Leaf1.wav": [4551414, 13773, 2194],
+    "move:PRSFX- Magical Leaf2.wav": [4565187, 3981, 555],
+    "move:PRSFX- Magnet Rise.wav": [4569168, 8301, 1280],
+    "move:PRSFX- Magnetic Flux.wav": [4577469, 27021, 4404],
+    "move:PRSFX- Magnitude.wav": [4604490, 23565, 3822],
+    "move:PRSFX- Mean Look.wav": [4628055, 9741, 1514],
+    "move:PRSFX- Mega Drain1.wav": [4637796, 3693, 521],
+    "move:PRSFX- Mega Drain2.wav": [4641489, 4557, 658],
+    "move:PRSFX- Mega Punch1.wav": [4646046, 7437, 1134],
+    "move:PRSFX- Megahorn1.wav": [4653483, 4845, 699],
+    "move:PRSFX- Megahorn2.wav": [4658328, 4269, 604],
+    "move:PRSFX- Megakick.wav": [4662597, 6429, 984],
+    "move:PRSFX- Memento1.wav": [4669026, 5421, 815],
+    "move:PRSFX- Memento2.wav": [4674447, 6717, 1022],
+    "move:PRSFX- Metal Burst1.wav": [4681164, 4845, 706],
+    "move:PRSFX- Metal Burst2.wav": [4686009, 5438, 800],
+    "move:PRSFX- Metal Claw1.wav": [4691447, 3693, 509],
+    "move:PRSFX- Metal Claw2.wav": [4695140, 4989, 726],
+    "move:PRSFX- Metal Sound.wav": [4700129, 8157, 1272],
+    "move:PRSFX- Meteor Mash1.wav": [4708286, 17085, 2744],
+    "move:PRSFX- Meteor Mash2.wav": [4725371, 8157, 1250],
+    "move:PRSFX- Metronome.wav": [4733528, 1533, 147],
+    "move:PRSFX- Mimic1.wav": [4735061, 12189, 1930],
+    "move:PRSFX- Mimic2.wav": [4747250, 3693, 525],
+    "move:PRSFX- Minimize2.wav": [4750943, 1965, 233],
+    "move:PRSFX- Mirror Coat.wav": [4752908, 13773, 2195],
+    "move:PRSFX- Mist.wav": [4766681, 6285, 940],
+    "move:PRSFX- Misty Terrain.wav": [4772966, 16365, 2639],
+    "move:PRSFX- Moonblast1.wav": [4789331, 14781, 2367],
+    "move:PRSFX- Moonblast2.wav": [4804112, 13629, 2167],
+    "move:PRSFX- Moonlight.wav": [4817741, 8445, 1319],
+    "move:PRSFX- Morning Sun.wav": [4826186, 9453, 1476],
+    "move:PRSFX- Mud Bomb1.wav": [4835639, 3981, 567],
+    "move:PRSFX- Mud Bomb2.wav": [4839620, 7005, 1063],
+    "move:PRSFX- Mud Shot.wav": [4846625, 11757, 1872],
+    "move:PRSFX- Mud Slap.wav": [4858382, 3981, 558],
+    "move:PRSFX- Muddy Water.wav": [4862363, 19533, 3155],
+    "move:PRSFX- Mystical Fire1.wav": [4881896, 10461, 1649],
+    "move:PRSFX- Mystical Fire2.wav": [4892357, 5565, 825],
+    "move:PRSFX- Nasty Plot.wav": [4897922, 4557, 670],
+    "move:PRSFX- Night Shade.wav": [4902479, 11037, 1735],
+    "move:PRSFX- Night Slash1.wav": [4913516, 4269, 624],
+    "move:PRSFX- Night Slash2.wav": [4917785, 4269, 624],
+    "move:PRSFX- Nuzzle1.wav": [4922054, 4125, 598],
+    "move:PRSFX- Nuzzle2.wav": [4926179, 4413, 636],
+    "move:PRSFX- Outrage1.wav": [4930592, 8157, 1264],
+    "move:PRSFX- Outrage2.wav": [4938749, 11037, 1730],
+    "move:PRSFX- Overheat1.wav": [4949786, 10461, 1649],
+    "move:PRSFX- Overheat2.wav": [4960247, 4701, 682],
+    "move:PRSFX- Pain Split.wav": [4964948, 3405, 471],
+    "move:PRSFX- Paralysis.wav": [4968353, 7869, 1222],
+    "move:PRSFX- Pay Day1.wav": [4976222, 12045, 1913],
+    "move:PRSFX- Pay Day2.wav": [4988267, 8877, 1373],
+    "move:PRSFX- Peck.wav": [4997144, 2973, 402],
+    "move:PRSFX- Perish Song.wav": [5000117, 17661, 2852],
+    "move:PRSFX- Petal Blizzard1.wav": [5017778, 18669, 3002],
+    "move:PRSFX- Petal Blizzard2.wav": [5036447, 7581, 1160],
+    "move:PRSFX- Petal Dance.wav": [5044028, 5709, 864],
+    "move:PRSFX- Phantom Force2.wav": [5049737, 6573, 1005],
+    "move:PRSFX- Pin Missile.wav": [5056310, 4989, 737],
+    "move:PRSFX- Play Nice1.wav": [5061299, 7149, 1099],
+    "move:PRSFX- Play Nice2.wav": [5068448, 9165, 1426],
+    "move:PRSFX- Play Rough1.wav": [5077613, 6141, 918],
+    "move:PRSFX- Play Rough2.wav": [5083754, 2253, 271],
+    "move:PRSFX- Play Rough3.wav": [5086007, 3981, 556],
+    "move:PRSFX- Play Rough4.wav": [5089988, 4701, 696],
+    "move:PRSFX- Pluck1.wav": [5094689, 4701, 674],
+    "move:PRSFX- Pluck2.wav": [5099390, 5421, 806],
+    "move:PRSFX- Poison Fang1.wav": [5104811, 4845, 710],
+    "move:PRSFX- Poison Fang2.wav": [5109656, 2973, 408],
+    "move:PRSFX- Poison Gas.wav": [5112629, 16365, 2623],
+    "move:PRSFX- Poison Jab1.wav": [5128994, 5565, 831],
+    "move:PRSFX- Poison Jab2.wav": [5134559, 3981, 567],
+    "move:PRSFX- Poison Powder.wav": [5138540, 6285, 954],
+    "move:PRSFX- Poison Sting.wav": [5144825, 5709, 851],
+    "move:PRSFX- Poison Tail1.wav": [5150534, 5853, 879],
+    "move:PRSFX- Poison Tail2.wav": [5156387, 2685, 359],
+    "move:PRSFX- Poison.wav": [5159072, 3549, 482],
+    "move:PRSFX- Pollen Puff1.wav": [5162621, 3981, 567],
+    "move:PRSFX- Pollen Puff2.wav": [5166602, 1965, 228],
+    "move:PRSFX- Pollen Puff3.wav": [5168567, 1101, 87],
+    "move:PRSFX- Pollen Puff4.wav": [5169668, 1533, 147],
+    "move:PRSFX- Pollen Puff5.wav": [5171201, 4557, 666],
+    "move:PRSFX- Pollen Puff6.wav": [5175758, 4557, 672],
+    "move:PRSFX- Pound.wav": [5180315, 2973, 407],
+    "move:PRSFX- Powder Snow1.wav": [5183288, 9597, 1490],
+    "move:PRSFX- Power Gem1.wav": [5192885, 10461, 1655],
+    "move:PRSFX- Power Swap.wav": [5203346, 8445, 1308],
+    "move:PRSFX- Power Whip.wav": [5211791, 4413, 647],
+    "move:PRSFX- Protect.wav": [5216204, 9165, 1426],
+    "move:PRSFX- Psybeam.wav": [5225369, 10461, 1634],
+    "move:PRSFX- Psych Up.wav": [5235830, 6717, 1032],
+    "move:PRSFX- Psychic Terrain1.wav": [5242547, 7005, 1059],
+    "move:PRSFX- Psychic Terrain2.wav": [5249552, 10893, 1719],
+    "move:PRSFX- Psychic Terrain3.wav": [5260445, 11613, 1844],
+    "move:PRSFX- Psychic.wav": [5272058, 5997, 892],
+    "move:PRSFX- Psycho Cut.wav": [5278055, 8301, 1291],
+    "move:PRSFX- Psyshock1.wav": [5286356, 8877, 1376],
+    "move:PRSFX- Psyshock2.wav": [5295233, 6573, 1002],
+    "move:PRSFX- Psystrike1.wav": [5301806, 12189, 1939],
+    "move:PRSFX- Psystrike2.wav": [5313995, 11342, 1790],
+    "move:PRSFX- Psystrike3.wav": [5325337, 4701, 687],
+    "move:PRSFX- Pursuit1.wav": [5330038, 5997, 891],
+    "move:PRSFX- Pursuit2.wav": [5336035, 1389, 136],
+    "move:PRSFX- Quick Attack.wav": [5337424, 3854, 544],
+    "move:PRSFX- Quick Guard.wav": [5341278, 13197, 2099],
+    "move:PRSFX- Quiver Dance.wav": [5354475, 8589, 1330],
+    "move:PRSFX- Rage Powder.wav": [5363064, 3405, 471],
+    "move:PRSFX- Rain Dance.wav": [5366469, 9453, 1488],
+    "move:PRSFX- Rapid Spin.wav": [5375922, 3693, 510],
+    "move:PRSFX- Razor Leaf1.wav": [5379615, 5709, 864],
+    "move:PRSFX- Razor Leaf2.wav": [5385324, 3981, 555],
+    "move:PRSFX- Razor Shell.wav": [5389305, 9453, 1469],
+    "move:PRSFX- Recover.wav": [5398758, 7149, 1084],
+    "move:PRSFX- Recycle.wav": [5405907, 8462, 1308],
+    "move:PRSFX- Reflect Type.wav": [5414369, 11613, 1842],
+    "move:PRSFX- Reflect.wav": [5425982, 12477, 1977],
+    "move:PRSFX- Retaliate1.wav": [5438459, 9309, 1463],
+    "move:PRSFX- Retaliate2.wav": [5447768, 3405, 471],
+    "move:PRSFX- Revenge1.wav": [5451173, 5277, 784],
+    "move:PRSFX- Revenge2.wav": [5456450, 4269, 614],
+    "move:PRSFX- Reversal1.wav": [5460719, 4557, 665],
+    "move:PRSFX- Reversal2.wav": [5465276, 4557, 663],
+    "move:PRSFX- Rock Blast.wav": [5469833, 4989, 731],
+    "move:PRSFX- Rock Polish.wav": [5474822, 6573, 995],
+    "move:PRSFX- Rock Slide.wav": [5481395, 11613, 1830],
+    "move:PRSFX- Rock Smash.wav": [5493008, 8589, 1335],
+    "move:PRSFX- Rock Throw1.wav": [5501597, 6141, 917],
+    "move:PRSFX- Rock Throw2.wav": [5507738, 3981, 556],
+    "move:PRSFX- Rock Tomb.wav": [5511719, 4413, 641],
+    "move:PRSFX- Roleplay.wav": [5516132, 9165, 1419],
+    "move:PRSFX- Rollout1.wav": [5525297, 12045, 1899],
+    "move:PRSFX- Rollout2.wav": [5537342, 4989, 731],
+    "move:PRSFX- Roost2.wav": [5542331, 6141, 918],
+    "move:PRSFX- Round.wav": [5548472, 7005, 1064],
+    "move:PRSFX- Safeguard.wav": [5555477, 9165, 1426],
+    "move:PRSFX- Sand Attack.wav": [5564642, 7437, 1135],
+    "move:PRSFX- Sand Tomb.wav": [5572079, 7725, 1192],
+    "move:PRSFX- Sandstorm.wav": [5579804, 7005, 1059],
+    "move:PRSFX- Scald1.wav": [5586809, 7581, 1170],
+    "move:PRSFX- Scald2.wav": [5594390, 6717, 1031],
+    "move:PRSFX- Scary Face.wav": [5601107, 6573, 987],
+    "move:PRSFX- Scratch.wav": [5607680, 3981, 558],
+    "move:PRSFX- Screech.wav": [5611661, 5997, 908],
+    "move:PRSFX- Seed Bomb1.wav": [5617658, 3261, 444],
+    "move:PRSFX- Seed Bomb2.wav": [5620919, 6285, 960],
+    "move:PRSFX- Seismic Toss1.wav": [5627204, 15501, 2478],
+    "move:PRSFX- Seismic Toss2.wav": [5642705, 3981, 556],
+    "move:PRSFX- Seismic Toss3.wav": [5646686, 4269, 621],
+    "move:PRSFX- Seismic Toss4.wav": [5650955, 8877, 1370],
+    "move:PRSFX- Seismic Toss5.wav": [5659832, 15501, 2478],
+    "move:PRSFX- Selfdestruct1.wav": [5675333, 16509, 2663],
+    "move:PRSFX- Selfedestruct2.wav": [5691842, 7437, 1133],
+    "move:PRSFX- Shadow Ball1.wav": [5699279, 6573, 1005],
+    "move:PRSFX- Shadow Ball2.wav": [5705852, 6573, 988],
+    "move:PRSFX- Shadow Claw1.wav": [5712425, 5565, 831],
+    "move:PRSFX- Shadow Claw2.wav": [5717990, 4989, 726],
+    "move:PRSFX- Shadow Force2.wav": [5722979, 10173, 1608],
+    "move:PRSFX- Shadow Punch1.wav": [5733152, 5565, 831],
+    "move:PRSFX- Shadow Punch2.wav": [5738717, 3837, 541],
+    "move:PRSFX- Sheer Cold.wav": [5742554, 14061, 2239],
+    "move:PRSFX- Shell Smash1.wav": [5756615, 7869, 1216],
+    "move:PRSFX- Shell Smash2.wav": [5764484, 6141, 926],
+    "move:PRSFX- Shell Trap1.wav": [5770625, 8013, 1226],
+    "move:PRSFX- Shell Trap2.wav": [5778638, 6141, 922],
+    "move:PRSFX- Shell Trap3.wav": [5784779, 7725, 1196],
+    "move:PRSFX- Shockwave.wav": [5792504, 8301, 1286],
+    "move:PRSFX- Sing.wav": [5800805, 25869, 4207],
+    "move:PRSFX- Sketch.wav": [5826674, 5565, 823],
+    "move:PRSFX- Skill Swap.wav": [5832239, 8445, 1308],
+    "move:PRSFX- Skull Bash2.wav": [5840684, 4269, 618],
+    "move:PRSFX- Sky Attack1.wav": [5844953, 8589, 1340],
+    "move:PRSFX- Sky Attack2.wav": [5853542, 4845, 700],
+    "move:PRSFX- Sky Attack3.wav": [5858387, 10893, 1706],
+    "move:PRSFX- Slack Off.wav": [5869280, 5133, 759],
+    "move:PRSFX- Slam.wav": [5874413, 4557, 670],
+    "move:PRSFX- Slash.wav": [5878970, 4269, 611],
+    "move:PRSFX- Sleep Powder.wav": [5883239, 6285, 954],
+    "move:PRSFX- Sleep Talk.wav": [5889524, 5421, 807],
+    "move:PRSFX- Sleep.wav": [5894945, 4125, 597],
+    "move:PRSFX- Sludge Bomb1.wav": [5899070, 2973, 400],
+    "move:PRSFX- Sludge Bomb2.wav": [5902043, 8013, 1243],
+    "move:PRSFX- Sludge Wave.wav": [5910056, 24285, 3956],
+    "move:PRSFX- Sludge.wav": [5934341, 8013, 1243],
+    "move:PRSFX- Smack Down1.wav": [5942354, 5709, 849],
+    "move:PRSFX- Smack Down2.wav": [5948063, 6861, 1053],
+    "move:PRSFX- Smack Down3.wav": [5954924, 3261, 450],
+    "move:PRSFX- Smart Strike1.wav": [5958185, 9741, 1522],
+    "move:PRSFX- Smart Strike2.wav": [5967926, 6285, 945],
+    "move:PRSFX- Smart Strike3.wav": [5974211, 9021, 1394],
+    "move:PRSFX- Smart Strike4.wav": [5983232, 6141, 933],
+    "move:PRSFX- Smog.wav": [5989373, 16365, 2623],
+    "move:PRSFX- Smokescreen.wav": [6005738, 7166, 1097],
+    "move:PRSFX- Snarl.wav": [6012904, 4845, 703],
+    "move:PRSFX- Snore.wav": [6017749, 5421, 807],
+    "move:PRSFX- Soak.wav": [6023170, 6285, 945],
+    "move:PRSFX- Softboiled1.wav": [6029455, 2829, 367],
+    "move:PRSFX- Softboiled2.wav": [6032284, 4269, 618],
+    "move:PRSFX- Solar Beam2.wav": [6036553, 11037, 1743],
+    "move:PRSFX- Spark1.wav": [6047590, 4413, 636],
+    "move:PRSFX- Spark2.wav": [6052003, 6141, 918],
+    "move:PRSFX- Speed Swap.wav": [6058144, 8445, 1308],
+    "move:PRSFX- Spikes1.wav": [6066589, 1965, 238],
+    "move:PRSFX- Spikes2.wav": [6068554, 4125, 581],
+    "move:PRSFX- Spit Up.wav": [6072679, 6717, 1022],
+    "move:PRSFX- Spite1.wav": [6079396, 5853, 869],
+    "move:PRSFX- Spite2.wav": [6085249, 5421, 811],
+    "move:PRSFX- Splash.wav": [6090670, 8157, 1259],
+    "move:PRSFX- Spore.wav": [6098827, 6285, 954],
+    "move:PRSFX- Stealth Rocks.wav": [6105112, 10605, 1669],
+    "move:PRSFX- Steel Wing.wav": [6115717, 6141, 933],
+    "move:PRSFX- Sticky Web.wav": [6121858, 6573, 999],
+    "move:PRSFX- Stockpile.wav": [6128431, 8157, 1268],
+    "move:PRSFX- Stomp.wav": [6136588, 3981, 564],
+    "move:PRSFX- Stomping Tantrum.wav": [6140569, 3261, 456],
+    "move:PRSFX- Stone Edge.wav": [6143830, 11325, 1791],
+    "move:PRSFX- Stored Power1.wav": [6155155, 8157, 1265],
+    "move:PRSFX- Stored Power2.wav": [6163312, 11757, 1868],
+    "move:PRSFX- Storm Throw1.wav": [6175069, 4557, 650],
+    "move:PRSFX- Storm Throw2.wav": [6179626, 6717, 1025],
+    "move:PRSFX- Strength Sap1.wav": [6186343, 4557, 658],
+    "move:PRSFX- Strength Sap2.wav": [6190900, 6285, 953],
+    "move:PRSFX- Strength Sap3.wav": [6197185, 5997, 906],
+    "move:PRSFX- Strength.wav": [6203182, 5997, 906],
+    "move:PRSFX- String Shot1.wav": [6209179, 4269, 602],
+    "move:PRSFX- String Shot2.wav": [6213448, 6573, 999],
+    "move:PRSFX- Struggle Bug.wav": [6220021, 10029, 1570],
+    "move:PRSFX- Stun Spore.wav": [6230050, 6285, 954],
+    "move:PRSFX- Substitute1.wav": [6236335, 4701, 682],
+    "move:PRSFX- Substitute2.wav": [6241036, 5997, 904],
+    "move:PRSFX- Sucker Punch1.wav": [6247033, 3117, 417],
+    "move:PRSFX- Sucker Punch2.wav": [6250150, 2685, 349],
+    "move:PRSFX- Sunny Day.wav": [6252835, 15501, 2477],
+    "move:PRSFX- Super Fang1.wav": [6268336, 4989, 723],
+    "move:PRSFX- Superpower1.wav": [6273325, 10893, 1716],
+    "move:PRSFX- Superpower2.wav": [6284218, 7149, 1086],
+    "move:PRSFX- Supersonic.wav": [6291367, 7869, 1213],
+    "move:PRSFX- Surf.wav": [6299236, 19533, 3155],
+    "move:PRSFX- Swagger1.wav": [6318769, 2990, 399],
+    "move:PRSFX- Swagger2.wav": [6321759, 6285, 959],
+    "move:PRSFX- Swallow.wav": [6328044, 5853, 885],
+    "move:PRSFX- Sweet Kiss1.wav": [6333897, 3405, 460],
+    "move:PRSFX- Sweet Kiss2.wav": [6337302, 10893, 1719],
+    "move:PRSFX- Swift1.wav": [6348195, 3261, 434],
+    "move:PRSFX- Swift2.wav": [6351456, 9309, 1458],
+    "move:PRSFX- Switcheroo.wav": [6360765, 7149, 1091],
+    "move:PRSFX- Swords Dance1.wav": [6367914, 3693, 509],
+    "move:PRSFX- Swords Dance2.wav": [6371607, 5709, 846],
+    "move:PRSFX- Synthesis.wav": [6377316, 16653, 2671],
+    "move:PRSFX- Tackle.wav": [6393969, 3261, 454],
+    "move:PRSFX- Tail Slap.wav": [6397230, 3549, 494],
+    "move:PRSFX- Tail Whip.wav": [6400779, 7149, 1099],
+    "move:PRSFX- Tailwind.wav": [6407928, 18669, 3007],
+    "move:PRSFX- Take Down1.wav": [6426597, 3261, 453],
+    "move:PRSFX- Take Down2.wav": [6429858, 2541, 335],
+    "move:PRSFX- Taunt1.wav": [6432399, 5277, 788],
+    "move:PRSFX- Taunt2.wav": [6437676, 2990, 399],
+    "move:PRSFX- Taunt3.wav": [6440666, 3837, 541],
+    "move:PRSFX- Teeter Dance.wav": [6444503, 7725, 1200],
+    "move:PRSFX- Teleport.wav": [6452228, 6573, 1005],
+    "move:PRSFX- Thrash2.wav": [6458801, 5277, 779],
+    "move:PRSFX- Throat Chop1.wav": [6464078, 5421, 806],
+    "move:PRSFX- Throat Chop2.wav": [6469499, 3261, 434],
+    "move:PRSFX- Throat Chop3.wav": [6472760, 5997, 908],
+    "move:PRSFX- Throat Chop4.wav": [6478757, 5565, 837],
+    "move:PRSFX- Throat Chop5.wav": [6484322, 4701, 687],
+    "move:PRSFX- Thunder Fang.wav": [6489023, 7581, 1165],
+    "move:PRSFX- Thunder Punch1.wav": [6496604, 11325, 1785],
+    "move:PRSFX- Thunder Punch2.wav": [6507929, 3837, 541],
+    "move:PRSFX- Thunder Wave.wav": [6511766, 4413, 636],
+    "move:PRSFX- Thunder.wav": [6516179, 11325, 1785],
+    "move:PRSFX- Thunderbolt1.wav": [6527504, 11325, 1785],
+    "move:PRSFX- Thunderbolt2.wav": [6538829, 10029, 1580],
+    "move:PRSFX- Thundershock.wav": [6548858, 10029, 1580],
+    "move:PRSFX- Tickle.wav": [6558887, 8589, 1329],
+    "move:PRSFX- Topsy Turvy.wav": [6567476, 13341, 2128],
+    "move:PRSFX- Toxic Spikes2.wav": [6580817, 2109, 261],
+    "move:PRSFX- Toxic1.wav": [6582926, 3693, 520],
+    "move:PRSFX- Toxic2.wav": [6586619, 2973, 386],
+    "move:PRSFX- Transform.wav": [6589592, 9885, 1549],
+    "move:PRSFX- Tri Attack.wav": [6599477, 19821, 3215],
+    "move:PRSFX- Trick Room.wav": [6619298, 12189, 1928],
+    "move:PRSFX- Trick.wav": [6631487, 7149, 1091],
+    "move:PRSFX- Twineedle1.wav": [6638636, 2109, 249],
+    "move:PRSFX- Twister.wav": [6640745, 10749, 1692],
+    "move:PRSFX- U-Turn2.wav": [6651494, 5421, 806],
+    "move:PRSFX- Uproar1.wav": [6656915, 4557, 670],
+    "move:PRSFX- Uproar2.wav": [6661472, 4845, 705],
+    "move:PRSFX- Vacuum Wave1.wav": [6666317, 4989, 729],
+    "move:PRSFX- Vacuum Wave2.wav": [6671306, 6141, 935],
+    "move:PRSFX- Venom Drench.wav": [6677447, 15933, 2557],
+    "move:PRSFX- Venoshock1.wav": [6693380, 8877, 1392],
+    "move:PRSFX- Venoshock2.wav": [6702257, 8301, 1286],
+    "move:PRSFX- Vine Whip.wav": [6710558, 5277, 770],
+    "move:PRSFX- Vital Throw1.wav": [6715835, 6861, 1049],
+    "move:PRSFX- Vital Throw2.wav": [6722696, 5150, 752],
+    "move:PRSFX- Volt Switch1.wav": [6727846, 7005, 1058],
+    "move:PRSFX- Volt Switch2.wav": [6734851, 6573, 1003],
+    "move:PRSFX- Volt Tackle1.wav": [6741424, 10605, 1661],
+    "move:PRSFX- Volt Tackle2.wav": [6752029, 4701, 687],
+    "move:PRSFX- Water Gun.wav": [6756730, 10173, 1604],
+    "move:PRSFX- Water Pledge1.wav": [6766903, 4269, 622],
+    "move:PRSFX- Water Pledge2.wav": [6771172, 5997, 893],
+    "move:PRSFX- Water Pulse.wav": [6777169, 5565, 827],
+    "move:PRSFX- Water Pulse2.wav": [6782734, 4125, 585],
+    "move:PRSFX- Water Spout1.wav": [6786859, 11325, 1788],
+    "move:PRSFX- Water Spout2.wav": [6798184, 12765, 2033],
+    "move:PRSFX- Waterfall1.wav": [6810949, 13358, 2121],
+    "move:PRSFX- Waterfall2.wav": [6824307, 4557, 650],
+    "move:PRSFX- Weather Ball1.wav": [6828864, 8157, 1265],
+    "move:PRSFX- Weather Ball2.wav": [6837021, 14205, 2261],
+    "move:PRSFX- Whirlpool.wav": [6851226, 11630, 1827],
+    "move:PRSFX- Whirlpool2.wav": [6862856, 3693, 518],
+    "move:PRSFX- Whirlwind.wav": [6866549, 17102, 2760],
+    "move:PRSFX- Wide Guard.wav": [6883651, 4269, 603],
+    "move:PRSFX- Wild Charge1.wav": [6887920, 4269, 603],
+    "move:PRSFX- Wild Charge2.wav": [6892189, 9453, 1477],
+    "move:PRSFX- Will O Wisp1.wav": [6901642, 5853, 866],
+    "move:PRSFX- Will O Wisp2.wav": [6907495, 4701, 682],
+    "move:PRSFX- Wing Attack1.wav": [6912196, 3261, 449],
+    "move:PRSFX- Wing Attack2.wav": [6915457, 3117, 429],
+    "move:PRSFX- Wish.wav": [6918574, 7869, 1206],
+    "move:PRSFX- Withdraw.wav": [6926443, 2973, 408],
+    "move:PRSFX- Wonder Room.wav": [6929416, 12189, 1928],
+    "move:PRSFX- Wood Hammer.wav": [6941605, 5853, 869],
+    "move:PRSFX- Work Up.wav": [6947458, 9021, 1415],
+    "move:PRSFX- Worry Seed1.wav": [6956479, 2973, 386],
+    "move:PRSFX- Worry Seed2.wav": [6959452, 2973, 406],
+    "move:PRSFX- Wrap.wav": [6962425, 6285, 942],
+    "move:PRSFX- X Scissor.wav": [6968710, 6717, 1021],
+    "move:PRSFX- Yawn.wav": [6975427, 6285, 959],
+    "move:PRSFX- Zap Cannon1.wav": [6981712, 7005, 1058],
+    "move:PRSFX- Zap Cannon2.wav": [6988717, 4413, 629],
+    "move:PRSFX- Zap Cannon3.wav": [6993130, 5565, 826],
+    "move:Saint7.m4a": [6998695, 12144, 1905],
+    "move:Saint9.m4a": [7010839, 4944, 698],
+    "move:Slam.m4a": [7015783, 4944, 698],
+    "move:throw.m4a": [7020727, 9264, 1418],
+    "move:Thunder1.m4a": [7029991, 7392, 1115],
+    "move:Water1.m4a": [7037383, 7680, 1161],
+    "move:Water2.m4a": [7045063, 7104, 1069],
+    "move:Water3.m4a": [7052167, 7392, 1115],
+    "move:Water5.m4a": [7059559, 10416, 1626],
+    "move:Wind7.m4a": [7069975, 1632, 151],
+    "move:Wind8.m4a": [7071607, 10704, 1672]
+  },
+  "moves": {
+    "absorb": [[0, "move:PRSFX- Absorb1.wav", 1, 1], [550, "move:PRSFX- Absorb2.wav", 1, 1]],
+    "acid": [[0, "move:PRSFX- Acid.wav", 1, 0.9]],
+    "acid-armor": [
+      [0, "move:PRSFX- Acid Armor1.wav", 1, 1],
+      [1350, "move:PRSFX- Acid Armor2.wav", 1, 1]
+    ],
+    "acid-spray": [[0, "move:PRSFX- Acid Spray.wav", 1, 1]],
+    "acrobatics": [
+      [0, "move:PRSFX- Acrobatics1.wav", 1, 1],
+      [400, "move:PRSFX- Acrobatics2.wav", 1, 1],
+      [950, "move:PRSFX- Acrobatics3.wav", 1, 1],
+      [1050, "move:PRSFX- Acrobatics3.wav", 1, 1],
+      [1150, "move:PRSFX- Acrobatics3.wav", 1, 1]
+    ],
+    "acupressure": [
+      [50, "move:PRSFX- Acupressure1.wav", 1, 1],
+      [400, "move:PRSFX- Acupressure2.wav", 1, 1]
+    ],
+    "aerial-ace": [[0, "move:PRSFX- Aerial Ace.wav", 1, 1]],
+    "after-you": [
+      [50, "move:PRSFX- After You1.wav", 1, 1],
+      [550, "move:PRSFX- After You2.wav", 1, 0.8]
+    ],
+    "agility": [[0, "move:PRSFX- Agility.wav", 1, 1]],
+    "air-cutter": [
+      [0, "move:PRSFX- Air Cutter1.wav", 1, 1],
+      [300, "move:PRSFX- Air Cutter2.wav", 1, 1]
+    ],
+    "air-slash": [
+      [0, "move:PRSFX- Air Slash1.wav", 1, 1],
+      [100, "move:PRSFX- Air Slash2.wav", 1, 1],
+      [450, "move:PRSFX- Air Slash3.wav", 1, 1]
+    ],
+    "alluring-voice": [[0, "move:PRSFX- Sing.wav", 1, 1]],
+    "ally-switch": [[0, "move:PRSFX- Ally Switch.wav", 1, 1]],
+    "amnesia": [[0, "move:PRSFX- Amnesia.wav", 1, 1]],
+    "ancient-power": [
+      [0, "move:PRSFX- Ancient Power1.wav", 1, 1],
+      [1350, "move:PRSFX- Ancient Power2.wav", 1, 0.65]
+    ],
+    "aqua-jet": [[0, "move:PRSFX- Aqua Jet.wav", 1, 0.7]],
+    "aqua-ring": [
+      [0, "move:PRSFX- Aqua Ring1.wav", 1, 1],
+      [750, "move:PRSFX- Aqua Ring2.wav", 1, 1.4],
+      [950, "move:PRSFX- Aqua Ring2.wav", 1, 1.41],
+      [1150, "move:PRSFX- Aqua Ring2.wav", 1, 1.42]
+    ],
+    "aqua-tail": [[0, "move:PRSFX- Aqua Tail.wav", 1, 0.4]],
+    "aromatherapy": [[0, "move:PRSFX- Aromatherapy.wav", 1, 1]],
+    "assurance": [[150, "move:PRSFX- Assurance.wav", 1, 0.6]],
+    "astonish": [[0, "move:PRSFX- Astonish1.wav", 1, 1], [150, "move:PRSFX- Astonish2.wav", 1, 1]],
+    "attract": [[0, "move:PRSFX- Attract1.wav", 1, 0.89], [900, "move:PRSFX- Attract2.wav", 1, 1]],
+    "aura-sphere": [
+      [0, "move:PRSFX- Aura Sphere1.wav", 1, 1],
+      [700, "move:PRSFX- Aura Sphere2.wav", 1, 1]
+    ],
+    "aurora-beam": [[0, "move:PRSFX- Aurora Beam.wav", 1, 1]],
+    "avalanche": [[200, "move:PRSFX- Avalanche.wav", 1, 0.65]],
+    "axe-kick": [
+      [0, "move:PRSFX- Hi Jump Kick1.wav", 0.8, 1],
+      [300, "move:PRSFX- Hi Jump Kick2.wav", 0.8, 1],
+      [550, "move:PRSFX- Dizzy Punch1.wav", 0.8, 1]
+    ],
+    "baby-doll-eyes": [[0, "move:PRSFX- Baby Doll Eyes.wav", 1, 1.1]],
+    "barrier": [[0, "move:PRSFX- Barrier.wav", 1, 1]],
+    "baton-pass": [
+      [150, "move:PRSFX- Baton Pass1.wav", 1, 1],
+      [850, "move:PRSFX- Baton Pass2.wav", 1, 1]
+    ],
+    "beak-blast": [
+      [50, "move:PRSFX- Beak Blast2.wav", 1, 0.8],
+      [100, "move:PRSFX- Beak Blast2.wav", 1, 1.7],
+      [150, "move:PRSFX- Beak Blast2.wav", 1, 0.7],
+      [200, "move:PRSFX- Beak Blast2.wav", 1, 1.1],
+      [250, "move:PRSFX- Beak Blast2.wav", 1, 0.9],
+      [300, "move:PRSFX- Beak Blast2.wav", 1, 1.3],
+      [350, "move:PRSFX- Beak Blast2.wav", 1, 1.5],
+      [400, "move:PRSFX- Beak Blast2.wav", 1, 0.6],
+      [450, "move:PRSFX- Beak Blast2.wav", 1, 1.6],
+      [500, "move:PRSFX- Beak Blast2.wav", 1, 1],
+      [550, "move:PRSFX- Beak Blast2.wav", 1, 0.7],
+      [600, "move:PRSFX- Beak Blast2.wav", 1, 1.3],
+      [650, "move:PRSFX- Beak Blast3.wav", 1, 1],
+      [650, "move:PRSFX- Beak Blast2.wav", 1, 0.8],
+      [700, "move:PRSFX- Beak Blast2.wav", 1, 1.2],
+      [750, "move:PRSFX- Beak Blast2.wav", 1, 0.9],
+      [800, "move:PRSFX- Beak Blast2.wav", 1, 1.7],
+      [1300, "move:PRSFX- Beak Blast4.wav", 1, 1]
+    ],
+    "beat-up": [[0, "move:PRSFX- Beat Up.wav", 1, 1], [150, "move:PRSFX- Beat Up.wav", 1, 1.2]],
+    "belch": [
+      [0, "move:PRSFX- Belch2.wav", 1, 1],
+      [800, "move:PRSFX- Belch1.wav", 1, 1],
+      [1100, "move:PRSFX- Belch3.wav", 1, 1]
+    ],
+    "belly-drum": [[0, "move:PRSFX- Belly Drum.wav", 1, 1]],
+    "bind": [[0, "move:PRSFX- Bind.wav", 1, 1], [350, "move:PRSFX- Bind.wav", 1, 1.2]],
+    "bite": [[350, "move:PRSFX- Bite.wav", 1, 1]],
+    "blast-burn": [
+      [0, "move:PRSFX- Blast Burn.wav", 1, 1],
+      [1700, "move:PRSFX- Blast Burn2.wav", 1, 1],
+      [2100, "move:PRSFX- Blast Burn3.wav", 1, 1]
+    ],
+    "blaze-kick": [
+      [200, "move:PRSFX- Blaze Kick1.wav", 1, 0.8],
+      [200, "move:PRSFX- Blaze Kick2.wav", 1, 1]
+    ],
+    "blizzard": [[0, "move:PRSFX- Blizzard.wav", 1, 1.5]],
+    "block": [[0, "move:PRSFX- Block.wav", 1, 1]],
+    "body-press": [[300, "move:Slam.m4a", 0.8, 1]],
+    "body-slam": [
+      [0, "move:PRSFX- Body Slam1.wav", 1, 1.4],
+      [450, "move:PRSFX- Body Slam2.wav", 1, 1]
+    ],
+    "bolt-beak": [[350, "move:Thunder1.m4a", 0.8, 1]],
+    "bone-rush": [
+      [0, "move:PRSFX- Bone Rush1.wav", 1, 1],
+      [300, "move:PRSFX- Bone Rush2.wav", 1, 1]
+    ],
+    "bonemerang": [
+      [0, "move:PRSFX- Bonemerang1.wav", 1, 1],
+      [400, "move:PRSFX- Bonemerang2.wav", 1, 0.7]
+    ],
+    "bounce": [[200, "move:PRSFX- Bounce4.wav", 1, 1], [300, "move:PRSFX- Bounce3.wav", 1, 1]],
+    "brave-bird": [
+      [0, "move:PRSFX- Brave Bird1.wav", 1, 1],
+      [650, "move:PRSFX- Brave Bird2.wav", 1, 0.4]
+    ],
+    "breaking-swipe": [[350, "move:PRSFX- Dragon Tail.wav", 1, 1]],
+    "brick-break": [
+      [0, "move:PRSFX- Brick Break1.wav", 1, 0.7],
+      [450, "move:PRSFX- Brick Break1.wav", 1, 1],
+      [900, "move:PRSFX- Brick Break2.wav", 1, 1]
+    ],
+    "brine": [[0, "move:PRSFX- Brine.wav", 1, 1], [600, "move:PRSFX- Brine.wav", 1, 1.4]],
+    "brutal-swing": [
+      [0, "move:PRSFX- Brutal Swing1.wav", 1, 1],
+      [350, "move:PRSFX- Brutal Swing2.wav", 1, 1],
+      [1550, "move:PRSFX- Brutal Swing3.wav", 1, 1],
+      [1800, "move:PRSFX- Brutal Swing3.wav", 1, 1],
+      [2050, "move:PRSFX- Brutal Swing3.wav", 1, 1]
+    ],
+    "bubble-beam": [[0, "move:PRSFX- Bubblebeam.wav", 1, 1]],
+    "bug-bite": [
+      [0, "move:PRSFX- Bug Bite.wav", 1, 0.85],
+      [400, "move:PRSFX- Bug Bite.wav", 1, 0.85]
+    ],
+    "bug-buzz": [
+      [50, "move:PRSFX- Bug Buzz.wav", 0.9, 1],
+      [600, "move:PRSFX- Bug Buzz.wav", 0.7, 0.9],
+      [1200, "move:PRSFX- Bug Buzz.wav", 0.9, 1.2]
+    ],
+    "bulk-up": [
+      [0, "move:PRSFX- Bulk Up1.wav", 1, 0.8],
+      [500, "move:PRSFX- Bulk Up1.wav", 1, 1],
+      [1050, "move:PRSFX- Bulk Up2.wav", 1, 1]
+    ],
+    "bulldoze": [[0, "move:PRSFX- Bulldoze.wav", 1, 1]],
+    "bullet-punch": [[150, "move:PRSFX- Bullet Punch.wav", 1, 1]],
+    "bullet-seed": [[0, "move:PRSFX- Bullet Seed.wav", 1, 1]],
+    "burn-up": [
+      [0, "move:PRSFX- Burn Up2.wav", 1, 1],
+      [1900, "move:PRSFX- Burn Up1.wav", 1, 1],
+      [2000, "move:PRSFX- Burn Up1.wav", 1, 1],
+      [2100, "move:PRSFX- Burn Up1.wav", 1, 1],
+      [2200, "move:PRSFX- Burn Up1.wav", 1, 1],
+      [2300, "move:PRSFX- Burn Up1.wav", 1, 1],
+      [2400, "move:PRSFX- Burn Up1.wav", 1, 1],
+      [2500, "move:PRSFX- Burn Up1.wav", 1, 1]
+    ],
+    "burning-jealousy": [
+      [0, "move:Fire2.m4a", 0.8, 1],
+      [800, "move:Fire1.m4a", 0.8, 1],
+      [1200, "move:Fire1.m4a", 0.8, 1]
+    ],
+    "calm-mind": [[0, "move:PRSFX- Calm Mind.wav", 0.8, 1]],
+    "charge": [[0, "move:PRSFX- Charge.wav", 1, 1]],
+    "charge-beam": [[0, "move:PRSFX- Charge Beam.wav", 1, 1]],
+    "charm": [[100, "move:PRSFX- Charm.wav", 1, 1]],
+    "chilling-water": [
+      [0, "move:PRSFX- Water Pledge2.wav", 0.8, 1],
+      [350, "move:Water1.m4a", 0.8, 1]
+    ],
+    "circle-throw": [
+      [0, "move:PRSFX- Circle Throw1.wav", 1, 1],
+      [300, "move:PRSFX- Circle Throw2.wav", 1, 1]
+    ],
+    "clear-smog": [[0, "move:PRSFX- Clear Smog.wav", 1, 1]],
+    "close-combat": [
+      [150, "move:PRSFX- Close Combat.wav", 1, 1],
+      [300, "move:PRSFX- Close Combat.wav", 1, 0.85],
+      [550, "move:PRSFX- Close Combat.wav", 1, 1.1],
+      [650, "move:PRSFX- Close Combat.wav", 1, 1],
+      [800, "move:PRSFX- Close Combat.wav", 1, 0.65]
+    ],
+    "coaching": [
+      [150, "move:Blow5.m4a", 0.6, 1],
+      [500, "move:Blow5.m4a", 0.6, 1],
+      [850, "move:Blow5.m4a", 0.6, 1],
+      [1200, "move:Blow5.m4a", 0.6, 1]
+    ],
+    "coil": [[0, "move:PRSFX- Coil.wav", 1, 0.9], [950, "move:PRSFX- Coil.wav", 1, 0.9]],
+    "confide": [[200, "move:PRSFX- Confide.wav", 1, 1]],
+    "confuse-ray": [[150, "move:PRSFX- Confuse Ray.wav", 1, 0.65]],
+    "confusion": [
+      [0, "move:PRSFX- Confusion.wav", 1, 1],
+      [0, "move:PRSFX- Confusion.wav", 1, 0.72]
+    ],
+    "conversion": [[0, "move:PRSFX- Conversion.wav", 1, 1]],
+    "conversion-2": [[0, "move:PRSFX- Conversion2.wav", 1, 0.8]],
+    "copycat": [[200, "move:PRSFX- Roleplay.wav", 1, 1]],
+    "corrosive-gas": [
+      [0, "move:Poison.m4a", 0.8, 1],
+      [200, "move:Poison.m4a", 0.8, 1],
+      [450, "move:Poison.m4a", 0.8, 1],
+      [850, "move:PRSFX- Poison Gas.wav", 0.8, 1.29]
+    ],
+    "cosmic-power": [[0, "move:PRSFX- Cosmic Power.wav", 1, 1]],
+    "counter": [[0, "move:PRSFX- Counter1.wav", 1, 1], [400, "move:PRSFX- Counter2.wav", 1, 1]],
+    "covet": [[0, "move:PRSFX- Covet1.wav", 1, 1]],
+    "crabhammer": [[150, "move:PRSFX- Crabhammer.wav", 1, 1]],
+    "cross-chop": [
+      [0, "move:PRSFX- Cross Chop1.wav", 1, 1.2],
+      [650, "move:PRSFX- Cross Chop2.wav", 1, 1],
+      [700, "move:PRSFX- Cross Chop2.wav", 1, 0.9]
+    ],
+    "cross-poison": [
+      [200, "move:PRSFX- Cross Poison1.wav", 1, 0.7],
+      [250, "move:PRSFX- Cross Poison2.wav", 1, 1],
+      [550, "move:PRSFX- Cross Poison2.wav", 1, 1],
+      [950, "move:PRSFX- Cross Poison2.wav", 1, 1],
+      [1250, "move:PRSFX- Cross Poison2.wav", 1, 1],
+      [1600, "move:PRSFX- Cross Poison2.wav", 1, 1]
+    ],
+    "crunch": [[200, "move:PRSFX- Crunch.wav", 1, 1.57], [550, "move:PRSFX- Crunch.wav", 1, 1]],
+    "crush-claw": [
+      [0, "move:PRSFX- Crush Claw.wav", 1, 1.35],
+      [350, "move:PRSFX- Crush Claw.wav", 1, 1.35],
+      [700, "move:PRSFX- Crush Claw.wav", 1, 1]
+    ],
+    "curse": [
+      [200, "move:PRSFX- Curse.wav", 1, 1.1],
+      [550, "move:PRSFX- Curse.wav", 1, 1.1],
+      [850, "move:PRSFX- Curse.wav", 1, 1.1]
+    ],
+    "cut": [[0, "move:PRSFX- Cut.wav", 1, 1]],
+    "dark-pulse": [
+      [0, "move:PRSFX- Dark Pulse1.wav", 1, 1],
+      [0, "move:PRSFX- Dark Pulse2.wav", 1, 1]
+    ],
+    "darkest-lariat": [
+      [0, "move:PRSFX- Brutal Swing1.wav", 1, 1],
+      [250, "move:PRSFX- Brutal Swing2.wav", 1, 1],
+      [700, "move:PRSFX- Brutal Swing2.wav", 1, 1],
+      [1550, "move:PRSFX- Brutal Swing2.wav", 1, 1],
+      [2000, "move:PRSFX- Brutal Swing1.wav", 1, 1.2]
+    ],
+    "dazzling-gleam": [[0, "move:PRSFX- Dazzling Gleam.wav", 1, 1]],
+    "defense-curl": [[0, "move:PRSFX- Defense Curl1.wav", 1, 1]],
+    "defog": [[0, "move:PRSFX- Defog.wav", 1, 1.1]],
+    "destiny-bond": [
+      [0, "move:PRSFX- Baby Doll Eyes.wav", 1, 1],
+      [1100, "move:PRSFX- Baby Doll Eyes.wav", 1, 0.88]
+    ],
+    "detect": [[500, "move:PRSFX- Detect.wav", 1, 1]],
+    "dig": [[450, "move:PRSFX- Dig2.wav", 1, 1], [600, "move:PRSFX- Dig2.wav", 1, 1.15]],
+    "disable": [[200, "move:PRSFX- Disable.wav", 1, 1]],
+    "discharge": [[0, "move:PRSFX- Discharge.wav", 1, 1.55]],
+    "dive": [[500, "move:PRSFX- Dive2.wav", 1, 0.8], [500, "move:PRSFX- Dive3.wav", 1, 1]],
+    "double-edge": [
+      [0, "move:PRSFX- Double Edge1.wav", 1, 1],
+      [700, "move:PRSFX- Double Edge2.wav", 1, 1]
+    ],
+    "double-hit": [[50, "move:PRSFX- Double Hit.wav", 1, 1]],
+    "double-kick": [[0, "move:PRSFX- Double Kick.wav", 1, 1]],
+    "double-team": [[0, "move:PRSFX- Double Team.wav", 1, 1.4]],
+    "draco-meteor": [
+      [0, "move:PRSFX- Draco Meteor2.wav", 1, 1],
+      [1450, "move:PRSFX- Draco Meteor1.wav", 1, 0.7],
+      [1800, "move:PRSFX- Draco Meteor1.wav", 1, 0.8],
+      [1950, "move:PRSFX- Draco Meteor1.wav", 1, 1]
+    ],
+    "dragon-breath": [
+      [0, "move:PRSFX- Dragon Breath.wav", 1, 1],
+      [150, "move:PRSFX- Dragon Breath.wav", 1, 0.8]
+    ],
+    "dragon-cheer": [[0, "move:PRSFX- Helping Hand.wav", 1, 1]],
+    "dragon-claw": [[0, "move:PRSFX- Dragon Claw.wav", 0.8, 0.54]],
+    "dragon-dance": [[0, "move:PRSFX- Dragon Dance.wav", 1, 1]],
+    "dragon-pulse": [[0, "move:PRSFX- Dragon Pulse.wav", 1, 1]],
+    "dragon-rush": [
+      [0, "move:PRSFX- Dragon Rush1.wav", 1, 1],
+      [150, "move:PRSFX- Dragon Rush2.wav", 1, 1]
+    ],
+    "dragon-tail": [[350, "move:PRSFX- Dragon Tail.wav", 1, 1]],
+    "drain-punch": [
+      [150, "move:PRSFX- Drain Punch1.wav", 1, 0.85],
+      [150, "move:PRSFX- Drain Punch2.wav", 1, 0.9],
+      [150, "move:PRSFX- Drain Punch2.wav", 1, 1]
+    ],
+    "draining-kiss": [
+      [0, "move:PRSFX- Draining Kiss1.wav", 1, 1],
+      [150, "move:PRSFX- Draining Kiss2.wav", 1, 1]
+    ],
+    "dream-eater": [
+      [0, "move:PRSFX- Dream Eater1.wav", 1, 1],
+      [850, "move:PRSFX- Dream Eater2.wav", 1, 1],
+      [950, "move:PRSFX- Dream Eater3.wav", 1, 1]
+    ],
+    "drill-peck": [[0, "move:PRSFX- Drill Peck.wav", 1, 1]],
+    "drill-run": [[0, "move:PRSFX- Drill Run.wav", 1, 1]],
+    "dual-chop": [[0, "move:PRSFX- Dual Chop.wav", 1, 1]],
+    "dual-wingbeat": [
+      [200, "move:PRSFX- Wing Attack1.wav", 1, 0.8],
+      [300, "move:Blow3.m4a", 0.8, 1]
+    ],
+    "dynamic-punch": [
+      [50, "move:PRSFX- Dynamic Punch1.wav", 1, 1],
+      [150, "move:PRSFX- Dynamic Punch2.wav", 1, 1]
+    ],
+    "earth-power": [[0, "move:PRSFX- Earth Power.wav", 1, 1]],
+    "earthquake": [
+      [450, "move:PRSFX- Earthquake1.wav", 1, 1],
+      [450, "move:PRSFX- Earthquake2.wav", 1, 1],
+      [850, "move:PRSFX- Earthquake2.wav", 1, 1],
+      [1250, "move:PRSFX- Earthquake2.wav", 1, 1]
+    ],
+    "echoed-voice": [[0, "move:PRSFX- Echoed Voice.wav", 1, 1.6]],
+    "eerie-impulse": [
+      [0, "move:PRSFX- Eerie Impulse.wav", 0.8, 1],
+      [550, "move:PRSFX- Electric Terrain2.wav", 0.8, 1]
+    ],
+    "electric-terrain": [
+      [0, "move:PRSFX- Electric Terrain.wav", 1, 1],
+      [150, "move:PRSFX- Electric Terrain2.wav", 0.6, 1],
+      [400, "move:PRSFX- Electric Terrain2.wav", 0.6, 1.1],
+      [650, "move:PRSFX- Electric Terrain2.wav", 0.6, 0.9],
+      [900, "move:PRSFX- Electric Terrain2.wav", 0.6, 1]
+    ],
+    "electro-ball": [[0, "move:PRSFX- Electro Ball2.wav", 1, 0.9]],
+    "electroweb": [
+      [150, "move:PRSFX- Electroweb1.wav", 1, 1],
+      [1050, "move:PRSFX- Electroweb2.wav", 1, 1],
+      [1450, "move:PRSFX- Electroweb2.wav", 1, 1]
+    ],
+    "ember": [[250, "move:PRSFX- Ember.wav", 1, 1]],
+    "encore": [[0, "move:PRSFX- Encore.wav", 1, 1]],
+    "endeavor": [
+      [0, "move:PRSFX- Endeavor1.wav", 1, 0.8],
+      [250, "move:PRSFX- Endeavor1.wav", 1, 0.8],
+      [650, "move:PRSFX- Endeavor2.wav", 1, 1]
+    ],
+    "endure": [[0, "move:PRSFX- Endure.wav", 1, 1]],
+    "energy-ball": [
+      [0, "move:PRSFX- Energy Ball1.wav", 1, 1],
+      [1450, "move:PRSFX- Energy Ball2.wav", 1, 2]
+    ],
+    "expanding-force": [
+      [0, "move:Fire2.m4a", 0.8, 1],
+      [700, "move:Fire2.m4a", 0.8, 1],
+      [1050, "move:PRSFX- Psychic Terrain2.wav", 0.8, 0.7]
+    ],
+    "explosion": [
+      [0, "move:PRSFX- Selfdestruct1.wav", 0.8, 2.25],
+      [900, "move:PRSFX- Explosion.wav", 1, 0.9]
+    ],
+    "extrasensory": [[250, "move:PRSFX- Extrasensory.wav", 1, 0.85]],
+    "extreme-speed": [
+      [0, "move:PRSFX- Extremespeed1.wav", 1, 1],
+      [650, "move:PRSFX- Extremespeed1.wav", 1, 1],
+      [950, "move:PRSFX- Extremespeed2.wav", 1, 1]
+    ],
+    "facade": [
+      [0, "move:PRSFX- Facade2.wav", 1, 1],
+      [600, "move:PRSFX- Facade2.wav", 1, 1],
+      [1150, "move:PRSFX- Facade1.wav", 1, 0.5]
+    ],
+    "fake-out": [
+      [150, "move:PRSFX- Fake Out1.wav", 1, 1],
+      [300, "move:PRSFX- Fake Out2.wav", 1, 1]
+    ],
+    "fake-tears": [
+      [0, "move:PRSFX- Fake Tears.wav", 1, 0.85],
+      [1050, "move:PRSFX- Fake Tears.wav", 1, 0.85]
+    ],
+    "false-swipe": [[350, "move:PRSFX- False Swipe.wav", 1, 1]],
+    "feather-dance": [
+      [0, "move:PRSFX- Featherdance1.wav", 1, 0.8],
+      [650, "move:PRSFX- Featherdance2.wav", 1, 1]
+    ],
+    "feint": [[100, "move:PRSFX- Feint1.wav", 1, 1], [400, "move:PRSFX- Feint2.wav", 1, 1]],
+    "fell-stinger": [
+      [0, "move:PRSFX- Fell Stinger2.wav", 1, 1],
+      [550, "move:PRSFX- Fell Stinger1.wav", 1, 1],
+      [900, "move:PRSFX- Fell Stinger3.wav", 1, 1]
+    ],
+    "final-gambit": [
+      [0, "move:PRSFX- Final Gambit1.wav", 1, 1],
+      [2450, "move:PRSFX- Final Gambit2.wav", 1, 1]
+    ],
+    "fire-blast": [
+      [0, "move:PRSFX- Fire Blast.wav", 1, 1],
+      [2200, "move:PRSFX- Fire Blast.wav", 1, 2.5]
+    ],
+    "fire-fang": [
+      [200, "move:PRSFX- Fire Fang1.wav", 1, 1],
+      [250, "move:PRSFX- Fire Fang2.wav", 1, 1]
+    ],
+    "fire-pledge": [
+      [0, "move:PRSFX- Fire Pledge.wav", 1, 1],
+      [300, "move:PRSFX- Fire Pledge.wav", 1, 1.05],
+      [650, "move:PRSFX- Fire Pledge.wav", 1, 0.95]
+    ],
+    "fire-punch": [
+      [0, "move:PRSFX- Fire Punch3.wav", 1, 0.8],
+      [300, "move:PRSFX- Fire Punch1.wav", 1, 1],
+      [350, "move:PRSFX- Fire Punch2.wav", 1, 1]
+    ],
+    "fire-spin": [
+      [0, "move:PRSFX- Fire Spin.wav", 1, 0.5],
+      [650, "move:PRSFX- Fire Spin.wav", 1, 0.5],
+      [1350, "move:PRSFX- Fire Spin.wav", 1, 0.5]
+    ],
+    "first-impression": [[50, "move:GEN8- Exclaim.wav", 0.8, 1], [550, "move:Blow1.m4a", 0.8, 1]],
+    "fishious-rend": [[250, "move:PRSFX- Bite.wav", 0.8, 1], [900, "move:PRSFX- Bite.wav", 0.8, 1]],
+    "fissure": [[500, "move:PRSFX- Fissure.wav", 1, 1]],
+    "flail": [
+      [0, "move:PRSFX- Flail.wav", 1, 0.75],
+      [700, "move:PRSFX- Flail.wav", 1, 0.75],
+      [1200, "move:PRSFX- Flail.wav", 1, 0.75]
+    ],
+    "flame-charge": [
+      [50, "move:PRSFX- Flame Charge1.wav", 1, 1],
+      [750, "move:PRSFX- Flame Charge1.wav", 1, 1],
+      [1000, "move:PRSFX- Flame Charge2.wav", 1, 1]
+    ],
+    "flame-wheel": [
+      [0, "move:PRSFX- Flame Wheel1.wav", 1, 1],
+      [800, "move:PRSFX- Flame Wheel2.wav", 1, 1]
+    ],
+    "flamethrower": [
+      [0, "move:PRSFX- Flamethrower.wav", 1, 1],
+      [100, "move:PRSFX- Flamethrower.wav", 1, 1.05],
+      [200, "move:PRSFX- Flamethrower.wav", 1, 0.95]
+    ],
+    "flare-blitz": [
+      [0, "move:PRSFX- Flare Blitz1.wav", 1, 0.75],
+      [650, "move:PRSFX- Flare Blitz3.wav", 1, 0.8],
+      [700, "move:PRSFX- Flare Blitz2.wav", 1, 0.8],
+      [800, "move:PRSFX- Flare Blitz3.wav", 1, 1],
+      [950, "move:PRSFX- Flare Blitz3.wav", 1, 1.2]
+    ],
+    "flash": [[500, "move:PRSFX- Flash.wav", 1, 1]],
+    "flash-cannon": [[0, "move:PRSFX- Flash Cannon.wav", 1, 1]],
+    "flatter": [[0, "move:PRSFX- Flatter.wav", 1, 1.5]],
+    "fling": [[0, "move:PRSFX- Fling1.wav", 1, 1], [300, "move:PRSFX- Fling2.wav", 1, 1]],
+    "flip-turn": [
+      [50, "move:Water2.m4a", 0.8, 1],
+      [500, "move:Blow1.m4a", 0.8, 1],
+      [1200, "move:Water3.m4a", 0.8, 1]
+    ],
+    "fly": [[0, "move:PRSFX- Fly2.wav", 1, 1]],
+    "focus-blast": [[0, "move:PRSFX- Focus Blast1.wav", 1, 0.75]],
+    "focus-energy": [[0, "move:PRSFX- Focus Energy.wav", 1, 1]],
+    "focus-punch": [
+      [0, "move:PRSFX- Focus Punch1.wav", 1, 1],
+      [350, "move:PRSFX- Focus Punch2.wav", 1, 0.8],
+      [500, "move:PRSFX- Focus Punch2.wav", 1, 0.8],
+      [650, "move:PRSFX- Focus Punch2.wav", 1, 0.8],
+      [800, "move:PRSFX- Focus Punch2.wav", 1, 0.8],
+      [950, "move:PRSFX- Focus Punch2.wav", 1, 0.8],
+      [1100, "move:PRSFX- Focus Punch2.wav", 1, 0.8]
+    ],
+    "follow-me": [[0, "move:PRSFX- Follow Me.wav", 1, 0.88]],
+    "foul-play": [
+      [450, "move:PRSFX- Foul Play1.wav", 1, 1],
+      [450, "move:PRSFX- Foul Play2.wav", 1, 1]
+    ],
+    "freeze-dry": [
+      [0, "move:PRSFX- Freeze Dry1.wav", 1, 0.65],
+      [950, "move:PRSFX- Freeze Dry2.wav", 1, 0.9],
+      [1450, "move:PRSFX- Freeze Dry3.wav", 1, 0.85]
+    ],
+    "frenzy-plant": [
+      [0, "move:PRSFX- Frenzy Plant1.wav", 1, 1],
+      [300, "move:PRSFX- Frenzy Plant1.wav", 1, 0.7],
+      [600, "move:PRSFX- Frenzy Plant1.wav", 1, 1],
+      [1350, "move:PRSFX- Frenzy Plant2.wav", 1, 1],
+      [1500, "move:PRSFX- Frenzy Plant2.wav", 1, 1.2],
+      [1600, "move:PRSFX- Frenzy Plant2.wav", 1, 0.85]
+    ],
+    "fury-attack": [[0, "move:PRSFX- Fury Attack.wav", 1, 1]],
+    "fury-cutter": [[0, "move:PRSFX- Fury Cutter.wav", 1, 1]],
+    "fury-swipes": [
+      [50, "move:PRSFX- Fury Swipes.wav", 1, 1],
+      [350, "move:PRSFX- Fury Swipes.wav", 1, 1]
+    ],
+    "future-sight": [
+      [0, "move:PRSFX- Future Sight2.wav", 1, 1.11],
+      [0, "move:PRSFX- Future Sight2.wav", 1, 1.06]
+    ],
+    "gastro-acid": [[0, "move:PRSFX- Gastro Acid.wav", 1, 0.45]],
+    "giga-drain": [
+      [100, "move:PRSFX- Giga Drain2.wav", 1, 0.65],
+      [300, "move:PRSFX- Giga Drain2.wav", 1, 0.7],
+      [500, "move:PRSFX- Giga Drain2.wav", 1, 0.8],
+      [700, "move:PRSFX- Giga Drain2.wav", 1, 0.9],
+      [900, "move:PRSFX- Giga Drain2.wav", 1, 1],
+      [1350, "move:PRSFX- Giga Drain1.wav", 1, 1]
+    ],
+    "giga-impact": [
+      [0, "move:PRSFX- Giga Impact2.wav", 1, 1],
+      [500, "move:PRSFX- Giga Impact1.wav", 1, 1]
+    ],
+    "glare": [[300, "move:PRSFX- Glare.wav", 1, 0.9]],
+    "grass-knot": [
+      [0, "move:PRSFX- Grass Knot1.wav", 1, 1],
+      [700, "move:PRSFX- Grass Knot2.wav", 1, 1]
+    ],
+    "grass-pledge": [
+      [0, "move:PRSFX- Grass Pledge1.wav", 1, 1],
+      [450, "move:PRSFX- Grass Pledge2.wav", 1, 1]
+    ],
+    "grassy-glide": [[400, "move:PRSFX- Feint Attack2.wav", 1, 1]],
+    "grassy-terrain": [[0, "move:PRSFX- Grassy Terrain.wav", 1, 1.05]],
+    "gravity": [[0, "move:PRSFX- Gravity.wav", 1, 1]],
+    "growth": [[0, "move:PRSFX- Growth.wav", 1, 1]],
+    "grudge": [[0, "move:PRSFX- Grudge.wav", 1, 0.64]],
+    "guard-split": [
+      [50, "move:PRSFX- Guard Split.wav", 1, 1],
+      [450, "move:PRSFX- Guard Split.wav", 1, 1]
+    ],
+    "guard-swap": [
+      [0, "move:PRSFX- Guard Swap.wav", 1, 1],
+      [950, "move:PRSFX- Guard Swap.wav", 1, 1]
+    ],
+    "guillotine": [
+      [0, "move:PRSFX- Guillotine2.wav", 1, 0.8],
+      [1200, "move:PRSFX- Guillotine1.wav", 1, 1],
+      [1300, "move:PRSFX- Guillotine2.wav", 1, 1]
+    ],
+    "gunk-shot": [[0, "move:PRSFX- Gunk Shot.wav", 1, 1]],
+    "gust": [[0, "move:PRSFX- Gust.wav", 1, 1], [50, "move:PRSFX- Gust.wav", 0.5, 1.25]],
+    "gyro-ball": [
+      [0, "move:PRSFX- Gyro Ball2.wav", 1, 1],
+      [800, "move:PRSFX- Gyro Ball1.wav", 1, 1]
+    ],
+    "hail": [[0, "move:PRSFX- HailMove.wav", 1, 1]],
+    "hammer-arm": [
+      [50, "move:PRSFX- Hammer Arm1.wav", 1, 1],
+      [250, "move:PRSFX- Hammer Arm2.wav", 1, 1]
+    ],
+    "hard-press": [
+      [50, "move:PRSFX- Hammer Arm1.wav", 1, 1],
+      [250, "move:PRSFX- Hammer Arm2.wav", 1, 1]
+    ],
+    "harden": [
+      [0, "move:PRSFX- Harden.wav", 1, 1],
+      [150, "move:PRSFX- Harden.wav", 0.65, 1.4],
+      [350, "move:PRSFX- Harden.wav", 0.4, 1.8]
+    ],
+    "haze": [[0, "move:PRSFX- Haze.wav", 1, 0.85]],
+    "headbutt": [[400, "move:PRSFX- Headbutt2.wav", 1, 0.75]],
+    "heal-pulse": [[0, "move:PRSFX- Healing Pulse.wav", 1, 1]],
+    "healing-wish": [[0, "move:PRSFX- Healing Wish.wav", 1, 1.25]],
+    "heart-swap": [
+      [0, "move:PRSFX- Heart Swap.wav", 1, 1],
+      [950, "move:PRSFX- Heart Swap.wav", 1, 1]
+    ],
+    "heat-crash": [[400, "move:PRSFX- Heat Crash.wav", 1, 1]],
+    "heat-wave": [[0, "move:PRSFX- Heat Wave.wav", 1, 1]],
+    "heavy-slam": [
+      [0, "move:PRSFX- Heavy Slam1.wav", 1, 1],
+      [450, "move:PRSFX- Heavy Slam2.wav", 1, 1]
+    ],
+    "helping-hand": [[0, "move:PRSFX- Helping Hand.wav", 1, 1]],
+    "hex": [[0, "move:PRSFX- Hex.wav", 1, 1]],
+    "high-horsepower": [
+      [0, "move:PRSFX- High Horse Power1.wav", 0.7, 1],
+      [450, "move:PRSFX- High Horse Power2.wav", 1, 1]
+    ],
+    "high-jump-kick": [[0, "move:throw.m4a", 0.8, 1], [450, "move:Blow4.m4a", 0.8, 1]],
+    "horn-attack": [[550, "move:PRSFX- Horn Attack.wav", 1, 1]],
+    "horn-drill": [
+      [0, "move:PRSFX- Horn Drill1.wav", 1, 1],
+      [0, "move:PRSFX- Horn Drill3.wav", 1, 1.3],
+      [1300, "move:PRSFX- Horn Drill2.wav", 1, 1]
+    ],
+    "hurricane": [[0, "move:PRSFX- Hurricane.wav", 1, 1]],
+    "hydro-cannon": [
+      [0, "move:PRSFX- Hydro Cannon.wav", 1, 1],
+      [0, "move:PRSFX- Hydro Cannon1.wav", 1, 1]
+    ],
+    "hydro-pump": [
+      [50, "move:PRSFX- Hydro Pump.wav", 1, 0.4],
+      [450, "move:PRSFX- Hydro Pump.wav", 1, 0.5]
+    ],
+    "hyper-beam": [[0, "move:PRSFX- Hyper Beam.wav", 1, 0.75]],
+    "hyper-fang": [[50, "move:PRSFX- Hyper Fang.wav", 1, 0.66]],
+    "hypnosis": [
+      [0, "move:PRSFX- Hypnosis.wav", 1, 1],
+      [450, "move:PRSFX- Hypnosis.wav", 1, 0.8],
+      [950, "move:PRSFX- Hypnosis.wav", 1, 0.6],
+      [1400, "move:PRSFX- Hypnosis.wav", 1, 0.4]
+    ],
+    "ice-ball": [[0, "move:PRSFX- Ice Ball1.wav", 1, 1], [1050, "move:PRSFX- Ice Ball2.wav", 1, 1]],
+    "ice-beam": [[0, "move:PRSFX- Ice Beam.wav", 1, 1]],
+    "ice-fang": [
+      [200, "move:PRSFX- Ice Fang1.wav", 1, 1],
+      [250, "move:PRSFX- Ice Fang2.wav", 1, 1]
+    ],
+    "ice-punch": [
+      [0, "move:PRSFX- Ice Punch1.wav", 1, 1],
+      [300, "move:PRSFX- Ice Punch2.wav", 1, 1],
+      [400, "move:PRSFX- Ice Punch2.wav", 1, 1.05],
+      [500, "move:PRSFX- Ice Punch2.wav", 1, 0.95]
+    ],
+    "ice-shard": [[0, "move:PRSFX- Ice Shard.wav", 1, 1]],
+    "ice-spinner": [
+      [0, "move:Ice8.m4a", 1, 1.1],
+      [350, "move:Ice8.m4a", 1, 1.1],
+      [850, "move:PRSFX- Throat Chop1.wav", 1, 0.9]
+    ],
+    "icicle-crash": [
+      [0, "move:PRSFX- Icicle Crash1.wav", 1, 1],
+      [450, "move:PRSFX- Icicle Crash2.wav", 1, 1.6]
+    ],
+    "icicle-spear": [[400, "move:PRSFX- Icicle Spear.wav", 1, 1]],
+    "icy-wind": [
+      [0, "move:PRSFX- Icy Wind1.wav", 1, 1.2],
+      [500, "move:PRSFX- Icy Wind2.wav", 1, 1]
+    ],
+    "imprison": [[0, "move:PRSFX- Imprison1.wav", 1, 1], [750, "move:PRSFX- Imprison2.wav", 1, 1]],
+    "incinerate": [
+      [0, "move:PRSFX- Incinerate1.wav", 1, 1],
+      [550, "move:PRSFX- Incinerate2.wav", 1, 1]
+    ],
+    "inferno": [[0, "move:PRSFX- Inferno.wav", 1, 1]],
+    "ingrain": [[0, "move:PRSFX- Ingrain1.wav", 1, 0.7]],
+    "iron-defense": [[0, "move:PRSFX- Iron Defense.wav", 1, 1]],
+    "iron-head": [[400, "move:PRSFX- Iron Head.wav", 1, 0.65]],
+    "iron-tail": [
+      [0, "move:PRSFX- Iron Tail1.wav", 1, 1],
+      [500, "move:PRSFX- Iron Tail2.wav", 1, 1]
+    ],
+    "karate-chop": [
+      [100, "move:PRSFX- Karate Chop1.wav", 0.8, 1],
+      [300, "move:PRSFX- Karate Chop2.wav", 1, 1]
+    ],
+    "kinesis": [[200, "move:PRSFX- Kinesis.wav", 1, 0.85]],
+    "knock-off": [[150, "move:PRSFX- Knock Off.wav", 1, 1]],
+    "laser-focus": [
+      [100, "move:PRSFX- Laser Focus1.wav", 1, 1],
+      [1150, "move:PRSFX- Laser Focus2.wav", 1, 1]
+    ],
+    "lash-out": [
+      [0, "move:Fire2.m4a", 0.8, 1],
+      [450, "move:Fire1.m4a", 0.8, 1],
+      [1050, "move:Fire1.m4a", 0.8, 1]
+    ],
+    "last-resort": [
+      [450, "move:PRSFX- Last Resort1.wav", 0.8, 1],
+      [1250, "move:PRSFX- Last Resort2.wav", 1, 0.85]
+    ],
+    "last-respects": [[150, "move:PRSFX- Shadow Ball2.wav", 0.8, 1]],
+    "lava-plume": [[0, "move:PRSFX- Lava Plume.wav", 1, 1]],
+    "leaf-blade": [[0, "move:PRSFX- Leaf Blade.wav", 0.8, 1.3]],
+    "leaf-storm": [
+      [0, "move:PRSFX- Leaf Storm1.wav", 1, 1],
+      [0, "move:PRSFX- Leaf Storm2.wav", 1, 1]
+    ],
+    "leech-life": [
+      [150, "move:PRSFX- Leech Life1.wav", 1, 1],
+      [400, "move:PRSFX- Leech Life2.wav", 1, 0.75]
+    ],
+    "leech-seed": [[200, "move:PRSFX- Leech Seed2.wav", 1, 1]],
+    "leer": [[0, "move:PRSFX- Leer.wav", 1, 1]],
+    "lick": [[0, "move:PRSFX- Lick.wav", 1, 1]],
+    "life-dew": [[0, "move:PRSFX- Recover.wav", 1, 1]],
+    "light-screen": [[0, "move:PRSFX- Light Screen.wav", 1, 1]],
+    "liquidation": [
+      [0, "move:PRSFX- Liquidation1.wav", 1, 0.75],
+      [850, "move:PRSFX- Liquidation2.wav", 1, 1],
+      [1450, "move:PRSFX- Liquidation3.wav", 0.5, 1],
+      [1450, "move:PRSFX- Liquidation4.wav", 1, 0.85],
+      [1850, "move:PRSFX- Liquidation3.wav", 0.5, 1],
+      [1850, "move:PRSFX- Liquidation4.wav", 1, 0.85],
+      [2250, "move:PRSFX- Liquidation3.wav", 0.5, 1],
+      [2250, "move:PRSFX- Liquidation4.wav", 1, 0.6],
+      [2250, "move:PRSFX- Liquidation4.wav", 1, 1]
+    ],
+    "lock-on": [[200, "move:PRSFX- Lock On.wav", 0.8, 1], [700, "move:PRSFX- Lock On.wav", 0.8, 1]],
+    "lovely-kiss": [[100, "move:PRSFX- Lovely Kiss.wav", 1, 0.94]],
+    "low-kick": [[250, "move:PRSFX- Low Kick.wav", 1, 1.01]],
+    "low-sweep": [[200, "move:PRSFX- Low Sweep.wav", 1, 1]],
+    "lunge": [[500, "move:Blow3.m4a", 0.8, 1]],
+    "mach-punch": [
+      [300, "move:PRSFX- Mach Punch.wav", 1, 1],
+      [350, "move:PRSFX- Mach Punch.wav", 1, 0.89]
+    ],
+    "magic-room": [[0, "move:PRSFX- Magic Room.wav", 1, 1]],
+    "magical-leaf": [
+      [0, "move:PRSFX- Magical Leaf1.wav", 1, 0.9],
+      [800, "move:PRSFX- Magical Leaf2.wav", 1, 1],
+      [900, "move:PRSFX- Magical Leaf2.wav", 1, 1],
+      [1000, "move:PRSFX- Magical Leaf2.wav", 1, 1]
+    ],
+    "magnet-rise": [[0, "move:PRSFX- Magnet Rise.wav", 1, 1]],
+    "magnetic-flux": [[0, "move:PRSFX- Magnetic Flux.wav", 1, 1]],
+    "magnitude": [[0, "move:PRSFX- Magnitude.wav", 1, 1]],
+    "mean-look": [[0, "move:PRSFX- Mean Look.wav", 1, 1]],
+    "mega-drain": [
+      [0, "move:PRSFX- Mega Drain1.wav", 1, 0.8],
+      [100, "move:PRSFX- Mega Drain2.wav", 1, 1.2],
+      [450, "move:PRSFX- Mega Drain1.wav", 1, 1],
+      [650, "move:PRSFX- Mega Drain2.wav", 1, 0.8],
+      [750, "move:PRSFX- Mega Drain2.wav", 1, 1],
+      [850, "move:PRSFX- Mega Drain2.wav", 1, 2.41],
+      [1050, "move:PRSFX- Mega Drain2.wav", 1, 2]
+    ],
+    "mega-kick": [[50, "move:PRSFX- Megakick.wav", 1, 1]],
+    "mega-punch": [[300, "move:PRSFX- Mega Punch1.wav", 1, 1]],
+    "megahorn": [[0, "move:PRSFX- Megahorn1.wav", 1, 1], [500, "move:PRSFX- Megahorn2.wav", 1, 1]],
+    "memento": [[0, "move:PRSFX- Memento1.wav", 1, 1], [700, "move:PRSFX- Memento2.wav", 1, 1]],
+    "metal-burst": [
+      [0, "move:PRSFX- Metal Burst1.wav", 1, 0.36],
+      [1250, "move:PRSFX- Metal Burst2.wav", 1, 1],
+      [1550, "move:PRSFX- Metal Burst2.wav", 1, 0.75]
+    ],
+    "metal-claw": [
+      [100, "move:PRSFX- Metal Claw2.wav", 1, 1],
+      [250, "move:PRSFX- Metal Claw1.wav", 1, 1],
+      [350, "move:PRSFX- Metal Claw2.wav", 1, 1],
+      [500, "move:PRSFX- Metal Claw1.wav", 1, 1]
+    ],
+    "metal-sound": [[0, "move:PRSFX- Metal Sound.wav", 1, 0.8]],
+    "meteor-beam": [
+      [200, "move:PRSFX- Solar Beam2.wav", 1, 1],
+      [1650, "move:Explosion4.m4a", 1, 0.8],
+      [1950, "move:Fire2.m4a", 0.8, 0.49]
+    ],
+    "meteor-mash": [
+      [0, "move:PRSFX- Meteor Mash1.wav", 1, 1],
+      [1450, "move:PRSFX- Meteor Mash2.wav", 1, 1]
+    ],
+    "metronome": [
+      [50, "move:PRSFX- Metronome.wav", 1, 1],
+      [350, "move:PRSFX- Metronome.wav", 1, 0.8],
+      [550, "move:PRSFX- Metronome.wav", 1, 1],
+      [700, "move:PRSFX- Metronome.wav", 1, 0.8]
+    ],
+    "mimic": [[0, "move:PRSFX- Mimic1.wav", 1, 1], [0, "move:PRSFX- Mimic2.wav", 1, 0.8]],
+    "minimize": [
+      [0, "move:PRSFX- Minimize2.wav", 1, 1],
+      [250, "move:PRSFX- Minimize2.wav", 1, 1],
+      [500, "move:PRSFX- Minimize2.wav", 1, 1]
+    ],
+    "mirror-coat": [[0, "move:PRSFX- Mirror Coat.wav", 1, 1]],
+    "mirror-move": [[0, "move:PRSFX- Mimic1.wav", 1, 1], [0, "move:PRSFX- Mimic2.wav", 1, 0.8]],
+    "mist": [[0, "move:PRSFX- Mist.wav", 1, 1]],
+    "misty-explosion": [
+      [0, "move:PRSFX- Selfdestruct1.wav", 0.8, 2.25],
+      [900, "move:PRSFX- Explosion.wav", 1, 0.9]
+    ],
+    "misty-terrain": [[0, "move:PRSFX- Misty Terrain.wav", 1, 1]],
+    "moonblast": [
+      [0, "move:PRSFX- Moonblast1.wav", 1, 1],
+      [1750, "move:PRSFX- Moonblast2.wav", 1, 1]
+    ],
+    "moonlight": [[0, "move:PRSFX- Moonlight.wav", 1, 0.7]],
+    "morning-sun": [[0, "move:PRSFX- Morning Sun.wav", 1, 1]],
+    "mud-bomb": [[0, "move:PRSFX- Mud Bomb1.wav", 1, 1], [600, "move:PRSFX- Mud Bomb2.wav", 1, 1]],
+    "mud-shot": [[0, "move:PRSFX- Mud Shot.wav", 1, 1]],
+    "mud-slap": [
+      [450, "move:PRSFX- Mud Slap.wav", 1, 1.1],
+      [700, "move:PRSFX- Mud Slap.wav", 1, 1]
+    ],
+    "muddy-water": [[0, "move:PRSFX- Muddy Water.wav", 1, 1]],
+    "mystical-fire": [
+      [0, "move:PRSFX- Mystical Fire1.wav", 1, 1],
+      [700, "move:PRSFX- Mystical Fire2.wav", 1, 1.5],
+      [1200, "move:PRSFX- Mystical Fire2.wav", 1, 1.5],
+      [1450, "move:PRSFX- Mystical Fire2.wav", 1, 1.5]
+    ],
+    "nasty-plot": [[0, "move:PRSFX- Nasty Plot.wav", 1, 0.65]],
+    "nature-power": [[0, "move:PRSFX- Growth.wav", 1, 1]],
+    "night-shade": [[0, "move:PRSFX- Night Shade.wav", 1, 1]],
+    "night-slash": [
+      [100, "move:PRSFX- Night Slash2.wav", 1, 0.9],
+      [350, "move:PRSFX- Night Slash1.wav", 1, 1]
+    ],
+    "nuzzle": [[0, "move:PRSFX- Nuzzle1.wav", 1, 1], [200, "move:PRSFX- Nuzzle2.wav", 1, 1]],
+    "outrage": [
+      [0, "move:PRSFX- Outrage1.wav", 1, 1],
+      [400, "move:PRSFX- Outrage1.wav", 1, 1],
+      [850, "move:PRSFX- Outrage2.wav", 1, 1]
+    ],
+    "overheat": [
+      [0, "move:PRSFX- Overheat1.wav", 1, 1.48],
+      [0, "move:PRSFX- Overheat1.wav", 0.8, 1.23],
+      [600, "move:PRSFX- Overheat1.wav", 1, 1],
+      [800, "move:PRSFX- Overheat2.wav", 1, 0.7]
+    ],
+    "pain-split": [
+      [0, "move:PRSFX- Pain Split.wav", 1, 1],
+      [300, "move:PRSFX- Pain Split.wav", 1, 1],
+      [600, "move:PRSFX- Pain Split.wav", 1, 1]
+    ],
+    "pay-day": [[350, "move:PRSFX- Pay Day1.wav", 1, 1.4], [400, "move:PRSFX- Pay Day2.wav", 1, 1]],
+    "peck": [
+      [50, "move:PRSFX- Peck.wav", 1, 1],
+      [200, "move:PRSFX- Peck.wav", 1, 1],
+      [350, "move:PRSFX- Peck.wav", 1, 1]
+    ],
+    "perish-song": [[0, "move:PRSFX- Perish Song.wav", 1, 1]],
+    "petal-blizzard": [
+      [0, "move:PRSFX- Petal Blizzard1.wav", 1, 1.5],
+      [2500, "move:PRSFX- Petal Blizzard2.wav", 1, 1]
+    ],
+    "petal-dance": [
+      [0, "move:PRSFX- Petal Dance.wav", 1, 0.39],
+      [1400, "move:PRSFX- Petal Dance.wav", 1, 1]
+    ],
+    "phantom-force": [[0, "move:PRSFX- Phantom Force2.wav", 1, 1]],
+    "pin-missile": [[350, "move:PRSFX- Pin Missile.wav", 1, 0.9]],
+    "play-nice": [[0, "move:PRSFX- Play Nice1.wav", 1, 1], [0, "move:PRSFX- Play Nice2.wav", 1, 1]],
+    "play-rough": [
+      [0, "move:PRSFX- Play Rough1.wav", 1, 1.3],
+      [450, "move:PRSFX- Play Rough3.wav", 1, 1],
+      [450, "move:PRSFX- Play Rough4.wav", 1, 1],
+      [950, "move:PRSFX- Play Rough3.wav", 1, 1],
+      [950, "move:PRSFX- Play Rough4.wav", 1, 1],
+      [1300, "move:PRSFX- Play Rough2.wav", 1, 1],
+      [1450, "move:PRSFX- Play Rough3.wav", 1, 1],
+      [1450, "move:PRSFX- Play Rough4.wav", 1, 1],
+      [1950, "move:PRSFX- Play Rough3.wav", 1, 1],
+      [1950, "move:PRSFX- Play Rough4.wav", 1, 1],
+      [2450, "move:PRSFX- Play Rough3.wav", 1, 1],
+      [2450, "move:PRSFX- Play Rough4.wav", 1, 1]
+    ],
+    "pluck": [[0, "move:PRSFX- Pluck2.wav", 1, 1], [350, "move:PRSFX- Pluck1.wav", 1, 1]],
+    "poison-fang": [
+      [200, "move:PRSFX- Poison Fang1.wav", 1, 0.55],
+      [250, "move:PRSFX- Poison Fang2.wav", 1, 1]
+    ],
+    "poison-gas": [
+      [0, "move:PRSFX- Poison Gas.wav", 1, 1.6],
+      [0, "move:PRSFX- Poison Gas.wav", 1, 1.3]
+    ],
+    "poison-jab": [
+      [0, "move:PRSFX- Poison Jab1.wav", 1, 0.6],
+      [400, "move:PRSFX- Poison Jab2.wav", 1, 1]
+    ],
+    "poison-powder": [[0, "move:PRSFX- Poison Powder.wav", 1, 1]],
+    "poison-sting": [[350, "move:PRSFX- Poison Sting.wav", 1, 1]],
+    "poison-tail": [
+      [200, "move:PRSFX- Poison Tail2.wav", 1, 1],
+      [250, "move:PRSFX- Poison Tail2.wav", 1, 0.7],
+      [500, "move:PRSFX- Poison Tail1.wav", 1, 1]
+    ],
+    "pollen-puff": [
+      [0, "move:PRSFX- Pollen Puff3.wav", 0.7, 1],
+      [50, "move:PRSFX- Pollen Puff4.wav", 1, 1],
+      [150, "move:PRSFX- Pollen Puff3.wav", 0.7, 1],
+      [200, "move:PRSFX- Pollen Puff4.wav", 1, 1],
+      [300, "move:PRSFX- Pollen Puff3.wav", 0.7, 1],
+      [350, "move:PRSFX- Pollen Puff1.wav", 1, 1],
+      [350, "move:PRSFX- Pollen Puff4.wav", 1, 1],
+      [350, "move:PRSFX- Pollen Puff5.wav", 1, 1],
+      [950, "move:PRSFX- Pollen Puff2.wav", 1, 1],
+      [950, "move:PRSFX- Pollen Puff6.wav", 0.75, 1],
+      [1100, "move:PRSFX- Pollen Puff2.wav", 1, 1],
+      [1250, "move:PRSFX- Pollen Puff2.wav", 1, 1]
+    ],
+    "poltergeist": [
+      [0, "move:PRSFX- Curse.wav", 0.8, 1],
+      [500, "move:Fire5.m4a", 0.8, 1],
+      [1250, "move:Blow3.m4a", 0.8, 1],
+      [1350, "move:Fire5.m4a", 0.8, 1]
+    ],
+    "pounce": [
+      [0, "move:GEN8- Revelation Dance 1.m4a", 0.8, 1],
+      [1500, "move:PRSFX- Tackle.wav", 0.8, 1]
+    ],
+    "pound": [[150, "move:PRSFX- Pound.wav", 1, 0.5]],
+    "powder-snow": [[0, "move:PRSFX- Powder Snow1.wav", 1, 1]],
+    "power-gem": [[0, "move:PRSFX- Power Gem1.wav", 1, 1.4]],
+    "power-swap": [
+      [0, "move:PRSFX- Heart Swap.wav", 1, 1],
+      [950, "move:PRSFX- Heart Swap.wav", 1, 1]
+    ],
+    "power-whip": [[50, "move:PRSFX- Power Whip.wav", 1, 0.85]],
+    "protect": [[0, "move:PRSFX- Protect.wav", 1, 1]],
+    "psybeam": [[0, "move:PRSFX- Psybeam.wav", 1, 1.3]],
+    "psych-up": [[0, "move:PRSFX- Psych Up.wav", 1, 1]],
+    "psychic": [[50, "move:PRSFX- Psychic.wav", 1, 1], [200, "move:PRSFX- Psychic.wav", 1, 0.8]],
+    "psychic-fangs": [
+      [200, "move:PRSFX- Crunch.wav", 1, 1.57],
+      [550, "move:PRSFX- Crunch.wav", 1, 1]
+    ],
+    "psychic-noise": [
+      [0, "move:PRSFX- Uproar1.wav", 1, 0.8],
+      [0, "move:PRSFX- Uproar2.wav", 1, 0.85],
+      [650, "move:PRSFX- Uproar1.wav", 1, 0.8],
+      [650, "move:PRSFX- Uproar2.wav", 1, 0.85]
+    ],
+    "psychic-terrain": [
+      [0, "move:PRSFX- Psychic Terrain1.wav", 1, 1],
+      [1000, "move:PRSFX- Psychic Terrain2.wav", 1, 1.25],
+      [1000, "move:PRSFX- Psychic Terrain3.wav", 1, 1.3]
+    ],
+    "psycho-cut": [[0, "move:PRSFX- Psycho Cut.wav", 1, 1]],
+    "psyshock": [[0, "move:PRSFX- Psyshock1.wav", 1, 1], [550, "move:PRSFX- Psyshock2.wav", 1, 1]],
+    "psystrike": [
+      [350, "move:PRSFX- Psystrike2.wav", 1, 1],
+      [1100, "move:PRSFX- Psystrike3.wav", 1, 1],
+      [1300, "move:PRSFX- Psystrike1.wav", 1, 1]
+    ],
+    "pursuit": [[300, "move:PRSFX- Pursuit1.wav", 1, 0.5], [400, "move:PRSFX- Pursuit2.wav", 1, 1]],
+    "quick-attack": [[150, "move:PRSFX- Quick Attack.wav", 1, 1]],
+    "quick-guard": [[0, "move:PRSFX- Quick Guard.wav", 1, 1]],
+    "quiver-dance": [[0, "move:PRSFX- Quiver Dance.wav", 1, 1]],
+    "rage-fist": [
+      [200, "move:PRSFX- Taunt2.wav", 0.8, 1],
+      [450, "move:PRSFX- Taunt2.wav", 0.8, 1],
+      [700, "move:PRSFX- Taunt2.wav", 0.8, 1],
+      [950, "move:PRSFX- Taunt2.wav", 0.8, 1],
+      [1400, "move:PRSFX- Sky Attack1.wav", 0.8, 1],
+      [1600, "move:PRSFX- Focus Punch2.wav", 0.8, 1],
+      [1650, "move:PRSFX- Shadow Ball2.wav", 0.8, 1]
+    ],
+    "rage-powder": [
+      [0, "move:PRSFX- Rage Powder.wav", 1, 1],
+      [0, "move:PRSFX- Swagger1.wav", 1, 1],
+      [750, "move:PRSFX- Rage Powder.wav", 1, 1],
+      [750, "move:PRSFX- Swagger1.wav", 1, 1]
+    ],
+    "raging-bull": [
+      [150, "move:PRSFX- Taunt2.wav", 0.8, 1],
+      [350, "move:PRSFX- Taunt2.wav", 0.8, 1],
+      [600, "move:PRSFX- Hi Jump Kick1.wav", 0.8, 1],
+      [950, "move:PRSFX- Brutal Swing3.wav", 0.8, 1]
+    ],
+    "raging-fury": [
+      [350, "move:PRSFX- Thrash2.wav", 1, 0.85],
+      [750, "move:PRSFX- Thrash2.wav", 1, 0.85],
+      [1150, "move:PRSFX- Thrash2.wav", 1, 0.85]
+    ],
+    "rain-dance": [[0, "move:PRSFX- Rain Dance.wav", 1, 1]],
+    "rapid-spin": [
+      [0, "move:PRSFX- Rapid Spin.wav", 1, 0.8],
+      [400, "move:PRSFX- Rapid Spin.wav", 1, 0.9],
+      [750, "move:PRSFX- Rapid Spin.wav", 1, 1]
+    ],
+    "razor-leaf": [
+      [0, "move:PRSFX- Razor Leaf2.wav", 1, 1],
+      [850, "move:PRSFX- Razor Leaf1.wav", 1, 1]
+    ],
+    "razor-shell": [[400, "move:PRSFX- Razor Shell.wav", 1, 1.3]],
+    "razor-wind": [
+      [0, "move:Wind8.m4a", 0.8, 1],
+      [250, "move:Wind7.m4a", 0.8, 1],
+      [400, "move:Wind7.m4a", 0.8, 1],
+      [550, "move:Wind8.m4a", 0.8, 1],
+      [800, "move:Wind7.m4a", 0.8, 1],
+      [950, "move:Wind7.m4a", 0.8, 1],
+      [1100, "move:Wind8.m4a", 0.8, 1],
+      [1350, "move:Wind7.m4a", 0.8, 1],
+      [1500, "move:Wind7.m4a", 0.8, 1]
+    ],
+    "recover": [[0, "move:PRSFX- Recover.wav", 1, 1]],
+    "recycle": [[0, "move:PRSFX- Recycle.wav", 1, 1]],
+    "reflect": [[0, "move:PRSFX- Reflect.wav", 1, 1]],
+    "reflect-type": [[0, "move:PRSFX- Reflect Type.wav", 1, 0.9]],
+    "retaliate": [
+      [0, "move:PRSFX- Retaliate1.wav", 0.8, 0.95],
+      [500, "move:PRSFX- Retaliate2.wav", 1, 1]
+    ],
+    "revenge": [
+      [0, "move:PRSFX- Revenge1.wav", 1, 1],
+      [1150, "move:PRSFX- Revenge1.wav", 1, 1],
+      [2200, "move:PRSFX- Revenge2.wav", 1, 0.59]
+    ],
+    "reversal": [
+      [0, "move:PRSFX- Reversal1.wav", 1, 0.8],
+      [300, "move:PRSFX- Reversal2.wav", 1, 1]
+    ],
+    "rising-voltage": [
+      [0, "move:PRSFX- Charge.wav", 0.8, 1],
+      [600, "move:PRSFX- Thunder Punch1.wav", 0.8, 1]
+    ],
+    "rock-blast": [[350, "move:PRSFX- Rock Blast.wav", 1, 1]],
+    "rock-polish": [[0, "move:PRSFX- Rock Polish.wav", 1, 1]],
+    "rock-slide": [
+      [0, "move:PRSFX- Rock Slide.wav", 1, 0.9],
+      [450, "move:PRSFX- Rock Slide.wav", 1, 1],
+      [800, "move:PRSFX- Rock Slide.wav", 1, 1.1]
+    ],
+    "rock-smash": [[250, "move:PRSFX- Rock Smash.wav", 1, 1]],
+    "rock-throw": [
+      [150, "move:PRSFX- Rock Throw1.wav", 1, 1],
+      [850, "move:PRSFX- Rock Throw2.wav", 1, 1]
+    ],
+    "rock-tomb": [
+      [0, "move:PRSFX- Rock Tomb.wav", 1, 1],
+      [300, "move:PRSFX- Rock Tomb.wav", 1, 1],
+      [600, "move:PRSFX- Rock Tomb.wav", 1, 1],
+      [900, "move:PRSFX- Rock Tomb.wav", 1, 1],
+      [1200, "move:PRSFX- Rock Tomb.wav", 1, 1]
+    ],
+    "role-play": [[200, "move:PRSFX- Roleplay.wav", 1, 1]],
+    "rollout": [
+      [200, "move:PRSFX- Rollout1.wav", 0.8, 1],
+      [1050, "move:PRSFX- Rollout2.wav", 1, 1]
+    ],
+    "roost": [[150, "move:PRSFX- Roost2.wav", 1, 1]],
+    "round": [[0, "move:PRSFX- Round.wav", 1, 1]],
+    "safeguard": [[0, "move:PRSFX- Safeguard.wav", 1, 1]],
+    "sand-attack": [[0, "move:PRSFX- Sand Attack.wav", 1, 1]],
+    "sand-tomb": [[0, "move:PRSFX- Sand Tomb.wav", 1, 1]],
+    "sandstorm": [
+      [0, "move:PRSFX- Sandstorm.wav", 1, 0.75],
+      [900, "move:PRSFX- Sandstorm.wav", 1, 1]
+    ],
+    "scald": [[0, "move:PRSFX- Scald1.wav", 1, 1], [350, "move:PRSFX- Scald2.wav", 1, 1]],
+    "scale-shot": [[0, "move:Fire2.m4a", 0.8, 0.6], [800, "move:Blow6.m4a", 0.8, 1]],
+    "scary-face": [[0, "move:PRSFX- Scary Face.wav", 1, 1]],
+    "scorching-sands": [
+      [0, "move:PRSFX- Sand Attack.wav", 1, 1],
+      [400, "move:PRSFX- Burn.wav", 0.8, 1],
+      [550, "move:PRSFX- Burn.wav", 0.8, 1]
+    ],
+    "scratch": [[0, "move:PRSFX- Scratch.wav", 1, 1]],
+    "screech": [[0, "move:PRSFX- Screech.wav", 1, 0.8]],
+    "seed-bomb": [
+      [0, "move:PRSFX- Seed Bomb1.wav", 1, 0.8],
+      [450, "move:PRSFX- Seed Bomb2.wav", 1, 1.2]
+    ],
+    "seismic-toss": [
+      [300, "move:PRSFX- Seismic Toss3.wav", 1, 1],
+      [450, "move:PRSFX- Seismic Toss1.wav", 1, 1.5],
+      [1100, "move:PRSFX- Seismic Toss4.wav", 1, 1],
+      [1700, "move:PRSFX- Seismic Toss5.wav", 1, 1.5],
+      [3000, "move:PRSFX- Seismic Toss2.wav", 1, 1]
+    ],
+    "self-destruct": [
+      [0, "move:PRSFX- Selfdestruct1.wav", 1, 1],
+      [2350, "move:PRSFX- Selfedestruct2.wav", 1, 1]
+    ],
+    "shadow-ball": [
+      [0, "move:PRSFX- Shadow Ball1.wav", 1, 1],
+      [1000, "move:PRSFX- Shadow Ball2.wav", 1, 1]
+    ],
+    "shadow-claw": [
+      [0, "move:PRSFX- Shadow Claw1.wav", 1, 1],
+      [50, "move:PRSFX- Shadow Claw2.wav", 1, 0.8]
+    ],
+    "shadow-force": [[0, "move:PRSFX- Shadow Force2.wav", 1, 1]],
+    "shadow-punch": [
+      [200, "move:PRSFX- Shadow Punch2.wav", 1, 1],
+      [250, "move:PRSFX- Shadow Punch1.wav", 1, 1]
+    ],
+    "sheer-cold": [[200, "move:PRSFX- Sheer Cold.wav", 1, 1]],
+    "shell-smash": [
+      [250, "move:PRSFX- Shell Smash1.wav", 1, 0.9],
+      [550, "move:PRSFX- Shell Smash1.wav", 1, 1.05],
+      [850, "move:PRSFX- Shell Smash1.wav", 1, 0.95],
+      [1150, "move:PRSFX- Shell Smash1.wav", 1, 1.1],
+      [1450, "move:PRSFX- Shell Smash2.wav", 1, 1]
+    ],
+    "shell-trap": [
+      [0, "move:PRSFX- Shell Trap3.wav", 1, 1],
+      [900, "move:PRSFX- Shell Trap1.wav", 1, 1],
+      [1250, "move:PRSFX- Shell Trap2.wav", 1, 1],
+      [1700, "move:PRSFX- Shell Trap2.wav", 1, 0.8]
+    ],
+    "shock-wave": [
+      [0, "move:PRSFX- Shockwave.wav", 1, 2.5],
+      [150, "move:PRSFX- Shockwave.wav", 1, 2.5],
+      [350, "move:PRSFX- Shockwave.wav", 1, 2.5],
+      [500, "move:PRSFX- Shockwave.wav", 1, 2.5],
+      [650, "move:PRSFX- Shockwave.wav", 1, 2.5],
+      [850, "move:PRSFX- Shockwave.wav", 1, 1]
+    ],
+    "sing": [[0, "move:PRSFX- Sing.wav", 1, 1]],
+    "sketch": [[450, "move:PRSFX- Sketch.wav", 1, 0.48]],
+    "skill-swap": [
+      [0, "move:PRSFX- Skill Swap.wav", 1, 1],
+      [950, "move:PRSFX- Skill Swap.wav", 1, 1]
+    ],
+    "skitter-smack": [
+      [0, "move:Darkness6.m4a", 0.8, 0.3],
+      [750, "move:PRSFX- Cut.wav", 0.8, 1],
+      [1150, "move:Darkness6.m4a", 0.8, 0.3]
+    ],
+    "skull-bash": [[250, "move:PRSFX- Skull Bash2.wav", 1, 1]],
+    "sky-attack": [
+      [750, "move:PRSFX- Sky Attack2.wav", 1, 1],
+      [750, "move:PRSFX- Sky Attack3.wav", 1, 1]
+    ],
+    "slack-off": [[400, "move:PRSFX- Slack Off.wav", 1, 1.3]],
+    "slam": [[150, "move:PRSFX- Slam.wav", 1, 1]],
+    "slash": [[0, "move:PRSFX- Slash.wav", 1, 1]],
+    "sleep-powder": [[0, "move:PRSFX- Sleep Powder.wav", 1, 1]],
+    "sleep-talk": [[0, "move:PRSFX- Sleep Talk.wav", 1, 1]],
+    "sludge": [[0, "move:PRSFX- Sludge.wav", 1, 1]],
+    "sludge-bomb": [
+      [100, "move:PRSFX- Sludge Bomb1.wav", 1, 1],
+      [600, "move:PRSFX- Sludge Bomb2.wav", 1, 1]
+    ],
+    "sludge-wave": [[0, "move:PRSFX- Sludge Wave.wav", 1, 1]],
+    "smack-down": [
+      [0, "move:PRSFX- Smack Down1.wav", 1, 1],
+      [200, "move:PRSFX- Smack Down2.wav", 1, 1],
+      [400, "move:PRSFX- Smack Down3.wav", 1, 1]
+    ],
+    "smart-strike": [
+      [250, "move:PRSFX- Smart Strike1.wav", 0.75, 1.1],
+      [650, "move:PRSFX- Smart Strike2.wav", 1, 1],
+      [1250, "move:PRSFX- Smart Strike3.wav", 0.9, 1],
+      [1500, "move:PRSFX- Smart Strike4.wav", 1, 1]
+    ],
+    "smog": [[0, "move:PRSFX- Smog.wav", 1, 1.8]],
+    "smokescreen": [[0, "move:PRSFX- Smokescreen.wav", 1, 1]],
+    "snarl": [[0, "move:PRSFX- Snarl.wav", 1, 1]],
+    "snore": [
+      [0, "move:PRSFX- Snore.wav", 1, 1],
+      [150, "move:PRSFX- Snore.wav", 1, 1],
+      [300, "move:PRSFX- Snore.wav", 1, 1]
+    ],
+    "snowscape": [[0, "move:PRSFX- HailMove.wav", 1, 1]],
+    "soak": [[0, "move:PRSFX- Soak.wav", 1, 0.6]],
+    "soft-boiled": [
+      [0, "move:PRSFX- Softboiled1.wav", 1, 1],
+      [750, "move:PRSFX- Softboiled2.wav", 1, 1]
+    ],
+    "solar-beam": [[200, "move:PRSFX- Solar Beam2.wav", 1, 1]],
+    "solar-blade": [[200, "move:Saint7.m4a", 0.8, 1], [750, "move:Saint9.m4a", 0.8, 1]],
+    "spark": [[0, "move:PRSFX- Spark1.wav", 1, 1], [600, "move:PRSFX- Spark2.wav", 1, 1.2]],
+    "speed-swap": [
+      [0, "move:PRSFX- Power Swap.wav", 1, 1],
+      [950, "move:PRSFX- Speed Swap.wav", 1, 1]
+    ],
+    "spikes": [
+      [0, "move:PRSFX- Spikes1.wav", 0.3, 0.5],
+      [200, "move:PRSFX- Spikes1.wav", 0.3, 0.5],
+      [250, "move:PRSFX- Spikes2.wav", 0.6, 1],
+      [400, "move:PRSFX- Spikes1.wav", 0.3, 0.5]
+    ],
+    "spit-up": [[0, "move:PRSFX- Spit Up.wav", 1, 1]],
+    "spite": [[0, "move:PRSFX- Spite1.wav", 1, 1.1], [650, "move:PRSFX- Spite2.wav", 1, 1]],
+    "splash": [[0, "move:PRSFX- Splash.wav", 1, 1]],
+    "spore": [[0, "move:PRSFX- Spore.wav", 1, 1]],
+    "stealth-rock": [[300, "move:PRSFX- Stealth Rocks.wav", 1, 1]],
+    "steel-beam": [
+      [0, "move:PRSFX- Freeze Shock1.wav", 0.8, 0.6],
+      [450, "move:PRSFX- Flash Cannon.wav", 0.8, 1]
+    ],
+    "steel-roller": [[200, "move:PRSFX- Rollout1.wav", 0.8, 1]],
+    "steel-wing": [[350, "move:PRSFX- Steel Wing.wav", 1, 0.9]],
+    "sticky-web": [
+      [0, "move:PRSFX- Sticky Web.wav", 1, 1],
+      [500, "move:PRSFX- Sticky Web.wav", 1, 1]
+    ],
+    "stockpile": [[0, "move:PRSFX- Stockpile.wav", 1, 1]],
+    "stomp": [[300, "move:PRSFX- Stomp.wav", 1, 1]],
+    "stomping-tantrum": [
+      [150, "move:PRSFX- Stomping Tantrum.wav", 1, 0.75],
+      [750, "move:PRSFX- Stomping Tantrum.wav", 1, 0.75],
+      [1300, "move:PRSFX- Stomping Tantrum.wav", 1, 0.75]
+    ],
+    "stone-edge": [[250, "move:PRSFX- Stone Edge.wav", 1, 1]],
+    "stored-power": [
+      [0, "move:PRSFX- Stored Power1.wav", 1, 1],
+      [550, "move:PRSFX- Stored Power2.wav", 1, 1]
+    ],
+    "storm-throw": [
+      [0, "move:PRSFX- Storm Throw1.wav", 1, 0.7],
+      [650, "move:PRSFX- Storm Throw2.wav", 1, 1]
+    ],
+    "strength": [[450, "move:PRSFX- Strength.wav", 1, 1]],
+    "strength-sap": [
+      [0, "move:PRSFX- Strength Sap1.wav", 1, 0.35],
+      [0, "move:PRSFX- Strength Sap2.wav", 0.75, 0.75],
+      [700, "move:PRSFX- Strength Sap2.wav", 0.75, 0.7],
+      [1050, "move:PRSFX- Strength Sap3.wav", 0.75, 1],
+      [1800, "move:PRSFX- Strength Sap3.wav", 0.75, 1.1]
+    ],
+    "string-shot": [
+      [0, "move:PRSFX- String Shot1.wav", 1, 1],
+      [0, "move:PRSFX- String Shot2.wav", 1, 1]
+    ],
+    "struggle-bug": [[0, "move:PRSFX- Struggle Bug.wav", 1, 1]],
+    "stun-spore": [[0, "move:PRSFX- Stun Spore.wav", 1, 1]],
+    "substitute": [
+      [0, "move:PRSFX- Substitute2.wav", 1, 1],
+      [650, "move:PRSFX- Substitute1.wav", 1, 1],
+      [1000, "move:PRSFX- Substitute1.wav", 0.9, 1]
+    ],
+    "sucker-punch": [
+      [0, "move:PRSFX- Sucker Punch1.wav", 1, 1],
+      [800, "move:PRSFX- Sucker Punch2.wav", 1, 1]
+    ],
+    "sunny-day": [[0, "move:PRSFX- Sunny Day.wav", 1, 1.3]],
+    "super-fang": [
+      [0, "move:PRSFX- Super Fang1.wav", 1, 1],
+      [350, "move:PRSFX- Superpower2.wav", 1, 1.1]
+    ],
+    "supercell-slam": [
+      [0, "move:PRSFX- Volt Tackle1.wav", 1, 1],
+      [700, "move:PRSFX- Volt Tackle2.wav", 1, 1]
+    ],
+    "superpower": [
+      [0, "move:PRSFX- Superpower1.wav", 1, 1],
+      [1000, "move:PRSFX- Superpower2.wav", 1, 1]
+    ],
+    "supersonic": [[0, "move:PRSFX- Supersonic.wav", 1, 0.87]],
+    "surf": [[0, "move:PRSFX- Surf.wav", 1, 1]],
+    "swagger": [
+      [200, "move:PRSFX- Swagger2.wav", 1, 0.84],
+      [1500, "move:PRSFX- Swagger1.wav", 1, 1],
+      [1800, "move:PRSFX- Swagger1.wav", 1, 1]
+    ],
+    "swallow": [[0, "move:PRSFX- Swallow.wav", 1, 1], [1000, "move:PRSFX- Swallow.wav", 1, 1.09]],
+    "sweet-kiss": [
+      [400, "move:PRSFX- Sweet Kiss1.wav", 1, 1],
+      [450, "move:PRSFX- Sweet Kiss2.wav", 1, 1.15]
+    ],
+    "sweet-scent": [[0, "move:PRSFX- Heal Order2.wav", 1, 1]],
+    "swift": [[0, "move:PRSFX- Swift2.wav", 1, 1.4], [0, "move:PRSFX- Swift1.wav", 1, 1]],
+    "switcheroo": [[0, "move:PRSFX- Switcheroo.wav", 1, 1]],
+    "swords-dance": [
+      [0, "move:PRSFX- Swords Dance2.wav", 1, 1],
+      [750, "move:PRSFX- Swords Dance1.wav", 1, 1]
+    ],
+    "synthesis": [[0, "move:PRSFX- Synthesis.wav", 1, 1]],
+    "tackle": [[0, "move:PRSFX- Tackle.wav", 1, 1]],
+    "tail-slap": [[0, "move:PRSFX- Tail Slap.wav", 1, 1]],
+    "tail-whip": [[0, "move:PRSFX- Tail Whip.wav", 1, 1]],
+    "tailwind": [[0, "move:PRSFX- Tailwind.wav", 1, 1]],
+    "take-down": [
+      [0, "move:PRSFX- Take Down1.wav", 1, 1],
+      [200, "move:PRSFX- Take Down2.wav", 1, 1]
+    ],
+    "taunt": [
+      [200, "move:PRSFX- Taunt1.wav", 1, 1],
+      [700, "move:PRSFX- Taunt2.wav", 1, 1],
+      [1100, "move:PRSFX- Taunt3.wav", 1, 1],
+      [1200, "move:PRSFX- Taunt2.wav", 1, 1],
+      [1500, "move:PRSFX- Taunt3.wav", 1, 1]
+    ],
+    "teeter-dance": [
+      [0, "move:PRSFX- Teeter Dance.wav", 1, 1],
+      [750, "move:PRSFX- Teeter Dance.wav", 1, 1]
+    ],
+    "teleport": [[150, "move:PRSFX- Teleport.wav", 1, 0.9]],
+    "temper-flare": [[400, "move:PRSFX- Heat Crash.wav", 1, 1]],
+    "terrain-pulse": [
+      [0, "move:PRSFX- Dark Pulse1.wav", 0.8, 1],
+      [550, "move:PRSFX- Dark Pulse1.wav", 0.8, 1]
+    ],
+    "thief": [
+      [0, "move:PRSFX- Feint Attack1.wav", 1, 0.8],
+      [1200, "move:PRSFX- Feint Attack2.wav", 1, 1]
+    ],
+    "thrash": [
+      [350, "move:PRSFX- Thrash2.wav", 1, 0.85],
+      [750, "move:PRSFX- Thrash2.wav", 1, 0.85],
+      [1150, "move:PRSFX- Thrash2.wav", 1, 0.85]
+    ],
+    "throat-chop": [
+      [100, "move:PRSFX- Throat Chop1.wav", 1, 1],
+      [100, "move:PRSFX- Throat Chop5.wav", 0.75, 1],
+      [650, "move:PRSFX- Throat Chop2.wav", 1, 1],
+      [950, "move:PRSFX- Throat Chop3.wav", 0.9, 1],
+      [950, "move:PRSFX- Throat Chop4.wav", 0.55, 1]
+    ],
+    "thunder": [
+      [750, "move:PRSFX- Thunder.wav", 0.8, 1],
+      [1100, "move:PRSFX- Thunder.wav", 0.8, 1],
+      [1700, "move:PRSFX- Thunder.wav", 0.9, 0.95]
+    ],
+    "thunder-fang": [[0, "move:PRSFX- Thunder Fang.wav", 1, 1.25]],
+    "thunder-punch": [
+      [350, "move:PRSFX- Thunder Punch2.wav", 1, 1],
+      [400, "move:PRSFX- Thunder Punch1.wav", 1, 1]
+    ],
+    "thunder-shock": [[0, "move:PRSFX- Thundershock.wav", 1, 1]],
+    "thunder-wave": [[0, "move:PRSFX- Thunder Wave.wav", 1, 1]],
+    "thunderbolt": [
+      [50, "move:PRSFX- Thunderbolt2.wav", 0.7, 1],
+      [700, "move:PRSFX- Thunderbolt1.wav", 1, 1]
+    ],
+    "tickle": [[350, "move:PRSFX- Tickle.wav", 1, 1]],
+    "topsy-turvy": [[0, "move:PRSFX- Topsy Turvy.wav", 1, 1.13]],
+    "toxic": [
+      [0, "move:PRSFX- Toxic2.wav", 1, 1],
+      [100, "move:PRSFX- Toxic1.wav", 1, 1],
+      [200, "move:PRSFX- Toxic1.wav", 1, 1],
+      [300, "move:PRSFX- Toxic1.wav", 1, 1],
+      [400, "move:PRSFX- Toxic1.wav", 1, 1]
+    ],
+    "toxic-spikes": [
+      [0, "move:PRSFX- Spikes1.wav", 0.3, 0.5],
+      [200, "move:PRSFX- Spikes1.wav", 0.3, 0.5],
+      [250, "move:PRSFX- Spikes2.wav", 0.6, 1],
+      [400, "move:PRSFX- Spikes1.wav", 0.3, 0.5],
+      [1000, "move:PRSFX- Toxic Spikes2.wav", 0.8, 0.8],
+      [1150, "move:PRSFX- Toxic Spikes2.wav", 0.8, 0.8],
+      [1300, "move:PRSFX- Toxic Spikes2.wav", 0.8, 0.8]
+    ],
+    "trailblaze": [[400, "move:PRSFX- Feint Attack2.wav", 1, 1]],
+    "transform": [[0, "move:PRSFX- Transform.wav", 1, 1]],
+    "tri-attack": [
+      [0, "move:PRSFX- Tri Attack.wav", 1, 1.45],
+      [1800, "move:PRSFX- Burn.wav", 1, 1],
+      [2200, "move:PRSFX- Paralysis.wav", 1, 1],
+      [2700, "move:PRSFX- Frozen.wav", 1, 1]
+    ],
+    "trick": [[0, "move:PRSFX- Trick.wav", 1, 1]],
+    "trick-room": [[0, "move:PRSFX- Wonder Room.wav", 1, 1]],
+    "triple-axel": [
+      [0, "move:PRSFX- Ice Punch1.wav", 1, 1],
+      [300, "move:PRSFX- Ice Punch2.wav", 1, 1],
+      [400, "move:PRSFX- Ice Punch2.wav", 1, 1.05],
+      [500, "move:PRSFX- Ice Punch2.wav", 1, 0.95]
+    ],
+    "twineedle": [
+      [450, "move:PRSFX- Twineedle1.wav", 1, 1],
+      [700, "move:PRSFX- Twineedle1.wav", 1, 1]
+    ],
+    "twister": [[0, "move:PRSFX- Twister.wav", 1, 1]],
+    "u-turn": [[700, "move:PRSFX- U-Turn2.wav", 1, 0.75]],
+    "upper-hand": [
+      [0, "move:PRSFX- Force Palm2.wav", 1, 1],
+      [100, "move:PRSFX- Force Palm1.wav", 1, 1]
+    ],
+    "uproar": [
+      [0, "move:PRSFX- Uproar1.wav", 1, 0.8],
+      [0, "move:PRSFX- Uproar2.wav", 1, 0.85],
+      [650, "move:PRSFX- Uproar1.wav", 1, 0.8],
+      [650, "move:PRSFX- Uproar2.wav", 1, 0.85]
+    ],
+    "vacuum-wave": [
+      [0, "move:PRSFX- Vacuum Wave1.wav", 1, 1],
+      [250, "move:PRSFX- Vacuum Wave2.wav", 1, 1]
+    ],
+    "venom-drench": [[400, "move:PRSFX- Venom Drench.wav", 1, 1.5]],
+    "venoshock": [
+      [0, "move:PRSFX- Venoshock1.wav", 1, 1],
+      [1100, "move:PRSFX- Venoshock2.wav", 1, 1]
+    ],
+    "vine-whip": [[100, "move:PRSFX- Vine Whip.wav", 0.8, 1]],
+    "vital-throw": [
+      [0, "move:PRSFX- Vital Throw1.wav", 1, 0.65],
+      [850, "move:PRSFX- Vital Throw2.wav", 1, 1]
+    ],
+    "volt-switch": [
+      [0, "move:PRSFX- Volt Switch2.wav", 1, 1],
+      [450, "move:PRSFX- Volt Switch1.wav", 1, 1]
+    ],
+    "volt-tackle": [
+      [0, "move:PRSFX- Volt Tackle1.wav", 1, 1],
+      [700, "move:PRSFX- Volt Tackle2.wav", 1, 1]
+    ],
+    "water-gun": [[0, "move:PRSFX- Water Gun.wav", 1, 1]],
+    "water-pledge": [
+      [0, "move:PRSFX- Water Pledge1.wav", 1, 0.8],
+      [650, "move:PRSFX- Water Pledge2.wav", 1, 0.8]
+    ],
+    "water-pulse": [
+      [0, "move:PRSFX- Water Pulse.wav", 1, 1],
+      [650, "move:PRSFX- Water Pulse2.wav", 1, 1]
+    ],
+    "water-spout": [
+      [0, "move:PRSFX- Water Spout1.wav", 1, 1],
+      [450, "move:PRSFX- Water Spout2.wav", 1, 1]
+    ],
+    "waterfall": [
+      [0, "move:PRSFX- Waterfall1.wav", 1, 1],
+      [200, "move:PRSFX- Waterfall2.wav", 1, 1]
+    ],
+    "wave-crash": [[0, "move:PRSFX- Double Edge1.wav", 1, 1], [700, "move:Water5.m4a", 1, 1]],
+    "weather-ball": [
+      [0, "move:PRSFX- Weather Ball2.wav", 1, 1],
+      [600, "move:PRSFX- Weather Ball1.wav", 1, 1.5],
+      [1150, "move:PRSFX- Weather Ball1.wav", 1, 0.7]
+    ],
+    "whirlpool": [
+      [200, "move:PRSFX- Whirlpool.wav", 1, 1],
+      [350, "move:PRSFX- Whirlpool2.wav", 1, 1]
+    ],
+    "whirlwind": [[0, "move:PRSFX- Whirlwind.wav", 1, 1]],
+    "wide-guard": [
+      [0, "move:PRSFX- Wide Guard.wav", 1, 0.69],
+      [600, "move:PRSFX- Wide Guard.wav", 1, 1]
+    ],
+    "wild-charge": [
+      [0, "move:PRSFX- Wild Charge1.wav", 1, 1],
+      [450, "move:PRSFX- Wild Charge2.wav", 1, 1]
+    ],
+    "will-o-wisp": [
+      [0, "move:PRSFX- Will O Wisp1.wav", 1, 1],
+      [950, "move:PRSFX- Will O Wisp2.wav", 1, 1]
+    ],
+    "wing-attack": [
+      [200, "move:PRSFX- Wing Attack1.wav", 1, 1],
+      [350, "move:PRSFX- Wing Attack2.wav", 1, 1]
+    ],
+    "wish": [[0, "move:PRSFX- Wish.wav", 1, 0.8]],
+    "withdraw": [[200, "move:PRSFX- Withdraw.wav", 1, 1]],
+    "wonder-room": [[0, "move:PRSFX- Trick Room.wav", 1, 1]],
+    "wood-hammer": [[0, "move:PRSFX- Wood Hammer.wav", 1, 1]],
+    "work-up": [[0, "move:PRSFX- Work Up.wav", 1, 1]],
+    "worry-seed": [
+      [0, "move:PRSFX- Worry Seed1.wav", 1, 1],
+      [400, "move:PRSFX- Worry Seed2.wav", 1, 1],
+      [500, "move:PRSFX- Worry Seed2.wav", 1, 1],
+      [600, "move:PRSFX- Worry Seed2.wav", 1, 1]
+    ],
+    "wrap": [[0, "move:PRSFX- Wrap.wav", 1, 1.1], [350, "move:PRSFX- Wrap.wav", 1, 1.25]],
+    "x-scissor": [[200, "move:PRSFX- X Scissor.wav", 1, 0.6]],
+    "yawn": [[200, "move:PRSFX- Yawn.wav", 1, 1]],
+    "zap-cannon": [
+      [0, "move:PRSFX- Zap Cannon3.wav", 0.8, 1],
+      [400, "move:PRSFX- Zap Cannon1.wav", 1, 1],
+      [650, "move:PRSFX- Zap Cannon2.wav", 1, 1]
+    ],
+    "zen-headbutt": [[400, "move:PRSFX- Headbutt2.wav", 1, 0.75]]
+  },
+  "effects": {
+    "drain": [[200, "move:PRSFX- Leech Seed3.wav", 1, 1.05]],
+    "heal": [
+      [0, "move:PRSFX- Health Up.wav", 0.8, 0.95],
+      [100, "move:PRSFX- Health Up.wav", 0.8, 1.1],
+      [100, "move:PRSFX- Health Up.wav", 0.8, 1.25]
+    ],
+    "shield": [[0, "move:PRSFX- Protect.wav", 0.7, 1.2]],
+    "stat-down": [[0, "effect:stat-down", 1, 1]],
+    "stat-up": [[0, "effect:stat-up", 1, 1]],
+    "status:asleep": [
+      [50, "move:PRSFX- Sleep.wav", 0.9, 1.2],
+      [450, "move:PRSFX- Sleep.wav", 1, 1]
+    ],
+    "status:badly_poisoned": [
+      [0, "move:PRSFX- Toxic2.wav", 1, 1],
+      [100, "move:PRSFX- Toxic1.wav", 1, 1],
+      [200, "move:PRSFX- Toxic1.wav", 1, 1],
+      [300, "move:PRSFX- Toxic1.wav", 1, 1],
+      [400, "move:PRSFX- Toxic1.wav", 1, 1]
+    ],
+    "status:burned": [[0, "move:PRSFX- Burn.wav", 1, 1]],
+    "status:confused": [[0, "move:PRSFX- Confused.wav", 1, 1]],
+    "status:frozen": [[0, "move:PRSFX- Frozen.wav", 1, 1]],
+    "status:infatuated": [[0, "move:PRSFX- Attract.wav", 1, 1]],
+    "status:paralyzed": [[0, "move:PRSFX- Paralysis.wav", 1, 1]],
+    "status:poisoned": [
+      [0, "move:PRSFX- Poison.wav", 1, 0.75],
+      [200, "move:PRSFX- Poison.wav", 1, 0.7],
+      [450, "move:PRSFX- Poison.wav", 1, 0.5]
+    ]
+  }
+}

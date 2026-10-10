@@ -6,7 +6,6 @@
 
 export const CombatSpeed = {
   Normal: "normal",
-  Fast: "fast",
   Instant: "instant",
 } as const;
 export type CombatSpeed = (typeof CombatSpeed)[keyof typeof CombatSpeed];
@@ -16,7 +15,6 @@ export const COMBAT_SPEEDS: readonly CombatSpeed[] = Object.values(CombatSpeed);
 /** How much faster every combat animation clock runs (sprite frames, glides, shakes, beats). */
 const ANIMATION_TIME_SCALE: Record<CombatSpeed, number> = {
   [CombatSpeed.Normal]: 1,
-  [CombatSpeed.Fast]: 2,
   [CombatSpeed.Instant]: 4,
 };
 
@@ -27,9 +25,14 @@ export function setCombatSpeed(speed: CombatSpeed): void {
   currentSpeed = speed;
 }
 
-/** The speed after `speed` in the settings cycle (Normal → Fast → Instant → Normal). */
+/** The step after `current` in a settings cycle, back to the first after the last. */
+export function nextInCycle<T>(steps: readonly T[], current: T): T {
+  return steps[(steps.indexOf(current) + 1) % steps.length] ?? current;
+}
+
+/** The speed after `speed` in the settings cycle (Normal ⇄ Instant). */
 export function nextCombatSpeed(speed: CombatSpeed): CombatSpeed {
-  return COMBAT_SPEEDS[(COMBAT_SPEEDS.indexOf(speed) + 1) % COMBAT_SPEEDS.length] ?? speed;
+  return nextInCycle(COMBAT_SPEEDS, speed);
 }
 
 /** Multiplier applied to the per-frame delta of every combat animation clock. */
@@ -90,6 +93,11 @@ class CombatClock {
   /** Extra slow-down on top of the combat speed (the move workshop's slow speeds), 1 = none. */
   setSlowMotion(factor: number): void {
     this.slowMotion = factor;
+  }
+
+  /** The slow motion in force, 1 = none — what a sound slows down by to stay with the picture. */
+  get slowMotionFactor(): number {
+    return this.slowMotion;
   }
 
   /**
@@ -156,6 +164,13 @@ export function isInstantCombat(): boolean {
   return currentSpeed === CombatSpeed.Instant;
 }
 
+/**
+ * Breathing room after a K.O. fall (plan 238, playtest « ça va trop vite ») — in combat time, so
+ * Instant shortens it. A pause after every action was tried too and dropped: it broke the flow
+ * between turns.
+ */
+export const KO_PAUSE_MS = 600;
+
 /** One frame at 60 fps — the move workshop's finest scrub step. */
 export const IMPACT_FRAME_MS = 1000 / 60;
 /** Hit-stop floor for a critical hit — a critical never stacks on top of effectiveness. */
@@ -181,7 +196,7 @@ function pauseForEffectiveness(effectiveness: number): number {
 
 /**
  * The hit-stop of one blow: how long attacker and target hold their frame, in nominal combat time
- * (the combat clock scales it — Fast halves it, the effectiveness cue survives). An immune target
+ * (the combat clock scales it). An immune target
  * gets none; a critical takes the longer of its own floor and the effectiveness pause (never the
  * sum); Instant has none.
  *

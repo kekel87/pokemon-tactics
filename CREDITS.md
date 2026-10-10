@@ -44,6 +44,23 @@ The 24×24 item icons are sliced from Pokémon Showdown's sheet, itself derived 
 (© Nintendo, Creatures, GAME FREAK). They carry no license of their own. They are downloaded by
 `pnpm extract-item-icons` and only the packed sheet `item-icons.png` ships with the game.
 
+## Sound
+
+**Move sounds:** [Pokémon Reborn](https://www.rebornevo.com)'s sound effects (`PRSFX`), plus a few
+RPG Maker XP library sounds, as used and timed by
+[PokeRogue](https://github.com/pagefaultgames/pokerogue-assets)'s move animations. The Reborn sounds
+are fan-edited rips of the official games (© Nintendo, Creatures, GAME FREAK).
+
+**Hit sounds:** [PokeRogue](https://github.com/pagefaultgames/pokerogue-assets) (`audio/se/`), from
+the official games.
+
+**Cries:** [PokeAPI/cries](https://github.com/PokeAPI/cries) (`cries/pokemon/latest/`), the cries of
+the current official games.
+
+None of them carries a license of its own. They are downloaded by `pnpm build-audio`, which keeps only
+the sound names and timings of PokeRogue's (AGPL) animation files, never the files themselves; only
+the packed bundle `sounds.bin` and its index `sounds-manifest.json` ship with the game.
+
 ## Type, category and status icons
 
 **Source:** [Poképédia](https://www.pokepedia.fr) — the icons of Pokémon Legends: Z-A

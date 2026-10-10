@@ -5,6 +5,8 @@ import {
   SpriteEffect,
 } from "@pokemon-tactic/render-ports";
 import { combatClock } from "@pokemon-tactic/view-core";
+import { ATTACK_SOUND_MAX_MS, HIT_STAGGER_MS, hitSound } from "../audio/battle-audio.js";
+import { moveSoundEvents, soundDurationMs } from "../audio/sound-bank.js";
 import { t } from "../i18n/index.js";
 import type { TranslationKey } from "../i18n/types.js";
 import { el } from "../ui/dom/screens/elements.js";
@@ -49,6 +51,8 @@ interface Recording {
   damageFlashes: TrackItem[];
   movements: TrackItem[];
   effects: TrackItem[];
+  attackerSounds: TrackItem[];
+  targetSounds: TrackItem[];
 }
 
 const TRACKS = [
@@ -65,13 +69,11 @@ const TRACKS = [
   "targetSound",
 ] as const;
 type TrackId = (typeof TRACKS)[number];
-/** Tracks the next lot fills (sound: lot 3) — shown greyed until then. */
-const FUTURE_TRACKS: ReadonlySet<TrackId> = new Set<TrackId>(["attackerSound", "targetSound"]);
 
 /**
  * The workshop's sequence view (plan 233) — a dope sheet in the spirit of Blender's timeline and
  * Unity Timeline tracks: a ruler in combat ms, one row per track (the attacker's animation frame by
- * frame, the hit-stop, the blows, KOs, and the effect / sound tracks the next lots fill) and a
+ * frame, the hit-stop, the blows, KOs, the effects and the sounds) and a
  * playhead on the combat clock. Dragging on the tracks scrubs: `onSeek` gets the time aimed at.
  *
  * A run is recorded once per setup (move, attacker, target, speed) and kept: scrubbing replays the
@@ -111,10 +113,6 @@ export class MoveWorkshopTimeline {
       const label = el("div", `aw-track-label aw-track-${track}`);
       label.textContent = t(`atelier.track.${track}` as TranslationKey);
       const lane = el("div", `aw-lane aw-track-${track}`, `atelier-lane-${track}`);
-      if (FUTURE_TRACKS.has(track)) {
-        label.classList.add("aw-future");
-        lane.classList.add("aw-future");
-      }
       labels.append(label);
       this.area.append(lane);
       this.lanes.set(track, lane);
@@ -217,6 +215,9 @@ export class MoveWorkshopTimeline {
     if (cue.kind === PresentationCueKind.AttackStart) {
       this.origin = combatClock.now();
       this.attackerId = cue.attackerId;
+      if (this.completeKey !== this.recordingKey) {
+        void this.recordMoveSounds(cue.moveId);
+      }
       return;
     }
     const at = this.position();
@@ -224,6 +225,25 @@ export class MoveWorkshopTimeline {
     if (at !== null && this.completeKey !== this.recordingKey) {
       this.record(cue, at);
     }
+  }
+
+  /** The move's timed sounds (plan 238), from the sound bundle — known from the start, not heard. */
+  private async recordMoveSounds(moveId: string): Promise<void> {
+    const key = this.recordingKey;
+    const events = (await moveSoundEvents(moveId)).filter(([atMs]) => atMs < ATTACK_SOUND_MAX_MS);
+    const sounds = await Promise.all(
+      events.map(async ([atMs, soundId, , rate]) => ({
+        startMs: atMs,
+        // As long as it is heard: an attack's sounds fade out at their ceiling.
+        durationMs: Math.min((await soundDurationMs(soundId)) / rate, ATTACK_SOUND_MAX_MS - atMs),
+        label: soundId.replace(/^move:(PRSFX- )?/, "").replace(/\.\w+$/, ""),
+      })),
+    );
+    if (key !== this.recordingKey) {
+      return;
+    }
+    this.recording.attackerSounds = sounds;
+    this.render();
   }
 
   private record(
@@ -239,6 +259,20 @@ export class MoveWorkshopTimeline {
           beat.labels.push(label);
         } else {
           recording.hitBeats.push({ startMs: at, labels: [label] });
+        }
+        // One hit sound per blow, staggered on its beat as the combat plays it (plan 238).
+        const sound = hitSound(cue.effectiveness, cue.critical);
+        if (sound !== null) {
+          const item: TrackItem = {
+            startMs: at + cue.rankOnBeat * HIT_STAGGER_MS,
+            durationMs: 0,
+            label: effectivenessLabel(cue.effectiveness),
+          };
+          recording.targetSounds.push(item);
+          void soundDurationMs(sound.soundId).then((durationMs) => {
+            item.durationMs = durationMs / sound.rate;
+            this.render();
+          });
         }
         break;
       }
@@ -330,6 +364,8 @@ export class MoveWorkshopTimeline {
       ...recording.damageFlashes,
       ...recording.movements,
       ...recording.effects,
+      ...recording.attackerSounds,
+      ...recording.targetSounds,
       ...this.reactionCells(),
     ].map((item) => item.startMs + (item.durationMs ?? 0));
     const latest = Math.max(
@@ -465,8 +501,8 @@ export class MoveWorkshopTimeline {
       movement: recording.movements,
       faint: recording.faints,
       effects: recording.effects,
-      attackerSound: [],
-      targetSound: [],
+      attackerSound: recording.attackerSounds,
+      targetSound: recording.targetSounds,
     };
     for (const track of TRACKS) {
       this.lanes.get(track)?.replaceChildren(
@@ -501,6 +537,8 @@ function emptyRecording(): Recording {
     damageFlashes: [],
     movements: [],
     effects: [],
+    attackerSounds: [],
+    targetSounds: [],
   };
 }
 

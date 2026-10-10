@@ -49,6 +49,7 @@ export function seededTickHandler(
       targetId: pokemonId,
       amount: drainAmount,
       effectiveness: 1,
+      ...(source && source.currentHp > 0 ? { drainedBy: source.id } : {}),
     });
 
     if (source && source.currentHp > 0) {

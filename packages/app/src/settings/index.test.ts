@@ -1,7 +1,10 @@
 import { CombatSpeed, isInstantCombat } from "@pokemon-tactic/view-core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { initAudio, setMasterVolume } from "../audio/audio-player";
 import { createLocalStorageStub, type LocalStorageStub } from "../testing/local-storage-stub";
-import { getSettings, initSettings, updateSettings } from "./index";
+import { getSettings, initSettings, MAX_VOLUME, TurnCries, updateSettings } from "./index";
+
+vi.mock("../audio/audio-player", () => ({ initAudio: vi.fn(), setMasterVolume: vi.fn() }));
 
 const STORAGE_KEY = "pt-settings";
 
@@ -11,20 +14,23 @@ const DEFAULTS = {
   lastMapId: "simple-arena",
   invertRightStick: false,
   combatSpeed: CombatSpeed.Normal,
+  volume: 75,
+  muted: false,
+  turnCries: TurnCries.Mine,
 };
 
+let stub: LocalStorageStub;
+
+beforeEach(() => {
+  stub = createLocalStorageStub();
+  vi.stubGlobal("localStorage", stub.storage);
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
 describe("préférences persistées", () => {
-  let stub: LocalStorageStub;
-
-  beforeEach(() => {
-    stub = createLocalStorageStub();
-    vi.stubGlobal("localStorage", stub.storage);
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
   it("part sur les défauts quand rien n'est enregistré", () => {
     initSettings();
 
@@ -62,6 +68,9 @@ describe("préférences persistées", () => {
       lastMapId: "simple-arena",
       invertRightStick: true,
       combatSpeed: CombatSpeed.Normal,
+      volume: 75,
+      muted: false,
+      turnCries: TurnCries.Mine,
     });
   });
 
@@ -110,11 +119,10 @@ describe("préférences persistées", () => {
     initSettings();
 
     updateSettings({ combatSpeed: CombatSpeed.Instant });
-    updateSettings({ combatSpeed: CombatSpeed.Fast });
 
-    expect(isInstantCombat()).toBe(false);
+    expect(isInstantCombat()).toBe(true);
     expect(JSON.parse(stub.entries.get(STORAGE_KEY) ?? "{}")).toMatchObject({
-      combatSpeed: CombatSpeed.Fast,
+      combatSpeed: CombatSpeed.Instant,
     });
   });
 
@@ -128,5 +136,125 @@ describe("préférences persistées", () => {
 
     expect(getSettings().combatSpeed).toBe(CombatSpeed.Normal);
     expect(getSettings().autoPlacement).toBe(false);
+  });
+
+  it("relit le volume, la sourdine et le cri de tour enregistrés", () => {
+    stub.entries.set(
+      STORAGE_KEY,
+      JSON.stringify({ volume: 40, muted: true, turnCries: TurnCries.All }),
+    );
+
+    initSettings();
+
+    expect(getSettings()).toMatchObject({ volume: 40, muted: true, turnCries: TurnCries.All });
+  });
+
+  it.each([0, 5, MAX_VOLUME])("accepte un volume de %i, bornes comprises", (volume) => {
+    stub.entries.set(STORAGE_KEY, JSON.stringify({ volume }));
+
+    initSettings();
+
+    expect(getSettings().volume).toBe(volume);
+  });
+
+  it.each([
+    ["négatif", -5],
+    ["au-delà du maximum", MAX_VOLUME + 1],
+    ["non entier", 42.5],
+    ["en chaîne", "40"],
+    ["nul", null],
+  ])("rejette un volume %s et garde le défaut", (_label, volume) => {
+    stub.entries.set(STORAGE_KEY, JSON.stringify({ volume, autoPlacement: false }));
+
+    initSettings();
+
+    expect(getSettings().volume).toBe(DEFAULTS.volume);
+    expect(getSettings().autoPlacement).toBe(false);
+  });
+
+  it.each([
+    ["une chaîne", "true"],
+    ["un nombre", 1],
+  ])("ignore %s à la place de la sourdine et laisse le son", (_label, muted) => {
+    stub.entries.set(STORAGE_KEY, JSON.stringify({ muted }));
+
+    initSettings();
+
+    expect(getSettings().muted).toBe(false);
+  });
+
+  it("rejette un cri de tour inconnu et garde « mes Pokémon »", () => {
+    stub.entries.set(STORAGE_KEY, JSON.stringify({ turnCries: "everyone", muted: true }));
+
+    initSettings();
+
+    expect(getSettings().turnCries).toBe(TurnCries.Mine);
+    expect(getSettings().muted).toBe(true);
+  });
+
+  it("ramène l'ancienne vitesse « rapide », supprimée, à la vitesse normale", () => {
+    stub.entries.set(STORAGE_KEY, JSON.stringify({ combatSpeed: "fast" }));
+
+    initSettings();
+
+    expect(getSettings().combatSpeed).toBe(CombatSpeed.Normal);
+    expect(isInstantCombat()).toBe(false);
+  });
+
+  it("écrit le volume, la sourdine et le cri de tour choisis dans le magasin", () => {
+    initSettings();
+
+    updateSettings({ volume: 30 });
+    updateSettings({ muted: true });
+    updateSettings({ turnCries: TurnCries.None });
+
+    expect(JSON.parse(stub.entries.get(STORAGE_KEY) ?? "{}")).toMatchObject({
+      volume: 30,
+      muted: true,
+      turnCries: TurnCries.None,
+    });
+  });
+
+  it("garde le volume réglé quand on coupe puis remet le son", () => {
+    initSettings();
+    updateSettings({ volume: 30 });
+
+    updateSettings({ muted: true });
+    updateSettings({ muted: false });
+
+    expect(getSettings()).toMatchObject({ volume: 30, muted: false });
+  });
+});
+
+describe("volume appliqué au moteur audio", () => {
+  beforeEach(() => {
+    vi.mocked(initAudio).mockClear();
+    vi.mocked(setMasterVolume).mockClear();
+  });
+
+  it("ouvre l'audio au volume enregistré, ramené entre 0 et 1", () => {
+    stub.entries.set(STORAGE_KEY, JSON.stringify({ volume: 40 }));
+
+    initSettings();
+
+    expect(initAudio).toHaveBeenCalledWith(0.4);
+  });
+
+  it("ouvre l'audio à zéro quand le son est coupé", () => {
+    stub.entries.set(STORAGE_KEY, JSON.stringify({ volume: 40, muted: true }));
+
+    initSettings();
+
+    expect(initAudio).toHaveBeenCalledWith(0);
+  });
+
+  it("applique en direct le volume, la sourdine, puis le volume retrouvé", () => {
+    initSettings();
+
+    updateSettings({ volume: 20 });
+    updateSettings({ muted: true });
+    updateSettings({ muted: false });
+
+    expect(vi.mocked(setMasterVolume).mock.calls).toEqual([[0.2], [0], [0.2]]);
   });
 });

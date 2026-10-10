@@ -33,7 +33,8 @@ d'apparition n'indique une priorité.
 - [ ] **VFX d'attaque — effets visuels des capacités.** 🔴 Le manque le plus visible du jeu.
       **Lot 1 fait** (plan 233, 2026-10-08 : impact calé sur la HitFrame, micro-pause, vitesse des
       combats, atelier des attaques `pnpm dev:atelier`). **Restent** : lot 2 (effets : génériques
-      forme × type, puis dédiés) et lot 3 (son) — `decision-1137`.
+      forme × type, puis dédiés). **Lot 3 (son) fait** (plan 238, 2026-10-10 : bruitages d'attaque,
+      coups, cris, sons d'effets, réglages volume / cri de tour) — `decision-1137` ; la musique suit.
       L'**effet de la capacité** (flammes, éclair, onde, impact), pas l'animation du Pokemon, qui
       existe. `design-system.md` §89 : *« pas de particules, pas d'effets visuels par type »*.
       `playAttackAnimation` fait avancer le sprite, point — **Lance-Flammes et Vibrobscur tapent pareil
@@ -73,7 +74,7 @@ d'apparition n'indique une priorité.
 - [ ] **Textures terrain** — transitions entre types (blend / bords), variations sur un même type
       (casser la répétition). *Animation des liquides déjà livrée : `LiquidShimmerPlugin`,
       décision #707.*
-- [ ] **Son / Musique** — le jeu est muet de bout en bout. Aucun cadrage à ce jour.
+- [ ] **Musique** — les bruitages sont livrés (plan 238) ; la musique vient ensuite, dans un plan dédié.
 - [ ] **Décors sur les maps**
 
 ---

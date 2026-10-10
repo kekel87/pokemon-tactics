@@ -1,7 +1,21 @@
 import { COMBAT_SPEEDS, CombatSpeed, setCombatSpeed } from "@pokemon-tactic/view-core";
+import { initAudio, setMasterVolume } from "../audio/audio-player";
 import { DEFAULT_MAP_ID } from "../maps/random-map-id";
 
 const STORAGE_KEY = "pt-settings";
+
+/** The volume slider's range and step, in percent (plan 238). */
+export const MAX_VOLUME = 100;
+export const VOLUME_STEP = 5;
+
+/** Whose turn is announced by a short cry (plan 238). */
+export const TurnCries = {
+  None: "none",
+  Mine: "mine",
+  All: "all",
+} as const;
+export type TurnCries = (typeof TurnCries)[keyof typeof TurnCries];
+export const TURN_CRIES: readonly TurnCries[] = Object.values(TurnCries);
 
 /**
  * Préférences persistées du joueur — réglages d'interface ET derniers paramètres de partie choisis
@@ -45,6 +59,12 @@ export interface GameSettings {
    * ni au réseau, donc il s'applique en direct, y compris en plein combat (menu de combat).
    */
   combatSpeed: CombatSpeed;
+  /** Volume général en pourcentage, 0 à `MAX_VOLUME` (plan 238). */
+  volume: number;
+  /** Son coupé (plan 238) — à part du volume, qu'on retrouve tel quel en réactivant. */
+  muted: boolean;
+  /** Cri au début du tour (plan 238) : personne, les Pokémon joués à cet écran, ou tous. */
+  turnCries: TurnCries;
 }
 
 const DEFAULT_SETTINGS: GameSettings = {
@@ -53,6 +73,9 @@ const DEFAULT_SETTINGS: GameSettings = {
   lastMapId: DEFAULT_MAP_ID,
   invertRightStick: false,
   combatSpeed: CombatSpeed.Normal,
+  volume: 75,
+  muted: false,
+  turnCries: TurnCries.Mine,
 };
 
 let currentSettings: GameSettings = DEFAULT_SETTINGS;
@@ -88,6 +111,12 @@ function mergeWithDefaults(parsed: Record<string, unknown>): GameSettings {
   if (!COMBAT_SPEEDS.includes(merged.combatSpeed)) {
     merged.combatSpeed = DEFAULT_SETTINGS.combatSpeed;
   }
+  if (!Number.isInteger(merged.volume) || merged.volume < 0 || merged.volume > MAX_VOLUME) {
+    merged.volume = DEFAULT_SETTINGS.volume;
+  }
+  if (!TURN_CRIES.includes(merged.turnCries)) {
+    merged.turnCries = DEFAULT_SETTINGS.turnCries;
+  }
   return merged;
 }
 
@@ -109,9 +138,15 @@ function loadSettings(): GameSettings {
   return DEFAULT_SETTINGS;
 }
 
+/** The gain the audio plays at, 0..1: the volume, unless muted. */
+function effectiveVolume(settings: GameSettings): number {
+  return settings.muted ? 0 : settings.volume / MAX_VOLUME;
+}
+
 export function initSettings(): void {
   currentSettings = loadSettings();
   setCombatSpeed(currentSettings.combatSpeed);
+  initAudio(effectiveVolume(currentSettings));
 }
 
 export function getSettings(): GameSettings {
@@ -121,5 +156,6 @@ export function getSettings(): GameSettings {
 export function updateSettings(patch: Partial<GameSettings>): void {
   currentSettings = { ...currentSettings, ...patch };
   setCombatSpeed(currentSettings.combatSpeed);
+  setMasterVolume(effectiveVolume(currentSettings));
   localStorage.setItem(STORAGE_KEY, JSON.stringify(currentSettings));
 }

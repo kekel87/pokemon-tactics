@@ -78,7 +78,7 @@ describe("leech-seed", () => {
     });
 
     // Target's EndTurn triggers the seeded tick
-    engine.submitAction(PlayerId.Player2, {
+    const tick = engine.submitAction(PlayerId.Player2, {
       kind: ActionKind.EndTurn,
       pokemonId: target.id,
       direction: Direction.South,
@@ -90,6 +90,14 @@ describe("leech-seed", () => {
     // Target lost 1/8 of 99 = 12 HP
     expect(targetHpAfter).toBeLessThan(99);
     expect(casterHpAfter).toBeGreaterThan(casterHpAfterSeed);
+    // The tick names the sower its HP go to (the view sends the drain there)
+    expect(tick.events).toContainEqual(
+      expect.objectContaining({
+        type: BattleEventType.DamageDealt,
+        targetId: target.id,
+        drainedBy: caster.id,
+      }),
+    );
 
     vi.restoreAllMocks();
   });
