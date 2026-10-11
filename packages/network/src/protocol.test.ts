@@ -6,6 +6,7 @@ import {
   NETWORK_VERSION,
   NetworkErrorCode,
   type NetworkMessageType,
+  RANDOM_MUSIC_ID,
 } from "./protocol.js";
 
 function countingRandom(): () => number {
@@ -27,7 +28,13 @@ describe("isCompatibleVersion", () => {
   });
 });
 
-const OPTIONS = { mapId: "plains", teamCount: 2, autoPlacement: true, damagePreview: false };
+const OPTIONS = {
+  mapId: "plains",
+  musicId: "random",
+  teamCount: 2,
+  autoPlacement: true,
+  damagePreview: false,
+};
 const SEEDS = { battle: 1, placement: 2, ai: 3, team: 4 };
 const SELECTION = { pokemonDefinitionIds: ["venusaur"] };
 
@@ -395,6 +402,38 @@ describe("isNetworkMessage — rattrapage (plan 202)", () => {
     expect(isNetworkMessage({ ...base, timedOut: true })).toBe(true);
     expect(isNetworkMessage({ ...base, timedOut: false })).toBe(false);
     expect(isNetworkMessage({ ...base, timedOut: "oui" })).toBe(false);
+  });
+});
+
+describe("musique des options du salon (plan 239)", () => {
+  const withMusicId = (type: "room_state" | "start", musicId: unknown): object => ({
+    ...VALID_MESSAGES[type],
+    options: { ...OPTIONS, musicId },
+  });
+
+  it.each(["room_state", "start"] as const)("refuse un `%s` sans musique", (type) => {
+    const { musicId: _omitted, ...withoutMusicId } = OPTIONS;
+
+    expect(isNetworkMessage({ ...VALID_MESSAGES[type], options: withoutMusicId })).toBe(false);
+  });
+
+  it.each(["room_state", "start"] as const)(
+    "refuse un `%s` dont la musique est vide ou n'est pas une chaîne",
+    (type) => {
+      expect(isNetworkMessage(withMusicId(type, ""))).toBe(false);
+      expect(isNetworkMessage(withMusicId(type, 7))).toBe(false);
+      expect(isNetworkMessage(withMusicId(type, null))).toBe(false);
+    },
+  );
+
+  it("accepte une piste, le medley, et la sentinelle de tirage dans l'état du salon", () => {
+    expect(isNetworkMessage(withMusicId("room_state", "bw-trainer"))).toBe(true);
+    expect(isNetworkMessage(withMusicId("room_state", "medley"))).toBe(true);
+    expect(isNetworkMessage(withMusicId("room_state", RANDOM_MUSIC_ID))).toBe(true);
+  });
+
+  it("accepte un identifiant de piste que cette version ne connaît pas — le paquet ne lit pas la table", () => {
+    expect(isNetworkMessage(withMusicId("start", "piste-d-une-autre-version"))).toBe(true);
   });
 });
 

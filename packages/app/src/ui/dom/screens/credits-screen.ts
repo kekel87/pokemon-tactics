@@ -83,6 +83,16 @@ const CREDIT_SECTIONS: readonly CreditSection[] = [
         source: "PokeAPI",
         url: "https://github.com/PokeAPI/cries",
       },
+      {
+        label: "credits.label.battleMusic",
+        source: "Pokémon Showdown",
+        url: "https://github.com/smogon/pokemon-showdown-client",
+      },
+      {
+        label: "credits.label.recentMusic",
+        source: "PokeRogue",
+        url: "https://github.com/pagefaultgames/pokerogue-assets",
+      },
     ],
   },
   {

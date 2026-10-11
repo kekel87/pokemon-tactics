@@ -30,6 +30,8 @@ import {
 } from "../../../analytics/telemetry";
 import type { Navigate, Screen } from "../../../app/screen-manager";
 import type { NetworkIntent } from "../../../app/screens";
+import { musicDisplayName } from "../../../audio/music-names";
+import { resolveMusicId } from "../../../audio/music-tracks";
 import { getLanguage, t } from "../../../i18n";
 import type { TranslationKey } from "../../../i18n/types";
 import { focusableControls } from "../../../input/focus-navigation";
@@ -49,6 +51,7 @@ import { getSettings, updateSettings } from "../../../settings";
 import { generateRandomTeamSlots } from "../../../team/team-generator";
 import { createSavedEmptyTeam } from "../../../team/team-helpers";
 import { openMapPickerModal } from "../../map-select/MapPickerModal";
+import { openMusicPickerModal } from "../../music-select/MusicPickerModal";
 import { TeamEditView } from "../../team/TeamEditView";
 import {
   buildFormatKey,
@@ -108,6 +111,12 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
   let mapChoiceId = RANDOM_MAP_ID;
   let mapUrl = "";
   /**
+   * La musique du combat que CE joueur a choisie (plan 239) : une piste, « Aléatoire » ou le medley.
+   * Comme la carte, c'est le CHOIX qui est gardé et annoncé au salon ; « Aléatoire » n'est tiré
+   * qu'au lancement.
+   */
+  let musicChoiceId = getSettings().lastMusicId;
+  /**
    * Formats de la carte, SANS leur libellé : celui-ci dépend de la langue et se relit au rendu
    * (`buildHeader`). Le stocker le figerait dans la locale d'entrée d'écran — c'est précisément le
    * bug corrigé côté `formatLabel`, et le champ n'aurait aucun lecteur.
@@ -146,6 +155,8 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
    * fuité répondrait `isReady() === true` au hook e2e — le bug même que `e2e-debug-hook.ts` documente.
    */
   let closeMapPicker: (() => void) | null = null;
+  /** Même raison d'être que `closeMapPicker` : la modale de musique vit hors de l'arbre de l'écran. */
+  let closeMusicPicker: (() => void) | null = null;
   /**
    * L'éditeur d'équipe ouvert par-dessus l'écran (plan 228). Même raison d'être que
    * `closeMapPicker` : un `start` distant peut démonter l'écran pendant qu'il est ouvert.
@@ -240,7 +251,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     // La carte retenue devient le défaut de la prochaine partie (plan 208). On enregistre le CHOIX
     // et non la carte tirée : un joueur qui a demandé « Aléatoire » veut « Aléatoire » la fois
     // d'après, pas le terrain que le sort lui a donné une fois.
-    updateSettings({ lastMapId: mapChoiceId });
+    updateSettings({ lastMapId: mapChoiceId, lastMusicId: musicChoiceId });
     navigate("combat", {
       mapUrl,
       setup: {
@@ -248,6 +259,10 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
         formatKey,
         autoPlacement,
         damagePreview,
+        // « Aléatoire » se tire ICI, une fois : la sauvegarde de reprise garde la piste tirée, et
+        // le choix lui-même pour que « Rejouer » en retire une.
+        musicId: resolveMusicId(musicChoiceId),
+        musicChoiceId,
         telemetryTeams: buildTelemetryTeams(slots),
       },
     });
@@ -267,7 +282,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     if (room === null || !isHost() || !isEveryoneReady()) {
       return;
     }
-    updateSettings({ lastMapId: mapChoiceId });
+    updateSettings({ lastMapId: mapChoiceId, lastMusicId: musicChoiceId });
     /*
      * 🔴 Le tirage est RÉSOLU ICI, au lancement, et c'est le seul endroit (plan 208, étape 6).
      *
@@ -299,6 +314,11 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
       // Le format que l'HÔTE joue, publié plutôt que redeviné par chacun (plan 211, revue de code).
       formatKey,
       resolvedMapId,
+      // Même règle que la carte (plan 239) : le salon annonce « Aléatoire », le `start` porte la
+      // piste tirée par l'hôte, pour que tous les pairs entendent la même. C'est la musique du
+      // SALON qui part, celle que tout le monde a lue — pas le choix local, qu'un hôte par
+      // migration n'a jamais annoncé.
+      resolveMusicId(effectiveMusicId()),
     );
   };
 
@@ -431,6 +451,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
         formatKey: start.formatKey,
         autoPlacement: start.options.autoPlacement,
         damagePreview: start.options.damagePreview,
+        musicId: start.options.musicId,
         seeds: start.seeds,
         // La place que NOUS tenons (plan 201) : rien d'autre dans le setup ne dit qui est « moi »,
         // les places distantes étant rabattues sur `human`. Sans elle, l'écran de combat rendrait la
@@ -543,6 +564,24 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
    * opposer à ce que l'hôte a gravé.
    */
   const effectiveMapId = (): string => roomView?.options.mapId ?? mapChoiceId;
+
+  /** La musique qui fait foi, même règle que la carte : celle du salon en ligne, le choix local en solo. */
+  const effectiveMusicId = (): string => roomView?.options.musicId ?? musicChoiceId;
+
+  /** Changer de musique, en modale (plan 239) — mêmes gardes que `changeMap`. */
+  const changeMusic = (): void => {
+    if (isOnline() && (!isHost() || isSelfReady())) {
+      return;
+    }
+    closeMusicPicker = openMusicPickerModal({
+      currentMusicId: effectiveMusicId(),
+      onPick: (musicId) => {
+        musicChoiceId = musicId;
+        room?.setOptions({ musicId });
+        render();
+      },
+    });
+  };
 
   /**
    * L'invité recharge sa carte quand l'hôte en change.
@@ -1000,6 +1039,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
       {
         code: joined?.room.code ?? null,
         mapName: mapDisplayName(),
+        musicName: musicDisplayName(effectiveMusicId()),
         teamCount: joined?.view.options.teamCount ?? currentFormat().teamCount,
         autoPlacement: joined?.view.options.autoPlacement ?? autoPlacement,
         damagePreview: joined?.view.options.damagePreview ?? damagePreview,
@@ -1013,11 +1053,12 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
          * suive, et au lancement il aurait publié un terrain que personne n'avait vu. « Pas prêt »
          * dégèle, comme pour le reste.
          */
-        canChangeMap: joined === null || (isHost() && !isSelfReady()),
+        canChangeChoices: joined === null || (isHost() && !isSelfReady()),
       },
       {
         onCopyCode: (code) => void navigator.clipboard?.writeText(code),
         onChangeMap: changeMap,
+        onChangeMusic: changeMusic,
         onGoOnline: switchToOnline,
       },
     );
@@ -1378,6 +1419,8 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
       // La modale de carte ne vit pas dans l'arbre de cet écran : `root.remove()` ne la ferme pas.
       closeMapPicker?.();
       closeMapPicker = null;
+      closeMusicPicker?.();
+      closeMusicPicker = null;
       // Même raison que la modale de carte. Annulé AVANT de fermer, pour que la fermeture vide la
       // sauvegarde différée de l'éditeur sans rafraîchir un écran qui s'en va.
       const editor = teamEditor;
@@ -1448,6 +1491,7 @@ export function createTeamSelectScreen(navigate: Navigate): Screen<"team-select"
     try {
       room = await Room.create(onlineRoomDeps(), {
         mapId: mapChoiceId,
+        musicId: musicChoiceId,
         teamCount,
         autoPlacement,
         damagePreview,

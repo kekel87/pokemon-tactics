@@ -22,6 +22,7 @@ import {
   type NetworkTeamSelection,
   type PlacementMessage,
   RANDOM_MAP_ID,
+  RANDOM_MUSIC_ID,
   type ResyncMessage,
   type ResyncRequestMessage,
   type StartMessage,
@@ -955,6 +956,7 @@ export class Room {
     battleId: string,
     formatKey: string,
     resolvedMapId?: string,
+    resolvedMusicId?: string,
   ): Promise<void> {
     this.assertHost();
     if (this.left || this.locked) {
@@ -969,6 +971,12 @@ export class Room {
      */
     if (resolvedMapId === RANDOM_MAP_ID) {
       throw new Error("launch() a reçu la sentinelle de tirage : la carte doit être résolue avant");
+    }
+    // Même refus pour la musique (plan 239) : chaque pair tirerait la sienne.
+    if (resolvedMusicId === RANDOM_MUSIC_ID) {
+      throw new Error(
+        "launch() a reçu la sentinelle de tirage : la musique doit être résolue avant",
+      );
     }
     /*
      * Même fail-fast pour le format (plan 211, revue de code) : un format vide ferait retomber chaque
@@ -997,10 +1005,11 @@ export class Room {
      */
     const start: StartMessage = {
       type: "start",
-      options:
-        resolvedMapId === undefined
-          ? this.roomOptions
-          : { ...this.roomOptions, mapId: resolvedMapId },
+      options: {
+        ...this.roomOptions,
+        ...(resolvedMapId === undefined ? {} : { mapId: resolvedMapId }),
+        ...(resolvedMusicId === undefined ? {} : { musicId: resolvedMusicId }),
+      },
       seeds,
       seats: this.composeStartSeats(),
       battleId,
@@ -2101,5 +2110,5 @@ async function claimFirstFreeSeat(
  * salle d'attente ne se monte qu'une fois la poignée de main faite, donc après le premier état reçu.
  */
 function placeholderOptions(): NetworkRoomOptions {
-  return { mapId: "", teamCount: 0, autoPlacement: true, damagePreview: false };
+  return { mapId: "", musicId: "", teamCount: 0, autoPlacement: true, damagePreview: false };
 }

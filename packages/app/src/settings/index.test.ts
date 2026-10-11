@@ -1,10 +1,10 @@
 import { CombatSpeed, isInstantCombat } from "@pokemon-tactic/view-core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { initAudio, setMasterVolume } from "../audio/audio-player";
+import { initAudio, setAudioVolumes } from "../audio/audio-player";
 import { createLocalStorageStub, type LocalStorageStub } from "../testing/local-storage-stub";
 import { getSettings, initSettings, MAX_VOLUME, TurnCries, updateSettings } from "./index";
 
-vi.mock("../audio/audio-player", () => ({ initAudio: vi.fn(), setMasterVolume: vi.fn() }));
+vi.mock("../audio/audio-player", () => ({ initAudio: vi.fn(), setAudioVolumes: vi.fn() }));
 
 const STORAGE_KEY = "pt-settings";
 
@@ -16,8 +16,16 @@ const DEFAULTS = {
   combatSpeed: CombatSpeed.Normal,
   volume: 75,
   muted: false,
+  effectsVolume: 100,
+  effectsMuted: false,
+  musicVolume: 55,
+  musicMuted: false,
+  lastMusicId: "random",
   turnCries: TurnCries.Mine,
 };
+
+const TYPE_VOLUME_KEYS = ["effectsVolume", "musicVolume"] as const;
+const MUTED_KEY_OF = { effectsVolume: "effectsMuted", musicVolume: "musicMuted" } as const;
 
 let stub: LocalStorageStub;
 
@@ -70,6 +78,11 @@ describe("préférences persistées", () => {
       combatSpeed: CombatSpeed.Normal,
       volume: 75,
       muted: false,
+      effectsVolume: 100,
+      effectsMuted: false,
+      musicVolume: 55,
+      musicMuted: false,
+      lastMusicId: "random",
       turnCries: TurnCries.Mine,
     });
   });
@@ -183,6 +196,120 @@ describe("préférences persistées", () => {
     expect(getSettings().muted).toBe(false);
   });
 
+  it.each(TYPE_VOLUME_KEYS)("relit le volume et la sourdine enregistrés sous %s", (key) => {
+    const mutedKey = MUTED_KEY_OF[key];
+    stub.entries.set(STORAGE_KEY, JSON.stringify({ [key]: 35, [mutedKey]: true }));
+
+    initSettings();
+
+    expect(getSettings()).toMatchObject({ [key]: 35, [mutedKey]: true });
+  });
+
+  it.each(
+    TYPE_VOLUME_KEYS.flatMap((key) => [0, 5, MAX_VOLUME].map((volume) => [key, volume] as const)),
+  )("accepte %s à %i, bornes comprises", (key, volume) => {
+    stub.entries.set(STORAGE_KEY, JSON.stringify({ [key]: volume }));
+
+    initSettings();
+
+    expect(getSettings()[key]).toBe(volume);
+  });
+
+  it.each(
+    TYPE_VOLUME_KEYS.flatMap((key) =>
+      [
+        ["négatif", -5],
+        ["au-delà du maximum", MAX_VOLUME + 1],
+        ["non entier", 42.5],
+        ["en chaîne", "40"],
+        ["nul", null],
+      ].map(([label, volume]) => [key, label, volume] as const),
+    ),
+  )("rejette %s %s et garde son défaut, sans toucher aux autres volumes", (key, _label, volume) => {
+    stub.entries.set(STORAGE_KEY, JSON.stringify({ [key]: volume, volume: 30 }));
+
+    initSettings();
+
+    expect(getSettings()[key]).toBe(DEFAULTS[key]);
+    expect(getSettings().volume).toBe(30);
+  });
+
+  it.each(
+    Object.values(MUTED_KEY_OF).flatMap((key) =>
+      [
+        ["une chaîne", "true"],
+        ["un nombre", 1],
+        ["null", null],
+      ].map(([label, muted]) => [label, key, muted] as const),
+    ),
+  )("ignore %s à la place de %s et laisse ce son", (_label, key, muted) => {
+    stub.entries.set(STORAGE_KEY, JSON.stringify({ [key]: muted }));
+
+    initSettings();
+
+    expect(getSettings()[key]).toBe(false);
+  });
+
+  it("coupe un type de son sans couper l'autre ni le son général", () => {
+    stub.entries.set(STORAGE_KEY, JSON.stringify({ musicMuted: true }));
+
+    initSettings();
+
+    expect(getSettings()).toMatchObject({ muted: false, effectsMuted: false, musicMuted: true });
+  });
+
+  it.each(["bw-trainer", "sv-kieran", "medley", "random"])(
+    "relit la dernière musique choisie « %s »",
+    (lastMusicId) => {
+      stub.entries.set(STORAGE_KEY, JSON.stringify({ lastMusicId }));
+
+      initSettings();
+
+      expect(getSettings().lastMusicId).toBe(lastMusicId);
+    },
+  );
+
+  it.each([
+    ["une piste retirée du jeu", "retired-track"],
+    ["le thème des menus", "menu"],
+    ["une chaîne vide", ""],
+    ["un nombre", 3],
+    ["null", null],
+  ])("ramène %s à « Aléatoire » comme dernière musique", (_label, lastMusicId) => {
+    stub.entries.set(STORAGE_KEY, JSON.stringify({ lastMusicId, autoPlacement: false }));
+
+    initSettings();
+
+    expect(getSettings().lastMusicId).toBe("random");
+    expect(getSettings().autoPlacement).toBe(false);
+  });
+
+  it("écrit les volumes, les sourdines par type et la musique choisie dans le magasin", () => {
+    initSettings();
+
+    updateSettings({ effectsVolume: 60, effectsMuted: true });
+    updateSettings({ musicVolume: 25, musicMuted: true });
+    updateSettings({ lastMusicId: "medley" });
+
+    expect(JSON.parse(stub.entries.get(STORAGE_KEY) ?? "{}")).toMatchObject({
+      effectsVolume: 60,
+      effectsMuted: true,
+      musicVolume: 25,
+      musicMuted: true,
+      lastMusicId: "medley",
+    });
+  });
+
+  it("garde le volume de la musique quand on la coupe puis la remet", () => {
+    initSettings();
+    updateSettings({ musicVolume: 25 });
+
+    updateSettings({ musicMuted: true });
+    updateSettings({ musicMuted: false });
+
+    expect(getSettings()).toMatchObject({ musicVolume: 25, musicMuted: false });
+  });
+
   it("rejette un cri de tour inconnu et garde « mes Pokémon »", () => {
     stub.entries.set(STORAGE_KEY, JSON.stringify({ turnCries: "everyone", muted: true }));
 
@@ -227,25 +354,57 @@ describe("préférences persistées", () => {
 });
 
 describe("volume appliqué au moteur audio", () => {
+  const MASTER = DEFAULTS.volume / MAX_VOLUME;
+  const MUSIC = DEFAULTS.musicVolume / MAX_VOLUME;
+
   beforeEach(() => {
     vi.mocked(initAudio).mockClear();
-    vi.mocked(setMasterVolume).mockClear();
+    vi.mocked(setAudioVolumes).mockClear();
   });
 
-  it("ouvre l'audio au volume enregistré, ramené entre 0 et 1", () => {
-    stub.entries.set(STORAGE_KEY, JSON.stringify({ volume: 40 }));
+  it("ouvre l'audio aux volumes enregistrés, ramenés entre 0 et 1", () => {
+    stub.entries.set(
+      STORAGE_KEY,
+      JSON.stringify({ volume: 40, effectsVolume: 80, musicVolume: 20 }),
+    );
 
     initSettings();
 
-    expect(initAudio).toHaveBeenCalledWith(0.4);
+    expect(initAudio).toHaveBeenCalledWith({ master: 0.4, effects: 0.8, music: 0.2 });
   });
 
-  it("ouvre l'audio à zéro quand le son est coupé", () => {
-    stub.entries.set(STORAGE_KEY, JSON.stringify({ volume: 40, muted: true }));
+  it("ouvre à zéro ce qui est coupé : tout le son, ou un seul type", () => {
+    stub.entries.set(STORAGE_KEY, JSON.stringify({ volume: 40, muted: true, musicMuted: true }));
 
     initSettings();
 
-    expect(initAudio).toHaveBeenCalledWith(0);
+    expect(initAudio).toHaveBeenCalledWith({ master: 0, effects: 1, music: 0 });
+  });
+
+  it("ouvre à zéro les seuls effets quand eux seuls sont coupés", () => {
+    stub.entries.set(STORAGE_KEY, JSON.stringify({ effectsMuted: true }));
+
+    initSettings();
+
+    expect(initAudio).toHaveBeenCalledWith({ master: MASTER, effects: 0, music: MUSIC });
+  });
+
+  it("applique en direct le volume et la sourdine de chaque type, sans toucher à l'autre", () => {
+    initSettings();
+
+    updateSettings({ musicVolume: 20 });
+    updateSettings({ musicMuted: true });
+    updateSettings({ effectsVolume: 50 });
+    updateSettings({ effectsMuted: true });
+    updateSettings({ musicMuted: false });
+
+    expect(vi.mocked(setAudioVolumes).mock.calls).toEqual([
+      [{ master: MASTER, effects: 1, music: 0.2 }],
+      [{ master: MASTER, effects: 1, music: 0 }],
+      [{ master: MASTER, effects: 0.5, music: 0 }],
+      [{ master: MASTER, effects: 0, music: 0 }],
+      [{ master: MASTER, effects: 0, music: 0.2 }],
+    ]);
   });
 
   it("applique en direct le volume, la sourdine, puis le volume retrouvé", () => {
@@ -255,6 +414,10 @@ describe("volume appliqué au moteur audio", () => {
     updateSettings({ muted: true });
     updateSettings({ muted: false });
 
-    expect(vi.mocked(setMasterVolume).mock.calls).toEqual([[0.2], [0], [0.2]]);
+    expect(vi.mocked(setAudioVolumes).mock.calls).toEqual([
+      [{ master: 0.2, effects: 1, music: 0.55 }],
+      [{ master: 0, effects: 1, music: 0.55 }],
+      [{ master: 0.2, effects: 1, music: 0.55 }],
+    ]);
   });
 });

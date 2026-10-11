@@ -12,6 +12,7 @@ import {
   type NetworkSeeds,
   type PlacementMessage,
   RANDOM_MAP_ID,
+  RANDOM_MUSIC_ID,
   type ResyncMessage,
   type StartMessage,
 } from "./protocol.js";
@@ -57,7 +58,13 @@ const BATTLE_ID = "b47f2c19";
 const FORMAT_KEY = "2v6";
 
 function options(teamCount: number): NetworkRoomOptions {
-  return { mapId: "plaine", teamCount, autoPlacement: true, damagePreview: false };
+  return {
+    mapId: "plaine",
+    musicId: "bw-trainer",
+    teamCount,
+    autoPlacement: true,
+    damagePreview: false,
+  };
 }
 
 /** Laisse passer les micro-tâches : le canal factice livre en asynchrone, comme le vrai. */
@@ -331,7 +338,13 @@ describe("Room — un pair ne parle que pour lui-même", () => {
     const meshChannel = await meshTransport.connect(peerIdForSeat(ROOM_CODE, guest.seat));
     meshChannel.send({
       type: "room_state",
-      options: { mapId: "faux", teamCount: 12, autoPlacement: false, damagePreview: true },
+      options: {
+        mapId: "faux",
+        musicId: "faux",
+        teamCount: 12,
+        autoPlacement: false,
+        damagePreview: true,
+      },
       seats: [],
       locked: true,
     });
@@ -792,6 +805,91 @@ describe("Room — la carte publiée par le lancement (plan 208)", () => {
     // Le reste des options du salon suit intact : seule la carte est remplacée.
     expect(guestStarts[0]?.options.teamCount).toBe(2);
     expect(guestStarts[0]?.options.autoPlacement).toBe(true);
+  });
+
+  it("publie la musique du salon quand l'hôte n'en résout aucune", async () => {
+    const host = await Room.create(depsFor(directory), options(2));
+    const guest = await Room.join(depsFor(directory), ROOM_CODE);
+    await flush();
+    guest.setReady(true);
+    await flush();
+
+    const guestStarts: StartMessage[] = [];
+    guest.onStart((start) => guestStarts.push(start));
+
+    const launch = host.launch(SEEDS, BATTLE_ID, FORMAT_KEY);
+    await flush();
+    await launch;
+
+    expect(guestStarts[0]?.options.musicId).toBe("bw-trainer");
+  });
+
+  it("publie la musique RÉSOLUE, et non la sentinelle restée dans les options du salon", async () => {
+    // Même panne que pour la carte : si le `start` portait « Aléatoire », chaque pair tirerait sa
+    // piste et les joueurs n'entendraient pas la même musique.
+    const host = await Room.create(depsFor(directory), {
+      ...options(2),
+      musicId: RANDOM_MUSIC_ID,
+    });
+    const guest = await Room.join(depsFor(directory), ROOM_CODE);
+    await flush();
+    guest.setReady(true);
+    await flush();
+
+    expect(guest.view.options.musicId).toBe(RANDOM_MUSIC_ID);
+
+    const hostStarts: StartMessage[] = [];
+    const guestStarts: StartMessage[] = [];
+    host.onStart((start) => hostStarts.push(start));
+    guest.onStart((start) => guestStarts.push(start));
+
+    const launch = host.launch(SEEDS, BATTLE_ID, FORMAT_KEY, undefined, "xy-gym");
+    await flush();
+    await launch;
+
+    expect(hostStarts[0]?.options.musicId).toBe("xy-gym");
+    expect(guestStarts[0]?.options.musicId).toBe("xy-gym");
+    // Seule la musique est remplacée : la carte du salon suit intacte.
+    expect(guestStarts[0]?.options.mapId).toBe("plaine");
+    expect(guestStarts[0]?.options.teamCount).toBe(2);
+  });
+
+  it("publie la carte et la musique résolues ensemble", async () => {
+    const host = await Room.create(depsFor(directory), {
+      ...options(2),
+      mapId: RANDOM_MAP_ID,
+      musicId: RANDOM_MUSIC_ID,
+    });
+    const guest = await Room.join(depsFor(directory), ROOM_CODE);
+    await flush();
+    guest.setReady(true);
+    await flush();
+
+    const guestStarts: StartMessage[] = [];
+    guest.onStart((start) => guestStarts.push(start));
+
+    const launch = host.launch(SEEDS, BATTLE_ID, FORMAT_KEY, "volcano", "medley");
+    await flush();
+    await launch;
+
+    expect(guestStarts[0]?.options).toMatchObject({ mapId: "volcano", musicId: "medley" });
+  });
+
+  it("refuse la sentinelle de tirage de la musique plutôt que de l'envoyer sur le réseau", async () => {
+    const host = await Room.create(depsFor(directory), {
+      ...options(2),
+      musicId: RANDOM_MUSIC_ID,
+    });
+    const starts: StartMessage[] = [];
+    host.onStart((start) => starts.push(start));
+
+    await expect(
+      host.launch(SEEDS, BATTLE_ID, FORMAT_KEY, undefined, RANDOM_MUSIC_ID),
+    ).rejects.toThrow(/la musique doit être résolue avant/);
+
+    // Fail-fast, comme pour la carte : rien n'est parti, le salon n'est pas verrouillé.
+    expect(starts).toEqual([]);
+    expect(host.view.locked).toBe(false);
   });
 
   it("porte le format joué jusqu'aux invités, plutôt que de les laisser le redeviner", async () => {

@@ -25,6 +25,8 @@ export interface GamePanelProps {
   code: string | null;
   /** Le nom affiché de la carte : « Aléatoire » tant qu'un tirage n'est pas joué. */
   mapName: string;
+  /** Le nom affiché de la musique du combat : une piste, « Aléatoire » ou le medley (plan 239). */
+  musicName: string;
   /** Le nombre de joueurs du format. Gravé depuis le `lobby` en ligne, jamais modifiable ici. */
   teamCount: number;
   autoPlacement: boolean;
@@ -36,15 +38,16 @@ export interface GamePanelProps {
    */
   isHost: boolean;
   /**
-   * Qui peut changer de carte : le joueur en solo, l'hôte en ligne. Jamais un invité — la carte lui
-   * arrive de l'hôte, il n'a rien à choisir (plan 199).
+   * Qui peut changer de carte et de musique : le joueur en solo, l'hôte en ligne. Jamais un invité —
+   * elles lui arrivent de l'hôte, il n'a rien à choisir (plan 199).
    */
-  canChangeMap: boolean;
+  canChangeChoices: boolean;
 }
 
 export interface GamePanelCallbacks {
   onCopyCode: (code: string) => void;
   onChangeMap: () => void;
+  onChangeMusic: () => void;
   /** Bascule solo → partie en ligne. Sans effet en ligne : on y est déjà. */
   onGoOnline: () => void;
 }
@@ -135,62 +138,25 @@ function buildSettingsBlock(props: GamePanelProps, callbacks: GamePanelCallbacks
    * sa ligne de définition, aurait donné une liste dont une entrée sur trois est interactive —
    * exactement ce que le format a fui au plan 207.
    */
-  const mapRow = document.createElement("p");
-  mapRow.className = "ts-game-map";
-  mapRow.dataset.testid = "room-map";
-
-  const mapCaption = document.createElement("span");
-  mapCaption.className = "ts-game-map-caption";
-  mapCaption.textContent = t("room.map");
-
-  // 🔴 Le NOM porte son propre testid, séparé de la légende et du bouton : lire le `<p>` entier
-  // rendait « Carte · Volcan ActifChanger de carte », donc toute assertion sur le nom devait
-  // découper une chaîne — et le test de reprise s'y est fait prendre en comparant ce paquet au
-  // libellé du menu.
-  const mapValue = document.createElement("span");
-  mapValue.dataset.testid = "room-map-name";
-  mapValue.textContent = props.mapName;
-
-  /*
-   * 🔴 Le NOM DE LA CARTE **est** le bouton (retour humain, recette du 2026-09-11).
-   *
-   * Il y avait avant deux éléments côte à côte — « Carte · <nom> » puis « Changer de carte » — et le
-   * bouton se DÉPLAÇAIT horizontalement selon la longueur du nom : « la taille varie en fonction du
-   * titre de la carte, j'aime pas ». Fondre les deux règle le défaut à la racine plutôt que de le
-   * compenser : il ne reste qu'un élément à droite, son bord droit est ancré, et rien ne bouge quand
-   * le nom change.
-   *
-   * C'est aussi le patron d'un sélecteur — le contrôle porte la valeur courante et l'ouvre au clic —
-   * et il économise un arrêt de focus au clavier comme à la manette.
-   */
-  if (props.canChangeMap) {
-    const change = document.createElement("button");
-    change.type = "button";
-    change.className = "tb-btn ts-game-map-button";
-    change.dataset.variant = "ghost";
-    change.dataset.testid = "room-change-map";
-    /*
-     * Le nom visible EST le nom accessible du bouton ; le chevron n'est que décoratif, d'où
-     * `aria-hidden` — sans quoi il entrerait dans le nom lu par `getByRole`.
-     *
-     * 🔴 Un chevron TRACÉ EN CSS, pas un caractère. `⌄` (U+2304) est dessiné bas dans sa boîte et
-     * penchait sous la ligne de base du nom — « pas centré verticalement » (recette 2026-09-13) ;
-     * le recentrer aurait voulu dire compenser une métrique de police qui change avec la police.
-     * Deux bordures tournées à 45° se centrent exactement, partout, et n'ajoutent pas un émoji de
-     * plus à un projet dont les icônes sont déjà au backlog.
-     */
-    const chevron = document.createElement("span");
-    chevron.className = "ts-game-map-chevron";
-    chevron.setAttribute("aria-hidden", "true");
-    change.append(mapValue, chevron);
-    change.addEventListener("click", () => callbacks.onChangeMap());
-    mapRow.append(mapCaption, change);
-  } else {
-    // L'invité ne choisit pas : le nom reste un simple texte, à la même place.
-    mapValue.classList.add("ts-game-map-static");
-    mapRow.append(mapCaption, mapValue);
-  }
-  block.append(mapRow);
+  block.append(
+    createChoiceRow({
+      testid: "room-map",
+      caption: t("room.map"),
+      value: props.mapName,
+      valueTestid: "room-map-name",
+      changeTestid: "room-change-map",
+      onChange: props.canChangeChoices ? callbacks.onChangeMap : null,
+    }),
+    // La musique du combat (plan 239) : même ligne, même règle — qui choisit la carte la choisit.
+    createChoiceRow({
+      testid: "room-music",
+      caption: t("room.music"),
+      value: props.musicName,
+      valueTestid: "room-music-name",
+      changeTestid: "room-change-music",
+      onChange: props.canChangeChoices ? callbacks.onChangeMusic : null,
+    }),
+  );
 
   /*
    * 🔴 Le format a QUITTÉ la liste des paramètres au plan 207, étape 7, pour sa propre ligne.
@@ -259,4 +225,74 @@ function onOff(value: boolean): string {
  */
 export function formatLabel(teamCount: number): string {
   return teamCount === 2 ? t("room.formatDuel") : t("room.formatPlayers", { players: teamCount });
+}
+
+interface ChoiceRow {
+  testid: string;
+  caption: string;
+  value: string;
+  valueTestid: string;
+  changeTestid: string;
+  /** `null` pour qui ne choisit pas (l'invité) : la valeur reste un simple texte, à la même place. */
+  onChange: (() => void) | null;
+}
+
+/** Une ligne « légende · valeur » du bandeau dont la valeur se change depuis ici : carte, musique. */
+function createChoiceRow(row: ChoiceRow): HTMLElement {
+  const element = document.createElement("p");
+  element.className = "ts-game-map";
+  element.dataset.testid = row.testid;
+
+  const caption = document.createElement("span");
+  caption.className = "ts-game-map-caption";
+  caption.textContent = row.caption;
+
+  // 🔴 Le NOM porte son propre testid, séparé de la légende et du bouton : lire le `<p>` entier
+  // rendait « Carte · Volcan ActifChanger de carte », donc toute assertion sur le nom devait
+  // découper une chaîne — et le test de reprise s'y est fait prendre en comparant ce paquet au
+  // libellé du menu.
+  const value = document.createElement("span");
+  value.dataset.testid = row.valueTestid;
+  value.textContent = row.value;
+
+  /*
+   * 🔴 Le NOM **est** le bouton (retour humain, recette du 2026-09-11).
+   *
+   * Il y avait avant deux éléments côte à côte — « Carte · <nom> » puis « Changer de carte » — et le
+   * bouton se DÉPLAÇAIT horizontalement selon la longueur du nom : « la taille varie en fonction du
+   * titre de la carte, j'aime pas ». Fondre les deux règle le défaut à la racine plutôt que de le
+   * compenser : il ne reste qu'un élément à droite, son bord droit est ancré, et rien ne bouge quand
+   * le nom change.
+   *
+   * C'est aussi le patron d'un sélecteur — le contrôle porte la valeur courante et l'ouvre au clic —
+   * et il économise un arrêt de focus au clavier comme à la manette.
+   */
+  const onChange = row.onChange;
+  if (onChange === null) {
+    value.classList.add("ts-game-map-static");
+    element.append(caption, value);
+    return element;
+  }
+  const change = document.createElement("button");
+  change.type = "button";
+  change.className = "tb-btn ts-game-map-button";
+  change.dataset.variant = "ghost";
+  change.dataset.testid = row.changeTestid;
+  /*
+   * Le nom visible EST le nom accessible du bouton ; le chevron n'est que décoratif, d'où
+   * `aria-hidden` — sans quoi il entrerait dans le nom lu par `getByRole`.
+   *
+   * 🔴 Un chevron TRACÉ EN CSS, pas un caractère. `⌄` (U+2304) est dessiné bas dans sa boîte et
+   * penchait sous la ligne de base du nom — « pas centré verticalement » (recette 2026-09-13) ;
+   * le recentrer aurait voulu dire compenser une métrique de police qui change avec la police.
+   * Deux bordures tournées à 45° se centrent exactement, partout, et n'ajoutent pas un émoji de
+   * plus à un projet dont les icônes sont déjà au backlog.
+   */
+  const chevron = document.createElement("span");
+  chevron.className = "ts-game-map-chevron";
+  chevron.setAttribute("aria-hidden", "true");
+  change.append(value, chevron);
+  change.addEventListener("click", onChange);
+  element.append(caption, change);
+  return element;
 }

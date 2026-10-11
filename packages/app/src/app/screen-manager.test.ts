@@ -24,7 +24,7 @@ interface Harness {
   events: string[];
 }
 
-function createHarness(mountDelayMs = 0): Harness {
+function createHarness(mountDelayMs = 0, onScreen?: (id: ScreenId) => void): Harness {
   const events: string[] = [];
   const makeScreen = (id: ScreenId): Screen => ({
     mount: () => {
@@ -46,7 +46,7 @@ function createHarness(mountDelayMs = 0): Harness {
   const registry = Object.fromEntries(
     ALL_SCREEN_IDS.map((id) => [id, () => makeScreen(id)]),
   ) as ScreenRegistry;
-  return { manager: new ScreenManager(hostStub, registry), events };
+  return { manager: new ScreenManager(hostStub, registry, onScreen), events };
 }
 
 describe("ScreenManager", () => {
@@ -120,6 +120,31 @@ describe("ScreenManager", () => {
     const manager = new ScreenManager(hostStub, registry);
     await manager.start("team-select", { mapId: "desert" });
     expect(received).toEqual([{ mapId: "desert" }]);
+  });
+
+  it("announces each screen by its id before mounting it", async () => {
+    const harness = createHarness(0, (id) => harness.events.push(`screen:${id}`));
+
+    await harness.manager.start("main-menu", undefined);
+    await harness.manager.navigate("battle-mode", undefined);
+
+    expect(harness.events).toEqual([
+      "screen:main-menu",
+      "mount:main-menu",
+      "dispose:main-menu",
+      "screen:battle-mode",
+      "mount:battle-mode",
+    ]);
+  });
+
+  it("does not announce a screen an illegal transition never reaches", async () => {
+    const announced: ScreenId[] = [];
+    const { manager } = createHarness(0, (id) => announced.push(id));
+    await manager.start("settings", undefined);
+
+    await expect(manager.navigate("combat", PARAMS.combat)).rejects.toThrow();
+
+    expect(announced).toEqual(["settings"]);
   });
 
   it("serializes navigations issued during an async mount", async () => {

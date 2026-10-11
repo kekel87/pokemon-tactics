@@ -84,6 +84,13 @@ export const TelemetryAction = {
   /** Le son (plan 238) : le volume est-il touché, coupé, et quel cri de tour garde-t-on ? */
   VolumeChange: "volume-change",
   VolumeMute: "volume-mute",
+  /** Les volumes par type de son (plan 239), sous le volume général ci-dessus. */
+  EffectsVolumeChange: "effects-volume-change",
+  MusicVolumeChange: "music-volume-change",
+  /** La musique du combat (plan 239) : que choisit-on ? */
+  MusicTrackChosen: "music-track-chosen",
+  MusicRandomChosen: "music-random-chosen",
+  MusicMedleyChosen: "music-medley-chosen",
   TurnCriesNone: "turn-cries-none",
   TurnCriesMine: "turn-cries-mine",
   TurnCriesAll: "turn-cries-all",

@@ -70,6 +70,14 @@ import { type BattleResumeSave, battleResumeStore } from "../app/battle-persiste
 import type { Navigate, Screen } from "../app/screen-manager.js";
 import type { CombatSetup, ScreenParamsById } from "../app/screens.js";
 import { createBattleAudio } from "../audio/battle-audio";
+import {
+  MusicDim,
+  playBattleMusic,
+  setMusicDim,
+  stopBattleMusic,
+  stopMusic,
+} from "../audio/music-player";
+import { resolveMusicId } from "../audio/music-tracks";
 import { forcedBattleSeed } from "../capture-seed";
 import {
   FIELD_TERRAIN_COLOR_ELECTRIC,
@@ -353,7 +361,31 @@ function mountPlacementChrome(options: {
  */
 function setupForReplay(setup: CombatSetup): CombatSetup {
   const { battleId: _restart, ...rest } = setup;
-  return rest;
+  // « Aléatoire » retire une musique à chaque partie (plan 239). Le choix n'est gelé qu'en local :
+  // en ligne le tirage appartient à l'hôte, et chaque pair retirerait la sienne.
+  return rest.musicChoiceId === undefined
+    ? rest
+    : { ...rest, musicId: resolveMusicId(rest.musicChoiceId) };
+}
+
+/** Mixed into the battle seed so the medley's draws never line up with the battle's own. */
+const MEDLEY_SEED_SALT = 0x4d45444c;
+
+/**
+ * The battle's music (plan 239), from the moment the screen mounts — placement included. A setup
+ * without a music choice (sandbox, move workshop, a save from before the music) plays none.
+ */
+function startBattleMusic(setup: CombatSetup | undefined): void {
+  if (setup?.musicId === undefined) {
+    stopMusic();
+    return;
+  }
+  // The medley's order comes from a generator of its own, seeded like the battle: online, every
+  // peer hears the same tracks without a word exchanged, and no shared generator is advanced.
+  playBattleMusic(
+    setup.musicId,
+    setup.seeds === undefined ? Math.random : createPrng(setup.seeds.battle ^ MEDLEY_SEED_SALT),
+  );
 }
 
 async function mountPlacement(
@@ -944,6 +976,8 @@ export function runBattle(options: {
     ...chrome,
     showVictory: (winnerId, summary) => {
       combatMenu.close();
+      // La musique se retire derrière l'écran de résultat sans s'arrêter (plan 239).
+      setMusicDim(MusicDim.BattleOver, true);
       // Le menu refuse de s'ouvrir tant que la victoire est à l'écran (décision 15) : le bouton doit
       // donc le DIRE, sinon on tape trois fois dessus en croyant à un bug (décision 18). Le contexte
       // `battle_over` valant `menu` et non `locked`, la bascule ci-dessous ne l'aurait pas couvert.
@@ -1700,6 +1734,7 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
   let abort = new AbortController();
 
   function teardown(): void {
+    stopBattleMusic();
     abort.abort();
     loading?.cancel();
     loading = null;
@@ -1731,6 +1766,7 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
     stage = activeStage;
     const setup = params.setup;
     const resume = params.resume;
+    startBattleMusic(setup ?? resume?.setup);
     // A resumed battle carries the map it was played on; `params.mapUrl` and `resume.mapUrl` agree
     // today, but the saved one is the authority — the engine is rebuilt from it.
     const mapUrl = resume?.mapUrl ?? params.mapUrl;

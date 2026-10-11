@@ -4,6 +4,7 @@ import { combatClock, isInstantCombat } from "@pokemon-tactic/view-core";
 import { getSettings, TurnCries } from "../settings";
 import { isAudioSilent, prepareSound } from "./audio-player";
 import { createCombatVoices } from "./combat-voices";
+import { duckMusic } from "./music-player";
 import {
   effectSoundEvents,
   moveSoundEvents,
@@ -32,6 +33,13 @@ export const BORROWED_CRY_VOLUME = 0.7;
  */
 export const ATTACK_SOUND_MAX_MS = 2000;
 export const ATTACK_SOUND_FADE_MS = 250;
+/**
+ * How far the music comes down while a cry plays (plan 239) — the officials lower it for a cry and
+ * for nothing else: an attack's sounds leave it alone. A turn's cry, itself quieter and heard every
+ * turn, takes less than a K.O.'s.
+ */
+export const CRY_MUSIC_LEVEL = 0.5;
+export const TURN_CRY_MUSIC_LEVEL = 0.7;
 /** The longest an AI's turn waits for its Pokémon's cry before acting. */
 const TURN_CRY_WAIT_MAX_MS = 2500;
 /** The beat the camera gets to reach the Pokémon whose turn begins, before its cry. */
@@ -120,6 +128,8 @@ export function createBattleAudio(deps: BattleAudioDeps): BattleAudio {
   let recentHits: { soundId: string; at: number }[] = [];
   /** An attack is playing: its own sounds already cover the drain it shows. */
   let attackInFlight = false;
+  /** The battle is gone: a cry still scheduled must neither sound nor lower the next music. */
+  let disposed = false;
 
   const cryOf = (pokemonId: string): string | null => {
     const species = deps.speciesOf(pokemonId);
@@ -130,12 +140,29 @@ export function createBattleAudio(deps: BattleAudioDeps): BattleAudio {
     busyUntil = Math.max(busyUntil, at);
   };
 
-  /** Play a cry; the combat holds for it (from now, within `waitMaxMs`) when `waitMaxMs` is given. */
-  const playCry = (soundId: string, volume: number, waitMaxMs?: number): void => {
+  /**
+   * Play a cry, the music lowered to `musicLevel` while it lasts; the combat holds for it (from
+   * now, within `waitMaxMs`) when `waitMaxMs` is given.
+   */
+  const playCry = (
+    soundId: string,
+    volume: number,
+    musicLevel: number,
+    waitMaxMs?: number,
+  ): void => {
+    if (disposed) {
+      return;
+    }
     const startedAt = combatClock.now();
     playSound(soundId, { volume });
+    const duration = soundDurationMs(soundId);
+    void duration.then((durationMs) => {
+      if (!disposed) {
+        duckMusic(musicLevel, durationMs);
+      }
+    });
     if (waitMaxMs !== undefined) {
-      pendingHold = soundDurationMs(soundId).then((durationMs) =>
+      pendingHold = duration.then((durationMs) =>
         holdUntil(startedAt + Math.min(durationMs, waitMaxMs)),
       );
     }
@@ -148,7 +175,7 @@ export function createBattleAudio(deps: BattleAudioDeps): BattleAudio {
       if (events.length === 0) {
         const cry = cryOf(attackerId);
         if (cry !== null && deps.isSoundMove(moveId)) {
-          playCry(cry, BORROWED_CRY_VOLUME);
+          playCry(cry, BORROWED_CRY_VOLUME, CRY_MUSIC_LEVEL);
           holdUntil(startedAt + Math.min(await soundDurationMs(cry), ATTACK_SOUND_MAX_MS));
         }
         return;
@@ -211,7 +238,9 @@ export function createBattleAudio(deps: BattleAudioDeps): BattleAudio {
     }
     // The cry comes once the camera has reached the newcomer.
     const cryAt = combatClock.now() + TURN_CRY_DELAY_MS;
-    void combatClock.wait(TURN_CRY_DELAY_MS).then(() => playCry(cry, TURN_CRY_VOLUME));
+    void combatClock
+      .wait(TURN_CRY_DELAY_MS)
+      .then(() => playCry(cry, TURN_CRY_VOLUME, TURN_CRY_MUSIC_LEVEL));
     // The player is never held back by their own Pokémon's cry; an AI's action waits for it.
     if (!local) {
       pendingHold = soundDurationMs(cry).then((durationMs) =>
@@ -257,7 +286,7 @@ export function createBattleAudio(deps: BattleAudioDeps): BattleAudio {
       case PresentationCueKind.Faint: {
         const cry = cryOf(cue.pokemonId);
         if (cry !== null) {
-          playCry(cry, 1, FAINT_CRY_WAIT_MAX_MS);
+          playCry(cry, 1, CRY_MUSIC_LEVEL, FAINT_CRY_WAIT_MAX_MS);
         }
         break;
       }
@@ -274,5 +303,12 @@ export function createBattleAudio(deps: BattleAudioDeps): BattleAudio {
     }
   };
 
-  return { onCue, settled, dispose: voices.dispose };
+  return {
+    onCue,
+    settled,
+    dispose: () => {
+      disposed = true;
+      voices.dispose();
+    },
+  };
 }

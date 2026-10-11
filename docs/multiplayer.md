@@ -263,6 +263,13 @@ type NetworkMessage =
   | { type: "placement"; seat: number; placements: readonly NetworkPlacement[] };
 ```
 
+**Musique du combat (plan 239, `NETWORK_VERSION` 19)** : `NetworkRoomOptions.musicId` est une chaîne
+opaque pour `network`, comme `mapId`. Avant le lancement elle peut valoir `RANDOM_MUSIC_ID` ; l'hôte
+résout le tirage au lancement et `Room.launch` publie la piste concrète dans le `start` (il refuse
+la sentinelle). `medley` voyage tel quel : chaque pair en tire l'ordre d'un générateur **neuf** semé
+sur `seeds.battle` — jamais d'un générateur déjà avancé. Un identifiant inconnu d'un pair se joue en
+silence : une musique ne bloque pas un combat.
+
 (`start` porte aussi `battleId` et `formatKey`, voir ci-dessous.)
 
 - **`action`** : `actionIndex` est le nombre d'actions enregistrées chez l'émetteur **avant** celle-ci —

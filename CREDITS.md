@@ -57,7 +57,14 @@ the official games.
 **Cries:** [PokeAPI/cries](https://github.com/PokeAPI/cries) (`cries/pokemon/latest/`), the cries of
 the current official games.
 
-None of them carries a license of its own. They are downloaded by `pnpm build-audio`, which keeps only
+**Music:** the official games' battle themes (© Nintendo, Creatures, GAME FREAK). The Diamond/Pearl
+to Sun/Moon trainer and rival themes are the ones [Pokémon Showdown](https://github.com/smogon/pokemon-showdown-client)
+plays, with its loop points; the gym, Elite Four and Champion themes up to Scarlet/Violet, and the
+menu theme (from Pokémon Mystery Dungeon: Explorers), come from
+[PokeRogue](https://github.com/pagefaultgames/pokerogue-assets) (`audio/bgm/`), with its loop points.
+They are downloaded and re-encoded by `pnpm build-music`; one file per track ships with the game.
+
+None of them carries a license of its own. The sounds are downloaded by `pnpm build-audio`, which keeps only
 the sound names and timings of PokeRogue's (AGPL) animation files, never the files themselves; only
 the packed bundle `sounds.bin` and its index `sounds-manifest.json` ship with the game.
 

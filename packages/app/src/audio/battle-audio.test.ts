@@ -14,14 +14,17 @@ import {
   type BattleAudio,
   BORROWED_CRY_VOLUME,
   CROWDED_HIT_VOLUME,
+  CRY_MUSIC_LEVEL,
   createBattleAudio,
   FAINT_CRY_WAIT_MAX_MS,
   HIT_RATE_JITTER,
   HIT_STAGGER_MS,
   hitSound,
   TURN_CRY_DELAY_MS,
+  TURN_CRY_MUSIC_LEVEL,
   TURN_CRY_VOLUME,
 } from "./battle-audio";
+import { duckMusic } from "./music-player";
 import { preloadSoundBundle } from "./sound-bank";
 
 const bank = vi.hoisted(() => ({
@@ -34,10 +37,12 @@ const voices = vi.hoisted(() => ({ play: vi.fn(), dispose: vi.fn() }));
 
 vi.mock("./audio-player", () => ({
   initAudio: vi.fn(),
-  setMasterVolume: vi.fn(),
+  setAudioVolumes: vi.fn(),
   isAudioSilent: vi.fn(() => false),
   prepareSound: vi.fn(),
 }));
+
+vi.mock("./music-player", () => ({ duckMusic: vi.fn() }));
 
 vi.mock("./sound-bank", () => ({
   preloadSoundBundle: vi.fn(),
@@ -546,6 +551,99 @@ describe("createBattleAudio", () => {
     audio.onCue(turnStart(false));
 
     await expectSettlesAt(TURN_CRY_DELAY_MS + 900);
+  });
+
+  it("lowers the music for the length of a K.O. cry", async () => {
+    bank.durations = { "cry:bulbasaur": 900 };
+
+    audio.onCue(FAINT);
+    await flush();
+
+    expect(vi.mocked(duckMusic).mock.calls).toEqual([[CRY_MUSIC_LEVEL, 900]]);
+  });
+
+  it("lowers the music as much for a borrowed cry as for a K.O. cry", async () => {
+    isSoundMove = true;
+    bank.durations = { "cry:raichu": 600 };
+
+    audio.onCue(ATTACK_START);
+    await flush();
+
+    expect(vi.mocked(duckMusic).mock.calls).toEqual([[CRY_MUSIC_LEVEL, 600]]);
+  });
+
+  it("lowers the music less for a turn's cry, and only once the cry starts", async () => {
+    bank.durations = { "cry:raichu": 700 };
+
+    audio.onCue(turnStart(true));
+    await advance(TURN_CRY_DELAY_MS - 1);
+    expect(duckMusic).not.toHaveBeenCalled();
+
+    await advance(1);
+    expect(vi.mocked(duckMusic).mock.calls).toEqual([[TURN_CRY_MUSIC_LEVEL, 700]]);
+  });
+
+  it("leaves the music alone during a move's sounds, a blow and an effect", async () => {
+    bank.moves[MOVE_ID] = [[0, "move:zap", 1, 1]];
+    bank.effects.heal = [[0, "effect:heal", 1, 1]];
+    bank.durations = { "move:zap": 400, "effect:heal": 300 };
+
+    audio.onCue(ATTACK_START);
+    audio.onCue(hit(2));
+    audio.onCue(effect(MoveEffectForm.Heal));
+    audio.onCue(ATTACK_END);
+    await advance(1000);
+
+    expect(voices.play).toHaveBeenCalledTimes(3);
+    expect(duckMusic).not.toHaveBeenCalled();
+  });
+
+  it("leaves the music alone for a cry that is not played: silent audio, Instant, no turn cry", async () => {
+    bank.durations = { "cry:bulbasaur": 900, "cry:raichu": 700 };
+    vi.mocked(isAudioSilent).mockReturnValue(true);
+    audio.onCue(FAINT);
+    vi.mocked(isAudioSilent).mockReturnValue(false);
+    setCombatSpeed(CombatSpeed.Instant);
+    audio.onCue(FAINT);
+    setCombatSpeed(CombatSpeed.Normal);
+    setTurnCries(TurnCries.None);
+    audio.onCue(turnStart(true));
+    await advance(TURN_CRY_DELAY_MS);
+
+    expect(duckMusic).not.toHaveBeenCalled();
+  });
+
+  it("does not lower the music for a cry whose battle was disposed before its length was known", async () => {
+    bank.durations = { "cry:bulbasaur": 900 };
+
+    audio.onCue(FAINT);
+    audio.dispose();
+    await advance(1000);
+
+    expect(duckMusic).not.toHaveBeenCalled();
+  });
+
+  it("neither plays nor lowers the music for a turn's cry still to come when the battle is disposed", async () => {
+    bank.durations = { "cry:raichu": 700 };
+
+    audio.onCue(turnStart(true));
+    await advance(TURN_CRY_DELAY_MS - 1);
+    audio.dispose();
+    await advance(1000);
+
+    expect(voices.play).not.toHaveBeenCalled();
+    expect(duckMusic).not.toHaveBeenCalled();
+  });
+
+  it("neither plays a cry nor lowers the music for a cue received after the battle is disposed", async () => {
+    bank.durations = { "cry:bulbasaur": 900 };
+    audio.dispose();
+
+    audio.onCue(FAINT);
+    await advance(1000);
+
+    expect(voices.play).not.toHaveBeenCalled();
+    expect(duckMusic).not.toHaveBeenCalled();
   });
 
   it("stops its voices when the battle is disposed", () => {

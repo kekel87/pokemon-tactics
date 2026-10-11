@@ -1,4 +1,5 @@
 import { countAction, TelemetryAction } from "../../analytics/telemetry";
+import { MusicDim, setMusicDim } from "../../audio/music-player";
 import { t } from "../../i18n";
 import type { TranslationKey } from "../../i18n/types";
 import { activateFocusedControl, focusInDirection } from "../../input/focus-navigation";
@@ -371,6 +372,7 @@ export function createCombatMenu(options: CombatMenuOptions): CombatMenu {
       // `close()` déclenche l'événement `close`, pas `cancel` : rien à neutraliser ici.
       closing.close();
       closing.remove();
+      setMusicDim(MusicDim.Paused, false);
     }
     // Le focus revient à ce qui a ouvert la modale (règle projet `html.md`) : sans ça, il retombe sur
     // `<body>` et la navigation clavier / manette repart de zéro au lieu de reprendre où elle était.
@@ -436,6 +438,9 @@ export function createCombatMenu(options: CombatMenuOptions): CombatMenu {
       host.append(created);
       dialog = created;
       created.showModal();
+      // La musique passe en retrait sans se couper (plan 239) : le curseur Musique des réglages,
+      // ouverts d'ici, reste audible.
+      setMusicDim(MusicDim.Paused, true);
       levels = [{ kind: "root" }];
       registerInput();
       render();

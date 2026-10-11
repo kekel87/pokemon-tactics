@@ -52,6 +52,20 @@ export interface CombatSetup {
    */
   damagePreview: boolean;
   /**
+   * La musique du combat (plan 239) : une piste, ou le medley — jamais « Aléatoire », tiré à la
+   * composition du setup (en ligne par l'hôte, dont le tirage arrive dans le `start`).
+   *
+   * Absente sur les chemins qui ne passent pas par l'écran de sélection (bac à sable, atelier des
+   * attaques) et dans une sauvegarde de reprise antérieure : le combat se joue alors sans musique.
+   */
+  musicId?: string;
+  /**
+   * Le CHOIX d'où vient `musicId`, quand ce n'est pas lui : « Aléatoire ». Gelé ici pour que
+   * « Rejouer » retire une musique sans relire les préférences (décision #893). Local seulement :
+   * en ligne le tirage appartient à l'hôte.
+   */
+  musicChoiceId?: string;
+  /**
    * Provenance des équipes pour `battle_started` (plan 196). Portée ici parce que `TeamSelection`
    * (core) ne connaît pas la notion d'équipe éphémère : c'est un concept de l'écran de sélection,
    * et le core n'a pas à l'apprendre pour de la télémétrie.

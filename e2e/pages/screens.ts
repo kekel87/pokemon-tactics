@@ -73,6 +73,33 @@ export class MapSelectScreen {
 }
 
 /**
+ * Le choix de la musique du combat (plan 239) — une modale ouverte depuis la ligne « Musique » du
+ * bandeau de partie. Choisir tient en UN appui : pas de bouton de confirmation, contrairement à la
+ * carte.
+ */
+export class MusicPicker {
+  /** La valeur lue dans le bandeau de partie : un nom de piste, « Aléatoire » ou « Medley ». */
+  readonly name: Locator;
+  /** Le bouton du bandeau qui OUVRE la modale — absent chez l'invité d'un salon. */
+  readonly changeButton: Locator;
+  /** Le titre de la modale : présent tant qu'elle est ouverte. */
+  readonly title: Locator;
+  /** Les 28 lignes : « Aléatoire », « Medley », puis les 26 pistes. */
+  readonly listItems: Locator;
+  constructor(private readonly page: Page) {
+    this.name = page.getByTestId("room-music-name");
+    this.changeButton = page.getByTestId("room-change-music");
+    this.title = page.getByRole("heading", { name: "Musique du combat" });
+    this.listItems = page.getByTestId("music-list-item");
+  }
+
+  /** La ligne d'un choix, visée par son identifiant (`bw-trainer`, `random`, `medley`). */
+  item(musicId: string): Locator {
+    return this.page.locator(`[data-testid="music-list-item"][data-music-id="${musicId}"]`);
+  }
+}
+
+/**
  * Écran de sélection d'équipe, refondu au plan 188 : un camp par carte en une colonne, le format en
  * rangée de segments (#830), Humain / IA en segment à deux états (#831), et l'équipe choisie dans une
  * modale ouverte par la carte (#832).
@@ -320,6 +347,12 @@ export class SettingsScreen {
   readonly muteToggle: Locator;
   /** Curseur de volume (plan 238), 0-100 par pas de 5 — par testid : un `getByRole("slider")` non scopé deviendrait ambigu au premier second curseur. */
   readonly volumeSlider: Locator;
+  /** Ligne « Effets » (plan 239) : sourdine et curseur des bruitages, coups et cris. */
+  readonly effectsMuteToggle: Locator;
+  readonly effectsVolumeSlider: Locator;
+  /** Ligne « Musique » (plan 239) : sourdine et curseur de la musique, menus et combats. */
+  readonly musicMuteToggle: Locator;
+  readonly musicVolumeSlider: Locator;
   /** « Cri au début du tour » (plan 238) : bascule Mes Pokémon → Tous → Aucun. */
   readonly turnCriesToggle: Locator;
   constructor(page: Page) {
@@ -332,6 +365,10 @@ export class SettingsScreen {
     this.combatSpeedToggle = page.getByTestId("setting-combat-speed");
     this.muteToggle = page.getByTestId("setting-mute");
     this.volumeSlider = page.getByTestId("setting-volume");
+    this.effectsMuteToggle = page.getByTestId("setting-effects-mute");
+    this.effectsVolumeSlider = page.getByTestId("setting-effects-volume");
+    this.musicMuteToggle = page.getByTestId("setting-music-mute");
+    this.musicVolumeSlider = page.getByTestId("setting-music-volume");
     this.turnCriesToggle = page.getByTestId("setting-turn-cries");
   }
 }

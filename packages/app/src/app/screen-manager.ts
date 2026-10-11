@@ -31,6 +31,8 @@ export class ScreenManager {
   constructor(
     private readonly host: HTMLElement,
     private readonly registry: ScreenRegistry,
+    /** Called as a screen is about to be built — what follows every screen change (its music). */
+    private readonly onScreen: (id: ScreenId) => void = () => undefined,
   ) {}
 
   get current(): ScreenId | null {
@@ -77,6 +79,7 @@ export class ScreenManager {
     this.currentScreen?.dispose();
     this.currentScreen = null;
     this.currentId = null;
+    this.onScreen(id);
     const screen = this.registry[id]();
     await screen.mount(this.host, params);
     this.currentScreen = screen;

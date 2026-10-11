@@ -12,13 +12,19 @@ import { MainMenu } from "../../pages/MainMenu";
 import { CreditsScreen } from "../../pages/screens";
 
 // Cahier §6.9 — écran Crédits (refonte plan 237 : rubriques, sources en liens, disclaimer en bas ;
-// rubrique « Son » ajoutée au plan 238).
+// rubrique « Son » ajoutée au plan 238, ses deux lignes de musique au plan 239).
 
-/** Rubrique « Son » (plan 238) : libellé de la ligne → adresse de sa source. */
+/** Rubrique « Son » (plans 238 et 239) : libellé de la ligne → adresse de sa source. */
 const SOUND_SOURCES = [
   ["Bruitages d'attaque", "Pokémon Reborn", "https://www.rebornevo.com"],
   ["Sons de coup", "PokeRogue", "https://github.com/pagefaultgames/pokerogue-assets"],
   ["Cris", "PokeAPI", "https://github.com/PokeAPI/cries"],
+  ["Musiques de combat", "Pokémon Showdown", "https://github.com/smogon/pokemon-showdown-client"],
+  [
+    "Musiques récentes et de menu",
+    "PokeRogue",
+    "https://github.com/pagefaultgames/pokerogue-assets",
+  ],
 ] as const;
 
 /** Sources liées, dans l'ordre du document — miroir de `CREDITS.md`. */
@@ -76,10 +82,13 @@ test("crédits : chaque source est un lien https qui s'ouvre dans un nouvel ongl
     await expect(link).toHaveAttribute("rel", /\bnoopener\b/);
   }
 
+  // Le lien se cherche DANS sa ligne, par son libellé : depuis le plan 239 une même source revient
+  // sur plusieurs lignes (Pokémon Showdown, PokeRogue), donc un filtre par nom de source est ambigu.
   for (const [label, source, url] of SOUND_SOURCES) {
-    await expect(page.getByText(label, { exact: true })).toBeVisible();
-    const link = credits.links.filter({ hasText: source });
+    const row = page.getByRole("listitem").filter({ has: page.getByText(label, { exact: true }) });
+    const link = row.getByTestId("credits-link");
     await expect(link).toHaveCount(1);
+    await expect(link).toContainText(source);
     await expect(link).toHaveAttribute("href", url);
   }
 });

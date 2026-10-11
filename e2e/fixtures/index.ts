@@ -61,6 +61,12 @@ export async function seedSettings(page: Page, patch: Record<string, unknown>): 
   }, patch);
 }
 
+/** Le magasin `pt-settings` tel qu'il est écrit — la moitié « écriture » d'un réglage persisté. */
+export async function readStoredSettings(page: Page): Promise<Record<string, unknown>> {
+  const stored = await page.evaluate(() => localStorage.getItem("pt-settings"));
+  return JSON.parse(stored ?? "{}") as Record<string, unknown>;
+}
+
 /**
  * Pose le magasin d'équipes de l'application (`pokemon-tactics:teams`) avant le boot.
  *
@@ -86,9 +92,13 @@ export const test = base.extend<CombatFixtures>({
   /*
    * Toute page du harnais démarre avec une CARTE FIXE. Voir `DEFAULT_TEST_MAP_ID` pour le pourquoi.
    * Un test qui veut une autre carte la choisit dans la modale, ou repasse par `seedSettings`.
+   *
+   * Et sans MUSIQUE (plan 239) : à volume zéro, aucune piste n'est téléchargée ni décodée. Sinon
+   * chaque écran de menu et chaque combat chargerait un mp3, et « Aléatoire » en tirerait un hors de
+   * toute graine. Un test de musique remonte le volume par `seedSettings`.
    */
   page: async ({ page }, use) => {
-    await seedSettings(page, { lastMapId: DEFAULT_TEST_MAP_ID });
+    await seedSettings(page, { lastMapId: DEFAULT_TEST_MAP_ID, musicVolume: 0 });
     await use(page);
   },
   bootSandbox: async ({ page }, use) => {

@@ -1,6 +1,7 @@
 import { CombatSpeed, nextCombatSpeed, nextInCycle } from "@pokemon-tactic/view-core";
 import { countAction, TelemetryAction } from "../../../analytics/telemetry";
 import { getLanguage, nextLanguage, setLanguage, t } from "../../../i18n";
+import type { TranslationKey } from "../../../i18n/types";
 import {
   isFullscreen,
   isFullscreenSupported,
@@ -9,6 +10,7 @@ import {
 } from "../../../platform/fullscreen";
 import { shouldOfferIosInstall } from "../../../platform/pwa";
 import {
+  type GameSettings,
   getSettings,
   MAX_VOLUME,
   TURN_CRIES,
@@ -30,19 +32,123 @@ const TURN_CRIES_ACTION: Record<TurnCries, TelemetryAction> = {
   [TurnCries.All]: TelemetryAction.TurnCriesAll,
 };
 
-/** The volume the mute button gives back when the slider sits at zero. */
+/** The volume a mute button gives back when its slider sits at zero. */
 const UNMUTED_VOLUME = 50;
 
+/** One line of the sound settings: a mute button and a volume slider over one pair of settings. */
+interface VolumeLine {
+  label: TranslationKey;
+  volume: "volume" | "effectsVolume" | "musicVolume";
+  muted: "muted" | "effectsMuted" | "musicMuted";
+  sliderTestId: string;
+  muteTestId: string;
+  changed: TelemetryAction;
+}
+
+/** The overall volume first — its mute silences everything — then one line per kind of sound. */
+const VOLUME_LINES: readonly VolumeLine[] = [
+  {
+    label: "settings.volume",
+    volume: "volume",
+    muted: "muted",
+    sliderTestId: "setting-volume",
+    muteTestId: "setting-mute",
+    changed: TelemetryAction.VolumeChange,
+  },
+  {
+    label: "settings.effectsVolume",
+    volume: "effectsVolume",
+    muted: "effectsMuted",
+    sliderTestId: "setting-effects-volume",
+    muteTestId: "setting-effects-mute",
+    changed: TelemetryAction.EffectsVolumeChange,
+  },
+  {
+    label: "settings.musicVolume",
+    volume: "musicVolume",
+    muted: "musicMuted",
+    sliderTestId: "setting-music-volume",
+    muteTestId: "setting-music-mute",
+    changed: TelemetryAction.MusicVolumeChange,
+  },
+];
+
+// Written key by key rather than as `{ [line.volume]: … }`: a computed key over a union widens to
+// an index signature, and the patch would no longer be checked against `GameSettings`.
+function volumePatch(line: VolumeLine, volume: number): Partial<GameSettings> {
+  const patch: Partial<GameSettings> = {};
+  patch[line.volume] = volume;
+  return patch;
+}
+
+function mutedPatch(line: VolumeLine, muted: boolean): Partial<GameSettings> {
+  const patch: Partial<GameSettings> = {};
+  patch[line.muted] = muted;
+  return patch;
+}
+
 /**
- * The mute button: a speaker glyph (a text glyph like the chrome's other icon buttons, until the
- * icon pack) named by what a press does.
+ * A mute button — a speaker glyph (a text glyph like the chrome's other icon buttons, until the
+ * icon pack) named by what a press does — and its volume slider. Muting keeps the volume; touching
+ * the slider brings the sound back.
  */
-function refreshMuteToggle(button: HTMLButtonElement): void {
-  const settings = getSettings();
-  // A volume of zero is silence too: the button says so, and a press brings the sound back.
-  const muted = settings.muted || settings.volume === 0;
-  button.textContent = muted ? "🔇" : "🔊";
-  button.setAttribute("aria-label", t(muted ? "settings.volume.unmute" : "settings.volume.mute"));
+function createVolumeControl(line: VolumeLine): HTMLElement {
+  const label = t(line.label);
+  const refreshMute = (): void => {
+    const settings = getSettings();
+    // A volume of zero is silence too: the button says so, and a press brings the sound back.
+    const silent = settings[line.muted] || settings[line.volume] === 0;
+    mute.textContent = silent ? "🔇" : "🔊";
+    const action = t(silent ? "settings.volume.unmute" : "settings.volume.mute");
+    // The overall line keeps the bare name; the others say which sound they cut.
+    mute.setAttribute("aria-label", line.muted === "muted" ? action : `${action} — ${label}`);
+  };
+  const toggleMute = (): void => {
+    const settings = getSettings();
+    if (!settings[line.muted] && settings[line.volume] === 0) {
+      // A slider at zero has nothing to give back: the button gives an audible volume.
+      updateSettings(volumePatch(line, UNMUTED_VOLUME));
+      slider.value = String(UNMUTED_VOLUME);
+    } else {
+      if (line.muted === "muted" && !settings.muted) {
+        countAction(TelemetryAction.VolumeMute);
+      }
+      updateSettings(mutedPatch(line, !settings[line.muted]));
+    }
+    refreshMute();
+  };
+  const mute = menuButton("", toggleMute);
+  mute.dataset.testid = line.muteTestId;
+  const slider = el("input", undefined, line.sliderTestId);
+  slider.type = "range";
+  slider.min = "0";
+  slider.max = String(MAX_VOLUME);
+  slider.step = String(VOLUME_STEP);
+  slider.value = String(getSettings()[line.volume]);
+  slider.setAttribute("aria-label", label);
+  // Au clavier et à la manette, ↑ ↓ arrivent sur le curseur, qui garde ← → pour lui : valider dessus
+  // coupe ou remet ce son, sans avoir à rejoindre le bouton. Entrée au clavier ; à la manette, A
+  // produit un `click()` synthétique (`detail` nul), qu'un vrai clic de souris n'est pas.
+  slider.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      toggleMute();
+    }
+  });
+  slider.addEventListener("click", (event) => {
+    if (event.detail === 0) {
+      toggleMute();
+    }
+  });
+  slider.addEventListener("input", () => {
+    updateSettings({ ...volumePatch(line, Number(slider.value)), ...mutedPatch(line, false) });
+    refreshMute();
+  });
+  // Une fois par ouverture du panneau : au clavier et à la manette, `change` part à chaque cran.
+  slider.addEventListener("change", () => countAction(line.changed), { once: true });
+  refreshMute();
+  const control = el("div", "mn-volume");
+  control.append(mute, slider);
+  return control;
 }
 
 export interface SettingsPanelOptions extends PanelOptions {
@@ -150,56 +256,11 @@ export function createSettingsPanel(options: SettingsPanelOptions): Panel {
     combatSpeedToggle.dataset.testid = "setting-combat-speed";
     rows.append(row(t("settings.combatSpeed"), combatSpeedToggle));
 
-    // Le son (plan 238) : une sourdine en icône et un curseur de volume, comme une app ordinaire. La
-    // sourdine garde le volume ; toucher au curseur réactive le son.
-    const volumeControl = el("div", "mn-volume");
-    const volumeSlider = el("input", undefined, "setting-volume");
-    volumeSlider.type = "range";
-    volumeSlider.min = "0";
-    volumeSlider.max = String(MAX_VOLUME);
-    volumeSlider.step = String(VOLUME_STEP);
-    volumeSlider.value = String(getSettings().volume);
-    volumeSlider.setAttribute("aria-label", t("settings.volume"));
-    const toggleMute = (): void => {
-      const settings = getSettings();
-      if (!settings.muted && settings.volume === 0) {
-        // Le curseur à zéro n'a rien à retrouver : la sourdine rend un volume audible.
-        updateSettings({ volume: UNMUTED_VOLUME });
-        volumeSlider.value = String(UNMUTED_VOLUME);
-      } else {
-        if (!settings.muted) {
-          countAction(TelemetryAction.VolumeMute);
-        }
-        updateSettings({ muted: !settings.muted });
-      }
-      refreshMuteToggle(muteToggle);
-    };
-    const muteToggle = menuButton("", toggleMute);
-    muteToggle.dataset.testid = "setting-mute";
-    refreshMuteToggle(muteToggle);
-    // Au clavier et à la manette, ↑ ↓ arrivent sur le curseur, qui garde ← → pour lui : valider
-    // dessus coupe ou remet le son, sans avoir à rejoindre le bouton. Entrée au clavier ; à la
-    // manette, A produit un `click()` synthétique (`detail` nul), qu'un vrai clic de souris n'est pas.
-    volumeSlider.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        toggleMute();
-      }
-    });
-    volumeSlider.addEventListener("click", (event) => {
-      if (event.detail === 0) {
-        toggleMute();
-      }
-    });
-    volumeSlider.addEventListener("input", () => {
-      updateSettings({ volume: Number(volumeSlider.value), muted: false });
-      refreshMuteToggle(muteToggle);
-    });
-    // Une fois par ouverture du panneau : au clavier et à la manette, `change` part à chaque cran.
-    volumeSlider.addEventListener("change", () => countAction(TelemetryAction.VolumeChange), {
-      once: true,
-    });
-    volumeControl.append(muteToggle, volumeSlider);
-    rows.append(row(t("settings.volume"), volumeControl));
+    // Le son (plans 238 et 239) : le volume général, puis un volume par type de son — chacun une
+    // sourdine en icône et un curseur, comme une app ordinaire.
+    for (const line of VOLUME_LINES) {
+      rows.append(row(t(line.label), createVolumeControl(line)));
+    }
 
     const turnCriesToggle = menuButton(t(`settings.turnCries.${getSettings().turnCries}`), () => {
       const turnCries = nextInCycle(TURN_CRIES, getSettings().turnCries);

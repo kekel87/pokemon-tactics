@@ -1,12 +1,15 @@
 import { COMBAT_SPEEDS, CombatSpeed, setCombatSpeed } from "@pokemon-tactic/view-core";
-import { initAudio, setMasterVolume } from "../audio/audio-player";
+import { type AudioVolumes, initAudio, setAudioVolumes } from "../audio/audio-player";
+import { knownMusicIdOrDefault, RANDOM_MUSIC_ID } from "../audio/music-tracks";
 import { DEFAULT_MAP_ID } from "../maps/random-map-id";
 
 const STORAGE_KEY = "pt-settings";
 
-/** The volume slider's range and step, in percent (plan 238). */
+/** The volume sliders' range and step, in percent (plan 238). */
 export const MAX_VOLUME = 100;
 export const VOLUME_STEP = 5;
+
+const VOLUME_KEYS = ["volume", "effectsVolume", "musicVolume"] as const;
 
 /** Whose turn is announced by a short cry (plan 238). */
 export const TurnCries = {
@@ -61,8 +64,22 @@ export interface GameSettings {
   combatSpeed: CombatSpeed;
   /** Volume général en pourcentage, 0 à `MAX_VOLUME` (plan 238). */
   volume: number;
-  /** Son coupé (plan 238) — à part du volume, qu'on retrouve tel quel en réactivant. */
+  /** Tout le son coupé — à part des volumes, qu'on retrouve tels quels en réactivant. */
   muted: boolean;
+  /**
+   * Volume et sourdine par type de son, sous le volume général (plan 239, retour de recette) : les
+   * effets (bruitages, coups, cris) et la musique (menus et combats).
+   */
+  effectsVolume: number;
+  effectsMuted: boolean;
+  musicVolume: number;
+  musicMuted: boolean;
+  /**
+   * La dernière musique de combat choisie (plan 239) : une piste, « Aléatoire » ou le medley.
+   * Paramètre de partie comme `lastMapId` — re-proposé à l'écran de sélection, gelé dans le
+   * `CombatSetup`.
+   */
+  lastMusicId: string;
   /** Cri au début du tour (plan 238) : personne, les Pokémon joués à cet écran, ou tous. */
   turnCries: TurnCries;
 }
@@ -75,6 +92,12 @@ const DEFAULT_SETTINGS: GameSettings = {
   combatSpeed: CombatSpeed.Normal,
   volume: 75,
   muted: false,
+  effectsVolume: 100,
+  effectsMuted: false,
+  // Sous les effets : le son d'efficacité d'un coup est une information de jeu, il reste devant.
+  musicVolume: 55,
+  musicMuted: false,
+  lastMusicId: RANDOM_MUSIC_ID,
   turnCries: TurnCries.Mine,
 };
 
@@ -111,9 +134,13 @@ function mergeWithDefaults(parsed: Record<string, unknown>): GameSettings {
   if (!COMBAT_SPEEDS.includes(merged.combatSpeed)) {
     merged.combatSpeed = DEFAULT_SETTINGS.combatSpeed;
   }
-  if (!Number.isInteger(merged.volume) || merged.volume < 0 || merged.volume > MAX_VOLUME) {
-    merged.volume = DEFAULT_SETTINGS.volume;
+  for (const key of VOLUME_KEYS) {
+    if (!Number.isInteger(merged[key]) || merged[key] < 0 || merged[key] > MAX_VOLUME) {
+      merged[key] = DEFAULT_SETTINGS[key];
+    }
   }
+  // Une piste retirée du jeu ne doit pas ressusciter par le stockage.
+  merged.lastMusicId = knownMusicIdOrDefault(merged.lastMusicId);
   if (!TURN_CRIES.includes(merged.turnCries)) {
     merged.turnCries = DEFAULT_SETTINGS.turnCries;
   }
@@ -138,15 +165,19 @@ function loadSettings(): GameSettings {
   return DEFAULT_SETTINGS;
 }
 
-/** The gain the audio plays at, 0..1: the volume, unless muted. */
-function effectiveVolume(settings: GameSettings): number {
-  return settings.muted ? 0 : settings.volume / MAX_VOLUME;
+function audioVolumes(settings: GameSettings): AudioVolumes {
+  const gain = (volume: number, muted: boolean): number => (muted ? 0 : volume / MAX_VOLUME);
+  return {
+    master: gain(settings.volume, settings.muted),
+    effects: gain(settings.effectsVolume, settings.effectsMuted),
+    music: gain(settings.musicVolume, settings.musicMuted),
+  };
 }
 
 export function initSettings(): void {
   currentSettings = loadSettings();
   setCombatSpeed(currentSettings.combatSpeed);
-  initAudio(effectiveVolume(currentSettings));
+  initAudio(audioVolumes(currentSettings));
 }
 
 export function getSettings(): GameSettings {
@@ -156,6 +187,6 @@ export function getSettings(): GameSettings {
 export function updateSettings(patch: Partial<GameSettings>): void {
   currentSettings = { ...currentSettings, ...patch };
   setCombatSpeed(currentSettings.combatSpeed);
-  setMasterVolume(effectiveVolume(currentSettings));
+  setAudioVolumes(audioVolumes(currentSettings));
   localStorage.setItem(STORAGE_KEY, JSON.stringify(currentSettings));
 }

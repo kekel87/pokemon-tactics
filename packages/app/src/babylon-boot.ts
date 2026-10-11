@@ -36,6 +36,7 @@ import { initBrowserBack } from "./app/browser-back.js";
 import { type Navigate, ScreenManager } from "./app/screen-manager.js";
 import { loadPersistedScreen } from "./app/screen-persistence.js";
 import { atelierBootConfig } from "./atelier-boot.js";
+import { playMenuMusic } from "./audio/music-player.js";
 import { createCombatScreen } from "./babylon/combat-screen.js";
 import { getLanguage, initLanguage, onLanguageChange } from "./i18n/index.js";
 import { initBindings } from "./input/bindings-store.js";
@@ -157,18 +158,28 @@ async function boot(root: HTMLElement): Promise<void> {
   const navigate: Navigate = (id, params) => {
     manager.navigate(id, params).catch(reportScreenError);
   };
-  const manager = new ScreenManager(root, {
-    "main-menu": () => createMainMenuScreen(navigate),
-    "battle-mode": () => createBattleModeScreen(navigate),
-    lobby: () => createLobbyScreen(navigate),
-    "team-select": () => createTeamSelectScreen(navigate),
-    "my-teams": () => createMyTeamsScreen(navigate),
-    "team-edit": () => createTeamEditScreen(navigate),
-    settings: () => createSettingsScreen(navigate),
-    controls: () => createControlsScreen(navigate),
-    credits: () => createCreditsScreen(navigate),
-    combat: () => createCombatScreen(navigate, backend),
-  });
+  const manager = new ScreenManager(
+    root,
+    {
+      "main-menu": () => createMainMenuScreen(navigate),
+      "battle-mode": () => createBattleModeScreen(navigate),
+      lobby: () => createLobbyScreen(navigate),
+      "team-select": () => createTeamSelectScreen(navigate),
+      "my-teams": () => createMyTeamsScreen(navigate),
+      "team-edit": () => createTeamEditScreen(navigate),
+      settings: () => createSettingsScreen(navigate),
+      controls: () => createControlsScreen(navigate),
+      credits: () => createCreditsScreen(navigate),
+      combat: () => createCombatScreen(navigate, backend),
+    },
+    // Le thème des menus (plan 239) joue sur tout écran qui n'est pas le combat, lequel lance la
+    // sienne : redemandé à chaque écran, il continue sans coupure d'un menu au suivant.
+    (id) => {
+      if (id !== "combat") {
+        playMenuMusic();
+      }
+    },
+  );
   // Retour du navigateur (plan 205) : le bouton précédent, le bouton latéral de la souris et le
   // geste de retour du téléphone remontent d'un écran au lieu de quitter le jeu. Le retour est
   // routé dans le `cancel` de l'`InputSystem`, là où arrivent déjà `Échap` et le bouton B.

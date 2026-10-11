@@ -117,7 +117,12 @@ import {
  * 17 → 18 (2026-10-06, plan 232) : l'équipe aléatoire ne se tire plus que parmi les Pokemon au
  * dernier stade qui ont un build. Depuis une même graine, deux builds ne tirent plus la même équipe.
  */
-export const NETWORK_VERSION = 18;
+/**
+ * 18 → 19 (2026-10-11, plan 239) : les options du salon portent `musicId`, donc `room_state` et
+ * `start` changent de forme. Un pair d'avant ne l'émet pas, et un pair d'après jetterait son
+ * `room_state` au bord du réseau comme malformé : il attendrait un salon qui ne vient jamais.
+ */
+export const NETWORK_VERSION = 19;
 
 /**
  * Durée d'un tour en ligne — **déplacée dans `timings.ts`**, réexportée ici (plan 213).
@@ -307,6 +312,13 @@ export interface NetworkTeamSelection {
  */
 export const RANDOM_MAP_ID = "random";
 
+/**
+ * La valeur RÉSERVÉE de `NetworkRoomOptions.musicId` : « la musique n'est pas encore tirée »
+ * (plan 239). Même contrat que `RANDOM_MAP_ID` : elle ne vaut qu'avant le lancement, et
+ * `Room.launch` refuse de la recevoir comme musique résolue — à l'hôte de tirer avant de lancer.
+ */
+export const RANDOM_MUSIC_ID = "random";
+
 export interface NetworkRoomOptions {
   /**
    * Identifiant **stable** de carte (`MAPS_REGISTRY`), jamais une URL : une URL dépend de la base de
@@ -319,6 +331,13 @@ export interface NetworkRoomOptions {
    * interpréter pareil, qui a fait passer `NETWORK_VERSION` de 5 à 6.
    */
   mapId: string;
+  /**
+   * La musique du combat, choisie par l'hôte (plan 239) : chaîne **opaque** pour ce paquet, comme
+   * `mapId`. Peut valoir `RANDOM_MUSIC_ID` avant le lancement ; le `StartMessage` porte alors le
+   * tirage de l'hôte, pour que tous les pairs entendent la même. Toute autre valeur voyage telle
+   * quelle — un pair qui ne la connaît pas joue en silence, une musique ne bloque pas un combat.
+   */
+  musicId: string;
   teamCount: number;
   autoPlacement: boolean;
   damagePreview: boolean;
@@ -760,6 +779,7 @@ function isRoomOptions(value: unknown): value is NetworkRoomOptions {
   return (
     isRecord(value) &&
     isNonEmptyString(value.mapId) &&
+    isNonEmptyString(value.musicId) &&
     typeof value.teamCount === "number" &&
     Number.isInteger(value.teamCount) &&
     value.teamCount >= 1 &&

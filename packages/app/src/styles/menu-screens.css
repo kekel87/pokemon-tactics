@@ -109,6 +109,11 @@
       flex: none;
       width: 2.2em;
       padding-inline: 0;
+      /* Le glyphe du haut-parleur vient d'une police d'émojis, plus haute de ligne que celle du jeu :
+         il gonflait le bouton à 50 px contre 42 px pour ses voisins (recette du plan 239). Sa hauteur
+         est donc celle d'un bouton de texte — une ligne de la police du jeu, plus marges et bordure —
+         et le glyphe, centré, déborde dans les marges. */
+      block-size: calc(1lh + 2 * var(--pad-control-y) + 2px);
     }
   }
 
