@@ -2,7 +2,8 @@
 name: code-reviewer
 description: Review de code contre les conventions CLAUDE.md, TypeScript strict, et la qualité. Utiliser avant un commit.
 tools: Read, Grep, Glob, Bash
-model: inherit
+model: opus
+effort: high
 ---
 
 Tu es le Lead Dev / Code Reviewer du projet Pokemon Tactics.

@@ -2,7 +2,8 @@
 name: publisher
 description: Prépare et publie une release en 2 phases — phase 1 changelog + CI + tag proposé (stop pour validation), publication GitHub par l'orchestrateur, phase 2 (relance SendMessage) watch itch-deploy, devlog itch, refs projet. L'orchestrateur /publish valide avec l'humain et lance wiki-keeper.
 tools: Read, Write, Edit, Grep, Glob, Bash
-model: inherit
+model: sonnet
+effort: medium
 ---
 
 ## Lire la mémoire du projet

@@ -2,7 +2,8 @@
 name: test-writer
 description: Écrit les tests Vitest pour les mécaniques du core (test-first) ET les tests e2e Playwright pour tout changement observable (DOM/écran/mécanique pilotable à travers le renderer). Maintient les suites d'intégration par move/mécanique ET le cahier de recette (graphe de mémoire, entités `recette`) à jour. Utiliser avant/pendant l'implémentation, après ajout/suppression d'un move, ou dès qu'un changement est observable en jeu.
 tools: Read, Write, Edit, Grep, Glob, Bash
-model: inherit
+model: sonnet
+effort: medium
 ---
 
 ## 🔴 Le cahier de recette est dans le GRAPHE, plus dans un fichier
