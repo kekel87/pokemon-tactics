@@ -1,13 +1,17 @@
 /**
  * The sound bundle (plan 238): `sounds.bin` (every sound a small mp3 of its own, concatenated) and
  * `sounds-manifest.json` (byte ranges, and each move's timed sound events), built by
- * `pnpm build-audio`. Fetched once, on the first sound asked for — never at boot, so the splash
- * screen does not wait on audio (a battle preloads it as it mounts) — then each sound is decoded on demand and kept.
+ * `pnpm build-audio`. Fetched once, when a battle mounts — its loading veil waits for it, the
+ * splash screen never does — then each sound is decoded on demand and kept.
  *
  * Sound ids: `move:<PokeRogue sound name>`, `hit:normal|strong|weak`, `cry:<species id>`.
+ *
+ * The interface sounds (`ui:move|open|error`, plan 240) are not in the bundle: a file each, a few
+ * kB, so that a click in a menu never fetches what only a battle needs.
  */
 
 const BUNDLE_PATH = "assets/audio";
+const INTERFACE_PREFIX = "ui:";
 
 /** One timed sound of a move: `[atMs, soundId, volume, rate]`, `atMs` from the attack's start. */
 export type MoveSoundEvent = readonly [atMs: number, soundId: string, volume: number, rate: number];
@@ -30,6 +34,11 @@ const decoded = new Map<string, Promise<AudioBuffer | null>>();
 /** Start fetching the bundle ahead of the first sound (a battle about to start). Idempotent. */
 export function preloadSoundBundle(): void {
   void loadBundle();
+}
+
+/** Resolves once the bundle is in, or has failed: what a battle's loading veil waits on. */
+export async function soundBundleReady(): Promise<void> {
+  await loadBundle();
 }
 
 async function fetchOk(url: string): Promise<Response> {
@@ -74,6 +83,17 @@ export function decodeSound(
   soundId: string,
 ): Promise<AudioBuffer | null> {
   let sound = decoded.get(soundId);
+  if (sound === undefined && soundId.startsWith(INTERFACE_PREFIX)) {
+    sound = fetchOk(`${BUNDLE_PATH}/ui/${soundId.slice(INTERFACE_PREFIX.length)}.mp3`)
+      .then((response) => response.arrayBuffer())
+      .then((encoded) => context.decodeAudioData(encoded))
+      // A missing or undecodable sound is a silent one — and not kept: the next press asks again.
+      .catch(() => {
+        decoded.delete(soundId);
+        return null;
+      });
+    decoded.set(soundId, sound);
+  }
   if (sound === undefined) {
     sound = loadBundle().then((loaded) => {
       const range = loaded?.manifest.sounds[soundId];

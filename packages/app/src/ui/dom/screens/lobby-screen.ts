@@ -7,6 +7,7 @@ import {
   TelemetryScreen,
 } from "../../../analytics/telemetry";
 import type { Navigate, Screen } from "../../../app/screen-manager";
+import { playCursorSound, playRefusalSound } from "../../../audio/interface-sounds";
 import { t } from "../../../i18n";
 import {
   activateFocusedControl,
@@ -103,6 +104,7 @@ export function createLobbyScreen(navigate: Navigate): Screen<"lobby"> {
     // Le seul refus que cet écran sache prononcer SANS réseau : la forme du code. Inutile de
     // déranger un annuaire de mise en relation pour un code à quatre caractères.
     if (!isValidRoomCode(code)) {
+      playRefusalSound();
       showError(t("lobby.invalidCode"));
       return;
     }
@@ -499,6 +501,8 @@ export function createLobbyScreen(navigate: Navigate): Screen<"lobby"> {
             if (wheel?.holdsFocus() === true) {
               if (direction === "up" || direction === "down") {
                 wheel.step(direction);
+                // La lettre change sans que le focus bouge : le routeur seul ne l'entendrait pas.
+                playCursorSound();
                 return;
               }
               moveWithinWheel(direction);

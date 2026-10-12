@@ -17,7 +17,11 @@ const FADE_MS = 320;
  * Distinct from `LoadingOverlay` (combat transitions + tips) by design (decision #2):
  * the splash owns the game title + entrance fade.
  */
-export function runSplash(host: HTMLElement): Promise<void> {
+export function runSplash(
+  host: HTMLElement,
+  /** Loaded behind the same bar, after the sprites: the menus' sound (plan 240). Never rejects. */
+  alsoLoad: () => Promise<void> = () => Promise.resolve(),
+): Promise<void> {
   return new Promise((resolve) => {
     const overlay = document.createElement("div");
     overlay.className = "splash";
@@ -65,7 +69,7 @@ export function runSplash(host: HTMLElement): Promise<void> {
       barOuter.hidden = false;
       Promise.resolve()
         .then(() => loadSpriteBundle({ onProgress: setProgress }))
-        .then(() => Promise.all([preparePortraitSheet(), prepareItemIconSheet()]))
+        .then(() => Promise.all([preparePortraitSheet(), prepareItemIconSheet(), alsoLoad()]))
         .then(fadeOutAndResolve)
         .catch(() => {
           barOuter.hidden = true;

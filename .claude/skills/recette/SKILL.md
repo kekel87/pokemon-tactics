@@ -19,3 +19,10 @@ Je ne dump pas tout, je déroule **un scénario à la fois**, je lance, tu regar
 2. Par scénario : construis la config JSON **minimale** (seuls les champs nécessaires au scénario, le reste = défauts), moves/Pokemon validés (`packages/data` ; doute → agent `sandbox-json`). **Jamais coller la commande à l'humain.** Si le scénario demande à l'humain d'agir/déplacer/attaquer **avec la cible (Dummy)** → mettre `"dummyControl": "player"` (+ `dummyMoves`), **jamais laisser le défaut `"ai"`** (l'humain ne pourrait pas la contrôler).
 3. **Boucle** : (a) **je lance moi-même** le serveur via `Bash run_in_background` (`pnpm dev:sandbox '{...}'` ; HMR ne suffit pas — config bakée à l'env au boot, donc relancer le process à chaque scénario). Port du checkout : `PT_PORT` env → `.worktree-port` à la racine → sinon `5173` (cf `vite.config.ts`) ; **en worktree c'est PAS 5173**. **Avant chaque relance : j'arrête d'abord MON process sandbox précédent** (`TaskStop` du background task — sûr et indépendant du port) pour **réutiliser le même port — jamais laisser vite incrémenter** (5174, 5175…). Je cible **uniquement mon process sandbox** : jamais un navigateur de l'humain, jamais son serveur dev global. (b) résumé en chat — **URL** (`http://localhost:<port résolu>`) + **quoi tester** (1-2 lignes) + **résultat attendu** (noms FR) ; (c) **pause**, tu testes ; (d) ta réponse `suivant`/`ok` → scénario suivant ; bug/retour → on traite avant de continuer.
 4. Tous scénarios validés → arrêt 2, le menu (skill `/menu`).
+
+🔴 **Scénario sur téléphone : TOUJOURS par tunnel, jamais par l'adresse du réseau local.** La box
+isole les appareils Wi-Fi, une adresse `192.168.x.x` ne marchera pas — rappelé par l'humain « vingt
+fois », encore le 2026-10-12. Suivre `docs/references/test-sur-telephone.md` : serveur lancé avec
+`PT_TUNNEL=1`, tunnel `untun` en tâche de fond, adresse `https://….trycloudflare.com` **vérifiée
+(code 200) avant** de la donner. Le tunnel publie le serveur de dev sur Internet : accord de l'humain
+à chaque session, et `TaskStop` sur le tunnel dès le scénario validé.

@@ -1,5 +1,6 @@
 import type { NetworkErrorCode } from "@pokemon-tactic/network";
 import { Modal } from "@pokemon-tactic/ui-dom";
+import { playRefusalSound } from "../../audio/interface-sounds";
 import { t } from "../../i18n";
 import type { TranslationKey } from "../../i18n/types";
 import { isRetryableRefusal } from "../../network/network-error";
@@ -39,6 +40,8 @@ export function openJoinRefusalModal(
   // convient, sans que le bouton ait à mémoriser lequel a été pressé.
   const dismiss = retryable ? callbacks.onRetry : callbacks.onBackToMenu;
 
+  // Le son du refus, à la place de celui d'une fenêtre qui s'ouvre (plan 240).
+  playRefusalSound();
   const modal = new Modal({
     title: t("lobby.refusedTitle"),
     closeAriaLabel: t("lobby.back"),

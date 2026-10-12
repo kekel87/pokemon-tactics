@@ -5,7 +5,7 @@ import {
   type Locator,
   type Page,
 } from "@playwright/test";
-import { DEFAULT_TEST_MAP_ID } from "../fixtures";
+import { DEFAULT_TEST_MAP_ID, newHarnessContext } from "../fixtures";
 import type { CombatScene } from "./CombatScene";
 import { OnlinePeer, TEAMS_STORAGE_KEY } from "./online-session";
 
@@ -198,7 +198,7 @@ export class OnlineTrio {
     const contexts: BrowserContext[] = [];
     const peers: OnlinePeer[] = [];
     for (let index = 0; index < 3; index += 1) {
-      const context = await browser.newContext({ locale: "fr-FR" });
+      const context = await newHarnessContext(browser);
       contexts.push(context);
       /*
        * La carte FIXE du harnais, posée à la main : la fixture `page` ne sert que le contexte par

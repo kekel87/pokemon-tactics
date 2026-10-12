@@ -4,6 +4,7 @@ import { initAudio, setAudioVolumes } from "../audio/audio-player";
 import { createLocalStorageStub, type LocalStorageStub } from "../testing/local-storage-stub";
 import { getSettings, initSettings, MAX_VOLUME, TurnCries, updateSettings } from "./index";
 
+vi.mock("@pokemon-tactic/network", () => ({ RANDOM_MUSIC_ID: "random" }));
 vi.mock("../audio/audio-player", () => ({ initAudio: vi.fn(), setAudioVolumes: vi.fn() }));
 
 const STORAGE_KEY = "pt-settings";
@@ -18,14 +19,29 @@ const DEFAULTS = {
   muted: false,
   effectsVolume: 100,
   effectsMuted: false,
+  interfaceVolume: 40,
+  interfaceMuted: false,
   musicVolume: 55,
   musicMuted: false,
+  menuMusicVolume: 55,
+  menuMusicMuted: false,
+  menuMusicId: "frlg-title",
   lastMusicId: "random",
   turnCries: TurnCries.Mine,
 };
 
-const TYPE_VOLUME_KEYS = ["effectsVolume", "musicVolume"] as const;
-const MUTED_KEY_OF = { effectsVolume: "effectsMuted", musicVolume: "musicMuted" } as const;
+const TYPE_VOLUME_KEYS = [
+  "effectsVolume",
+  "interfaceVolume",
+  "musicVolume",
+  "menuMusicVolume",
+] as const;
+const MUTED_KEY_OF = {
+  effectsVolume: "effectsMuted",
+  interfaceVolume: "interfaceMuted",
+  musicVolume: "musicMuted",
+  menuMusicVolume: "menuMusicMuted",
+} as const;
 
 let stub: LocalStorageStub;
 
@@ -70,21 +86,7 @@ describe("préférences persistées", () => {
 
     initSettings();
 
-    expect(getSettings()).toEqual({
-      autoPlacement: true,
-      damagePreview: false,
-      lastMapId: "simple-arena",
-      invertRightStick: true,
-      combatSpeed: CombatSpeed.Normal,
-      volume: 75,
-      muted: false,
-      effectsVolume: 100,
-      effectsMuted: false,
-      musicVolume: 55,
-      musicMuted: false,
-      lastMusicId: "random",
-      turnCries: TurnCries.Mine,
-    });
+    expect(getSettings()).toEqual({ ...DEFAULTS, damagePreview: false, invertRightStick: true });
   });
 
   it("retombe sur les défauts si le magasin est illisible", () => {
@@ -205,57 +207,158 @@ describe("préférences persistées", () => {
     expect(getSettings()).toMatchObject({ [key]: 35, [mutedKey]: true });
   });
 
-  it.each(
-    TYPE_VOLUME_KEYS.flatMap((key) => [0, 5, MAX_VOLUME].map((volume) => [key, volume] as const)),
-  )("accepte %s à %i, bornes comprises", (key, volume) => {
-    stub.entries.set(STORAGE_KEY, JSON.stringify({ [key]: volume }));
+  it.each(TYPE_VOLUME_KEYS)(
+    "accepte %s à zéro : un volume nul n'est pas une valeur absente",
+    (key) => {
+      stub.entries.set(STORAGE_KEY, JSON.stringify({ [key]: 0 }));
 
-    initSettings();
+      initSettings();
 
-    expect(getSettings()[key]).toBe(volume);
-  });
+      expect(getSettings()[key]).toBe(0);
+    },
+  );
 
-  it.each(
-    TYPE_VOLUME_KEYS.flatMap((key) =>
-      [
-        ["négatif", -5],
-        ["au-delà du maximum", MAX_VOLUME + 1],
-        ["non entier", 42.5],
-        ["en chaîne", "40"],
-        ["nul", null],
-      ].map(([label, volume]) => [key, label, volume] as const),
-    ),
-  )("rejette %s %s et garde son défaut, sans toucher aux autres volumes", (key, _label, volume) => {
-    stub.entries.set(STORAGE_KEY, JSON.stringify({ [key]: volume, volume: 30 }));
+  it.each(TYPE_VOLUME_KEYS)(
+    "rejette %s hors bornes et garde son défaut, sans toucher aux autres volumes",
+    (key) => {
+      stub.entries.set(STORAGE_KEY, JSON.stringify({ [key]: MAX_VOLUME + 1, volume: 30 }));
 
-    initSettings();
+      initSettings();
 
-    expect(getSettings()[key]).toBe(DEFAULTS[key]);
-    expect(getSettings().volume).toBe(30);
-  });
+      expect(getSettings()[key]).toBe(DEFAULTS[key]);
+      expect(getSettings().volume).toBe(30);
+    },
+  );
 
-  it.each(
-    Object.values(MUTED_KEY_OF).flatMap((key) =>
-      [
-        ["une chaîne", "true"],
-        ["un nombre", 1],
-        ["null", null],
-      ].map(([label, muted]) => [label, key, muted] as const),
-    ),
-  )("ignore %s à la place de %s et laisse ce son", (_label, key, muted) => {
-    stub.entries.set(STORAGE_KEY, JSON.stringify({ [key]: muted }));
+  it.each(Object.values(MUTED_KEY_OF))(
+    "ignore une chaîne à la place de %s et laisse ce son",
+    (key) => {
+      stub.entries.set(STORAGE_KEY, JSON.stringify({ [key]: "true" }));
 
-    initSettings();
+      initSettings();
 
-    expect(getSettings()[key]).toBe(false);
-  });
+      expect(getSettings()[key]).toBe(false);
+    },
+  );
 
   it("coupe un type de son sans couper l'autre ni le son général", () => {
     stub.entries.set(STORAGE_KEY, JSON.stringify({ musicMuted: true }));
 
     initSettings();
 
-    expect(getSettings()).toMatchObject({ muted: false, effectsMuted: false, musicMuted: true });
+    expect(getSettings()).toMatchObject({
+      muted: false,
+      effectsMuted: false,
+      interfaceMuted: false,
+      musicMuted: true,
+    });
+  });
+
+  it("donne à la musique de menu le volume de la musique d'avant, quand elle n'en a pas encore", () => {
+    stub.entries.set(STORAGE_KEY, JSON.stringify({ musicVolume: 20 }));
+
+    initSettings();
+
+    expect(getSettings()).toMatchObject({ musicVolume: 20, menuMusicVolume: 20 });
+  });
+
+  it("coupe la musique de menu d'un joueur qui avait coupé la musique d'avant", () => {
+    stub.entries.set(STORAGE_KEY, JSON.stringify({ musicMuted: true }));
+
+    initSettings();
+
+    expect(getSettings()).toMatchObject({ musicMuted: true, menuMusicMuted: true });
+  });
+
+  it("n'hérite de rien une fois la musique de menu réglée à part", () => {
+    stub.entries.set(
+      STORAGE_KEY,
+      JSON.stringify({
+        musicVolume: 20,
+        musicMuted: true,
+        menuMusicVolume: 70,
+        menuMusicMuted: false,
+      }),
+    );
+
+    initSettings();
+
+    expect(getSettings()).toMatchObject({
+      musicVolume: 20,
+      musicMuted: true,
+      menuMusicVolume: 70,
+      menuMusicMuted: false,
+    });
+  });
+
+  it("hérite du volume sans hériter de la sourdine quand seule la sourdine de menu est enregistrée", () => {
+    stub.entries.set(
+      STORAGE_KEY,
+      JSON.stringify({ musicVolume: 20, musicMuted: true, menuMusicMuted: false }),
+    );
+
+    initSettings();
+
+    expect(getSettings()).toMatchObject({ menuMusicVolume: 20, menuMusicMuted: false });
+  });
+
+  it("ne fait pas hériter la musique de menu d'un ancien volume invalide", () => {
+    stub.entries.set(STORAGE_KEY, JSON.stringify({ musicVolume: MAX_VOLUME + 50 }));
+
+    initSettings();
+
+    expect(getSettings()).toMatchObject({
+      musicVolume: DEFAULTS.musicVolume,
+      menuMusicVolume: DEFAULTS.menuMusicVolume,
+    });
+  });
+
+  it("laisse les sons d'interface à leur défaut, quel que soit l'ancien réglage de la musique", () => {
+    stub.entries.set(STORAGE_KEY, JSON.stringify({ musicVolume: 20, musicMuted: true }));
+
+    initSettings();
+
+    expect(getSettings()).toMatchObject({
+      interfaceVolume: DEFAULTS.interfaceVolume,
+      interfaceMuted: false,
+    });
+  });
+
+  it("relit le thème des menus choisi", () => {
+    stub.entries.set(STORAGE_KEY, JSON.stringify({ menuMusicId: "rs-center" }));
+
+    initSettings();
+
+    expect(getSettings().menuMusicId).toBe("rs-center");
+  });
+
+  it.each([
+    ["une chaîne qui n'est pas un thème de menu", "bw-trainer"],
+    ["un nombre", 3],
+    ["null", null],
+  ])("ramène %s au thème des menus par défaut", (_label, menuMusicId) => {
+    stub.entries.set(STORAGE_KEY, JSON.stringify({ menuMusicId, autoPlacement: false }));
+
+    initSettings();
+
+    expect(getSettings().menuMusicId).toBe(DEFAULTS.menuMusicId);
+    expect(getSettings().autoPlacement).toBe(false);
+  });
+
+  it("écrit le thème des menus, le volume et la sourdine des deux nouveaux types dans le magasin", () => {
+    initSettings();
+
+    updateSettings({ menuMusicId: "dp-gts" });
+    updateSettings({ menuMusicVolume: 30, menuMusicMuted: true });
+    updateSettings({ interfaceVolume: 15, interfaceMuted: true });
+
+    expect(JSON.parse(stub.entries.get(STORAGE_KEY) ?? "{}")).toMatchObject({
+      menuMusicId: "dp-gts",
+      menuMusicVolume: 30,
+      menuMusicMuted: true,
+      interfaceVolume: 15,
+      interfaceMuted: true,
+    });
   });
 
   it.each(["bw-trainer", "sv-kieran", "medley", "random"])(
@@ -271,7 +374,8 @@ describe("préférences persistées", () => {
 
   it.each([
     ["une piste retirée du jeu", "retired-track"],
-    ["le thème des menus", "menu"],
+    ["un thème des menus", "menu"],
+    ["le thème des menus par défaut", "frlg-title"],
     ["une chaîne vide", ""],
     ["un nombre", 3],
     ["null", null],
@@ -354,8 +458,16 @@ describe("préférences persistées", () => {
 });
 
 describe("volume appliqué au moteur audio", () => {
-  const MASTER = DEFAULTS.volume / MAX_VOLUME;
-  const MUSIC = DEFAULTS.musicVolume / MAX_VOLUME;
+  const GAIN_LINES = [
+    { volume: "volume", muted: "muted", gain: "master" },
+    { volume: "effectsVolume", muted: "effectsMuted", gain: "effects" },
+    { volume: "interfaceVolume", muted: "interfaceMuted", gain: "interface" },
+    { volume: "musicVolume", muted: "musicMuted", gain: "battleMusic" },
+    { volume: "menuMusicVolume", muted: "menuMusicMuted", gain: "menuMusic" },
+  ] as const;
+  const OPEN = Object.fromEntries(
+    GAIN_LINES.map(({ volume, gain }) => [gain, DEFAULTS[volume] / MAX_VOLUME]),
+  );
 
   beforeEach(() => {
     vi.mocked(initAudio).mockClear();
@@ -365,59 +477,48 @@ describe("volume appliqué au moteur audio", () => {
   it("ouvre l'audio aux volumes enregistrés, ramenés entre 0 et 1", () => {
     stub.entries.set(
       STORAGE_KEY,
-      JSON.stringify({ volume: 40, effectsVolume: 80, musicVolume: 20 }),
+      JSON.stringify({
+        volume: 40,
+        effectsVolume: 80,
+        interfaceVolume: 10,
+        musicVolume: 20,
+        menuMusicVolume: 65,
+      }),
     );
 
     initSettings();
 
-    expect(initAudio).toHaveBeenCalledWith({ master: 0.4, effects: 0.8, music: 0.2 });
+    expect(initAudio).toHaveBeenCalledWith({
+      master: 0.4,
+      effects: 0.8,
+      interface: 0.1,
+      battleMusic: 0.2,
+      menuMusic: 0.65,
+    });
   });
 
-  it("ouvre à zéro ce qui est coupé : tout le son, ou un seul type", () => {
-    stub.entries.set(STORAGE_KEY, JSON.stringify({ volume: 40, muted: true, musicMuted: true }));
+  it.each(GAIN_LINES)("ouvre à zéro le seul gain coupé par $muted", ({ muted, gain }) => {
+    stub.entries.set(STORAGE_KEY, JSON.stringify({ menuMusicMuted: false, [muted]: true }));
 
     initSettings();
 
-    expect(initAudio).toHaveBeenCalledWith({ master: 0, effects: 1, music: 0 });
+    expect(initAudio).toHaveBeenCalledWith({ ...OPEN, [gain]: 0 });
   });
 
-  it("ouvre à zéro les seuls effets quand eux seuls sont coupés", () => {
-    stub.entries.set(STORAGE_KEY, JSON.stringify({ effectsMuted: true }));
+  it.each(GAIN_LINES)(
+    "applique en direct $volume puis $muted à son seul gain, et rend le volume en remettant le son",
+    ({ volume, muted, gain }) => {
+      initSettings();
 
-    initSettings();
+      updateSettings({ [volume]: 20 });
+      updateSettings({ [muted]: true });
+      updateSettings({ [muted]: false });
 
-    expect(initAudio).toHaveBeenCalledWith({ master: MASTER, effects: 0, music: MUSIC });
-  });
-
-  it("applique en direct le volume et la sourdine de chaque type, sans toucher à l'autre", () => {
-    initSettings();
-
-    updateSettings({ musicVolume: 20 });
-    updateSettings({ musicMuted: true });
-    updateSettings({ effectsVolume: 50 });
-    updateSettings({ effectsMuted: true });
-    updateSettings({ musicMuted: false });
-
-    expect(vi.mocked(setAudioVolumes).mock.calls).toEqual([
-      [{ master: MASTER, effects: 1, music: 0.2 }],
-      [{ master: MASTER, effects: 1, music: 0 }],
-      [{ master: MASTER, effects: 0.5, music: 0 }],
-      [{ master: MASTER, effects: 0, music: 0 }],
-      [{ master: MASTER, effects: 0, music: 0.2 }],
-    ]);
-  });
-
-  it("applique en direct le volume, la sourdine, puis le volume retrouvé", () => {
-    initSettings();
-
-    updateSettings({ volume: 20 });
-    updateSettings({ muted: true });
-    updateSettings({ muted: false });
-
-    expect(vi.mocked(setAudioVolumes).mock.calls).toEqual([
-      [{ master: 0.2, effects: 1, music: 0.55 }],
-      [{ master: 0, effects: 1, music: 0.55 }],
-      [{ master: 0.2, effects: 1, music: 0.55 }],
-    ]);
-  });
+      expect(vi.mocked(setAudioVolumes).mock.calls).toEqual([
+        [{ ...OPEN, [gain]: 0.2 }],
+        [{ ...OPEN, [gain]: 0 }],
+        [{ ...OPEN, [gain]: 0.2 }],
+      ]);
+    },
+  );
 });

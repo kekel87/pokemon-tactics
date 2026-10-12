@@ -57,16 +57,23 @@ the official games.
 **Cries:** [PokeAPI/cries](https://github.com/PokeAPI/cries) (`cries/pokemon/latest/`), the cries of
 the current official games.
 
+**Interface sounds:** [PokeRogue](https://github.com/pagefaultgames/pokerogue-assets) (`audio/ui/`):
+the cursor, a window opening, a refusal.
+
 **Music:** the official games' battle themes (© Nintendo, Creatures, GAME FREAK). The Diamond/Pearl
 to Sun/Moon trainer and rival themes are the ones [Pokémon Showdown](https://github.com/smogon/pokemon-showdown-client)
 plays, with its loop points; the gym, Elite Four and Champion themes up to Scarlet/Violet, and the
 menu theme (from Pokémon Mystery Dungeon: Explorers), come from
 [PokeRogue](https://github.com/pagefaultgames/pokerogue-assets) (`audio/bgm/`), with its loop points.
+The menus' themes — title screens, Pokémon Centers, the GTS, Festival Plaza — are tracks of the
+official soundtrack albums (the "Super Music Collection" series), as hosted on the
+[Internet Archive](https://archive.org/search?query=Pok%C3%A9mon+Super+Music+Collection).
 They are downloaded and re-encoded by `pnpm build-music`; one file per track ships with the game.
 
 None of them carries a license of its own. The sounds are downloaded by `pnpm build-audio`, which keeps only
 the sound names and timings of PokeRogue's (AGPL) animation files, never the files themselves; only
-the packed bundle `sounds.bin` and its index `sounds-manifest.json` ship with the game.
+the packed bundle `sounds.bin`, its index `sounds-manifest.json` and the three interface sounds
+(`audio/ui/`) ship with the game.
 
 ## Type, category and status icons
 

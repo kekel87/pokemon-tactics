@@ -74,7 +74,7 @@ d'apparition n'indique une priorité.
 - [ ] **Textures terrain** — transitions entre types (blend / bords), variations sur un même type
       (casser la répétition). *Animation des liquides déjà livrée : `LiquidShimmerPlugin`,
       décision #707.*
-- [x] **Musique** — livrée (plan 239, 2026-10-11) : 26 pistes de combat officielles, thème des menus, choix par l'hôte (Aléatoire / Medley / piste), volume séparé.
+- [x] **Musique** — livrée (plan 239, 2026-10-11) : 26 pistes de combat officielles, thème des menus, choix par l'hôte (Aléatoire / Medley / piste), volume séparé. **Sons d'interface et 13 thèmes de menu** (plan 240, 2026-10-12), cinq volumes.
 - [ ] **Décors sur les maps**
 
 ---

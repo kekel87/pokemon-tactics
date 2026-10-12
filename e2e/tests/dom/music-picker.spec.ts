@@ -15,8 +15,8 @@ import { BattleModeScreen, MusicPicker, TeamSelectScreen } from "../../pages/scr
 /*
  * Cahier §6.4 — la ligne « Musique » du bandeau de partie et sa modale (plan 239).
  *
- * 🔴 Aucun de ces scénarios n'écoute quoi que ce soit : la fixture `page` sème `musicVolume: 0`, donc
- * aucune piste n'est téléchargée. Ce qui est vérifié ici est le CHOIX — ce que le bandeau affiche,
+ * 🔴 Aucun de ces scénarios n'écoute quoi que ce soit (musiques bloquées par le harnais, voir
+ * `fixtures/music-block.ts`). Ce qui est vérifié ici est le CHOIX — ce que le bandeau affiche,
  * ce que la modale retient, où va le focus, ce qui est écrit dans les préférences. La lecture
  * elle-même (boucle, fondus, baisse sous un cri) est couverte en unitaire (`music-player.test.ts`,
  * `battle-audio.test.ts`) et reste une vérification humaine pour l'oreille.

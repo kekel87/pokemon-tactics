@@ -84,6 +84,11 @@ const CREDIT_SECTIONS: readonly CreditSection[] = [
         url: "https://github.com/PokeAPI/cries",
       },
       {
+        label: "credits.label.interfaceSounds",
+        source: "PokeRogue",
+        url: "https://github.com/pagefaultgames/pokerogue-assets",
+      },
+      {
         label: "credits.label.battleMusic",
         source: "Pokémon Showdown",
         url: "https://github.com/smogon/pokemon-showdown-client",
@@ -92,6 +97,11 @@ const CREDIT_SECTIONS: readonly CreditSection[] = [
         label: "credits.label.recentMusic",
         source: "PokeRogue",
         url: "https://github.com/pagefaultgames/pokerogue-assets",
+      },
+      {
+        label: "credits.label.menuMusic",
+        source: "Internet Archive",
+        url: "https://archive.org/search?query=Pok%C3%A9mon+Super+Music+Collection",
       },
     ],
   },

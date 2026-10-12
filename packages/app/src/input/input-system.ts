@@ -5,6 +5,7 @@ import { startGamepadPolling } from "./gamepad-source.js";
 import {
   type BoardInputConsumer,
   createInputRouter,
+  type InputRouter,
   type InspectInputConsumer,
   type MenuInputConsumer,
 } from "./input-router.js";
@@ -53,7 +54,10 @@ const CAPTURE_CANCEL_BUTTON = 1;
  * time, so the top of the stack is the active one — which is what makes "one consumer per (context,
  * action)" structural rather than a matter of listener order.
  */
-export function createInputSystem(): InputSystem {
+export function createInputSystem(
+  /** Wraps the router every action goes through: how the interface sounds hear it (plan 240). */
+  observeRouter: (router: InputRouter) => InputRouter = (router) => router,
+): InputSystem {
   const stack: InputRegistration[] = [];
   const active = (): InputRegistration | null => stack.at(-1) ?? null;
 
@@ -68,12 +72,14 @@ export function createInputSystem(): InputSystem {
     globalThis.document?.documentElement?.setAttribute("data-input-source", source);
   });
 
-  const router = createInputRouter({
-    context: () => active()?.context() ?? "screen",
-    board: () => active()?.board ?? null,
-    menu: () => active()?.menu ?? null,
-    inspect: () => active()?.inspect ?? null,
-  });
+  const router = observeRouter(
+    createInputRouter({
+      context: () => active()?.context() ?? "screen",
+      board: () => active()?.board ?? null,
+      menu: () => active()?.menu ?? null,
+      inspect: () => active()?.inspect ?? null,
+    }),
+  );
 
   let captureSink: ((captured: CapturedInput | null) => void) | null = null;
   const endCapture = (): void => {
@@ -256,9 +262,9 @@ export function createInputSystem(): InputSystem {
 let current: InputSystem | null = null;
 
 /** Boot entry — called once, next to `initSettings()`. */
-export function initInputSystem(): InputSystem {
+export function initInputSystem(observeRouter?: (router: InputRouter) => InputRouter): InputSystem {
   current?.dispose();
-  current = createInputSystem();
+  current = createInputSystem(observeRouter);
   return current;
 }
 

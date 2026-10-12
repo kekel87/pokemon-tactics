@@ -1,5 +1,5 @@
 import type { BrowserContext, Page } from "@playwright/test";
-import { expect, test } from "../../fixtures";
+import { expect, newHarnessContext, test } from "../../fixtures";
 import { OnlinePeer } from "../../pages/online-session";
 
 /*
@@ -142,7 +142,7 @@ for (const teamCount of TEAM_COUNTS) {
 
     try {
       for (let index = 0; index < teamCount; index += 1) {
-        const context = await browser.newContext({ locale: "fr-FR" });
+        const context = await newHarnessContext(browser);
         await installProbe(context);
         contexts.push(context);
         const page = await context.newPage();

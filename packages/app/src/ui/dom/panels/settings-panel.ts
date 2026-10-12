@@ -1,5 +1,7 @@
 import { CombatSpeed, nextCombatSpeed, nextInCycle } from "@pokemon-tactic/view-core";
 import { countAction, TelemetryAction } from "../../../analytics/telemetry";
+import { musicDisplayName } from "../../../audio/music-names";
+import { playMenuMusic } from "../../../audio/music-player";
 import { getLanguage, nextLanguage, setLanguage, t } from "../../../i18n";
 import type { TranslationKey } from "../../../i18n/types";
 import {
@@ -16,8 +18,11 @@ import {
   TURN_CRIES,
   TurnCries,
   updateSettings,
+  VOLUME_SETTINGS,
   VOLUME_STEP,
+  type VolumeSetting,
 } from "../../../settings";
+import { openMenuThemePickerModal } from "../../music-select/MusicPickerModal";
 import { el, menuButton } from "../screens/elements";
 import { EMBEDDED_PANEL_CLASS, type Panel, type PanelOptions } from "./panel";
 
@@ -38,8 +43,8 @@ const UNMUTED_VOLUME = 50;
 /** One line of the sound settings: a mute button and a volume slider over one pair of settings. */
 interface VolumeLine {
   label: TranslationKey;
-  volume: "volume" | "effectsVolume" | "musicVolume";
-  muted: "muted" | "effectsMuted" | "musicMuted";
+  /** The volume and the mute the line is over. */
+  keys: VolumeSetting;
   sliderTestId: string;
   muteTestId: string;
   changed: TelemetryAction;
@@ -49,41 +54,52 @@ interface VolumeLine {
 const VOLUME_LINES: readonly VolumeLine[] = [
   {
     label: "settings.volume",
-    volume: "volume",
-    muted: "muted",
+    keys: VOLUME_SETTINGS.overall,
     sliderTestId: "setting-volume",
     muteTestId: "setting-mute",
     changed: TelemetryAction.VolumeChange,
   },
   {
     label: "settings.effectsVolume",
-    volume: "effectsVolume",
-    muted: "effectsMuted",
+    keys: VOLUME_SETTINGS.effects,
     sliderTestId: "setting-effects-volume",
     muteTestId: "setting-effects-mute",
     changed: TelemetryAction.EffectsVolumeChange,
   },
   {
     label: "settings.musicVolume",
-    volume: "musicVolume",
-    muted: "musicMuted",
+    keys: VOLUME_SETTINGS.battleMusic,
     sliderTestId: "setting-music-volume",
     muteTestId: "setting-music-mute",
     changed: TelemetryAction.MusicVolumeChange,
   },
+  {
+    label: "settings.menuMusicVolume",
+    keys: VOLUME_SETTINGS.menuMusic,
+    sliderTestId: "setting-menu-music-volume",
+    muteTestId: "setting-menu-music-mute",
+    changed: TelemetryAction.MenuMusicVolumeChange,
+  },
+  {
+    label: "settings.interfaceVolume",
+    keys: VOLUME_SETTINGS.interface,
+    sliderTestId: "setting-interface-volume",
+    muteTestId: "setting-interface-mute",
+    changed: TelemetryAction.InterfaceVolumeChange,
+  },
 ];
 
-// Written key by key rather than as `{ [line.volume]: … }`: a computed key over a union widens to
+// Written key by key rather than as `{ [line.keys.volume]: … }`: a computed key over a union widens to
 // an index signature, and the patch would no longer be checked against `GameSettings`.
 function volumePatch(line: VolumeLine, volume: number): Partial<GameSettings> {
   const patch: Partial<GameSettings> = {};
-  patch[line.volume] = volume;
+  patch[line.keys.volume] = volume;
   return patch;
 }
 
 function mutedPatch(line: VolumeLine, muted: boolean): Partial<GameSettings> {
   const patch: Partial<GameSettings> = {};
-  patch[line.muted] = muted;
+  patch[line.keys.muted] = muted;
   return patch;
 }
 
@@ -97,23 +113,26 @@ function createVolumeControl(line: VolumeLine): HTMLElement {
   const refreshMute = (): void => {
     const settings = getSettings();
     // A volume of zero is silence too: the button says so, and a press brings the sound back.
-    const silent = settings[line.muted] || settings[line.volume] === 0;
+    const silent = settings[line.keys.muted] || settings[line.keys.volume] === 0;
     mute.textContent = silent ? "🔇" : "🔊";
     const action = t(silent ? "settings.volume.unmute" : "settings.volume.mute");
     // The overall line keeps the bare name; the others say which sound they cut.
-    mute.setAttribute("aria-label", line.muted === "muted" ? action : `${action} — ${label}`);
+    mute.setAttribute(
+      "aria-label",
+      line.keys === VOLUME_SETTINGS.overall ? action : `${action} — ${label}`,
+    );
   };
   const toggleMute = (): void => {
     const settings = getSettings();
-    if (!settings[line.muted] && settings[line.volume] === 0) {
+    if (!settings[line.keys.muted] && settings[line.keys.volume] === 0) {
       // A slider at zero has nothing to give back: the button gives an audible volume.
       updateSettings(volumePatch(line, UNMUTED_VOLUME));
       slider.value = String(UNMUTED_VOLUME);
     } else {
-      if (line.muted === "muted" && !settings.muted) {
+      if (line.keys === VOLUME_SETTINGS.overall && !settings.muted) {
         countAction(TelemetryAction.VolumeMute);
       }
-      updateSettings(mutedPatch(line, !settings[line.muted]));
+      updateSettings(mutedPatch(line, !settings[line.keys.muted]));
     }
     refreshMute();
   };
@@ -124,7 +143,7 @@ function createVolumeControl(line: VolumeLine): HTMLElement {
   slider.min = "0";
   slider.max = String(MAX_VOLUME);
   slider.step = String(VOLUME_STEP);
-  slider.value = String(getSettings()[line.volume]);
+  slider.value = String(getSettings()[line.keys.volume]);
   slider.setAttribute("aria-label", label);
   // Au clavier et à la manette, ↑ ↓ arrivent sur le curseur, qui garde ← → pour lui : valider dessus
   // coupe ou remet ce son, sans avoir à rejoindre le bouton. Entrée au clavier ; à la manette, A
@@ -154,6 +173,11 @@ function createVolumeControl(line: VolumeLine): HTMLElement {
 export interface SettingsPanelOptions extends PanelOptions {
   /** Ouvrir les Contrôles — un écran de la FSM côté Réglages, un niveau de plus côté modale. */
   readonly onOpenControls: () => void;
+  /**
+   * Ouvert pendant une partie (menu de combat). Ce qui ne se règle que depuis les menus — le thème
+   * des menus — n'y est pas proposé. Distinct de `embedded`, qui ne parle que de mise en page.
+   */
+  readonly inBattle?: boolean;
 }
 
 /**
@@ -167,11 +191,13 @@ export interface SettingsPanelOptions extends PanelOptions {
  * combat — ce qui, avec la sémantique d'abandon de « Quitter », le perdrait.
  */
 export function createSettingsPanel(options: SettingsPanelOptions): Panel {
-  const { onBack, onOpenControls, embedded = false } = options;
+  const { onBack, onOpenControls, embedded = false, inBattle = false } = options;
   /** Remplacée à chaque changement de langue — d'où le `get element()` plus bas. */
   let root: HTMLElement | null = null;
   let unbindFullscreen: (() => void) | null = null;
   let fullscreenToggle: HTMLButtonElement | null = null;
+  /** La modale du thème des menus vit sur `document.body` : le panneau la referme en partant. */
+  let closeMenuThemePicker: (() => void) | null = null;
 
   /**
    * Refresh just the fullscreen label. Leaving fullscreen through Escape or a system gesture has to
@@ -262,6 +288,24 @@ export function createSettingsPanel(options: SettingsPanelOptions): Panel {
       rows.append(row(t(line.label), createVolumeControl(line)));
     }
 
+    // Le thème des menus (plan 240). Absent des réglages ouverts depuis un combat : le choisir y
+    // lancerait la musique de menu par-dessus la partie.
+    if (!inBattle) {
+      const menuTheme = menuButton(musicDisplayName(getSettings().menuMusicId), () => {
+        closeMenuThemePicker = openMenuThemePickerModal({
+          currentMusicId: getSettings().menuMusicId,
+          onPick: (musicId) => {
+            updateSettings({ menuMusicId: musicId });
+            menuTheme.textContent = musicDisplayName(musicId);
+            // S'entend tout de suite : on est dans les menus.
+            playMenuMusic(musicId);
+          },
+        });
+      });
+      menuTheme.dataset.testid = "setting-menu-theme";
+      rows.append(row(t("settings.menuTheme"), menuTheme));
+    }
+
     const turnCriesToggle = menuButton(t(`settings.turnCries.${getSettings().turnCries}`), () => {
       const turnCries = nextInCycle(TURN_CRIES, getSettings().turnCries);
       countAction(TURN_CRIES_ACTION[turnCries]);
@@ -302,6 +346,8 @@ export function createSettingsPanel(options: SettingsPanelOptions): Panel {
     dispose() {
       unbindFullscreen?.();
       unbindFullscreen = null;
+      closeMenuThemePicker?.();
+      closeMenuThemePicker = null;
       root?.remove();
       root = null;
     },

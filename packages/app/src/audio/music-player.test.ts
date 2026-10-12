@@ -1,16 +1,24 @@
 import { createPrng } from "@pokemon-tactic/core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FakeMusicEngine } from "../testing/fake-music-engine";
-import { BATTLE_MUSIC_TRACKS } from "./music-track-table";
+import { MusicBus } from "./audio-player";
+import {
+  BATTLE_MUSIC_TRACKS,
+  MENU_MUSIC_TRACK,
+  MENU_MUSIC_TRACKS,
+  type MusicTrack,
+} from "./music-track-table";
 import { createMedleyOrder, MEDLEY_MUSIC_ID } from "./music-tracks";
 
-const engine = new FakeMusicEngine();
+let engine: FakeMusicEngine;
 
 vi.mock("@pokemon-tactic/network", () => ({ RANDOM_MUSIC_ID: "random" }));
 
 vi.mock("./audio-player", () => ({
-  isMusicAudible: () => engine.audible,
-  musicOutput: () => (engine.available ? { context: engine.context, node: engine.busNode } : null),
+  MusicBus: { Battle: "battle", Menu: "menu" },
+  isMusicAudible: (bus: MusicBus) => engine.isAudible(bus),
+  isMusicWanted: (bus: MusicBus) => engine.isWanted(bus),
+  musicOutput: () => engine.output(),
   onMusicAudible: (listener: () => void) => {
     engine.audibleListener = listener;
   },
@@ -20,7 +28,22 @@ function trackUrl(id: string): string {
   return `assets/audio/music/${id}.mp3`;
 }
 
-const MENU_URL = trackUrl("menu");
+function menuTheme(matches: (track: MusicTrack) => boolean): MusicTrack {
+  const theme = MENU_MUSIC_TRACKS.find(matches);
+  if (theme === undefined) {
+    throw new Error("the table has no such menus' theme");
+  }
+  return theme;
+}
+
+const MENU_URL = trackUrl(MENU_MUSIC_TRACK.id);
+const LOOPED_THEME = menuTheme((track) => track.restartAtMs === undefined);
+const LOOPED_THEME_URL = trackUrl(LOOPED_THEME.id);
+const ALBUM_THEME = menuTheme((track) => track.restartAtMs !== undefined);
+const ALBUM_URL = trackUrl(ALBUM_THEME.id);
+const ALBUM_RESTART_SECONDS = (ALBUM_THEME.restartAtMs ?? 0) / 1000;
+const OTHER_THEME = menuTheme((track) => track.id !== MENU_MUSIC_TRACK.id);
+const ALBUM_CROSSFADE_SECONDS = 3;
 const TRACK = BATTLE_MUSIC_TRACKS[4];
 const TRACK_URL = trackUrl(TRACK.id);
 const OTHER_TRACK = BATTLE_MUSIC_TRACKS[9];
@@ -55,7 +78,7 @@ describe("music player", () => {
   };
 
   beforeEach(async () => {
-    engine.reset();
+    engine = new FakeMusicEngine();
     vi.useFakeTimers();
     vi.stubGlobal("window", globalThis);
     vi.stubGlobal("fetch", engine.fetch);
@@ -70,20 +93,60 @@ describe("music player", () => {
   });
 
   describe("menu theme", () => {
-    it("fetches the menu theme and loops it whole", async () => {
-      player.playMenuMusic();
+    it("fetches a theme with loop points and loops it whole", async () => {
+      player.playMenuMusic(LOOPED_THEME.id);
+      await settle();
+
+      expect(engine.fetched).toEqual([LOOPED_THEME_URL]);
+      expect(engine.sources).toHaveLength(1);
+      expect(engine.sources[0]).toMatchObject({
+        loop: true,
+        loopStart: 0,
+        loopEnd: LOOPED_THEME.loopEndMs / 1000,
+        startedAt: 0,
+      });
+    });
+
+    it("plays on the menus' bus, a battle track on the battles'", async () => {
+      player.playMenuMusic(MENU_MUSIC_TRACK.id);
+      await settle();
+      await playTrack();
+
+      expect(engine.sources.map((source) => engine.busOf(source))).toEqual([
+        MusicBus.Menu,
+        MusicBus.Battle,
+      ]);
+    });
+
+    it("starts the new theme when the player picks another", async () => {
+      player.playMenuMusic(MENU_MUSIC_TRACK.id);
+      await settle();
+      engine.now = 12;
+
+      player.playMenuMusic(OTHER_THEME.id);
+      await settle();
+
+      expect(engine.fetched).toEqual([MENU_URL, trackUrl(OTHER_THEME.id)]);
+      expect(engine.sources[0]?.stoppedAt).toBe(12 + STOP_FADE_SECONDS);
+      expect(engine.sources[1]?.startedAt).toBe(12);
+    });
+
+    it("plays the default theme for an id that is not a menus' theme, and keeps it playing", async () => {
+      player.playMenuMusic(TRACK.id);
+      await settle();
+
+      player.playMenuMusic(MENU_MUSIC_TRACK.id);
       await settle();
 
       expect(engine.fetched).toEqual([MENU_URL]);
-      expect(engine.sources).toHaveLength(1);
-      expect(engine.sources[0]).toMatchObject({ loop: true, loopStart: 0, startedAt: 0 });
+      expect(engine.sources[0]?.stoppedAt).toBeNull();
     });
 
     it("runs on from a menu screen to the next without starting over", async () => {
-      player.playMenuMusic();
+      player.playMenuMusic(MENU_MUSIC_TRACK.id);
       await settle();
 
-      player.playMenuMusic();
+      player.playMenuMusic(MENU_MUSIC_TRACK.id);
       await settle();
 
       expect(engine.fetched).toEqual([MENU_URL]);
@@ -93,7 +156,7 @@ describe("music player", () => {
     it("comes back after a battle", async () => {
       await playTrack();
 
-      player.playMenuMusic();
+      player.playMenuMusic(MENU_MUSIC_TRACK.id);
       await settle();
 
       expect(engine.fetched).toEqual([TRACK_URL, MENU_URL]);
@@ -102,14 +165,168 @@ describe("music player", () => {
 
     it("tries again at the next screen when the theme would not load", async () => {
       engine.failing.add(MENU_URL);
-      player.playMenuMusic();
+      player.playMenuMusic(MENU_MUSIC_TRACK.id);
       await settle();
       engine.failing.clear();
 
-      player.playMenuMusic();
+      player.playMenuMusic(MENU_MUSIC_TRACK.id);
       await settle();
 
       expect(engine.fetched).toEqual([MENU_URL, MENU_URL]);
+      expect(engine.sources).toHaveLength(1);
+    });
+  });
+
+  describe("album track", () => {
+    beforeEach(async () => {
+      player.playMenuMusic(ALBUM_THEME.id);
+      await settle();
+    });
+
+    it("plays through instead of looping", () => {
+      expect(engine.sources[0]).toMatchObject({ loop: false, startedAt: 0 });
+    });
+
+    it("plays on until its restart point", async () => {
+      engine.now = ALBUM_RESTART_SECONDS - 1;
+      await vi.advanceTimersByTimeAsync(MEDLEY_POLL_MS * 3);
+
+      expect(engine.sources).toHaveLength(1);
+      expect(engine.sources[0]?.stoppedAt).toBeNull();
+    });
+
+    it("starts over under its own end fading out, without fetching it again", async () => {
+      engine.now = ALBUM_RESTART_SECONDS;
+      await vi.advanceTimersByTimeAsync(MEDLEY_POLL_MS);
+
+      expect(engine.fetched).toEqual([ALBUM_URL]);
+      expect(engine.sources).toHaveLength(2);
+      expect(engine.sources[0]?.stoppedAt).toBe(ALBUM_RESTART_SECONDS + ALBUM_CROSSFADE_SECONDS);
+      expect(engine.sources[1]).toMatchObject({ loop: false, startedAt: ALBUM_RESTART_SECONDS });
+      expect(engine.busOf(engine.sources[1])).toBe(MusicBus.Menu);
+    });
+
+    it("starts over again one restart point after the last", async () => {
+      engine.now = ALBUM_RESTART_SECONDS;
+      await vi.advanceTimersByTimeAsync(MEDLEY_POLL_MS);
+
+      engine.now = ALBUM_RESTART_SECONDS * 2 - 1;
+      await vi.advanceTimersByTimeAsync(MEDLEY_POLL_MS);
+      expect(engine.sources).toHaveLength(2);
+
+      engine.now = ALBUM_RESTART_SECONDS * 2;
+      await vi.advanceTimersByTimeAsync(MEDLEY_POLL_MS);
+      expect(engine.sources).toHaveLength(3);
+    });
+
+    it("stops starting over once stopped", async () => {
+      player.stopMusic();
+
+      engine.now = ALBUM_RESTART_SECONDS;
+      await vi.advanceTimersByTimeAsync(MEDLEY_POLL_MS * 3);
+
+      expect(engine.sources).toHaveLength(1);
+      expect(engine.sources[0]?.stoppedAt).toBe(STOP_FADE_SECONDS);
+    });
+  });
+
+  describe("preloadMusic", () => {
+    it("loads the menus' theme ahead, and the programme plays that one load", async () => {
+      await player.preloadMusic(MusicBus.Menu, MENU_MUSIC_TRACK.id);
+      expect(engine.sources).toEqual([]);
+
+      player.playMenuMusic(MENU_MUSIC_TRACK.id);
+      await settle();
+
+      expect(engine.fetched).toEqual([MENU_URL]);
+      expect(engine.sources).toHaveLength(1);
+    });
+
+    it("waits on the load the programme already asked for", async () => {
+      player.playBattleMusic(TRACK.id, random);
+
+      await player.preloadMusic(MusicBus.Battle, TRACK.id);
+      await settle();
+
+      expect(engine.fetched).toEqual([TRACK_URL]);
+      expect(engine.sources).toHaveLength(1);
+    });
+
+    it("keeps one load of a track asked for twice before it plays", async () => {
+      await player.preloadMusic(MusicBus.Battle, TRACK.id);
+      await player.preloadMusic(MusicBus.Battle, TRACK.id);
+
+      expect(engine.fetched).toEqual([TRACK_URL]);
+    });
+
+    it("lets go of the track once the programme has it: asking again loads again", async () => {
+      await player.preloadMusic(MusicBus.Battle, TRACK.id);
+      await playTrack();
+
+      await player.preloadMusic(MusicBus.Battle, TRACK.id);
+
+      expect(engine.fetched).toEqual([TRACK_URL, TRACK_URL]);
+    });
+
+    it.each([
+      [MusicBus.Menu, MENU_MUSIC_TRACK.id],
+      [MusicBus.Battle, TRACK.id],
+    ])("loads nothing for the « %s » music the player has silenced", async (bus, musicId) => {
+      engine.unwanted.add(bus);
+
+      await player.preloadMusic(bus, musicId);
+
+      expect(engine.fetched).toEqual([]);
+    });
+
+    it("loads the music still wanted while the other kind is silenced", async () => {
+      engine.unwanted.add(MusicBus.Menu);
+
+      await player.preloadMusic(MusicBus.Battle, TRACK.id);
+
+      expect(engine.fetched).toEqual([TRACK_URL]);
+    });
+
+    it("loads a wanted track before any gesture has unlocked the audio", async () => {
+      engine.inaudible.add(MusicBus.Menu);
+
+      await player.preloadMusic(MusicBus.Menu, MENU_MUSIC_TRACK.id);
+
+      expect(engine.fetched).toEqual([MENU_URL]);
+    });
+
+    it.each([MEDLEY_MUSIC_ID, "retired-track"])(
+      "loads nothing for the battle choice « %s », which names no track",
+      async (musicId) => {
+        await player.preloadMusic(MusicBus.Battle, musicId);
+
+        expect(engine.fetched).toEqual([]);
+      },
+    );
+
+    it("loads the default theme for a menus' choice that is not a theme", async () => {
+      await player.preloadMusic(MusicBus.Menu, TRACK.id);
+
+      expect(engine.fetched).toEqual([MENU_URL]);
+    });
+
+    it("resolves without an audio engine, loading nothing", async () => {
+      engine.available = false;
+
+      await expect(
+        player.preloadMusic(MusicBus.Menu, MENU_MUSIC_TRACK.id),
+      ).resolves.toBeUndefined();
+      expect(engine.fetched).toEqual([]);
+    });
+
+    it("resolves when the track will not load, and does not keep the failure", async () => {
+      engine.failing.add(TRACK_URL);
+      await expect(player.preloadMusic(MusicBus.Battle, TRACK.id)).resolves.toBeUndefined();
+      engine.failing.clear();
+
+      await playTrack();
+
+      expect(engine.fetched).toEqual([TRACK_URL, TRACK_URL]);
       expect(engine.sources).toHaveLength(1);
     });
   });
@@ -125,8 +342,11 @@ describe("music player", () => {
         loopEnd: TRACK.loopEndMs / 1000,
         startedAt: 0,
       });
-      expect(engine.gains[2]?.calls[0]).toMatchObject({ method: "setValueAtTime", level: 0 });
-      expect(engine.gains[2]?.targets().at(-1)?.level).toBe(1);
+      expect(engine.sources[0]?.output?.calls[0]).toMatchObject({
+        method: "setValueAtTime",
+        level: 0,
+      });
+      expect(engine.sources[0]?.output?.targets().at(-1)?.level).toBe(1);
     });
 
     it("starts anew when the same track is asked for again", async () => {
@@ -140,7 +360,7 @@ describe("music player", () => {
     });
 
     it("plays nothing for an id it does not know, and stops what was playing", async () => {
-      player.playMenuMusic();
+      player.playMenuMusic(MENU_MUSIC_TRACK.id);
       await settle();
 
       player.playBattleMusic("retired-track", random);
@@ -169,11 +389,11 @@ describe("music player", () => {
 
   describe("while the music cannot be heard", () => {
     it("fetches nothing, then starts the moment it becomes audible", async () => {
-      engine.audible = false;
+      engine.inaudible.add(MusicBus.Battle);
       await playTrack();
       expect(engine.fetched).toEqual([]);
 
-      engine.audible = true;
+      engine.inaudible.clear();
       engine.audibleListener?.();
       await settle();
 
@@ -182,9 +402,9 @@ describe("music player", () => {
     });
 
     it("starts the waiting programme once, however often it becomes audible", async () => {
-      engine.audible = false;
+      engine.inaudible.add(MusicBus.Battle);
       player.playBattleMusic(TRACK.id, random);
-      engine.audible = true;
+      engine.inaudible.clear();
 
       engine.audibleListener?.();
       engine.audibleListener?.();
@@ -193,11 +413,33 @@ describe("music player", () => {
       expect(engine.fetched).toEqual([TRACK_URL]);
     });
 
+    it("wakes a waiting programme for its own kind of music only", async () => {
+      engine.inaudible.add(MusicBus.Menu);
+      player.playMenuMusic(MENU_MUSIC_TRACK.id);
+
+      engine.audibleListener?.();
+      await settle();
+      expect(engine.fetched).toEqual([]);
+
+      engine.inaudible.clear();
+      engine.audibleListener?.();
+      await settle();
+      expect(engine.fetched).toEqual([MENU_URL]);
+    });
+
+    it("plays a battle track while the menus' music is silenced", async () => {
+      engine.unwanted.add(MusicBus.Menu);
+
+      await playTrack();
+
+      expect(engine.sources).toHaveLength(1);
+    });
+
     it("starts nothing when the programme was stopped while waiting", async () => {
-      engine.audible = false;
+      engine.inaudible.add(MusicBus.Battle);
       player.playBattleMusic(TRACK.id, random);
       player.stopMusic();
-      engine.audible = true;
+      engine.inaudible.clear();
 
       engine.audibleListener?.();
       await settle();
@@ -214,11 +456,11 @@ describe("music player", () => {
       player.stopBattleMusic();
 
       expect(engine.sources[0]?.stoppedAt).toBe(10 + STOP_FADE_SECONDS);
-      expect(engine.gains[2]?.targets().at(-1)).toEqual({ level: 0, at: 10 });
+      expect(engine.sources[0]?.output?.targets().at(-1)).toEqual({ level: 0, at: 10 });
     });
 
     it("leaves the menu theme alone: a combat screen torn down late must not cut it", async () => {
-      player.playMenuMusic();
+      player.playMenuMusic(MENU_MUSIC_TRACK.id);
       await settle();
 
       player.stopBattleMusic();
@@ -234,7 +476,7 @@ describe("music player", () => {
 
       player.duckMusic(0.5, 900);
 
-      expect(engine.duck?.targets()).toEqual([
+      expect(engine.duck.targets()).toEqual([
         { level: 0.5, at: 20 },
         { level: 1, at: 20.9 },
       ]);
@@ -248,11 +490,11 @@ describe("music player", () => {
 
       player.duckMusic(0.7, 1000);
 
-      expect(engine.duck?.targets().slice(2)).toEqual([
+      expect(engine.duck.targets().slice(2)).toEqual([
         { level: 0.5, at: 20.5 },
         { level: 1, at: 21.5 },
       ]);
-      expect(engine.duck?.calls.filter((call) => call.method === "cancelScheduledValues")).toEqual([
+      expect(engine.duck.calls.filter((call) => call.method === "cancelScheduledValues")).toEqual([
         { method: "cancelScheduledValues", at: 20 },
         { method: "cancelScheduledValues", at: 20.5 },
       ]);
@@ -266,7 +508,7 @@ describe("music player", () => {
 
       player.duckMusic(0.5, 300);
 
-      expect(engine.duck?.targets().at(-1)).toEqual({ level: 1, at: 22 });
+      expect(engine.duck.targets().at(-1)).toEqual({ level: 1, at: 22 });
     });
 
     it("takes the new level once the previous duck has fully released", async () => {
@@ -277,10 +519,20 @@ describe("music player", () => {
 
       player.duckMusic(0.7, 500);
 
-      expect(engine.duck?.targets().slice(2)).toEqual([
+      expect(engine.duck.targets().slice(2)).toEqual([
         { level: 0.7, at: engine.now },
         { level: 1, at: engine.now + 0.5 },
       ]);
+    });
+
+    it("never lowers the menus' music: a cry leans on the battle's", async () => {
+      player.playMenuMusic(MENU_MUSIC_TRACK.id);
+      await settle();
+      engine.now = 20;
+
+      player.duckMusic(0.5, 900);
+
+      expect(engine.duck.calls).toEqual([]);
     });
 
     it("does nothing when no music is playing", () => {
@@ -288,7 +540,7 @@ describe("music player", () => {
 
       player.duckMusic(0.5, 900);
 
-      expect(engine.duck?.calls).toEqual([]);
+      expect(engine.duck.calls).toEqual([]);
     });
   });
 
@@ -299,7 +551,7 @@ describe("music player", () => {
       player.setMusicDim(player.MusicDim.Paused, true);
       player.setMusicDim(player.MusicDim.Paused, false);
 
-      expect(engine.dim?.targets()).toEqual([
+      expect(engine.dim.targets()).toEqual([
         { level: PAUSED_LEVEL, at: 0 },
         { level: 1, at: 0 },
       ]);
@@ -312,7 +564,7 @@ describe("music player", () => {
       player.setMusicDim(player.MusicDim.Paused, true);
       player.setMusicDim(player.MusicDim.BattleOver, false);
 
-      expect(engine.dim?.targets().map((target) => target.level)).toEqual([
+      expect(engine.dim.targets().map((target) => target.level)).toEqual([
         BATTLE_OVER_LEVEL,
         BATTLE_OVER_LEVEL,
         PAUSED_LEVEL,
@@ -325,7 +577,7 @@ describe("music player", () => {
       player.setMusicDim(player.MusicDim.Paused, true);
       player.setMusicDim(player.MusicDim.Paused, true);
 
-      expect(engine.dim?.targets()).toHaveLength(1);
+      expect(engine.dim.targets()).toHaveLength(1);
     });
 
     it("lets the bus back up after the fade when the programme stops, so the next is not held down", async () => {
@@ -336,7 +588,7 @@ describe("music player", () => {
       player.stopMusic();
       player.setMusicDim(player.MusicDim.BattleOver, true);
 
-      expect(engine.dim?.targets().slice(1)).toEqual([
+      expect(engine.dim.targets().slice(1)).toEqual([
         { level: 1, at: 30 + STOP_FADE_SECONDS },
         { level: BATTLE_OVER_LEVEL, at: 30 },
       ]);
@@ -379,7 +631,7 @@ describe("music player", () => {
     });
 
     it("holds its next track back while the music cannot be heard", async () => {
-      engine.audible = false;
+      engine.inaudible.add(MusicBus.Battle);
 
       engine.now = LONG_AFTER_ANY_TRACK_SECONDS;
       await vi.advanceTimersByTimeAsync(MEDLEY_POLL_MS * 3);

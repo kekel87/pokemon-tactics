@@ -25,6 +25,7 @@ import {
   type UiDomConfig,
 } from "@pokemon-tactic/ui-dom";
 import { countAction, TelemetryAction } from "../analytics/telemetry.js";
+import { playCursorSound } from "../audio/interface-sounds.js";
 import {
   TEAM_COLORS,
   TILE_SPAWN_ZONE_ALPHA,
@@ -962,10 +963,14 @@ export function startPlacementFlow(options: PlacementFlowOptions): PlacementFlow
       // Roster horizontal : ← → parcourent les Pokemon (les flèches suivent ce qu'on voit).
       // ↓ descend sur « Terminer » quand il est proposé, ↑ le quitte.
       focusMove: (direction) => {
-        if (direction === "left") {
-          cycleRosterSelection(-1);
-        } else if (direction === "right") {
-          cycleRosterSelection(1);
+        if (direction === "left" || direction === "right") {
+          const selectedBefore = selectedPokemonId;
+          cycleRosterSelection(direction === "left" ? -1 : 1);
+          // La sélection change sans que le focus bouge : le routeur seul ne l'entendrait pas. Rien
+          // quand elle n'a pas bougé (un seul Pokémon à placer, ou plus aucun).
+          if (selectedPokemonId !== selectedBefore) {
+            playCursorSound();
+          }
         } else if (direction === "down") {
           roster.focusFinish();
         } else {

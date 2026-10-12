@@ -12,18 +12,21 @@ import { MainMenu } from "../../pages/MainMenu";
 import { CreditsScreen } from "../../pages/screens";
 
 // Cahier §6.9 — écran Crédits (refonte plan 237 : rubriques, sources en liens, disclaimer en bas ;
-// rubrique « Son » ajoutée au plan 238, ses deux lignes de musique au plan 239).
+// rubrique « Son » ajoutée au plan 238, ses deux lignes de musique au plan 239, les sons d'interface
+// et les musiques de menu au plan 240).
 
-/** Rubrique « Son » (plans 238 et 239) : libellé de la ligne → adresse de sa source. */
+/** Rubrique « Son » (plans 238 à 240), dans l'ordre de l'écran : libellé de la ligne → sa source. */
 const SOUND_SOURCES = [
   ["Bruitages d'attaque", "Pokémon Reborn", "https://www.rebornevo.com"],
   ["Sons de coup", "PokeRogue", "https://github.com/pagefaultgames/pokerogue-assets"],
   ["Cris", "PokeAPI", "https://github.com/PokeAPI/cries"],
+  ["Sons d'interface", "PokeRogue", "https://github.com/pagefaultgames/pokerogue-assets"],
   ["Musiques de combat", "Pokémon Showdown", "https://github.com/smogon/pokemon-showdown-client"],
+  ["Musiques récentes", "PokeRogue", "https://github.com/pagefaultgames/pokerogue-assets"],
   [
-    "Musiques récentes et de menu",
-    "PokeRogue",
-    "https://github.com/pagefaultgames/pokerogue-assets",
+    "Musiques de menu",
+    "Internet Archive",
+    "https://archive.org/search?query=Pok%C3%A9mon+Super+Music+Collection",
   ],
 ] as const;
 

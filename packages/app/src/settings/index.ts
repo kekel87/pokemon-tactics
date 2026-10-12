@@ -1,6 +1,11 @@
 import { COMBAT_SPEEDS, CombatSpeed, setCombatSpeed } from "@pokemon-tactic/view-core";
 import { type AudioVolumes, initAudio, setAudioVolumes } from "../audio/audio-player";
-import { knownMusicIdOrDefault, RANDOM_MUSIC_ID } from "../audio/music-tracks";
+import {
+  knownMenuMusicIdOrDefault,
+  knownMusicIdOrDefault,
+  MENU_THEME_MUSIC_ID,
+  RANDOM_MUSIC_ID,
+} from "../audio/music-tracks";
 import { DEFAULT_MAP_ID } from "../maps/random-map-id";
 
 const STORAGE_KEY = "pt-settings";
@@ -9,7 +14,18 @@ const STORAGE_KEY = "pt-settings";
 export const MAX_VOLUME = 100;
 export const VOLUME_STEP = 5;
 
-const VOLUME_KEYS = ["volume", "effectsVolume", "musicVolume"] as const;
+/**
+ * Every volume of the store with the mute that silences it: the overall one, then one per kind of
+ * sound. The one list of them — the validation and the settings panel both read it.
+ */
+export const VOLUME_SETTINGS = {
+  overall: { volume: "volume", muted: "muted" },
+  effects: { volume: "effectsVolume", muted: "effectsMuted" },
+  battleMusic: { volume: "musicVolume", muted: "musicMuted" },
+  menuMusic: { volume: "menuMusicVolume", muted: "menuMusicMuted" },
+  interface: { volume: "interfaceVolume", muted: "interfaceMuted" },
+} as const;
+export type VolumeSetting = (typeof VOLUME_SETTINGS)[keyof typeof VOLUME_SETTINGS];
 
 /** Whose turn is announced by a short cry (plan 238). */
 export const TurnCries = {
@@ -67,13 +83,20 @@ export interface GameSettings {
   /** Tout le son coupé — à part des volumes, qu'on retrouve tels quels en réactivant. */
   muted: boolean;
   /**
-   * Volume et sourdine par type de son, sous le volume général (plan 239, retour de recette) : les
-   * effets (bruitages, coups, cris) et la musique (menus et combats).
+   * Volume et sourdine par type de son, sous le volume général (plan 239, retour de recette ; plan
+   * 240 pour l'interface et la musique de menu) : les effets (bruitages, coups, cris), les sons
+   * d'interface, la musique de combat — `musicVolume`, qui garde sa clé — et la musique de menu.
    */
   effectsVolume: number;
   effectsMuted: boolean;
+  interfaceVolume: number;
+  interfaceMuted: boolean;
   musicVolume: number;
   musicMuted: boolean;
+  menuMusicVolume: number;
+  menuMusicMuted: boolean;
+  /** Le thème des menus (plan 240) : un écran-titre, un Centre Pokémon… jamais une musique de combat. */
+  menuMusicId: string;
   /**
    * La dernière musique de combat choisie (plan 239) : une piste, « Aléatoire » ou le medley.
    * Paramètre de partie comme `lastMapId` — re-proposé à l'écran de sélection, gelé dans le
@@ -94,9 +117,15 @@ const DEFAULT_SETTINGS: GameSettings = {
   muted: false,
   effectsVolume: 100,
   effectsMuted: false,
+  // Un bip revient souvent et ne porte qu'une information secondaire : sous les effets.
+  interfaceVolume: 40,
+  interfaceMuted: false,
   // Sous les effets : le son d'efficacité d'un coup est une information de jeu, il reste devant.
   musicVolume: 55,
   musicMuted: false,
+  menuMusicVolume: 55,
+  menuMusicMuted: false,
+  menuMusicId: MENU_THEME_MUSIC_ID,
   lastMusicId: RANDOM_MUSIC_ID,
   turnCries: TurnCries.Mine,
 };
@@ -130,17 +159,26 @@ function mergeWithDefaults(parsed: Record<string, unknown>): GameSettings {
       writable[key] = value;
     }
   }
+  // La musique n'avait qu'un volume et une sourdine avant le plan 240 : un joueur qui l'avait
+  // baissée ou coupée ne doit pas retrouver la musique de menu à son défaut.
+  if (parsed.menuMusicVolume === undefined) {
+    merged.menuMusicVolume = merged.musicVolume;
+  }
+  if (parsed.menuMusicMuted === undefined) {
+    merged.menuMusicMuted = merged.musicMuted;
+  }
   // Une chaîne ne suffit pas : seule une vitesse connue passe.
   if (!COMBAT_SPEEDS.includes(merged.combatSpeed)) {
     merged.combatSpeed = DEFAULT_SETTINGS.combatSpeed;
   }
-  for (const key of VOLUME_KEYS) {
-    if (!Number.isInteger(merged[key]) || merged[key] < 0 || merged[key] > MAX_VOLUME) {
-      merged[key] = DEFAULT_SETTINGS[key];
+  for (const { volume } of Object.values(VOLUME_SETTINGS)) {
+    if (!Number.isInteger(merged[volume]) || merged[volume] < 0 || merged[volume] > MAX_VOLUME) {
+      merged[volume] = DEFAULT_SETTINGS[volume];
     }
   }
   // Une piste retirée du jeu ne doit pas ressusciter par le stockage.
   merged.lastMusicId = knownMusicIdOrDefault(merged.lastMusicId);
+  merged.menuMusicId = knownMenuMusicIdOrDefault(merged.menuMusicId);
   if (!TURN_CRIES.includes(merged.turnCries)) {
     merged.turnCries = DEFAULT_SETTINGS.turnCries;
   }
@@ -170,7 +208,9 @@ function audioVolumes(settings: GameSettings): AudioVolumes {
   return {
     master: gain(settings.volume, settings.muted),
     effects: gain(settings.effectsVolume, settings.effectsMuted),
-    music: gain(settings.musicVolume, settings.musicMuted),
+    interface: gain(settings.interfaceVolume, settings.interfaceMuted),
+    battleMusic: gain(settings.musicVolume, settings.musicMuted),
+    menuMusic: gain(settings.menuMusicVolume, settings.menuMusicMuted),
   };
 }
 

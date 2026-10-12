@@ -1,6 +1,13 @@
-import { isMusicAudible, type MusicOutput, musicOutput, onMusicAudible } from "./audio-player";
-import { MENU_MUSIC_TRACK, type MusicTrack } from "./music-track-table";
-import { createMedleyOrder, findBattleTrack, isMedleyMusicId } from "./music-tracks";
+import {
+  isMusicAudible,
+  isMusicWanted,
+  MusicBus,
+  type MusicOutput,
+  musicOutput,
+  onMusicAudible,
+} from "./audio-player";
+import type { MusicTrack } from "./music-track-table";
+import { createMedleyOrder, findBattleTrack, isMedleyMusicId, menuTrackOf } from "./music-tracks";
 
 /**
  * The music (plan 239): one programme at a time — the menus' theme, a battle track looped for the
@@ -22,10 +29,13 @@ const DIM_RESET_SECONDS = 0.1;
 /** A medley track gives way at its first loop end past this long. */
 const MEDLEY_MIN_TRACK_SECONDS = 150;
 const MEDLEY_CROSSFADE_SECONDS = 1.5;
+/** An album track starting over: the end going out under its own beginning coming in. */
+const ALBUM_CROSSFADE_SECONDS = 3;
 /** How long before its entry the next medley track is fetched and decoded. */
 const MEDLEY_PREPARE_SECONDS = 6;
 /** How long a medley waits after a track that would not load before trying another. */
 const MEDLEY_RETRY_SECONDS = 30;
+/** How often a programme that changes tracks by itself looks at the time. */
 const MEDLEY_POLL_MS = 1000;
 /** A fade is an exponential approach: this many time constants in, it is within 2 % of its end. */
 const FADE_TIME_CONSTANTS = 4;
@@ -46,64 +56,95 @@ const DIM_LEVELS: Readonly<Record<MusicDim, { level: number; fadeSeconds: number
   [MusicDim.BattleOver]: { level: 0.3, fadeSeconds: 2 },
 };
 
-interface Mixer extends MusicOutput {
-  /** Lowered for the length of a cry. */
-  duck: GainNode;
-  /** Lowered while a `MusicDim` reason holds. */
-  dim: GainNode;
-}
-
 /** One track playing. */
 interface Voice {
   fadeOut(seconds: number): void;
 }
 
 interface Programme {
+  /** Which kind of music it is: the bus it plays on, the volume it follows. */
+  bus: MusicBus;
+  /** The track it loops, null when it plays several (the medley). */
+  trackId: string | null;
   /** `failed` is called when the programme could not play at all: nothing is left of it. */
-  start(mixer: Mixer, failed: () => void): void;
+  start(mixer: MusicOutput, failed: () => void): void;
   stop(): void;
 }
 
-let mixer: Mixer | null = null;
+let mixer: MusicOutput | null = null;
 let current: Programme | null = null;
-let currentIsMenu = false;
 /** The current programme has not started yet: the music could not be heard when it was asked. */
 let waiting = false;
 const activeDims = new Set<MusicDim>();
 let duckUntil = 0;
 let duckLevel = 1;
 
-function getMixer(): Mixer | null {
+function getMixer(): MusicOutput | null {
   if (mixer !== null) {
     return mixer;
   }
-  const output = musicOutput();
-  if (output === null) {
-    return null;
+  mixer = musicOutput();
+  if (mixer !== null) {
+    onMusicAudible(startWaitingProgramme);
   }
-  const duck = output.context.createGain();
-  const dim = output.context.createGain();
-  duck.connect(dim).connect(output.node);
-  mixer = { ...output, duck, dim };
-  onMusicAudible(startWaitingProgramme);
   return mixer;
 }
 
-/** Fetch and decode a track; null when it fails or `signal` aborts — a silent track, never an error. */
-async function loadTrack(
+/** Fetch and decode a track; null when it fails — a silent track, never an error. */
+async function fetchTrack(context: AudioContext, track: MusicTrack): Promise<AudioBuffer | null> {
+  try {
+    const response = await fetch(`${MUSIC_PATH}/${track.id}.mp3`);
+    return response.ok ? await context.decodeAudioData(await response.arrayBuffer()) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The track being loaded, or loaded ahead by a loading bar. The bar and the programme that plays
+ * the track share this one load of it — the bar waits on what the programme asked for, or the
+ * programme finds it ready — and the programme takes it over: nothing is kept here once it plays.
+ */
+let lastLoad: { trackId: string; buffer: Promise<AudioBuffer | null> } | null = null;
+
+/** A track, decoded; null when it fails or `signal` aborts meanwhile. */
+function loadTrack(
   context: AudioContext,
   track: MusicTrack,
   signal: AbortSignal,
 ): Promise<AudioBuffer | null> {
-  try {
-    const response = await fetch(`${MUSIC_PATH}/${track.id}.mp3`, { signal });
-    if (!response.ok) {
-      return null;
+  if (lastLoad?.trackId !== track.id) {
+    const load = { trackId: track.id, buffer: fetchTrack(context, track) };
+    lastLoad = load;
+    // A track that would not load is not kept: asking again tries again.
+    void load.buffer.then((buffer) => {
+      if (buffer === null && lastLoad === load) {
+        lastLoad = null;
+      }
+    });
+  }
+  const load = lastLoad;
+  return load.buffer.then((buffer) => {
+    // The programme holds the track from here on: kept here too, it would outlive its playing.
+    if (lastLoad === load && signal !== NEVER_ABORTED) {
+      lastLoad = null;
     }
-    const encoded = await response.arrayBuffer();
-    return signal.aborted ? null : await context.decodeAudioData(encoded);
-  } catch {
-    return null;
+    return signal.aborted ? null : buffer;
+  });
+}
+
+const NEVER_ABORTED = new AbortController().signal;
+
+/**
+ * Have a music choice loaded ahead of its programme — what a loading bar waits on. Nothing is
+ * loaded for a kind of music the player has silenced, nor for the medley, whose first track is
+ * only drawn as it starts.
+ */
+export async function preloadMusic(bus: MusicBus, musicId: string): Promise<void> {
+  const target = getMixer();
+  const track = bus === MusicBus.Menu ? menuTrackOf(musicId) : findBattleTrack(musicId);
+  if (target !== null && track !== undefined && isMusicWanted(bus)) {
+    await loadTrack(target.context, track, NEVER_ABORTED);
   }
 }
 
@@ -117,19 +158,27 @@ function approach(gain: AudioParam, level: number, at: number, seconds: number):
   gain.setTargetAtTime(level, at, seconds / FADE_TIME_CONSTANTS);
 }
 
-/** Start a decoded track on its loop, fading in. */
-function startVoice(target: Mixer, track: MusicTrack, buffer: AudioBuffer): Voice {
+/** Start a decoded track on its loop, fading in, on the bus of its kind of music. */
+function startVoice(
+  target: MusicOutput,
+  bus: MusicBus,
+  track: MusicTrack,
+  buffer: AudioBuffer,
+): Voice {
   const { context } = target;
   const at = context.currentTime;
   const source = context.createBufferSource();
   source.buffer = buffer;
-  source.loop = true;
-  source.loopStart = track.loopStartMs / 1000;
-  source.loopEnd = track.loopEndMs / 1000;
+  // An album track has no loop points: it plays through, and its programme starts it over.
+  if (track.restartAtMs === undefined) {
+    source.loop = true;
+    source.loopStart = track.loopStartMs / 1000;
+    source.loopEnd = track.loopEndMs / 1000;
+  }
   const gain = context.createGain();
   gain.gain.setValueAtTime(0, at);
   approach(gain.gain, 1, at, FADE_IN_SECONDS);
-  source.connect(gain).connect(target.duck);
+  source.connect(gain).connect(target.buses[bus]);
   source.start(at);
   return {
     fadeOut: (seconds) => {
@@ -142,11 +191,17 @@ function startVoice(target: Mixer, track: MusicTrack, buffer: AudioBuffer): Voic
   };
 }
 
-/** One track, looped until stopped. */
-function loopProgramme(track: MusicTrack): Programme {
+/**
+ * One track, played until stopped: looped by the audio engine between its loop points, or — an
+ * album track, which has none — started over with a crossfade as the album fades it out.
+ */
+function loopProgramme(bus: MusicBus, track: MusicTrack): Programme {
   const loading = new AbortController();
   let voice: Voice | null = null;
+  let poll = 0;
   return {
+    bus,
+    trackId: track.id,
     start: (target, failed) => {
       void loadTrack(target.context, track, loading.signal).then((buffer) => {
         // Stopped while the track was decoding: it must not start over what came next.
@@ -157,11 +212,25 @@ function loopProgramme(track: MusicTrack): Programme {
           failed();
           return;
         }
-        voice = startVoice(target, track, buffer);
+        voice = startVoice(target, bus, track, buffer);
+        if (track.restartAtMs === undefined) {
+          return;
+        }
+        const restartAfterSeconds = track.restartAtMs / 1000;
+        let restartAt = target.context.currentTime + restartAfterSeconds;
+        // Polled on the audio engine's own time, like the medley: that clock stops with a hidden tab.
+        poll = window.setInterval(() => {
+          if (target.context.currentTime >= restartAt) {
+            voice?.fadeOut(ALBUM_CROSSFADE_SECONDS);
+            voice = startVoice(target, bus, track, buffer);
+            restartAt = target.context.currentTime + restartAfterSeconds;
+          }
+        }, MEDLEY_POLL_MS);
       });
     },
     stop: () => {
       loading.abort();
+      window.clearInterval(poll);
       voice?.fadeOut(STOP_FADE_SECONDS);
     },
   };
@@ -188,9 +257,13 @@ function medleyProgramme(random: () => number): Programme {
   let poll = 0;
 
   // Polled on the audio engine's own time rather than timed: that clock stops with a hidden tab.
-  const follow = (target: Mixer): void => {
+  const follow = (target: MusicOutput): void => {
     const { context } = target;
-    if (preparing || !isMusicAudible() || context.currentTime < endsAt - MEDLEY_PREPARE_SECONDS) {
+    if (
+      preparing ||
+      !isMusicAudible(MusicBus.Battle) ||
+      context.currentTime < endsAt - MEDLEY_PREPARE_SECONDS
+    ) {
       return;
     }
     const track = nextTrack();
@@ -215,7 +288,7 @@ function medleyProgramme(random: () => number): Programme {
           return;
         }
         voice?.fadeOut(MEDLEY_CROSSFADE_SECONDS);
-        voice = startVoice(target, track, buffer);
+        voice = startVoice(target, MusicBus.Battle, track, buffer);
         endsAt = context.currentTime + medleyLengthOf(track);
         preparing = false;
       }, enterInSeconds * 1000);
@@ -223,6 +296,8 @@ function medleyProgramme(random: () => number): Programme {
   };
 
   return {
+    bus: MusicBus.Battle,
+    trackId: null,
     start: (target) => {
       // A medley never fails as a whole: a track that will not load is skipped.
       follow(target);
@@ -239,7 +314,8 @@ function medleyProgramme(random: () => number): Programme {
 function startWaitingProgramme(): void {
   const target = getMixer();
   const programme = current;
-  if (waiting && programme !== null && target !== null) {
+  // Either kind of music becoming audible calls this: only the waiting programme's own counts.
+  if (waiting && programme !== null && target !== null && isMusicAudible(programme.bus)) {
     waiting = false;
     // A programme that could not load is forgotten, so that asking again tries again — the menus'
     // theme at the next screen, rather than silent menus until the next battle.
@@ -251,21 +327,22 @@ function startWaitingProgramme(): void {
   }
 }
 
-function play(programme: Programme, isMenu: boolean): void {
+function play(programme: Programme): void {
   stopMusic();
   current = programme;
-  currentIsMenu = isMenu;
   waiting = true;
-  // Also what subscribes to the music becoming audible, when there is an audio engine at all.
-  if (getMixer() !== null && isMusicAudible()) {
-    startWaitingProgramme();
-  }
+  startWaitingProgramme();
 }
 
-/** The menus' theme. Already playing: left alone, so it runs on from a menu screen to the next. */
-export function playMenuMusic(): void {
-  if (current === null || !currentIsMenu) {
-    play(loopProgramme(MENU_MUSIC_TRACK), true);
+/**
+ * The menus' music: the theme the player chose among the menus' themes; any other id — one this
+ * build no longer ships, a battle track — falls back on the default. Already playing: left alone, so it runs on
+ * from a menu screen to the next; a change of theme starts the new one.
+ */
+export function playMenuMusic(musicId: string): void {
+  const track = menuTrackOf(musicId);
+  if (current?.bus !== MusicBus.Menu || current.trackId !== track.id) {
+    play(loopProgramme(MusicBus.Menu, track));
   }
 }
 
@@ -277,11 +354,11 @@ export function playMenuMusic(): void {
 export function playBattleMusic(musicId: string, random: () => number): void {
   const track = findBattleTrack(musicId);
   if (isMedleyMusicId(musicId)) {
-    play(medleyProgramme(random), false);
+    play(medleyProgramme(random));
   } else if (track === undefined) {
     stopMusic();
   } else {
-    play(loopProgramme(track), false);
+    play(loopProgramme(MusicBus.Battle, track));
   }
 }
 
@@ -305,7 +382,7 @@ export function stopMusic(): void {
  * for has mounted — must not cut the menus' theme.
  */
 export function stopBattleMusic(): void {
-  if (!currentIsMenu) {
+  if (current?.bus === MusicBus.Battle) {
     stopMusic();
   }
 }
@@ -335,7 +412,8 @@ export function setMusicDim(reason: MusicDim, active: boolean): void {
  */
 export function duckMusic(level: number, durationMs: number): void {
   const target = getMixer();
-  if (target === null || current === null) {
+  // A cry never lowers the menus' music: it is a battle's sound, and the battle's music it leans on.
+  if (target === null || current?.bus !== MusicBus.Battle) {
     return;
   }
   const now = target.context.currentTime;

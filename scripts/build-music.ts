@@ -20,7 +20,8 @@ import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "no
 import { join, resolve } from "node:path";
 import {
   BATTLE_MUSIC_TRACKS,
-  MENU_MUSIC_TRACK,
+  MENU_MUSIC_TRACKS,
+  type MusicTrack,
 } from "../packages/app/src/audio/music-track-table.js";
 
 const ROOT_DIR = resolve(import.meta.dirname, "..");
@@ -69,7 +70,7 @@ async function main(): Promise<void> {
   mkdirSync(CACHE_DIR, { recursive: true });
   mkdirSync(OUTPUT_DIR, { recursive: true });
   let totalBytes = 0;
-  const tracks = [...BATTLE_MUSIC_TRACKS, MENU_MUSIC_TRACK];
+  const tracks: readonly MusicTrack[] = [...BATTLE_MUSIC_TRACKS, ...MENU_MUSIC_TRACKS];
   const recipes: Record<string, string> = existsSync(RECIPES_FILE)
     ? JSON.parse(readFileSync(RECIPES_FILE, "utf8"))
     : {};
@@ -81,6 +82,7 @@ async function main(): Promise<void> {
       track.sourceUrl,
       track.loopStartMs,
       track.loopEndMs,
+      track.restartAtMs ?? "loop",
       TAIL_SECONDS,
       LOUDNESS_TARGET_LUFS,
       PEAK_CEILING_DB,
@@ -100,10 +102,13 @@ async function main(): Promise<void> {
           "-i",
           sourceFile,
           "-filter_complex",
-          `[0:a]volume=${gainOf(sourceFile).toFixed(2)}dB,asplit[whole][again];` +
-            `[whole]atrim=end=${loopEnd}[body];` +
-            `[again]atrim=start=${loopStart}:duration=${TAIL_SECONDS},asetpts=PTS-STARTPTS[tail];` +
-            "[body][tail]concat=n=2:v=0:a=1",
+          // An album track is kept whole: the game restarts it with a crossfade, it has no loop.
+          track.restartAtMs === undefined
+            ? `[0:a]volume=${gainOf(sourceFile).toFixed(2)}dB,asplit[whole][again];` +
+              `[whole]atrim=end=${loopEnd}[body];` +
+              `[again]atrim=start=${loopStart}:duration=${TAIL_SECONDS},asetpts=PTS-STARTPTS[tail];` +
+              "[body][tail]concat=n=2:v=0:a=1"
+            : `[0:a]volume=${gainOf(sourceFile).toFixed(2)}dB`,
           "-ac",
           "2",
           "-ar",

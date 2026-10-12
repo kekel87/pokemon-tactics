@@ -69,6 +69,7 @@ import { AbandonSource, countAction, TelemetryAction } from "../analytics/teleme
 import { type BattleResumeSave, battleResumeStore } from "../app/battle-persistence.js";
 import type { Navigate, Screen } from "../app/screen-manager.js";
 import type { CombatSetup, ScreenParamsById } from "../app/screens.js";
+import { battleAudioReady } from "../audio/audio-preload";
 import { createBattleAudio } from "../audio/battle-audio";
 import {
   MusicDim,
@@ -1834,6 +1835,11 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
         navigate("main-menu", undefined);
         return;
       }
+      await battleAudioReady(resume.setup.musicId);
+      if (localAbort.signal.aborted) {
+        overlay.cancel();
+        return;
+      }
       overlay.setProgress(1);
       await overlay.finish();
       return;
@@ -1858,7 +1864,11 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
       return;
     }
     overlay.setProgress(0.6);
-    await preloadCombatSprites(setup.teams.flatMap((team) => team.pokemonDefinitionIds));
+    // The battle's sound loads behind the veil too (plan 240): heard late, it reads as a bug.
+    await Promise.all([
+      preloadCombatSprites(setup.teams.flatMap((team) => team.pokemonDefinitionIds)),
+      battleAudioReady(setup.musicId),
+    ]);
     if (localAbort.signal.aborted) {
       overlay.cancel();
       return;

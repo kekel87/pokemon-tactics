@@ -4,6 +4,7 @@ import { signallingPort } from "../../playwright.config";
 import { CombatScene } from "../pages/CombatScene";
 import { CombatMenuOverlay } from "../pages/combat-menu";
 import { PlacementPhase } from "../pages/placement";
+import { blockMusicDownloads } from "./music-block";
 
 interface CombatFixtures {
   /**
@@ -89,16 +90,17 @@ export async function seedSavedTeams(
 }
 
 export const test = base.extend<CombatFixtures>({
+  /** Le contexte par défaut, musiques bloquées — voir `blockMusicDownloads`. `page` en hérite. */
+  context: async ({ context }, use) => {
+    await blockMusicDownloads(context);
+    await use(context);
+  },
   /*
    * Toute page du harnais démarre avec une CARTE FIXE. Voir `DEFAULT_TEST_MAP_ID` pour le pourquoi.
    * Un test qui veut une autre carte la choisit dans la modale, ou repasse par `seedSettings`.
-   *
-   * Et sans MUSIQUE (plan 239) : à volume zéro, aucune piste n'est téléchargée ni décodée. Sinon
-   * chaque écran de menu et chaque combat chargerait un mp3, et « Aléatoire » en tirerait un hors de
-   * toute graine. Un test de musique remonte le volume par `seedSettings`.
    */
   page: async ({ page }, use) => {
-    await seedSettings(page, { lastMapId: DEFAULT_TEST_MAP_ID, musicVolume: 0 });
+    await seedSettings(page, { lastMapId: DEFAULT_TEST_MAP_ID });
     await use(page);
   },
   bootSandbox: async ({ page }, use) => {
@@ -136,6 +138,8 @@ export { expect };
  */
 export const localSignalling = `?peerPort=${signallingPort}&peerIce=off`;
 
+/** Tout contexte de navigateur de plus passe par cette fabrique — voir `music-block.ts`. */
+export { isMusicFile, newHarnessContext } from "./music-block";
 /**
  * Le pendant de {@link localSignalling} pour le **registre des salons** : un double local, qui évite
  * d'appeler le Worker Cloudflare de production. Voir `room-registry.ts` pour le pourquoi.

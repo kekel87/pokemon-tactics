@@ -87,6 +87,10 @@ export const TelemetryAction = {
   /** Les volumes par type de son (plan 239), sous le volume général ci-dessus. */
   EffectsVolumeChange: "effects-volume-change",
   MusicVolumeChange: "music-volume-change",
+  /** Les sons d'interface et la musique de menu (plan 240) : volumes touchés, thème choisi. */
+  InterfaceVolumeChange: "interface-volume-change",
+  MenuMusicVolumeChange: "menu-music-volume-change",
+  MenuThemeChosen: "menu-theme-chosen",
   /** La musique du combat (plan 239) : que choisit-on ? */
   MusicTrackChosen: "music-track-chosen",
   MusicRandomChosen: "music-random-chosen",

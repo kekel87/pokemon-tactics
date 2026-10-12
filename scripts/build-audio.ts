@@ -7,6 +7,8 @@
  *     itself is never shipped;
  *   - the move sounds they cite (`audio/battle_anims/`, mostly Pokémon Reborn's PRSFX rips);
  *   - the three hit sounds (`audio/se/hit*.wav`);
+ *   - the three interface sounds (`audio/ui/`, plan 240), shipped apart as
+ *     `public/assets/audio/ui/<key>.mp3`: the menus play them, and must not need the bundle;
  *   - the roster's cries from PokeAPI/cries (`latest`: the current games' cries, by dex number).
  *
  * Each sound is peak-normalised and encoded as its own small mono mp3 (see `encodingOf`), then
@@ -20,7 +22,7 @@
  */
 
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { extname, join, resolve } from "node:path";
 import { tacticalOverrides } from "../packages/data/src/overrides/tactical.js";
 import { playablePokemon } from "../packages/data/src/playable/playable-pokemon.js";
@@ -31,6 +33,7 @@ const ANIMS_DIR = join(CACHE_DIR, "pokerogue/battle-anims");
 const RAW_DIR = join(CACHE_DIR, "raw");
 const ENCODED_DIR = join(CACHE_DIR, "encoded");
 const BUNDLE_DIR = join(ROOT_DIR, "packages/app/public/assets/audio");
+const INTERFACE_DIR = join(BUNDLE_DIR, "ui");
 const POKEROGUE_URL = "https://raw.githubusercontent.com/pagefaultgames/pokerogue-assets/beta";
 /** The cries of the current games (PokeAPI/cries `latest`), by national dex number. */
 const POKEAPI_CRIES_URL =
@@ -40,6 +43,16 @@ const REFERENCE_POKEMON_PATH = join(ROOT_DIR, "packages/data/reference/pokemon.j
 const POKEROGUE_FRAME_MS = 50;
 const DOWNLOAD_CONCURRENCY = 8;
 const PEAK_TARGET_DB = -1;
+
+/**
+ * Interface sound key → PokeRogue `audio/ui/` file (plan 240): the cursor moving, a window opening,
+ * an action refused. The only three the source has.
+ */
+const INTERFACE_SOURCES = {
+  move: "select.wav",
+  open: "menu_open.wav",
+  error: "error.wav",
+} as const;
 
 /** Hit sound key → PokeRogue `audio/se/` file. */
 const HIT_SOURCES = {
@@ -229,6 +242,8 @@ async function main(): Promise<void> {
     ANIMS_DIR,
     join(RAW_DIR, "battle_anims"),
     join(RAW_DIR, "se"),
+    join(RAW_DIR, "ui"),
+    INTERFACE_DIR,
     join(RAW_DIR, "cries"),
     ENCODED_DIR,
     BUNDLE_DIR,
@@ -295,6 +310,15 @@ async function main(): Promise<void> {
       throw new Error(`Move sound not found in PokeRogue: ${resourceName}`);
     }
     sources.set(soundId, rawFileOf(resolved));
+  });
+  // The interface sounds ship apart, a small file each: a click in a menu must not fetch the whole
+  // bundle, which only a battle needs.
+  await inBatches(Object.entries(INTERFACE_SOURCES), async ([key, file]) => {
+    const raw = join(RAW_DIR, "ui", file);
+    if (!(await download(`${POKEROGUE_URL}/audio/ui/${file}`, raw))) {
+      throw new Error(`Interface sound not found in PokeRogue: ${file}`);
+    }
+    copyFileSync(encode(raw, `ui:${key}`), join(INTERFACE_DIR, `${key}.mp3`));
   });
   await inBatches(Object.entries(HIT_SOURCES), async ([key, file]) => {
     const raw = join(RAW_DIR, "se", file);

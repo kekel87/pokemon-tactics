@@ -1,6 +1,12 @@
+import { MusicBus } from "../audio/audio-player";
+
 /**
  * Double du moteur Web Audio vu par `music-player.ts` : juste ce que le lecteur de musique appelle,
  * chaque appel consigné. Aucun son, aucune horloge réelle — `now` s'avance à la main.
+ *
+ * Le moteur fournit les deux bus de musique et les gains `duck` et `dim` (plan 240) : le lecteur ne
+ * crée plus que le gain de chaque piste, lu par la topologie (`source.output`). Un moteur NEUF par
+ * test, jamais remis à zéro.
  */
 
 export interface FakeGainCall {
@@ -12,6 +18,8 @@ export interface FakeGainCall {
 
 export class FakeGainNode {
   readonly calls: FakeGainCall[] = [];
+  /** Ce sur quoi le nœud a été branché en dernier. */
+  output: unknown = null;
 
   readonly gain = {
     setValueAtTime: (level: number, at: number): void => {
@@ -26,11 +34,12 @@ export class FakeGainNode {
   };
 
   connect<Target>(target: Target): Target {
+    this.output = target;
     return target;
   }
 
   disconnect(): void {
-    /* la topologie des nœuds n'est pas modélisée */
+    /* la fin d'une piste n'est pas simulée : jamais appelé */
   }
 
   targets(): { level: number | undefined; at: number }[] {
@@ -47,8 +56,11 @@ export class FakeBufferSource {
   loopEnd = 0;
   startedAt: number | null = null;
   stoppedAt: number | null = null;
+  /** Le gain de la piste, sur lequel la source a été branchée. */
+  output: FakeGainNode | null = null;
 
   connect<Target>(target: Target): Target {
+    this.output = target instanceof FakeGainNode ? target : null;
     return target;
   }
 
@@ -67,21 +79,26 @@ export class FakeBufferSource {
 
 export class FakeMusicEngine {
   now = 0;
-  audible = true;
   available = true;
+  /** Les musiques qu'on ne peut pas entendre (audio verrouillé, coupée, volume à zéro). */
+  readonly inaudible = new Set<MusicBus>();
+  /** Les musiques que le joueur a coupées : rien à charger pour elles. */
+  readonly unwanted = new Set<MusicBus>();
   audibleListener: (() => void) | null = null;
-  readonly gains: FakeGainNode[] = [];
   readonly sources: FakeBufferSource[] = [];
   readonly fetched: string[] = [];
   readonly failing = new Set<string>();
-  readonly busNode = new FakeGainNode();
+  readonly buses: Record<MusicBus, FakeGainNode> = {
+    [MusicBus.Battle]: new FakeGainNode(),
+    [MusicBus.Menu]: new FakeGainNode(),
+  };
+  /** Le gain baissé le temps d'un cri. */
+  readonly duck = new FakeGainNode();
+  /** Le gain tenu bas par une raison (`MusicDim`). */
+  readonly dim = new FakeGainNode();
 
   readonly context = {
-    createGain: (): FakeGainNode => {
-      const gain = new FakeGainNode();
-      this.gains.push(gain);
-      return gain;
-    },
+    createGain: (): FakeGainNode => new FakeGainNode(),
     createBufferSource: (): FakeBufferSource => {
       const source = new FakeBufferSource();
       this.sources.push(source);
@@ -94,14 +111,24 @@ export class FakeMusicEngine {
     Object.defineProperty(this.context, "currentTime", { get: () => this.now });
   }
 
-  /** Le gain baissé le temps d'un cri : premier créé par le lecteur. */
-  get duck(): FakeGainNode | undefined {
-    return this.gains[0];
+  /** Ce que rend `musicOutput()`, `null` sans Web Audio. */
+  output(): { context: unknown; buses: unknown; duck: unknown; dim: unknown } | null {
+    return this.available
+      ? { context: this.context, buses: this.buses, duck: this.duck, dim: this.dim }
+      : null;
   }
 
-  /** Le gain tenu bas par une raison (`MusicDim`) : second créé par le lecteur. */
-  get dim(): FakeGainNode | undefined {
-    return this.gains[1];
+  isAudible(bus: MusicBus): boolean {
+    return !this.inaudible.has(bus) && !this.unwanted.has(bus);
+  }
+
+  isWanted(bus: MusicBus): boolean {
+    return !this.unwanted.has(bus);
+  }
+
+  /** Le bus sur lequel une piste joue, `undefined` si elle n'est branchée sur aucun. */
+  busOf(source: FakeBufferSource | undefined): MusicBus | undefined {
+    return Object.values(MusicBus).find((bus) => source?.output?.output === this.buses[bus]);
   }
 
   readonly fetch = async (url: string): Promise<unknown> => {
@@ -111,15 +138,4 @@ export class FakeMusicEngine {
       arrayBuffer: async () => new ArrayBuffer(8),
     };
   };
-
-  reset(): void {
-    this.now = 0;
-    this.audible = true;
-    this.available = true;
-    this.audibleListener = null;
-    this.gains.length = 0;
-    this.sources.length = 0;
-    this.fetched.length = 0;
-    this.failing.clear();
-  }
 }

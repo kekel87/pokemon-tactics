@@ -73,29 +73,52 @@ export class MapSelectScreen {
 }
 
 /**
- * Le choix de la musique du combat (plan 239) — une modale ouverte depuis la ligne « Musique » du
- * bandeau de partie. Choisir tient en UN appui : pas de bouton de confirmation, contrairement à la
- * carte.
+ * Une liste de choix de musique en modale (plans 239 et 240) : une ligne par choix, et choisir tient
+ * en UN appui — pas de bouton de confirmation, contrairement à la carte.
  */
-export class MusicPicker {
+class MusicChoiceModal {
+  /** Le titre de la modale : présent tant qu'elle est ouverte. */
+  readonly title: Locator;
+  /** Les lignes, dans l'ordre de la liste. */
+  readonly listItems: Locator;
+  constructor(
+    protected readonly page: Page,
+    title: string,
+  ) {
+    this.title = page.getByRole("heading", { name: title });
+    this.listItems = page.getByTestId("music-list-item");
+  }
+
+  /** La ligne d'un choix, visée par son identifiant (`bw-trainer`, `random`, `frlg-title`…). */
+  item(musicId: string): Locator {
+    return this.page.locator(`[data-testid="music-list-item"][data-music-id="${musicId}"]`);
+  }
+}
+
+/**
+ * Le choix de la musique du combat (plan 239), ouvert depuis la ligne « Musique » du bandeau de
+ * partie : « Aléatoire », « Medley », puis les pistes de combat.
+ */
+export class MusicPicker extends MusicChoiceModal {
   /** La valeur lue dans le bandeau de partie : un nom de piste, « Aléatoire » ou « Medley ». */
   readonly name: Locator;
   /** Le bouton du bandeau qui OUVRE la modale — absent chez l'invité d'un salon. */
   readonly changeButton: Locator;
-  /** Le titre de la modale : présent tant qu'elle est ouverte. */
-  readonly title: Locator;
-  /** Les 28 lignes : « Aléatoire », « Medley », puis les 26 pistes. */
-  readonly listItems: Locator;
-  constructor(private readonly page: Page) {
+  constructor(page: Page) {
+    super(page, "Musique du combat");
     this.name = page.getByTestId("room-music-name");
     this.changeButton = page.getByTestId("room-change-music");
-    this.title = page.getByRole("heading", { name: "Musique du combat" });
-    this.listItems = page.getByTestId("music-list-item");
   }
+}
 
-  /** La ligne d'un choix, visée par son identifiant (`bw-trainer`, `random`, `medley`). */
-  item(musicId: string): Locator {
-    return this.page.locator(`[data-testid="music-list-item"][data-music-id="${musicId}"]`);
+/**
+ * Le choix du thème des menus (plan 240), ouvert depuis la ligne « Thème des menus » des
+ * Paramètres : les thèmes de menu seulement, le défaut en tête — ni « Aléatoire », ni « Medley »,
+ * aucune musique de combat.
+ */
+export class MenuThemePicker extends MusicChoiceModal {
+  constructor(page: Page) {
+    super(page, "Thème des menus");
   }
 }
 
@@ -350,9 +373,20 @@ export class SettingsScreen {
   /** Ligne « Effets » (plan 239) : sourdine et curseur des bruitages, coups et cris. */
   readonly effectsMuteToggle: Locator;
   readonly effectsVolumeSlider: Locator;
-  /** Ligne « Musique » (plan 239) : sourdine et curseur de la musique, menus et combats. */
+  /** Ligne « Musique de combat » (plans 239 et 240) : sourdine et curseur de la musique des combats. */
   readonly musicMuteToggle: Locator;
   readonly musicVolumeSlider: Locator;
+  /** Ligne « Musique de menu » (plan 240) : sourdine et curseur de la musique des menus, à part. */
+  readonly menuMusicMuteToggle: Locator;
+  readonly menuMusicVolumeSlider: Locator;
+  /** Ligne « Interface » (plan 240) : sourdine et curseur des bips de curseur, validation, refus. */
+  readonly interfaceMuteToggle: Locator;
+  readonly interfaceVolumeSlider: Locator;
+  /**
+   * Ligne « Thème des menus » (plan 240) : son libellé est le thème retenu, un appui ouvre la modale
+   * ({@link MenuThemePicker}). ABSENTE des Paramètres ouverts depuis le menu de combat.
+   */
+  readonly menuThemeButton: Locator;
   /** « Cri au début du tour » (plan 238) : bascule Mes Pokémon → Tous → Aucun. */
   readonly turnCriesToggle: Locator;
   constructor(page: Page) {
@@ -369,6 +403,11 @@ export class SettingsScreen {
     this.effectsVolumeSlider = page.getByTestId("setting-effects-volume");
     this.musicMuteToggle = page.getByTestId("setting-music-mute");
     this.musicVolumeSlider = page.getByTestId("setting-music-volume");
+    this.menuMusicMuteToggle = page.getByTestId("setting-menu-music-mute");
+    this.menuMusicVolumeSlider = page.getByTestId("setting-menu-music-volume");
+    this.interfaceMuteToggle = page.getByTestId("setting-interface-mute");
+    this.interfaceVolumeSlider = page.getByTestId("setting-interface-volume");
+    this.menuThemeButton = page.getByTestId("setting-menu-theme");
     this.turnCriesToggle = page.getByTestId("setting-turn-cries");
   }
 }

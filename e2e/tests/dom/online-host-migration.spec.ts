@@ -1,5 +1,5 @@
 import type { BrowserContext } from "@playwright/test";
-import { expect, RoomRegistryStub, test } from "../../fixtures";
+import { expect, newHarnessContext, RoomRegistryStub, test } from "../../fixtures";
 import { OnlinePeer } from "../../pages/online-session";
 
 /*
@@ -33,7 +33,7 @@ test("§12.11 en ligne : l'hôte s'en va, la plus petite place restante prend la
   const contexts: BrowserContext[] = [];
   const registry = new RoomRegistryStub();
   const openPeer = async (): Promise<OnlinePeer> => {
-    const context = await browser.newContext({ locale: "fr-FR" });
+    const context = await newHarnessContext(browser);
     contexts.push(context);
     // Sur le CONTEXTE et avant son premier onglet : un pair interroge le registre dès qu'il crée un
     // salon ou qu'il en rejoint un.

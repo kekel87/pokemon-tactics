@@ -5,7 +5,7 @@ import {
   type Locator,
   type Page,
 } from "@playwright/test";
-import { localSignalling } from "../fixtures";
+import { localSignalling, newHarnessContext } from "../fixtures";
 import { BattleResumeStore } from "./battle-resume";
 import { CombatScene } from "./CombatScene";
 import { CombatMenuOverlay } from "./combat-menu";
@@ -260,8 +260,8 @@ export class OnlineSession {
   }
 
   static async open(browser: Browser, options: OnlineSessionOptions = {}): Promise<OnlineSession> {
-    const hostContext = await browser.newContext({ locale: "fr-FR" });
-    const guestContext = await browser.newContext({ locale: "fr-FR" });
+    const hostContext = await newHarnessContext(browser);
+    const guestContext = await newHarnessContext(browser);
     if (options.savedTeams !== undefined) {
       // Sur le CONTEXTE, pas sur la page : les onglets d'un pair qui revient sont ouverts plus tard
       // (voir `loseGuestTab`), et ils doivent trouver le même magasin.

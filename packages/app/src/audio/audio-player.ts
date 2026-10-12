@@ -2,7 +2,8 @@ import { decodeSound } from "./sound-bank";
 
 /**
  * Sound playback (plan 238): one Web Audio context, a master gain — the overall volume — and under
- * it two buses with a volume each (plan 239): the effects (move sounds, hits, cries) and the music.
+ * it a bus with a volume for each kind of sound (plans 239 and 240): the effects (move sounds, hits,
+ * cries), the interface, the battle music and the menus' music.
  *
  * Browsers keep audio suspended until the page gets a user gesture: the context resumes on a click,
  * a touch or a key press, and a sound asked for before that is simply dropped (never queued — a
@@ -32,37 +33,72 @@ export interface PlayingSound {
   stop(): void;
 }
 
+/** The two kinds of music, each with a volume of its own (plan 240). */
+export const MusicBus = {
+  Battle: "battle",
+  Menu: "menu",
+} as const;
+export type MusicBus = (typeof MusicBus)[keyof typeof MusicBus];
+
 /** The gains the audio plays at, 0..1 each — a muted one is at zero. */
 export interface AudioVolumes {
   master: number;
   effects: number;
-  music: number;
+  interface: number;
+  battleMusic: number;
+  menuMusic: number;
 }
 
-/** The music bus: where a track plugs in, and the clock its fades are scheduled on. */
+/**
+ * Where music plugs in: a bus per kind of music, and behind both the two gains the music player
+ * drives — `duck`, lowered for the length of a cry, and `dim`, lowered while the music is held
+ * back. `context` is the clock fades are scheduled on.
+ */
 export interface MusicOutput {
   context: AudioContext;
-  node: AudioNode;
+  buses: Readonly<Record<MusicBus, AudioNode>>;
+  duck: GainNode;
+  dim: GainNode;
 }
 
-let context: AudioContext | null = null;
-let master: GainNode | null = null;
-let effects: GainNode | null = null;
-let music: GainNode | null = null;
+interface AudioGraph {
+  context: AudioContext;
+  master: GainNode;
+  effects: GainNode;
+  interface: GainNode;
+  music: Readonly<Record<MusicBus, GainNode>>;
+  musicDuck: GainNode;
+  musicDim: GainNode;
+}
+
+let graph: AudioGraph | null = null;
 let musicAudibleListener: (() => void) | null = null;
 
 /** Create the audio context and resume it on the first user gesture. Safe without Web Audio. */
 export function initAudio(volumes: AudioVolumes): void {
-  if (context !== null || typeof AudioContext === "undefined") {
+  if (graph !== null || typeof AudioContext === "undefined") {
     return;
   }
-  context = new AudioContext();
-  master = context.createGain();
+  const context = new AudioContext();
+  const master = context.createGain();
   master.connect(context.destination);
-  effects = context.createGain();
-  effects.connect(master);
-  music = context.createGain();
-  music.connect(master);
+  const bus = (output: AudioNode): GainNode => {
+    const node = context.createGain();
+    node.connect(output);
+    return node;
+  };
+  // Both kinds of music go through the same duck and dim: one programme plays at a time.
+  const musicDim = bus(master);
+  const musicDuck = bus(musicDim);
+  graph = {
+    context,
+    master,
+    effects: bus(master),
+    interface: bus(master),
+    music: { [MusicBus.Battle]: bus(musicDuck), [MusicBus.Menu]: bus(musicDuck) },
+    musicDuck,
+    musicDim,
+  };
   setAudioVolumes(volumes);
   // Never removed: only some events count as a user activation (a touch's `pointerdown` does not,
   // its `pointerup` does), and a phone suspends the context again when the page goes to the
@@ -86,32 +122,40 @@ export function initAudio(volumes: AudioVolumes): void {
 
 /** The player's volumes — applied live, to what is already playing too. */
 export function setAudioVolumes(volumes: AudioVolumes): void {
-  if (master === null || effects === null || music === null) {
+  if (graph === null) {
     return;
   }
-  master.gain.value = volumes.master;
-  effects.gain.value = volumes.effects;
-  music.gain.value = volumes.music;
+  graph.master.gain.value = volumes.master;
+  graph.effects.gain.value = volumes.effects;
+  graph.interface.gain.value = volumes.interface;
+  graph.music[MusicBus.Battle].gain.value = volumes.battleMusic;
+  graph.music[MusicBus.Menu].gain.value = volumes.menuMusic;
   notifyMusicAudible();
+}
+
+/** What goes through `bus` can be heard: unlocked, not muted, the bus above zero. */
+function isAudible(bus: GainNode | undefined): boolean {
+  return (
+    graph !== null &&
+    bus !== undefined &&
+    graph.context.state === "running" &&
+    graph.master.gain.value !== 0 &&
+    bus.gain.value !== 0
+  );
 }
 
 /** No effect can be heard: muted, effects at zero, or no gesture has unlocked the audio yet. */
 export function isAudioSilent(): boolean {
-  return (
-    master === null ||
-    master.gain.value === 0 ||
-    effects?.gain.value === 0 ||
-    context?.state !== "running"
-  );
+  return !isAudible(graph?.effects);
 }
 
-/** Music can be heard: unlocked, not muted, its volume above zero. */
-export function isMusicAudible(): boolean {
-  return context?.state === "running" && master?.gain.value !== 0 && music?.gain.value !== 0;
+/** This kind of music can be heard: unlocked, not muted, its volume above zero. */
+export function isMusicAudible(bus: MusicBus): boolean {
+  return isAudible(graph?.music[bus]);
 }
 
 function notifyMusicAudible(): void {
-  if (isMusicAudible()) {
+  if (isMusicAudible(MusicBus.Battle) || isMusicAudible(MusicBus.Menu)) {
     musicAudibleListener?.();
   }
 }
@@ -125,16 +169,31 @@ export function onMusicAudible(listener: () => void): void {
   musicAudibleListener = listener;
 }
 
-/** The music bus, null without Web Audio. */
+/** Where music plugs in, null without Web Audio. */
 export function musicOutput(): MusicOutput | null {
-  return context === null || music === null ? null : { context, node: music };
+  return graph === null
+    ? null
+    : { context: graph.context, buses: graph.music, duck: graph.musicDuck, dim: graph.musicDim };
 }
 
 /** Decode a sound ahead of its cue, so its first play is not late by its decoding. */
 export function prepareSound(soundId: string): void {
-  if (context !== null) {
-    void decodeSound(context, soundId);
+  void soundReady(soundId);
+}
+
+/** Resolves once a sound is decoded, or cannot be: what a loading bar waits on. */
+export async function soundReady(soundId: string): Promise<void> {
+  if (graph !== null) {
+    await decodeSound(graph.context, soundId);
   }
+}
+
+/**
+ * This kind of music is wanted — not muted, its volume above zero — whether or not the audio is
+ * unlocked yet: worth loading behind a loading bar, before the first gesture.
+ */
+export function isMusicWanted(bus: MusicBus): boolean {
+  return graph !== null && graph.master.gain.value !== 0 && graph.music[bus].gain.value !== 0;
 }
 
 /**
@@ -142,6 +201,23 @@ export function prepareSound(soundId: string): void {
  * its decoding has finished.
  */
 export function playSound(soundId: string, options: PlayOptions = {}): PlayingSound {
+  return playThrough(graph?.effects, soundId, options);
+}
+
+/**
+ * Play a sound of the interface (plan 240) on its own bus: the cursor, a window, a refusal. Outside
+ * the combat clock — a menu does not slow down with a battle.
+ */
+export function playInterfaceSound(soundId: string, options: PlayOptions = {}): void {
+  playThrough(graph?.interface, soundId, options);
+}
+
+/** Play a sound through `output`, when what goes through it can be heard. */
+function playThrough(
+  output: GainNode | undefined,
+  soundId: string,
+  options: PlayOptions,
+): PlayingSound {
   let stopped = false;
   let stopNow: (() => void) | null = null;
   const playing: PlayingSound = {
@@ -150,11 +226,10 @@ export function playSound(soundId: string, options: PlayOptions = {}): PlayingSo
       stopNow?.();
     },
   };
-  if (context === null || effects === null || isAudioSilent()) {
+  if (graph === null || output === undefined || !isAudible(output)) {
     return playing;
   }
-  const audio = context;
-  const output = effects;
+  const audio = graph.context;
   void decodeSound(audio, soundId).then((buffer) => {
     const offsetSeconds = (options.offsetMs ?? 0) / 1000;
     if (buffer === null || stopped || offsetSeconds >= buffer.duration) {

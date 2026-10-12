@@ -311,6 +311,7 @@ export function createCombatMenu(options: CombatMenuOptions): CombatMenu {
           onBack: () => pop(),
           onOpenControls: () => push({ kind: "controls" }),
           embedded: true,
+          inBattle: true,
         });
         content = panel.element;
         break;

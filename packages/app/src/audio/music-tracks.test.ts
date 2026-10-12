@@ -1,14 +1,28 @@
 import { createPrng } from "@pokemon-tactic/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { BATTLE_MUSIC_TRACKS } from "./music-track-table";
+import { BATTLE_MUSIC_TRACKS, MENU_MUSIC_TRACK, MENU_MUSIC_TRACKS } from "./music-track-table";
 import {
   createMedleyOrder,
   findBattleTrack,
+  knownMenuMusicIdOrDefault,
   knownMusicIdOrDefault,
   MEDLEY_MUSIC_ID,
+  MENU_THEME_MUSIC_ID,
+  menuTrackOf,
   RANDOM_MUSIC_ID,
   resolveMusicId,
 } from "./music-tracks";
+
+const MENU_THEME_IDS: readonly string[] = MENU_MUSIC_TRACKS.map((track) => track.id);
+const NOT_A_MENU_THEME = [
+  "bw-trainer",
+  "sv-kieran",
+  MEDLEY_MUSIC_ID,
+  RANDOM_MUSIC_ID,
+  "retired-theme",
+  "FRLG-TITLE",
+  "",
+];
 
 const TRACK_IDS: readonly string[] = BATTLE_MUSIC_TRACKS.map((track) => track.id);
 const SORTED_TRACK_IDS: readonly string[] = [...TRACK_IDS].sort();
@@ -21,6 +35,8 @@ function drawIds(nextTrack: ReturnType<typeof createMedleyOrder>, count: number)
   return Array.from({ length: count }, () => nextTrack()?.id ?? "<none>");
 }
 
+vi.mock("@pokemon-tactic/network", () => ({ RANDOM_MUSIC_ID: "random" }));
+
 afterEach(() => {
   vi.restoreAllMocks();
 });
@@ -30,7 +46,7 @@ describe("findBattleTrack", () => {
     expect(findBattleTrack("bw-trainer")?.id).toBe("bw-trainer");
   });
 
-  it.each([RANDOM_MUSIC_ID, MEDLEY_MUSIC_ID, "menu", "retired-track", ""])(
+  it.each([RANDOM_MUSIC_ID, MEDLEY_MUSIC_ID, "menu", "frlg-title", "retired-track", ""])(
     "finds no battle track for « %s »",
     (musicId) => {
       expect(findBattleTrack(musicId)).toBeUndefined();
@@ -43,12 +59,32 @@ describe("knownMusicIdOrDefault", () => {
     expect(knownMusicIdOrDefault(musicId)).toBe(musicId);
   });
 
-  it.each(["retired-track", "menu", "", "BW-TRAINER"])(
+  it.each(["retired-track", "menu", "frlg-title", "", "BW-TRAINER"])(
     "brings the unknown id « %s » back to the random entry",
     (musicId) => {
       expect(knownMusicIdOrDefault(musicId)).toBe(RANDOM_MUSIC_ID);
     },
   );
+});
+
+describe("menuTrackOf", () => {
+  it("finds every menus' theme by its id", () => {
+    expect(MENU_THEME_IDS.map((musicId) => menuTrackOf(musicId).id)).toEqual(MENU_THEME_IDS);
+  });
+
+  it.each(NOT_A_MENU_THEME)("falls back on the default theme for « %s »", (musicId) => {
+    expect(menuTrackOf(musicId)).toBe(MENU_MUSIC_TRACK);
+  });
+});
+
+describe("knownMenuMusicIdOrDefault", () => {
+  it("keeps a menus' theme", () => {
+    expect(knownMenuMusicIdOrDefault("rs-center")).toBe("rs-center");
+  });
+
+  it("brings an id that is not a menus' theme back to the default one", () => {
+    expect(knownMenuMusicIdOrDefault("bw-trainer")).toBe(MENU_THEME_MUSIC_ID);
+  });
 });
 
 describe("resolveMusicId", () => {

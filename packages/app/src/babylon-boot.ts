@@ -36,6 +36,8 @@ import { initBrowserBack } from "./app/browser-back.js";
 import { type Navigate, ScreenManager } from "./app/screen-manager.js";
 import { loadPersistedScreen } from "./app/screen-persistence.js";
 import { atelierBootConfig } from "./atelier-boot.js";
+import { menuAudioReady } from "./audio/audio-preload.js";
+import { installInterfaceSounds, withInterfaceSounds } from "./audio/interface-sounds.js";
 import { playMenuMusic } from "./audio/music-player.js";
 import { createCombatScreen } from "./babylon/combat-screen.js";
 import { getLanguage, initLanguage, onLanguageChange } from "./i18n/index.js";
@@ -45,7 +47,7 @@ import { resolveKeyLabels } from "./input/key-legend.js";
 import { startWakeLock } from "./platform/wake-lock.js";
 import { getRendererBackend } from "./renderer-backend.js";
 import { sandboxBootConfig } from "./sandbox-boot.js";
-import { initSettings } from "./settings/index.js";
+import { getSettings, initSettings } from "./settings/index.js";
 import {
   DEFAULT_SANDBOX_CONFIG,
   normalizeSandboxConfig,
@@ -91,7 +93,10 @@ initTelemetry();
 // suivi de la source active (souris / doigt / clavier / manette). Montée au boot, avant tout écran :
 // les écrans et le combat s'y enregistrent à leur montage, y compris les chemins d'entrée directs
 // (`?config`/`?combat`) qui ne passent pas par le menu.
-initInputSystem();
+// Les sons d'interface (plan 240) s'entendent du routeur où passe toute action du clavier et de la
+// manette, des clics et des fenêtres : aucun écran n'a à les demander, la navigation n'est pas touchée.
+initInputSystem(withInterfaceSounds);
+installInterfaceSounds();
 // Real keyboard layout for the control legend (plan 185), fire-and-forget: the API is Chromium-only
 // and the legend falls back to the game's language until (or unless) it answers. Kicked here so the
 // answer has landed long before any combat mounts.
@@ -149,7 +154,10 @@ const sandboxConfig: SandboxConfig = resolveSandboxConfig();
 async function boot(root: HTMLElement): Promise<void> {
   // Splash gate (plan 135): download the sprite bundle + decode the portrait sheet before
   // any screen renders a Pokemon. One gate covers every boot path (menu/combat/sandbox).
-  await runSplash(root);
+  // The menus' sound loads behind the same bar — on the way to a menu only: the sandbox, the move
+  // workshop and `?combat` never show one.
+  const opensOnMenu = !(import.meta.env.VITE_ATELIER || sandboxEnabled || query.has("combat"));
+  await runSplash(root, opensOnMenu ? menuAudioReady : undefined);
 
   const reportScreenError = (error: unknown): void => {
     // biome-ignore lint/suspicious/noConsole: surfacing a failed screen transition (otherwise swallowed by the FSM chain)
@@ -172,11 +180,11 @@ async function boot(root: HTMLElement): Promise<void> {
       credits: () => createCreditsScreen(navigate),
       combat: () => createCombatScreen(navigate, backend),
     },
-    // Le thème des menus (plan 239) joue sur tout écran qui n'est pas le combat, lequel lance la
-    // sienne : redemandé à chaque écran, il continue sans coupure d'un menu au suivant.
+    // Le thème des menus (plans 239 et 240) joue sur tout écran qui n'est pas le combat, lequel
+    // lance la sienne : redemandé à chaque écran, il continue sans coupure d'un menu au suivant.
     (id) => {
       if (id !== "combat") {
-        playMenuMusic();
+        playMenuMusic(getSettings().menuMusicId);
       }
     },
   );

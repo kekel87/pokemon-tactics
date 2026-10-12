@@ -1,4 +1,4 @@
-import { expect, localSignalling, seedSavedTeams, test } from "../../fixtures";
+import { expect, localSignalling, newHarnessContext, seedSavedTeams, test } from "../../fixtures";
 import { BattleResumeStore } from "../../pages/battle-resume";
 import { CombatScene } from "../../pages/CombatScene";
 import { readActivePokemon } from "../../pages/combat-queries";
@@ -29,8 +29,8 @@ import { BattleModeScreen, MapSelectScreen, TeamSelectScreen } from "../../pages
 test.setTimeout(120_000);
 
 test("§11.1 en ligne : créer, rejoindre, et entrer en combat à deux", async ({ browser }) => {
-  const hostContext = await browser.newContext({ locale: "fr-FR" });
-  const guestContext = await browser.newContext({ locale: "fr-FR" });
+  const hostContext = await newHarnessContext(browser);
+  const guestContext = await newHarnessContext(browser);
   const hostPage = await hostContext.newPage();
   const guestPage = await guestContext.newPage();
 

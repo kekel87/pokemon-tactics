@@ -1,5 +1,12 @@
 import { RANDOM_MUSIC_ID } from "@pokemon-tactic/network";
-import { BATTLE_MUSIC_TRACKS, type BattleMusicTrack, type MusicTrack } from "./music-track-table";
+import {
+  BATTLE_MUSIC_TRACKS,
+  type BattleMusicTrack,
+  MENU_MUSIC_TRACK,
+  MENU_MUSIC_TRACKS,
+  type MenuMusicTrack,
+  type MusicTrack,
+} from "./music-track-table";
 
 export { RANDOM_MUSIC_ID };
 
@@ -30,6 +37,22 @@ export function knownMusicIdOrDefault(storedMusicId: string): string {
   return isMedleyMusicId(storedMusicId) || findBattleTrack(storedMusicId) !== undefined
     ? storedMusicId
     : RANDOM_MUSIC_ID;
+}
+
+/** The default of the menus' themes. */
+export const MENU_THEME_MUSIC_ID = MENU_MUSIC_TRACK.id;
+
+/**
+ * The track of a menus' theme, or the default one for any other id — a theme the game no longer
+ * ships, a battle track. The menus have their own themes, and play one.
+ */
+export function menuTrackOf(musicId: string): MenuMusicTrack {
+  return MENU_MUSIC_TRACKS.find((track) => track.id === musicId) ?? MENU_MUSIC_TRACK;
+}
+
+/** The stored menus' theme, or the default one when the game cannot play it as one. */
+export function knownMenuMusicIdOrDefault(storedMusicId: string): string {
+  return menuTrackOf(storedMusicId).id;
 }
 
 /** What « Aléatoire » resolves to when the game ships no track: an id no track has, so silence. */

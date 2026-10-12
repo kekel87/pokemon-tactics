@@ -1,5 +1,5 @@
 import type { BrowserContext } from "@playwright/test";
-import { expect, test } from "../../fixtures";
+import { expect, newHarnessContext, test } from "../../fixtures";
 import { OnlinePeer } from "../../pages/online-session";
 
 /*
@@ -94,7 +94,7 @@ test("§12.10 en ligne : réduire le format éjecte le DERNIER arrivé, et lui d
 }) => {
   const contexts: BrowserContext[] = [];
   const openPeer = async (): Promise<OnlinePeer> => {
-    const context = await browser.newContext({ locale: "fr-FR" });
+    const context = await newHarnessContext(browser);
     contexts.push(context);
     return new OnlinePeer(await context.newPage());
   };
