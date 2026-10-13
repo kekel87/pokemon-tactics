@@ -1386,6 +1386,29 @@ export const SCORED_AI_ATTACKS = {
   ],
 } as const;
 
+/** Combat entre deux équipes IA seules (plan 241) : aucun camp joué à cet écran, donc le contexte
+ *  d'entrée est `spectating`. Deux Ronflex (beaucoup de PV) qui n'ont que Charge : la partie ne
+ *  se termine pas avant la fin du test. */
+export const AI_ONLY_SPECTATOR = {
+  seed: 20250722,
+  teams: [
+    {
+      control: "scored",
+      aiProfile: "hard",
+      members: [
+        { pokemon: "snorlax", moves: ["tackle"], position: { x: 2, y: 1 }, direction: "south" },
+      ],
+    },
+    {
+      control: "scored",
+      aiProfile: "hard",
+      members: [
+        { pokemon: "snorlax", moves: ["tackle"], position: { x: 2, y: 4 }, direction: "north" },
+      ],
+    },
+  ],
+} as const;
+
 /** Même disposition, mais l'équipe 2 est PASSIVE (aucun move défensif) : Dracaufeu attend son tour
  *  sans jamais attaquer ni bouger — le contraste avec l'IA scorée (aucune ligne « Dracaufeu utilise »,
  *  sprite figé sur sa tuile de spawn). */

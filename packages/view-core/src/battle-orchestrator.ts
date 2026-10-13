@@ -247,8 +247,15 @@ type InputState =
  *
  * `watching` laisse donc passer ce qui ne touche pas à la partie — caméra, zoom, journal, timeline —
  * et rien d'autre. `locked` garde son sens strict : une action se résout, on n'y touche pas.
+ *
+ * `spectating` (plan 241) est ce que devient `locked` quand **aucun joueur local n'a de Pokemon en
+ * jeu** — combat entre IA seules, ou joueur éliminé qui regarde la fin. Sans tour humain, les
+ * animations s'enchaînent sans jamais rendre la main : `locked` ne se levait plus, et le menu de
+ * combat — la seule sortie — restait inatteignable de tout le combat. Il laisse passer la vue et le
+ * menu de combat, `Annuler` compris ; ni curseur ni geste de jeu. Distinct de `watching` par choix de
+ * l'humain (2026-10-13) : un tour distant garde `Annuler` coupé.
  */
-export type InputContext = "menu" | "board" | "locked" | "watching";
+export type InputContext = "menu" | "board" | "locked" | "watching" | "spectating";
 
 const INPUT_CONTEXT_BY_PHASE: Readonly<Record<InputState["phase"], InputContext>> = {
   action_menu: "menu",
@@ -620,14 +627,44 @@ export class BattleOrchestrator {
    * press to the board cursor or to the DOM menu focus depending on it — a decision the 5 scattered
    * `keydown` listeners it replaces used to take by guessing from `event.key`.
    *
-   * Derived from the phase, never stored: `inputState` stays the single source of truth.
+   * Derived from the phase and the board, never stored: `inputState` stays the single source of
+   * truth.
    */
   inputContext(): InputContext {
-    return INPUT_CONTEXT_BY_PHASE[this.inputState.phase];
+    const context = INPUT_CONTEXT_BY_PHASE[this.inputState.phase];
+    return context === "locked" && !this.hasLocalPokemonInPlay() ? "spectating" : context;
+  }
+
+  /**
+   * A seat played at this screen still has a Pokemon standing — false in an AI-only battle. Not
+   * `isLocalPlayer`, which reads the same empty list the other way round (every seat is the viewer).
+   */
+  private hasLocalPokemonInPlay(): boolean {
+    const locals = this.config.localPlayerIds ?? this.config.humanPlayerIds ?? [];
+    return [...this.state.pokemon.values()].some(
+      (pokemon) => pokemon.currentHp > 0 && locals.includes(pokemon.playerId),
+    );
   }
 
   /** Notified whenever `inputContext()` changes, so the router doesn't poll it on every key. */
   onInputContextChanged: ((context: InputContext) => void) | null = null;
+
+  /** Last context handed to `onInputContextChanged` — `locked` is what a listener assumes at first. */
+  private notifiedContext: InputContext = "locked";
+
+  /**
+   * Notify a context change. Called on every phase transition, and on every `refreshUI`: the
+   * context also depends on who is still standing, and AI turns chain `animating` → `animating`
+   * with no transition to hang the notification on.
+   */
+  private syncInputContext(): void {
+    const context = this.inputContext();
+    if (context === this.notifiedContext) {
+      return;
+    }
+    this.notifiedContext = context;
+    this.onInputContextChanged?.(context);
+  }
 
   /**
    * The only writer of `inputState`. Centralised so an input-context change can never be missed:
@@ -635,7 +672,6 @@ export class BattleOrchestrator {
    */
   private setInputState(next: InputState): void {
     const previousPhase = this.inputState.phase;
-    const previousContext = INPUT_CONTEXT_BY_PHASE[previousPhase];
     this.inputState = next;
     // Une action se résout : la case survolée devient une information PÉRIMÉE (le plateau change
     // sous elle). On la DÉSÉLECTIONNE, on ne se contente pas de cacher le curseur — sinon le
@@ -666,10 +702,7 @@ export class BattleOrchestrator {
     } else if (waitedBefore && !waitsNow) {
       this.config.onWaitingRemote?.(null);
     }
-    const nextContext = INPUT_CONTEXT_BY_PHASE[next.phase];
-    if (nextContext !== previousContext) {
-      this.onInputContextChanged?.(nextContext);
-    }
+    this.syncInputContext();
   }
 
   /**
@@ -1279,6 +1312,7 @@ export class BattleOrchestrator {
     if (this.disposed || this.inputState.phase === "battle_over") {
       return;
     }
+    this.syncInputContext();
     const active = this.activePokemon();
     if (!active) {
       return;

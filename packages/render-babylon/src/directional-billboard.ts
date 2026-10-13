@@ -106,6 +106,8 @@ export interface DirectionalBillboardOptions {
    * Optional: the placement-preview billboard never holds a substitute.
    */
   substituteAtlas?: ResolvedAtlas;
+  /** Start behind the Clonage doll (a board built from a mid-battle state). */
+  startsSubstituted?: boolean;
   animation: string;
   worldFacing: number;
   frameDurationMs?: number;
@@ -144,6 +146,11 @@ export class DirectionalBillboard {
   private baseAtlas: AtlasBundle | null = null;
   private substituteAtlas: AtlasBundle | null = null;
   private substituteActive = false;
+  /**
+   * The initial `load()`. Every later atlas swap waits for it: a swap that resolved first would be
+   * overwritten when the base atlas finally lands (a Métamorph back in its own shape, plan 241).
+   */
+  private initialLoad: Promise<void> = Promise.resolve();
   private activeTexture!: Texture;
   private activeAttackHeads: SpriteOffsets["attackHeads"];
   /** World direction (unit) of the melee lunge in progress, scaled by the controller's fraction. */
@@ -319,9 +326,21 @@ export class DirectionalBillboard {
     this.silhouettePlane.isVisible = false;
   }
 
-  async load(): Promise<void> {
-    this.baseAtlas = await this.loadAtlas(this.options.atlas);
-    this.bindActiveAtlas(this.baseAtlas);
+  load(): Promise<void> {
+    this.initialLoad = this.loadInitialAtlases();
+    return this.initialLoad;
+  }
+
+  private async loadInitialAtlases(): Promise<void> {
+    const { atlas, substituteAtlas, startsSubstituted } = this.options;
+    const [baseAtlas, dollAtlas] = await Promise.all([
+      this.loadAtlas(atlas),
+      startsSubstituted && substituteAtlas ? this.loadAtlas(substituteAtlas) : null,
+    ]);
+    this.baseAtlas = baseAtlas;
+    this.substituteAtlas = dollAtlas;
+    this.substituteActive = dollAtlas !== null;
+    this.bindActiveAtlas(dollAtlas ?? baseAtlas);
     this.controller.resolveRestingFallback();
     this.applyFrame();
     this.plane.isVisible = true;
@@ -410,6 +429,7 @@ export class DirectionalBillboard {
    * loaded once on first use.
    */
   async setSubstitute(active: boolean): Promise<void> {
+    await this.initialLoad;
     if (this.substituteActive === active) {
       return;
     }
@@ -436,6 +456,7 @@ export class DirectionalBillboard {
    * doll stays visible until it breaks. The previous base texture is disposed to avoid a leak.
    */
   async setSpecies(atlas: ResolvedAtlas): Promise<void> {
+    await this.initialLoad;
     const previousBase = this.baseAtlas;
     const loaded = await this.loadAtlas(atlas);
     this.baseAtlas = loaded;

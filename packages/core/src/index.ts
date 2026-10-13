@@ -116,6 +116,7 @@ export {
   canonicalizeBattleState,
   checksumOf,
 } from "./battle/state-checksum";
+export { hasSubstitute } from "./battle/substitute-system";
 export {
   setTailwind,
   TAILWIND_DEFAULT_DURATION,

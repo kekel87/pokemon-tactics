@@ -131,3 +131,18 @@ test("§5.34 Imposteur : le menu du tour 1 montre déjà les moves copiés de la
   await expect(moveName.filter({ hasText: "Cascade" })).toBeAttached({ timeout: 10_000 });
   await expect(moveName.filter({ hasText: "Morphing" })).toHaveCount(0);
 });
+
+// §5.34 Imposteur, état déjà transformé au montage du plateau (plan 241) : le bac à sable monte ses
+// sprites depuis l'état moteur (`spawnBillboardsFromState`, le même chemin que la reprise d'un combat),
+// où Métamorph est déjà transformé. Le plateau doit monter ses deux sprites sans erreur, Métamorph
+// sous son identité d'origine. ⚠️ L'ATLAS affiché (Léviator copié) n'est pas observable : le hook
+// scène rapporte `pokemonId` (l'espèce d'origine) et n'expose aucune texture → 👁 au cahier.
+test("§5.34 Imposteur : le plateau monté sur l'état transformé garde Métamorph sous son identité", async ({
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox(IMPOSTER_DITTO);
+
+  await expect.poll(() => scene.countByName("pokemon_plane"), { timeout: 15_000 }).toBe(2);
+  const states = await scene.spriteStates();
+  expect(states.map((state) => state.pokemonId).sort()).toEqual(["ditto", "gyarados"]);
+});

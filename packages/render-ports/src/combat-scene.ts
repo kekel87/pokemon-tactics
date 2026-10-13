@@ -106,6 +106,14 @@ export interface AttackPlayback {
 
 export interface CombatSceneSpawn {
   pokemonId: string;
+  /**
+   * Species whose sprite is shown when it is not `pokemonId` — a Pokémon already morphed (Morphing /
+   * Imposteur) when the board is built from a mid-battle state. Appearance only: `pokemonId` stays
+   * the mon's own species everywhere else.
+   */
+  appearanceId?: string;
+  /** Spawn behind the Clonage doll (a Substitute already up in the state the board is built from). */
+  substituted?: boolean;
   spawn: { x: number; y: number };
   /** World facing in radians (default 0 = South-ish). 8-way display is muxed against the camera azimuth. */
   facing?: number;

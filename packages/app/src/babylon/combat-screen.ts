@@ -3,6 +3,7 @@ import {
   BattleEventType,
   type BattleState,
   createPrng,
+  hasSubstitute,
   type LocalizedText,
   type MapDefinition,
   type PlacementTeam,
@@ -1096,7 +1097,8 @@ export function runBattle(options: {
     // 2026-09-15 la flèche et le D-pad y redéplacent le curseur, pour que le clavier et la manette
     // puissent inspecter le plateau pendant un tour distant comme la souris le fait déjà (voir
     // input-router.ts). C'est bien le curseur PÉRIMÉ que ce nettoyage vise — pas l'inspection.
-    if (context === "locked" || context === "watching") {
+    // `spectating` aussi (plan 241) : le routeur n'y admet aucun curseur.
+    if (context === "locked" || context === "watching" || context === "spectating") {
       combat.pinCursor(null);
       chrome.updateCursorPanel(null);
       chrome.updateTileInfo(null);
@@ -1640,6 +1642,9 @@ export function spawnBillboardsFromState(
   for (const pokemon of state.pokemon.values()) {
     const handle = combat.addPokemon({
       pokemonId: pokemon.definitionId,
+      // Mid-battle state: a morph or a Clonage doll already up has no event left to present it.
+      appearanceId: pokemon.transformState?.definitionId,
+      substituted: hasSubstitute(pokemon),
       spawn: pokemon.position,
       team: Number(pokemon.id.match(/^p(\d+)-/)?.[1] ?? 1),
     });

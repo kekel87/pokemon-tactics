@@ -191,6 +191,13 @@ export function createInputRouter(options: InputRouterOptions): InputRouter {
         return true;
       }
 
+      // `spectating` (plan 241, voir `InputContext`) : la vue traitée juste au-dessus, plus
+      // `Annuler`, qui n'a rien à annuler et ouvre donc le menu de combat. Ni curseur ni inspection :
+      // le survol à la souris y est figé lui aussi.
+      if (activeContext === "spectating") {
+        return action === LogicalAction.Cancel && (menu()?.cancel() ?? false);
+      }
+
       /*
        * `watching` — le tour d'un autre joueur — laisse REGARDER, et rien de plus : la vue que
        * `handleViewAction` vient de traiter (caméra, zoom, journal, timeline) et le curseur de case
@@ -219,8 +226,8 @@ export function createInputRouter(options: InputRouterOptions): InputRouter {
 
       /*
        * Inspect mode (plan 225) passes before the board and the menu: reading the panels is allowed
-       * in every unlocked context — the player's turn, a menu, and `watching`, where waiting for the
-       * other side is exactly when one reads the enemy's talent.
+       * in every unlocked context but `spectating` — the player's turn, a menu, and `watching`, where
+       * waiting for the other side is exactly when one reads the enemy's talent.
        */
       const inspector = inspect?.() ?? null;
       if (action === LogicalAction.InspectInfo) {

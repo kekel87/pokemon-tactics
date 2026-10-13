@@ -637,8 +637,13 @@ describe("inputContext (plan 184)", () => {
   } as unknown as MoveDefinition;
 
   it("is locked before the first turn is handed over", () => {
-    const harness = setup([]);
+    const harness = setup([], undefined, { humanPlayerIds: ["player-1"] });
     expect(harness.orchestrator.inputContext()).toBe("locked");
+  });
+
+  it("is spectating when no seat is played at this screen", () => {
+    const harness = setup([], undefined, { humanPlayerIds: [] });
+    expect(harness.orchestrator.inputContext()).toBe("spectating");
   });
 
   it("is menu on the action menu and on the attack submenu", () => {
@@ -673,7 +678,9 @@ describe("inputContext (plan 184)", () => {
 
   it("notifies only when the context actually changes, not on every phase change", () => {
     const target = { x: 4, y: 3 };
-    const harness = setup([useMoveAction("tackle", target)], tackle);
+    const harness = setup([useMoveAction("tackle", target)], tackle, {
+      humanPlayerIds: ["player-1"],
+    });
     const seen: string[] = [];
     harness.orchestrator.onInputContextChanged = (context) => seen.push(context);
 
@@ -682,6 +689,73 @@ describe("inputContext (plan 184)", () => {
     harness.lastSubmenu().onSelect("tackle");
 
     expect(seen).toEqual(["menu", "board"]);
+  });
+
+  it("notifies spectating at the start of a battle with no local player, without any phase change", async () => {
+    const harness = setup([], undefined, { humanPlayerIds: [] });
+    const seen: string[] = [];
+    harness.orchestrator.onInputContextChanged = (context) => seen.push(context);
+    let calls = 0;
+    harness.orchestrator.onTurnReady = () => {
+      calls += 1;
+      return calls <= 2 ? [] : "pending";
+    };
+
+    harness.orchestrator.start();
+    await vi.waitFor(() => expect(calls).toBe(3));
+
+    expect(seen[0]).toBe("spectating");
+  });
+
+  it("switches from locked to spectating when the last local Pokemon falls", async () => {
+    const harness = setup([], undefined, { humanPlayerIds: ["player-1"] });
+    const seen: string[] = [];
+    const duringTurns: string[] = [];
+    harness.orchestrator.onInputContextChanged = (context) => seen.push(context);
+    let calls = 0;
+    harness.orchestrator.onTurnReady = () => {
+      calls += 1;
+      duringTurns.push(harness.orchestrator.inputContext());
+      if (calls === 2) {
+        const local = harness.state.pokemon.get(ACTIVE_ID);
+        if (local) {
+          local.currentHp = 0;
+        }
+      }
+      return calls <= 2 ? [] : "pending";
+    };
+
+    harness.orchestrator.start();
+    await vi.waitFor(() => expect(calls).toBe(3));
+
+    expect(duringTurns.slice(0, 2)).toEqual(["locked", "locked"]);
+    expect(seen).toContain("spectating");
+    expect(seen).not.toContain("locked");
+  });
+
+  it("stays locked while animating when a local Pokemon is still standing", async () => {
+    const harness = setup([], undefined, { humanPlayerIds: ["player-1"] });
+    const seen: string[] = [];
+    harness.orchestrator.onInputContextChanged = (context) => seen.push(context);
+    let calls = 0;
+    harness.orchestrator.onTurnReady = () => {
+      calls += 1;
+      return calls <= 2 ? [] : "pending";
+    };
+
+    harness.orchestrator.start();
+    await vi.waitFor(() => expect(calls).toBe(3));
+
+    expect(seen).not.toContain("spectating");
+  });
+
+  it("stays watching while waiting for a remote seat, even with no local Pokemon in play", () => {
+    const harness = setup([], undefined, { humanPlayerIds: [], localPlayerIds: ["player-2"] });
+    harness.orchestrator.onTurnReady = () => "pending";
+
+    harness.orchestrator.start();
+
+    expect(harness.orchestrator.inputContext()).toBe("watching");
   });
 });
 

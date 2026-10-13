@@ -313,6 +313,36 @@ describe("createInputRouter — contexte `watching`", () => {
     expect(menu.calls).toEqual([]);
   });
 
+  it("`spectating` laisse la vue et ouvre le menu de combat, sans rien d'autre", () => {
+    const { router, board, menu } = setup("spectating");
+
+    expect(router.handle(LogicalAction.OpenCombatMenu)).toBe(true);
+    expect(router.handle(LogicalAction.RotateCameraLeft)).toBe(true);
+    expect(router.handle(LogicalAction.Cancel)).toBe(true);
+
+    expect(board.calls).toEqual(["openCombatMenu", "rotateCamera:-1"]);
+    expect(menu.calls).toEqual(["cancel"]);
+  });
+
+  it("`spectating` ne déplace pas le curseur et refuse les gestes de jeu", () => {
+    const { router, board, menu } = setup("spectating");
+
+    expect(router.handle(LogicalAction.CursorUp)).toBe(false);
+    expect(router.handle(LogicalAction.Confirm)).toBe(false);
+    expect(router.handle(LogicalAction.CycleTargetNext)).toBe(false);
+
+    expect(board.calls).toEqual([]);
+    expect(menu.calls).toEqual([]);
+  });
+
+  it("`spectating` refuse l'inspection, même quand un inspecteur est branché", () => {
+    const inspector = makeInspect(false);
+    const { router } = setupInspect("spectating", inspector);
+
+    expect(router.handle(LogicalAction.InspectInfo)).toBe(false);
+    expect(inspector.calls).toEqual([]);
+  });
+
   it("`locked` continue de tout couper, caméra comprise", () => {
     const { router, board } = setup("locked");
 

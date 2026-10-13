@@ -287,8 +287,9 @@ export function createCombatScene(options: CombatSceneOptions): CombatScene {
     const teamColor = teamColorByIndex(entry.team ?? 1);
     const billboard = new DirectionalBillboard({
       scene,
-      atlas: getResolvedAtlas(entry.pokemonId),
+      atlas: getResolvedAtlas(entry.appearanceId ?? entry.pokemonId),
       substituteAtlas: getResolvedAtlas(SUBSTITUTE_SPRITE_ID),
+      startsSubstituted: entry.substituted,
       animation: "Idle",
       worldFacing: entry.facing ?? 0,
       pixelsPerWorldUnit: BABYLON_SPRITE_PIXELS_PER_UNIT,

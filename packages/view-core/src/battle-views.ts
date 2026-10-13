@@ -17,6 +17,7 @@ import {
   getTerrainDotFraction,
   getTerrainImmuneTypes,
   getTerrainStatusOnStop,
+  hasSubstitute,
   isTerrainPassable,
   isWithinAuraRadius,
   maxLayersFor,
@@ -362,7 +363,7 @@ export function buildInfoPanelView(
     );
   }
 
-  if (pokemon.substituteHp !== undefined && pokemon.substituteHp > 0) {
+  if (hasSubstitute(pokemon)) {
     // Under fog the exact HP of an enemy's Substitut is withheld like its own HP (plan 176).
     badges.push({
       label: fogged

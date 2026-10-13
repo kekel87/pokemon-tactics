@@ -66,3 +66,4 @@ Les seuls sur lesquels on travaille.
 | 238 | [Plan 238 — Son lot 3 : attaques, coups, cris, et les réglages du son](./238-son-lot3-attaques-coups-cris.md) | done |
 | 239 | [Plan 239 — Musique de combat et de menu](./239-musique-de-combat.md) | done |
 | 240 | [Plan 240 — Sons d'interface et musique de menu](./240-sons-interface-et-musique-de-menu.md) | done |
+| 241 | [Plan 241 — Sprite transformé à la reprise et menu en combat spectateur](./241-sprite-transforme-et-menu-en-combat-spectateur.md) | done |
