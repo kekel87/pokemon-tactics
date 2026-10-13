@@ -1097,7 +1097,7 @@ export function runBattle(options: {
     // 2026-09-15 la flèche et le D-pad y redéplacent le curseur, pour que le clavier et la manette
     // puissent inspecter le plateau pendant un tour distant comme la souris le fait déjà (voir
     // input-router.ts). C'est bien le curseur PÉRIMÉ que ce nettoyage vise — pas l'inspection.
-    // `spectating` aussi (plan 241) : le routeur n'y admet aucun curseur.
+    // `spectating` aussi (plan 241) — une seule fois, à l'entrée : le contexte n'en ressort plus.
     if (context === "locked" || context === "watching" || context === "spectating") {
       combat.pinCursor(null);
       chrome.updateCursorPanel(null);
@@ -1152,6 +1152,11 @@ export function runBattle(options: {
     context: () => (isModalOpen() ? "menu" : orchestrator.inputContext()),
     board: {
       moveCursor: (direction) => {
+        // Un spectateur garde la main pendant les animations (`spectating`) : le curseur, lui, s'y
+        // fige comme le survol à la souris.
+        if (orchestrator.isAnimating()) {
+          return;
+        }
         // Ordre explicite, du plus spécifique au plus général (retour humain 2026-08-21) :
         // 1. un sélecteur d'orientation ouvert (fin de tour) : la flèche le VISE ;
         if (combat.aimDirectionPicker(direction)) {
@@ -1207,7 +1212,11 @@ export function runBattle(options: {
     // tait sous une modale (menu de combat, victoire, élimination), qui garde la croix pour elle,
     // et reprend là où il en était quand elle se ferme.
     inspect: {
-      toggle: () => !isModalOpen() && chrome.toggleInspect(),
+      // Une animation n'empêche que d'OUVRIR : une inspection déjà ouverte doit pouvoir se refermer.
+      toggle: () =>
+        !isModalOpen() &&
+        (chrome.isInspecting() || !orchestrator.isAnimating()) &&
+        chrome.toggleInspect(),
       isActive: () => chrome.isInspecting() && !isModalOpen(),
       step: (delta) => chrome.stepInspect(delta),
       stop: () => chrome.stopInspect(),

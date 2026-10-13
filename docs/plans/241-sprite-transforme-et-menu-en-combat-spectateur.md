@@ -156,6 +156,16 @@ plus, qui choisit « Continuer à regarder » pendant que les IA finissent.
 - **Cas de test ajouté** : reprise avec un Pokémon transformé **et** sous Clonage, puis casse de la
   poupée — le sprite restauré est celui de l'espèce copiée (§ 7k).
 
+### Addendum du 2026-10-13 (après livraison, accord de l'humain)
+
+`spectating` remplace aussi `watching` (phase `waiting_remote`) quand aucun joueur local n'a de
+Pokémon en jeu : sans cela, un joueur éliminé en ligne n'avait pas `Échap` pendant qu'un adversaire
+réfléchit. `spectating` devient donc « `watching` plus `Annuler` » — curseur de case et inspection
+compris. Pour garder le curseur figé pendant les animations (validé en recette sur le combat entre
+IA), l'orchestrateur expose finalement `isAnimating()`, lu par `combat-screen.ts` (`moveCursor`,
+ouverture de l'inspection). Ceci révise les deux premiers points de l'arbitrage ci-dessus. Non
+recetté par l'humain (son choix) : couvert par les tests unitaires.
+
 ## Étapes
 
 1. Core : une seule ligne, l'export de `hasSubstitute` (`core/src/battle/substitute-system.ts`) dans

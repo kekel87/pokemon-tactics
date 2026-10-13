@@ -641,6 +641,15 @@ describe("inputContext (plan 184)", () => {
     expect(harness.orchestrator.inputContext()).toBe("locked");
   });
 
+  it("is animating until the first turn is handed over", () => {
+    const harness = setup([useMoveAction("tackle", { x: 4, y: 3 })], tackle);
+    expect(harness.orchestrator.isAnimating()).toBe(true);
+
+    harness.orchestrator.start();
+
+    expect(harness.orchestrator.isAnimating()).toBe(false);
+  });
+
   it("is spectating when no seat is played at this screen", () => {
     const harness = setup([], undefined, { humanPlayerIds: [] });
     expect(harness.orchestrator.inputContext()).toBe("spectating");
@@ -749,17 +758,18 @@ describe("inputContext (plan 184)", () => {
     expect(seen).not.toContain("spectating");
   });
 
-  it("stays watching while waiting for a remote seat, even with no local Pokemon in play", () => {
+  it("is spectating while waiting for a remote seat once no local Pokemon is in play", () => {
     const harness = setup([], undefined, { humanPlayerIds: [], localPlayerIds: ["player-2"] });
     harness.orchestrator.onTurnReady = () => "pending";
 
     harness.orchestrator.start();
 
-    expect(harness.orchestrator.inputContext()).toBe("watching");
+    expect(harness.orchestrator.inputContext()).toBe("spectating");
   });
 });
 
 const REMOTE = { seat: 2, playerId: "player-1" };
+const LOCAL_POKEMON_ID = "p2-local";
 
 function endTurnAction(direction = Direction.South): Action {
   return { kind: ActionKind.EndTurn, pokemonId: ACTIVE_ID, direction };
@@ -776,6 +786,12 @@ function remoteHarness(options?: {
     localPlayerIds: ["player-2"],
     ...(options?.engineRefuses === undefined ? {} : { engineRefuses: options.engineRefuses }),
     ...(options?.forfeitRefused === undefined ? {} : { forfeitRefused: options.forfeitRefused }),
+  });
+  harness.state.pokemon.set(LOCAL_POKEMON_ID, {
+    ...activePokemon(),
+    id: LOCAL_POKEMON_ID,
+    playerId: "player-2",
+    position: { x: 0, y: 0 },
   });
   harness.orchestrator.onTurnReady = () => "pending";
   harness.orchestrator.start();

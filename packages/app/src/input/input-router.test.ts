@@ -313,7 +313,7 @@ describe("createInputRouter — contexte `watching`", () => {
     expect(menu.calls).toEqual([]);
   });
 
-  it("`spectating` laisse la vue et ouvre le menu de combat, sans rien d'autre", () => {
+  it("`spectating` laisse la vue et ouvre le menu de combat", () => {
     const { router, board, menu } = setup("spectating");
 
     expect(router.handle(LogicalAction.OpenCombatMenu)).toBe(true);
@@ -324,23 +324,15 @@ describe("createInputRouter — contexte `watching`", () => {
     expect(menu.calls).toEqual(["cancel"]);
   });
 
-  it("`spectating` ne déplace pas le curseur et refuse les gestes de jeu", () => {
+  it("`spectating` déplace le curseur comme `watching` et refuse les gestes de jeu", () => {
     const { router, board, menu } = setup("spectating");
 
-    expect(router.handle(LogicalAction.CursorUp)).toBe(false);
+    expect(router.handle(LogicalAction.CursorUp)).toBe(true);
     expect(router.handle(LogicalAction.Confirm)).toBe(false);
     expect(router.handle(LogicalAction.CycleTargetNext)).toBe(false);
 
-    expect(board.calls).toEqual([]);
+    expect(board.calls).toEqual(["moveCursor:up"]);
     expect(menu.calls).toEqual([]);
-  });
-
-  it("`spectating` refuse l'inspection, même quand un inspecteur est branché", () => {
-    const inspector = makeInspect(false);
-    const { router } = setupInspect("spectating", inspector);
-
-    expect(router.handle(LogicalAction.InspectInfo)).toBe(false);
-    expect(inspector.calls).toEqual([]);
   });
 
   it("`locked` continue de tout couper, caméra comprise", () => {
@@ -355,7 +347,7 @@ describe("createInputRouter — contexte `watching`", () => {
 
 describe("createInputRouter — mode Inspecter (plan 225)", () => {
   it("bascule le mode Inspecter, sur le plateau comme dans un menu ou un tour distant", () => {
-    for (const context of ["board", "menu", "watching"] as const) {
+    for (const context of ["board", "menu", "watching", "spectating"] as const) {
       const inspector = makeInspect(false);
       const { router, board, menu } = setupInspect(context, inspector);
 

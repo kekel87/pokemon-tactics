@@ -245,15 +245,18 @@ type InputState =
  * 45 s de délai de grâce. On ne peut pas immobiliser la caméra tout ce temps : regarder le plateau
  * pendant que l'adversaire joue est le minimum.
  *
- * `watching` laisse donc passer ce qui ne touche pas à la partie — caméra, zoom, journal, timeline —
- * et rien d'autre. `locked` garde son sens strict : une action se résout, on n'y touche pas.
+ * `watching` laisse donc passer ce qui ne touche pas à la partie — caméra, zoom, journal, timeline,
+ * curseur de case, inspection — et rien d'autre. `locked` garde son sens strict : une action se résout, on n'y touche pas.
  *
- * `spectating` (plan 241) est ce que devient `locked` quand **aucun joueur local n'a de Pokemon en
- * jeu** — combat entre IA seules, ou joueur éliminé qui regarde la fin. Sans tour humain, les
- * animations s'enchaînent sans jamais rendre la main : `locked` ne se levait plus, et le menu de
- * combat — la seule sortie — restait inatteignable de tout le combat. Il laisse passer la vue et le
- * menu de combat, `Annuler` compris ; ni curseur ni geste de jeu. Distinct de `watching` par choix de
- * l'humain (2026-10-13) : un tour distant garde `Annuler` coupé.
+ * `spectating` (plan 241) est ce que deviennent `locked` et `watching` quand **aucun joueur local
+ * n'a de Pokemon en jeu** — combat entre IA seules, ou joueur éliminé qui regarde la fin. Sans tour
+ * humain, les animations s'enchaînent sans jamais rendre la main : `locked` ne se levait plus, et le
+ * menu de combat — la seule sortie — restait inatteignable de tout le combat. C'est `watching` plus
+ * `Annuler`, qui ouvre le menu de combat ; aucun geste de jeu, et le curseur comme l'ouverture de
+ * l'inspection se figent tant qu'une animation tourne (`isAnimating`). Il remplace aussi `watching`
+ * pour qu'un joueur éliminé en ligne garde `Annuler` pendant qu'un adversaire réfléchit. Distinct de
+ * `watching` par choix de l'humain (2026-10-13) : le tour distant d'un joueur encore en jeu garde
+ * `Annuler` coupé.
  */
 export type InputContext = "menu" | "board" | "locked" | "watching" | "spectating";
 
@@ -632,7 +635,16 @@ export class BattleOrchestrator {
    */
   inputContext(): InputContext {
     const context = INPUT_CONTEXT_BY_PHASE[this.inputState.phase];
-    return context === "locked" && !this.hasLocalPokemonInPlay() ? "spectating" : context;
+    const isHandsOff = context === "locked" || context === "watching";
+    return isHandsOff && !this.hasLocalPokemonInPlay() ? "spectating" : context;
+  }
+
+  /**
+   * Events are being played (the stretch before the first turn included): the board changes under
+   * any cursor, so nothing points at it.
+   */
+  isAnimating(): boolean {
+    return this.inputState.phase === "animating";
   }
 
   /**

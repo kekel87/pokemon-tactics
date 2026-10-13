@@ -33,3 +33,21 @@ test("§4.20 combat entre IA : Échap ouvre le menu de combat, puis le referme",
   await page.keyboard.press("Escape");
   await expect(combatMenu.dialog).toHaveCount(0);
 });
+
+test("§4.20 combat entre IA : une flèche pendant une animation ne pose pas de curseur de case", async ({
+  bootSandbox,
+  page,
+}) => {
+  const scene = await bootSandbox(AI_ONLY_SPECTATOR);
+  expect(await scene.cursorTile()).toBeNull();
+
+  await expect(
+    page
+      .getByTestId("battle-log-entry")
+      .filter({ hasText: /utilise/ })
+      .first(),
+  ).toBeAttached({ timeout: 30_000 });
+  await page.keyboard.press("ArrowDown");
+
+  expect(await scene.cursorTile()).toBeNull();
+});
