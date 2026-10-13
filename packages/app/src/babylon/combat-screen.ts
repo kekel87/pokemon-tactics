@@ -782,8 +782,9 @@ export function runBattle(options: {
             onExit();
           },
     // Un chronomètre tourne dès que la partie est en ligne (plan 202) : le menu grignote alors le
-    // temps du joueur, et la dette du plan 187 était de ne pas le dire.
-    timeKeepsRunning: turnClock !== undefined,
+    // temps du joueur, et la dette du plan 187 était de ne pas le dire. Sauf à un spectateur, qui
+    // n'a plus de tour.
+    timeKeepsRunning: () => turnClock !== undefined && inputContext !== "spectating",
     // Une bascule de langue a réécrit le menu d'actions sous la modale : l'entrée qui avait le focus
     // n'existe plus, c'est le chrome qui sait laquelle la remplace (plan 221).
     onFocusOrphaned: () => chrome.refocusMenu(),
@@ -1010,6 +1011,9 @@ export function runBattle(options: {
         }
         refreshCombatMenuButton();
       });
+      // Et à l'OUVERTURE : un éliminé est déjà en `spectating`, contexte qui ne change plus — aucun
+      // passage de tour ne viendra griser le bouton sous la modale (plan 241).
+      refreshCombatMenuButton();
     },
   };
   const orchestrator = new BattleOrchestrator(

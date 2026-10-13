@@ -84,14 +84,16 @@ export interface CombatMenuOptions {
    */
   readonly onQuitKeepingSave?: () => void;
   /**
-   * Vrai quand un chronomètre de tour tourne derrière — c'est-à-dire en ligne (plan 202, étape 6).
+   * Renvoie vrai quand un chronomètre de tour tourne derrière — c'est-à-dire en ligne (plan 202, étape 6).
    *
    * 🔴 Dette notée par le plan 187 et payée ici : ce menu **n'est pas une pause** (décision #819) et
    * rien n'est suspendu à son ouverture. Tant que le seul enjeu était l'IA qui continue de jouer, ça
    * pouvait se déduire. Depuis qu'un compte à rebours mesure le temps du joueur, ouvrir ce menu lui
    * **coûte son tour sans le dire** — un piège qu'il faut refermer par une phrase.
+   *
+   * Relu à chaque rendu de la racine : un joueur éliminé qui regarde la fin n'a plus de tour à perdre.
    */
-  readonly timeKeepsRunning?: boolean;
+  readonly timeKeepsRunning?: () => boolean;
   /**
    * Appelé à la fermeture quand ce qui avait le focus à l'ouverture a disparu du document — une
    * bascule de langue a réécrit l'écran derrière la modale (plan 221). L'hôte sait ce qui le
@@ -156,7 +158,7 @@ export function createCombatMenu(options: CombatMenuOptions): CombatMenu {
     onRestart,
     onQuitKeepingSave,
     variant = CombatMenuVariant.Battle,
-    timeKeepsRunning = false,
+    timeKeepsRunning,
     onFocusOrphaned,
   } = options;
   const isPlacement = variant === CombatMenuVariant.Placement;
@@ -177,7 +179,7 @@ export function createCombatMenu(options: CombatMenuOptions): CombatMenu {
 
   const renderRoot = (): HTMLElement => {
     const list = el("div", "cm-buttons");
-    if (timeKeepsRunning) {
+    if (timeKeepsRunning?.() === true) {
       /*
        * En tête de liste, avant le premier bouton : la prévenir après les choix serait la lire trop
        * tard. Pas un bouton — rien à activer, et elle ne doit pas prendre le focus au clavier.

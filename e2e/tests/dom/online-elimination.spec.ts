@@ -139,6 +139,29 @@ test("§12.12 en ligne à 3 camps : seul l'éliminé voit le dialogue, Échap ne
     await expect(trio.sacrificed.combatMenu.openButton).toBeEnabled();
 
     /*
+     * (e bis) La pastille « Le temps de votre tour continue de s'écouler » n'est pas pour le
+     * spectateur : il n'a plus de tour, donc plus de temps qui lui court après. Elle reste, elle, chez
+     * un survivant en jeu — le témoin positif, sans lequel l'absence ci-dessous ne prouverait rien
+     * (une pastille qui ne monterait jamais en ligne passerait aussi). Les deux menus sont refermés :
+     * une modale ouverte gèlerait l'entrée de la suite.
+     */
+    const survivorMenu = trio.survivor.combatMenu;
+    await survivorMenu.openByButton();
+    await expect(survivorMenu.dialog).toBeVisible();
+    await expect(survivorMenu.clockWarning).toBeVisible();
+    await survivorMenu.resume.click();
+    await expect(survivorMenu.dialog).toHaveCount(0);
+
+    const spectatorMenu = trio.sacrificed.combatMenu;
+    await spectatorMenu.openByButton();
+    await expect(spectatorMenu.dialog).toBeVisible();
+    // Le menu est bien monté (« Reprendre » est là) : l'absence vise la pastille, pas un menu vide.
+    await expect(spectatorMenu.resume).toBeVisible();
+    await expect(spectatorMenu.clockWarning).toHaveCount(0);
+    await spectatorMenu.resume.click();
+    await expect(spectatorMenu.dialog).toHaveCount(0);
+
+    /*
      * (f) Le spectateur voit la suite : un survivant joue, et l'action ARRIVE dans le journal de
      * l'éliminé — son moteur l'a reçue, validée, appliquée. Le salon est donc toujours tenu.
      */
