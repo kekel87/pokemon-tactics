@@ -111,286 +111,30 @@ graph TD
 
 ```
 pokemon-tactics/
-├── packages/
-│   ├── core/                    # Moteur de jeu pur (ZERO dépendance UI)
-│   │   ├── src/
-│   │   │   ├── enums/           # Const object enums (PokemonType, Direction, TargetingKind...)
-│   │   │   ├── types/           # Interfaces (1 fichier = 1 type)
-│   │   │   ├── utils/           # Fonctions pures (math, direction, géométrie)
-│   │   │   ├── grid/            # Grid, Pathfinding, Targeting resolvers
-│   │   │   ├── battle/          # BattleEngine, TurnManager, effect handlers, turn pipeline
-│   │   │   ├── testing/         # Mocks centralisés (MockPokemon...)
-│   │   │   └── index.ts         # Barrel export (API publique)
-│   │   ├── tsconfig.json        # extends ../../tsconfig.base.json
-│   │   └── package.json
-│   │
-│   ├── render-ports/            # Ports hexagonaux du contrat de rendu (plan 125, renommé plan 126)
-│   │   ├── src/
-│   │   │   ├── ports/           # BoardView, BattleChrome, BattleFeedback (interfaces moteur-agnostiques)
-│   │   │   ├── view-models/     # WeatherView, TimelineView, InfoPanelData (+ preview/attack, plan 175), TileInfoData (plan 177)… (données UI découplées du core)
-│   │   │   ├── presentation-context.ts  # PresentationContext (DI i18n + assets)
-│   │   │   ├── render-backend.ts        # RenderBackend (lifecycle : mount/dispose)
-│   │   │   ├── team-colors.ts           # TEAM_COLORS, teamColorByIndex, teamColorToHex, getTeamColorByPlayerId
-│   │   │   ├── highlight-kind.ts        # HighlightKind enum
-│   │   │   └── index.ts
-│   │   ├── tsconfig.json        # dépend de core uniquement
-│   │   └── package.json
-│   │
-│   ├── view-core/               # Logique de vue engine-agnostic headless (plan 125, renommé plan 126)
-│   │   ├── src/
-│   │   │   ├── battle-orchestrator/     # battle-orchestrator (FSM 9 phases combat)
-│   │   │   ├── battle-views/            # view-builders (WeatherView, TimelineView, InfoPanelData…)
-│   │   │   ├── combat-preview-view.ts   # buildCombatPreviewView (plan 175)
-│   │   │   ├── floating-text-content.ts # contenu textes flottants
-│   │   │   ├── movement-animation.ts    # logique animation déplacement
-│   │   │   ├── animation-queue.ts       # AnimationQueue
-│   │   │   ├── combat-pacing.ts         # combatClock : horloge de combat unique (plan 233)
-│   │   │   ├── battle-setup.ts          # BattleSetup
-│   │   │   ├── sandbox-setup.ts         # SandboxSetup
-│   │   │   ├── ai/                      # AiTeamController, DummyAiController
-│   │   │   ├── sandbox-config.ts        # SandboxConfig + DEFAULT_SANDBOX_CONFIG
-│   │   │   ├── remote-action.ts         # Projection canonique d'une Action (retreatPosition exclu) pour
-│   │   │   │                            # comparer contre getLegalActions() — tour distant (plan 201, Lot B2)
-│   │   │   ├── local-elimination.ts     # shouldAnnounceLocalElimination : décide si `PlayerEliminated`
-│   │   │   │                            # doit ouvrir le dialogue à deux issues (en ligne, camp local
-│   │   │   │                            # uniquement) — plan 210
-│   │   │   └── constants.ts             # couleurs Champs, symboles aura/charge, durées tween, cluster BATTLE_TEXT
-│   │   ├── tsconfig.json        # lib ["ES2022","WebWorker"] (timers sans DOM) ; dépend core/data/render-ports
-│   │   └── package.json
-│   │
-│   ├── render-babylon/          # Backend de rendu Babylon.js (plan 125)
-│   │   ├── src/
-│   │   │   ├── babylon-*/       # babylon-picking, babylon-tile-highlights, babylon-decorations,
-│   │   │   │                    # babylon-field-terrains, babylon-hover-cursor, babylon-sprite-hud,
-│   │   │   │                    # babylon-direction-picker, babylon-aura-rings, babylon-color…
-│   │   │   ├── battle-board-view.ts     # implémente BoardView (port render-ports)
-│   │   │   ├── combat-scene.ts          # scène combat Babylon (délègue la caméra à IsometricCamera)
-│   │   │   ├── isometric-camera.ts      # IsometricCamera : caméra dimetric (rotation snaps, zoom, pan)
-│   │   │   ├── game-stage.ts            # implémente RenderBackend (lifecycle mount/dispose)
-│   │   │   ├── load-tiled-map.ts        # chargement carte Tiled → scène Babylon
-│   │   │   ├── map-preview-stage.ts     # preview carte
-│   │   │   ├── sprite-depth-plugin.ts   # SpriteDepthPlugin (occlusion native depth-buffer)
-│   │   │   ├── terrain-extruder.ts      # extrusion 3D du terrain depuis MapDefinition
-│   │   │   ├── world-facing.ts          # orientation billboards
-│   │   │   ├── world-projection.ts      # projection coordonnées monde → CSS viewport
-│   │   │   ├── directional-billboard.ts # sprites PMDCollab directionnels + états
-│   │   │   ├── floating-text-spawner.ts # textes flottants en moteur
-│   │   │   ├── shaders/                 # plugins de matériau Babylon (MaterialPluginBase) —
-│   │   │   │                            # decoration-wind-plugin.ts (vent voxel décorations),
-│   │   │   │                            # liquid-shimmer-plugin.ts (anim procédurale surfaces
-│   │   │   │                            # liquides : lueur/scintillement/ondulation, 2026-07-23),
-│   │   │   │                            # water-foam-material.ts (écume de flottaison)
-│   │   │   └── constants.ts             # constantes visuelles Babylon (BABYLON_*)
-│   │   ├── tsconfig.json        # dépend core/data/view-core/render-ports + Babylon.js
-│   │   └── package.json
-│   │
-│   ├── ui-dom/                  # Chrome HTML réutilisable (plan 125)
-│   │   ├── src/
-│   │   │   ├── battle-chrome.ts         # chrome combat complet (câble tous les panneaux)
-│   │   │   ├── battle-log.ts            # BattleLogPanel + BattleLogFormatter
-│   │   │   ├── move-tooltip.ts          # MoveTooltip
-│   │   │   ├── info-tooltip.ts          # bulle d'info générique (talent, objet, effet, météo, zone de case — plan 225)
-│   │   │   ├── placement-roster.ts      # bandeau placement (portraits, compteur, Terminer)
-│   │   │   ├── turn-timeline.ts         # TurnTimeline (RR + CT)
-│   │   │   ├── weather-hud.ts           # WeatherHud
-│   │   │   ├── info-panel.ts            # InfoPanel
-│   │   │   ├── tile-info-panel.ts       # TileInfoPanel (plan 177 — terrain/hazards/champ/zones de la case survolée)
-│   │   │   │                           # info-panel.ts sert aussi de "cursor card" cible (plan 175, 2 instances)
-│   │   │   ├── pattern-preview.ts       # previews de ciblage
-│   │   │   ├── Modal.ts                  # primitive modale (<dialog>, closeAriaLabel DI)
-│   │   │   ├── Stepper.ts                # primitive stepper (pure)
-│   │   │   ├── form-controls.ts          # primitives boutons/selects/checkbox (pures)
-│   │   │   ├── config.ts                # UiDomConfig (DI translate/getLanguage/getTypeIconUrl/getPortraitUrl/getItemIconUrl…)
-│   │   │   ├── chrome-insets.ts         # createChromeInsetProbe (plan 183) : mesure la 1ère case de la timeline (taille/ancrage boussole)
-│   │   │   ├── constants.ts             # BATTLE_LOG_COLOR_*
-│   │   │   └── styles/                  # CSS co-localisé des composants (combat-chrome, modal, info-panel) + index.css
-│   │   ├── tsconfig.json        # dépend core/data/view-core/render-ports
-│   │   └── package.json
-│   │
-│   ├── app/                     # Composition root / app-shell Vite (plan 125, renommé plan 126)
-│   │   ├── src/
-│   │   │   ├── app/             # ScreenManager FSM + écrans DOM (main-menu, battle-mode, lobby,
-│   │   │   │                    # team-select, my-teams, team-edit, settings, controls, credits,
-│   │   │   │                    # combat-screen — plus d'écran map-select depuis le plan 208 : le
-│   │   │   │                    # choix de carte est une modale (ui/map-select/MapPickerModal.ts)
-│   │   │   │                    # ouverte depuis team-select, pas une route
-│   │   │   ├── babylon/         # Écrans qui câblent les backends : combat-screen (boucle combat),
-│   │   │   │                    # placement-flow
-│   │   │   ├── input/           # Couche d'entrée device-agnostique (plans 184/186) : actions logiques,
-│   │   │   │                    # routeur par contexte, sources clavier/manette/pointeur, magasin de
-│   │   │   │                    # bindings, navigation du focus DOM, étiquettes de touches
-│   │   │   ├── network/         # Câblage réseau côté app (plan 199 Phase 7 Lot B1, étendu au combat
-│   │   │   │                    # par le plan 201 Lot B2) : signalling-override.ts (surcharge d'annuaire
-│   │   │   │                    # PeerJS verrouillée DEV/VITE_E2E, pour l'e2e uniquement), online-room.ts
-│   │   │   │                    # (salon survivant à la transition d'écran, hold/release/getOnlineRoom),
-│   │   │   │                    # online-battle.ts (traduction place ↔ joueur, barème de refus 1er/2e/3e)
-│   │   │   ├── i18n/            # Système i18n maison (t, setLanguage, detectLanguage, Language enum)
-│   │   │   │   └── locales/     # fr.ts, en.ts
-│   │   │   ├── settings/        # Paramètres persistants : GameSettings, getSettings(), updateSettings()
-│   │   │   ├── styles/          # CSS global + tokens.css (vars primitives/sémantiques)
-│   │   │   ├── ui/
-│   │   │   │   ├── dom/         # Modal, Stepper, MovesList, form-controls, SandboxPanel
-│   │   │   │   │   └── screens/ # Écrans DOM supplémentaires (dont lobby-screen.ts, plan 199)
-│   │   │   │   ├── team/        # Composants Team Builder (SlotCardsRow, TeamEditPanel, PokemonPickerModal…)
-│   │   │   │   ├── team-select/ # Composants TeamSelectScene (FormatPicker, TeamListItem, PlayersColumn…)
-│   │   │   │   └── lobby/       # code-wheel.ts + code-wheel-model.ts (plan 199) : la roue de caractères,
-│   │   │   │                    # seul widget de saisie du code de partie pour les 4 entrées
-│   │   │   ├── analytics/       # Télémétrie de jeu (plan 196) : telemetry.ts, battle-telemetry.ts,
-│   │   │   │                    # team-telemetry.ts, telemetry-contract.ts — remplace `analytics.ts` /
-│   │   │   │                    # Goatcounter (retiré du bundle)
-│   │   │   ├── constants.ts     # Constantes visuelles renderer restantes
-│   │   │   └── main.ts          # Câble DI (PresentationContext, UiDomConfig) au boot
-│   │   ├── public/
-│   │   │   └── assets/
-│   │   │       ├── sprites/                 # Bundle sprites (plan 135, décisions #539–#543)
-│   │   │       │   ├── sprites.bin          # Atlas PNG+JSON de tous les Pokemon concaténés (commité, shippé)
-│   │   │       │   ├── sprites-manifest.json # Index léger : byte-ranges, offsets PMD, index portraits (commité, shippé)
-│   │   │       │   ├── portraits.png        # Sheet unique portraits 40×40 grille 32 cols (commité, shippé)
-│   │   │       │   └── item-icons.png       # Sheet unique icônes objets 24×24 grille 16 cols, 117 objets (plan 168, commité, shippé) — sources dans assets-src/sprites/ (plan 237)
-│   │   │       ├── tilesets/terrain/        # tileset.png + tileset.tsj (Tiled externe partagé)
-│   │   │       ├── tilesets/terrain-3d/     # 15 textures PMD plates pour Babylon
-│   │   │       ├── maps/                    # Cartes Tiled (.tmj) servies au runtime
-│   │   │       └── ui/
-│   │   │           ├── arrows.png           # Spritesheet flèches picker direction
-│   │   │           ├── types/               # Type icons Pokepedia ZA (18 types)
-│   │   │           ├── categories/          # Category icons Bulbagarden SV
-│   │   │           └── statuses/            # Status icons Pokepedia ZA (7 statuts majeurs)
-│   │   ├── index.html
-│   │   ├── vite.config.ts
-│   │   ├── tsconfig.json        # extends base + DOM libs
-│   │   └── package.json
-│   │
-│   ├── data/                    # Données Pokemon (partagées)
-│       ├── src/
-│       │   ├── abilities/       # Définitions talents : ability-definitions.ts (20 AbilityDefinition), index.ts
-│       │   ├── items/           # Définitions objets tenus : item-definitions.ts (12 HeldItemDefinition), load-items.ts
-│       │   ├── playable/        # Roster jouable : playable-pokemon.ts — **151 Pokemon Gen 1 (complet)** + dummy (plan 135, décision #542 ; Métamorph/Ditto ajouté en entrée `custom` plan 157). `PlayablePokemonEntry { id; custom?; excludeMoves? }` — movepool dérivé (OP sets ∪ learnset ∩ implémenté, filtré par `excludeMoves`). `excludeMoves` = exclusion ciblée d'un move du movepool même si légal+implémenté (ex: Vaste Pouvoir exclu de Mewtwo, décision #446). (plan 087, plan 118, plan 135, plan 157)
-│       │   ├── loaders/         # Loaders séparés : load-pokemon.ts, load-moves.ts, load-type-chart.ts (plan 049)
-│       │   ├── overrides/       # Surcharges tactiques + balance
-│       │   ├── maps/            # Cartes statiques TS (poc-arena 12×20, sandbox-arena 6×6)
-│       │   ├── tiled/           # Parser Tiled JSON → MapDefinition (plan 045)
-│       │   │   ├── tiled-types.ts          # Interfaces TiledMap, TiledLayer, TiledObject, TiledTileset, TiledTile, TiledProperty
-│       │   │   ├── tileset-resolver.ts     # resolveTileProperties(gid, tileset) → { terrain, height }
-│       │   │   ├── parse-terrain-layer.ts  # TiledLayer → TileState[][]
-│       │   │   ├── parse-spawns-layer.ts   # TiledLayer → MapFormat[] (pixel Tiled → coords grille)
-│       │   │   ├── parse-tiled-map.ts      # parseTiledMap(json) → ParseResult ({ map, warnings } | { errors })
-│       │   │   ├── validate-tiled-map.ts   # validateTiledMap : règles bloquantes (spawn passable, BFS connectivité) + warnings
-│       │   │   ├── load-tiled-map.ts       # loadTiledMap(url) → Promise<MapDefinition> (fetch + parse + validate)
-│       │   │   └── index.ts                # Barrel export
-│       │   ├── i18n/            # Noms localisés : moves.fr.json, moves.en.json, pokemon-names.fr.json, pokemon-names.en.json
-│       │   └── index.ts         # Exporte getMoveName(id, lang), getPokemonName(id, lang), parseTiledMap, loadTiledMap...
-│       ├── reference/           # Base de connaissance JSON offline (plans 048, 056) — contient valeurs Champions
-│       │   ├── README.md
-│       │   ├── pokemon.json     # 1025 espèces (formes imbriquées, learnsets latest-only, exclusions Gmax) — Champions override appliqué
-│       │   ├── moves.json       # 850 moves (sans Z-moves ni Max moves) — 45 moves overridés Champions
-│       │   ├── abilities.json   # 311 abilities — 3 abilities modifiées Champions
-│       │   ├── items.json       # 948 items (sans Z-crystals, Tera shards, Dynamax)
-│       │   ├── type-chart.json  # Table 18×18 + variantes par génération
-│       │   ├── champions-status.json  # Règles statut Pokemon Champions (paralysie 12.5%, gel 25%/max3t, sommeil sample[2,3,3])
-│       │   ├── indexes/         # 19 index inversés regénérés depuis JSON bruts (jamais édités à la main)
-│       │   └── schema/          # 4 JSON Schemas (pokemon, move, ability, item)
-│       ├── scripts/             # Scripts de génération one-shot (non compilés dans src/)
-│       │   ├── build-reference.ts   # Génère reference/ depuis Showdown + PokeAPI (pnpm data:update) — applique applyChampionsOverrides puis `description-overrides.ts` ; lit les textes via `data/text/moves.ts` (cache `showdown/text-moves.ts`)
-│       │   └── fetch-champions.ts   # Fetch mod Showdown Champions (data/mods/champions/) et extrait overrides par regex
-│       ├── tsconfig.json
-│       └── package.json
-│   │
-│   ├── network/                 # Transport pair-à-pair du multijoueur (plan 199 Phase 7 Lot B1,
-│   │   │                        # étendu au combat par le plan 201 Lot B2) — pur : aucune dépendance
-│   │   │                        # d'interface, et du moteur il ne connaît que des types
-│   │   ├── src/
-│   │   │   ├── listeners.ts            # Listeners<Args> : un jeu d'abonnés (subscribe/emit/size/clear),
-│   │   │   │                          # emit itère toujours une COPIE — remplace 12 Set + 12 méthodes on*
-│   │   │   │                          # + 13 boucles d'émission qui étaient recopiées dans room.ts
-│   │   │   ├── peer-connection.ts      # Mise en œuvre PeerJS (WebRTC)
-│   │   │   ├── protocol.ts             # NetworkMessage, NETWORK_VERSION (8), causes de refus,
-│   │   │   │                          # graines (combat/placement/IA), messages action/forfeit (B2)
-│   │   │   ├── room-code.ts            # Alphabet du code (5 caractères), génération, adresses dérivées pkmntac-<CODE>-<place>
-│   │   │   ├── room-config.ts          # Les 7 délais du salon (grâce, redial hôte, accusés) + graceDelayFor,
-│   │   │   │                          # fonction pure qui choisit le régime depuis une GraceSituation
-│   │   │   ├── room-types.ts           # Vocabulaire du salon : RoomRole, RoomView, AwaitedSeat, RoomTimers, RoomDeps
-│   │   │   ├── room.ts                 # État de salon : arrivées, départs (absence/grâce), lancement accusé,
-│   │   │   │                          # routage des messages, sendAction/onAction, sendForfeit/onForfeit,
-│   │   │   │                          # tampon des messages reçus avant branchement de l'écran de combat
-│   │   │   │                          # (B2) — la machine à états ; réglages et vocabulaire sortis en
-│   │   │   │                          # modules dédiés
-│   │   │   ├── transport.ts            # Contrat commun de transport + prise d'identifiant à réessais
-│   │   │   ├── fallback-transport.ts   # LIVRÉ (plan 216) — cascade direct → relais : compose
-│   │   │   │                          # PeerJsTransport (tenté en premier) et RelayTransport, transparente pour room.ts
-│   │   │   ├── relay-connection.ts     # LIVRÉ (plan 216) — transport WebSocket vers le Durable Object
-│   │   │   │                          # de relais, en face de peer-connection.ts
-│   │   │   ├── testing/
-│   │   │   │   └── fake-transport.ts   # Canal en mémoire — rend le salon testable sans réseau (plusieurs Room dans le même processus)
-│   │   │   └── index.ts                # Barrel export
-│   │   ├── tsconfig.json
-│   │   └── package.json         # dependencies: @pokemon-tactic/core (workspace, types uniquement), peerjs
-│   │
-│   └── telemetry-worker/        # Cloudflare Worker de télémétrie (plan 196, Phase 7 Lot A) — HORS JEU,
-│       │                        # ne fait pas partie du client ; pas de script `build` (un Worker se
-│       │                        # déploie, il ne se build pas), déployé en ligne :
-│       │                        # https://pokemon-tactics-telemetry.kekel87.workers.dev
-│       ├── src/
-│       │   ├── worker.ts        # Endpoint de collecte POST /e (ex `index.ts`, renommé étape 6)
-│       │   ├── dashboard.ts     # Route GET /tableau : relevé live protégé par auth HTTP basique
-│       │   │                    # (secret `dashboardPassword` posé par `wrangler secret put`)
-│       │   ├── report.ts        # Agrégation + rendu du rapport — module partagé, importé par
-│       │   │                    # `worker.ts` (dashboard) ET par `scripts/telemetry-stats.ts`
-│       │   │                    # (terminal) : un seul générateur, deux consommateurs
-│       │   ├── validate.ts      # Validation du payload (fonctions pures)
-│       │   ├── visitor.ts       # Hash visiteur HMAC(secret ⊕ date du jour, IP+agent) (fonctions pures)
-│       │   ├── relay.ts         # LIVRÉ (plan 216) — Durable Object RoomRelay : un objet par code de
-│       │   │                    # partie, relais WebSocket de secours (API Hibernation), garde-fou de quota
-│       │   └── testing/mock-telemetry.ts  # Fixtures de test partagées
-│       ├── migrations/
-│       │   ├── 0001_init.sql    # Schéma D1 (base distante `pokemon-tactics-events`, région WEUR)
-│       │   └── 0002_relay_usage.sql  # LIVRÉ (plan 216) — consommation journalière du relais (UTC)
-│       ├── wrangler.toml
-│       ├── tsconfig.json
-│       └── package.json
-│
-├── e2e/                         # Harness Playwright e2e (plan 127) — `pnpm test:e2e`
-│   ├── fixtures/                # bootSandbox(), catalogue sandbox-configs.ts
-│   ├── pages/                   # POMs : MainMenu, CombatScene, screens, teamBuilder
-│   └── tests/                   # smoke/ + dom/ + combat/ + visual/ — 51 tests (50 passants + 1 fixme)
-│                                 #   + bench/ : mesures de maillage WebRTC (projet Playwright `bench`,
-│                                 #   n'existe que sous `PT_BENCH=1` — hors suite normale et hors CI)
-├── scripts/                     # Outils de build one-shot (non packagés)
-│   ├── extract-sprites.ts       # Pipeline PMDCollab : télécharge sprites → dossiers per-Pokemon (atlas JSON+PNG, offsets) dans `assets-src/sprites/pokemon/`, gitignorés (plans 135, 237)
-│   ├── extract-item-icons.ts    # Plan 168 : fetch spritesheet Showdown itemicons-sheet.png, découpe 117 icônes 24×24 par spritenum → `assets-src/sprites/item-icons/`, gitignoré (plans 168, 237)
-│   ├── pack-sprites.ts          # Lit les sources de `assets-src/sprites/` → émet sprites.bin + sprites-manifest.json + portraits.png + item-icons.png (plan 135, plan 168) dans public/assets/sprites/
-│   ├── download-status-icons.ts # Télécharge 14 assets statut ZA depuis Pokepedia (7 icônes 52x36 + 7 miniatures 172x36)
-│   ├── generate-golden-replay.ts # Génère packages/core/fixtures/replays/golden-replay.json (3v3 aggressive vs aggressive, seed 12345)
-│   ├── sprite-config.json       # +51 entrées (plan 135) + 1 (Ditto 0132, plan 157) → couvre les 151 Pokemon Gen 1 (complet)
-│   ├── e2e-affected.ts          # Plan 170 : calcule le niveau e2e (smoke/affected/full) depuis le diff, escalade auto conservatrice — `pnpm test:e2e:affected`. `--since-main` (2026-09-10) cadre sur le point de divergence d'avec `origin/main` au lieu de `HEAD` ; famille de specs résolue vide → escalade en suite entière au lieu de disparaître en silence
-│   ├── e2e-affected.test.ts     # 2026-09-10 : 42 tests, diff et liste de specs injectés (aucun appel git). Câblé au projet vitest `unit` via `scripts/**/*.test.ts`
-│   ├── map-preview.js           # Vite helper pour pnpm dev:map
-│   └── telemetry-stats.ts       # `pnpm stats` : rapport terminal des statistiques d'usage (Pokemon,
-│                                 # talents, objets tenus, attaques, causes de K.O.) — matière
-│                                 # d'équilibrage Phase 8, interroge D1 en remote, réutilise `report.ts`
-│                                 # du Worker (même générateur que le tableau `/tableau`)
-├── .worktrees/                  # Git worktrees (gitignored) — voir section "Workflow worktrees"
-│   └── <branche-slug>/          # Un répertoire par worktree actif
-├── docs/
-│   ├── images/
-│   ├── plans/                   # Plans d'exécution numérotés (70 plans)
-│   ├── architecture.md
-│   ├── game-design.md
-│   ├── roadmap.md
-│   ├── references.md
-│   ├── abilities-system.md      # Référence système talents : hooks, patterns, anti-spam, call sites
-│   └── ...
-├── .github/
-│   └── ISSUE_TEMPLATE/
-├── package.json
-├── pnpm-workspace.yaml
+├── packages/                    # Un package = une responsabilité ; le contenu fin se lit dans le code
+│   ├── core/                    # Moteur de jeu pur (ZÉRO dépendance UI)
+│   │   └── src/                 # enums/ types/ utils/ grid/ battle/ ai/ team/ testing/ — API publique : index.ts
+│   ├── data/                    # Données Pokemon, moves, talents, objets, cartes Tiled, i18n, overrides
+│   ├── render-ports/            # Ports hexagonaux du contrat de rendu (BoardView, BattleChrome, view-models)
+│   ├── view-core/               # Logique de vue headless, moteur-agnostique (orchestrateur de combat FSM,
+│   │                            #   view-builders, file d'animations, horloge de combat, IA locale)
+│   ├── render-babylon/          # Backend de rendu Babylon.js (scène, caméra iso, picking, sprites, shaders)
+│   ├── render-canvas2d/         # Primitives canvas 2D (barres de PV, pastilles, plans de texte)
+│   ├── ui-dom/                  # Chrome HTML réutilisable (panneaux, tooltips, timeline, modales)
+│   ├── network/                 # Transport pair-à-pair du multijoueur (plan 199) — voir docs/multiplayer.md
+│   ├── telemetry-worker/        # Worker Cloudflare de télémétrie et de rendez-vous (plan 196) — HORS JEU
+│   └── app/                     # Composition root Vite : écrans, menus, saisie, audio, settings, bootstrap
+├── e2e/                         # Harness Playwright (fixtures/, pages/ = POMs, tests/) — `pnpm test:e2e`
+├── scripts/                     # Outils de build one-shot, bancs, audit (non packagés) — voir scripts/README.md
+├── scenarios/                   # Scénarios de recette
+├── assets-src/                  # Sources d'assets non libres (gitignorées, téléchargées par script)
+├── docs/                        # Documentation ; plans/ = plans d'exécution numérotés
+├── wiki/                        # Wiki GitHub du jeu
+├── .worktrees/                  # Git worktrees (gitignored) — voir section « Workflow worktrees »
 ├── tsconfig.base.json           # Config TS partagée (strict, bundler, path aliases)
-├── tsconfig.json
-├── biome.json                   # Lint + format (recommended + nursery)
-├── vitest.config.ts
-├── CLAUDE.md
-├── CREDITS.md                   # Attribution CC BY-NC 4.0 PMDCollab
-├── LICENSE                      # MIT (code) + note CC BY-NC 4.0 (sprites)
-├── README.md
+├── biome.json                   # Lint + format
+├── vitest.config.ts             # Projets unit / integration / scenario
+├── CLAUDE.md  README.md  CREDITS.md  LICENSE
 └── .worktree-port               # (gitignored) Port Vite déterministe du worktree courant (absent sur main)
 ```
 

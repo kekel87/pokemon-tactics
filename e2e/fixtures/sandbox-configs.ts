@@ -2744,3 +2744,33 @@ export const WIDE_GUARD_FRONT_BLOCKED_BACK_HIT = {
     },
   ],
 } as const;
+
+/** §5.46 — Garde Large bloquée par un mur. Carte `sandbox-los` (murs en (3,3) et (5,3)). Florizarre
+ *  (joueur, (4,0) face SUD, plus lent) lance Tornade (`gust`) ; Électrode (passif, (2,3) face EST)
+ *  se couvre avant, mais le mur (3,3) lui coupe la ligne de vue vers Ronflex (4,3) face NORD :
+ *  Ronflex n'est PAS couvert et prend des dégâts. */
+export const WIDE_GUARD_WALL_BLOCKS_COVER = {
+  seed: 12345,
+  mapUrl: "assets/maps/dev/sandbox-los.tmj",
+  teams: [
+    {
+      control: "player",
+      members: [
+        { pokemon: "venusaur", moves: ["gust"], position: { x: 4, y: 0 }, direction: "south" },
+      ],
+    },
+    {
+      control: "passive",
+      members: [
+        {
+          pokemon: "electrode",
+          moves: ["wide-guard"],
+          defensiveMove: "wide-guard",
+          position: { x: 2, y: 3 },
+          direction: "east",
+        },
+        { pokemon: "snorlax", position: { x: 4, y: 3 }, direction: "north" },
+      ],
+    },
+  ],
+} as const;

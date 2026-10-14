@@ -5,6 +5,7 @@ import type { BattleEvent } from "../../types/battle-event";
 import type { Effect } from "../../types/effect";
 import type { EffectContext } from "../effect-handler-registry";
 import { effectiveCombatStats } from "../effective-combat-stats";
+import { isHeldItemSuppressed } from "../field-global-system";
 import { getEffectiveStat } from "../stat-modifier";
 import {
   applyWeatherWar,
@@ -16,7 +17,7 @@ import {
 export function handleSetWeather(context: EffectContext): BattleEvent[] {
   const effect = context.effect as Extract<Effect, { kind: typeof EffectKind.SetWeather }>;
   const turns = effectiveWeatherTurns(
-    context.attacker.heldItemId,
+    isHeldItemSuppressed(context.state, context.attacker) ? undefined : context.attacker.heldItemId,
     effect.weather,
     effect.turns ?? WEATHER_DEFAULT_DURATION,
   );

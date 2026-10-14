@@ -2,6 +2,8 @@ import { BattleEventType } from "../enums/battle-event-type";
 import { Category } from "../enums/category";
 import { DefensiveKind } from "../enums/defensive-kind";
 import { TargetingKind } from "../enums/targeting-kind";
+import type { Grid } from "../grid/Grid";
+import { hasLineOfSight } from "../grid/line-of-sight";
 import type { BattleEvent } from "../types/battle-event";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
@@ -66,6 +68,8 @@ export const WIDE_GUARD_ALLY_RADIUS = 2;
  * Garde Large: an AoE move hitting `defender` is blocked when a living ally (not `defender` itself,
  * whose own defense goes through `checkDefense`) holds an active Wide Guard within its radius.
  * Like Abri, it only stops hits that do not come from behind the protected mon (its own facing).
+ * The cover does not reach through terrain: a wall (height difference) between the caster and the
+ * ally breaks it, using the same height-aware line of sight as single-target moves.
  */
 export function checkWideGuardCover(
   attacker: PokemonInstance,
@@ -73,6 +77,7 @@ export function checkWideGuardCover(
   move: MoveDefinition,
   targetPosition: Position,
   candidates: Iterable<PokemonInstance>,
+  grid: Grid,
 ): DefenseResult | null {
   if (move.targetsAlly === true || move.targetsAllyOrSelf === true || move.bypassProtect) {
     return null;
@@ -86,7 +91,16 @@ export function checkWideGuardCover(
       ally.playerId === defender.playerId &&
       ally.currentHp > 0 &&
       ally.activeDefense?.kind === DefensiveKind.WideGuard &&
-      manhattanDistance(ally.position, defender.position) <= WIDE_GUARD_ALLY_RADIUS
+      manhattanDistance(ally.position, defender.position) <= WIDE_GUARD_ALLY_RADIUS &&
+      hasLineOfSight(
+        grid,
+        ally.position,
+        defender.position,
+        Math.min(
+          grid.getTile(ally.position)?.height ?? 0,
+          grid.getTile(defender.position)?.height ?? 0,
+        ),
+      )
     ) {
       const attackOrigin = getAttackOrigin(attacker, move, targetPosition);
       return isAttackFromFront(attackOrigin, defender) ? wideGuardBlock(defender) : null;

@@ -10,6 +10,7 @@ import { describe, expect, it, vi } from "vitest";
 import { ActionKind } from "../enums/action-kind";
 import { BattleEventType } from "../enums/battle-event-type";
 import { Direction } from "../enums/direction";
+import { FieldGlobalKind } from "../enums/field-global-kind";
 import { HeldItemId } from "../enums/held-item-id";
 import { PlayerId } from "../enums/player-id";
 import { PokemonType } from "../enums/pokemon-type";
@@ -21,6 +22,7 @@ import {
   endTurnUntilActor,
   MockPokemon,
 } from "../testing";
+import { postFieldGlobalZone } from "./field-global-system";
 // TODO(plan-084-étape-2): créer packages/core/src/battle/weather-system.ts
 import {
   getWeatherAccuracyOverride,
@@ -150,6 +152,35 @@ describe("heat-rock item", () => {
 
     expect(state.weather).toBe(Weather.Sun);
     expect(state.weatherTurnsRemaining).toBe(8);
+  });
+
+  it("keeps Sun at 5 turns when the setter stands in a Zone Magique", () => {
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "setter",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      moveIds: ["sunny-day"],
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+      heldItemId: HeldItemId.HeatRock,
+    });
+    const foe = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe",
+      playerId: PlayerId.Player2,
+      position: { x: 4, y: 4 },
+      derivedStats: { movement: 3, jump: 1, initiative: 10 },
+    });
+    const { engine, state } = buildItemTestEngine([attacker, foe]);
+    postFieldGlobalZone(state, attacker, FieldGlobalKind.MagicRoom);
+
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "setter",
+      moveId: "sunny-day",
+      targetPosition: { x: 0, y: 0 },
+    });
+
+    expect(state.weather).toBe(Weather.Sun);
+    expect(state.weatherTurnsRemaining).toBe(5);
   });
 });
 

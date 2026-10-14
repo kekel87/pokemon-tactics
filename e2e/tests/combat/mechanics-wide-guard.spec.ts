@@ -1,6 +1,9 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "../../fixtures";
-import { WIDE_GUARD_FRONT_BLOCKED_BACK_HIT } from "../../fixtures/sandbox-configs";
+import {
+  WIDE_GUARD_FRONT_BLOCKED_BACK_HIT,
+  WIDE_GUARD_WALL_BLOCKS_COVER,
+} from "../../fixtures/sandbox-configs";
 
 // Cahier §5.46 — Garde Large (`wide-guard`) : la couverture d'équipe obéit à l'orientation PROPRE de
 // chaque protégé (même règle qu'Abri). Électrode (rapide) se couvre en 1er ; Florizarre lance ensuite
@@ -24,4 +27,19 @@ test("§5.46 Garde Large : protège l'allié de face, touche l'allié de dos (jo
   await expect(log(page, /Tortank perd \d+ PV/)).toBeAttached({ timeout: 10_000 });
   await expect(log(page, /Ronflex perd \d+ PV/)).toHaveCount(0);
   await expect(log(page, /Garde Large protège Tortank/)).toHaveCount(0);
+});
+
+// Un mur entre le lanceur de Garde Large et l'allié lui coupe la ligne de vue : pas de couverture.
+test("§5.46 Garde Large : un mur coupe la couverture, l'allié est touché (journal)", async ({
+  page,
+  bootSandbox,
+}) => {
+  const scene = await bootSandbox(WIDE_GUARD_WALL_BLOCKS_COVER);
+
+  await expect(log(page, /Électrode utilise Garde Large/)).toBeAttached({ timeout: 10_000 });
+
+  await scene.castFirstMove(4, 3); // Tornade sur Ronflex, derrière le mur vu d'Électrode
+
+  await expect(log(page, /Ronflex perd \d+ PV/)).toBeAttached({ timeout: 10_000 });
+  await expect(log(page, /Garde Large protège Ronflex/)).toHaveCount(0);
 });

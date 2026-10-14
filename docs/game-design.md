@@ -475,7 +475,7 @@ La traînée est entièrement **jaune** (`#ffdd44`). La couleur d'intention (rou
 |------|-------|-------------------|
 | **Abri** / Protect | Bloque attaques de face et de côtés. | Directionnel (dos vulnérable). Pas de spam penalty. |
 | **Détection** / Detect | Clone d'Abri. | Distribution roster différente. |
-| **Garde Large** / Wide Guard | Bloque les attaques de zone sur le lanceur et ses alliés à 2 tiles ou moins, sauf celles venant de derrière chacun (comme Abri). Protégé = dans le rayon au moment du coup (entrer protège, sortir non). | Portée localisée, directionnel. |
+| **Garde Large** / Wide Guard | Bloque les attaques de zone sur le lanceur et ses alliés à 2 tiles ou moins, sauf celles venant de derrière chacun (comme Abri). Protégé = dans le rayon au moment du coup (entrer protège, sortir non). Un allié n'est couvert que s'il est en ligne de vue du lanceur (un mur entre les deux casse la couverture). | Portée localisée, directionnel. |
 | **Prévention** / Quick Guard | Bloque prochaine attaque reçue (toute direction). Consommé en 1 coup. | Omnidirectionnel mais 1 usage. |
 | **Riposte** / Counter | Prend dégâts contact, renvoie ×2. Actif toute la durée. | Contact uniquement. |
 | **Voile Miroir** / Mirror Coat | Prend dégâts distance, renvoie ×2. | Distance uniquement. |
@@ -868,7 +868,7 @@ La météo est un état global du combat (`BattleState.weather`) affectant dég�
 
 - `weatherTurnsRemaining` décrémenté en `weather-tick` **au tour du poseur seulement** (tours du lanceur ; tours « fantômes » après son K.O.).
 - Quand il atteint 0 → météo passe à `None`.
-- Chaque météo a son rocher, qui la porte de 5 à **8 tours** (`handle-set-weather.ts`) : Roche Chaude = Plein soleil, Roche Humide = Pluie, Roche Lisse = Tempête de sable, Roche Glace = Neige. Corrigé au plan 225 : le document attribuait à la seule Roche Chaude le Soleil et le Sable.
+- Chaque météo a son rocher, qui la porte de 5 à **8 tours** (`handle-set-weather.ts`) : Roche Chaude = Plein soleil, Roche Humide = Pluie, Roche Lisse = Tempête de sable, Roche Glace = Neige. Sous Zone Magique, le porteur n'étend plus la durée. Corrigé au plan 225 : le document attribuait à la seule Roche Chaude le Soleil et le Sable.
 
 ### Weather war
 

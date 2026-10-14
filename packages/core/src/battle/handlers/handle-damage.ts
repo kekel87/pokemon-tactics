@@ -187,6 +187,7 @@ function dealSingleHit(
       context.move,
       context.targetPosition,
       context.state.pokemon.values(),
+      new Grid(context.state.grid[0]?.length ?? 0, context.state.grid.length, context.state.grid),
     ) ?? checkDefense(context.attacker, target, context.move, damage, context.targetPosition);
   events.push(...defenseResult.events);
 

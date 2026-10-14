@@ -3,7 +3,7 @@ import { ActionKind } from "../../enums/action-kind";
 import { BattleEventType } from "../../enums/battle-event-type";
 import { Direction } from "../../enums/direction";
 import { PlayerId } from "../../enums/player-id";
-import { buildMoveTestEngine, MockPokemon } from "../../testing";
+import { buildMoveTestEngine, MockBattle, MockPokemon } from "../../testing";
 
 describe("wide-guard", () => {
   it("blocks an AoE attack (Cone)", () => {
@@ -184,6 +184,58 @@ describe("wide-guard", () => {
       BattleEventType.DefenseTriggered,
     );
     expect(state.pokemon.get(nearAlly.id)?.currentHp).toBe(nearHpBefore);
+  });
+
+  it("does not cover an ally behind a wall", () => {
+    const guard = MockPokemon.fresh(MockPokemon.base, {
+      id: "guard",
+      playerId: PlayerId.Player1,
+      position: { x: 3, y: 2 },
+      orientation: Direction.South,
+      moveIds: ["wide-guard"],
+      derivedStats: { movement: 3, jump: 1, initiative: 100 },
+    });
+    const wallAlly = MockPokemon.fresh(MockPokemon.base, {
+      id: "wall-ally",
+      playerId: PlayerId.Player1,
+      position: { x: 3, y: 4 },
+      orientation: Direction.South,
+      derivedStats: { movement: 3, jump: 1, initiative: 50 },
+    });
+    const attacker = MockPokemon.fresh(MockPokemon.pidgey, {
+      id: "attacker",
+      playerId: PlayerId.Player2,
+      position: { x: 3, y: 7 },
+      orientation: Direction.North,
+      derivedStats: { movement: 4, jump: 2, initiative: 10 },
+    });
+    const { engine, state } = buildMoveTestEngine([guard, wallAlly, attacker]);
+    MockBattle.setTile(state, 3, 3, { height: 4 });
+    const allyHpBefore = state.pokemon.get(wallAlly.id)?.currentHp ?? 0;
+
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: guard.id,
+      moveId: "wide-guard",
+      targetPosition: guard.position,
+    });
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.EndTurn,
+      pokemonId: guard.id,
+      direction: Direction.South,
+    });
+
+    const result = engine.submitAction(PlayerId.Player2, {
+      kind: ActionKind.UseMove,
+      pokemonId: attacker.id,
+      moveId: "gust",
+      targetPosition: { x: 3, y: 6 },
+    });
+
+    expect(result.events.map((event) => event.type)).not.toContain(
+      BattleEventType.DefenseTriggered,
+    );
+    expect(state.pokemon.get(wallAlly.id)?.currentHp).toBeLessThan(allyHpBefore);
   });
 
   it("does not cover an ally hit from behind", () => {
