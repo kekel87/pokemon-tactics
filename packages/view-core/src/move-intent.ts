@@ -65,7 +65,7 @@ export function moveIntent(move: MoveDefinition): MoveIntent {
 
 /**
  * Manhattan radius of a self-centred AoE effect (life-dew heal, aromatherapy cure,
- * howl / magnetic-flux ally stat buff, field terrain), or `undefined` for a single-tile
+ * howl / magnetic-flux ally stat buff, wide-guard cover, field terrain), or `undefined` for a single-tile
  * self move. Lets both the ground
  * preview and the tooltip grid draw the full affected zone around the caster.
  */
@@ -79,6 +79,10 @@ export function selfPreviewRadius(move: MoveDefinition): number | undefined {
       return effect.radius;
     }
     if (effect.kind === EffectKind.CureTeamStatus) {
+      return effect.radius;
+    }
+    // Garde Large: the defense also covers allies within the radius around the caster.
+    if (effect.kind === EffectKind.Defensive && effect.radius !== undefined) {
       return effect.radius;
     }
     if (effect.kind === EffectKind.PostFieldTerrain) {

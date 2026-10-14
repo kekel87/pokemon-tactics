@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ActionKind } from "../enums/action-kind";
 import { BattleEventType } from "../enums/battle-event-type";
+import { HeldItemId } from "../enums/held-item-id";
 import { PlayerId } from "../enums/player-id";
 import { PokemonGender } from "../enums/pokemon-gender";
 import { StatName } from "../enums/stat-name";
@@ -3769,6 +3770,28 @@ describe("ability system integration", () => {
 
     // Then the weather is Sun
     expect(state.weather).toBe(Weather.Sun);
+  });
+
+  it("drought lasts 5 turns, or 8 when the holder carries a Heat Rock", () => {
+    const build = (heldItemId?: HeldItemId) => {
+      const holder = MockPokemon.fresh(MockPokemon.base, {
+        id: "holder",
+        definitionId: "vulpix",
+        playerId: PlayerId.Player1,
+        position: { x: 0, y: 0 },
+        abilityId: "drought",
+        heldItemId,
+      });
+      const foe = MockPokemon.fresh(MockPokemon.base, {
+        id: "foe",
+        playerId: PlayerId.Player2,
+        position: { x: 3, y: 0 },
+      });
+      return buildMoveTestEngine([holder, foe]).state;
+    };
+
+    expect(build().weatherTurnsRemaining).toBe(5);
+    expect(build(HeldItemId.HeatRock).weatherTurnsRemaining).toBe(8);
   });
 
   it("steadfast raises Speed when the holder flinches", () => {

@@ -1,5 +1,6 @@
 import type { MoveDefinition } from "@pokemon-tactic/core";
 import {
+  DefensiveKind,
   EffectKind,
   EffectTarget,
   FIELD_TERRAIN_RADIUS,
@@ -86,6 +87,14 @@ describe("selfPreviewRadius", () => {
 
   it("returns the cure radius", () => {
     expect(selfPreviewRadius(move([{ kind: EffectKind.CureTeamStatus, radius: 3 }]))).toBe(3);
+  });
+
+  it("returns the defensive radius (Garde Large)", () => {
+    expect(
+      selfPreviewRadius(
+        move([{ kind: EffectKind.Defensive, defenseKind: DefensiveKind.WideGuard, radius: 2 }]),
+      ),
+    ).toBe(2);
   });
 
   it("returns the field terrain radius", () => {

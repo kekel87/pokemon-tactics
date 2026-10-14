@@ -15,7 +15,7 @@ import { applyChargeReaction } from "../charge-reaction";
 import { effectConditionHolds } from "../condition-eval";
 import { calculateDamageWithCrit, getTypeEffectiveness } from "../damage-calculator";
 import { resolveDamageContext } from "../damage-context";
-import { checkDefense } from "../defense-check";
+import { checkDefense, checkWideGuardCover } from "../defense-check";
 import { resolveDynamicPower } from "../dynamic-power-system";
 import type { EffectContext } from "../effect-handler-registry";
 import { effectiveHeldItem } from "../effective-held-item";
@@ -180,13 +180,14 @@ function dealSingleHit(
     damage = ohkoEffectiveness === 0 ? 0 : target.maxHp;
   }
 
-  const defenseResult = checkDefense(
-    context.attacker,
-    target,
-    context.move,
-    damage,
-    context.targetPosition,
-  );
+  const defenseResult =
+    checkWideGuardCover(
+      context.attacker,
+      target,
+      context.move,
+      context.targetPosition,
+      context.state.pokemon.values(),
+    ) ?? checkDefense(context.attacker, target, context.move, damage, context.targetPosition);
   events.push(...defenseResult.events);
 
   if (defenseResult.consumeDefense) {

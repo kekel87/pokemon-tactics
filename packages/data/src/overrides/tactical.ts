@@ -27,6 +27,7 @@ import {
   StatusType,
   TargetingKind,
   Weather,
+  WIDE_GUARD_ALLY_RADIUS,
 } from "@pokemon-tactic/core";
 
 export interface TacticalOverride {
@@ -723,7 +724,13 @@ export const tacticalOverrides: Record<string, TacticalOverride> = {
   },
   "wide-guard": {
     targeting: { kind: TargetingKind.Self },
-    effects: [{ kind: EffectKind.Defensive, defenseKind: DefensiveKind.WideGuard }],
+    effects: [
+      {
+        kind: EffectKind.Defensive,
+        defenseKind: DefensiveKind.WideGuard,
+        radius: WIDE_GUARD_ALLY_RADIUS,
+      },
+    ],
     effectTier: EffectTier.Reactive,
   },
   "quick-guard": {

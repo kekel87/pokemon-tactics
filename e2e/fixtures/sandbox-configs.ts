@@ -2713,3 +2713,34 @@ export const INTIMIDATE_DEFIANT = {
   ...INTIMIDATE_UNBLOCKED,
   dummyAbility: "defiant",
 } as const;
+
+/** Garde Large (`wide-guard`, Self, bloque les attaques de zone sur le lanceur ET les alliés à ≤ 2
+ *  cases, seulement si l'attaque vient de FACE). Équipe 2 passive : Électrode (rapide, `defensiveMove`)
+ *  se couvre en 1er en (2,5) ; Ronflex en (1,4) regarde l'ouest → l'attaquant est DEVANT lui (bloqué) ;
+ *  Tortank en (2,4) regarde l'est → l'attaquant est DERRIÈRE lui (touché). Florizarre (joueur, (0,4)
+ *  face EST, plus lent) lance Tornade (`gust`, Cône 1-3) sur la colonne y=4, terrain 100 % normal. */
+export const WIDE_GUARD_FRONT_BLOCKED_BACK_HIT = {
+  seed: 12345,
+  teams: [
+    {
+      control: "player",
+      members: [
+        { pokemon: "venusaur", moves: ["gust"], position: { x: 0, y: 4 }, direction: "east" },
+      ],
+    },
+    {
+      control: "passive",
+      members: [
+        {
+          pokemon: "electrode",
+          moves: ["wide-guard"],
+          defensiveMove: "wide-guard",
+          position: { x: 2, y: 5 },
+          direction: "west",
+        },
+        { pokemon: "snorlax", position: { x: 1, y: 4 }, direction: "west" },
+        { pokemon: "blastoise", position: { x: 2, y: 4 }, direction: "east" },
+      ],
+    },
+  ],
+} as const;

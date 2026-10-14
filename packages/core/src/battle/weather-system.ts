@@ -1,4 +1,5 @@
 import { BattleEventType } from "../enums/battle-event-type";
+import { HeldItemId } from "../enums/held-item-id";
 import { PokemonType } from "../enums/pokemon-type";
 import { StatName } from "../enums/stat-name";
 import { Weather } from "../enums/weather";
@@ -9,6 +10,24 @@ import type { PokemonInstance } from "../types/pokemon-instance";
 export const WEATHER_DEFAULT_DURATION = 5;
 export const WEATHER_EXTENDED_DURATION = 8;
 export const WEATHER_DAMAGE_FRACTION = 1 / 16;
+
+const WEATHER_EXTENDER_ITEM: Partial<Record<Weather, HeldItemId>> = {
+  [Weather.Sun]: HeldItemId.HeatRock,
+  [Weather.Rain]: HeldItemId.DampRock,
+  [Weather.Sandstorm]: HeldItemId.SmoothRock,
+  [Weather.Snow]: HeldItemId.IcyRock,
+};
+
+export function effectiveWeatherTurns(
+  setterHeldItemId: HeldItemId | undefined,
+  weather: Weather,
+  baseTurns: number,
+): number {
+  if (setterHeldItemId !== undefined && WEATHER_EXTENDER_ITEM[weather] === setterHeldItemId) {
+    return WEATHER_EXTENDED_DURATION;
+  }
+  return baseTurns;
+}
 
 export function setWeather(
   state: BattleState,

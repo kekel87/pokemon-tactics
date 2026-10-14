@@ -475,7 +475,7 @@ La traînée est entièrement **jaune** (`#ffdd44`). La couleur d'intention (rou
 |------|-------|-------------------|
 | **Abri** / Protect | Bloque attaques de face et de côtés. | Directionnel (dos vulnérable). Pas de spam penalty. |
 | **Détection** / Detect | Clone d'Abri. | Distribution roster différente. |
-| **Garde Large** / Wide Guard | Bloque AoE dans rayon 2 tiles, protège alliés dans ce rayon. | Portée localisée. |
+| **Garde Large** / Wide Guard | Bloque les attaques de zone sur le lanceur et ses alliés à 2 tiles ou moins, sauf celles venant de derrière chacun (comme Abri). Protégé = dans le rayon au moment du coup (entrer protège, sortir non). | Portée localisée, directionnel. |
 | **Prévention** / Quick Guard | Bloque prochaine attaque reçue (toute direction). Consommé en 1 coup. | Omnidirectionnel mais 1 usage. |
 | **Riposte** / Counter | Prend dégâts contact, renvoie ×2. Actif toute la durée. | Contact uniquement. |
 | **Voile Miroir** / Mirror Coat | Prend dégâts distance, renvoie ×2. | Distance uniquement. |

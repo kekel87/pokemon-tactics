@@ -157,7 +157,12 @@ import {
 } from "./terrain-effects";
 import type { PhaseHandler } from "./turn-pipeline";
 import { TurnPipeline } from "./turn-pipeline";
-import { decrementWeatherTimer, effectiveWeather, setWeather } from "./weather-system";
+import {
+  decrementWeatherTimer,
+  effectiveWeather,
+  effectiveWeatherTurns,
+  setWeather,
+} from "./weather-system";
 
 type EventHandler = (event: BattleEvent) => void;
 
@@ -1561,7 +1566,12 @@ export class BattleEngine {
       }
       if (ability.weatherAutoSetter && pokemon.currentHp > 0) {
         const { weather, turns } = ability.weatherAutoSetter;
-        const weatherEvents = setWeather(this.state, weather, turns, pokemon.id);
+        const weatherEvents = setWeather(
+          this.state,
+          weather,
+          effectiveWeatherTurns(pokemon.heldItemId, weather, turns),
+          pokemon.id,
+        );
         this.startupEvents.push(...weatherEvents);
       }
     }

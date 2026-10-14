@@ -65,6 +65,8 @@ export type Effect =
   | {
       kind: typeof EffectKind.Defensive;
       defenseKind: DefensiveKind;
+      /** Manhattan radius around the caster the defense also covers (Garde Large) — drives the preview. */
+      radius?: number;
     }
   | {
       kind: typeof EffectKind.Knockback;

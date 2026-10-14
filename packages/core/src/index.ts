@@ -39,6 +39,7 @@ export {
   type CasterMoveContext,
   resolveCasterMoveContext,
 } from "./battle/damage-context";
+export { WIDE_GUARD_ALLY_RADIUS } from "./battle/defense-check";
 export { type DisplayStat, effectiveDisplayStat } from "./battle/display-stat";
 export {
   DISTORTION_DEFAULT_DURATION,

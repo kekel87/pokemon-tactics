@@ -42,6 +42,59 @@ export function getAttackOrigin(
   return attacker.position;
 }
 
+function wideGuardBlock(defender: PokemonInstance): DefenseResult {
+  return {
+    blocked: true,
+    reflectDamage: 0,
+    endureAtOne: false,
+    events: [
+      {
+        type: BattleEventType.DefenseTriggered,
+        defenderId: defender.id,
+        defenseKind: DefensiveKind.WideGuard,
+        blocked: true,
+      },
+    ],
+    consumeDefense: false,
+  };
+}
+
+/** Wide Guard (Garde Large) also covers allies standing within this many tiles of the caster. */
+export const WIDE_GUARD_ALLY_RADIUS = 2;
+
+/**
+ * Garde Large: an AoE move hitting `defender` is blocked when a living ally (not `defender` itself,
+ * whose own defense goes through `checkDefense`) holds an active Wide Guard within its radius.
+ * Like Abri, it only stops hits that do not come from behind the protected mon (its own facing).
+ */
+export function checkWideGuardCover(
+  attacker: PokemonInstance,
+  defender: PokemonInstance,
+  move: MoveDefinition,
+  targetPosition: Position,
+  candidates: Iterable<PokemonInstance>,
+): DefenseResult | null {
+  if (move.targetsAlly === true || move.targetsAllyOrSelf === true || move.bypassProtect) {
+    return null;
+  }
+  if (!AOE_TARGETING_KINDS.has(move.targeting.kind)) {
+    return null;
+  }
+  for (const ally of candidates) {
+    if (
+      ally.id !== defender.id &&
+      ally.playerId === defender.playerId &&
+      ally.currentHp > 0 &&
+      ally.activeDefense?.kind === DefensiveKind.WideGuard &&
+      manhattanDistance(ally.position, defender.position) <= WIDE_GUARD_ALLY_RADIUS
+    ) {
+      const attackOrigin = getAttackOrigin(attacker, move, targetPosition);
+      return isAttackFromFront(attackOrigin, defender) ? wideGuardBlock(defender) : null;
+    }
+  }
+  return null;
+}
+
 export function checkDefense(
   attacker: PokemonInstance,
   defender: PokemonInstance,
@@ -95,23 +148,10 @@ export function checkDefense(
 
     case DefensiveKind.WideGuard: {
       const isAoe = AOE_TARGETING_KINDS.has(move.targeting.kind);
-      if (!isAoe) {
+      if (!isAoe || !isAttackFromFront(attackOrigin, defender)) {
         return noEffect;
       }
-      return {
-        blocked: true,
-        reflectDamage: 0,
-        endureAtOne: false,
-        events: [
-          {
-            type: BattleEventType.DefenseTriggered,
-            defenderId: defender.id,
-            defenseKind: defense.kind,
-            blocked: true,
-          },
-        ],
-        consumeDefense: false,
-      };
+      return wideGuardBlock(defender);
     }
 
     case DefensiveKind.QuickGuard: {

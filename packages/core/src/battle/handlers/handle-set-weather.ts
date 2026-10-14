@@ -1,5 +1,4 @@
 import type { EffectKind } from "../../enums/effect-kind";
-import { HeldItemId } from "../../enums/held-item-id";
 import { StatName } from "../../enums/stat-name";
 import { Weather } from "../../enums/weather";
 import type { BattleEvent } from "../../types/battle-event";
@@ -9,32 +8,14 @@ import { effectiveCombatStats } from "../effective-combat-stats";
 import { getEffectiveStat } from "../stat-modifier";
 import {
   applyWeatherWar,
+  effectiveWeatherTurns,
   setWeather,
   WEATHER_DEFAULT_DURATION,
-  WEATHER_EXTENDED_DURATION,
 } from "../weather-system";
-
-const WEATHER_EXTENDER_ITEM: Partial<Record<Weather, HeldItemId>> = {
-  [Weather.Sun]: HeldItemId.HeatRock,
-  [Weather.Rain]: HeldItemId.DampRock,
-  [Weather.Sandstorm]: HeldItemId.SmoothRock,
-  [Weather.Snow]: HeldItemId.IcyRock,
-};
-
-function effectiveTurns(
-  setterHeldItemId: HeldItemId | undefined,
-  weather: Weather,
-  baseTurns: number,
-): number {
-  if (setterHeldItemId !== undefined && WEATHER_EXTENDER_ITEM[weather] === setterHeldItemId) {
-    return WEATHER_EXTENDED_DURATION;
-  }
-  return baseTurns;
-}
 
 export function handleSetWeather(context: EffectContext): BattleEvent[] {
   const effect = context.effect as Extract<Effect, { kind: typeof EffectKind.SetWeather }>;
-  const turns = effectiveTurns(
+  const turns = effectiveWeatherTurns(
     context.attacker.heldItemId,
     effect.weather,
     effect.turns ?? WEATHER_DEFAULT_DURATION,
