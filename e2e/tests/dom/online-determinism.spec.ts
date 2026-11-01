@@ -73,7 +73,7 @@ test("§11.6 en ligne : un duel honnête va jusqu'à la victoire sans qu'aucune 
     // sérialisation canonique doit faire.
     for (const peer of [duel.attacker, duel.defender]) {
       await expect(peer.victory).toBeVisible({ timeout: 30_000 });
-      await expect(peer.victory.getByRole("heading")).toHaveText("Joueur 1 gagne !");
+      await expect(peer.victoryHeading).toHaveText("Joueur 1 gagne !");
       await expect(peer.logEntries.filter({ hasText: "Abra est K.O." })).toHaveCount(1);
     }
 
@@ -162,7 +162,7 @@ test("§11.7 en ligne : un pair qui reconstruit son état par rejeu ne diverge p
     await duel.fightToKnockOut();
     for (const peer of [duel.attacker, duel.defender]) {
       await expect(peer.victory).toBeVisible({ timeout: 30_000 });
-      await expect(peer.victory.getByRole("heading")).toHaveText("Joueur 1 gagne !");
+      await expect(peer.victoryHeading).toHaveText("Joueur 1 gagne !");
       await expect(peer.divergence).toHaveCount(0);
     }
   } finally {

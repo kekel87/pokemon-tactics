@@ -599,7 +599,7 @@ garde.
 
 La reprise de combat en cours (plan 181) est le chemin dont la reconnexion se sert :
 
-- la sauvegarde est `{ setup + seed + actions }`, jamais de l'état dérivé ;
+- la sauvegarde est `{ setup + seed + actions + abandons }`, jamais de l'état dérivé ;
 - `resumeBattle` reconstruit le moteur avec `creationRng: createPrng(seed)`, rejoue les actions,
   reconstruit le journal, refait apparaître les billboards depuis l'état du moteur ;
 - la persistance est un **port** `load` / `save` / `clear` (décision #751), pas un accès direct à
@@ -690,6 +690,16 @@ Le `bye` doit partir à la **fermeture d'onglet** (`pagehide`), pas seulement su
 **Une phrase par raison**, pas un message unique : `ForfeitReason` distingue `resigned` (abandon),
 `disconnected` (chien de garde) et `desynced` (divergence), chacun avec sa propre phrase dans le
 journal de combat.
+
+🔴 **Un abandon laisse une trace rejouable** (plan 243, #1188). Les trois fins hors tour — abandon
+volontaire, absence (déconnexion ou tours manqués), états divergents à 3 camps et plus — passent par
+`engine.forfeit()`, qui enregistre `{ afterAction, playerId, reason? }` à son rang dans le journal, à
+part des actions. Chaque pair enregistre l'abandon qu'il applique, **sans changer le protocole** : le
+message `forfeit` ne porte pas d'indice d'action, donc deux pairs peuvent exporter des replays qui
+diffèrent sur la dernière action autour d'un abandon (limite assumée, #1190). Conséquences : le replay
+d'une partie en ligne se partage comme celui d'une partie locale, et la reprise ne diverge plus après un
+abandon à 3 camps. Seule exception : la partie **interrompue** (divergence d'états en 1v1,
+`interruptBattle`) n'offre pas de replay.
 
 **Le bandeau de connexion se tait dès que le combat est terminé** : il n'affiche plus « en attente de
 reconnexion… » ni l'avertissement AFK par-dessus l'écran de victoire.

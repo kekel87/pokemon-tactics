@@ -64,6 +64,11 @@ export class OnlinePeer {
   /** La modale de fin de partie, reconnue à son verdict plutôt qu'à un testid (cf `combat-flow`). */
   readonly victory: Locator;
   /**
+   * Le verdict du dialogue de fin. Niveau 2 explicite : depuis le plan 243, la section « Replay » du
+   * même dialogue porte aussi un titre (niveau 3) en ligne.
+   */
+  readonly victoryHeading: Locator;
+  /**
    * La même modale, prise par son testid — donc quel que soit le verdict.
    *
    * Nécessaire dès qu'un scénario ne peut pas prédire QUI l'emporte : à la divergence, chaque pair
@@ -112,6 +117,7 @@ export class OnlinePeer {
     this.logEntries = page.getByTestId("battle-log-entry");
     this.wait = page.getByRole("button", { name: "Attendre", exact: true });
     this.victory = page.getByRole("dialog").filter({ hasText: /gagne/ });
+    this.victoryHeading = this.victory.getByRole("heading", { level: 2 });
     this.battleOver = page.getByTestId("battle-over");
     this.divergence = this.battleOver.filter({ hasText: "les parties ne concordent plus" });
     this.anyForfeit = this.logEntries.filter({

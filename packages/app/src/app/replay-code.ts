@@ -11,7 +11,13 @@
  * jour, puisse s'ajouter plus tard sans casser les codes existants.
  */
 
-import type { Action, PlacementEntry, PlacementTeam } from "@pokemon-tactic/core";
+import {
+  type Action,
+  ForfeitReason,
+  type PlacementEntry,
+  type PlacementTeam,
+  type ReplayForfeit,
+} from "@pokemon-tactic/core";
 import { mapIdFromUrl, mapUrlFromId } from "../maps/map-identity";
 import type { CombatSetup } from "./screens";
 
@@ -27,6 +33,8 @@ export interface ReplayData {
   placements: PlacementEntry[];
   seed: number;
   actions: Action[];
+  /** Les camps partis en cours de route, à leur place dans le journal (plan 243). */
+  forfeits?: ReplayForfeit[];
 }
 
 interface ReplayEnvelope {
@@ -95,6 +103,42 @@ function fromBase64Url(text: string): Uint8Array<ArrayBuffer> {
   return bytes;
 }
 
+const FORFEIT_REASONS: ReadonlySet<unknown> = new Set(Object.values(ForfeitReason));
+
+/**
+ * Des abandons rejouables : chacun vise un camp du combat, avec un motif connu (le journal de combat
+ * en tire sa phrase), à un rang du journal, et dans l'ordre où le moteur les a enregistrés.
+ */
+function areReplayForfeits(
+  value: unknown,
+  actionCount: number,
+  playerIds: ReadonlySet<unknown>,
+): boolean {
+  if (value === undefined) {
+    return true;
+  }
+  if (!Array.isArray(value)) {
+    return false;
+  }
+  let previous = 0;
+  return value.every((item: unknown) => {
+    if (typeof item !== "object" || item === null) {
+      return false;
+    }
+    const { afterAction, playerId, reason } = item as Record<string, unknown>;
+    if (
+      typeof afterAction !== "number" ||
+      !Number.isInteger(afterAction) ||
+      afterAction < previous ||
+      afterAction > actionCount
+    ) {
+      return false;
+    }
+    previous = afterAction;
+    return playerIds.has(playerId) && (reason === undefined || FORFEIT_REASONS.has(reason));
+  });
+}
+
 /**
  * Vrai si `value` a la forme d'un `ReplayData` — la structure, pas la légalité des actions.
  *
@@ -120,7 +164,15 @@ export function isReplayData(value: unknown): value is ReplayData {
     return false;
   }
   const { teams } = setup as Record<string, unknown>;
-  return Array.isArray(teams) && teams.length > 0;
+  if (!Array.isArray(teams) || teams.length === 0) {
+    return false;
+  }
+  const playerIds = new Set(
+    entry.placementTeams.map((team: unknown) =>
+      typeof team === "object" && team !== null ? (team as Record<string, unknown>).playerId : null,
+    ),
+  );
+  return areReplayForfeits(entry.forfeits, entry.actions.length, playerIds);
 }
 
 export async function encodeReplayCode(data: ReplayData, buildVersion: string): Promise<string> {

@@ -845,7 +845,9 @@ export function createBattleChrome(options: BattleChromeOptions): LocalizableBat
        * révélés) — c'est le prix d'un replay lisible, et le joueur doit le savoir avant de le partager.
        */
       const replayShare: HTMLElement[] = [];
-      const copyReplay = options.onCopyReplay;
+      // Une partie interrompue (divergence en 1v1) n'a ni fin ni vainqueur à rejouer (plan 243).
+      const copyReplay =
+        summary.kind === BattleOutcomeKind.Interrupted ? undefined : options.onCopyReplay;
       if (copyReplay !== undefined) {
         const copy = button(config.translate("battle.copyReplay"), () => {
           void copyReplay().then((copied) => {

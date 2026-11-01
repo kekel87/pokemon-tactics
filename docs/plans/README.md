@@ -68,3 +68,4 @@ Les seuls sur lesquels on travaille.
 | 240 | [Plan 240 — Sons d'interface et musique de menu](./240-sons-interface-et-musique-de-menu.md) | done |
 | 241 | [Plan 241 — Sprite transformé à la reprise et menu en combat spectateur](./241-sprite-transforme-et-menu-en-combat-spectateur.md) | done |
 | 242 | [Plan 242 — Replay de combat partageable](./242-replay-partageable.md) | done |
+| 243 | [Plan 243 — Les abandons dans le replay](./243-abandons-dans-le-replay.md) | done |

@@ -1,4 +1,4 @@
-import { ActionKind, Direction } from "@pokemon-tactic/core";
+import { ActionKind, Direction, ForfeitReason, type ReplayForfeit } from "@pokemon-tactic/core";
 import type { RemoteActionEnvelope, RemoteActionOutcome } from "@pokemon-tactic/render-ports";
 import { describe, expect, it, vi } from "vitest";
 import { createReplayDriver } from "./replay-driver";
@@ -10,13 +10,27 @@ const actions = [
 ] as const;
 
 /** Un pilote branché sur un faux orchestrateur : `deliver` avance le compteur d'actions appliquées. */
-function setup(options: { startPlaying: boolean; outcome?: RemoteActionOutcome }) {
-  let applied = 0;
+function setup(options: {
+  startPlaying: boolean;
+  outcome?: RemoteActionOutcome;
+  forfeits?: readonly ReplayForfeit[];
+  applied?: number;
+}) {
+  let applied = options.applied ?? 0;
+  let forfeitsApplied = 0;
   const delivered: RemoteActionEnvelope[] = [];
+  const deliveredForfeits: ReplayForfeit[] = [];
   const onChange = vi.fn();
   const driver = createReplayDriver({
     actions,
-    appliedCount: () => applied,
+    engine: {
+      get actionLogLength() {
+        return applied;
+      },
+      get forfeitLogLength() {
+        return forfeitsApplied;
+      },
+    },
     deliver: (envelope) => {
       delivered.push(envelope);
       const outcome = options.outcome ?? "applied";
@@ -25,10 +39,22 @@ function setup(options: { startPlaying: boolean; outcome?: RemoteActionOutcome }
       }
       return outcome;
     },
+    forfeits: options.forfeits ?? [],
+    deliverForfeit: (forfeit) => {
+      deliveredForfeits.push(forfeit);
+    },
     onChange,
     startPlaying: options.startPlaying,
   });
-  return { driver, delivered, onChange };
+  return {
+    driver,
+    delivered,
+    deliveredForfeits,
+    onChange,
+    applyForfeit: () => {
+      forfeitsApplied += 1;
+    },
+  };
 }
 
 describe("replay driver", () => {
@@ -149,6 +175,94 @@ describe("replay driver", () => {
 
     expect(driver.isPlaying()).toBe(false);
     expect(onChange).toHaveBeenCalledTimes(1);
+    expect(delivered).toHaveLength(0);
+  });
+});
+
+describe("replay driver forfeits", () => {
+  const dueAtStart: ReplayForfeit = {
+    afterAction: 0,
+    playerId: "p3",
+    reason: ForfeitReason.Resigned,
+  };
+
+  it("delivers a due forfeit instead of an action while playing", () => {
+    const { driver, delivered, deliveredForfeits } = setup({
+      startPlaying: true,
+      forfeits: [dueAtStart],
+    });
+
+    expect(driver.onTurnReady("player-1")).toBe("pending");
+
+    expect(deliveredForfeits).toEqual([dueAtStart]);
+    expect(delivered).toHaveLength(0);
+  });
+
+  it("delivers a due forfeit while paused, without consuming the action", () => {
+    const { driver, delivered, deliveredForfeits } = setup({
+      startPlaying: false,
+      forfeits: [dueAtStart],
+    });
+
+    driver.onTurnReady("player-1");
+
+    expect(deliveredForfeits).toEqual([dueAtStart]);
+    expect(delivered).toHaveLength(0);
+  });
+
+  it("keeps a requested step due after the forfeit", () => {
+    const { driver, delivered, deliveredForfeits, applyForfeit } = setup({
+      startPlaying: false,
+      forfeits: [dueAtStart],
+    });
+    driver.stepForward();
+
+    driver.onTurnReady("player-1");
+    expect(delivered).toHaveLength(0);
+    applyForfeit();
+    driver.onTurnReady("player-2");
+
+    expect(deliveredForfeits).toHaveLength(1);
+    expect(delivered).toHaveLength(1);
+  });
+
+  it("does not deliver the forfeit again once it is applied", () => {
+    const { driver, delivered, deliveredForfeits, applyForfeit } = setup({
+      startPlaying: true,
+      forfeits: [dueAtStart],
+    });
+    driver.onTurnReady("player-1");
+    applyForfeit();
+
+    driver.onTurnReady("player-2");
+
+    expect(deliveredForfeits).toHaveLength(1);
+    expect(delivered).toHaveLength(1);
+  });
+
+  it("delivers no forfeit before its rank in the log", () => {
+    const { driver, delivered, deliveredForfeits } = setup({
+      startPlaying: true,
+      forfeits: [{ afterAction: 2, playerId: "p3" }],
+    });
+
+    driver.onTurnReady("player-1");
+
+    expect(deliveredForfeits).toHaveLength(0);
+    expect(delivered).toHaveLength(1);
+  });
+
+  it("delivers a forfeit once the log reaches its rank", () => {
+    const forfeit: ReplayForfeit = { afterAction: 2, playerId: "p3" };
+    const { driver, delivered, deliveredForfeits } = setup({
+      startPlaying: true,
+      forfeits: [forfeit],
+      applied: 2,
+    });
+
+    driver.onTurnReady("player-1");
+
+    expect(deliveredForfeits).toEqual([forfeit]);
     expect(delivered).toHaveLength(0);
   });
 });

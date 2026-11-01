@@ -40,6 +40,7 @@ import type { MovePreview } from "../types/move-preview";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
 import type { RangeConfig } from "../types/range-config";
+import type { ReplayForfeit } from "../types/replay-forfeit";
 import { DEFAULT_STATUS_RULES, type StatusRules } from "../types/status-rules";
 import type { TargetingPattern } from "../types/targeting-pattern";
 import type { TileState } from "../types/tile-state";
@@ -192,6 +193,7 @@ export class BattleEngine {
   private readonly abilityRegistry: AbilityHandlerRegistry | null;
   private readonly itemRegistry: HeldItemHandlerRegistry | null;
   private readonly recordedActions: Action[] = [];
+  private readonly recordedForfeits: ReplayForfeit[] = [];
   private turnState = {
     hasMoved: false,
     hasActed: false,
@@ -417,7 +419,11 @@ export class BattleEngine {
   }
 
   exportReplay(): BattleReplay {
-    return { seed: this.seed, actions: [...this.recordedActions] };
+    const replay: BattleReplay = { seed: this.seed, actions: [...this.recordedActions] };
+    if (this.recordedForfeits.length > 0) {
+      replay.forfeits = this.recordedForfeits.map((forfeit) => ({ ...forfeit }));
+    }
+    return replay;
   }
 
   estimateDamage(
@@ -1272,14 +1278,19 @@ export class BattleEngine {
     return this.recordedActions.length;
   }
 
+  /** Nombre d'abandons déjà enregistrés (plan 243) — le pendant d'`actionLogLength`, sans copie. */
+  get forfeitLogLength(): number {
+    return this.recordedForfeits.length;
+  }
+
   /**
    * Un camp abandonne : toute son équipe tombe d'un coup (plan 201, Lot B2).
    *
    * Le multijoueur en a besoin sur deux chemins — l'abandon volontaire et le camp dont les actions ne
    * concordent plus avec notre moteur — et le core n'en avait aucun. Ce n'est **pas** une `Action` :
    * un abandon n'attend pas son tour, donc il n'a ni acteur courant ni place dans `recordedActions`.
-   * Conséquence assumée : un abandon ne traverse pas le replay. Une partie abandonnée est finie, la
-   * reprise ne s'y applique pas.
+   * Il est enregistré à part, avec sa position dans le journal (`recordedForfeits`, plan 243), pour
+   * que le replay et la reprise le rejouent au même instant.
    *
    * 🔴 **Ce que cette méthode ne fait PAS, et c'est le point** : elle ne décide pas de la fin du
    * combat. Elle suit le patron de Lien du Destin (`handleKo`) et laisse `checkVictory` trancher, qui
@@ -1343,6 +1354,11 @@ export class BattleEngine {
     // les cascades est émis ici, une fois.
     this.finalizeEliminations(events);
     this.finalizeBattleEnd(events);
+    this.recordedForfeits.push({
+      afterAction: this.recordedActions.length,
+      playerId,
+      ...(reason === undefined ? {} : { reason }),
+    });
     return { success: true, events };
   }
 

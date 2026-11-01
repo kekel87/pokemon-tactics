@@ -31,6 +31,7 @@ export type * from "./pokemon-definition";
 export type * from "./pokemon-instance";
 export type * from "./position";
 export type * from "./range-config";
+export type * from "./replay-forfeit";
 export * from "./semi-invulnerable-state";
 export type * from "./spawn-zone";
 export * from "./stat-spread";

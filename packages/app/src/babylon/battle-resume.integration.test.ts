@@ -70,7 +70,7 @@ describe("battle resume", () => {
     expect(replay.actions.length).toBeGreaterThan(0);
 
     // When it is rebuilt from its saved action log alone
-    const resumed = resumeBattle(INPUTS, replay.actions, MAP);
+    const resumed = resumeBattle(INPUTS, replay, MAP);
 
     // Then every derived value comes back identical — nothing is copied, so nothing can be missed
     expect(snapshot(resumed.battle.state)).toEqual(snapshot(live.state));
@@ -87,7 +87,7 @@ describe("battle resume", () => {
       }
     }
 
-    const resumed = resumeBattle(INPUTS, live.engine.exportReplay().actions, MAP);
+    const resumed = resumeBattle(INPUTS, live.engine.exportReplay(), MAP);
 
     expect(resumed.logEvents.length).toBeGreaterThan(liveEvents.length);
     expect(resumed.logEvents.slice(0, liveEvents.length)).toEqual(liveEvents);
@@ -98,7 +98,7 @@ describe("battle resume", () => {
     live.engine.consumeStartupEvents();
     playActions(live, 4);
 
-    const resumed = resumeBattle(INPUTS, live.engine.exportReplay().actions, MAP);
+    const resumed = resumeBattle(INPUTS, live.engine.exportReplay(), MAP);
 
     expect(resumed.battle.engine.consumeStartupEvents()).toEqual([]);
   });
@@ -107,14 +107,16 @@ describe("battle resume", () => {
     expect(() =>
       resumeBattle(
         INPUTS,
-        [
-          {
-            kind: ActionKind.UseMove,
-            pokemonId: "p1-pikachu",
-            moveId: "not-a-move",
-            targetPosition: { x: 5, y: 5 },
-          },
-        ],
+        {
+          actions: [
+            {
+              kind: ActionKind.UseMove,
+              pokemonId: "p1-pikachu",
+              moveId: "not-a-move",
+              targetPosition: { x: 5, y: 5 },
+            },
+          ],
+        },
         MAP,
       ),
     ).toThrow("Replay failed");
@@ -131,7 +133,7 @@ describe("battle resume", () => {
     const alive = [...live.state.pokemon.values()].filter((pokemon) => pokemon.currentHp > 0);
     expect(alive).toHaveLength(1);
 
-    expect(() => resumeBattle(lethalInputs, live.engine.exportReplay().actions, MAP)).toThrow(
+    expect(() => resumeBattle(lethalInputs, live.engine.exportReplay(), MAP)).toThrow(
       "already over",
     );
   });

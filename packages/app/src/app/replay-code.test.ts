@@ -1,3 +1,4 @@
+import { ForfeitReason } from "@pokemon-tactic/core";
 import { describe, expect, it } from "vitest";
 import { MockBattleResume } from "../testing/mock-battle-resume";
 import {
@@ -149,6 +150,58 @@ describe("replay code", () => {
     const unknown = { ...replay, mapUrl: "https://example.com/evil.tmj" };
 
     expect(await decodeReplayCode(await encodeReplayCode(unknown, BUILD), BUILD)).toEqual({
+      ok: false,
+      error: ReplayCodeError.Unreadable,
+    });
+  });
+
+  it("round-trips forfeits", async () => {
+    const withForfeits: ReplayData = {
+      ...replay,
+      forfeits: [
+        {
+          afterAction: 1,
+          playerId: replay.placementTeams[0]?.playerId ?? "",
+          reason: ForfeitReason.Resigned,
+        },
+      ],
+    };
+
+    const result = await decodeReplayCode(await encodeReplayCode(withForfeits, BUILD), BUILD);
+
+    expect(result).toEqual({ ok: true, data: withForfeits });
+  });
+
+  it("accepts a replay without a forfeits field", async () => {
+    const result = await decodeReplayCode(await codeOf(envelope({})), BUILD);
+
+    expect(result.ok).toBe(true);
+  });
+
+  const knownPlayer = MockBattleResume.placementTeams[0]?.playerId ?? "";
+  const otherPlayer = MockBattleResume.placementTeams[1]?.playerId ?? "";
+  const actionCount = MockBattleResume.savedProgress.actions.length;
+
+  it.each([
+    ["an unknown player", [{ afterAction: 0, playerId: "inconnu" }]],
+    ["a reason outside ForfeitReason", [{ afterAction: 0, playerId: knownPlayer, reason: "nope" }]],
+    ["a non-integer rank", [{ afterAction: 0.5, playerId: knownPlayer }]],
+    ["a non-numeric rank", [{ afterAction: "0", playerId: knownPlayer }]],
+    ["a negative rank", [{ afterAction: -1, playerId: knownPlayer }]],
+    ["a rank beyond the action log", [{ afterAction: actionCount + 1, playerId: knownPlayer }]],
+    [
+      "a decreasing order",
+      [
+        { afterAction: actionCount, playerId: knownPlayer },
+        { afterAction: 0, playerId: otherPlayer },
+      ],
+    ],
+    ["an entry that is not an object", [null]],
+    ["forfeits that are not an array", { afterAction: 0, playerId: knownPlayer }],
+  ])("refuses forfeits with %s as unreadable", async (_label, forfeits) => {
+    const code = await codeOf(envelope({ data: { ...replay, forfeits } }));
+
+    expect(await decodeReplayCode(code, BUILD)).toEqual({
       ok: false,
       error: ReplayCodeError.Unreadable,
     });

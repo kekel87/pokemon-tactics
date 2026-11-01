@@ -1089,12 +1089,14 @@ Chaque combat = séquence d'actions déterministe :
 - État initial (grille, placements, équipes)
 - Chaque action jouée dans l'ordre
 - Seed aléatoire (pour reproduire crits, miss...)
+- Les abandons (volontaire, déconnexion, tours manqués), à leur place dans la séquence : le camp parti tombe K.O. au même moment que dans la partie
 
-**Revoir un combat** (plan 242) : un combat **local** fini se copie en code texte (ou en fichier) depuis l'écran de victoire, et se rejoue depuis le menu principal, « Revoir un combat ».
+**Revoir un combat** (plan 242) : un combat fini, **local ou en ligne** (plan 243), se copie en code texte (ou en fichier) depuis l'écran de victoire, et se rejoue depuis le menu principal, « Revoir un combat ».
 - La lecture montre **tout** (aucun brouillard : objets, talents et attaques révélés) — une phrase prévient avant le partage.
 - Barre de lecture : début, action précédente / suivante, lecture / pause, vitesse ×0,5 · ×1 · ×2 · ×4. L'IA n'est jamais relancée : on rejoue le journal.
 - Un code est **lié à la version** du jeu qui l'a produit : un code d'une autre version est refusé (« replay d'une autre version »), jamais rejoué de travers.
-- Pas de lien partageable (itch.io) ; pas de replay des combats en ligne (v1) ; pas de spectateur en direct.
+- Les abandons se rejouent : à 3 joueurs ou plus, le replay continue après l'abandon jusqu'au vrai vainqueur. Une partie **interrompue** (les deux parties ne concordent plus, en 1v1) n'a pas de replay.
+- Pas de lien partageable (itch.io) ; pas de spectateur en direct.
 
 ---
 

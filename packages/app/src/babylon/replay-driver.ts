@@ -9,17 +9,28 @@
  *
  * Ce module ne connaît ni le moteur ni le rendu : il décide QUAND donner l'action suivante (lecture,
  * pause, pas) et laisse l'écran de combat la livrer. Séparé pour rester lisible seul.
+ *
+ * Les abandons (plan 243) passent avant, en lecture comme en pause, selon la règle du core
+ * (`dueForfeit`) que partage le rejeu sans animation.
  */
 
-import type { Action } from "@pokemon-tactic/core";
+import {
+  type Action,
+  type BattleEngine,
+  dueForfeit,
+  type ReplayForfeit,
+} from "@pokemon-tactic/core";
 import type { RemoteActionEnvelope, RemoteActionOutcome } from "@pokemon-tactic/render-ports";
 
 export interface ReplayDriverOptions {
   actions: readonly Action[];
-  /** Combien d'actions le moteur a déjà appliquées — la position de lecture, par construction. */
-  appliedCount: () => number;
+  /** Les compteurs du moteur : la position de lecture, par construction. */
+  engine: Pick<BattleEngine, "actionLogLength" | "forfeitLogLength">;
   /** Livre une action à l'orchestrateur. `"rejected"` = le journal ne se rejoue plus. */
   deliver: (envelope: RemoteActionEnvelope) => RemoteActionOutcome;
+  forfeits: readonly ReplayForfeit[];
+  /** Applique un abandon. Appelé pendant `onTurnReady` : à différer côté écran. */
+  deliverForfeit: (forfeit: ReplayForfeit) => void;
   /** L'état de lecture a changé : la barre doit se redessiner. */
   onChange: () => void;
   startPlaying: boolean;
@@ -48,7 +59,7 @@ export function createReplayDriver(options: ReplayDriverOptions): ReplayDriver {
   let activePlayerId: string | undefined;
 
   const deliverNext = (): void => {
-    const actionIndex = options.appliedCount();
+    const actionIndex = options.engine.actionLogLength;
     const action = options.actions[actionIndex];
     const playerId = activePlayerId;
     waiting = false;
@@ -75,6 +86,13 @@ export function createReplayDriver(options: ReplayDriverOptions): ReplayDriver {
     },
     onTurnReady(playerId) {
       activePlayerId = playerId;
+      const forfeit = dueForfeit(options.forfeits, options.engine);
+      if (forfeit !== undefined) {
+        // Un pas demandé reste dû : il portera sur l'action qui suit l'abandon.
+        waiting = false;
+        options.deliverForfeit(forfeit);
+        return "pending";
+      }
       waiting = true;
       if (playing || stepRequested) {
         stepRequested = false;

@@ -11,8 +11,8 @@
  */
 
 import type {
-  Action,
   BattleEvent,
+  BattleReplay,
   MapDefinition,
   PlacementEntry,
   PlacementTeam,
@@ -102,24 +102,27 @@ export interface ResumedBattle {
  */
 export function resumeBattle(
   inputs: BattleInputs,
-  actions: Action[],
+  log: BattleLog,
   map: MapDefinition,
 ): ResumedBattle {
-  const resumed = fastForwardBattle(inputs, actions, map);
+  const resumed = fastForwardBattle(inputs, log, map);
   if (resumed.logEvents.some((event) => event.type === BattleEventType.BattleEnded)) {
     throw new Error("Resume failed: the saved battle is already over");
   }
   return resumed;
 }
 
+/** What was played: the actions, and the forfeits at their place among them (plan 243). */
+export type BattleLog = Pick<BattleReplay, "actions" | "forfeits">;
+
 /**
- * Rebuild a battle and replay `actions` on it, without animating anything. Unlike `resumeBattle` it
+ * Rebuild a battle and replay `log` on it, without animating anything. Unlike `resumeBattle` it
  * accepts a battle that ends within them — the replay player (plan 242) rebuilds finished battles on
  * purpose, to step back through one.
  */
 export function fastForwardBattle(
   inputs: BattleInputs,
-  actions: Action[],
+  log: BattleLog,
   map: MapDefinition,
 ): ResumedBattle {
   const battle = buildBattle(inputs, map);
@@ -129,7 +132,11 @@ export function fastForwardBattle(
   const logEvents: BattleEvent[] = [...battle.engine.consumeStartupEvents()];
 
   runReplay(
-    { seed: inputs.seed, actions },
+    {
+      actions: log.actions,
+      ...(log.forfeits === undefined ? {} : { forfeits: log.forfeits }),
+      seed: inputs.seed,
+    },
     () => battle.engine,
     (events) => logEvents.push(...events),
   );

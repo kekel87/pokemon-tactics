@@ -117,13 +117,14 @@ d'apparition n'indique une priorité.
 
 > Le seul domaine qui agit sur l'acquisition.
 
-- [x] **Revoir un combat — replay partageable + lecteur** — livré par le plan 242 (2026-11-01, non
-      encore publié). Un combat **local** fini se copie en code texte `PTR1.…` (ou se télécharge en
-      fichier) depuis la victoire ; le menu principal le relit avec barre de lecture (début, action
-      précédente / suivante, lecture, vitesse ×0,5 à ×4). **Pas de lien** : itch.io ne transmet pas la
-      query string à l'iframe. Un code d'une autre version est refusé, jamais rejoué faux. Hors ligne
-      seulement (v1). Le spectateur en direct est écarté (« too much »), à rouvrir si des joueurs le
-      demandent. → graphe : `plan-242`, `decision-1180` à `decision-1187`.
+- [x] **Revoir un combat — replay partageable + lecteur** — livré par les plans 242 et 243 (2026-11-01,
+      non encore publiés). Un combat fini, **local ou en ligne**, se copie en code texte `PTR1.…` (ou se
+      télécharge en fichier) depuis la victoire ; le menu principal le relit avec barre de lecture (début,
+      action précédente / suivante, lecture, vitesse ×0,5 à ×4). **Pas de lien** : itch.io ne transmet pas la
+      query string à l'iframe. Un code d'une autre version est refusé, jamais rejoué faux. Les abandons,
+      absences et départs d'un camp se rejouent au même moment que dans la partie (plan 243). Le spectateur
+      en direct est écarté (« too much »), à rouvrir si des joueurs le demandent. → graphe : `plan-242`,
+      `plan-243`, `decision-1180` à `decision-1190`.
 - [ ] **Défi du jour** (graine quotidienne). 🔴 C'est **le matchmaking des jeux sans joueurs
       simultanés** : même graine pour tous, chacun joue quand il veut. Presque gratuit vu l'infra de
       replay ci-dessus (livrée, plan 242). Sortie proposée au cercle vicieux du matchmaking (§ Questions ouvertes).

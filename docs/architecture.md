@@ -591,7 +591,7 @@ Toute entrée — clavier, manette, pointeur, doigt — produit une **`LogicalAc
 
 Un combat en cours survit au rechargement (décharge d'onglet mobile, fermeture accidentelle) sans qu'aucune surface nouvelle n'ait été ajoutée au moteur : la reprise **rejoue le journal d'actions** (§ 9) plutôt que de sérialiser `BattleState` (décision #744).
 
-- **`app/battle-persistence.ts`** : port `load`/`save`/`clear` (pas d'accès direct à `localStorage` ailleurs, décision #751 — pense au futur magasin serveur de la Phase 7), clé `pt-battle-resume`. Charge utile versionnée : `{ version, buildVersion, mapUrl, setup, placementTeams, placements, seed, actions, savedAt }`. Lecture invalidée sur `version`/`buildVersion` différents (décision #748, pas de péremption temporelle contrairement à `screen-persistence`) ou forme invalide — jamais de demi-restauration.
+- **`app/battle-persistence.ts`** : port `load`/`save`/`clear` (pas d'accès direct à `localStorage` ailleurs, décision #751 — pense au futur magasin serveur de la Phase 7), clé `pt-battle-resume`. Charge utile versionnée : `{ version, buildVersion, mapUrl, setup, placementTeams, placements, seed, actions, forfeits?, savedAt }` (`forfeits` : les abandons à leur rang dans le journal, plan 243). Lecture invalidée sur `version`/`buildVersion` différents (décision #748, pas de péremption temporelle contrairement à `screen-persistence`) ou forme invalide — jamais de demi-restauration.
 - **`babylon/battle-resume.ts`** : `buildBattle` partagé entre le chemin live et la reprise (même appel `createBattleFromPlacements`, seule la source des placements diffère) ; `resumeBattle` charge la carte, reconstruit le moteur avec `creationRng: createPrng(seed)` (décision #749 — corrige un `Math.random` non seedé du chemin live, dernier du chemin livré), rejoue les actions via `runReplay`, reconstruit le journal de combat **intégralement** à partir des events du rejeu (jamais le `feedback` composé — aucun texte flottant, animation ou mouvement de caméra ne rejoue, décision #746), puis fait apparaître les billboards depuis l'état du moteur reconstruit via `spawnBillboardsFromState` (partagé avec le sandbox ; corrige un bug de numéro d'équipe déduit à tort d'un booléen `playerId === Player1`, alors que les formats montent à 12 équipes). Refuse un journal contenant déjà un event `BattleEventType.BattleEnded` (décision #750 — sinon soft-lock : menu d'action sans action légale, aucune modale de victoire).
 - **Point d'accroche core** : `BattleOrchestratorConfig.onActionCommitted?: () => void`, appelé après chaque action validée (humaine et IA) et une première fois au démarrage — l'app y branche `saveBattleProgress(...engine.exportReplay())` (décision #747, écriture synchrone assumée). L'orchestrateur ne connaît ni `localStorage` ni le format de sauvegarde.
 - **UI** : entrée « Reprendre le combat — <carte> » en tête du menu principal, visible seulement si `loadBattleProgress()` renvoie une sauvegarde valide (décision #745 — pas de reprise silencieuse en combat, pas de modale au boot). Effacement sur un event `BattleEventType.BattleEnded`, retour au menu, ou remontage « Rejouer ».
@@ -757,12 +757,16 @@ interface BattleEngine {
 
   // Abandon d'un camp — patron de Lien du Destin (met les PV à 0, émet PokemonKo,
   // passe par handleKo → checkVictory). Ne décide PAS la fin du combat : à 3+ camps,
-  // le combat continue tant qu'il reste plus d'un camp vivant (plan 201, Lot B2)
-  forfeit(playerId: string): ActionResult;
+  // le combat continue tant qu'il reste plus d'un camp vivant (plan 201, Lot B2).
+  // Enregistré à part, avec son rang dans le journal d'actions (plan 243, § 9)
+  forfeit(playerId: string, reason?: ForfeitReason): ActionResult;
 
   // Nombre d'actions déjà enregistrées — évite de recopier exportReplay().actions
   // à chaque comparaison réseau (détecteur de désync du pauvre, plan 201)
   readonly actionLogLength: number;
+
+  // Nombre d'abandons déjà enregistrés — le pendant d'actionLogLength (plan 243)
+  readonly forfeitLogLength: number;
 
   // Souscrire aux événements (renderer, replay, debug)
   on(event: string, handler: (e: BattleEvent) => void): void;
@@ -792,19 +796,30 @@ Replay **déterministe** : même seed + mêmes actions = même résultat.
 
 ### Enregistrement et rejeu
 
-- `BattleEngine.exportReplay()` → `{ seed, actions: [...recordedActions] }`
+- `BattleEngine.exportReplay()` → `{ seed, actions: [...recordedActions] }`, plus `forfeits`
+  (`ReplayForfeit[]` : `{ afterAction, playerId, reason? }`, `afterAction` = nombre d'actions appliquées à
+  l'instant de l'abandon) **seulement s'il y en a** — le JSON d'une partie sans abandon ne change pas
+  (plan 243, décision #1188). `forfeit()` n'enregistre qu'après succès.
 - `runReplay(replay, buildEngine, onAction?)` dans `replay-runner.ts` recrée engine avec seed et soumet actions dans l'ordre. `onAction?: ReplayActionObserver` (plan 181) reçoit les events de chaque action rejouée — utilisé par la reprise d'un combat (§ 5k) pour reconstruire intégralement le journal de combat, sans changer le comportement par défaut (golden replay inchangé).
+- **Les abandons se rejouent** (plan 243) : `dueForfeit(forfeits, engine)` désigne l'abandon à appliquer dès
+  que `actionLogLength` atteint son rang. `runReplay` l'applique avant la première action et après chacune ;
+  les événements d'un abandon sortent par le même `onAction`. Le lecteur animé (`babylon/replay-driver.ts`)
+  suit la même règle : un journal tronqué à N actions rejoue exactement les abandons de rang <= N, et le pas
+  en arrière retombe sur ce que la lecture avait montré. Ne jamais écrire une seconde règle « après la
+  dernière action ».
 - `packages/core/fixtures/replays/golden-replay.json` : replay de référence (3v3 aggressive vs aggressive, seed 12345, Player 1 gagne en 32 rounds / 247 actions)
 - `golden-replay.test.ts` : test de non-régression — si mécanique aléatoire change, test pète → relancer `pnpm replay:generate`
 
 ### Replay partageable (plan 242, décisions #1180 à #1187)
 
-Un combat **local** fini se partage en **code texte** et se relit dans le menu « Revoir un combat ». Aucun changement du core : tout vit dans `app`, `ui-dom`, `view-core` et `render-ports`.
+Un combat fini, **local ou en ligne**, se partage en **code texte** et se relit dans le menu « Revoir un
+combat ». Le plan 242 n'a touché ni le core ni le protocole ; l'enregistrement des abandons (plan 243,
+décisions #1188 à #1190) est le seul changement du core.
 
 - **`app/replay-code.ts`** : `encodeReplayCode` / `decodeReplayCode` (asynchrones). Format `PTR1.` + base64url
   du `deflate-raw` (`CompressionStream`, sans dépendance) de l'enveloppe `{ format: 1, buildVersion, data }`,
   `data` = `ReplayData` = carte + setup partageable (sans `roomCode`, `battleId`, `telemetryTeams` ;
-  `localSeat` gardé) + équipes de placement + placements + graine + journal d'actions. Quatre refus distincts
+  `localSeat` gardé) + équipes de placement + placements + graine + journal d'actions + abandons (`forfeits?`, validés par `isReplayData` : triés, rang dans le journal, joueur connu, motif de `ForfeitReason`). Quatre refus distincts
   (`ReplayCodeError` : pas un code, abîmé, format inconnu, autre version) ; un `buildVersion` différent n'est
   jamais rejoué. La carte est validée contre le registre (`mapIdFromUrl` / `mapUrlFromId`) et chargée par
   l'URL du registre, pas celle du code. `isReplayData`, garde de forme, est partagé avec
@@ -812,8 +827,9 @@ Un combat **local** fini se partage en **code texte** et se relit dans le menu �
 - **Pas de lien** (itch.io ne transmet pas la query string à l'iframe) : code collable + fichier `.txt` en
   repli ; un 6 contre 6 fait ~2 900 caractères, au-dessus des 2 000 de Discord sans Nitro.
 - **Export** : section « Replay » du dialogue de victoire (`ui-dom/battle-chrome.ts`, options `onCopyReplay` /
-  `onDownloadReplay`), **hors ligne seulement** — en ligne, abandon, chrono et déconnexion ne laissent aucune
-  trace dans le journal. Le récapitulatif d'un replay n'a pas de durée (`getElapsedMs` et `durationMs`
+  `onDownloadReplay`), **en ligne comme hors ligne** depuis le plan 243 — abandon, absence et divergence à
+  3 camps et plus sont dans le journal. Sauf une partie **interrompue** (divergence d'états en 1v1,
+  `interruptBattle`, sans fin ni vainqueur) : pas de section. Le récapitulatif d'un replay n'a pas de durée (`getElapsedMs` et `durationMs`
   facultatifs).
 - **Lecture** : `babylon/combat-screen.ts` (`startReplayBattle`) joue le replay par le **chemin d'un tour
   distant en ligne** — `onTurnReady` rend `"pending"` et `babylon/replay-driver.ts` injecte l'action suivante
@@ -825,6 +841,11 @@ Un combat **local** fini se partage en **code texte** et se relit dans le menu �
   `fastForwardBattle` (`babylon/battle-resume.ts`, extrait de `resumeBattle` qui garde son refus d'un combat
   fini) — la scène, la carte et la musique restent ; billboards et chrome sont refaits dans un « segment »
   avec son propre `AbortSignal` (`ChromeInsetProbe.forgetChrome`).
+- **Abandons à la lecture** (plan 243) : le pilote livre l'abandon dû (`dueForfeit`) au lieu de l'action
+  suivante ; l'écran l'applique par `applyForfeit`, **différé par `queueMicrotask`** (le pilote est appelé
+  pendant `onTurnReady`) et ignoré si le segment a été reconstruit entre-temps. La barre compte les actions
+  seules ; la lecture ne s'arrête qu'une fois le journal **et** les abandons épuisés (une partie à 3 peut
+  finir sur un abandon). `fastForwardBattle` et `resumeBattle` prennent un `BattleLog` (actions + abandons).
 
 ---
 

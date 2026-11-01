@@ -1490,7 +1490,7 @@ function runResolvedBattle(options: {
   // Le combat tel que le moteur le rejouerait : ce que la sauvegarde de reprise ET le code de replay
   // (plan 242) enregistrent, lu au moment de l'appel pour avoir le journal complet.
   const currentReplayData = (): ReplayData => {
-    const { seed, actions } = battle.engine.exportReplay();
+    const { seed, actions, forfeits } = battle.engine.exportReplay();
     return {
       mapUrl,
       setup: inputs.setup,
@@ -1498,6 +1498,7 @@ function runResolvedBattle(options: {
       placements: inputs.placements,
       seed,
       actions,
+      ...(forfeits === undefined ? {} : { forfeits }),
     };
   };
   const persist = (): void => {
@@ -1667,11 +1668,9 @@ function runResolvedBattle(options: {
       releaseOnlineRoom();
     },
     getElapsedMs,
-    // Hors ligne seulement : en ligne, un abandon, un chrono ou une déconnexion finit la partie sans
-    // laisser de trace dans le journal, et le replay s'arrêterait sans vainqueur (revue de code).
-    ...(inputs.setup.localSeat === undefined
-      ? { replayExport: replayExportOf(currentReplayData) }
-      : {}),
+    // En ligne aussi : les abandons (volontaire, absence, divergence à 3 camps et plus) sont
+    // enregistrés à leur place dans le journal et se rejouent comme dans la partie (plan 243).
+    replayExport: replayExportOf(currentReplayData),
   });
   online?.attach(orchestrator, signal);
   signal.addEventListener("abort", () => releaseOnlineRoom(), { once: true });
@@ -1771,7 +1770,7 @@ function startResumedBattle(
     placements: save.placements,
     seed: save.seed,
   };
-  const { battle, logEvents } = resumeBattle(inputs, save.actions, map);
+  const { battle, logEvents } = resumeBattle(inputs, save, map);
   return runResolvedBattle({
     backend,
     combat,
@@ -1822,6 +1821,7 @@ function startReplayBattle(options: {
 }): { dispose(): void } {
   const { backend, combat, stage, insets, map, data, navigate, signal } = options;
   const total = data.actions.length;
+  const forfeits = data.forfeits ?? [];
   const inputs: BattleInputs = {
     setup: data.setup,
     placementTeams: data.placementTeams,
@@ -1881,7 +1881,12 @@ function startReplayBattle(options: {
   const startSegment = (startAt: number, playing: boolean): void => {
     endSegment();
     const at = Math.max(0, Math.min(startAt, total - 1));
-    const { battle, logEvents } = fastForwardBattle(inputs, data.actions.slice(0, at), map);
+    // Les abandons suivent seuls : `runReplay` ne rejoue que ceux dont le rang est atteint.
+    const { battle, logEvents } = fastForwardBattle(
+      inputs,
+      { ...data, actions: data.actions.slice(0, at) },
+      map,
+    );
     const abort = new AbortController();
     signal.addEventListener("abort", () => abort.abort(), { once: true, signal: abort.signal });
     const current: Segment = {
@@ -1891,7 +1896,7 @@ function startReplayBattle(options: {
       handles: spawnBillboardsFromState(combat, battle.state),
       driver: createReplayDriver({
         actions: data.actions,
-        appliedCount: () => battle.engine.actionLogLength,
+        engine: battle.engine,
         deliver: (envelope) => {
           if (current.live === null) {
             /*
@@ -1907,6 +1912,19 @@ function startReplayBattle(options: {
             return "kept";
           }
           return current.live.submitRemoteAction(envelope);
+        },
+        forfeits,
+        deliverForfeit: (forfeit) => {
+          // Annoncé pendant `onTurnReady` : on laisse l'orchestrateur finir son tour de boucle.
+          queueMicrotask(() => {
+            // Le segment a pu être reconstruit entre-temps (pas en arrière, sortie).
+            if (abort.signal.aborted) {
+              return;
+            }
+            if (current.live?.applyForfeit(forfeit.playerId, forfeit.reason) !== true) {
+              current.driver.stop();
+            }
+          });
         },
         onChange: refreshBar,
         startPlaying: playing,
@@ -1934,9 +1952,12 @@ function startReplayBattle(options: {
       humanPlayerIds: [],
       initialLogEvents: logEvents,
       onActionCommitted: () => {
-        // Dernière action appliquée : la victoire s'ouvre et aucun tour ne sera plus annoncé au
-        // pilote. Sans cet arrêt, la barre resterait sur « Pause » pour un replay terminé.
-        if (battle.engine.actionLogLength >= total) {
+        // Dernière action (et dernier abandon) appliqués : la victoire s'ouvre et aucun tour ne sera
+        // plus annoncé au pilote. Sans cet arrêt, la barre resterait sur « Pause » pour un replay fini.
+        if (
+          battle.engine.actionLogLength >= total &&
+          battle.engine.forfeitLogLength >= forfeits.length
+        ) {
           current.driver.stop();
         } else {
           refreshBar();

@@ -235,7 +235,7 @@ test("§11.3 en ligne : le canal tombe, le pair revient, rattrape, et se fait fo
      * assertion en est la preuve : à 75 s elle échouerait.
      */
     await expect(host.victory).toBeVisible({ timeout: 60_000 });
-    await expect(host.victory.getByRole("heading")).toHaveText("Joueur 1 gagne !");
+    await expect(host.victoryHeading).toHaveText("Joueur 1 gagne !");
     // La partie est finie, donc il n'y a plus rien à reprendre : la sauvegarde est jetée.
     await expect.poll(() => host.save.raw(), { timeout: 20_000 }).toBeNull();
 
@@ -317,7 +317,7 @@ test("§11.4 en ligne : « Abandonner » termine la partie chez les DEUX pairs",
     // dit AVANT d'être appliqué (`sendForfeit` puis `applyForfeit`) parce qu'après, il n'y a plus de
     // canal pour le dire.
     await expect(host.victory).toBeVisible({ timeout: 30_000 });
-    await expect(host.victory.getByRole("heading")).toHaveText("Joueur 1 gagne !");
+    await expect(host.victoryHeading).toHaveText("Joueur 1 gagne !");
     await expect.poll(() => host.save.raw(), { timeout: 20_000 }).toBeNull();
 
     // Chez celui qui part : retour au menu principal, et aucune entrée de reprise — l'abandon purge

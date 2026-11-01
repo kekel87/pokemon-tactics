@@ -99,7 +99,7 @@ export { applyOpponentStatDrop } from "./battle/opponent-stat-drop";
 export type { PlacementResult } from "./battle/PlacementPhase";
 export { PlacementError, PlacementPhase } from "./battle/PlacementPhase";
 export type { EngineFactory } from "./battle/replay-runner";
-export { type ReplayActionObserver, runReplay } from "./battle/replay-runner";
+export { dueForfeit, type ReplayActionObserver, runReplay } from "./battle/replay-runner";
 export { rollGender } from "./battle/roll-gender";
 export { rollNature } from "./battle/roll-nature";
 export { isSecondaryEffect, moveHasSecondaryEffect } from "./battle/secondary-effect";

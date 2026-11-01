@@ -18,7 +18,7 @@
  * must not touch the combat screen.
  */
 
-import type { Action, PlacementEntry, PlacementTeam } from "@pokemon-tactic/core";
+import type { Action, PlacementEntry, PlacementTeam, ReplayForfeit } from "@pokemon-tactic/core";
 import { isReplayData } from "./replay-code";
 import type { CombatSetup } from "./screens";
 
@@ -43,6 +43,8 @@ export interface BattleResumeSave {
   placements: PlacementEntry[];
   seed: number;
   actions: Action[];
+  /** Les camps partis en cours de route, à leur place dans le journal (plan 243). */
+  forfeits?: ReplayForfeit[];
   /**
    * Temps de jeu **cumulé** au moment de l'écriture, pour la durée du récapitulatif de victoire
    * (plan 197).
