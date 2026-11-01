@@ -298,9 +298,9 @@ describe("fuseau d'affichage", () => {
     return report.series.find((point) => point.visits > 0)?.key;
   }
 
-  it("🔴 range 22h30 UTC au jour SUIVANT — l'heure de Paris est en avance", () => {
+  it("🔴 range 23h30 UTC au jour SUIVANT — l'heure de Paris est en avance, été comme hiver", () => {
     const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
-    const stamp = Date.parse(`${yesterday}T22:30:00Z`);
+    const stamp = Date.parse(`${yesterday}T23:30:00Z`);
     const nextDay = utcDayOf(stamp + 86_400_000);
 
     expect(bucketOf(stamp)).toBe(nextDay);

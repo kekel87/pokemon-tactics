@@ -1,0 +1,35 @@
+/* Fenêtre « Revoir un combat » (plan 242) — pendant de `ui/team/ReplayImportModal.ts`.
+ *
+ * Le champ reprend `.tb-showdown-textarea` (même geste : coller un bloc de texte), mais un code de
+ * replay est UNE chaîne sans espace ni retour : il faut le couper n'importe où, sinon il s'étire sur
+ * une seule ligne. Et il n'a pas besoin des 240 px d'une équipe Showdown. */
+@layer components {
+  .rp-import {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+
+  .rp-import-hint {
+    margin: 0;
+    color: var(--color-text-muted);
+    line-height: var(--line-height-base);
+  }
+
+  .rp-import .tb-showdown-textarea {
+    min-height: 120px;
+    word-break: break-all;
+  }
+
+  .rp-import .tb-error-list {
+    margin-top: 0;
+  }
+
+  /* L'action principale à droite, comme les modales de confirmation ; le repli fichier avant elle. */
+  .rp-import-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    justify-content: flex-end;
+  }
+}

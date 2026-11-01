@@ -54,7 +54,7 @@ test("tour des écrans : les 10 écrans DOM montent et la navigation revient", a
     // Comptages en dur ASSUMÉS, ici et pour les cartes : ce tour est joué à chaque gate, donc
     // ajouter une entrée de menu ou une carte le fera virer au rouge. C'est voulu — c'est aussi de
     // la couverture, et un écran qui gagne ou perd une entrée mérite qu'on le décide sciemment.
-    await expect(menu.entries).toHaveCount(5);
+    await expect(menu.entries).toHaveCount(6);
     await expect(menu.adventure).toBeDisabled();
     await expect(menu.version).toBeVisible();
   });

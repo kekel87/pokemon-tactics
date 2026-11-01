@@ -635,8 +635,11 @@ export interface BattleOrchestratorConfig {
    * Une **fonction** et non un horodatage : l'hôte seul sait recoller les tranches de jeu d'une
    * partie reprise, et un horodatage absolu ferait compter le temps passé la partie fermée (« 843
    * min » au lendemain d'une reprise).
+   *
+   * Absente quand le combat n'est pas joué en temps réel — un replay (plan 242) : le récapitulatif
+   * n'a alors pas de durée.
    */
-  getElapsedMs: () => number;
+  getElapsedMs?: () => number;
   /**
    * Chronomètre de tour (plan 202, Lot B3, décisions #946 et #947).
    *

@@ -487,6 +487,19 @@ une parenté d'aspect, pas une identité de jetons.)
 > § Direction artistique : celui-ci parle du filtrage de **texture côté moteur**, celui-là du rendu
 > **DOM**, où tous les portraits existants sont déjà en `pixelated`.
 
+### Section « Replay » de l'écran de fin et barre de lecture (plan 242)
+
+- **Section** `.bc-replay-section` sous les choix de fin : filet `--color-border-surface`, titre, avertissement
+  `.bc-replay-warning` (gris `--color-text-muted`, italique, `max-inline-size: 32ch`, interligne `0.9` — la
+  police pixel a déjà beaucoup d'air), boutons `.bc-replay-buttons` (écart `--bc-pad-md`). Retours de recette :
+  collés aux choix de fin ils se confondaient avec eux.
+- **Barre de lecture** `.rp-bar` (`packages/app/src/styles/replay-bar.css`), dans le `screenLayer` : en bas à
+  **droite**, largeur plafonnée à `calc(100% - min(56%, 420px) - var(--spacing-xl))` pour ne pas passer sous la
+  colonne de gauche (mesuré à 568×320 : trois boutons sur six étaient masqués) ; se replie sur plusieurs
+  lignes. Cibles `--target-recommended`.
+- **Fenêtre « Revoir un combat »** (`styles/components/replay-import.css`) : champ en `.tb-showdown-textarea`,
+  `word-break: break-all` (un code est une chaîne sans espace), action principale à droite.
+
 ---
 
 ## Move Tooltip (grille pattern)

@@ -64,6 +64,8 @@ export interface BattleLogOptions {
     readonly scrollUp?: HTMLElement | null;
     readonly scrollDown?: HTMLElement | null;
   };
+  /** Naît déplié — un replay (plan 242), où lire le journal est l'activité principale. Replié sinon. */
+  startExpanded?: boolean;
 }
 
 export interface BattleLog extends BattleFeedback {
@@ -118,7 +120,7 @@ export function withKeyHint(button: HTMLElement, hint: HTMLElement | null): HTML
 }
 
 export function createBattleLog(options: BattleLogOptions): BattleLog {
-  const { context, teamOf, translate, keyHints } = options;
+  const { context, teamOf, translate, keyHints, startExpanded = false } = options;
 
   const root = el("div", "bl-panel", "battle-log");
   root.dataset.collapsed = "true";
@@ -190,7 +192,7 @@ export function createBattleLog(options: BattleLogOptions): BattleLog {
     root.dataset.collapsed = String(collapsed);
     header.setAttribute("aria-expanded", String(!collapsed));
   };
-  setCollapsed(true);
+  setCollapsed(!startExpanded);
   header.addEventListener("click", () => setCollapsed(root.dataset.collapsed !== "true"));
 
   /**

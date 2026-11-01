@@ -578,4 +578,33 @@
     gap: var(--bc-pad-sm);
     justify-content: center;
   }
+
+  /* Section « Replay » de l'écran de fin (plan 242), séparée des choix de fin de partie par un filet. */
+  .bc-replay-section {
+    margin-block-start: var(--bc-pad-lg);
+    padding-block-start: var(--bc-pad-lg);
+    border-block-start: 1px solid var(--color-border-surface);
+  }
+
+  .bc-replay-title {
+    margin-block: 0 var(--bc-pad-xs);
+    font-size: 1.1em;
+    line-height: 1.1;
+  }
+
+  /* Une mise en garde, pas un choix : en gris et en italique, sur une largeur de lecture courte pour
+     qu'elle ne s'étire pas d'un bord à l'autre de la fenêtre. */
+  .bc-replay-warning {
+    max-inline-size: 32ch;
+    margin: 0 auto var(--bc-pad-lg);
+    color: var(--color-text-muted);
+    font-style: italic;
+    /* La police pixel porte déjà beaucoup d'air au-dessus de ses glyphes : à 1.2 les deux lignes
+       restaient visiblement écartées (retour de recette). */
+    line-height: 0.9;
+  }
+
+  .bc-replay-buttons {
+    gap: var(--bc-pad-md);
+  }
 }

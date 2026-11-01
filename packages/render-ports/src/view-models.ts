@@ -373,6 +373,9 @@ export interface BattleOutcomeSummary {
    * Compté à partir du premier tour, **placement exclu** — c'est une durée de COMBAT. La télémétrie
    * mesure de son côté une durée de SESSION, placement compris (plan 196) : les deux chiffres
    * décrivent la même partie sans coïncider, et c'est délibéré.
+   *
+   * Absente quand rien ne s'est joué en temps réel — un replay (plan 242) : la dialog n'affiche
+   * alors que les tours.
    */
-  readonly durationMs: number;
+  readonly durationMs?: number;
 }

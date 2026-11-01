@@ -19,6 +19,7 @@
  */
 
 import type { Action, PlacementEntry, PlacementTeam } from "@pokemon-tactic/core";
+import { isReplayData } from "./replay-code";
 import type { CombatSetup } from "./screens";
 
 const STORAGE_KEY = "pt-battle-resume";
@@ -106,24 +107,9 @@ function isValidSave(parsed: unknown, buildVersion: string): parsed is BattleRes
     return false;
   }
   const entry = parsed as Record<string, unknown>;
-  if (entry.version !== SAVE_VERSION || entry.buildVersion !== buildVersion) {
-    return false;
-  }
-  if (typeof entry.mapUrl !== "string" || typeof entry.seed !== "number") {
-    return false;
-  }
-  if (!Array.isArray(entry.actions) || !Array.isArray(entry.placements)) {
-    return false;
-  }
-  if (!Array.isArray(entry.placementTeams) || entry.placementTeams.length === 0) {
-    return false;
-  }
-  const setup = entry.setup;
-  if (typeof setup !== "object" || setup === null) {
-    return false;
-  }
-  const { teams } = setup as Record<string, unknown>;
-  return Array.isArray(teams) && teams.length > 0;
+  return (
+    entry.version === SAVE_VERSION && entry.buildVersion === buildVersion && isReplayData(entry)
+  );
 }
 
 export function createBattleResumeStore(buildVersion: string): BattleResumeStore {

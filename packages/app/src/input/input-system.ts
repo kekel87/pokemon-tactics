@@ -8,6 +8,7 @@ import {
   type InputRouter,
   type InspectInputConsumer,
   type MenuInputConsumer,
+  type ReplayInputConsumer,
 } from "./input-router.js";
 import { createInputSourceTracker, InputSource, type InputSourceTracker } from "./input-source.js";
 import { createKeyboardHoldSource, isContinuousAction } from "./keyboard-hold-source.js";
@@ -23,6 +24,7 @@ export interface InputRegistration {
   board?: BoardInputConsumer;
   menu?: MenuInputConsumer;
   inspect?: InspectInputConsumer;
+  replay?: ReplayInputConsumer;
 }
 
 export interface InputSystem {
@@ -78,6 +80,7 @@ export function createInputSystem(
       board: () => active()?.board ?? null,
       menu: () => active()?.menu ?? null,
       inspect: () => active()?.inspect ?? null,
+      replay: () => active()?.replay ?? null,
     }),
   );
 

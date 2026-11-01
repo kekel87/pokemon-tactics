@@ -84,6 +84,19 @@ export interface InspectInputConsumer {
   stop(): void;
 }
 
+/**
+ * Les commandes d'un replay (plan 242). En lecture de replay le contexte est `spectating` : aucune
+ * touche n'y est un geste de jeu, et sans ceci la manette n'aurait aucun moyen d'atteindre la barre
+ * de lecture (aucune navigation par focus dans un combat, les flèches y mènent le curseur).
+ *
+ * Chaque méthode rend `false` quand elle n'a rien fait, pour que la touche ne soit pas avalée —
+ * sous une modale (victoire, menu de combat), `Valider` appartient à la modale.
+ */
+export interface ReplayInputConsumer {
+  togglePlay(): boolean;
+  step(delta: 1 | -1): boolean;
+}
+
 export interface InputRouterOptions {
   /**
    * The active context. `"screen"` covers everything outside a battle (menu screens), where only
@@ -94,6 +107,8 @@ export interface InputRouterOptions {
   menu: () => MenuInputConsumer | null;
   /** Only the combat screen offers one; placement and menu screens have no info panels. */
   inspect?: () => InspectInputConsumer | null;
+  /** Only a replay offers one (plan 242). */
+  replay?: () => ReplayInputConsumer | null;
 }
 
 export interface InputRouter {
@@ -110,7 +125,7 @@ export interface InputRouter {
  * would otherwise silently reintroduce the ambiguity that call used to paper over.
  */
 export function createInputRouter(options: InputRouterOptions): InputRouter {
-  const { context, board, menu, inspect } = options;
+  const { context, board, menu, inspect, replay } = options;
 
   /**
    * Camera, zoom and panel scrolling are context-independent: looking around while the action menu
@@ -264,6 +279,19 @@ export function createInputRouter(options: InputRouterOptions): InputRouter {
       // `spectating` (plan 241, voir `InputContext`) y ajoute `Annuler`, qui n'a rien à annuler et
       // ouvre donc le menu de combat — seule sortie d'un combat qui ne rend jamais la main.
       if (activeContext === "spectating") {
+        const player = replay?.() ?? null;
+        if (player !== null) {
+          switch (action) {
+            case LogicalAction.Confirm:
+              return player.togglePlay();
+            case LogicalAction.CycleTargetNext:
+              return player.step(1);
+            case LogicalAction.CycleTargetPrevious:
+              return player.step(-1);
+            default:
+              break;
+          }
+        }
         return action === LogicalAction.Cancel && (menu()?.cancel() ?? false);
       }
 

@@ -3365,7 +3365,9 @@ export class BattleOrchestrator {
         state: this.state,
         winnerId,
         ...(kind === undefined ? {} : { kind }),
-        elapsedMs: this.config.getElapsedMs(),
+        ...(this.config.getElapsedMs === undefined
+          ? {}
+          : { elapsedMs: this.config.getElapsedMs() }),
       }),
     );
   }

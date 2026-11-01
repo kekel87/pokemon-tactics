@@ -125,7 +125,11 @@ function buildVictorySummary(
     summary.turns === 1
       ? config.translate("battle.summaryTurnsOne")
       : config.translate("battle.summaryTurns", { count: summary.turns });
-  stats.textContent = `${turnsText} · ${formatBattleDuration(summary.durationMs, config)}`;
+  // Pas de durée : un replay, qui n'a rien joué en temps réel (plan 242).
+  stats.textContent =
+    summary.durationMs === undefined
+      ? turnsText
+      : `${turnsText} · ${formatBattleDuration(summary.durationMs, config)}`;
   parts.push(stats);
 
   return parts;
@@ -151,6 +155,13 @@ export interface BattleChromeOptions {
    * remonter un écran.
    */
   canReplay?: boolean;
+  /**
+   * Copie le code du replay du combat qui vient de finir (plan 242) ; vrai si c'est fait. Absent = pas
+   * de bouton. Le presse-papiers pouvant être refusé (iframe), `onDownloadReplay` en est le repli.
+   */
+  onCopyReplay?: () => Promise<boolean>;
+  /** Télécharge le code du replay en fichier texte (plan 242). */
+  onDownloadReplay?: () => void;
   /** Host-injected i18n / asset-path deps (plan 125 Phase 4). */
   config: UiDomConfig;
   /**
@@ -828,11 +839,46 @@ export function createBattleChrome(options: BattleChromeOptions): LocalizableBat
       });
       const actions = el("div", "bc-victory-actions");
       actions.append(...(replay ? [replay] : []), exit);
+      /*
+       * Le replay (plan 242) : copier le code, ou le télécharger si le presse-papiers est refusé.
+       * Une phrase prévient que le code révèle toute l'équipe (objets, talents, attaques jamais
+       * révélés) — c'est le prix d'un replay lisible, et le joueur doit le savoir avant de le partager.
+       */
+      const replayShare: HTMLElement[] = [];
+      const copyReplay = options.onCopyReplay;
+      if (copyReplay !== undefined) {
+        const copy = button(config.translate("battle.copyReplay"), () => {
+          void copyReplay().then((copied) => {
+            copy.textContent = config.translate(
+              copied ? "battle.replayCopied" : "battle.replayCopyFailed",
+            );
+          });
+        });
+        copy.dataset.testid = "copy-replay";
+        const share = el("div", "bc-victory-actions bc-replay-buttons");
+        share.append(copy);
+        const download = options.onDownloadReplay;
+        if (download !== undefined) {
+          const file = button(config.translate("battle.downloadReplay"), download);
+          file.dataset.testid = "download-replay";
+          share.append(file);
+        }
+        // Une section à part sous les choix de fin de partie (retour de recette) : titre, avertissement
+        // en gris comme le récapitulatif, puis les deux gestes.
+        const section = el("section", "bc-replay-section", "replay-share");
+        const title = el("h3", "bc-replay-title");
+        title.textContent = config.translate("battle.replaySection");
+        const warning = el("p", "bc-replay-warning", "replay-warning");
+        warning.textContent = config.translate("battle.replayWarning");
+        section.append(title, warning, share);
+        replayShare.push(section);
+      }
       dialog.append(
         heading,
         ...(message ? [message] : []),
         ...buildVictorySummary(summary, config),
         actions,
+        ...replayShare,
       );
       root.appendChild(dialog);
       dialog.showModal();

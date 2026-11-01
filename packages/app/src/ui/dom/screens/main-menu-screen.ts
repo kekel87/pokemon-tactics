@@ -18,6 +18,7 @@ import type { TranslationKey } from "../../../i18n/types";
 import { MAPS_REGISTRY } from "../../../maps/maps-registry";
 import { networkErrorCodeOf } from "../../../network/network-error";
 import { holdOnlineRoom, onlineRoomDeps, releaseOnlineRoom } from "../../../network/online-room";
+import { openReplayImportModal } from "../../team/ReplayImportModal";
 import { bindScreenInput, el, menuButton } from "./elements";
 
 const VERSION_TEXT = __APP_VERSION__;
@@ -212,6 +213,14 @@ export function createMainMenuScreen(navigate: Navigate): Screen<"main-menu"> {
     buttons.append(
       menuButton(t("menu.adventure")),
       menuButton(t("menu.battle"), () => navigate("battle-mode", undefined)),
+      menuButton(t("menu.reviewBattle"), () =>
+        openReplayImportModal((data) =>
+          navigate("combat", {
+            mapUrl: data.mapUrl,
+            replay: data,
+          }),
+        ),
+      ),
       menuButton(t("menu.teamBuilder"), () => navigate("my-teams", undefined)),
       menuButton(t("menu.settings"), () => navigate("settings", undefined)),
       menuButton(t("menu.credits"), () => navigate("credits", undefined)),

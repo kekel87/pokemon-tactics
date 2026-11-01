@@ -32,7 +32,7 @@ export function buildOutcomeSummary(input: {
    * Temps de jeu cumulé, fourni par l'hôte. Reçu **déjà calculé** plutôt que dérivé ici d'un
    * horodatage : recoller les tranches de jeu d'une partie reprise regarde l'hôte, pas la vue.
    */
-  elapsedMs: number;
+  elapsedMs?: number;
 }): BattleOutcomeSummary {
   // Sans vainqueur : aucune équipe à mettre en avant, la dialog n'affiche alors pas de portraits.
   const winnerTeam: BattleOutcomeMember[] =
@@ -57,6 +57,6 @@ export function buildOutcomeSummary(input: {
     turns: input.state.actionCounter ?? 0,
     // Plancher à zéro : une horloge système reculée en cours de partie ne doit pas produire une
     // durée négative.
-    durationMs: Math.max(0, input.elapsedMs),
+    ...(input.elapsedMs === undefined ? {} : { durationMs: Math.max(0, input.elapsedMs) }),
   };
 }

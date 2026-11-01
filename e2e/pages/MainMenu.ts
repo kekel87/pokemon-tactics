@@ -13,6 +13,8 @@ export class MainMenu {
   readonly resume: Locator;
   /** The menu entries in DOM order — the resume entry must come FIRST when it exists. */
   readonly entries: Locator;
+  /** « Revoir un combat » (plan 242) — ouvre la fenêtre où l'on colle un code de replay. */
+  readonly reviewBattle: Locator;
   readonly teamBuilder: Locator;
   readonly settings: Locator;
   readonly credits: Locator;
@@ -26,6 +28,7 @@ export class MainMenu {
     this.combat = page.getByRole("button", { name: "Combat", exact: true });
     this.resume = page.getByRole("button", { name: /^Reprendre le combat/ });
     this.entries = page.getByRole("navigation").getByRole("button");
+    this.reviewBattle = page.getByRole("button", { name: "Revoir un combat", exact: true });
     this.teamBuilder = page.getByRole("button", { name: "Constructeur d'équipe" });
     this.settings = page.getByRole("button", { name: "Paramètres" });
     this.credits = page.getByRole("button", { name: "Crédits" });

@@ -105,6 +105,23 @@ export function resumeBattle(
   actions: Action[],
   map: MapDefinition,
 ): ResumedBattle {
+  const resumed = fastForwardBattle(inputs, actions, map);
+  if (resumed.logEvents.some((event) => event.type === BattleEventType.BattleEnded)) {
+    throw new Error("Resume failed: the saved battle is already over");
+  }
+  return resumed;
+}
+
+/**
+ * Rebuild a battle and replay `actions` on it, without animating anything. Unlike `resumeBattle` it
+ * accepts a battle that ends within them — the replay player (plan 242) rebuilds finished battles on
+ * purpose, to step back through one.
+ */
+export function fastForwardBattle(
+  inputs: BattleInputs,
+  actions: Action[],
+  map: MapDefinition,
+): ResumedBattle {
   const battle = buildBattle(inputs, map);
   // Drained in the same order as the live path (the orchestrator does it in `start()`), so the
   // entry-time abilities are applied and logged before the first replayed action, and `start()` finds
@@ -116,9 +133,5 @@ export function resumeBattle(
     () => battle.engine,
     (events) => logEvents.push(...events),
   );
-
-  if (logEvents.some((event) => event.type === BattleEventType.BattleEnded)) {
-    throw new Error("Resume failed: the saved battle is already over");
-  }
   return { battle, logEvents };
 }

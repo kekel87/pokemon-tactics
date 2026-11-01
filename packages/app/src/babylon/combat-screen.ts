@@ -53,6 +53,7 @@ import {
   BattleOrchestrator,
   type BattleOrchestratorConfig,
   type BattleSetupResult,
+  combatClock,
   createFloatingTextSpawner,
   type InputContext,
   loadTiledMap,
@@ -68,6 +69,7 @@ import {
 import { healthRatiosBySide, soleLocalSide } from "../analytics/team-telemetry.js";
 import { AbandonSource, countAction, TelemetryAction } from "../analytics/telemetry.js";
 import { type BattleResumeSave, battleResumeStore } from "../app/battle-persistence.js";
+import { encodeReplayCode, type ReplayData } from "../app/replay-code.js";
 import type { Navigate, Screen } from "../app/screen-manager.js";
 import type { CombatSetup, ScreenParamsById } from "../app/screens.js";
 import { battleAudioReady } from "../audio/audio-preload";
@@ -94,6 +96,7 @@ import {
   focusInDirection,
   isModalOpen,
 } from "../input/focus-navigation.js";
+import type { ReplayInputConsumer } from "../input/input-router.js";
 import { InputSource } from "../input/input-source.js";
 import { getInputSystem } from "../input/input-system.js";
 import { cameraKeyLabels, combatMenuKeyHint, keyHintOf } from "../input/key-legend.js";
@@ -119,14 +122,21 @@ import {
 } from "../team/asset-paths.js";
 import { getItemIconUrl, getPortraitUrl } from "../team/team-builder-data.js";
 import { CombatMenuVariant, createCombatMenu } from "../ui/dom/combat-menu.js";
+import { mountReplayBar, type ReplayBar } from "../ui/dom/replay-bar.js";
 import { type LoadingOverlayHandle, showLoadingOverlay } from "../ui/LoadingOverlay.js";
-import { type BattleInputs, buildBattle, resumeBattle } from "./battle-resume.js";
+import {
+  type BattleInputs,
+  buildBattle,
+  fastForwardBattle,
+  resumeBattle,
+} from "./battle-resume.js";
 import {
   type PlacementFlow,
   type PlacementNetwork,
   type PlacementResult,
   startPlacementFlow,
 } from "./placement-flow.js";
+import { createReplayDriver, type ReplayDriver } from "./replay-driver.js";
 
 // confirmAttack defaults to true (plan 123 4d-3): a target click locks the
 // target into a confirm step (with preview flash + damage preview); a second
@@ -611,8 +621,18 @@ export function runBattle(options: {
   onActionCommitted?: () => void;
   /** Called once the battle can no longer be resumed: it ended, or the player walked away. */
   onBattleClosed?: () => void;
-  /** Temps de jeu cumulé de la partie, pour la durée du récapitulatif de victoire (plan 197). */
-  getElapsedMs: () => number;
+  /**
+   * Temps de jeu cumulé de la partie, pour la durée du récapitulatif de victoire (plan 197). Absent
+   * pour un replay, qui n'a rien joué en temps réel : la victoire n'affiche alors que les tours.
+   */
+  getElapsedMs?: () => number;
+  /** Commandes clavier/manette d'un replay (plan 242) : lecture/pause et pas, en contexte spectateur. */
+  replayInput?: ReplayInputConsumer;
+  /**
+   * Export du code de replay (plan 242), proposé sur le dialogue de victoire. Absent hors d'une
+   * partie réelle (bac à sable, atelier) et pendant un replay, qui n'a pas de nouveau combat à offrir.
+   */
+  replayExport?: { copy: () => Promise<boolean>; download: () => void };
   /** Les temps forts de la mise en scène (plan 233) — l'atelier des attaques en trace sa séquence. */
   onPresentationCue?: BattleOrchestratorConfig["onPresentationCue"];
   /** Faux dans l'atelier des attaques : il rejoue UNE attaque, le cri du tour suivant y détonne. */
@@ -685,6 +705,12 @@ export function runBattle(options: {
       onBattleClosed?.();
       onReplay();
     },
+    ...(options.replayExport === undefined
+      ? {}
+      : {
+          onCopyReplay: options.replayExport.copy,
+          onDownloadReplay: options.replayExport.download,
+        }),
     // Jamais en ligne : le salon est libéré à la fin de la partie, donc remonter le même setup
     // rendrait la main sur les deux camps (plan 201, revue de code). La revanche est hors V1.
     canReplay: localPlayerIds === undefined,
@@ -843,6 +869,12 @@ export function runBattle(options: {
         "log-scroll-down-key-hint",
       ),
     },
+    // Un replay se lit dans le journal : il naît ouvert (retour de recette, plan 242) — sauf sous le
+    // seuil « étroit » du projet, où ouvert il couvre le plateau et chevauche la barre de lecture
+    // (mesuré à 568×320).
+    startExpanded:
+      options.replayInput !== undefined &&
+      !window.matchMedia("(height < 500px), (width < 900px)").matches,
   });
   // Bouton plein écran à gauche du journal (plan 180-a) : second point d'entrée, celui des
   // réglages obligeant à quitter le combat — or c'est en plein combat, sur téléphone, que la barre
@@ -1057,7 +1089,7 @@ export function runBattle(options: {
         onPresentationCue?.(cue);
       },
       presentationSettled: battleAudio.settled,
-      getElapsedMs,
+      ...(getElapsedMs === undefined ? {} : { getElapsedMs }),
     },
     presentationContext,
   );
@@ -1212,6 +1244,7 @@ export function runBattle(options: {
       scrollTimeline: (delta) => chrome.scrollTimeline(delta),
       openCombatMenu: () => combatMenu.open(),
     },
+    ...(options.replayInput === undefined ? {} : { replay: options.replayInput }),
     // Plan 225 : le mode Inspecter vit dans le chrome, qui tient les panneaux qu'il parcourt. Il se
     // tait sous une modale (menu de combat, victoire, élimination), qui garde la croix pour elle,
     // et reprend là où il en était quand elle se ferme.
@@ -1454,17 +1487,21 @@ function runResolvedBattle(options: {
   const previousElapsedMs = options.resumedElapsedMs ?? 0;
   const mountedAt = Date.now();
   const getElapsedMs = (): number => previousElapsedMs + (Date.now() - mountedAt);
-  const persist = (): void => {
-    const replay = battle.engine.exportReplay();
-    store.save({
+  // Le combat tel que le moteur le rejouerait : ce que la sauvegarde de reprise ET le code de replay
+  // (plan 242) enregistrent, lu au moment de l'appel pour avoir le journal complet.
+  const currentReplayData = (): ReplayData => {
+    const { seed, actions } = battle.engine.exportReplay();
+    return {
       mapUrl,
       setup: inputs.setup,
       placementTeams: inputs.placementTeams,
       placements: inputs.placements,
-      seed: replay.seed,
-      actions: replay.actions,
-      elapsedMs: getElapsedMs(),
-    });
+      seed,
+      actions,
+    };
+  };
+  const persist = (): void => {
+    store.save({ ...currentReplayData(), elapsedMs: getElapsedMs() });
   };
   // Saved before the first action too: a reload right after placement should resume the battle that was
   // just set up, not send the player back through team-select.
@@ -1630,10 +1667,54 @@ function runResolvedBattle(options: {
       releaseOnlineRoom();
     },
     getElapsedMs,
+    // Hors ligne seulement : en ligne, un abandon, un chrono ou une déconnexion finit la partie sans
+    // laisser de trace dans le journal, et le replay s'arrêterait sans vainqueur (revue de code).
+    ...(inputs.setup.localSeat === undefined
+      ? { replayExport: replayExportOf(currentReplayData) }
+      : {}),
   });
   online?.attach(orchestrator, signal);
   signal.addEventListener("abort", () => releaseOnlineRoom(), { once: true });
   return orchestrator;
+}
+
+/**
+ * Les gestes du bouton « Copier le code du replay » (plan 242) : copier dans le presse-papiers, ou à
+ * défaut télécharger le code en fichier — le presse-papiers est refusé dans certaines iframes, et un
+ * code long ne tient pas toujours dans un message.
+ *
+ * Lit le journal AU MOMENT du clic, pas à la construction : le dialogue de victoire s'ouvre une fois
+ * le dernier coup joué, et c'est alors que le journal décrit le combat complet.
+ */
+function replayExportOf(currentBattle: () => ReplayData): {
+  copy: () => Promise<boolean>;
+  download: () => void;
+} {
+  const currentCode = (): Promise<string> => encodeReplayCode(currentBattle(), __APP_VERSION__);
+  return {
+    copy: async () => {
+      try {
+        await navigator.clipboard.writeText(await currentCode());
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    download: () => {
+      void currentCode().then((code) => {
+        const url = URL.createObjectURL(new Blob([code], { type: "text/plain" }));
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "pokemon-tactics-replay.txt";
+        // Attaché au document et URL révoquée plus tard : certains navigateurs (Firefox, Safari)
+        // démarrent le téléchargement après le clic, et une URL déjà révoquée donne un fichier vide.
+        document.body.append(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      });
+    },
+  };
 }
 
 /**
@@ -1711,6 +1792,215 @@ function startResumedBattle(
   });
 }
 
+/** Les crans de vitesse d'un replay : le bouton de la barre les fait défiler. */
+const REPLAY_SPEEDS: readonly number[] = [0.5, 1, 2, 4];
+
+/**
+ * Replay path (plan 242): rebuild a finished battle at a point of its log, then play the rest through
+ * the SAME animated path a live battle uses.
+ *
+ * The orchestrator is told every turn belongs to someone else (`"pending"`), and the log's next action
+ * is handed to it as a remote action — see `replay-driver.ts`. Nothing about presentation is
+ * re-implemented here, which is why a replay cannot drift from what a real battle shows.
+ *
+ * Going back (step back, restart, « Rejouer ») rebuilds the battle IN PLACE: the scene, the map and
+ * the music stay, only the billboards and the battle chrome are rebuilt (retour de recette — the
+ * full remount flashed a loading screen at every step back). Each rebuilt battle is a « segment »
+ * with its own abort signal, which is what tears down everything `runBattle` hangs on it.
+ *
+ * Throws if the log cannot be replayed (changed data); the caller goes back to the menu.
+ */
+function startReplayBattle(options: {
+  backend: RendererBackend;
+  combat: CombatScene;
+  stage: GameStage;
+  insets: ChromeInsetProbe;
+  map: MapDefinition;
+  data: ReplayData;
+  navigate: Navigate;
+  signal: AbortSignal;
+}): { dispose(): void } {
+  const { backend, combat, stage, insets, map, data, navigate, signal } = options;
+  const total = data.actions.length;
+  const inputs: BattleInputs = {
+    setup: data.setup,
+    placementTeams: data.placementTeams,
+    placements: data.placements,
+    seed: data.seed,
+  };
+
+  let speed = 1;
+  combatClock.setSlowMotion(speed);
+
+  interface Segment {
+    battle: BattleSetupResult;
+    driver: ReplayDriver;
+    live: BattleOrchestrator | null;
+    handles: ReadonlyMap<string, CombatPokemonHandle>;
+    abort: AbortController;
+  }
+  let segment: Segment | null = null;
+  let bar: ReplayBar | null = null;
+
+  const refreshBar = (): void => {
+    if (segment === null) {
+      return;
+    }
+    bar?.update({
+      position: segment.battle.engine.actionLogLength,
+      total,
+      playing: segment.driver.isPlaying(),
+      speed,
+    });
+  };
+
+  /** Tears the current battle down, leaving the scene (map, camera) and the replay bar standing. */
+  const endSegment = (): void => {
+    if (segment === null) {
+      return;
+    }
+    segment.driver.pause();
+    segment.abort.abort();
+    segment.live?.dispose();
+    for (const handle of segment.handles.values()) {
+      combat.removePokemon(handle);
+    }
+    combat.clearHighlights();
+    combat.clearMoveEffects();
+    // Le chrome du combat (panneaux, journal, menus, victoire) vit dans le `screenLayer` ; la barre
+    // de replay seule y survit.
+    for (const child of [...stage.screenLayer.children]) {
+      if (child !== bar?.element) {
+        child.remove();
+      }
+    }
+    insets.forgetChrome();
+    segment = null;
+  };
+
+  const startSegment = (startAt: number, playing: boolean): void => {
+    endSegment();
+    const at = Math.max(0, Math.min(startAt, total - 1));
+    const { battle, logEvents } = fastForwardBattle(inputs, data.actions.slice(0, at), map);
+    const abort = new AbortController();
+    signal.addEventListener("abort", () => abort.abort(), { once: true, signal: abort.signal });
+    const current: Segment = {
+      battle,
+      abort,
+      live: null,
+      handles: spawnBillboardsFromState(combat, battle.state),
+      driver: createReplayDriver({
+        actions: data.actions,
+        appliedCount: () => battle.engine.actionLogLength,
+        deliver: (envelope) => {
+          if (current.live === null) {
+            /*
+             * Le premier tour est annoncé PENDANT `runBattle` (l'orchestrateur démarre avant de nous
+             * être rendu) : `live` n'existe pas encore. On livre au tour de microtâche suivant, quand
+             * l'orchestrateur attend déjà — sans quoi la lecture s'arrêterait avant d'avoir commencé.
+             */
+            queueMicrotask(() => {
+              if (current.live?.submitRemoteAction(envelope) === "rejected") {
+                current.driver.stop();
+              }
+            });
+            return "kept";
+          }
+          return current.live.submitRemoteAction(envelope);
+        },
+        onChange: refreshBar,
+        startPlaying: playing,
+      }),
+    };
+    segment = current;
+    current.live = runBattle({
+      backend,
+      combat,
+      stage,
+      insets,
+      battle,
+      handles: current.handles,
+      signal: abort.signal,
+      onExit: () => navigate("main-menu", undefined),
+      // « Rejouer » du dialogue de victoire : le même replay, depuis le début, en lecture.
+      onReplay: () => startSegment(0, true),
+      wireTurnReady: (built) => (activePokemonId) => {
+        const playerId = built.state.pokemon.get(activePokemonId)?.playerId;
+        return playerId === undefined ? "pending" : current.driver.onTurnReady(playerId);
+      },
+      // Un replay montre tout : le brouillard protège une décision en cours, et il n'y en a plus.
+      enemyInfoHidden: false,
+      damagePreview: false,
+      humanPlayerIds: [],
+      initialLogEvents: logEvents,
+      onActionCommitted: () => {
+        // Dernière action appliquée : la victoire s'ouvre et aucun tour ne sera plus annoncé au
+        // pilote. Sans cet arrêt, la barre resterait sur « Pause » pour un replay terminé.
+        if (battle.engine.actionLogLength >= total) {
+          current.driver.stop();
+        } else {
+          refreshBar();
+        }
+      },
+      replayInput: {
+        // Sous une modale (victoire, menu de combat) `Valider` lui appartient : on ne l'avale pas.
+        togglePlay: () => {
+          if (isModalOpen()) {
+            return false;
+          }
+          current.driver.togglePlay();
+          return true;
+        },
+        step: (delta) => {
+          if (isModalOpen()) {
+            return false;
+          }
+          if (delta === 1) {
+            current.driver.stepForward();
+          } else {
+            stepBack();
+          }
+          return true;
+        },
+      },
+    });
+    refreshBar();
+  };
+
+  const stepBack = (): void => {
+    startSegment(Math.max(0, (segment?.battle.engine.actionLogLength ?? 1) - 1), false);
+  };
+
+  bar = mountReplayBar(
+    stage.screenLayer,
+    {
+      onRestart: () => startSegment(0, false),
+      onStepBack: stepBack,
+      onTogglePlay: () => segment?.driver.togglePlay(),
+      onStepForward: () => segment?.driver.stepForward(),
+      onCycleSpeed: (delta) => {
+        const count = REPLAY_SPEEDS.length;
+        speed = REPLAY_SPEEDS[(REPLAY_SPEEDS.indexOf(speed) + delta + count) % count] ?? speed;
+        combatClock.setSlowMotion(speed);
+        refreshBar();
+      },
+      onQuit: () => navigate("main-menu", undefined),
+    },
+    { position: 0, total, playing: true, speed },
+  );
+  startSegment(0, true);
+
+  return {
+    dispose: () => {
+      segment?.driver.pause();
+      segment?.live?.dispose();
+      combatClock.setSlowMotion(1);
+      bar?.dispose();
+      bar = null;
+    },
+  };
+}
+
 export function randomSeed(): number {
   // Scénario de capture (plan 194) : `?seed=` fixe le combat pour que deux runs produisent les mêmes
   // images. Inerte hors DEV/E2E — voir `capture-seed.ts` pour la garde.
@@ -1744,7 +2034,7 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
   let placement: PlacementFlow | null = null;
   /** Chrome de la phase de placement (plan 189) : détruit au passage de relais à `runBattle`. */
   let placementChrome: PlacementChrome | null = null;
-  let orchestrator: BattleOrchestrator | null = null;
+  let orchestrator: Pick<BattleOrchestrator, "dispose"> | null = null;
   let loading: LoadingOverlayHandle | null = null;
   /** Measures the left chrome column so the compass parks clear of it (plan 183). */
   let insetProbe: ChromeInsetProbe | null = null;
@@ -1785,17 +2075,18 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
     stage = activeStage;
     const setup = params.setup;
     const resume = params.resume;
-    startBattleMusic(setup ?? resume?.setup);
+    const replayData = params.replay;
+    startBattleMusic(setup ?? resume?.setup ?? replayData?.setup);
     // A resumed battle carries the map it was played on; `params.mapUrl` and `resume.mapUrl` agree
-    // today, but the saved one is the authority — the engine is rebuilt from it.
-    const mapUrl = resume?.mapUrl ?? params.mapUrl;
+    // today, but the saved one is the authority — the engine is rebuilt from it. Same for a replay.
+    const mapUrl = replayData?.mapUrl ?? resume?.mapUrl ?? params.mapUrl;
     insetProbe?.dispose();
     insetProbe = createChromeInsetProbe(activeStage.stage);
     const probe = insetProbe;
     const activeCombat = backend.createCombatScene({
       canvas: activeStage.canvas,
       mapUrl,
-      pokemon: setup || resume ? [] : DEMO_POKEMON,
+      pokemon: setup || resume || replayData ? [] : DEMO_POKEMON,
       timelineFirstCell: () => probe.firstCell(),
     });
     combat = activeCombat;
@@ -1805,6 +2096,49 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
     pointerSource = attachPointerSourceForScene(activeStage.canvas, activeCombat);
     overlay.setProgress(0.2);
 
+    if (replayData) {
+      // Même discipline que la reprise : tout ce qui peut échouer est dans le try, un échec rend au
+      // menu au lieu de laisser le joueur sous un voile de chargement.
+      try {
+        const [loaded] = await Promise.all([loadTiledMap(mapUrl), activeCombat.ready]);
+        if (localAbort.signal.aborted) {
+          overlay.cancel();
+          return;
+        }
+        overlay.setProgress(0.6);
+        await preloadCombatSprites(
+          replayData.setup.teams.flatMap((team) => team.pokemonDefinitionIds),
+        );
+        if (localAbort.signal.aborted) {
+          overlay.cancel();
+          return;
+        }
+        orchestrator = startReplayBattle({
+          backend,
+          combat: activeCombat,
+          stage: activeStage,
+          insets: probe,
+          map: loaded.map,
+          data: replayData,
+          navigate,
+          signal: abort.signal,
+        });
+      } catch (error) {
+        // biome-ignore lint/suspicious/noConsole: seule trace de la cause — le joueur retombe au menu
+        console.warn("[replay] lecture impossible, retour au menu :", error);
+        overlay.cancel();
+        navigate("main-menu", undefined);
+        return;
+      }
+      await battleAudioReady(replayData.setup.musicId);
+      if (localAbort.signal.aborted) {
+        overlay.cancel();
+        return;
+      }
+      overlay.setProgress(1);
+      await overlay.finish();
+      return;
+    }
     if (resume) {
       // Everything that can fail sits inside the try: a map fetch that dies on a flaky mobile network
       // — the very situation this feature serves — would otherwise strand the player under a loading

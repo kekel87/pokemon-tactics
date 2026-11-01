@@ -797,6 +797,35 @@ Replay **déterministe** : même seed + mêmes actions = même résultat.
 - `packages/core/fixtures/replays/golden-replay.json` : replay de référence (3v3 aggressive vs aggressive, seed 12345, Player 1 gagne en 32 rounds / 247 actions)
 - `golden-replay.test.ts` : test de non-régression — si mécanique aléatoire change, test pète → relancer `pnpm replay:generate`
 
+### Replay partageable (plan 242, décisions #1180 à #1187)
+
+Un combat **local** fini se partage en **code texte** et se relit dans le menu « Revoir un combat ». Aucun changement du core : tout vit dans `app`, `ui-dom`, `view-core` et `render-ports`.
+
+- **`app/replay-code.ts`** : `encodeReplayCode` / `decodeReplayCode` (asynchrones). Format `PTR1.` + base64url
+  du `deflate-raw` (`CompressionStream`, sans dépendance) de l'enveloppe `{ format: 1, buildVersion, data }`,
+  `data` = `ReplayData` = carte + setup partageable (sans `roomCode`, `battleId`, `telemetryTeams` ;
+  `localSeat` gardé) + équipes de placement + placements + graine + journal d'actions. Quatre refus distincts
+  (`ReplayCodeError` : pas un code, abîmé, format inconnu, autre version) ; un `buildVersion` différent n'est
+  jamais rejoué. La carte est validée contre le registre (`mapIdFromUrl` / `mapUrlFromId`) et chargée par
+  l'URL du registre, pas celle du code. `isReplayData`, garde de forme, est partagé avec
+  `battle-persistence.ts` (§ 5k).
+- **Pas de lien** (itch.io ne transmet pas la query string à l'iframe) : code collable + fichier `.txt` en
+  repli ; un 6 contre 6 fait ~2 900 caractères, au-dessus des 2 000 de Discord sans Nitro.
+- **Export** : section « Replay » du dialogue de victoire (`ui-dom/battle-chrome.ts`, options `onCopyReplay` /
+  `onDownloadReplay`), **hors ligne seulement** — en ligne, abandon, chrono et déconnexion ne laissent aucune
+  trace dans le journal. Le récapitulatif d'un replay n'a pas de durée (`getElapsedMs` et `durationMs`
+  facultatifs).
+- **Lecture** : `babylon/combat-screen.ts` (`startReplayBattle`) joue le replay par le **chemin d'un tour
+  distant en ligne** — `onTurnReady` rend `"pending"` et `babylon/replay-driver.ts` injecte l'action suivante
+  du journal par `submitRemoteAction`. L'IA n'est jamais relancée, aucune présentation réécrite. Contexte
+  d'entrée `spectating`, brouillard désactivé, vitesses ×0,5 / ×1 / ×2 / ×4 par `combatClock.setSlowMotion`
+  (§ 5b). Barre : `ui/dom/replay-bar.ts` ; entrée de menu : `ui/team/ReplayImportModal.ts` ; commandes clavier et
+  manette par `replayInput` (`input/input-router.ts`).
+- **Recul** (« Action précédente », « Début », « Rejouer ») : reconstruction **sur place** par
+  `fastForwardBattle` (`babylon/battle-resume.ts`, extrait de `resumeBattle` qui garde son refus d'un combat
+  fini) — la scène, la carte et la musique restent ; billboards et chrome sont refaits dans un « segment »
+  avec son propre `AbortSignal` (`ChromeInsetProbe.forgetChrome`).
+
 ---
 
 ## 10. Outillage Claude Code
@@ -808,7 +837,7 @@ Replay **déterministe** : même seed + mêmes actions = même résultat.
 | Voir le rendu | MCP Playwright — screenshots, interaction |
 | Tests | `pnpm test` (Vitest) |
 | Faire jouer une IA | Script Node.js important le core |
-| Voir un replay | Charger JSON dans renderer web |
+| Voir un replay | Menu principal → « Revoir un combat » : coller un code `PTR1.…` ou charger le fichier (§ 9) |
 | Mettre à jour données Champions | `pnpm data:update` → fetch Showdown + apply Champions overrides → écrit `reference/*.json`. Purger `.cache/showdown` et `.cache/champions` avant, sinon `cachedFetch` ne refetch jamais. Les descriptions de moves viennent de `data/text/moves.ts` (Showdown les a retirées de `moves.json`) ; `description-overrides.ts` réapplique les descriptions Champions retirées par Showdown pour les talents adaptés (`healer`) |
 | Reviewer un diff données | `pnpm data:diff` → résumé lisible des changements vs dernier commit |
 

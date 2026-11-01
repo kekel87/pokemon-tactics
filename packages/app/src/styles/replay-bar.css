@@ -1,0 +1,41 @@
+/* Barre de lecture d'un replay (plan 242) — pendant de `ui/dom/replay-bar.ts`.
+ *
+ * Ancrée dans le `screenLayer` du GameStage, comme les autres chromes de combat : elle meurt avec
+ * l'écran. Posée en bas À DROITE : la colonne de gauche (fiche du Pokémon, case survolée) occupe
+ * jusqu'à plus de la moitié de la largeur sur un petit écran, et une barre centrée passait dessous — mesuré à
+ * 568×320, où trois boutons sur six étaient masqués. Elle se replie sur plusieurs lignes dans la
+ * place laissée libre.
+ */
+
+@layer components {
+  .rp-bar {
+    position: absolute;
+    inset-block-end: var(--spacing-xl);
+    inset-inline-end: var(--spacing-xl);
+    inline-size: max-content;
+    /* 56 % de l'écran (420px au plus) réservée à la colonne de gauche — voir l'en-tête. */
+    max-inline-size: calc(100% - min(56%, 420px) - var(--spacing-xl));
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md) var(--spacing-lg);
+    border: 1px solid var(--color-border-surface);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-surface);
+    color: var(--color-text-primary);
+    font-family: var(--font-family);
+    pointer-events: auto;
+  }
+
+  .rp-btn {
+    min-inline-size: var(--target-recommended);
+    min-block-size: var(--target-recommended);
+  }
+
+  .rp-position {
+    color: var(--color-text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+}

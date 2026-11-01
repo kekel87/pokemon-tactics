@@ -2,6 +2,7 @@ import type { TeamSelection } from "@pokemon-tactic/core";
 import type { NetworkErrorCode, NetworkSeeds, RoomRole } from "@pokemon-tactic/network";
 import type { TelemetryTeam } from "../analytics/telemetry";
 import type { BattleResumeSave } from "./battle-persistence";
+import type { ReplayData } from "./replay-code";
 
 /**
  * Screen FSM (plan 120) — screen IDs and legal transition table.
@@ -163,7 +164,13 @@ export interface ScreenParamsById {
    * No `setup` = the `?combat=1` dev route (Jalon 3 demo content until step 7).
    * A `resume` (plan 181) rebuilds a battle from its saved action log and skips the placement phase.
    */
-  combat: { mapUrl: string; setup?: CombatSetup; resume?: BattleResumeSave };
+  combat: {
+    mapUrl: string;
+    setup?: CombatSetup;
+    resume?: BattleResumeSave;
+    /** Rejoue un combat terminé (plan 242) au lieu d'en jouer un. */
+    replay?: ReplayData;
+  };
 }
 
 export const SCREEN_TRANSITIONS: Readonly<Record<ScreenId, readonly ScreenId[]>> = {

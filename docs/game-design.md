@@ -1090,6 +1090,12 @@ Chaque combat = séquence d'actions déterministe :
 - Chaque action jouée dans l'ordre
 - Seed aléatoire (pour reproduire crits, miss...)
 
+**Revoir un combat** (plan 242) : un combat **local** fini se copie en code texte (ou en fichier) depuis l'écran de victoire, et se rejoue depuis le menu principal, « Revoir un combat ».
+- La lecture montre **tout** (aucun brouillard : objets, talents et attaques révélés) — une phrase prévient avant le partage.
+- Barre de lecture : début, action précédente / suivante, lecture / pause, vitesse ×0,5 · ×1 · ×2 · ×4. L'IA n'est jamais relancée : on rejoue le journal.
+- Un code est **lié à la version** du jeu qui l'a produit : un code d'une autre version est refusé (« replay d'une autre version »), jamais rejoué de travers.
+- Pas de lien partageable (itch.io) ; pas de replay des combats en ligne (v1) ; pas de spectateur en direct.
+
 ---
 
 ## 12. Éditeur de terrain

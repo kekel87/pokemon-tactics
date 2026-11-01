@@ -37,6 +37,12 @@ export interface ChromeInsetProbe {
    * told to move — and being told beats polling in a `requestAnimationFrame` loop of its own.
    */
   subscribe(listener: (cell: TimelineFirstCell) => void): () => void;
+  /**
+   * Oublie le chrome qu'elle mesurait, pour en suivre un neuf sur la même scène : le recul d'un replay
+   * (plan 242) remonte le chrome sans remonter la scène. La dernière mesure est gardée — le nouveau
+   * chrome a la même géométrie, et la boussole ne doit pas sauter d'une image.
+   */
+  forgetChrome(): void;
   dispose(): void;
 }
 
@@ -106,6 +112,16 @@ export function createChromeInsetProbe(stage: HTMLElement): ChromeInsetProbe {
     }
   };
 
+  const forgetChrome = (): void => {
+    if (pollHandle !== null) {
+      cancelAnimationFrame(pollHandle);
+      pollHandle = null;
+    }
+    listeners.clear();
+    observer.disconnect();
+    observed = null;
+  };
+
   return {
     subscribe: (listener) => {
       listeners.add(listener);
@@ -120,12 +136,8 @@ export function createChromeInsetProbe(stage: HTMLElement): ChromeInsetProbe {
       ensureObserved();
       return cell;
     },
-    dispose: () => {
-      if (pollHandle !== null) {
-        cancelAnimationFrame(pollHandle);
-      }
-      listeners.clear();
-      observer.disconnect();
-    },
+    forgetChrome,
+    // Libérer la sonde, c'est oublier le chrome sans en attendre de nouveau.
+    dispose: forgetChrome,
   };
 }
