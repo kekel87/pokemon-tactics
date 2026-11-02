@@ -53,10 +53,44 @@ CHEMINS = [
 ]
 
 
+# Fichiers d'instructions et docs : pas de tiret cadratin (méthode agents de l'humain).
+# On refuse seulement les tirets AJOUTÉS, pour pouvoir éditer les fichiers anciens qui en contiennent.
+TIRET = "—"
+CHEMIN_SANS_TIRET = re.compile(r"(^|/)(CLAUDE(\.local)?\.md|\.claude/.+\.md|docs/.+\.md)$")
+MESSAGE_TIRET = ("Pas de tiret cadratin dans les fichiers d'instructions et docs : "
+                 "remplace-le par deux-points, virgule, parenthèses ou point.")
+
+
+def tirets_ajoutes(outil, entree):
+    chemin = str(entree.get("file_path", ""))
+    if outil not in ("Edit", "Write") or not CHEMIN_SANS_TIRET.search(chemin):
+        return False
+    if outil == "Edit":
+        return (str(entree.get("new_string", "")).count(TIRET)
+                > str(entree.get("old_string", "")).count(TIRET))
+    try:
+        avant = open(chemin, encoding="utf-8").read().count(TIRET)
+    except OSError:
+        avant = 0
+    return str(entree.get("content", "")).count(TIRET) > avant
+
+
+def refuse(message):
+    print(json.dumps({"hookSpecificOutput": {
+        "hookEventName": "PreToolUse",
+        "permissionDecision": "deny",
+        "permissionDecisionReason": message,
+    }}))
+
+
 def main():
     charge = json.load(sys.stdin)
     outil = charge.get("tool_name") or ""
     entree = charge.get("tool_input") or {}
+
+    if tirets_ajoutes(outil, entree):
+        refuse(MESSAGE_TIRET)
+        return
 
     sujet, regles = "", []
     if outil == "Bash":
@@ -70,11 +104,7 @@ def main():
 
     for motif, message in regles:
         if re.search(motif, sujet, re.IGNORECASE):
-            print(json.dumps({"hookSpecificOutput": {
-                "hookEventName": "PreToolUse",
-                "permissionDecision": "deny",
-                "permissionDecisionReason": message,
-            }}))
+            refuse(message)
             return
 
 
