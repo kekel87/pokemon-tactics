@@ -1,6 +1,6 @@
 # Plan 245 : appliquer la méthode agents de l'humain
 
-**Statut** : en cours (2026-11-02). Validé par l'humain le 2026-11-02.
+**Statut** : fait (2026-11-02), sauf le branchement du hook `require-agent-model.py` par l'humain. Validé par l'humain le 2026-11-02.
 **Source** : `~/Documents/claude-assistant/docs/methode-agents-2026-11-02.md` (sections 1 à 7).
 **Lié** : plan 244 (repli des sous-agents), qui porte la section 4, `/memo` et la revue unique.
 
@@ -29,3 +29,5 @@
 | 5 | Skill `/restate` : reformuler le but en 2-4 lignes, une question fermée, attendre le oui ; appelé par `/next` | Décision 4 de l'humain | 13 lignes |
 | 6 | Hook : tiret cadratin ajouté refusé dans `CLAUDE*.md`, `.claude/**/*.md`, `docs/**/*.md` (dans `block-friction-commands.py`, déjà branché) | Section 6 : une règle vue deux fois devient un garde-fou ; n'est refusé que l'ajout, pour éditer les anciens fichiers | 6 cas testés, dont l'ancien `CLAUDE.md` (refusé) |
 | 7 | Hook `require-agent-model.py` : délégation sans modèle refusée (sauf `model:` dans la définition, ou fork) | Section 4 ; 168 lancements `general-purpose` sans modèle depuis septembre | 6 cas testés. **Branchement dans `settings.json` à faire par l'humain** (fichier interdit en écriture à Claude) |
+| 8 | Mémoire : rien à changer, `--invalidate` (« INVALID <date>: raison ») et la relation `remplace` existent déjà. `CLAUDE.local.md` (non versionné) : 1re ligne du résumé de compactage = ce qui n'est pas encore écrit | Section 5, déjà couverte | 0 fichier versionné |
+| 9 | Section 4, `/memo`, revue unique : rattachés au plan 244 | Ne pas ouvrir deux chantiers | voir plan 244 |
