@@ -25,3 +25,4 @@
 | 1 | `CLAUDE.md` réécrit : règle d'écriture en tête, workflow vers `/next` (jusqu'à l'arrêt 1) et `/menu` (arrêt 2), parallélisme vers `docs/methodology.md`, récits d'incidents retirés | Texte chargé à chaque tour ; le workflow ne sert qu'à `/next` et `/menu` | 269 → 103 lignes, 18 867 → 6 341 car., 40 → 0 tirets cadratins |
 | 2 | `.claude/rules/style.md` (sans `paths:`, chargé à chaque session) : ton, questions fermées, « fait » = vérifié, vocabulaire des rapports | Section 2 de la méthode ; ces règles valent partout | 1 fichier, 20 lignes |
 | 3 | Skill `/bug` : test rouge sur le symptôme exact avant toute théorie, correctif, test gardé | Remplace l'usage prévu de l'agent `debugger` (0 lancement depuis septembre) | 24 lignes |
+| 4 | Skill `/lesson` : erreur vue deux fois → garde-fou (architecture, types, lint, test, hook, règle, doc), prouvé sur l'erreur passée | Formalise ce qui se faisait à la main (hooks noms FR, backlog) | 21 lignes |
