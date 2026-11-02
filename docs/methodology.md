@@ -88,7 +88,7 @@ Dans les deux cas : la doc est en **français**, le code en **anglais**.
    tests (`test-writer`), `code-reviewer`, `doc-keeper`, gate + commit.
 6. **Commit** — conventional commit, sans validation du message.
 
-Détail complet : `CLAUDE.md` § « Le workflow — DEUX arrêts ».
+Détail complet : skills `/next` (jusqu'à l'arrêt 1) et `/menu` (arrêt 2).
 
 ### Orchestration automatique des agents :
 Après chaque étape significative, les agents pertinents sont lancés sans attendre qu'on le demande :
@@ -96,7 +96,24 @@ Après chaque étape significative, les agents pertinents sont lancés sans atte
 - Avant un commit → `code-reviewer` (coché au menu de finalisation)
 - Après un ensemble de changements → `doc-keeper`
 
-Voir `CLAUDE.md` pour la table complète des déclencheurs.
+### Parallélisme des agents
+
+Deux agents ne tournent en parallèle que si leurs ensembles d'écriture sont DISJOINTS. La lecture seule est
+toujours parallélisable. Dès deux agents, chaque prompt dit ce que l'agent ne doit PAS traiter (sinon ils
+dupliquent le travail).
+
+| Peuvent tourner ensemble | Écrivent dans |
+|---|---|
+| `core-guardian` + `code-reviewer` + `/code-review` | rien (lecture seule) |
+| `test-writer` + `doc-keeper` | tests (`*.test.ts`, `e2e/`) vs `docs/` + graphe |
+| `data-miner` + `asset-manager` | `packages/data/` vs les assets |
+| `game-designer` + n'importe quel agent d'écriture | rien (lecture seule) |
+
+Jamais ensemble : `doc-keeper` + `session-closer` (graphe), `doc-keeper` + `wiki-keeper` (le wiki suit la doc),
+`doc-keeper` + `plan-reviewer` (`docs/`).
+
+Pas d'agents « par étape » (un qui planifie, un qui code, un qui teste) : le principal porte l'implémentation
+de bout en bout, les sous-agents sont des délégations jetables (recherche, revue, données).
 
 ### Pour un bug :
 1. **Reproduire** — test qui échoue

@@ -2,268 +2,102 @@
 
 ## Projet
 
-Pokemon Tactics : combat tactique (Pokemon × FFTA), TypeScript + Babylon.js 9, monorepo pnpm. Core découplé du rendu. AI-playable.
+Pokemon Tactics : combat tactique (Pokemon × FFTA), TypeScript + Babylon.js 9, monorepo pnpm. Core découplé du
+rendu. AI-playable.
 
 ## Humain
 
-**Pas code**. Directeur créatif, architecte, reviewer. Dev web Angular/TS expérimenté, clean code, Godot+Phaser, temps limité.
-Continuité : peut revenir après 1 mois → maintenir le graphe de mémoire et `docs/plans/` à jour.
+Ne code pas. Directeur créatif, architecte, reviewer ; dev web Angular/TS expérimenté, temps limité. Peut revenir
+après un mois : le graphe de mémoire et `docs/plans/` restent à jour. Claude est le dev principal, autonome en
+implémentation, et valide le design avec l'humain.
 
-Claude = dev principal, autonome implémentation, valide design avec humain.
+## Écrire pour les agents
 
-## Docs — quoi lire quand
+Tout texte qu'un agent lit (ce fichier, rules, skills, agents, docs) :
+- Le texte toujours chargé (ce fichier, `rules/style.md`, les descriptions de skills et d'agents) coûte à chaque
+  tour : n'y garder que ce qui change le comportement.
+- Une description de skill est un déclencheur : ce qu'il est, puis une phrase par cas qui doit le lancer.
+- Un skill se découpe par branche : ce que tout appel utilise reste dans `SKILL.md`, le reste va dans un fichier
+  voisin derrière un pointeur qui dit quand le lire.
+- Corps = étapes ordonnées, chacune finissant sur un critère vérifiable, puis la référence.
+- Écrire le comportement voulu ; une interdiction n'est qu'un garde-fou à côté.
+- Source unique : ne jamais répéter un script, une config ou un autre doc ; écrire ce que la lecture du code ne
+  montre pas (convention, raison d'un choix, piège).
+- Pas de récit d'incident : la raison tient en une proposition, l'histoire va au graphe.
+- En français, sans tiret cadratin (hook). Règles de domaine : `.claude/rules/*.md` avec `paths:` en liste YAML.
+- Sources : méthode agents de l'humain (`~/Documents/claude-assistant/docs/methode-agents-2026-11-02.md`).
 
-🔴 **La mémoire du projet est un graphe, plus des fichiers** (plan 200). `STATUS.md`, `docs/decisions.md`,
-`docs/next.md`, `docs/backlog.md`, `docs/backlog-archive.md`, `docs/implementations.md`,
-`docs/test-plan.md` et 198 plans **n'existent plus** : leur contenu vit dans le graphe. **Ne jamais les
-recréer.** Les lignes « Graphe » ci-dessous s'interrogent ; les lignes en `chemin/` sont des documents
-maintenus normalement.
+## Où lire quoi
 
-| Où lire | Trigger |
-|---------|---------|
-| **Graphe de mémoire** — `node scripts/memory/query.mjs "mots clés"` | **Reprise** ("on en était où ?"), décisions passées, dette, agenda, historique, retours de l'humain, plans clos, cahier de recette. 2-4 mots-clés distinctifs, jamais une phrase ; `--open <nom-entité>` pour le détail complet ; `--stats` pour l'inventaire |
-| `docs/game-design.md` | Avant mécanique jeu |
-| `docs/architecture.md` | Avant créer fichier/package, changer structure |
-| `packages/data` (source de vérité) | Roster, movesets, moves, talents — jamais un inventaire recopié à la main |
-| Graphe, entités `réflexion` | Avant pattern attaque |
-| `docs/roadmap.md` | Quoi faire ensuite |
-| `docs/references.md` | Comment résolu ailleurs |
-| `docs/methodology.md` | Workflow |
-| `docs/ai-system.md` | Avant modifier IA |
-| `docs/abilities-system.md` | Avant ajouter/modifier talent |
-| `docs/design-system.md` | Avant couleurs/depths/constantes visuelles |
-| `docs/isometric-height-rendering.md` | Avant rendu iso hauteur/picking/layers multi-niveaux |
-| `docs/tileset-mapping.md` | Tileset ICON, propriétés tiles |
-| `docs/babylon/` | Avant de toucher au renderer Babylon — densité pixel & ancrage sol, cycle de vie des assets, pipeline pixel-art |
-| `docs/plans/` | Plan en cours avant coder |
-| Graphe, entité `plan-196` | Avant toucher à la télémétrie, au Worker Cloudflare ou à `pnpm stats` |
-| `docs/multiplayer.md` | **Avant tout code réseau/multijoueur** — architecture P2P, protocole, adressage, `NETWORK_VERSION`, déterminisme. Manquait à cette table jusqu'au 2026-09-04 |
-| Graphe, entités `retour` — `node scripts/memory/query.mjs --type retour` | Ce que les joueurs (frère, Frank, issues, itch.io) ont dit du jeu et qui n'est pas traité. À lister à chaque `/next`, et à consigner dès que l'humain relaie un retour — jamais en `feedback` (= règles de travail). Les retours de recette n'y vont pas |
-| Graphe, entités `recette` | Cahier de recette visuelle — avant valider un changement de rendu, avant release |
-| `.claude/rules/e2e.md` | Conventions harness Playwright e2e (fixtures, POMs, seed, hook scène) |
-| `.claude/rules/multi-input.md` | **Avant d'ajouter/déplacer un contrôle d'interface** — les 4 axes obligatoires (clavier, manette, tactile, responsive) + recette de mesure |
+La mémoire du projet est un graphe SQLite, plus des fichiers : `STATUS.md`, `docs/decisions.md`, `docs/next.md`,
+`docs/backlog*.md`, `docs/implementations.md`, `docs/test-plan.md` n'existent plus et ne se recréent jamais.
 
-Pas tout charger. Lire fichier pertinent moment pertinent.
+| Où | Quand |
+|---|---|
+| `node scripts/memory/query.mjs "2-4 mots-clés"` (`--open <nom>`, `--type <type>`, `--stats`) | Reprise, décisions passées, dette, agenda, retours, recettes, plans clos |
+| Graphe, `--type retour` | Retours des joueurs non traités : lister à chaque `/next` ; consigner dès que l'humain en relaie un (jamais en `feedback`, qui = règles de travail) |
+| Graphe, entités `réflexion` | Avant un pattern d'attaque |
+| Graphe, entités `recette` | Avant de valider un changement de rendu, avant release |
+| Graphe, entité `plan-196` | Avant télémétrie, Worker Cloudflare, `pnpm stats` |
+| `packages/data` | Roster, movesets, moves, talents (source de vérité, jamais recopiée) |
+| `docs/game-design.md` | Avant une mécanique de jeu |
+| `docs/architecture.md` | Avant de créer un fichier ou package, de changer la structure |
+| `docs/roadmap.md` · `docs/plans/` | Quoi faire ensuite · plan en cours avant de coder |
+| `docs/methodology.md` | Workflow, parallélisme des agents |
+| `docs/ai-system.md` · `docs/abilities-system.md` | Avant de toucher l'IA · un talent |
+| `docs/design-system.md` | Avant couleurs, depths, constantes visuelles |
+| `docs/isometric-height-rendering.md` · `docs/babylon/` | Avant rendu iso, picking, multi-niveaux · avant le renderer Babylon |
+| `docs/tileset-mapping.md` · `docs/references.md` | Tileset ICON · comment c'est résolu ailleurs |
+| `docs/multiplayer.md` | Avant tout code réseau : P2P, protocole, `NETWORK_VERSION`, déterminisme |
+
+Lire le fichier pertinent au moment pertinent, jamais tout.
 
 ## Principes
 
-- **Core découplé** : zéro dep UI (détails `.claude/rules/core.md`)
-- **Tests first — core seulement** : mécanique pure du core (dégâts, règles, traversée) → tests pendant le dev. Tout le reste (UI, rendu, IA, e2e) → tests **après** la recette humaine, dans le menu de finalisation
-- **Petit, incrémental** : 1 changement = 1 chose
-- **TypeScript strict** : pas de `any` implicite, pas de `as` abusif
-- **Pas de sur-ingénierie** : commencer simple
+- Core découplé : zéro dépendance UI (`.claude/rules/core.md`).
+- Tests pendant le dev pour la mécanique pure du core seulement ; tout le reste (UI, rendu, IA, e2e) après la
+  recette humaine, au menu.
+- Petit, incrémental, sans sur-ingénierie ; TypeScript strict, pas de `any` ni de `as` abusif.
 
 ## Conventions
 
-- **Commits** : conventional commits (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`) — **titre seul, jamais corps**, version courte/concise. Détails → graphe de mémoire ou plan en cours
-  - **Scope** : 1 seul scope max (`feat(data): ...`). Si plusieurs scopes → **pas de scope du tout** (`feat: ...`), jamais `feat(scope1, scope2): ...`
-- **Langue** : code anglais, doc français
-- **🔴 Noms FR officiels — RÈGLE DURE** : toute communication à l'humain (texte, tableaux, menus `AskUserQuestion`, listes) utilise les **noms FR officiels** des moves/talents/Pokemon (ex: `Lame de Roche`, `Provoc`, `Florizarre`). **JAMAIS l'ID anglais seul.** ID EN entre parenthèses uniquement si précision technique requise. L'humain ne connaît PAS les noms EN. Source : `packages/data/reference/moves.json` (`names.fr`) ou `packages/data/src/i18n/*.fr.json`. Récidive = grosse friction (rappelé >10×)
-- **Linter** : Biome
-- **Plans** : `docs/plans/xxx-name.md` numérotés, statut en en-tête
-- **Nommage** : pas d'abréviations (`traversalContext` pas `ctx`)
-- **Écriture code** : Edit > Write. Petits Edit successifs, pas Write massif
-- **Code mort** : zéro tolérance
-- **Lint** : jamais désactiver règle Biome sans accord humain. Présenter options d'abord
+- **Noms FR officiels, règle dure** : face à l'humain (texte, tableaux, menus, listes), moves, talents et
+  Pokemon portent leur nom FR officiel (`Lame de Roche`, `Provoc`, `Florizarre`), l'ID anglais seulement entre
+  parenthèses si besoin. Source : `packages/data/reference/moves.json` (`names.fr`), `packages/data/src/i18n/*.fr.json`.
+- Code en anglais, doc en français. Noms sans abréviation (`traversalContext`). Edit plutôt que Write.
+- Linter Biome : jamais désactiver une règle sans accord, présenter les options. Zéro code mort.
+- Commits : conventional commits, titre seul, court, un scope max sinon aucun. Commit et push directs, sans
+  proposer le message, mais seulement au menu de finalisation.
+- Plans : `docs/plans/xxx-name.md`, numérotés, statut en en-tête.
 
-Règles détaillées par package : `.claude/rules/*.md` (chargées via frontmatter `paths:` selon fichier touché).
+## Interdits (gardés par hook)
 
-## Interdits
+- Git destructeur (checkout, reset, restore, clean, rm, branch -d, tag -d, merge). Autorisés : `git rebase`
+  (intégration worktree → main), `git merge --ff-only`.
+- Install global, config nvm/npm.
+- Commiter les sources d'assets non libres : seul le paquet empaqueté est commité (`sprites.bin`,
+  `item-icons.png`, `move-effects.png`).
+- Backlog ou agenda au graphe sans accord explicite de l'humain.
 
-- `any` sans justification
-- Commiter les **sources** d'assets non libres : elles se téléchargent par script et restent gitignorées ; seul le paquet empaqueté est commité (`sprites.bin`, `item-icons.png`, `move-effects.png` — décision 1138)
-- Charger toute doc en contexte quand 1 fichier suffit
-- **Git** : commit/add/push/amend autorisés **sans validation du message** — Claude suit la convention (titre seul, court, 1 scope max sinon aucun), commit et push, sans rien proposer en chat. Reste soumis au workflow : les commits arrivent au menu de finalisation, jamais pendant le dev. Destructeurs interdits (checkout, reset, merge, restore, clean, rm, branch -d, tag -d) — bloqués par deny-list. **`git rebase` autorisé** (l'humain déteste les merges → intégration worktree → main par rebase, jamais merge). **Exception merge : `git merge --ff-only` autorisé** (non destructif ; autres merges = humain via GUI). Garde dans hook `block-forbidden-commands.sh`
-- **Infra** : install global, modif nvm/npm config interdit. Bloqué par hook
-- **Structurel** : consulter humain AVANT modifier tsconfig, module resolution, structure, dépendances. Bug fix simple OK
-- **Mémoire vs doc** : recherches/décisions/contexte → doc projet (git), pas mémoire Claude. Mémoire = préférences perso humain seulement
-- **Noms EN seuls** : présenter un move/talent/Pokemon par son ID anglais seul à l'humain est INTERDIT. Voir règle dure Conventions. Hook `french-names-reminder.sh` réinjecte la règle chaque tour
+Avant de toucher tsconfig, module resolution, structure ou dépendances : consulter l'humain. Recherches,
+décisions et contexte vont dans le dépôt (graphe, docs), jamais dans la mémoire de Claude.
+
+## Workflow : deux arrêts
+
+`/next` (choix) → plan → dev d'un trait → **arrêt 1** « Tu testes ? » → `/recette` → **arrêt 2** `/menu`.
+Aucun autre arrêt, sauf le coupe-circuit de dérive de plan. Détail : skill `/next` jusqu'à l'arrêt 1, skill
+`/menu` pour l'arrêt 2 (l'humain peut l'appeler à tout moment par `/menu` ou le mot `menu`).
 
 ## Agents
 
-**Tu lances, humain demande pas.** Besoin asset → `asset-manager`. Données → `data-miner`. Tests → `test-writer`.
+Claude lance les agents sans attendre qu'on le demande : asset → `asset-manager`, données → `data-miner`, tests
+→ `test-writer`. Proposer avant : `visual-tester`, `debugger`, `best-practices`, `performance-profiler`,
+`publisher`, `wiki-keeper`. Chaque délégation nomme son modèle (haiku mécanique, sonnet bien spécifié, opus
+raisonnement dur). Un agent long à la fois au premier plan, les autres en arrière-plan. Parallélisme :
+`docs/methodology.md`.
 
-**Auto sans demander** : majorité. **Proposer avant** : `visual-tester` (Playwright ≥2 min), `debugger` (opus), `best-practices` (Web*), `performance-profiler`, `publisher`, `wiki-keeper`.
+## Gate et e2e
 
-Détails : graphe de mémoire, entités `orchestration`.
-
-#### Parallélisme — ce qui peut tourner ensemble
-
-🔴 **Règle unique : deux agents ne tournent en parallèle que si leurs ensembles d'écriture sont
-DISJOINTS.** Jamais deux agents sur le même sous-arbre. La lecture seule est toujours parallélisable.
-
-| Peuvent tourner ensemble | Écrivent dans |
-|---|---|
-| `core-guardian` + `code-reviewer` + `/code-review` | rien (lecture seule) — les deux agents en arrière-plan pendant que `/code-review` tourne dans le tour |
-| `test-writer` + `doc-keeper` | tests (`*.test.ts`, `e2e/`) vs `docs/` + graphe |
-| `data-miner` + `asset-manager` | `packages/data/` vs les assets |
-| `game-designer` + n'importe quel agent d'écriture | rien (lecture seule) |
-
-**Jamais ensemble** : `doc-keeper` + `session-closer` (tous deux écrivent au graphe) ·
-`doc-keeper` + `wiki-keeper` (le wiki se construit **après** la doc, dépendance d'ordre) ·
-`doc-keeper` + `plan-reviewer` (tous deux sous `docs/`).
-
-🔴 **Bornage obligatoire dès 2 agents en parallèle** : le prompt de chacun dit explicitement **ce
-qu'il ne doit PAS traiter** (« ne touche pas aux tests, c'est le rôle de l'autre agent »). C'est le
-correctif documenté par Anthropic contre leur mode d'échec le plus fréquent — des agents aveugles
-l'un à l'autre qui dupliquent le travail.
-
-**Ne pas créer d'agents « par étape »** (un qui planifie, un qui code, un qui teste la même feature) :
-anti-pattern nommé, ces étapes partagent trop de contexte mutable. Le principal porte
-l'implémentation de bout en bout ; les sous-agents sont des délégations jetables (recherche, revue,
-données), jamais les maillons d'un pipeline de feature. La fiabilité se compose mal : un agent fiable
-à 95 % chaîné 5 fois tombe à ~77 %.
-
-### Le workflow — DEUX arrêts, pas un de plus
-
-🔴 **Règle mère (2026-09-18, refonte demandée par l'humain).** Entre le moment où un choix est fait
-et le moment où l'humain teste, Claude ne s'arrête **jamais**. Il n'y a que **deux arrêts** dans un
-cycle : l'**arrêt recette** (une seule question : tu testes ?) et l'**arrêt menu** (la chaîne de
-finalisation, après tes retours). Tout arrêt supplémentaire — fin de phase, « je continue ? »,
-« je commit le plan ? », « je lance le gate ? » — est une faute. L'humain fait autre chose en
-parallèle : chaque arrêt inutile coûte un aller-retour et casse son fil.
-
-#### 1. `/next` — le choix
-
-Résumé court de ce qui vient d'être fait, **2-3 candidats**, **une recommandation**.
-Deux issues, **même suite** :
-- l'humain confirme un candidat directement, **ou**
-- on en discute et un choix sort de la discussion.
-
-🔴 **Le second cas suit exactement le même workflow que le premier.** La méprise historique : après
-une discussion, Claude partait coder tête baissée, sans plan ni menu de plan. Une décision issue
-d'un échange est une décision comme une autre → on enchaîne sur le plan.
-
-#### 2. Plan
-
-Plan rédigé (`docs/plans/xxx-name.md`), qui porte en tête une section **« Ce que tu verras à
-l'écran »** : 3 à 5 lignes en français du résultat observable, pas de l'architecture.
-
-🔴 **Ces 3-5 lignes s'affichent EN CHAT, avec la question du menu de plan.** L'humain **ne lit jamais
-le plan** — le fichier est un support pour Claude, `plan-reviewer`, `game-designer` et l'agent qui
-exécutera. Un critère d'acceptation enterré dans un fichier qu'il n'ouvre pas ne vaut rien.
-
-Le dev se faisant désormais d'un trait, ces lignes sont le **seul point de contrôle pas cher** : le
-coût d'une erreur de cadrage a été transféré du milieu du chantier vers son début. C'est là que
-l'humain dit « non, pas ça » pour le prix d'une phrase — encore faut-il qu'il les ait sous les yeux.
-
-Puis **un seul** `AskUserQuestion` :
-
-| Option | Pré-coché si |
-|--------|--------------|
-| `plan-reviewer` | toujours |
-| `game-designer` | le plan touche des mécaniques de jeu |
-
-🔴 **Jamais proposer de commiter le plan.** On ne le fait jamais, ça saoule l'humain. Le plan part
-avec le commit de la feature.
-
-#### 3. Dev — d'un trait
-
-Plan validé → Claude implémente **tout**, sans reprendre la parole.
-
-🔴 **Le découpage interne du plan (phases, parties, lots) n'existe pas pour l'humain.** Il ne valide
-pas phase par phase, il s'en moque. Pas de « Phase 1 terminée, je passe à la 2 ? ». Pas de commit
-intermédiaire proposé. Pas de point d'étape.
-
-Pendant le dev, Claude fait seul : écrire le code, `/simplify` (voir ci-dessous), `typecheck`, les
-**tests unitaires du core** (mécanique pure : dégâts, règles, traversée — seul moyen de savoir que ça
-marche), la **passe multi-entrée mesurée** si le diff touche un contrôle d'interface.
-
-🔴 **`/simplify` tourne en fin de dev, AVANT la recette — automatiquement.** Il réécrit le code
-(réutilisation, simplification, efficacité), donc il doit passer **avant** que l'humain valide, pas
-après : ce qu'il change est alors couvert par la recette, et n'impose aucun aller-retour
-supplémentaire. Le faire tourner après la recette, ce serait rejouer le plan 166. Une **seconde
-passe** de `/simplify` a lieu plus tard, sur les tests unitaires et e2e écrits au menu (§ arrêt 2) —
-ce code-là n'est jamais testé à la main, donc le moment ne pose pas de problème.
-
-Claude ne fait **pas** : `/ci-gate`, `pnpm build`, e2e (ciblés ou complets), tests unitaires hors
-core, lint de finition, commits. Ce sont des **cases du menu final**, elles viennent **après** la
-recette humaine.
-
-🔴 **Coupe-circuit de dérive de plan — la SEULE exception au dev d'un trait.** Si l'exécution
-s'écarte sérieusement du plan validé — dépendance nouvelle, fichier hors périmètre, mécanique non
-prévue, hypothèse du plan démentie par le code — Claude **s'arrête et remonte**, au lieu de finir sur
-sa lancée. Fondement (Reinertsen, *Principles of Product Development Flow*) : le gros lot n'est un
-bon calcul économique que tant que le plan reste une **bonne prédiction du travail réel**. Dès qu'il
-cesse de l'être, le gros lot perd sa justification et on dérive loin avant que quiconque le voie.
-Ce n'est pas un point d'étape déguisé : une gêne, une idée d'amélioration ou une hésitation de style
-ne déclenchent rien.
-
-⚠️ Deux méprises historiques, symétriques, à ne pas rejouer :
-- 2026-09-10 (plan 203) : « fais le plan en entier » lu comme « n'affiche plus le menu du tout ».
-  Non — le menu final reste obligatoire.
-- 2026-09-17 (plan 214) : « va au bout du dev » lu comme « va jusqu'à ce que tout soit vert ».
-  Claude a enchaîné lint, typecheck, build, 5254 tests, 125 e2e **avant** de faire tester l'humain.
-  Retour : *« encore une fois tu es parti dans les tests et les e2e sans me faire tester »*.
-
-#### 4. ARRÊT 1 — la recette
-
-Code écrit, typecheck vert. Claude :
-1. `git status --porcelain`
-2. **Résume ce qu'il a fait** (court).
-3. Pose **une seule question**, `AskUserQuestion` : **« Tu testes ? »** → `oui` / `non`, en
-   annonçant le **nombre de scénarios** prévus, pour que l'humain arbitre en connaissance de cause
-   (et puisse répondre « juste le premier »). 🔴 **Jamais d'estimation de durée** — les modèles sont
-   mauvais à ça, un chiffre inventé vaut moins que pas de chiffre (règle donnée le 2026-09-18).
-
-🔴 **Rien d'autre à cet arrêt.** Pas de menu de chaîne, pas de gate, pas d'e2e. Une question.
-
-`oui` → skill `/recette` (mode interactif), un scénario à la fois.
-L'humain teste, remonte des retours, on itère jusqu'à ce qu'il valide.
-
-#### 5. ARRÊT 2 — le menu de finalisation
-
-Seulement **après** la validation de la recette (ou un `non` à l'arrêt 1) → **invoquer le skill
-`/menu`**, qui porte la procédure complète : commit WIP, `core-guardian` ∥ `code-reviewer` ∥
-`/code-review`, le menu multi-select, l'ordre d'exécution, les stops sur fail bloquant. Raccourci :
-l'humain peut l'appeler à tout moment via `/menu` ou le mot **`menu`** seul.
-
-🔴 **Résumé du diff WIP→final** : si la chaîne a retouché du code hors tests, Claude le résume en
-3 lignes et **l'humain décide** s'il mérite un coup d'œil — le jugement ne revient jamais à Claude
-(plan 166).
-
-#### Commits — sans validation de message
-
-🔴 Claude **commit et push directement**, sans proposer le message ni attendre l'accord. La
-convention (conventional commits, titre seul, ≤72 char, 1 scope max sinon aucun) suffit, l'humain ne
-veut plus arbitrer chaque message. Rien à annoncer en chat.
-
-#### Trouvailles en route
-
-Un truc découvert pendant le dev :
-- **Besoin d'une décision de l'humain** (design, arbitrage, priorité) → on en discute, tout de suite.
-- **Pas besoin** (bug évident, incohérence, nettoyage dans le périmètre) → Claude avance, point.
-
-🔴 **Zéro « reste à faire » ajouté de ma propre initiative.** Pas de TODO, pas de section « suites
-possibles », **rien au backlog ni à l'agenda du graphe sans accord explicite de l'humain.**
-Appliqué par le hook `block-backlog-write.py`, qui refuse `--add backlog` **et** `--add agenda`.
-Seule sortie, déclarative : la clôture de session (`PT_CLOTURE=1` en préfixe), quand l'humain a
-lui-même dit « fin » ou lancé `/status`.
-
-#### `human-testing` — mode interactif
-
-Réponse `oui` à l'arrêt 1 → **invoquer le skill `/recette`** : passe multi-entrée mesurée, puis un
-scénario sandbox à la fois, lancé par Claude, validé par l'humain. Tous validés → arrêt 2.
-
-#### Exceptions
-
-- Changes purement config (`.claude/`, doc seule) sans code TS → pas d'arrêt recette, menu réduit (commit direct).
-- Bug fix 1 ligne sans test → arrêt recette normal, `code-reviewer` sauté (il tourne sur du code, pas sur une ligne triviale).
-
-### Règles fond
-
-- Jamais > 1 agent long en foreground/turn — longs en background
-- **Gate local** : `/ci-gate fast` (~43 s) = boucle d'itération, **tour des 10 écrans compris** ; `/ci-gate full` (~80 s sur un diff normal) = **BLOQUANT avant commit**, avec l'e2e ciblé par `scripts/e2e-affected.ts`. `slow` = filet exhaustif local (recours hors ligne)
-- **Suite e2e complète = sur GitHub, asynchrone** (`.github/workflows/e2e.yml`, 531 tests en 8 tranches, **~5 min**, sur `push` vers `main` + chaque nuit). Elle **ne bloque jamais**. Verdict : `pnpm e2e:status` / skill `/e2e-status`, lu en tête de `/next`. 🔴 **On ne l'attend JAMAIS** (ni `gh run watch`, ni boucle de sondage) — décision #925. 🔴 **Pas de `/publish` sur un rouge** — décision #924
-- Reporté → graphe de mémoire, entités `agenda`
-- 🔴 **Vocabulaire des rapports de revue** : jamais « ✅ tout est bon ». Dire **« aucune anomalie
-  détectée par les règles connues, non exhaustif »**. Un verdict absolu pousse au tampon automatique ;
-  un libellé qui rappelle les limites de l'outil réduit mécaniquement la sur-confiance (littérature
-  sur l'*approval fatigue* et le biais d'automatisation, recherche du 2026-09-18). Vaut pour
-  `code-reviewer`, `/code-review`, `core-guardian`, le gate et les agents de test
-- **Métriques de calibrage des lots** — `doc-keeper` consigne au graphe, à chaque lot : le **nombre
-  de retours de l'humain en recette** et le **nombre de correctifs dans les 24-48 h suivant le
-  commit**. Ce sont les deux proxies de « le lot était-il bien calibré ». Au bout de quelques lots,
-  on ajuste la taille des lots sur des chiffres au lieu du ressenti. 🔴 **Tâche de fond, muette**
-  (humain, 2026-10-06 : « fais ça sans m'embêter ») : jamais une étape à proposer, jamais dans le
-  pointeur d'agenda, jamais en chat — sauf **signal** : deux lots de suite avec un correctif
+`/ci-gate fast` pour itérer ; `/ci-gate full` bloquant avant commit. La suite e2e complète tourne sur GitHub
+après le push et ne bloque jamais : ne jamais l'attendre ; verdict par `/e2e-status`. Pas de `/publish` sur un
+rouge.

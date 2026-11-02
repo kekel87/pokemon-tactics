@@ -75,18 +75,33 @@ Concis : 10-15 lignes au total.
 
 ---
 
-## Après le choix
+## Après le choix : le workflow à deux arrêts
 
-🔴 Que l'humain confirme un candidat **directement** ou qu'un choix sorte d'une **discussion**, la
-suite est la même : **plan rédigé** (`docs/plans/xxx-name.md`), puis le menu de plan
-(`plan-reviewer` coché, `game-designer` si mécaniques jeu — **jamais** d'option « commiter le plan »).
-Ne jamais partir coder directement après une discussion.
+Ce skill est la source de vérité de tout ce qui suit le choix, jusqu'à l'arrêt 1. L'arrêt 2 vit dans `/menu`.
+Entre un choix et la recette, Claude ne s'arrête jamais : un arrêt de plus (fin de phase, « je continue ? »,
+« je commit le plan ? ») coûte un aller-retour à l'humain, qui fait autre chose en parallèle.
 
-Le plan porte en tête une section **« Ce que tu verras à l'écran »** : 3 à 5 lignes du résultat
-observable. 🔴 **Les afficher EN CHAT** avec la question du menu de plan — l'humain ne lit jamais le
-fichier, c'est un support pour Claude et les agents. C'est le seul point de contrôle pas cher avant
-que tout soit codé.
+1. **Le choix.** Que l'humain confirme un candidat directement ou qu'un choix sorte d'une discussion, la suite
+   est la même. Ne jamais partir coder après une discussion. Si l'intention reste floue, `/restate` d'abord.
+2. **Le plan.** `docs/plans/xxx-name.md`, avec en tête « Ce que tu verras à l'écran » : 3 à 5 lignes du résultat
+   observable. Afficher ces lignes EN CHAT avec un seul `AskUserQuestion` : `plan-reviewer` (toujours coché),
+   `game-designer` (coché si mécaniques de jeu). L'humain ne lit jamais le fichier : ces lignes sont son seul
+   point de contrôle avant que tout soit codé. Jamais d'option « commiter le plan » : il part avec la feature.
+   Critère : l'humain a répondu au menu de plan.
+3. **Le dev, d'un trait.** Tout implémenter sans reprendre la parole : pas de phase, pas de point d'étape, pas
+   de commit intermédiaire. Pendant le dev : le code, les tests unitaires du core (mécanique pure : dégâts,
+   règles, traversée), `typecheck`, la passe multi-entrée mesurée si un contrôle d'interface bouge, puis
+   `/simplify` en dernier, avant la recette (ce qu'il réécrit est ainsi couvert par la recette). Pas pendant
+   le dev : `/ci-gate`, `pnpm build`, e2e, tests hors core, lint de finition, commits ; ce sont des cases du
+   menu. Critère : `typecheck` vert, tests du core verts.
+4. **Coupe-circuit de dérive**, seule exception au dev d'un trait : si l'exécution s'écarte sérieusement du
+   plan (dépendance nouvelle, fichier hors périmètre, mécanique non prévue, hypothèse démentie par le code),
+   s'arrêter et remonter. Une gêne, une idée ou une hésitation de style ne déclenchent rien.
+5. **Arrêt 1, la recette.** `git status --porcelain`, résumé court, puis une seule question `AskUserQuestion` :
+   « Tu testes ? » (`oui` / `non`), avec le nombre de scénarios prévus, jamais une durée. Rien d'autre à cet
+   arrêt. `oui` : skill `/recette`, un scénario à la fois, jusqu'à validation. Ensuite, ou sur `non` : `/menu`.
 
-Ensuite : dev **d'un trait**, sans arrêt de phase, jusqu'à l'arrêt 1 (« Tu testes ? »). Une seule
-exception : le **coupe-circuit de dérive de plan**. Détail : section « Le workflow — DEUX arrêts »
-de `CLAUDE.md`.
+Trouvailles en route : besoin d'une décision de l'humain (design, arbitrage, priorité) → en discuter tout de
+suite ; sinon (bug évident, nettoyage dans le périmètre) → avancer. Aucun reste à faire ajouté de sa propre
+initiative : ni TODO, ni « suites possibles », ni backlog ou agenda au graphe sans accord explicite (hook
+`block-backlog-write.py` ; seule sortie : la clôture, `PT_CLOTURE=1`).

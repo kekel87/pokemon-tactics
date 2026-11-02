@@ -31,7 +31,7 @@ SURVEILLE = ("packages/", "scripts/", ".claude/", "e2e/", "scenarios/")
 
 MESSAGE = (
     "Du travail est modifié et n'a pas passé la chaîne de validation. La section "
-    "« Le workflow — DEUX arrêts » de CLAUDE.md est OBLIGATOIRE. Selon où on en est :\n"
+    "Le workflow à deux arrêts (skills /next et /menu) est OBLIGATOIRE. Selon où on en est :\n"
     "  · recette humaine PAS encore faite → ARRÊT 1 : résumé court, puis "
     "AskUserQuestion avec UNE SEULE question, « Tu testes ? » (oui / non). Rien "
     "d'autre : ni gate, ni e2e, ni menu de chaîne ;\n"

@@ -65,8 +65,12 @@ exhaustif »** — contre-mesure au tampon automatique.
 
 ## Règles
 
-- Ce skill est la **source de vérité** de l'arrêt 2 : `CLAUDE.md` (§ « Le workflow — DEUX arrêts »)
-  ne fait qu'y renvoyer.
+- Ce skill est la **source de vérité** de l'arrêt 2. L'arrêt 1 et ce qui précède vivent dans `/next`.
 - `/commit` : commit + push **directement**, sans proposer le message ni attendre validation.
-- Changes purement config/doc sans code TS → menu réduit (commit direct).
+- Changes purement config/doc sans code TS : pas d'arrêt recette, menu réduit (commit direct).
+- Bug fix d'une ligne sans test : arrêt recette normal, `code-reviewer` sauté.
+- Deux agents en parallèle seulement si leurs ensembles d'écriture sont disjoints ; chaque prompt dit ce que
+  l'agent ne doit PAS traiter. Table : `docs/methodology.md`, « Parallélisme des agents ».
+- La suite e2e complète tourne sur GitHub après le push et ne bloque jamais : ne jamais l'attendre ni la
+  sonder (décision #925). Verdict lu par `/next` via `/e2e-status`.
 - 🔴 Ne rien ajouter au backlog / à l'agenda du graphe sans accord explicite de l'humain.
