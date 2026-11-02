@@ -82,7 +82,7 @@ Entre un choix et la recette, Claude ne s'arrête jamais : un arrêt de plus (fi
 « je commit le plan ? ») coûte un aller-retour à l'humain, qui fait autre chose en parallèle.
 
 1. **Le choix.** Que l'humain confirme un candidat directement ou qu'un choix sorte d'une discussion, la suite
-   est la même. Ne jamais partir coder après une discussion. Si l'intention reste floue, `/restate` d'abord.
+   est la même. Ne jamais partir coder après une discussion. Si l'intention reste floue, skill `/restate` d'abord.
 2. **Le plan.** `docs/plans/xxx-name.md`, avec en tête « Ce que tu verras à l'écran » : 3 à 5 lignes du résultat
    observable. Afficher ces lignes EN CHAT avec un seul `AskUserQuestion` : `plan-reviewer` (toujours coché),
    `game-designer` (coché si mécaniques de jeu). L'humain ne lit jamais le fichier : ces lignes sont son seul

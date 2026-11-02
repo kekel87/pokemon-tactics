@@ -26,3 +26,4 @@
 | 2 | `.claude/rules/style.md` (sans `paths:`, chargé à chaque session) : ton, questions fermées, « fait » = vérifié, vocabulaire des rapports | Section 2 de la méthode ; ces règles valent partout | 1 fichier, 20 lignes |
 | 3 | Skill `/bug` : test rouge sur le symptôme exact avant toute théorie, correctif, test gardé | Remplace l'usage prévu de l'agent `debugger` (0 lancement depuis septembre) | 24 lignes |
 | 4 | Skill `/lesson` : erreur vue deux fois → garde-fou (architecture, types, lint, test, hook, règle, doc), prouvé sur l'erreur passée | Formalise ce qui se faisait à la main (hooks noms FR, backlog) | 21 lignes |
+| 5 | Skill `/restate` : reformuler le but en 2-4 lignes, une question fermée, attendre le oui ; appelé par `/next` | Décision 4 de l'humain | 13 lignes |
