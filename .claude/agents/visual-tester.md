@@ -1,7 +1,6 @@
 ---
 name: visual-tester
 description: Vérifie visuellement le jeu via Playwright MCP — navigation, screenshots, console, interactions. Utiliser après un changement renderer ou pour diagnostiquer un bug visuel.
-tools: Read, Glob, Grep, Bash, mcp__playwright__browser_navigate, mcp__playwright__browser_take_screenshot, mcp__playwright__browser_snapshot, mcp__playwright__browser_click, mcp__playwright__browser_hover, mcp__playwright__browser_console_messages, mcp__playwright__browser_evaluate, mcp__playwright__browser_resize, mcp__playwright__browser_press_key, mcp__playwright__browser_close, mcp__playwright__browser_run_code_unsafe, mcp__playwright__browser_network_requests
 model: sonnet
 ---
 

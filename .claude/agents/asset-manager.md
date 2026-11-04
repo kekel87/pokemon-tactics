@@ -1,7 +1,6 @@
 ---
 name: asset-manager
 description: Gère les assets du jeu (sprites, tilesets, sons). Emplacement, nommage, transformation, pipeline, optimisation. Utiliser quand on ajoute ou modifie des assets.
-tools: Read, Write, Edit, Grep, Glob, Bash
 model: sonnet
 ---
 

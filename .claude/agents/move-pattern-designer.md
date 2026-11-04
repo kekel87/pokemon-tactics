@@ -1,7 +1,6 @@
 ---
 name: move-pattern-designer
 description: Attribue et justifie le pattern tactique (targeting) de chaque move. Input - liste de moves, nom de Pokemon, ou 'all' pour tout le roster. Utiliser quand on ajoute un Pokemon ou revise les patterns de tactical.ts.
-tools: Read, Grep, Glob, WebSearch, WebFetch
 model: sonnet
 ---
 

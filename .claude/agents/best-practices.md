@@ -1,7 +1,6 @@
 ---
 name: best-practices
 description: Recherche les bonnes pratiques du marché pour un sujet donné (architecture, patterns, libs, conventions). Vérifie que le projet suit les standards. Utiliser quand on hésite sur une approche.
-tools: Read, Grep, Glob, WebSearch, WebFetch
 model: sonnet
 ---
 

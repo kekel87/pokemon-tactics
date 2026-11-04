@@ -1,6 +1,6 @@
 # Plan 244 : Replier une partie des sous-agents en skills
 
-**Statut** : done (2026-11-04), dans l'onglet `pokemon-sous-agents`. Un point reste à l'humain : retirer `tools:` des agents gardés (écart 1).
+**Statut** : done (2026-11-04), dans l'onglet `pokemon-sous-agents`. Écart 1 soldé le jour même par l'humain.
 **Origine** : mission du pilote `assistant`, validée par l'humain le 2026-11-02 ; question ouverte « plan de repli des sous-agents » → oui.
 Graphe : `agenda-replier-sous-agents-en-skills`.
 
@@ -8,7 +8,7 @@ Graphe : `agenda-replier-sous-agents-en-skills`.
 
 | # | Prévu | Livré |
 |---|---|---|
-| 1 | Les agents gardés ne déclarent plus `tools:`, sauf `code-reviewer` et `game-designer` | Pas fait : le classifieur du mode auto refuse ce changement (élargir les outils d'un agent compte comme une auto-modification). 10 agents gardent leur liste ; à faire par l'humain ou avec son accord direct |
+| 1 | Les agents gardés ne déclarent plus `tools:`, sauf `code-reviewer` et `game-designer` | Fait par l'humain le 2026-11-04 (commande lancée par lui : le mode auto refusait la modification) |
 | 2 | `best-practices` replié en skill | Gardé en sous-agent après mesure (`decision-1191`) |
 | 3 | Revue unique, « une seule commande au menu » | `/relire-code <commit>` (sous-agent `code-reviewer`, conventions et bugs de correction) ; `review-local` retiré, `/code-review` ne tourne plus au menu (`decision-1192`) |
 | 4 | Découpage par branche, « fichiers voisins » | Voisins rangés dans `.claude/knowledge/<agent>/` : un `.md` sous `.claude/agents/` serait chargé comme agent |
@@ -304,7 +304,7 @@ Fin du plan (2026-11-04) :
   commit relu ; `review-local` retiré, l'appel à `/code-review` aussi.
 - `level-designer` 316 → 140 lignes, avec `relief.md` et `spawns-et-tactique.md` ; `publisher` 246 → 63 lignes,
   avec `phase-1.md` et `phase-2.md` ; voisins dans `.claude/knowledge/<agent>/`.
-- `tools:` toujours présent sur 10 agents gardés (écart 1).
+- `tools:` retiré des 10 agents gardés par l'humain le 2026-11-04 (écart 1 soldé).
 - En plus : `audit:flow` ignore un fichier suivi absent du disque (il plantait en ENOENT) ; `/recette` ne
   renvoie plus à `docs/references/test-sur-telephone.md`, qui n'a jamais existé.
 - Limites de méthode : mesures « après » des cas 1, 3 et 5 de l'étape 6 pas à l'aveugle ; un seul passage par
