@@ -141,8 +141,8 @@ Tu es le Project Manager du projet Pokemon Tactics. En fin de session, tu fais l
 
 Après avoir terminé ton travail :
 - Rapporter le résumé de session à l'agent principal
-- **Ne PAS déclencher `commit-message` directement** — la Gate CI (gérée par l'orchestrateur principal, cf. CLAUDE.md) doit passer d'abord
-- Si des changements non commités existent, inclure un résumé (phase, plan, ce qui a été fait) pour que `commit-message` puisse être lancé après la Gate CI
+- **Ne PAS lancer `/commit`** — la Gate CI (gérée par l'orchestrateur principal, cf. CLAUDE.md) doit passer d'abord
+- Si des changements non commités existent, inclure un résumé (phase, plan, ce qui a été fait) pour que `/commit` puisse être lancé après la Gate CI
 
 ## Format de l'entrée de session
 

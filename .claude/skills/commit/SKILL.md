@@ -1,34 +1,30 @@
 ---
 name: commit
-description: Génère un message de commit conventional court (titre seul, ≤72 char) via l'agent commit-message, puis commit + push directement. Pas de validation du message.
+description: Écrit le titre de commit dans le tour, puis commit et push sans validation. À lancer depuis le menu de finalisation, une fois le gate full vert.
 user-invocable: true
 ---
 
-Thin wrapper sur l'agent `commit-message` (haiku, rapide).
-
-## Pré-requis
-
-- Gate CI verte (`bash .claude/skills/ci-gate/run.sh`). Si pas passée dans le tour, lance-la d'abord ou avertis.
-- Changements présents (`git diff --stat` ou fichiers untracked).
+Le tour principal écrit le message : il sait déjà ce que le lot a fait et pourquoi, un agent devrait le
+reconstituer.
 
 ## Étapes
 
-1. Vérifie `git diff --stat HEAD` et `git status --porcelain` :
-   - Rien à commit → signale et stop.
-2. Lance l'agent `commit-message` via `Agent({ subagent_type: "commit-message", ... })`. Passe le contexte de session (plan en cours, résumé) dans le prompt — l'agent prime contexte sur diff.
-3. `git add` + `git commit -m "<message>"` + `git push`. Stop sur fail.
+1. `git status --porcelain` et `git diff --stat HEAD` : rien à commiter → le dire et s'arrêter.
+   Critère : la liste des fichiers du commit est connue.
+2. Gate : `/ci-gate full` vert dans le tour. Sinon le lancer ; rouge → s'arrêter.
+3. Rédiger le titre à partir de ce que le tour sait du lot (plan en cours, but du changement) ; le diff ne
+   sert qu'à vérifier qu'il ne manque rien. `git log --oneline -5` donne le ton.
+   Critère : chaque règle de la référence ci-dessous est tenue.
+4. Lot trop varié pour un titre → plusieurs commits logiques, un `git add <fichiers>` par commit.
+5. `git add` + `git commit -m "<titre>"` + `git push`. Échec → s'arrêter et le dire.
+   Critère : `git log -1 --format=%s` affiche le titre et `git status` dit la branche à jour avec l'origine.
+6. Une ligne en chat après coup : `Commité + pushé : <titre>`.
 
-## Règles
+## Référence : le titre
 
-- 🔴 **Pas de validation du message** : la convention suffit, l'humain ne veut plus arbitrer chaque message. Commit + push directement, rien à proposer en chat.
-- Titre seul, version courte/concise, ≤72 char, conventional commits (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`).
-- **Scope** : 1 seul scope max (`feat(core):`). Si plusieurs scopes → **aucun scope** (`feat:`), jamais `feat(scope1, scope2):`.
-- Si changements trop variés pour un titre → propose plusieurs commits logiques avec liste de fichiers par commit.
-- Destructeurs (reset, checkout, restore, clean, etc.) restent interdits (deny-list). `git rebase` est autorisé.
-
-## Output
-
-Une ligne en chat après coup, pas avant :
-```
-Commité + pushé : feat(core): implement Move+Act FFTA-like turn system
-```
+- Conventional commits (`feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `perf`, `build`), en français.
+- Une seule ligne, 72 caractères max, pas de corps.
+- Un scope au plus (`fix(core):`) ; plusieurs scopes → aucun (`fix:`), jamais `fix(a, b):`.
+- Précis sur ce qui change pour le joueur ou le dépôt, jamais « mise à jour du code ».
+- Le pourquoi détaillé va au graphe ou au plan avant le commit, pas dans le message.
+- Pas de validation du message : l'humain ne veut plus arbitrer chaque titre.

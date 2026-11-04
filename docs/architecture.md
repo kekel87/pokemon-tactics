@@ -931,7 +931,6 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/`.
 | `best-practices` | sonnet | Recherche bonnes pratiques (WebSearch + WebFetch) |
 | `ci-setup` | haiku | Configuration GitHub Actions |
 | `code-reviewer` | sonnet | Review qualité, TS strict, conventions |
-| `commit-message` | haiku | Propose message de commit basé sur contexte + `git diff` |
 | `core-guardian` | haiku | Vérifie que `packages/core/` n'a aucune dépendance UI |
 | `data-miner` | sonnet | Import données Pokemon (Showdown/PokeAPI) |
 | `debugger` | opus | Diagnostic bugs complexes |
@@ -945,7 +944,7 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/`.
 | `plan-reviewer` | haiku | Crée, review et maintient les plans |
 | `publisher` | sonnet | Orchestre release complète : compile changelog, publie, watch itch-deploy, devlog itch, wiki |
 | `sandbox-json` | haiku | Génère configs sandbox JSON depuis description langage naturel |
-| `session-closer` | sonnet | Met à jour le graphe de mémoire fin de session, chaîne vers `commit-message` |
+| `session-closer` | sonnet | Met à jour le graphe de mémoire fin de session, avant `/commit` |
 | `test-writer` | sonnet | Tests Vitest, approche test-first |
 | `visual-analyst` | sonnet | Analyse visuels + web search pour inspiration |
 | `visual-tester` | sonnet | Vérification visuelle via Playwright MCP |
@@ -961,7 +960,7 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/`.
 | Modif mécaniques de jeu | `game-designer` |
 | `code-reviewer` déclenche | `core-guardian` (si core), `game-designer` (si mécaniques), `visual-tester` (si renderer) |
 | Ajout/modif données Pokemon | `data-miner` + `game-designer` |
-| Fin de session | `pnpm build` + `pnpm test` → `session-closer` → `doc-keeper` + `commit-message` |
+| Fin de session | `pnpm build` + `pnpm test` → `session-closer` → `doc-keeper` → `/commit` |
 | Ajout dépendance | `dependency-manager` |
 | Nouveau plan | `plan-reviewer` |
 | Bug visuel | `visual-tester` |

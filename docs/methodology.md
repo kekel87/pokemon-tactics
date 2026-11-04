@@ -167,7 +167,7 @@ Garde-fou : `move-test-coverage.test.ts` énumère `loadData().moves` et **écho
 - **Branches** : `main` (stable) + feature branches (`feat/aoe-patterns`, `fix/damage-calc`)
 - **Pas de force push** sur main
 - **Un commit = un changement cohérent**
-- **Titre de commit généré par l'agent `commit-message`**, puis commit + push directement — une seule ligne, format conventional commits, pas de validation humaine
+- **Titre de commit écrit dans le tour par le skill `/commit`**, puis commit + push directement — une seule ligne, format conventional commits, pas de validation humaine
 
 ### Workflow worktrees — sessions parallèles
 
