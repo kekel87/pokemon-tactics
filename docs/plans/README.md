@@ -69,3 +69,5 @@ Les seuls sur lesquels on travaille.
 | 241 | [Plan 241 — Sprite transformé à la reprise et menu en combat spectateur](./241-sprite-transforme-et-menu-en-combat-spectateur.md) | done |
 | 242 | [Plan 242 — Replay de combat partageable](./242-replay-partageable.md) | done |
 | 243 | [Plan 243 — Les abandons dans le replay](./243-abandons-dans-le-replay.md) | done |
+| 244 | [Plan 244 : Replier une partie des sous-agents en skills](./244-repli-sous-agents-en-skills.md) | en cours |
+| 245 | [Plan 245 : appliquer la méthode agents de l'humain](./245-methode-agents.md) | done |
