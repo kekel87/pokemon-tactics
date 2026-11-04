@@ -1,6 +1,6 @@
 # Plan 244 : Replier une partie des sous-agents en skills
 
-**Statut** : en cours (repli 1 fait le 2026-11-04), dans l'onglet `pokemon-sous-agents`, un agent à la fois.
+**Statut** : en cours (replis 1 et 2 faits le 2026-11-04), dans l'onglet `pokemon-sous-agents`, un agent à la fois.
 **Origine** : mission du pilote `assistant`, validée par l'humain le 2026-11-02 ; question ouverte « plan de repli des sous-agents » → oui.
 Graphe : `agenda-replier-sous-agents-en-skills`.
 
@@ -110,3 +110,27 @@ L'agent disait « anglais uniquement » contre l'usage du dépôt ; il a suivi l
 français. Mesure « après » faite dans le même tour que la mesure « avant » : le titre n'est pas aveugle, seul le
 coût compte ici. Fichiers : `.claude/skills/commit/SKILL.md` réécrit, `.claude/agents/commit-message.md` retiré,
 mentions mises à jour dans `docs/architecture.md`, `docs/methodology.md`, `.claude/agents/session-closer.md`.
+
+### Repli 2 : `core-guardian` → `pnpm audit:core` (2026-11-04)
+
+Cas 2 rejoué sur `c9bced18`, propre puis avec `import { Vector3 } from "@babylonjs/core"` planté en
+`battle/ability-handler-registry.ts:4`.
+
+| | Avant (agent haiku) | Après (`scripts/check-core-purity.mjs`) |
+|---|---|---|
+| Diff propre | aucune violation, formule « Core pur » puis « non exhaustif » | « aucune anomalie détectée par les règles connues (non exhaustif) », exit 0 |
+| Import planté | signalé, fichier:ligne | signalé, fichier:ligne, exit 1 |
+| Coût | 20 920 + 23 160 tokens, 6 + 10 appels, 16 s + 22 s | 0 token, environ 150 ms par passe |
+
+Le script part d'une liste blanche : le code de jeu n'importe que des chemins relatifs, les tests et
+`src/testing/` ont droit à `vitest`, `node:*` et `@pokemon-tactic/data`. Il refuse aussi les globales DOM, les
+timers et `console.*` hors tests, ainsi que toute dépendance dans `packages/core/package.json`. Commentaires et
+chaînes sont neutralisés : les « window » des commentaires, qui sont des fenêtres de tour, ne sont plus des
+faux positifs. Contrôle en plus sur une copie piégée (import de type, import dynamique, `setTimeout`, `window`,
+dépendance) : 5 violations sur 5 trouvées, et le texte dans une chaîne n'est pas signalé.
+Limite : l'agent relevait aussi, hors règles, que `@pokemon-tactic/data` est importé par `src/testing/` sans être
+déclaré ; le script ne fait pas ce genre de remarque.
+
+Fichiers : script ajouté, `audit:core` dans `package.json` et dans les trois modes de `/ci-gate`, agent retiré,
+mentions mises à jour dans `/menu`, `review-local`, `code-reviewer`, le hook `remind-post-impl-menu.py`,
+`rules/style.md`, `docs/methodology.md`, `docs/architecture.md`.

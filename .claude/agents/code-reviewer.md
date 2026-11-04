@@ -90,7 +90,7 @@ S'applique dès que le diff touche `packages/app/src/ui/**`, `packages/app/src/s
   case). Signaler tout nouveau contrôle en dessous.
 
 ### Architecture
-- `packages/core` n'importe rien d'UI (délègue au core-guardian si doute)
+- `packages/core` n'importe rien d'UI (`pnpm audit:core` le vérifie, le gate le lance)
 - Les attaques sont déclaratives (targeting + effects), pas de code custom par move
 - Le core émet des events, ne connaît pas le renderer
 - Les surcharges sont dans `packages/data/overrides/`, pas dans le core
@@ -131,6 +131,5 @@ Arrête-toi et signale à l'humain dans ces cas :
 ## Chaîne d'agents
 
 Après la review, suggérer si applicable :
-- `core-guardian` si le diff touche des fichiers dans `packages/core/`
 - `game-designer` si le diff modifie des mécaniques de jeu ou des données dans `packages/data/`
 - `visual-tester` si le diff touche des fichiers dans `packages/renderer/` (et le dev server est lancé)

@@ -92,7 +92,7 @@ Détail complet : skills `/next` (jusqu'à l'arrêt 1) et `/menu` (arrêt 2).
 
 ### Orchestration automatique des agents :
 Après chaque étape significative, les agents pertinents sont lancés sans attendre qu'on le demande :
-- Modif dans `packages/core/` → `core-guardian` (+ `test-writer` si nouvelle mécanique)
+- Modif dans `packages/core/` → `pnpm audit:core` (+ `test-writer` si nouvelle mécanique)
 - Avant un commit → `code-reviewer` (coché au menu de finalisation)
 - Après un ensemble de changements → `doc-keeper`
 
@@ -104,7 +104,7 @@ dupliquent le travail).
 
 | Peuvent tourner ensemble | Écrivent dans |
 |---|---|
-| `core-guardian` + `code-reviewer` + `/code-review` | rien (lecture seule) |
+| `code-reviewer` + `/code-review` | rien (lecture seule) |
 | `test-writer` + `doc-keeper` | tests (`*.test.ts`, `e2e/`) vs `docs/` + graphe |
 | `data-miner` + `asset-manager` | `packages/data/` vs les assets |
 | `game-designer` + n'importe quel agent d'écriture | rien (lecture seule) |

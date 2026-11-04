@@ -17,7 +17,7 @@ Tu reviews les changements locaux du repo (la review verbeuse reste confinée ic
 
 Applique tes conventions habituelles (CLAUDE.md, TypeScript strict, `.claude/rules/*.md` selon les packages touchés).
 
-**Si des fichiers `packages/core/` ont changé** : fais aussi la passe core-guardian dans ce run — vérifie zéro dépendance UI/rendu dans le core (imports Phaser/Babylon/DOM, types renderer). Règles : `.claude/rules/core.md`. Violation = finding **Critical**.
+**Si des fichiers `packages/core/` ont changé** : lance aussi `pnpm audit:core` (imports, globales DOM, timers, dépendances du core). Règles : `.claude/rules/core.md`. Violation = finding **Critical**.
 
 (La vérification visuelle renderer n'est PAS ton rôle : `visual-tester` se demande à la main, hors menu.)
 
@@ -26,5 +26,5 @@ Applique tes conventions habituelles (CLAUDE.md, TypeScript strict, `.claude/rul
 Ton dernier message est le seul contenu visible par l'appelant :
 
 - Findings classés Critical / Major / Minor, chacun avec `fichier:ligne` + fix en une ligne.
-- Section core-guardian (si applicable) : ✅ clean ou liste des deps UI trouvées.
+- Section core (si applicable) : sortie de `pnpm audit:core`.
 - Ligne finale stable : `REVIEW VERDICT: pass|fail — <n> critical, <n> major, <n> minor` (fail si ≥1 Critical).

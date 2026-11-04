@@ -19,6 +19,7 @@ step() {
     case "$name" in
       audit:flow) echo "  fix: \`pnpm audit:flow\` détaille les écarts. Un agent/skill qui ordonne";
                 echo "       d'écrire dans un fichier versé au graphe le RECRÉERAIT — c'est bloquant.";;
+      audit:core) echo "  fix: chaque ligne donne fichier:ligne ; le core n'importe que des chemins relatifs (règles : .claude/rules/core.md)";;
     lint:fix) echo "  fix: lance \`pnpm lint:fix\` puis examine les erreurs restantes (Biome)";;
       build)    echo "  fix: lis l'erreur tsc/vite, souvent typecheck cascade";;
       typecheck) echo "  fix: lis l'erreur tsc, vérifie packages/*/tsconfig.json";;
@@ -102,6 +103,7 @@ case "$MODE" in
     # serveur de test est en train de lire. Le recouvrement utile (typecheck + vitest, la partie
     # longue) est conservé.
     step "audit:flow"      pnpm audit:flow
+    step "audit:core"      pnpm audit:core
     step "lint:fix"        pnpm lint:fix
     start_screen_tour
     step "typecheck"       pnpm typecheck
@@ -111,6 +113,7 @@ case "$MODE" in
     ;;
   full|"")
     step "audit:flow"      pnpm audit:flow
+    step "audit:core"      pnpm audit:core
     step "lint:fix"        pnpm lint:fix
     step "typecheck"       pnpm typecheck
     step "build"           pnpm build
@@ -126,6 +129,7 @@ case "$MODE" in
     ;;
   slow)
     step "audit:flow"      pnpm audit:flow
+    step "audit:core"      pnpm audit:core
     step "lint:fix"        pnpm lint:fix
     step "typecheck"       pnpm typecheck
     step "build"           pnpm build

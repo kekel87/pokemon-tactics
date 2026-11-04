@@ -47,6 +47,7 @@
     "capture:gifs": "tsx scripts/build-intro-gifs.ts",
     "capture:release": "tsx scripts/build-release-assets.ts",
     "audit:flow": "node scripts/audit-flow.mjs",
+    "audit:core": "node scripts/check-core-purity.mjs",
     "ai:bench": "tsx scripts/ai-bench.ts"
   },
   "devDependencies": {

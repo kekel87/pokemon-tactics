@@ -22,11 +22,11 @@ explicitement le menu.
 2. **Sans rien demander**, avant le menu, dans cet ordre :
    - **commit WIP** si des changements non commités existent (point de restauration propre avant que
      la chaîne touche au code — origine plan 166).
-   - Les trois vérifications **EN PARALLÈLE** (aucune dépendance, toutes en lecture seule) :
-     `core-guardian` en arrière-plan si le diff matche `packages/core/` ; `code-reviewer` en
-     arrière-plan — toujours, conventions projet, il ne lance plus lint / typecheck / tests ;
-     `/code-review` dans le tour — toujours, les bugs de correction.
-   Corriger les bloquants des trois avant de continuer.
+   - Les vérifications **EN PARALLÈLE** (aucune dépendance, toutes en lecture seule) :
+     `pnpm audit:core` si le diff matche `packages/core/` (une seconde, le gate le rejoue) ;
+     `code-reviewer` en arrière-plan, toujours, conventions projet, il ne lance plus lint / typecheck /
+     tests ; `/code-review` dans le tour, toujours, les bugs de correction.
+   Corriger les bloquants avant de continuer.
 3. Présente **un seul** `AskUserQuestion`, **une seule question multiSelect**, 3 options :
 
    | Option | Pré-coché si |
@@ -45,7 +45,7 @@ explicitement le menu.
 4. Attends la sélection humaine. Exécute en **ordre fixe** :
    `{test-writer → /simplify (sur les tests)} ∥ doc-keeper → [résumé du diff WIP→final] → /ci-gate full → commit + push (amende le WIP)`
    (`∥` = en parallèle : tests vs `docs/`, ensembles d'écriture disjoints. Borner chaque prompt.)
-5. **Stop sur fail bloquant** (`core-guardian` UI-dep, `code-reviewer` ou `/code-review` Critical, `/ci-gate` rouge,
+5. **Stop sur fail bloquant** (`pnpm audit:core` rouge, `code-reviewer` ou `/code-review` Critical, `/ci-gate` rouge,
    contrôle injoignable au clavier ou au pad).
 
 ## Résumé du diff WIP→final — à la place du re-test systématique
