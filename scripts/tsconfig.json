@@ -29,6 +29,7 @@
     "e2e-affected.ts",
     "e2e-affected.test.ts",
     "e2e-status.ts",
+    "check-sandbox-config.ts",
     "webgl-probe.ts",
     "memory/forget-guards.mjs",
     "memory/query.test.ts",

@@ -1,6 +1,6 @@
 # Plan 244 : Replier une partie des sous-agents en skills
 
-**Statut** : en cours (replis 1 et 2 faits le 2026-11-04), dans l'onglet `pokemon-sous-agents`, un agent à la fois.
+**Statut** : en cours (replis 1 à 3 faits le 2026-11-04), dans l'onglet `pokemon-sous-agents`, un agent à la fois.
 **Origine** : mission du pilote `assistant`, validée par l'humain le 2026-11-02 ; question ouverte « plan de repli des sous-agents » → oui.
 Graphe : `agenda-replier-sous-agents-en-skills`.
 
@@ -134,3 +134,24 @@ déclaré ; le script ne fait pas ce genre de remarque.
 Fichiers : script ajouté, `audit:core` dans `package.json` et dans les trois modes de `/ci-gate`, agent retiré,
 mentions mises à jour dans `/menu`, `review-local`, `code-reviewer`, le hook `remind-post-impl-menu.py`,
 `rules/style.md`, `docs/methodology.md`, `docs/architecture.md`.
+
+### Repli 3 : `sandbox-json` → `/recette` + `pnpm sandbox:check` (2026-11-04)
+
+Cas 8 : « Garde Large face à Séisme, lanceur derrière un mur ».
+
+| | Avant (agent haiku) | Après (tour principal, `config-sandbox.md`) |
+|---|---|---|
+| JSON valide | oui | oui |
+| Chargé sans erreur | oui, vérifié après coup par `sandbox:check` ; l'agent ne pouvait pas le vérifier | oui, `CHARGÉ SANS ERREUR`, cases et orientations lues |
+| Conforme | oui : carte `sandbox-los`, Électrode couvre, le pilier (3,3) coupe la couverture de Ronflex, Séisme vient de face | oui, même scénario, parti de la fixture `WIDE_GUARD_WALL_BLOCKS_COVER` |
+| Coût | 49 678 tokens, 14 appels, 48 s | environ 1 Ko lu, 1 appel au vérificateur (0,6 s) |
+
+L'agent s'est trompé deux fois dans son explication, sans effet sur la config : `rhydon` appelé
+« Rhinocorne » (c'est Rhinoféros) et Séisme décrit comme touchant les cases adjacentes (règle Showdown) alors
+qu'ici c'est une zone de rayon 2 autour du lanceur. Sa table de champs ignorait la forme `teams`, la carte et les
+positions, et ses exemples dataient d'avant le roster jouable. Le vérificateur rejette un move inconnu, un Pokemon
+hors roster et un Pokemon déplacé de la case demandée ; il a montré au passage que la note « pas Pikachu » de
+`test-writer` était périmée.
+Fichiers : `scripts/check-sandbox-config.ts` (+ `sandbox:check`, tsconfig des scripts),
+`.claude/skills/recette/config-sandbox.md`, étape 2 de `/recette`, agent retiré, mentions dans `test-writer`,
+`visual-tester`, `docs/architecture.md`, README de `packages/data/sandbox-configs`.

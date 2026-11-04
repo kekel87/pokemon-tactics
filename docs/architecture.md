@@ -942,7 +942,6 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/`.
 | `performance-profiler` | sonnet | Analyse performances (FPS, mémoire, bundle) |
 | `plan-reviewer` | haiku | Crée, review et maintient les plans |
 | `publisher` | sonnet | Orchestre release complète : compile changelog, publie, watch itch-deploy, devlog itch, wiki |
-| `sandbox-json` | haiku | Génère configs sandbox JSON depuis description langage naturel |
 | `session-closer` | sonnet | Met à jour le graphe de mémoire fin de session, avant `/commit` |
 | `test-writer` | sonnet | Tests Vitest, approche test-first |
 | `visual-analyst` | sonnet | Analyse visuels + web search pour inspiration |

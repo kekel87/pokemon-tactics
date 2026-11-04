@@ -17,6 +17,6 @@ pnpm dev:sandbox '{"pokemon":"charizard","moves":["flamethrower"]}'
 
 ## Format
 
-Voir `SandboxConfig` dans `packages/view-core/src/sandbox/` (déplacé au refactor des paquets, plans 125-126).
+Voir `SandboxConfig` dans `packages/view-core/src/sandbox-config.ts` ; `pnpm sandbox:check <fichier ou json>` vérifie qu'une config construit le combat voulu.
 
 Le JSON peut etre partiel — les champs manquants utilisent les valeurs par defaut (merge avec `DEFAULT_SANDBOX_CONFIG`). Par exemple `{"pokemon":"charmander"}` suffit.

@@ -163,8 +163,8 @@ Du moins cher au plus coûteux : unit `view-core` → **DOM** (`getByRole`/`getB
 
 ### Pokémon utilisables en sandbox
 
-Roster jouable seulement (`packages/data/src/playable/`). **Pas pikachu** (non jouable → `raichu`).
-Doute sur un id move/Pokémon → agent `sandbox-json`.
+Roster jouable seulement (`packages/data/src/playable/`). Config d'un scénario : `.claude/skills/recette/config-sandbox.md`,
+vérifiée par `pnpm sandbox:check '<json>'`.
 
 ### Lancer
 
