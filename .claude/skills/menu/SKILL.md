@@ -24,8 +24,8 @@ explicitement le menu.
      la chaîne touche au code — origine plan 166).
    - Les vérifications **EN PARALLÈLE** (aucune dépendance, toutes en lecture seule) :
      `pnpm audit:core` si le diff matche `packages/core/` (une seconde, le gate le rejoue) ;
-     `code-reviewer` en arrière-plan, toujours, conventions projet, il ne lance plus lint / typecheck /
-     tests ; `/code-review` dans le tour, toujours, les bugs de correction.
+     `/relire-code <sha du WIP>`, toujours : la revue unique (conventions et bugs de correction), qui
+     nomme le commit relu ; elle ne lance ni lint, ni typecheck, ni tests.
    Corriger les bloquants avant de continuer.
 3. Présente **un seul** `AskUserQuestion`, **une seule question multiSelect**, 3 options :
 
@@ -45,7 +45,7 @@ explicitement le menu.
 4. Attends la sélection humaine. Exécute en **ordre fixe** :
    `{test-writer → /simplify (sur les tests)} en arrière-plan ∥ /consigner dans le tour → [résumé du diff WIP→final] → /ci-gate full → commit + push (amende le WIP)`
    (`∥` = en parallèle : tests vs `docs/`, ensembles d'écriture disjoints. Borner chaque prompt.)
-5. **Stop sur fail bloquant** (`pnpm audit:core` rouge, `code-reviewer` ou `/code-review` Critical, `/ci-gate` rouge,
+5. **Stop sur fail bloquant** (`pnpm audit:core` rouge, `/relire-code` Critical, `/ci-gate` rouge,
    contrôle injoignable au clavier ou au pad).
 
 ## Résumé du diff WIP→final — à la place du re-test systématique
@@ -68,7 +68,7 @@ exhaustif »** — contre-mesure au tampon automatique.
 - Ce skill est la **source de vérité** de l'arrêt 2. L'arrêt 1 et ce qui précède vivent dans `/next`.
 - `/commit` : commit + push **directement**, sans proposer le message ni attendre validation.
 - Changes purement config/doc sans code TS : pas d'arrêt recette, menu réduit (commit direct).
-- Bug fix d'une ligne sans test : arrêt recette normal, `code-reviewer` sauté.
+- Bug fix d'une ligne sans test : arrêt recette normal, `/relire-code` sauté.
 - Deux agents en parallèle seulement si leurs ensembles d'écriture sont disjoints ; chaque prompt dit ce que
   l'agent ne doit PAS traiter. Table : `docs/methodology.md`, « Parallélisme des agents ».
 - La suite e2e complète tourne sur GitHub après le push et ne bloque jamais : ne jamais l'attendre ni la

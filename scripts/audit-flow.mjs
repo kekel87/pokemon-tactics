@@ -12,8 +12,11 @@
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 
-const suivis = execSync("git ls-files", { encoding: "utf8" }).split("\n").filter(Boolean);
-const existe = new Set(suivis.filter((f) => fs.existsSync(f)));
+// Un fichier suivi mais supprimé du disque (suppression pas encore indexée) est ignoré : le lire planterait.
+const suivis = execSync("git ls-files", { encoding: "utf8" })
+  .split("\n")
+  .filter((f) => f && fs.existsSync(f));
+const existe = new Set(suivis);
 
 // Fichiers versés au graphe (plan 200). Les citer est légitime pour dire « n'y écris
 // plus » ; leur donner une INSTRUCTION d'écriture ou de lecture ne l'est pas.
@@ -110,7 +113,7 @@ for (const f of config) {
 for (const f of suivis.filter(
   // Ce script LISTE les fichiers supprimés, c'est son travail : s'auditer lui-même
   // sur cette règle n'a pas de sens.
-  (x) => /\.(ts|mjs|js|py|sh)$/.test(x) && fs.existsSync(x) && x !== "scripts/audit-flow.mjs",
+  (x) => /\.(ts|mjs|js|py|sh)$/.test(x) && x !== "scripts/audit-flow.mjs",
 )) {
   const texte = fs.readFileSync(f, "utf8");
   for (const mort of DISPARUS) {
@@ -128,7 +131,7 @@ for (const f of suivis.filter(
 }
 
 // 4b. plafonds de taille et de densité sur les documents
-for (const f of suivis.filter((x) => x.endsWith(".md") && fs.existsSync(x))) {
+for (const f of suivis.filter((x) => x.endsWith(".md"))) {
   const octets = fs.statSync(f).size;
   const ko = Math.round(octets / 1024);
   if (ko > PLAFOND_KO) {
@@ -194,7 +197,7 @@ for (const m of claudeMd.matchAll(/`\/([a-z-]+)`/g)) {
       "menu",
       "commit",
       "ci-gate",
-      "review-local",
+      "relire-code",
       "worktree",
       "publish",
       "e2e-status",

@@ -224,4 +224,4 @@ Tu as bien fait ton travail quand :
 ## Chaîne d'agents
 
 Après avoir écrit les tests, suggérer :
-- `code-reviewer` sur les fichiers de test modifiés (conventions de mocks, nommage, code mort)
+- `/relire-code` sur le commit des tests (conventions de mocks, nommage, code mort)

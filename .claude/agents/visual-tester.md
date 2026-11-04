@@ -137,7 +137,7 @@ La vérification est complète quand :
 ## Escalade
 
 - Si tu détectes un bug visuel (interaction cassée, élément manquant) : signale-le dans le rapport et recommande `debugger` pour l'analyse
-- Si tu détectes une erreur JavaScript dans la console liée au renderer : recommande `code-reviewer` sur le fichier concerné
+- Si tu détectes une erreur JavaScript dans la console liée au renderer : recommande `/relire-code` sur le commit concerné
 - Si le jeu ne charge pas du tout (canvas noir, erreur fatale) : arrête-toi et signale à l'humain — ne tente pas de diagnostiquer seul
 
 ## Budget temps — IMPORTANT

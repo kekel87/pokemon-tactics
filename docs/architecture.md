@@ -921,41 +921,33 @@ Core ne change jamais — seul le renderer est remplacé. **Babylon.js est le se
 
 Agents custom dans `.claude/agents/` et skills dans `.claude/skills/`.
 
-26 agents + 4 knowledge files. Détails dans le graphe, entités `orchestration`.
+12 agents. Un agent n'est gardé que pour un regard indépendant, un travail parallèle et jetable, ou un
+contexte qui saturerait le tour principal (plan 244) ; le reste est en skill.
 
-| Agent | Modèle | Rôle |
+| Agent | Modèle | Pourquoi un agent |
 |-------|--------|------|
-| `ai-player` | sonnet | Joue au core via l'API, teste mécaniques et edge cases |
-| `asset-manager` | sonnet | Gestion assets (sprites, tilesets, sons) |
-| `balancer` | sonnet | Lance N combats headless, analyse winrates, propose overrides |
-| `best-practices` | sonnet | Recherche bonnes pratiques (WebSearch + WebFetch) |
-| `ci-setup` | haiku | Configuration GitHub Actions |
-| `code-reviewer` | sonnet | Review qualité, TS strict, conventions |
-| `data-miner` | sonnet | Import données Pokemon (Showdown/PokeAPI) |
-| `debugger` | opus | Diagnostic bugs complexes |
-| `dependency-manager` | haiku | Gestion dépendances npm, deprecation warnings |
-| `feedback-triager` | haiku | Classe issues GitHub (bug/feature/feedback/duplicate) |
-| `game-designer` | sonnet | Cohérence et équilibre des mécaniques |
-| `level-designer` | haiku | Crée maps (JSON), valide jouabilité |
-| `move-pattern-designer` | sonnet | Attribue et justifie pattern tactique de chaque move |
-| `performance-profiler` | sonnet | Analyse performances (FPS, mémoire, bundle) |
-| `publisher` | sonnet | Orchestre release complète : compile changelog, publie, watch itch-deploy, devlog itch, wiki |
-| `test-writer` | sonnet | Tests Vitest, approche test-first |
-| `visual-analyst` | sonnet | Analyse visuels + web search pour inspiration |
-| `visual-tester` | sonnet | Vérification visuelle via Playwright MCP |
+| `code-reviewer` | opus | Regard indépendant : revue d'un commit, lancé par `/relire-code` |
+| `game-designer` | sonnet | Regard indépendant : équilibre et cohérence des mécaniques |
+| `best-practices` | sonnet | Recherche web longue (`decision-1191`) |
+| `test-writer` | sonnet | Tests Vitest et e2e, en parallèle de `/consigner` au menu |
+| `visual-tester` | sonnet | Captures Playwright, sorties lourdes |
+| `debugger` | opus | Diagnostic de bugs complexes, traces lourdes |
+| `performance-profiler` | sonnet | Traces de performance (FPS, mémoire, bundle) |
+| `data-miner` | sonnet | Import de données Pokemon (Showdown, PokeAPI) |
+| `asset-manager` | sonnet | Sprites, tilesets, sons |
+| `level-designer` | sonnet | Cartes Tiled `.tmj` |
+| `move-pattern-designer` | sonnet | Pattern tactique de chaque move |
+| `publisher` | sonnet | Release en deux phases, avec relance |
 
 ### Chaînes d'agents
 
 | Déclencheur | Chaîne |
 |-------------|--------|
 | Étape intermédiaire plan (core touché) | `pnpm audit:core` + `test-writer` |
-| Fin de plan | `code-reviewer` + `/consigner` (+ `visual-tester` si renderer ; le gate lance `audit:core`) |
-| Bugfix / refacto hors plan | `code-reviewer` + `/consigner` |
+| Fin de plan, bugfix, refacto | `/relire-code` + `/consigner` (+ `visual-tester` si renderer ; le gate lance `audit:core`) |
 | Modif mécaniques de jeu | `game-designer` |
-| `code-reviewer` déclenche | `game-designer` (si mécaniques), `visual-tester` (si renderer) |
 | Ajout/modif données Pokemon | `data-miner` + `game-designer` |
-| Fin de session | `pnpm build` + `pnpm test` → `/consigner` → `/cloture` → `/commit` |
-| Ajout dépendance | `dependency-manager` |
+| Fin de session | `/consigner` → `/cloture` → `/commit` |
 | Nouveau plan | `/relire-plan` |
 | Bug visuel | `visual-tester` |
 
@@ -964,5 +956,9 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/`.
 | Commande | Action |
 |----------|--------|
 | `/next` | Reconstitue l'état depuis le graphe (entités `historique`, `agenda`) + `docs/roadmap.md` + plan en cours, propose la suite et affiche reporté/fait récemment |
-| `/review-local` | Lance `code-reviewer` sur changements locaux (`git diff`) |
+| `/menu` | Menu de finalisation (arrêt 2) |
+| `/relire-code` | Revue unique d'un commit (conventions et bugs), dans un sous-agent `code-reviewer` |
+| `/relire-plan` | Relecture d'un plan avant le dev |
+| `/consigner` · `/cloture` | Consigner un lot (graphe, documents, wiki) · clore une session |
+| `/commit` · `/ci-gate` | Commit et push · gate local |
 | `/worktree` | Crée/liste/supprime un git worktree (`.worktrees/<branche>/`) pour sessions parallèles |

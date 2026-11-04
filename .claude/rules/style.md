@@ -15,6 +15,6 @@ Sources : méthode agents de l'humain, section 2 (`~/Documents/claude-assistant/
 - « Fait » = vérifié sur le vrai résultat (lancer la fonction, lire la vraie valeur, regarder le diff) ;
   « ça compile », un cache ou le rapport d'un agent ne comptent pas. Une vérification qui échoue : soupçonner
   d'abord la façon d'observer. Une vérification scriptable se scripte et sa sortie se garde.
-- Rapports de revue (`code-reviewer`, `/code-review`, `audit:core`, gate, agents de test) : jamais « tout est
+- Rapports de revue (`/relire-code`, `audit:core`, gate, agents de test) : jamais « tout est
   bon », mais « aucune anomalie détectée par les règles connues, non exhaustif ».
 - Ce qui sort du dépôt pour d'autres (wiki, devlog, issue) décrit une convention, jamais le poste local.

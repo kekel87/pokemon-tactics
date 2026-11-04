@@ -36,7 +36,7 @@ MESSAGE = (
     "AskUserQuestion avec UNE SEULE question, « Tu testes ? » (oui / non). Rien "
     "d'autre : ni gate, ni e2e, ni menu de chaîne ;\n"
     "  · recette faite (ou refusée) → ARRÊT 2 : lancer sans demander commit WIP, "
-    "pnpm audit:core si le core a bougé, code-reviewer puis /code-review, PUIS "
+    "pnpm audit:core si le core a bougé, /relire-code sur le WIP, PUIS "
     "AskUserQuestion avec UNE question multi-select de 3 options (tests (test-writer) "
     "/ consigner / gate + commit).\n\n"
     "Fichiers concernés :\n{fichiers}\n\n"

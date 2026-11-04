@@ -22,7 +22,7 @@ Je ne dump pas tout, je déroule **un scénario à la fois**, je lance, tu regar
 
 🔴 **Scénario sur téléphone : TOUJOURS par tunnel, jamais par l'adresse du réseau local.** La box
 isole les appareils Wi-Fi, une adresse `192.168.x.x` ne marchera pas — rappelé par l'humain « vingt
-fois », encore le 2026-10-12. Suivre `docs/references/test-sur-telephone.md` : serveur lancé avec
+fois », encore le 2026-10-12. Serveur lancé avec
 `PT_TUNNEL=1`, tunnel `untun` en tâche de fond, adresse `https://….trycloudflare.com` **vérifiée
 (code 200) avant** de la donner. Le tunnel publie le serveur de dev sur Internet : accord de l'humain
 à chaque session, et `TaskStop` sur le tunnel dès le scénario validé.

@@ -1,8 +1,18 @@
 # Plan 244 : Replier une partie des sous-agents en skills
 
-**Statut** : en cours (les 7 replis passés le 2026-11-04 : 6 faits, repli 4 refusé par la mesure ; restent la suppression de 3 agents et les ajouts du plan 245), dans l'onglet `pokemon-sous-agents`, un agent à la fois.
+**Statut** : done (2026-11-04), dans l'onglet `pokemon-sous-agents`. Un point reste à l'humain : retirer `tools:` des agents gardés (écart 1).
 **Origine** : mission du pilote `assistant`, validée par l'humain le 2026-11-02 ; question ouverte « plan de repli des sous-agents » → oui.
 Graphe : `agenda-replier-sous-agents-en-skills`.
+
+## Écarts au plan
+
+| # | Prévu | Livré |
+|---|---|---|
+| 1 | Les agents gardés ne déclarent plus `tools:`, sauf `code-reviewer` et `game-designer` | Pas fait : le classifieur du mode auto refuse ce changement (élargir les outils d'un agent compte comme une auto-modification). 10 agents gardent leur liste ; à faire par l'humain ou avec son accord direct |
+| 2 | `best-practices` replié en skill | Gardé en sous-agent après mesure (`decision-1191`) |
+| 3 | Revue unique, « une seule commande au menu » | `/relire-code <commit>` (sous-agent `code-reviewer`, conventions et bugs de correction) ; `review-local` retiré, `/code-review` ne tourne plus au menu (`decision-1192`) |
+| 4 | Découpage par branche, « fichiers voisins » | Voisins rangés dans `.claude/knowledge/<agent>/` : un `.md` sous `.claude/agents/` serait chargé comme agent |
+| 5 | Liste d'agents « environ 12 » | 12 |
 
 ## Ce que tu verras à l'écran
 
@@ -285,11 +295,17 @@ Témoins rejoués après l'étape 7 :
 | 6 `session-closer` → `/cloture` (+ `/memo`) | 5 | fait, 3/3 des deux côtés | 53,8 k tokens → environ 14 Ko |
 | 7 `doc-keeper` + `wiki-keeper` → `/consigner` | 4, 6 | fait ; cas 6 meilleur après, cas 4 critères tenus mais moins profond | 210,9 k tokens → environ 45 Ko |
 
-Agents : 22 au départ, 15 aujourd'hui. Reste à faire pour finir le plan :
-- supprimer `ai-player`, `dependency-manager`, `feedback-triager` (décision de l'humain du 2026-11-02 ;
-  adapter `/itch-feedback`) : on tombe à 12 ;
-- ajouts du plan 245 restants : retirer `tools:` des agents gardés sauf `code-reviewer` et `game-designer`
-  (13 agents le déclarent encore) ; revue unique (`code-reviewer`, `/code-review`, `review-local`) ;
-  découper `level-designer` (316 lignes) et `publisher` (246) par branche. `/memo` dans `/cloture` : fait.
+Agents : 22 au départ, 12 à la clôture.
+
+Fin du plan (2026-11-04) :
+- `ai-player`, `dependency-manager`, `feedback-triager` supprimés ; `/itch-feedback` classe les retours dans le
+  tour.
+- Revue unique : `/relire-code <commit>`, lancée par le menu sur le commit WIP, qui ouvre son rapport par le
+  commit relu ; `review-local` retiré, l'appel à `/code-review` aussi.
+- `level-designer` 316 → 140 lignes, avec `relief.md` et `spawns-et-tactique.md` ; `publisher` 246 → 63 lignes,
+  avec `phase-1.md` et `phase-2.md` ; voisins dans `.claude/knowledge/<agent>/`.
+- `tools:` toujours présent sur 10 agents gardés (écart 1).
+- En plus : `audit:flow` ignore un fichier suivi absent du disque (il plantait en ENOENT) ; `/recette` ne
+  renvoie plus à `docs/references/test-sur-telephone.md`, qui n'a jamais existé.
 - Limites de méthode : mesures « après » des cas 1, 3 et 5 de l'étape 6 pas à l'aveugle ; un seul passage par
   cas, alors que le cas 10 montre une variance d'un passage à l'autre.

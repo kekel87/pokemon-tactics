@@ -1,6 +1,6 @@
 ---
 name: itch-feedback
-description: Review automatique des commentaires + devlog reactions itch.io. Scrape la page jeu et classe via feedback-triager.
+description: Review automatique des commentaires + devlog reactions itch.io. Scrape la page jeu et classe chaque retour dans le tour.
 user-invocable: true
 ---
 
@@ -12,7 +12,7 @@ But : récupérer les retours joueurs itch.io sans connexion humain.
    - Utiliser `WebFetch` avec un prompt qui extrait : commentaires (auteur, date, texte), rating (étoiles + count), ratings recents, devlog posts récents
 2. **Fetch devlog RSS** si devlog existe : `https://kekel87.itch.io/pokemon-tactics/devlog.rss`
 3. **Croiser avec le graphe de mémoire (entités `retour`, `retour-traité`, `backlog` — `node scripts/memory/query.mjs --type retour`)** pour détecter doublons (bug déjà signalé, feature déjà en backlog)
-4. **Déléguer triage** à l'agent `feedback-triager` (classe bug / feature / feedback / spam / duplicate)
+4. **Classer chaque item dans le tour** : bug / feature / feedback / spam / doublon (d'un `retour` ou d'un `backlog` trouvé à l'étape 3, nommé). Lire `docs/roadmap.md` pour dire si une demande est déjà prévue.
 5. **Rapport sortie** :
    - Nb commentaires nouveaux depuis dernière exec (timestamp dans `$(git rev-parse --show-toplevel)/.itch-feedback-last-run` — toujours ancré à la racine repo, gitignored)
    - Tableau par item : type, résumé, action proposée (ignorer / consigner en retour / fix urgent / répondre)

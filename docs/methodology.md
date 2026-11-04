@@ -84,8 +84,8 @@ Dans les deux cas : la doc est en **français**, le code en **anglais**.
    unitaires du core pendant le dev ; ni gate, ni build, ni e2e.
 4. **Arrêt 1 — recette** — résumé + une seule question : « Tu testes ? ». L'humain teste en
    interactif, remonte des retours, on itère.
-5. **Arrêt 2 — menu de finalisation** — commit WIP automatique, puis une question multi-select :
-   tests (`test-writer`), `code-reviewer`, `/consigner`, gate + commit.
+5. **Arrêt 2 — menu de finalisation** — commit WIP et `/relire-code` automatiques, puis une question
+   multi-select : tests (`test-writer`), `/consigner`, gate + commit.
 6. **Commit** — conventional commit, sans validation du message.
 
 Détail complet : skills `/next` (jusqu'à l'arrêt 1) et `/menu` (arrêt 2).
@@ -93,7 +93,7 @@ Détail complet : skills `/next` (jusqu'à l'arrêt 1) et `/menu` (arrêt 2).
 ### Orchestration automatique des agents :
 Après chaque étape significative, les agents pertinents sont lancés sans attendre qu'on le demande :
 - Modif dans `packages/core/` → `pnpm audit:core` (+ `test-writer` si nouvelle mécanique)
-- Avant un commit → `code-reviewer` (coché au menu de finalisation)
+- Avant un commit → `/relire-code` sur le commit WIP (lancé par le menu de finalisation)
 - Après un ensemble de changements → `/consigner`
 
 ### Parallélisme des agents
@@ -104,7 +104,6 @@ dupliquent le travail).
 
 | Peuvent tourner ensemble | Écrivent dans |
 |---|---|
-| `code-reviewer` + `/code-review` | rien (lecture seule) |
 | `test-writer` (arrière-plan) + `/consigner` (tour) | tests (`*.test.ts`, `e2e/`) vs `docs/` + graphe |
 | `data-miner` + `asset-manager` | `packages/data/` vs les assets |
 | `game-designer` + n'importe quel agent d'écriture | rien (lecture seule) |
