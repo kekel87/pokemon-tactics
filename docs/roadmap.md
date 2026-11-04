@@ -7,14 +7,13 @@
 
 ## Où on en est
 
-**Dernière release : `v2026.10.4` (2026-10-13)** — le jeu a du son (bruitages, coups, cris, musique de
-combat et de menu, volumes par type de son, choix du thème musical des menus) ; effets visuels des
-attaques par famille, coup calé sur l'impact et réglage de la vitesse des combats ; sprite transformé
-conservé à la reprise, menu de combat entre IA, joueur éliminé en ligne qui garde le menu en
-spectateur. Avant elle, `v2026.10.3` (équipes aléatoires équitables), `v2026.10.2` (infobulles des
-talents, objets et effets ; équipe modifiable sans quitter l'écran de sélection), `v2026.10.1`
+**Dernière release : `v2026.11.1` (2026-11-04)** — replay de combat partageable : un combat fini, local ou
+en ligne, abandons compris, se copie en code ou en fichier et se relit au menu ; correctifs de Garde Large et
+de Roche Chaude. Avant elle, `v2026.10.4` (sons et musiques, effets visuels des attaques par famille, vitesse
+des combats, thème musical des menus), `v2026.10.3` (équipes aléatoires équitables), `v2026.10.2` (infobulles
+des talents, objets et effets ; équipe modifiable sans quitter l'écran de sélection), `v2026.10.1`
 (espagnol, langue changeable en combat) et la série `v2026.9.x` (multijoueur P2P 2 à 12 joueurs sans
-compte, niveaux de l'IA, relais NAT). Détail dans « Ce qui est fait » ; → graphe : `release-v2026.10.4`.
+compte, niveaux de l'IA, relais NAT). Détail dans « Ce qui est fait » ; → graphe : `release-v2026.11.1`.
 
 🔴 **Le jeu réellement joué est un jeu solo.** Ce qui sert le solo sert presque toutes les sessions ; ce qui est adjacent au réseau en sert
 une poignée.
@@ -118,7 +117,7 @@ d'apparition n'indique une priorité.
 > Le seul domaine qui agit sur l'acquisition.
 
 - [x] **Revoir un combat — replay partageable + lecteur** — livré par les plans 242 et 243 (2026-11-01,
-      non encore publiés). Un combat fini, **local ou en ligne**, se copie en code texte `PTR1.…` (ou se
+      publiés en `v2026.11.1`). Un combat fini, **local ou en ligne**, se copie en code texte `PTR1.…` (ou se
       télécharge en fichier) depuis la victoire ; le menu principal le relit avec barre de lecture (début,
       action précédente / suivante, lecture, vitesse ×0,5 à ×4). **Pas de lien** : itch.io ne transmet pas la
       query string à l'iframe. Un code d'une autre version est refusé, jamais rejoué faux. Les abandons,
@@ -243,7 +242,7 @@ Détail complet dans le graphe : `node scripts/memory/query.mjs --open <entité>
 | **6.5 — Client jouable** | doigt, clavier, manette — le seul retour joueur était « injouable sur mobile » | `roadmap-phase-65-client-jouable-contrôles-ui-terminée` |
 | **7 — Multijoueur & télémétrie** | P2P WebRTC 2-12 joueurs, télémétrie Worker — **publiée `v2026.9.1`**, puis **`v2026.9.2`** (niveau de l'IA par place, journal de combat complet, portée visible pendant un tour distant) et **`v2026.9.3`** (relais de secours NAT : le jeu en ligne redevient joignable en données mobiles et wifi public) | `release-v2026.9.1`, `release-v2026.9.2`, `release-v2026.9.3`, `plan-195` |
 | **Langues & terrain** | **publiée `v2026.10.1`** (2026-10-04) : le jeu en espagnol (noms officiels), langue changeable en plein combat, malus de déplacement en facteur (marais ×½, eau/sable/neige ×¾), portées visibles sur les liquides, données Pokémon Champions à jour ; puis **`v2026.10.2`** (2026-10-05) : infobulles des talents, objets et effets (L3 à la manette), modifier son équipe sans quitter l'écran de sélection, Évoluroc pour tout Pokémon non final, Intimidation bloquée par les talents et objets canon ; puis **`v2026.10.3`** (2026-10-06) : équipes aléatoires au dernier stade avec build, toujours valides ; légende des contrôles et anneau du talent corrigés sur tactile ; puis **`v2026.10.4`** (2026-10-13) : sons et musiques, effets visuels des attaques, vitesse des combats, thème musical des menus | `release-v2026.10.1`, `release-v2026.10.2`, `release-v2026.10.3`, `release-v2026.10.4`, plans 219-241 |
-| **Replay partageable** | **livré le 2026-11-01, pas encore publié** : « Revoir un combat » — code `PTR1.` collable ou fichier, barre de lecture, recul sur place, vitesse ×0,5 à ×4 ; local ou en ligne, abandons rejoués (plan 243) | `plan-242`, `plan-243`, `decision-1180` à `decision-1190` |
+| **Replay partageable** | **publié en `v2026.11.1`** (2026-11-04) : « Revoir un combat » — code `PTR1.` collable ou fichier, barre de lecture, recul sur place, vitesse ×0,5 à ×4 ; local ou en ligne, abandons rejoués (plan 243) | `plan-242`, `plan-243`, `decision-1180` à `decision-1190` |
 | **Post-Babylon** | props voxel, liquides, auras, Vitest ×10-15, TypeScript 6, Babylon 9.12 | décisions #690-#707, #753-#757 |
 
 **Écarté, ne reviendra pas sans nouvelle décision** : serveur autoritaire, Supabase (#862), fog réel
