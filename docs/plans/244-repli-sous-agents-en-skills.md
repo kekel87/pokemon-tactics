@@ -1,6 +1,6 @@
 # Plan 244 : Replier une partie des sous-agents en skills
 
-**Statut** : en cours (replis 1 à 3 faits le 2026-11-04), dans l'onglet `pokemon-sous-agents`, un agent à la fois.
+**Statut** : en cours (replis 1 à 3 faits le 2026-11-04, repli 4 refusé par la mesure), dans l'onglet `pokemon-sous-agents`, un agent à la fois.
 **Origine** : mission du pilote `assistant`, validée par l'humain le 2026-11-02 ; question ouverte « plan de repli des sous-agents » → oui.
 Graphe : `agenda-replier-sous-agents-en-skills`.
 
@@ -155,3 +155,20 @@ hors roster et un Pokemon déplacé de la case demandée ; il a montré au passa
 Fichiers : `scripts/check-sandbox-config.ts` (+ `sandbox:check`, tsconfig des scripts),
 `.claude/skills/recette/config-sandbox.md`, étape 2 de `/recette`, agent retiré, mentions dans `test-writer`,
 `visual-tester`, `docs/architecture.md`, README de `packages/data/sandbox-configs`.
+
+### Repli 4 : `best-practices` gardé en sous-agent (2026-11-04)
+
+Cas 7 : encoder un replay dans une URL partageable. La mesure « après » a été faite à l'aveugle, avant de lire
+la réponse de l'agent.
+
+| | Avant (agent sonnet) | Après (tour principal, skill `/bonnes-pratiques` d'essai) |
+|---|---|---|
+| Sources citées et datées | oui, presque toutes datées (MDN, compat-data, WHATWG, zlib, Showdown) | partiel : 4 sources, 2 sans date |
+| Recommandation unique | oui (garder le format, revoir la garde de version) | oui (garder le format, plafonner la décompression) |
+| Comparaison avec le plan 242 | oui, au niveau du code : 6 écarts nommés avec fichier:ligne | oui, au niveau du plan : 3 écarts |
+| Coût | 111 505 tokens, 68 appels, 5 min 50 s | 3 recherches, 3 pages, 5 lectures de code, dans le contexte principal |
+
+Critère d'arrêt atteint : le cas perd un critère et beaucoup de profondeur. La recherche lit beaucoup (pages web,
+code de référence) et c'est cette lecture qui fait la qualité : la faire dans le tour coûte autant de contexte que
+l'agent, et le tour est tenté de la raccourcir. Raison (a) de la section « Pourquoi » : on garde l'agent.
+Le skill d'essai n'est pas commité.
