@@ -941,7 +941,6 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/`.
 | `move-pattern-designer` | sonnet | Attribue et justifie pattern tactique de chaque move |
 | `performance-profiler` | sonnet | Analyse performances (FPS, mémoire, bundle) |
 | `publisher` | sonnet | Orchestre release complète : compile changelog, publie, watch itch-deploy, devlog itch, wiki |
-| `session-closer` | sonnet | Met à jour le graphe de mémoire fin de session, avant `/commit` |
 | `test-writer` | sonnet | Tests Vitest, approche test-first |
 | `visual-analyst` | sonnet | Analyse visuels + web search pour inspiration |
 | `visual-tester` | sonnet | Vérification visuelle via Playwright MCP |
@@ -957,7 +956,7 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/`.
 | Modif mécaniques de jeu | `game-designer` |
 | `code-reviewer` déclenche | `game-designer` (si mécaniques), `visual-tester` (si renderer) |
 | Ajout/modif données Pokemon | `data-miner` + `game-designer` |
-| Fin de session | `pnpm build` + `pnpm test` → `session-closer` → `doc-keeper` → `/commit` |
+| Fin de session | `pnpm build` + `pnpm test` → `doc-keeper` → `/cloture` → `/commit` |
 | Ajout dépendance | `dependency-manager` |
 | Nouveau plan | `/relire-plan` |
 | Bug visuel | `visual-tester` |

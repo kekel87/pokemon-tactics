@@ -1,6 +1,6 @@
 # Plan 244 : Replier une partie des sous-agents en skills
 
-**Statut** : en cours (replis 1 à 3 et 5 faits le 2026-11-04, repli 4 refusé par la mesure), dans l'onglet `pokemon-sous-agents`, un agent à la fois.
+**Statut** : en cours (replis 1 à 3, 5 et 6 faits le 2026-11-04, repli 4 refusé par la mesure), dans l'onglet `pokemon-sous-agents`, un agent à la fois.
 **Origine** : mission du pilote `assistant`, validée par l'humain le 2026-11-02 ; question ouverte « plan de repli des sous-agents » → oui.
 Graphe : `agenda-replier-sous-agents-en-skills`.
 
@@ -194,3 +194,35 @@ vérification télémétrie/salon jamais faite (l.17, l.138). La recherche des f
 skill.
 Fichiers : `.claude/skills/relire-plan/SKILL.md`, agent retiré, mentions dans `/next`, `/menu`,
 `docs/methodology.md`, `docs/architecture.md`.
+
+### Repli 6 : `session-closer` → `/cloture` (2026-11-04), avec `/memo`
+
+Cas 5 : clôture de la session du plan 243. Chaque clôture a tourné sur sa propre copie du graphe
+(`PT_MEMORY_HOME`) ; le vrai graphe a été relevé avant et après, et il n'a pas bougé. Mesure « après » pas à
+l'aveugle : j'avais déjà lu le rapport de l'agent.
+
+| | Avant (agent sonnet) | Après (tour principal, `/cloture`) |
+|---|---|---|
+| `historique` et pointeur à jour | pointeur réécrit, une seule ligne « À FAIRE MAINTENANT » ; historique du 2026-11-01 déjà complet, pas de doublon | idem |
+| Documents périmés signalés, pas corrigés | oui : index `docs/plans/README.md` arrêté au 243, agenda du repli périmé, question 1184/1180 caduque dans `CLAUDE.local.md` | oui, les trois |
+| Aucune `decision` écrite | oui | oui |
+| Coût | 53 800 tokens, 22 appels, 2 min | environ 14 Ko lus, 4 commandes |
+
+L'agent se contredisait : son en-tête interdit d'écrire une `decision`, mais son étape 2 en demandait une par
+décision prise ; et il demandait un « ⛔ PÉRIMÉ » là où le graphe a `--invalidate`. Le skill tranche pour
+l'en-tête et pour `--invalidate`. Il reprend aussi le rôle de `/memo` (ce qui n'est écrit nulle part avant un
+compactage), à l'étape 2.
+
+Témoins rejoués après l'étape 5 :
+- Cas 9 (`game-designer`, Roche Chaude sous Zone Magique) : analyse cohérente avec le code et les données,
+  fichier:ligne vérifiés sur trois références ; il a trouvé en plus deux points hors commit (Sécheresse lit
+  l'objet sans passer par la neutralisation, `BattleEngine.ts:1588` ; set « Sun Setter » de Feunard avec une
+  roche qui ne sert jamais). 34 243 tokens, 18 appels, 54 s.
+- Cas 10 (`code-reviewer`, diff du plan 243) : aucun Critical, 2 Major qui recoupent la relecture du cas 3
+  (reprise après abandon non testée, vérification télémétrie/salon jamais faite), 9 Minor ; il cite
+  `pnpm audit:core` à la place de l'ancien agent. Aucune règle dont il dépend n'a été retirée (diff de son
+  fichier et des règles depuis `f52cb627`). Pas de revue d'origine pour comparer les trouvailles une à une.
+  72 285 tokens, 15 appels, 91 s.
+
+Fichiers : `.claude/skills/cloture/SKILL.md`, agent retiré, mentions dans `doc-keeper`, `/menu`, le hook
+`block-backlog-write.py`, `scripts/audit-flow.mjs`, `docs/methodology.md`, `docs/architecture.md`.

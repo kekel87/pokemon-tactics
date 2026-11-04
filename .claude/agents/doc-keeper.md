@@ -1,16 +1,16 @@
 ---
 name: doc-keeper
-description: "Consigne un CHANGEMENT une fois celui-ci terminé — décisions, implémentations et faits acquis dans le graphe de mémoire, et mise à jour des documents restants (roadmap, architecture, game-design, README). Porte sur le contenu du lot, pas sur l'état de la session : n'écrit JAMAIS les entités `historique` ni `agenda`, qui appartiennent à `session-closer`. Utiliser à la finalisation d'un lot, jamais en clôture de session."
+description: "Consigne un CHANGEMENT une fois celui-ci terminé — décisions, implémentations et faits acquis dans le graphe de mémoire, et mise à jour des documents restants (roadmap, architecture, game-design, README). Porte sur le contenu du lot, pas sur l'état de la session : n'écrit JAMAIS les entités `historique` ni `agenda`, qui appartiennent au skill `/cloture`. Utiliser à la finalisation d'un lot, jamais en clôture de session."
 tools: Read, Write, Edit, Grep, Glob, Bash
 model: sonnet
 ---
 
-## 🔴 Frontière avec `session-closer`
+## 🔴 Frontière avec `/cloture`
 
 Les deux écrivent au graphe, et la confusion entre eux est un défaut connu (elle rendait leurs
 descriptions interchangeables). La ligne est nette :
 
-| | `doc-keeper` (toi) | `session-closer` |
+| | `doc-keeper` (toi) | `/cloture` |
 |---|---|---|
 | Déclencheur | un **lot terminé** | une **session qui se termine** (`/status`, « fin ») |
 | Objet | ce que le lot a **produit** | où en est le **projet** |

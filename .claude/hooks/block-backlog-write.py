@@ -35,8 +35,8 @@ ECRITURE_AGENDA = re.compile(
     r"query\.mjs\b.*--add\s+agenda(?![-\w])|--add\s+agenda(?![-\w]).*query\.mjs",
     re.IGNORECASE)
 # Seule sortie : la CLÔTURE de session, où l'humain a lui-même dit « fin » ou lancé
-# `/status`. `session-closer` doit alors réécrire le pointeur d'agenda. Le hook ne
-# peut pas reconnaître l'agent appelant, donc l'exception est déclarative :
+# `/status`. Le skill `/cloture` doit alors réécrire le pointeur d'agenda. Le hook ne
+# peut pas reconnaître l'appelant, donc l'exception est déclarative :
 # `PT_CLOTURE=1 node scripts/memory/query.mjs --add agenda …`. C'est un ralentisseur,
 # pas un verrou — il force à nommer l'intention, il n'empêche personne de mentir.
 EXEMPTION_CLOTURE = re.compile(r"\bPT_CLOTURE=1\b")

@@ -5,7 +5,7 @@
  * Pourquoi ce script existe : la « revue du flux » du 2026-09-06 a été faite au
  * jugé — on a cherché les conflits auxquels on pensait. Résultat, quatre trous
  * trouvés APRÈS coup, dont deux qui auraient annulé la migration en silence
- * (`session-closer` recréant STATUS.md, `analyze-op-sets` recréant son rapport).
+ * (un agent de clôture recréant STATUS.md, `analyze-op-sets` recréant son rapport).
  * Une inspection au jugé rate ce à quoi elle ne pense pas ; un contrôle mécanique
  * non. C'est la thèse du plan 200 appliquée à elle-même.
  */

@@ -109,7 +109,7 @@ dupliquent le travail).
 | `data-miner` + `asset-manager` | `packages/data/` vs les assets |
 | `game-designer` + n'importe quel agent d'écriture | rien (lecture seule) |
 
-Jamais ensemble : `doc-keeper` + `session-closer` (graphe), `doc-keeper` + `wiki-keeper` (le wiki suit la doc).
+Jamais ensemble : `doc-keeper` + `/cloture` (graphe), `doc-keeper` + `wiki-keeper` (le wiki suit la doc).
 
 Pas d'agents « par étape » (un qui planifie, un qui code, un qui teste) : le principal porte l'implémentation
 de bout en bout, les sous-agents sont des délégations jetables (recherche, revue, données).

@@ -39,7 +39,7 @@ explicitement le menu.
    - **Plan en rédaction** (`docs/plans/*.md` draft non commit) : menu remplacé par `[x] /relire-plan`,
      `[ ] game-designer` (si mécaniques jeu). 🔴 **Jamais d'option « commiter le plan »** — on ne le
      fait jamais.
-   - **Session fin** (« fin », `/status`) : ajoute `session-closer` en 4e option (plafond `AskUserQuestion`).
+   - **Session fin** (« fin », `/status`) : ajoute `/cloture` en 4e option (plafond `AskUserQuestion`).
    - `visual-tester` n'est **jamais** dans le menu auto (≥2 min Playwright) — l'humain le demande.
 
 4. Attends la sélection humaine. Exécute en **ordre fixe** :
