@@ -1,6 +1,6 @@
 # Plan 244 : Replier une partie des sous-agents en skills
 
-**Statut** : en cours (replis 1 à 3 faits le 2026-11-04, repli 4 refusé par la mesure), dans l'onglet `pokemon-sous-agents`, un agent à la fois.
+**Statut** : en cours (replis 1 à 3 et 5 faits le 2026-11-04, repli 4 refusé par la mesure), dans l'onglet `pokemon-sous-agents`, un agent à la fois.
 **Origine** : mission du pilote `assistant`, validée par l'humain le 2026-11-02 ; question ouverte « plan de repli des sous-agents » → oui.
 Graphe : `agenda-replier-sous-agents-en-skills`.
 
@@ -172,3 +172,25 @@ Critère d'arrêt atteint : le cas perd un critère et beaucoup de profondeur. L
 code de référence) et c'est cette lecture qui fait la qualité : la faire dans le tour coûte autant de contexte que
 l'agent, et le tour est tenté de la raccourcir. Raison (a) de la section « Pourquoi » : on garde l'agent.
 Le skill d'essai n'est pas commité.
+Décision au graphe : `decision-1191`.
+
+### Repli 5 : `plan-reviewer` → `/relire-plan` (2026-11-04)
+
+Cas 3 : relire `docs/plans/243-abandons-dans-le-replay.md`. Le plan est déjà clos : les deux relectures l'ont
+pris tel quel. L'agent a travaillé sur une copie de travail, pour pouvoir vérifier qu'il ne réécrivait rien.
+Mesure « après » faite à l'aveugle.
+
+| | Avant (agent haiku) | Après (tour principal, `/relire-plan`) |
+|---|---|---|
+| Section « Ce que tu verras à l'écran » | non examinée (absente de sa consigne) | examinée : présente, observable, mais placée après le tableau d'écarts |
+| Critères testables | non examinés comme tels (a relevé que la recette à 3 camps n'a pas été faite) | « reprise sans divergence » sans moyen de constat (l.145) |
+| Fichiers cités existants | oui, avec en plus les lignes périmées une par une | oui, tous présents ; lignes périmées relevées (normal après le dev) |
+| Aucune réécriture hors périmètre | oui (copie intacte) | oui |
+| Coût | 43 603 tokens, 13 appels, 34 s | environ 11 Ko lus (le plan), 2 commandes, décisions ouvertes au graphe |
+
+L'agent suivait un gabarit périmé : en-tête YAML, `docs/plans/README.md` comme index, et « un plan clos sort du
+dossier ». Il a aussi proposé de déplacer le plan dans le graphe, ce qui sort du périmètre. Les deux ont relevé la
+vérification télémétrie/salon jamais faite (l.17, l.138). La recherche des fichiers cités est une commande du
+skill.
+Fichiers : `.claude/skills/relire-plan/SKILL.md`, agent retiré, mentions dans `/next`, `/menu`,
+`docs/methodology.md`, `docs/architecture.md`.

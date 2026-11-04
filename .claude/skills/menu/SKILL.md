@@ -36,7 +36,7 @@ explicitement le menu.
    | `gate + commit` | **toujours coché** — `/ci-gate full` puis commit + push |
 
    Spéciaux selon contexte :
-   - **Plan en rédaction** (`docs/plans/*.md` draft non commit) : menu remplacé par `[x] plan-reviewer`,
+   - **Plan en rédaction** (`docs/plans/*.md` draft non commit) : menu remplacé par `[x] /relire-plan`,
      `[ ] game-designer` (si mécaniques jeu). 🔴 **Jamais d'option « commiter le plan »** — on ne le
      fait jamais.
    - **Session fin** (« fin », `/status`) : ajoute `session-closer` en 4e option (plafond `AskUserQuestion`).

@@ -78,7 +78,7 @@ Dans les deux cas : la doc est en **français**, le code en **anglais**.
 ### Pour une nouvelle feature — deux arrêts, pas un de plus :
 1. **`/next`** — résumé court, 2-3 candidats, une recommandation. Confirmation directe **ou**
    discussion : même suite dans les deux cas.
-2. **Plan** — `docs/plans/xxx-name.md`, puis menu de plan (`plan-reviewer`, `game-designer` si
+2. **Plan** — `docs/plans/xxx-name.md`, puis menu de plan (`/relire-plan`, `game-designer` si
    mécaniques jeu). Jamais d'option « commiter le plan ».
 3. **Dev d'un trait** — core puis renderer, sans arrêt de phase, sans point d'étape. Tests
    unitaires du core pendant le dev ; ni gate, ni build, ni e2e.
@@ -109,8 +109,7 @@ dupliquent le travail).
 | `data-miner` + `asset-manager` | `packages/data/` vs les assets |
 | `game-designer` + n'importe quel agent d'écriture | rien (lecture seule) |
 
-Jamais ensemble : `doc-keeper` + `session-closer` (graphe), `doc-keeper` + `wiki-keeper` (le wiki suit la doc),
-`doc-keeper` + `plan-reviewer` (`docs/`).
+Jamais ensemble : `doc-keeper` + `session-closer` (graphe), `doc-keeper` + `wiki-keeper` (le wiki suit la doc).
 
 Pas d'agents « par étape » (un qui planifie, un qui code, un qui teste) : le principal porte l'implémentation
 de bout en bout, les sous-agents sont des délégations jetables (recherche, revue, données).

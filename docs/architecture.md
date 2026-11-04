@@ -940,7 +940,6 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/`.
 | `level-designer` | haiku | Crée maps (JSON), valide jouabilité |
 | `move-pattern-designer` | sonnet | Attribue et justifie pattern tactique de chaque move |
 | `performance-profiler` | sonnet | Analyse performances (FPS, mémoire, bundle) |
-| `plan-reviewer` | haiku | Crée, review et maintient les plans |
 | `publisher` | sonnet | Orchestre release complète : compile changelog, publie, watch itch-deploy, devlog itch, wiki |
 | `session-closer` | sonnet | Met à jour le graphe de mémoire fin de session, avant `/commit` |
 | `test-writer` | sonnet | Tests Vitest, approche test-first |
@@ -960,7 +959,7 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/`.
 | Ajout/modif données Pokemon | `data-miner` + `game-designer` |
 | Fin de session | `pnpm build` + `pnpm test` → `session-closer` → `doc-keeper` → `/commit` |
 | Ajout dépendance | `dependency-manager` |
-| Nouveau plan | `plan-reviewer` |
+| Nouveau plan | `/relire-plan` |
 | Bug visuel | `visual-tester` |
 
 ### Skills
