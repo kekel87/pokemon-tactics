@@ -151,6 +151,7 @@ test("replay : un combat gagné se copie, se recolle au menu et se rejoue avec s
   // Lecture jusqu'au bout : la victoire du combat rejoué s'ouvre, sur la dernière action.
   await toggle.click();
   await expect(position).toHaveText(`Action ${total} / ${total}`, { timeout: 120_000 });
-  await expect(page.getByTestId("battle-over")).toBeVisible();
+  // Le compteur arrive au bout dès que la dernière action part ; la victoire attend la fin de son animation.
+  await expect(page.getByTestId("battle-over")).toBeVisible({ timeout: 30_000 });
   await expect(toggle).toHaveAttribute("data-state", "paused");
 });
