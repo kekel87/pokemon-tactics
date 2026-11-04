@@ -1,6 +1,6 @@
 # Plan 244 : Replier une partie des sous-agents en skills
 
-**Statut** : en cours (replis 1 à 3, 5 et 6 faits le 2026-11-04, repli 4 refusé par la mesure), dans l'onglet `pokemon-sous-agents`, un agent à la fois.
+**Statut** : en cours (les 7 replis passés le 2026-11-04 : 6 faits, repli 4 refusé par la mesure ; restent la suppression de 3 agents et les ajouts du plan 245), dans l'onglet `pokemon-sous-agents`, un agent à la fois.
 **Origine** : mission du pilote `assistant`, validée par l'humain le 2026-11-02 ; question ouverte « plan de repli des sous-agents » → oui.
 Graphe : `agenda-replier-sous-agents-en-skills`.
 
@@ -226,3 +226,70 @@ Témoins rejoués après l'étape 5 :
 
 Fichiers : `.claude/skills/cloture/SKILL.md`, agent retiré, mentions dans `doc-keeper`, `/menu`, le hook
 `block-backlog-write.py`, `scripts/audit-flow.mjs`, `docs/methodology.md`, `docs/architecture.md`.
+
+### Repli 7 : `doc-keeper` + `wiki-keeper` → `/consigner` (2026-11-04)
+
+Bancs isolés : copie du graphe (instantané `bd196b4` du 2026-11-01), copie de travail au commit `e4d7ce6d` avec
+les quatre documents remis à leur état d'avant le lot, wiki copié à son état du 2026-10-13 (`b111ae0`), sans
+distant. Le vrai graphe, le dépôt et `wiki/` n'ont pas bougé. Mesures « après » faites à l'aveugle.
+Limite : l'instantané contenait déjà les entités du lot 242 (l'instantané d'avant date du 2026-10-15) ; le
+cas 4 a donc mesuré la mise à jour des documents et l'absence de doublon, dans les deux bancs.
+
+Cas 4, consigner le lot 242 :
+
+| | Avant (agent sonnet) | Après (tour principal, `/consigner`) |
+|---|---|---|
+| Entités `decision` / `implémentation` reliées | déjà présentes, vérifiées ; en plus, 2 faits périmés invalidés et réécrits (commit, liste des tests) | déjà présentes, vérifiées, rien réécrit |
+| Roadmap à jour | oui | oui |
+| Aucun `historique` ni `agenda` | oui | oui |
+| Pas de doublon | oui | oui |
+| Documents | 5 (dont `multiplayer.md` et une ligne périmée du § 10 de l'architecture), métriques de calibrage relevées | 4 (roadmap, game-design, architecture, design-system) |
+| Coût | 151 183 tokens, 49 appels, 6 min 13 s | environ 30 Ko lus, une dizaine d'appels |
+
+L'agent a vu la version commitée de quatre documents dès sa première commande : sa rédaction n'est pas
+aveugle. Critères tenus des deux côtés, mais plus de profondeur côté agent ; l'étape 1 du skill demande
+désormais de confronter les entités existantes au code livré.
+
+Cas 6, wiki après le correctif Garde Large :
+
+| | Avant (agent sonnet) | Après (tour principal, `wiki.md`) |
+|---|---|---|
+| Page mécanique alignée sur le code | oui (Garde Large directionnelle et ligne de vue, roches sous Zone Magique), plus une entrée de changelog hors du cas | oui, mêmes règles |
+| Noms FR officiels | non : « Roc Chaleur » laissé, non vérifié | oui : « Roche Chaude » (`reference/items.json`), 3 occurrences corrigées |
+| Rien publié sans accord | oui | oui |
+| Coût | 59 740 tokens, 34 appels, 2 min | environ 15 Ko lus, une dizaine d'appels |
+
+Aucun cas ne perd de critère : repli fait. Le menu garde son parallélisme : `test-writer` en arrière-plan,
+`/consigner` dans le tour. `/publish` suit `wiki.md` dans le tour au lieu de lancer un agent.
+Fichiers : `.claude/skills/consigner/SKILL.md` et `wiki.md`, deux agents retirés, mentions dans `/menu`,
+`/cloture`, `/publish`, `publisher`, le hook `remind-post-impl-menu.py`, `CLAUDE.md`, `docs/methodology.md`,
+`docs/architecture.md`.
+
+Témoins rejoués après l'étape 7 :
+- Cas 9 (`game-designer`) : analyse cohérente, mêmes références ; trouve en plus que Lumargile et Champ'Duit
+  prolongent encore leur effet sous Zone Magique (`aura-system.ts:18`, `field-terrain-system.ts:31`, lus et
+  confirmés), contrairement aux roches. 35 417 tokens, 23 appels, 67 s.
+- Cas 10 (`code-reviewer`) : 0 Critical, 0 Major, 8 Minor, contre 2 Major au passage de l'étape 6. Ni son
+  fichier ni les règles n'ont changé entre les deux passages : c'est la variance d'un passage à l'autre, pas
+  une règle perdue. 70 965 tokens, 11 appels, 86 s. Un témoin à un seul passage ne suffit pas à juger une revue.
+
+## Bilan (2026-11-04)
+
+| Repli | Cas | Résultat | Coût avant → après |
+|---|---|---|---|
+| 1 `commit-message` → `/commit` | 1 | fait, 5/5 des deux côtés | 16,8 k tokens → environ 2 Ko lus |
+| 2 `core-guardian` → `pnpm audit:core` | 2 | fait, script plus strict (liste blanche) | 44 k tokens → 0, 150 ms |
+| 3 `sandbox-json` → `/recette` + `pnpm sandbox:check` | 8 | fait, 3/3, chargement enfin vérifié | 49,7 k tokens → environ 1 Ko, 0,6 s |
+| 4 `best-practices` | 7 | refusé : 3/3 contre 2/3 (`decision-1191`) | 111,5 k tokens, gardé |
+| 5 `plan-reviewer` → `/relire-plan` | 3 | fait, 2/4 → 4/4 | 43,6 k tokens → environ 11 Ko |
+| 6 `session-closer` → `/cloture` (+ `/memo`) | 5 | fait, 3/3 des deux côtés | 53,8 k tokens → environ 14 Ko |
+| 7 `doc-keeper` + `wiki-keeper` → `/consigner` | 4, 6 | fait ; cas 6 meilleur après, cas 4 critères tenus mais moins profond | 210,9 k tokens → environ 45 Ko |
+
+Agents : 22 au départ, 15 aujourd'hui. Reste à faire pour finir le plan :
+- supprimer `ai-player`, `dependency-manager`, `feedback-triager` (décision de l'humain du 2026-11-02 ;
+  adapter `/itch-feedback`) : on tombe à 12 ;
+- ajouts du plan 245 restants : retirer `tools:` des agents gardés sauf `code-reviewer` et `game-designer`
+  (13 agents le déclarent encore) ; revue unique (`code-reviewer`, `/code-review`, `review-local`) ;
+  découper `level-designer` (316 lignes) et `publisher` (246) par branche. `/memo` dans `/cloture` : fait.
+- Limites de méthode : mesures « après » des cas 1, 3 et 5 de l'étape 6 pas à l'aveugle ; un seul passage par
+  cas, alors que le cas 10 montre une variance d'un passage à l'autre.

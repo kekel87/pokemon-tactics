@@ -5,7 +5,7 @@ user-invocable: true
 ---
 
 Porte sur l'état de la session. Ce que le lot a produit (décisions, implémentations) se consigne par
-`doc-keeper` au menu, pas ici. Outils du graphe : `scripts/memory/README.md` et `query.mjs --help`.
+`/consigner` au menu, pas ici. Outils du graphe : `scripts/memory/README.md` et `query.mjs --help`.
 Préfixe `PT_CLOTURE=1` sur toute écriture d'agenda (le hook `block-backlog-write.py` la refuse sinon).
 
 ## Étapes
@@ -15,7 +15,7 @@ Préfixe `PT_CLOTURE=1` sur toute écriture d'agenda (le hook `block-backlog-wri
    questions restées sans réponse, travail en cours (onglets, sous-agents), retours de joueurs relayés.
    Critère : une liste de faits, chacun avec sa source (commit, message de l'humain).
 2. Ce qui n'est écrit nulle part : une décision ou un refus de l'humain absent du graphe et du plan → le
-   signaler pour `doc-keeper` ; un retour de joueur → entité `retour` ; une question ouverte → entité
+   signaler pour `/consigner` ; un retour de joueur → entité `retour` ; une question ouverte → entité
    `question-ouverte`. Critère : chaque fait de l'étape 1 a sa place nommée (graphe, plan, commit).
 3. Avant d'écrire « rien en attente » : `query.mjs --type backlog` et `--type retour`, listes complètes.
 4. Réécrire le pointeur `agenda-prochaine-etape-courante`, nom stable, jamais un agenda daté de plus :

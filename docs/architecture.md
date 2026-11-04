@@ -934,7 +934,6 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/`.
 | `data-miner` | sonnet | Import données Pokemon (Showdown/PokeAPI) |
 | `debugger` | opus | Diagnostic bugs complexes |
 | `dependency-manager` | haiku | Gestion dépendances npm, deprecation warnings |
-| `doc-keeper` | sonnet | Maintient documentation à jour (checklist systématique) |
 | `feedback-triager` | haiku | Classe issues GitHub (bug/feature/feedback/duplicate) |
 | `game-designer` | sonnet | Cohérence et équilibre des mécaniques |
 | `level-designer` | haiku | Crée maps (JSON), valide jouabilité |
@@ -944,19 +943,18 @@ Agents custom dans `.claude/agents/` et skills dans `.claude/skills/`.
 | `test-writer` | sonnet | Tests Vitest, approche test-first |
 | `visual-analyst` | sonnet | Analyse visuels + web search pour inspiration |
 | `visual-tester` | sonnet | Vérification visuelle via Playwright MCP |
-| `wiki-keeper` | sonnet | Maintient wiki GitHub (guide joueur, mécaniques, changelog) |
 
 ### Chaînes d'agents
 
 | Déclencheur | Chaîne |
 |-------------|--------|
 | Étape intermédiaire plan (core touché) | `pnpm audit:core` + `test-writer` |
-| Fin de plan | `code-reviewer` + `doc-keeper` (+ `visual-tester` si renderer ; le gate lance `audit:core`) |
-| Bugfix / refacto hors plan | `code-reviewer` + `doc-keeper` |
+| Fin de plan | `code-reviewer` + `/consigner` (+ `visual-tester` si renderer ; le gate lance `audit:core`) |
+| Bugfix / refacto hors plan | `code-reviewer` + `/consigner` |
 | Modif mécaniques de jeu | `game-designer` |
 | `code-reviewer` déclenche | `game-designer` (si mécaniques), `visual-tester` (si renderer) |
 | Ajout/modif données Pokemon | `data-miner` + `game-designer` |
-| Fin de session | `pnpm build` + `pnpm test` → `doc-keeper` → `/cloture` → `/commit` |
+| Fin de session | `pnpm build` + `pnpm test` → `/consigner` → `/cloture` → `/commit` |
 | Ajout dépendance | `dependency-manager` |
 | Nouveau plan | `/relire-plan` |
 | Bug visuel | `visual-tester` |

@@ -85,7 +85,7 @@ Dans les deux cas : la doc est en **français**, le code en **anglais**.
 4. **Arrêt 1 — recette** — résumé + une seule question : « Tu testes ? ». L'humain teste en
    interactif, remonte des retours, on itère.
 5. **Arrêt 2 — menu de finalisation** — commit WIP automatique, puis une question multi-select :
-   tests (`test-writer`), `code-reviewer`, `doc-keeper`, gate + commit.
+   tests (`test-writer`), `code-reviewer`, `/consigner`, gate + commit.
 6. **Commit** — conventional commit, sans validation du message.
 
 Détail complet : skills `/next` (jusqu'à l'arrêt 1) et `/menu` (arrêt 2).
@@ -94,7 +94,7 @@ Détail complet : skills `/next` (jusqu'à l'arrêt 1) et `/menu` (arrêt 2).
 Après chaque étape significative, les agents pertinents sont lancés sans attendre qu'on le demande :
 - Modif dans `packages/core/` → `pnpm audit:core` (+ `test-writer` si nouvelle mécanique)
 - Avant un commit → `code-reviewer` (coché au menu de finalisation)
-- Après un ensemble de changements → `doc-keeper`
+- Après un ensemble de changements → `/consigner`
 
 ### Parallélisme des agents
 
@@ -105,11 +105,11 @@ dupliquent le travail).
 | Peuvent tourner ensemble | Écrivent dans |
 |---|---|
 | `code-reviewer` + `/code-review` | rien (lecture seule) |
-| `test-writer` + `doc-keeper` | tests (`*.test.ts`, `e2e/`) vs `docs/` + graphe |
+| `test-writer` (arrière-plan) + `/consigner` (tour) | tests (`*.test.ts`, `e2e/`) vs `docs/` + graphe |
 | `data-miner` + `asset-manager` | `packages/data/` vs les assets |
 | `game-designer` + n'importe quel agent d'écriture | rien (lecture seule) |
 
-Jamais ensemble : `doc-keeper` + `/cloture` (graphe), `doc-keeper` + `wiki-keeper` (le wiki suit la doc).
+Jamais ensemble : `/consigner` + `/cloture` (graphe).
 
 Pas d'agents « par étape » (un qui planifie, un qui code, un qui teste) : le principal porte l'implémentation
 de bout en bout, les sous-agents sont des délégations jetables (recherche, revue, données).

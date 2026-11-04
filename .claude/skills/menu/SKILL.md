@@ -32,7 +32,7 @@ explicitement le menu.
    | Option | Pré-coché si |
    |--------|--------------|
    | `tests (test-writer)` | changement observable automatisable → tests unitaires restants (hors core, déjà faits pendant le dev) + scénario e2e + cahier de recette (graphe, entités `recette`), **puis `/simplify` sur ce code de test**. Décoché si purement pixel/anim |
-   | `doc-keeper` | documents `docs/` impactés, fait à consigner au graphe, nouvelle mécanique, nouveau Pokemon/move/talent |
+   | `consigner` | documents `docs/` impactés, fait à consigner au graphe, nouvelle mécanique, nouveau Pokemon/move/talent |
    | `gate + commit` | **toujours coché** — `/ci-gate full` puis commit + push |
 
    Spéciaux selon contexte :
@@ -43,7 +43,7 @@ explicitement le menu.
    - `visual-tester` n'est **jamais** dans le menu auto (≥2 min Playwright) — l'humain le demande.
 
 4. Attends la sélection humaine. Exécute en **ordre fixe** :
-   `{test-writer → /simplify (sur les tests)} ∥ doc-keeper → [résumé du diff WIP→final] → /ci-gate full → commit + push (amende le WIP)`
+   `{test-writer → /simplify (sur les tests)} en arrière-plan ∥ /consigner dans le tour → [résumé du diff WIP→final] → /ci-gate full → commit + push (amende le WIP)`
    (`∥` = en parallèle : tests vs `docs/`, ensembles d'écriture disjoints. Borner chaque prompt.)
 5. **Stop sur fail bloquant** (`pnpm audit:core` rouge, `code-reviewer` ou `/code-review` Critical, `/ci-gate` rouge,
    contrôle injoignable au clavier ou au pad).
@@ -51,7 +51,7 @@ explicitement le menu.
 ## Résumé du diff WIP→final — à la place du re-test systématique
 
 Si la chaîne a retouché du code **hors tests unitaires / e2e** (correction de review,
-standardisation, refacto doc-keeper), montrer en **3 lignes en français ce qu'elle a changé**
+standardisation, refacto de `/consigner`), montrer en **3 lignes en français ce qu'elle a changé**
 (`git diff <commit WIP>..`) et **laisser l'humain décider** si ça mérite un coup d'œil. Si elle n'a
 ajouté que des tests → droit au gate et au commit.
 

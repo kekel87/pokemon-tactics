@@ -92,7 +92,7 @@ Aucun autre arrêt, sauf le coupe-circuit de dérive de plan. Détail : skill `/
 
 Claude lance les agents sans attendre qu'on le demande : asset → `asset-manager`, données → `data-miner`, tests
 → `test-writer`. Proposer avant : `visual-tester`, `debugger`, `best-practices`, `performance-profiler`,
-`publisher`, `wiki-keeper`. Chaque délégation nomme son modèle (haiku mécanique, sonnet bien spécifié, opus
+`publisher`. Chaque délégation nomme son modèle (haiku mécanique, sonnet bien spécifié, opus
 raisonnement dur). Un agent long à la fois au premier plan, les autres en arrière-plan. Parallélisme :
 `docs/methodology.md`.
 

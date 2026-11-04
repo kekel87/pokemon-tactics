@@ -38,7 +38,7 @@ MESSAGE = (
     "  · recette faite (ou refusée) → ARRÊT 2 : lancer sans demander commit WIP, "
     "pnpm audit:core si le core a bougé, code-reviewer puis /code-review, PUIS "
     "AskUserQuestion avec UNE question multi-select de 3 options (tests (test-writer) "
-    "/ doc-keeper / gate + commit).\n\n"
+    "/ consigner / gate + commit).\n\n"
     "Fichiers concernés :\n{fichiers}\n\n"
     "Si l'humain a déjà tranché la suite dans cette conversation, dis-le-lui en une "
     "ligne et termine — ce rappel ne se répétera pas dans cette session."

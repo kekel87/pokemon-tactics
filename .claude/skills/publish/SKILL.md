@@ -1,6 +1,6 @@
 ---
 name: publish
-description: Orchestre une release complète — compile changelog, vérifie build, publie GitHub release, watch itch-deploy, génère devlog itch, lance wiki-keeper. Délègue à l'agent `publisher`. L'humain valide tag + changelog avant publish.
+description: Orchestre une release complète — compile changelog, vérifie build, publie GitHub release, watch itch-deploy, génère devlog itch, met le wiki à jour. Délègue à l'agent `publisher`. L'humain valide tag + changelog avant publish.
 user-invocable: true
 ---
 
@@ -59,7 +59,7 @@ deux releases de suite (v2026.10.2, v2026.10.3).
 
 **Post-publish (main loop)** :
 - 🔴 **AFFICHER LE DEVLOG ITCH VERBATIM — OBLIGATOIRE.** Le devlog markdown généré en Phase 2 doit être **collé intégralement en chat dans un bloc de code** (titre, type, date, visibility, puis le body markdown complet). NE JAMAIS le résumer, paraphraser ou renvoyer vers le rapport de l'agent : l'humain doit pouvoir le copier-coller directement dans le dashboard itch.io. Récidive connue (feedback humain répété).
-- Lance l'agent `wiki-keeper` en background avec le brief de la synthèse (sync Changelog/Mechanics/Home **et Roadmap/Feuille-de-route** EN+FR, alignées sur `docs/roadmap.md` sans sujet interne ni chiffre de télémétrie). La Roadmap manquait à cette liste et est restée figée de v2026.7.2 à v2026.10.2.
+- Met le wiki à jour dans le tour, en suivant `.claude/skills/consigner/wiki.md`, avec le brief de la synthèse (sync Changelog/Mechanics/Home **et Roadmap/Feuille-de-route** EN+FR, alignées sur `docs/roadmap.md` sans sujet interne ni chiffre de télémétrie). La Roadmap manquait à cette liste et est restée figée de v2026.7.2 à v2026.10.2.
 
 ## Garanties
 

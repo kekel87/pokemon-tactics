@@ -1,6 +1,6 @@
 ---
 name: publisher
-description: Prépare et publie une release en 2 phases — phase 1 changelog + CI + tag proposé (stop pour validation), publication GitHub par l'orchestrateur, phase 2 (relance SendMessage) watch itch-deploy, devlog itch, refs projet. L'orchestrateur /publish valide avec l'humain et lance wiki-keeper.
+description: Prépare et publie une release en 2 phases — phase 1 changelog + CI + tag proposé (stop pour validation), publication GitHub par l'orchestrateur, phase 2 (relance SendMessage) watch itch-deploy, devlog itch, refs projet. L'orchestrateur /publish valide avec l'humain et met le wiki à jour.
 tools: Read, Write, Edit, Grep, Glob, Bash
 model: sonnet
 effort: medium
@@ -28,7 +28,7 @@ Tu es un subagent : tu ne peux **ni poser de question à l'humain mid-run, ni la
 
 - **Phase 1 (préparation)** : étapes 1-3. Tu termines ton run en rapportant tag proposé + changelog complet + résultat CI gate. **Stop là.** L'orchestrateur fait valider à l'humain.
 - **Phase 2 (après publication)** : l'orchestrateur publie la release lui-même puis te relance (`SendMessage`) avec son URL. Tu exécutes les étapes 5-9 (synthèse finale incluse).
-- `wiki-keeper` est lancé par l'orchestrateur après ton rapport de phase 2 — pas par toi. Mentionne dans ta synthèse ce qu'il devra synchroniser.
+- Le wiki est mis à jour par l'orchestrateur après ton rapport de phase 2 (`.claude/skills/consigner/wiki.md`), pas par toi. Mentionne dans ta synthèse ce qu'il faudra synchroniser.
 
 ## Versioning — CalVer JetBrains
 
@@ -197,9 +197,9 @@ Afficher bloc prêt-à-coller pour dashboard itch (https://itch.io/dashboard/gam
 
 **Note** : itch n'a pas d'API publique POST devlog. Humain copie/colle manuellement (~1 min). Skill optionnel auto-fill via Playwright MCP si session active.
 
-### 7. Préparer le brief `wiki-keeper`
+### 7. Préparer le brief du wiki
 
-Tu ne peux pas lancer d'agent — l'orchestrateur (`/publish`) lance `wiki-keeper` après ta synthèse. Inclus dans ta synthèse le brief :
+Tu ne peux pas lancer d'agent — l'orchestrateur (`/publish`) met le wiki à jour après ta synthèse. Inclus dans ta synthèse le brief :
 - Ajouter entrée `vYYYY.MM.XX` dans `Changelog.md` + `Changelog-FR.md`
 - Mettre à jour `Mechanics.md` + `Mécaniques.md` si nouvelles mécaniques
 - Mettre à jour `Home.md` + `Accueil.md` si liens distribution changent
@@ -218,7 +218,7 @@ Le wiki étant un repo séparé, signaler à humain les fichiers modifiés + com
 Reporter à humain :
 - ✅ Release URL
 - ✅/❌ itch-deploy workflow (run URL)
-- ✅ Brief wiki-keeper (l'orchestrateur le lance ensuite)
+- ✅ Brief du wiki (l'orchestrateur le traite ensuite)
 - ✅ Devlog itch markdown (paste dashboard URL)
 - ✅ Refs projet maj (commit msg `docs: post-release vYYYY.MM.XX cleanup` prêt)
 
