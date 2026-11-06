@@ -373,6 +373,8 @@ export interface Translations {
   "replay.error.unreadable": string;
   "replay.error.unknownFormat": string;
   "replay.error.otherVersion": string;
+  "replay.error.rejected": string;
+  "replay.error.loadFailed": string;
   "replay.bar.restart": string;
   "replay.bar.stepBack": string;
   "replay.bar.play": string;

@@ -121,9 +121,10 @@ d'apparition n'indique une priorité.
       télécharge en fichier) depuis la victoire ; le menu principal le relit avec barre de lecture (début,
       action précédente / suivante, lecture, vitesse ×0,5 à ×4). **Pas de lien** : itch.io ne transmet pas la
       query string à l'iframe. Un code d'une autre version est refusé, jamais rejoué faux. Les abandons,
-      absences et départs d'un camp se rejouent au même moment que dans la partie (plan 243). Le spectateur
+      absences et départs d'un camp se rejouent au même moment que dans la partie (plan 243). Un code dont
+      une action est refusée ramène au menu avec un message (plan 246). Le spectateur
       en direct est écarté (« too much »), à rouvrir si des joueurs le demandent. → graphe : `plan-242`,
-      `plan-243`, `decision-1180` à `decision-1190`.
+      `plan-243`, `plan-246`, `decision-1180` à `decision-1190`, `decision-1193`, `decision-1194`.
 - [ ] **Défi du jour** (graine quotidienne). 🔴 C'est **le matchmaking des jeux sans joueurs
       simultanés** : même graine pour tous, chacun joue quand il veut. Presque gratuit vu l'infra de
       replay ci-dessus (livrée, plan 242). Sortie proposée au cercle vicieux du matchmaking (§ Questions ouvertes).

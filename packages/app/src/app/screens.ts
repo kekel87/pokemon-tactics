@@ -2,7 +2,7 @@ import type { TeamSelection } from "@pokemon-tactic/core";
 import type { NetworkErrorCode, NetworkSeeds, RoomRole } from "@pokemon-tactic/network";
 import type { TelemetryTeam } from "../analytics/telemetry";
 import type { BattleResumeSave } from "./battle-persistence";
-import type { ReplayData } from "./replay-code";
+import type { ReplayData, ReplayFailure } from "./replay-code";
 
 /**
  * Screen FSM (plan 120) — screen IDs and legal transition table.
@@ -120,7 +120,8 @@ export interface CombatSetup {
 
 /** Params passed to each screen's mount(). Extended as plan 120 steps land. */
 export interface ScreenParamsById {
-  "main-menu": undefined;
+  /** Une cause, quand on revient d'un replay qui n'a pas pu être lu (plan 246). */
+  "main-menu": { readonly replayFailure: ReplayFailure } | undefined;
   "battle-mode": undefined;
   /**
    * Une cause de refus, quand on **revient** au lobby au lieu d'y entrer (plan 209, Lot C3).

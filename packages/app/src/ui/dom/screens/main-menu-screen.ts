@@ -12,6 +12,7 @@ import {
   isOnlineSave,
   isResumableOnlineSave,
 } from "../../../app/battle-persistence";
+import { ReplayFailure } from "../../../app/replay-code";
 import type { Navigate, Screen } from "../../../app/screen-manager";
 import { getLanguage, nextLanguage, setLanguage, t } from "../../../i18n";
 import type { TranslationKey } from "../../../i18n/types";
@@ -22,6 +23,11 @@ import { openReplayImportModal } from "../../team/ReplayImportModal";
 import { bindScreenInput, el, menuButton } from "./elements";
 
 const VERSION_TEXT = __APP_VERSION__;
+
+const REPLAY_FAILURE_KEYS: Record<ReplayFailure, TranslationKey> = {
+  [ReplayFailure.Rejected]: "replay.error.rejected",
+  [ReplayFailure.LoadFailed]: "replay.error.loadFailed",
+};
 
 /**
  * Entry point back into a battle interrupted by a reload (plan 181) — shown only when a save exists,
@@ -162,6 +168,8 @@ export function createMainMenuScreen(navigate: Navigate): Screen<"main-menu"> {
   let unbindScreenInput: (() => void) | null = null;
   /** Pourquoi la dernière tentative de reprise en ligne a échoué. `null` = rien à dire. */
   let resumeFailure: NetworkErrorCode | null = null;
+  /** Pourquoi le replay qui vient d'être lancé n'a pas pu l'être (plan 246). Gardé pour la langue. */
+  let replayFailure: ReplayFailure | null = null;
 
   const showResumeFailure = (code: NetworkErrorCode): void => {
     resumeFailure = code;
@@ -210,17 +218,26 @@ export function createMainMenuScreen(navigate: Navigate): Screen<"main-menu"> {
       );
       buttons.append(failure);
     }
+    if (replayFailure !== null) {
+      const failure = el("p", "mn-error", "replay-error");
+      failure.textContent = t(REPLAY_FAILURE_KEYS[replayFailure]);
+      buttons.append(failure);
+    }
     buttons.append(
       menuButton(t("menu.adventure")),
       menuButton(t("menu.battle"), () => navigate("battle-mode", undefined)),
-      menuButton(t("menu.reviewBattle"), () =>
+      menuButton(t("menu.reviewBattle"), () => {
+        // Un nouvel essai : l'échec du précédent ne doit pas rester sous la fenêtre d'import.
+        // Retiré sur place, sans re-rendu : le bouton garde le focus que la fenêtre lui rendra.
+        replayFailure = null;
+        root?.querySelector("[data-testid='replay-error']")?.remove();
         openReplayImportModal((data) =>
           navigate("combat", {
             mapUrl: data.mapUrl,
             replay: data,
           }),
-        ),
-      ),
+        );
+      }),
       menuButton(t("menu.teamBuilder"), () => navigate("my-teams", undefined)),
       menuButton(t("menu.settings"), () => navigate("settings", undefined)),
       menuButton(t("menu.credits"), () => navigate("credits", undefined)),
@@ -242,8 +259,9 @@ export function createMainMenuScreen(navigate: Navigate): Screen<"main-menu"> {
   };
 
   return {
-    mount(host) {
+    mount(host, params) {
       countScreen(TelemetryScreen.MainMenu);
+      replayFailure = params?.replayFailure ?? null;
       /*
        * Toute retombée au menu principal met fin à une éventuelle session en ligne (plan 199).
        *

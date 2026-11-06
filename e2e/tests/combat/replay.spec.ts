@@ -1,3 +1,4 @@
+import { deflateRawSync, inflateRawSync } from "node:zlib";
 import type { Page } from "@playwright/test";
 import { expect, seedSavedTeams, test } from "../../fixtures";
 import { CombatScene } from "../../pages/CombatScene";
@@ -38,6 +39,30 @@ async function playOfflineDuelToVictory(page: Page): Promise<void> {
   await teams.launch.click();
   await new CombatScene(page).waitReady();
   await expect(page.getByTestId("replay-share")).toBeVisible({ timeout: 120_000 });
+}
+
+const CODE_PREFIX = "PTR1.";
+
+/**
+ * Falsifie un vrai code : même enveloppe et même `buildVersion` (il passe donc tous les gardes de
+ * forme), mais la première action de déplacement ou de move vise une case hors de la grille.
+ */
+function forgeImpossibleAction(code: string): string {
+  const envelope = JSON.parse(
+    inflateRawSync(Buffer.from(code.slice(CODE_PREFIX.length), "base64url")).toString("utf8"),
+  );
+  const impossible = { x: 999, y: 999 };
+  const action = envelope.data.actions.find(
+    (candidate: { path?: unknown; targetPosition?: unknown }) =>
+      candidate.path !== undefined || candidate.targetPosition !== undefined,
+  );
+  expect(action, "le combat produit contient une action à falsifier").toBeDefined();
+  if (action.path === undefined) {
+    action.targetPosition = impossible;
+  } else {
+    action.path = [impossible];
+  }
+  return CODE_PREFIX + deflateRawSync(Buffer.from(JSON.stringify(envelope))).toString("base64url");
 }
 
 test("replay : la fenêtre refuse un texte quelconque et un code tronqué, avec un message clair", async ({
@@ -154,4 +179,37 @@ test("replay : un combat gagné se copie, se recolle au menu et se rejoue avec s
   // Le compteur arrive au bout dès que la dernière action part ; la victoire attend la fin de son animation.
   await expect(page.getByTestId("battle-over")).toBeVisible({ timeout: 30_000 });
   await expect(toggle).toHaveAttribute("data-state", "paused");
+});
+
+test("replay : un code dont une action est impossible ramène au menu avec un message, retiré au prochain essai", async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(240_000);
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await playOfflineDuelToVictory(page);
+  const copy = page.getByTestId("replay-share").getByTestId("copy-replay");
+  await copy.click();
+  await expect(copy).toHaveText("Code copié !");
+  const code = await page.evaluate(() => navigator.clipboard.readText());
+  expect(code.startsWith(CODE_PREFIX)).toBe(true);
+
+  const menu = new MainMenu(page);
+  await menu.goto();
+  await menu.reviewBattle.click();
+  await page.getByTestId("replay-code-input").fill(forgeImpossibleAction(code));
+  await page.getByTestId("replay-start").click();
+
+  // Le journal est vérifié en entier avant la lecture : retour au menu, avec la cause.
+  const failure = page.getByTestId("replay-error");
+  await expect(failure).toHaveText(
+    "Ce replay ne peut pas être rejoué : une de ses actions est impossible (code modifié ou autre version du jeu).",
+    { timeout: 30_000 },
+  );
+  await expect(menu.reviewBattle).toBeVisible();
+
+  // Un nouvel essai efface l'échec précédent.
+  await menu.reviewBattle.click();
+  await expect(page.getByTestId("replay-code-input")).toBeVisible();
+  await expect(failure).toHaveCount(0);
 });

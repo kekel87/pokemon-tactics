@@ -69,7 +69,7 @@ import {
 import { healthRatiosBySide, soleLocalSide } from "../analytics/team-telemetry.js";
 import { AbandonSource, countAction, TelemetryAction } from "../analytics/telemetry.js";
 import { type BattleResumeSave, battleResumeStore } from "../app/battle-persistence.js";
-import { encodeReplayCode, type ReplayData } from "../app/replay-code.js";
+import { encodeReplayCode, type ReplayData, ReplayFailure } from "../app/replay-code.js";
 import type { Navigate, Screen } from "../app/screen-manager.js";
 import type { CombatSetup, ScreenParamsById } from "../app/screens.js";
 import { battleAudioReady } from "../audio/audio-preload";
@@ -1794,6 +1794,16 @@ function startResumedBattle(
 /** Les crans de vitesse d'un replay : le bouton de la barre les fait défiler. */
 const REPLAY_SPEEDS: readonly number[] = [0.5, 1, 2, 4];
 
+/** La position de départ d'un replay : ses entrées, sans le journal. */
+function replayInputs(data: ReplayData): BattleInputs {
+  return {
+    setup: data.setup,
+    placementTeams: data.placementTeams,
+    placements: data.placements,
+    seed: data.seed,
+  };
+}
+
 /**
  * Replay path (plan 242): rebuild a finished battle at a point of its log, then play the rest through
  * the SAME animated path a live battle uses.
@@ -1822,12 +1832,7 @@ function startReplayBattle(options: {
   const { backend, combat, stage, insets, map, data, navigate, signal } = options;
   const total = data.actions.length;
   const forfeits = data.forfeits ?? [];
-  const inputs: BattleInputs = {
-    setup: data.setup,
-    placementTeams: data.placementTeams,
-    placements: data.placements,
-    seed: data.seed,
-  };
+  const inputs = replayInputs(data);
 
   let speed = 1;
   combatClock.setSlowMotion(speed);
@@ -2120,10 +2125,27 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
     if (replayData) {
       // Même discipline que la reprise : tout ce qui peut échouer est dans le try, un échec rend au
       // menu au lieu de laisser le joueur sous un voile de chargement.
+      const backToMenu = (replayFailure: ReplayFailure, error: unknown): void => {
+        // biome-ignore lint/suspicious/noConsole: seule trace de la cause — le joueur retombe au menu
+        console.warn("[replay] lecture impossible, retour au menu :", error);
+        overlay.cancel();
+        navigate("main-menu", { replayFailure });
+      };
       try {
         const [loaded] = await Promise.all([loadTiledMap(mapUrl), activeCombat.ready]);
         if (localAbort.signal.aborted) {
           overlay.cancel();
+          return;
+        }
+        /*
+         * Le journal entier, une fois, sans rendu (plan 246) : le moteur est déterministe, donc s'il
+         * passe ici la lecture animée passera aussi. Sans ce contrôle, une action refusée arrêtait la
+         * lecture en plein combat sans rien dire.
+         */
+        try {
+          fastForwardBattle(replayInputs(replayData), replayData, loaded.map);
+        } catch (error) {
+          backToMenu(ReplayFailure.Rejected, error);
           return;
         }
         overlay.setProgress(0.6);
@@ -2145,10 +2167,7 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
           signal: abort.signal,
         });
       } catch (error) {
-        // biome-ignore lint/suspicious/noConsole: seule trace de la cause — le joueur retombe au menu
-        console.warn("[replay] lecture impossible, retour au menu :", error);
-        overlay.cancel();
-        navigate("main-menu", undefined);
+        backToMenu(ReplayFailure.LoadFailed, error);
         return;
       }
       await battleAudioReady(replayData.setup.musicId);

@@ -48,7 +48,7 @@ Les seuls sur lesquels on travaille.
 | 212 | [Plan 212 — Mesurer les mécaniques de fin de Phase 7, et les deux trous trouvés en lisant les chiffres](./212-telemetrie-des-mecaniques-de-phase-7.md) | done |
 | 213 | [Plan 213 — La dette choisie avant la release](./213-dette-choisie-avant-la-release.md) | done |
 | 214 | [Plan 214 — Le niveau de l'IA, choisi place par place](./214-niveau-de-l-ia-par-place.md) | draft |
-| 215 | [Plan 215 — Le niveau appartient au Pokemon, le mode le normalise](./215-niveau-par-pokemon.md) | in-progress |
+| 215 | [Plan 215 — Le niveau appartient au Pokemon, le mode le normalise](./215-niveau-par-pokemon.md) | done |
 | 216 | [Plan 216 — Le relais qui manquait, et deux correctifs de salon](./216-relais-turn-et-deux-correctifs-de-salon.md) | done |
 | 219 | [Plan 219 — Les portées visibles sur l'eau et le marais](./219-portees-visibles-sur-les-liquides.md) | done |
 | 220 | [Plan 220 — Le malus de déplacement devient une division](./220-malus-deplacement-en-division.md) | done |
@@ -71,3 +71,4 @@ Les seuls sur lesquels on travaille.
 | 243 | [Plan 243 — Les abandons dans le replay](./243-abandons-dans-le-replay.md) | done |
 | 244 | [Plan 244 : Replier une partie des sous-agents en skills](./244-repli-sous-agents-en-skills.md) | done |
 | 245 | [Plan 245 : appliquer la méthode agents de l'humain](./245-methode-agents.md) | done |
+| 246 | [Plan 246 : un replay refusé le dit au joueur](./246-replay-refuse-avec-message.md) | done |

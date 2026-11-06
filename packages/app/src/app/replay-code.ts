@@ -55,6 +55,15 @@ export const ReplayCodeError = {
 } as const;
 export type ReplayCodeError = (typeof ReplayCodeError)[keyof typeof ReplayCodeError];
 
+/** Pourquoi un code décodé n'a pas pu être lu une fois l'écran de combat ouvert (plan 246). */
+export const ReplayFailure = {
+  /** Le moteur refuse une action ou un abandon du journal. */
+  Rejected: "rejected",
+  /** La carte ou les sprites n'ont pas pu se charger. */
+  LoadFailed: "load-failed",
+} as const;
+export type ReplayFailure = (typeof ReplayFailure)[keyof typeof ReplayFailure];
+
 export type ReplayDecodeResult =
   | { readonly ok: true; readonly data: ReplayData }
   | { readonly ok: false; readonly error: ReplayCodeError };

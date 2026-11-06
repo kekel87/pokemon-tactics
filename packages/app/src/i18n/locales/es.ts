@@ -373,6 +373,10 @@ const es: Translations = {
   "replay.error.unknownFormat": "Este código viene de un formato de replay desconocido.",
   "replay.error.otherVersion":
     "Replay de otra versión del juego: ya no puede reproducirse fielmente.",
+  "replay.error.rejected":
+    "Este replay no puede reproducirse: una de sus acciones es imposible (código modificado u otra versión del juego).",
+  "replay.error.loadFailed":
+    "El replay no se ha podido cargar. Comprueba tu conexión y vuelve a intentarlo.",
   "replay.bar.restart": "Inicio",
   "replay.bar.stepBack": "Acción anterior",
   "replay.bar.play": "Reproducir",
