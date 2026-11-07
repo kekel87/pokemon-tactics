@@ -23,7 +23,9 @@ Outils du graphe : `scripts/memory/README.md` et `query.mjs --help`.
    trouvé en route : demander à l'humain, rien au backlog sans son accord.
 5. Documents, selon la table ci-dessous ; un document décrit le jeu tel qu'il est, son historique va au
    graphe. Critère : `pnpm audit:flow` vert (plafond 150 Ko par document, alerte à 110 Ko).
-6. Métriques de calibrage, en silence, dans `plan-<n>-implementation` : nombre de retours de l'humain en
+6. Métriques de calibrage, en silence, dans `plan-<n>-implementation` : à l'arrêt 1, profondeur suggérée,
+   réponse de l'humain et ce que la recette a trouvé (une recette qui trouve un bug alors que `Sauter` était
+   suggéré : proposer de durcir un critère de `next/arret-1.md`) ; nombre de retours de l'humain en
    recette, correctifs dans les 24-48 h des lots précédents (`git log` depuis leur commit). Deux lots de suite
    avec un correctif : le signaler.
 7. Le jeu change pour le joueur (mécanique, roster, contrôles, release) → wiki, en suivant `wiki.md`.

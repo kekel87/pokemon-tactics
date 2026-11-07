@@ -82,8 +82,9 @@ Dans les deux cas : la doc est en **français**, le code en **anglais**.
    mécaniques jeu). Jamais d'option « commiter le plan ».
 3. **Dev d'un trait** — core puis renderer, sans arrêt de phase, sans point d'étape. Tests
    unitaires du core pendant le dev ; ni gate, ni build, ni e2e.
-4. **Arrêt 1 — recette** — résumé + une seule question : « Tu testes ? ». L'humain teste en
-   interactif, remonte des retours, on itère.
+4. **Arrêt 1, recette** : preuves par comportement, confiance qui en est déduite, puis une seule
+   question : « Tu testes ? » (approfondie, rapide ou sauter). L'humain teste en interactif, remonte
+   des retours, on itère.
 5. **Arrêt 2 — menu de finalisation** — commit WIP et `/relire-code` automatiques, puis une question
    multi-select : tests (`test-writer`), `/consigner`, gate + commit.
 6. **Commit** — conventional commit, sans validation du message.

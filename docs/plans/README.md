@@ -73,3 +73,4 @@ Les seuls sur lesquels on travaille.
 | 245 | [Plan 245 : appliquer la méthode agents de l'humain](./245-methode-agents.md) | done |
 | 246 | [Plan 246 : un replay refusé le dit au joueur](./246-replay-refuse-avec-message.md) | done |
 | 247 | [Plan 247 : Zone Magique neutralise aussi Lumargile et Champ'Duit](./247-zone-magique-objets-de-duree.md) | done |
+| 248 | [Plan 248 : l'arrêt 1 donne confiance et preuves](./248-arret-1-confiance-et-preuves.md) | done |

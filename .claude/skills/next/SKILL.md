@@ -97,9 +97,10 @@ Entre un choix et la recette, Claude ne s'arrête jamais : un arrêt de plus (fi
 4. **Coupe-circuit de dérive**, seule exception au dev d'un trait : si l'exécution s'écarte sérieusement du
    plan (dépendance nouvelle, fichier hors périmètre, mécanique non prévue, hypothèse démentie par le code),
    s'arrêter et remonter. Une gêne, une idée ou une hésitation de style ne déclenchent rien.
-5. **Arrêt 1, la recette.** `git status --porcelain`, résumé court, puis une seule question `AskUserQuestion` :
-   « Tu testes ? » (`oui` / `non`), avec le nombre de scénarios prévus, jamais une durée. Rien d'autre à cet
-   arrêt. `oui` : skill `/recette`, un scénario à la fois, jusqu'à validation. Ensuite, ou sur `non` : `/menu`.
+5. **Arrêt 1, la recette.** Lire `arret-1.md` (voisin de ce fichier) : preuves par comportement, confiance
+   déduite, profondeur suggérée, puis une seule question `AskUserQuestion` « Tu testes ? » à trois réponses
+   (`Approfondie`, `Rapide`, `Sauter`), en nombre de scénarios, jamais une durée. Rien d'autre à cet arrêt.
+   `Approfondie` ou `Rapide` : skill `/recette`, jusqu'à validation. Ensuite, ou sur `Sauter` : `/menu`.
 
 Trouvailles en route : besoin d'une décision de l'humain (design, arbitrage, priorité) → en discuter tout de
 suite ; sinon (bug évident, nettoyage dans le périmètre) → avancer. Aucun reste à faire ajouté de sa propre

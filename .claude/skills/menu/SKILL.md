@@ -8,10 +8,10 @@ Pop le menu de finalisation **maintenant**, sans attendre la fin d'une impl.
 
 **Déclencheurs** : `/menu`, ou le mot **`menu`** seul envoyé en message (même mid-session, hors run).
 
-⚠️ Ce menu est l'**arrêt 2** du workflow. L'arrêt 1 (« Tu testes ? ») est une question séparée, une
-seule option oui/non, posée dès que le code est écrit et que `/simplify` est passé dessus — en
-annonçant le **nombre de scénarios**, jamais une durée. Si la recette humaine n'a pas encore eu lieu
-et que le changement est observable, pose d'abord cette question-là — sauf si l'humain demande
+⚠️ Ce menu est l'**arrêt 2** du workflow. L'arrêt 1 (« Tu testes ? ») est une question séparée, à
+trois réponses (`Approfondie`, `Rapide`, `Sauter`, cette dernière mène ici), posée dès que le code est
+écrit et que `/simplify` est passé dessus, avec preuves et confiance (`next/arret-1.md`). Si la
+recette humaine n'a pas encore eu lieu et que le changement est observable, pose d'abord cette question-là — sauf si l'humain demande
 explicitement le menu.
 
 ## Étapes
