@@ -4,7 +4,7 @@ import type { Grid } from "../grid/Grid";
 import type { BattleState } from "../types/battle-state";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
-import { isEffectivelyFlying } from "./effective-flying";
+import { isAirborneAt } from "./effective-flying";
 import { calculateFallDamage } from "./fall-damage";
 import { isTerrainImmune } from "./terrain-effects";
 
@@ -165,7 +165,7 @@ export function predictKnockbackOutcome(params: {
   state: BattleState;
 }): KnockbackOutcome | null {
   const { attackerPosition, target, distance, grid, targetTypes, state } = params;
-  const targetIsFlying = isEffectivelyFlying(target, targetTypes);
+  const targetIsFlying = isAirborneAt(state, target, targetTypes);
   const direction = getKnockbackDirection(attackerPosition, target.position);
   const { destination } = resolveKnockbackDestination({
     targetPosition: target.position,

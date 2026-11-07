@@ -7,7 +7,7 @@ import type { BattleState } from "../types/battle-state";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
 import { manhattanDistance } from "./aura-system";
-import { isEffectivelyFlying } from "./effective-flying";
+import { isAirborneAt, terrainTypesAt } from "./effective-flying";
 import { getEntryHazardsAt } from "./entry-hazard-system";
 import { isTerrainImmune } from "./terrain-effects";
 
@@ -55,10 +55,14 @@ function isSafeDestination(
   if (tile === null) {
     return false;
   }
-  const isFlying = isEffectivelyFlying(teleportee, teleporteeTypes);
+  const isFlying = isAirborneAt(state, teleportee, teleporteeTypes, position);
   if (
     !isTerrainPassable(tile.terrain) &&
-    !isTerrainImmune(tile.terrain, teleporteeTypes, isFlying)
+    !isTerrainImmune(
+      tile.terrain,
+      terrainTypesAt(state, teleportee, teleporteeTypes, position),
+      isFlying,
+    )
   ) {
     return false;
   }

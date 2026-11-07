@@ -5,8 +5,10 @@ import { Direction } from "../../enums/direction";
 import { PlayerId } from "../../enums/player-id";
 import { PokemonType } from "../../enums/pokemon-type";
 import { StatusType } from "../../enums/status-type";
-import { buildMoveTestEngine, MockPokemon } from "../../testing";
+import { buildMoveTestEngine, MockBattle, MockPokemon } from "../../testing";
 import { isEffectivelyFlying } from "../effective-flying";
+
+const NO_ZONE_STATE = MockBattle.stateFrom([]);
 
 describe("ingrain", () => {
   it("applies Ingrain volatile on self", () => {
@@ -173,7 +175,7 @@ describe("ingrain", () => {
       volatileStatuses: [],
     });
 
-    expect(isEffectivelyFlying(rooted, flyingTypes)).toBe(false);
-    expect(isEffectivelyFlying(airborne, flyingTypes)).toBe(true);
+    expect(isEffectivelyFlying(NO_ZONE_STATE, rooted, flyingTypes)).toBe(false);
+    expect(isEffectivelyFlying(NO_ZONE_STATE, airborne, flyingTypes)).toBe(true);
   });
 });

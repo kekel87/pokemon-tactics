@@ -10,7 +10,6 @@ import { DynamicPowerKind } from "../enums/dynamic-power-kind";
 import { EffectKind } from "../enums/effect-kind";
 import { EffectTarget } from "../enums/effect-target";
 import { EntryHazardKind } from "../enums/entry-hazard-kind";
-import { FieldGlobalKind } from "../enums/field-global-kind";
 import type { ForfeitReason } from "../enums/forfeit-reason";
 import { HeldItemId } from "../enums/held-item-id";
 import { HitAndRunRetreatFallbackReason } from "../enums/hit-and-run-retreat-fallback-reason";
@@ -81,7 +80,13 @@ import {
 import { processEffects } from "./effect-processor";
 import { effectiveAbilityId } from "./effective-ability";
 import { effectiveBaseSpeed } from "./effective-base-speed";
-import { isEffectivelyFlying, resolveBaseTypes } from "./effective-flying";
+import {
+  isAirborneAt,
+  isAirborneIgnoringZones,
+  isEffectivelyFlying,
+  resolveBaseTypes,
+  terrainTypesAt,
+} from "./effective-flying";
 import { effectiveHeldItem } from "./effective-held-item";
 import { effectiveMoveIds } from "./effective-move-ids";
 import {
@@ -177,6 +182,19 @@ interface BfsNode {
   path: Position[];
   movementFactor: number;
 }
+
+/** What a mon is on one tile (plan 249): a Gravité or Zone Magique crossed mid-path changes it. */
+interface MovementProfile {
+  isFlying: boolean;
+  terrainTypes: PokemonType[];
+  immuneTerrains: ReadonlySet<TerrainType>;
+}
+
+const UNKNOWN_MON_PROFILE: MovementProfile = {
+  isFlying: false,
+  terrainTypes: [],
+  immuneTerrains: getImmuneTerrains([], false),
+};
 
 export class BattleEngine {
   private readonly state: BattleState;
@@ -467,7 +485,11 @@ export class BattleEngine {
     );
     const attackerTerrain = this.grid.getTile(originPosition)?.terrain;
     const terrainMod = attackerTerrain
-      ? getTerrainTypeBonusFactor(attackerTerrain, move.type, this.isEffectivelyFlying(attacker))
+      ? getTerrainTypeBonusFactor(
+          attackerTerrain,
+          move.type,
+          this.airborneAt(attacker, originPosition),
+        )
       : 1.0;
     const attackOrigin = getAttackOrigin(
       originPosition === attacker.position ? attacker : { ...attacker, position: originPosition },
@@ -579,7 +601,7 @@ export class BattleEngine {
     return isTerrainImmune(
       TerrainType.TallGrass,
       this.effectiveTypesOf(defender),
-      this.isEffectivelyFlying(defender),
+      this.airborneAt(defender),
     )
       ? 0
       : 1;
@@ -721,15 +743,31 @@ export class BattleEngine {
   }
 
   /**
-   * True if the mon is airborne by its own nature (Flying type / Lévitation / Ballon), ignoring any
-   * Gravité zone. The renderer uses this to know which mons Gravité should visually land.
+   * True if the mon is airborne by its own nature (Flying type / Lévitation / Ballon / Vol Magnétik)
+   * on its tile, ignoring Gravité and Anti-Air. A Zone Magique on its tile does suppress the Ballon.
+   * The AI reads it for Ground immunity and for the value of grounding a foe.
    */
   isAirborneIgnoringGravity(pokemonId: string): boolean {
     const pokemon = this.state.pokemon.get(pokemonId);
     if (!pokemon) {
       return false;
     }
-    return isEffectivelyFlying(pokemon, this.effectiveTypesOf(pokemon));
+    return isEffectivelyFlying(this.state, pokemon, this.effectiveTypesOf(pokemon));
+  }
+
+  /** True if the mon would float with no zone anywhere: the renderer's candidates for a landing. */
+  isAirborneIgnoringZones(pokemonId: string): boolean {
+    const pokemon = this.state.pokemon.get(pokemonId);
+    if (!pokemon) {
+      return false;
+    }
+    return isAirborneIgnoringZones(pokemon, this.effectiveTypesOf(pokemon));
+  }
+
+  /** The mon's full airborne status on its tile (zones and Anti-Air included). */
+  isAirborne(pokemonId: string): boolean {
+    const pokemon = this.state.pokemon.get(pokemonId);
+    return pokemon !== undefined && this.airborneAt(pokemon);
   }
 
   getReachableTilesForPokemon(pokemonId: string): Position[] {
@@ -800,7 +838,7 @@ export class BattleEngine {
     }
     // Airborne mons (Flying / Levitate / Vol Magnétik / Ballon) escape — unless force-grounded by
     // Gravité / Anti-Air, which makes them trappable again.
-    if (isEffectivelyFlying(pokemon, types) && !isEffectivelyGrounded(this.state, pokemon)) {
+    if (isAirborneAt(this.state, pokemon, types)) {
       return false;
     }
     const ownAbility = effectiveAbilityId(pokemon);
@@ -931,14 +969,8 @@ export class BattleEngine {
   computePathDistance(from: Position, to: Position, pokemonId: string): number {
     const pokemon = this.state.pokemon.get(pokemonId);
     const pokemonTypes = pokemon ? this.effectiveTypesOf(pokemon) : [];
-    const isFlying = pokemon
-      ? this.isEffectivelyFlying(pokemon)
-      : pokemonTypes.includes(PokemonType.Flying);
     const isGhost = pokemonTypes.includes(PokemonType.Ghost);
-    const immuneTerrains = getImmuneTerrains(
-      pokemon ? this.terrainTypesOf(pokemon) : pokemonTypes,
-      isFlying,
-    );
+    const profileAt = pokemon ? this.movementProfiles(pokemon) : () => UNKNOWN_MON_PROFILE;
 
     const posKey = (p: Position): string => `${p.x},${p.y}`;
     const visited = new Set<string>();
@@ -961,19 +993,14 @@ export class BattleEngine {
         if (visited.has(key)) {
           continue;
         }
-        const currentTile = this.grid.getTile(current.position);
-        const currentHeight = currentTile?.height ?? 0;
-        const currentTerrain = currentTile?.terrain ?? TerrainType.Normal;
         if (
-          !canTraverse({
-            fromHeight: currentHeight,
-            toHeight: neighbor.height,
-            fromTerrain: currentTerrain,
-            toTerrain: neighbor.terrain,
-            isFlying,
+          !this.canStep(
+            profileAt(current.position),
+            profileAt(neighbor.position),
+            current.position,
+            neighbor,
             isGhost,
-            immuneTerrains,
-          })
+          )
         ) {
           continue;
         }
@@ -1482,58 +1509,93 @@ export class BattleEngine {
     }
   }
 
-  private isEffectivelyFlying(pokemon: PokemonInstance): boolean {
-    // Gravité (zone) / Anti-Air (smack-down): a grounded mon loses its airborne status for terrain,
-    // entry-hazards, knockback and movement traversal (the type-chart Ground immunity is overridden
-    // separately in the damage calc). Both feed the shared `isEffectivelyGrounded` predicate.
-    if (isEffectivelyGrounded(this.state, pokemon)) {
-      return false;
-    }
-    const types = this.effectiveTypesOf(pokemon);
-    return isEffectivelyFlying(pokemon, types);
+  /**
+   * Full airborne status on `position` (default: the mon's tile). Gravité (zone) / Anti-Air
+   * (smack-down) ground the mon, a Zone Magique suppresses its Ballon, for terrain, entry-hazards,
+   * knockback and movement traversal (the type-chart Ground immunity is overridden separately in the
+   * damage calc).
+   */
+  private airborneAt(pokemon: PokemonInstance, position: Position = pokemon.position): boolean {
+    return isAirborneAt(this.state, pokemon, this.effectiveTypesOf(pokemon), position);
   }
 
   /**
-   * Types used for TERRAIN immunity (traversal, stopping, terrain effects). A mon grounded by a
-   * Gravité zone loses its Flying-type terrain immunity too — so it can no longer cross/rest on lava
-   * or overfly obstacles, matching the grounded gameplay. Other type resistances are unchanged.
+   * Per-tile movement profile lookup, cached for one path search (plan 249): every rule of a move
+   * (enter, climb, stop, terrain penalty, Magma, entry hazards) reads the mon's status on the tile
+   * concerned, so a Gravité or Zone Magique crossed mid-path counts.
    */
-  private terrainTypesOf(pokemon: PokemonInstance): PokemonType[] {
+  private movementProfiles(pokemon: PokemonInstance): (position: Position) => MovementProfile {
+    const cache = new Map<string, MovementProfile>();
     const types = this.effectiveTypesOf(pokemon);
-    if (isEffectivelyGrounded(this.state, pokemon)) {
-      return types.filter((type) => type !== PokemonType.Flying);
-    }
-    return types;
+    return (position) => {
+      const key = `${position.x},${position.y}`;
+      const cached = cache.get(key);
+      if (cached) {
+        return cached;
+      }
+      const isFlying = isAirborneAt(this.state, pokemon, types, position);
+      const terrainTypes = terrainTypesAt(this.state, pokemon, types, position);
+      const profile: MovementProfile = {
+        isFlying,
+        terrainTypes,
+        immuneTerrains: getImmuneTerrains(terrainTypes, isFlying),
+      };
+      cache.set(key, profile);
+      return profile;
+    };
   }
 
   /**
-   * Apply entry-hazards + terrain the instant a Gravité zone lands on a mon, so a formerly-airborne
-   * mon (Flying/Levitate/Balloon) caught over lava or a hazard suffers it immediately rather than
-   * escaping on its next turn. Only mons that would be airborne without the zone are re-evaluated;
-   * grounded mons already take their terrain on the normal end-turn tick.
+   * One step of a path. The tile entered is judged by the mon's status there; flying over a height
+   * gap or an obstacle needs the mon airborne on BOTH tiles (no take-off from inside a Gravité).
    */
-  private applyGravityGroundingOnCast(events: BattleEvent[]): void {
-    for (const zone of this.state.fieldGlobalZones) {
-      if (zone.kind !== FieldGlobalKind.Gravity) {
+  private canStep(
+    from: MovementProfile,
+    to: MovementProfile,
+    fromPosition: Position,
+    toTile: { height: number; terrain: TerrainType },
+    isGhost: boolean,
+  ): boolean {
+    const fromTile = this.grid.getTile(fromPosition);
+    return canTraverse({
+      fromHeight: fromTile?.height ?? 0,
+      toHeight: toTile.height,
+      fromTerrain: fromTile?.terrain ?? TerrainType.Normal,
+      toTerrain: toTile.terrain,
+      isFlying: from.isFlying && to.isFlying,
+      isGhost,
+      immuneTerrains: to.immuneTerrains,
+    });
+  }
+
+  private airborneMonIds(): Set<string> {
+    const ids = new Set<string>();
+    for (const [id, mon] of this.state.pokemon) {
+      if (mon.currentHp > 0 && this.airborneAt(mon)) {
+        ids.add(id);
+      }
+    }
+    return ids;
+  }
+
+  /**
+   * Apply entry-hazards + terrain the instant a zone grounds a mon (Gravité grounds every flyer,
+   * Zone Magique a Ballon holder), so a formerly-airborne mon caught over lava or a hazard suffers it
+   * immediately rather than escaping on its next turn. Only mons airborne before the cast and
+   * grounded after it are re-evaluated; grounded mons already take their terrain on the end-turn tick.
+   */
+  private applyZoneGroundingOnCast(
+    airborneBefore: ReadonlySet<string>,
+    events: BattleEvent[],
+  ): void {
+    for (const id of airborneBefore) {
+      const mon = this.state.pokemon.get(id);
+      if (!mon || mon.currentHp <= 0 || this.airborneAt(mon)) {
         continue;
       }
-      for (const tile of zone.tiles) {
-        const occupantId = this.grid.getOccupant(tile);
-        if (!occupantId) {
-          continue;
-        }
-        const mon = this.state.pokemon.get(occupantId);
-        if (!mon || mon.currentHp <= 0) {
-          continue;
-        }
-        // Skip mons that were already grounded — their terrain runs on the normal end-turn tick.
-        if (!isEffectivelyFlying(mon, this.effectiveTypesOf(mon))) {
-          continue;
-        }
-        this.applyGroundingTerrainTick(mon, events);
-        if (this.battleOver) {
-          return;
-        }
+      this.applyGroundingTerrainTick(mon, events);
+      if (this.battleOver) {
+        return;
       }
     }
   }
@@ -1666,7 +1728,6 @@ export class BattleEngine {
           targeting.range.max,
         );
         const casterTypes = this.effectiveTypesOf(pokemon);
-        const casterFlying = this.isEffectivelyFlying(pokemon);
         return allTiles.filter((position) => {
           const tile = this.grid.getTile(position);
           if (!tile) {
@@ -1677,7 +1738,11 @@ export class BattleEngine {
           }
           if (
             !isTerrainPassable(tile.terrain) &&
-            !isTerrainImmune(tile.terrain, casterTypes, casterFlying)
+            !isTerrainImmune(
+              tile.terrain,
+              terrainTypesAt(this.state, pokemon, casterTypes, position),
+              this.airborneAt(pokemon, position),
+            )
           ) {
             return false;
           }
@@ -1944,6 +2009,13 @@ export class BattleEngine {
     // B4 morphs (Nature Power full swap, Expanding Force targeting override, Grassy Glide range)
     // resolved from the caster's current tile. PP is still spent on the original move id.
     const effectiveMove = this.resolveEffectiveMove(pokemon, move);
+    // A zone posted by this move (Gravité, Zone Magique) may ground mons on the spot: remember who
+    // was airborne before it lands.
+    const airborneBeforeZone = effectiveMove.effects.some(
+      (effect) => effect.kind === EffectKind.PostFieldGlobal,
+    )
+      ? this.airborneMonIds()
+      : null;
 
     // Self-cast of an ally-or-self move (wish on oneself): the Single range excludes distance 0,
     // so resolve to the caster's own tile explicitly to match getLegalActions.
@@ -2042,7 +2114,7 @@ export class BattleEngine {
       const defenderTypes = this.effectiveTypesOf(target);
       const tallGrassBonus =
         defenderTile?.terrain === TerrainType.TallGrass &&
-        !isTerrainImmune(TerrainType.TallGrass, defenderTypes, this.isEffectivelyFlying(target))
+        !isTerrainImmune(TerrainType.TallGrass, defenderTypes, this.airborneAt(target))
           ? 1
           : 0;
       const forceHit =
@@ -2276,7 +2348,7 @@ export class BattleEngine {
       ? getTerrainTypeBonusFactor(
           attackerTile.terrain,
           effectiveMove.type,
-          this.isEffectivelyFlying(pokemon),
+          this.airborneAt(pokemon),
         )
       : 1.0;
 
@@ -2366,17 +2438,11 @@ export class BattleEngine {
       }
     }
 
-    // Gravité: the instant the zone is posted, mons caught inside it are grounded NOW — apply their
-    // tile's entry-hazards + terrain immediately (a flyer over lava melts at once instead of escaping
-    // on its next turn). Only mons that were airborne (and are now grounded) are re-evaluated.
-    if (
-      effectiveMove.effects.some(
-        (effect) =>
-          effect.kind === EffectKind.PostFieldGlobal &&
-          effect.fieldGlobalKind === FieldGlobalKind.Gravity,
-      )
-    ) {
-      this.applyGravityGroundingOnCast(events);
+    // Gravité / Zone Magique: the instant the zone is posted, mons it grounds are grounded NOW — apply
+    // their tile's entry-hazards + terrain immediately (a flyer over lava melts at once instead of
+    // escaping on its next turn). Only mons that were airborne (and are now grounded) are re-evaluated.
+    if (airborneBeforeZone !== null) {
+      this.applyZoneGroundingOnCast(airborneBeforeZone, events);
       if (this.battleOver && !this.selfKoPending) {
         return { success: true, events };
       }
@@ -2411,7 +2477,7 @@ export class BattleEngine {
     }
     for (const changedId of abilityChangedIds) {
       const changed = this.state.pokemon.get(changedId);
-      if (changed && changed.currentHp > 0 && !this.isEffectivelyFlying(changed)) {
+      if (changed && changed.currentHp > 0 && !this.airborneAt(changed)) {
         this.applyGroundingTerrainTick(changed, events);
         if (this.battleOver && !this.selfKoPending) {
           return { success: true, events };
@@ -2430,7 +2496,7 @@ export class BattleEngine {
     }
     for (const swappedId of swappedIds) {
       const swapped = this.state.pokemon.get(swappedId);
-      if (swapped && swapped.currentHp > 0 && !this.isEffectivelyFlying(swapped)) {
+      if (swapped && swapped.currentHp > 0 && !this.airborneAt(swapped)) {
         this.applyGroundingTerrainTick(swapped, events);
         if (this.battleOver && !this.selfKoPending) {
           return { success: true, events };
@@ -2796,7 +2862,7 @@ export class BattleEngine {
     let destination: Position | null = null;
     let wallHeightDiff = 0;
     const distance = manhattanDistance(pokemon.position, targetPosition);
-    const isFlying = this.isEffectivelyFlying(pokemon);
+    const isFlying = this.airborneAt(pokemon);
     let previousHeight = this.grid.getTile(pokemon.position)?.height ?? 0;
     const isBarrierTile = this.buildDashBarrierPredicate(pokemon);
     let previousIsBarrier = isBarrierTile(pokemon.position);
@@ -2966,9 +3032,14 @@ export class BattleEngine {
       return;
     }
 
-    const pokemonTypes = this.effectiveTypesOf(pokemon);
-    const isFlying = this.isEffectivelyFlying(pokemon);
-    if (isTerrainImmune(landingTile.terrain, pokemonTypes, isFlying)) {
+    const isFlying = this.airborneAt(pokemon, landingPosition);
+    if (
+      isTerrainImmune(
+        landingTile.terrain,
+        terrainTypesAt(this.state, pokemon, this.effectiveTypesOf(pokemon), landingPosition),
+        isFlying,
+      )
+    ) {
       return;
     }
 
@@ -3007,11 +3078,11 @@ export class BattleEngine {
       return;
     }
     const types = this.effectiveTypesOf(pokemon);
-    const isFlying = this.isEffectivelyFlying(pokemon);
     for (const step of path) {
       if (pokemon.currentHp <= 0) {
         return;
       }
+      const isFlying = this.airborneAt(pokemon, step);
       for (const cell of getEntryHazardsAt(this.state, step)) {
         if (isGroundedOnlyHazard(cell.kind) && isFlying) {
           continue;
@@ -3192,10 +3263,8 @@ export class BattleEngine {
     // visit with a factor at least as good dominates: a tile is re-queued only if its factor improves.
     const bestFactor = new Map<string, number>();
     const posKey = (p: Position): string => `${p.x},${p.y}`;
-    const pokemonTypes = this.effectiveTypesOf(pokemon);
-    const isFlying = this.isEffectivelyFlying(pokemon);
-    const isGhost = pokemonTypes.includes(PokemonType.Ghost);
-    const immuneTerrains = getImmuneTerrains(this.terrainTypesOf(pokemon), isFlying);
+    const isGhost = this.effectiveTypesOf(pokemon).includes(PokemonType.Ghost);
+    const profileAt = this.movementProfiles(pokemon);
 
     const queue: BfsNode[] = [{ position: pokemon.position, path: [], movementFactor: 1 }];
     bestFactor.set(posKey(pokemon.position), 1);
@@ -3208,13 +3277,14 @@ export class BattleEngine {
 
       const currentKey = posKey(current.position);
       const knownStop = stops.get(currentKey);
+      const here = profileAt(current.position);
       if (current.path.length > 0 && knownStop === undefined) {
         const occupant = this.grid.getOccupant(current.position);
         const currentTile = this.grid.getTile(current.position);
         const canStop =
           occupant === null &&
           currentTile !== null &&
-          canStopOn(currentTile.terrain, isFlying, immuneTerrains);
+          canStopOn(currentTile.terrain, here.isFlying, here.immuneTerrains);
         stops.set(
           currentKey,
           canStop
@@ -3233,22 +3303,9 @@ export class BattleEngine {
         knownStop.movementFactor = current.movementFactor;
       }
 
-      const neighbors = this.grid.getNeighbors(current.position);
-      for (const neighbor of neighbors) {
-        const currentTileForNeighbor = this.grid.getTile(current.position);
-        const currentHeight = currentTileForNeighbor?.height ?? 0;
-        const currentTerrain = currentTileForNeighbor?.terrain ?? TerrainType.Normal;
-        if (
-          !canTraverse({
-            fromHeight: currentHeight,
-            toHeight: neighbor.height,
-            fromTerrain: currentTerrain,
-            toTerrain: neighbor.terrain,
-            isFlying,
-            isGhost,
-            immuneTerrains,
-          })
-        ) {
+      for (const neighbor of this.grid.getNeighbors(current.position)) {
+        const there = profileAt(neighbor.position);
+        if (!this.canStep(here, there, current.position, neighbor, isGhost)) {
           continue;
         }
 
@@ -3266,7 +3323,7 @@ export class BattleEngine {
 
         const movementFactor = Math.min(
           current.movementFactor,
-          getMovementFactor(neighbor.terrain, pokemonTypes, isFlying),
+          getMovementFactor(neighbor.terrain, there.terrainTypes, there.isFlying),
         );
         if (
           current.path.length + 1 >
@@ -3311,7 +3368,7 @@ export class BattleEngine {
     };
 
     const events: BattleEvent[] = [];
-    const pokemonTypes = this.effectiveTypesOf(pokemon);
+    const profileAt = this.movementProfiles(pokemon);
 
     this.grid.setOccupant(origin, null);
     const destination = path[path.length - 1] as Position;
@@ -3337,8 +3394,10 @@ export class BattleEngine {
         if (tile?.terrain !== TerrainType.Magma) {
           continue;
         }
-        if (isTerrainImmune(TerrainType.Magma, pokemonTypes, this.isEffectivelyFlying(pokemon))) {
-          break;
+        const there = profileAt(step);
+        // Status judged per tile: a Magma tile flown over does not spare a later one in a zone.
+        if (isTerrainImmune(TerrainType.Magma, there.terrainTypes, there.isFlying)) {
+          continue;
         }
         const item = effectiveHeldItem(this.state, pokemon, this.itemRegistry);
         const terrainResult = item?.onTerrainTick?.({ pokemon, terrain: TerrainType.Magma });
@@ -3414,10 +3473,8 @@ export class BattleEngine {
       return ActionError.EmptyPath;
     }
 
-    const pokemonTypes = this.effectiveTypesOf(pokemon);
-    const isFlying = this.isEffectivelyFlying(pokemon);
-    const isGhost = pokemonTypes.includes(PokemonType.Ghost);
-    const immuneTerrains = getImmuneTerrains(pokemonTypes, isFlying);
+    const isGhost = this.effectiveTypesOf(pokemon).includes(PokemonType.Ghost);
+    const profileAt = this.movementProfiles(pokemon);
 
     let movementFactor = 1;
     let currentPosition = pokemon.position;
@@ -3435,35 +3492,23 @@ export class BattleEngine {
         return ActionError.ImpassableTile;
       }
 
-      if (!canEnterTerrain(tile.terrain, isFlying, isGhost, immuneTerrains)) {
+      const there = profileAt(step);
+      if (!canEnterTerrain(tile.terrain, there.isFlying, isGhost, there.immuneTerrains)) {
         return ActionError.ImpassableTile;
       }
 
-      const currentTile = this.grid.getTile(currentPosition);
-      const fromHeight = currentTile?.height ?? 0;
-      const fromTerrain = currentTile?.terrain ?? TerrainType.Normal;
-      if (
-        !canTraverse({
-          fromHeight,
-          toHeight: tile.height,
-          fromTerrain,
-          toTerrain: tile.terrain,
-          isFlying,
-          isGhost,
-          immuneTerrains,
-        })
-      ) {
+      if (!this.canStep(profileAt(currentPosition), there, currentPosition, tile, isGhost)) {
         return ActionError.JumpTooHigh;
       }
 
       const isLastStep = step === path[path.length - 1];
-      if (isLastStep && !canStopOn(tile.terrain, isFlying, immuneTerrains)) {
+      if (isLastStep && !canStopOn(tile.terrain, there.isFlying, there.immuneTerrains)) {
         return ActionError.ImpassableTile;
       }
 
       movementFactor = Math.min(
         movementFactor,
-        getMovementFactor(tile.terrain, pokemonTypes, isFlying),
+        getMovementFactor(tile.terrain, there.terrainTypes, there.isFlying),
       );
       if (stepIndex + 1 > getMovementBudget(pokemon.derivedStats.movement, movementFactor)) {
         return ActionError.PathTooLong;
@@ -4343,7 +4388,7 @@ export class BattleEngine {
       for (const event of startTurnResult.events) {
         if (event.type === BattleEventType.MagnetRiseEnded) {
           const landed = this.state.pokemon.get(event.pokemonId);
-          if (landed && landed.currentHp > 0 && !this.isEffectivelyFlying(landed)) {
+          if (landed && landed.currentHp > 0 && !this.airborneAt(landed)) {
             this.applyGroundingTerrainTick(landed, events);
             if (this.battleOver) {
               return;

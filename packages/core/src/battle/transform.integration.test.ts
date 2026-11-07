@@ -3,9 +3,11 @@ import { ActionKind } from "../enums/action-kind";
 import { BattleEventType } from "../enums/battle-event-type";
 import { PlayerId } from "../enums/player-id";
 import { PokemonType } from "../enums/pokemon-type";
-import { buildMoveTestEngine, MockPokemon } from "../testing";
+import { buildMoveTestEngine, MockBattle, MockPokemon } from "../testing";
 import { isEffectivelyFlying, resolveBaseTypes } from "./effective-flying";
 import { effectiveMoveIds } from "./effective-move-ids";
+
+const NO_ZONE_STATE = MockBattle.stateFrom([]);
 
 // Morphing / Imposteur (plan 157): the caster becomes a live copy of its target.
 
@@ -69,7 +71,9 @@ describe("Morphing (transform)", () => {
       PokemonType.Flying,
     ]);
     // The copied Flying type levitates the morph over terrain (#659).
-    expect(morphed && isEffectivelyFlying(morphed, morphed.transformState?.types ?? [])).toBe(true);
+    expect(
+      morphed && isEffectivelyFlying(NO_ZONE_STATE, morphed, morphed.transformState?.types ?? []),
+    ).toBe(true);
   });
 
   it("fails against a Substitute without transforming", () => {

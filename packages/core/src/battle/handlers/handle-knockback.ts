@@ -11,7 +11,7 @@ import type { PokemonInstance } from "../../types/pokemon-instance";
 import type { Position } from "../../types/position";
 import { applyImpactDamage } from "../apply-impact-damage";
 import type { EffectContext } from "../effect-handler-registry";
-import { isEffectivelyFlying } from "../effective-flying";
+import { isAirborneAt } from "../effective-flying";
 import { calculateFallDamage } from "../fall-damage";
 import {
   getKnockbackDirection,
@@ -125,7 +125,7 @@ export function handleKnockback(context: EffectContext): BattleEvent[] {
     }
 
     const targetTypes = context.targetTypesMap.get(target.id) ?? [];
-    const isFlying = isEffectivelyFlying(target, targetTypes);
+    const isFlying = isAirborneAt(context.state, target, targetTypes);
     const direction = getKnockbackDirection(context.attacker.position, target.position);
     const { destination, blockedReason } = resolveKnockbackDestination({
       targetPosition: target.position,

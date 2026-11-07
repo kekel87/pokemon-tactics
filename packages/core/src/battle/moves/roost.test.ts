@@ -9,6 +9,8 @@ import { buildMoveTestEngine, MockBattle, MockPokemon } from "../../testing";
 import { isEffectivelyFlying } from "../effective-flying";
 import { createTerrainTickHandler } from "../handlers/terrain-tick-handler";
 
+const NO_ZONE_STATE = MockBattle.stateFrom([]);
+
 describe("roost", () => {
   it("heals 50% of maxHp on self", () => {
     const attacker = MockPokemon.fresh(MockPokemon.base, {
@@ -69,9 +71,13 @@ describe("roost", () => {
     const pokemon = MockPokemon.fresh(MockPokemon.base, {
       volatileStatuses: [{ type: StatusType.Roosted, remainingTurns: 1 }],
     });
-    expect(isEffectivelyFlying(pokemon, [PokemonType.Normal, PokemonType.Flying])).toBe(false);
+    expect(
+      isEffectivelyFlying(NO_ZONE_STATE, pokemon, [PokemonType.Normal, PokemonType.Flying]),
+    ).toBe(false);
     pokemon.volatileStatuses = [];
-    expect(isEffectivelyFlying(pokemon, [PokemonType.Normal, PokemonType.Flying])).toBe(true);
+    expect(
+      isEffectivelyFlying(NO_ZONE_STATE, pokemon, [PokemonType.Normal, PokemonType.Flying]),
+    ).toBe(true);
   });
 
   it("Roosting over lava kills the Pokemon (OHKO terrain DoT)", () => {

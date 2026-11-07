@@ -8,7 +8,7 @@ import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
 import type { TargetingPattern } from "../types/targeting-pattern";
-import { isEffectivelyFlying } from "./effective-flying";
+import { isAirborneAt } from "./effective-flying";
 import { activeHeldItemId } from "./field-global-system";
 import { enumerateZoneTiles } from "./zone-tiles";
 
@@ -91,7 +91,7 @@ export function isOnFieldTerrain(
   types: readonly PokemonType[],
   kind: FieldTerrain,
 ): boolean {
-  if (isEffectivelyFlying(pokemon, types)) {
+  if (isAirborneAt(state, pokemon, types)) {
     return false;
   }
   return getFieldTerrainAt(state, pokemon.position) === kind;
@@ -124,7 +124,7 @@ export function getFieldTerrainBpMultiplier(
     return 1.0;
   }
   const terrain = getFieldTerrainAt(state, attacker.position);
-  if (terrain === null || isEffectivelyFlying(attacker, attackerTypes)) {
+  if (terrain === null || isAirborneAt(state, attacker, attackerTypes)) {
     return 1.0;
   }
   return TERRAIN_BOOST_TYPE[terrain] === move.type ? FIELD_TERRAIN_BOOST : 1.0;
@@ -176,7 +176,7 @@ export function resolveFieldTerrainPulseMove(
   if (move.fieldTerrainBoostedType !== true) {
     return move;
   }
-  if (isEffectivelyFlying(attacker, attackerTypes)) {
+  if (isAirborneAt(state, attacker, attackerTypes)) {
     return move;
   }
   const terrain = getFieldTerrainAt(state, attacker.position);
@@ -244,7 +244,7 @@ export function isEnemyPsychicBarrierAt(
   dasherTypes: readonly PokemonType[],
   position: Position,
 ): boolean {
-  if (isEffectivelyFlying(dasher, dasherTypes)) {
+  if (isAirborneAt(state, dasher, dasherTypes)) {
     return false;
   }
   for (let i = state.fieldTerrains.length - 1; i >= 0; i--) {

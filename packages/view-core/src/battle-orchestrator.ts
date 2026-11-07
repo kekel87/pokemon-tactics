@@ -2440,12 +2440,12 @@ export class BattleOrchestrator {
       this.feedback.report(event);
       if (
         (event.type === BattleEventType.FieldGlobalPosted &&
-          event.kind === FieldGlobalKind.Gravity) ||
+          (event.kind === FieldGlobalKind.Gravity || event.kind === FieldGlobalKind.MagicRoom)) ||
         event.type === BattleEventType.SmackedDown
       ) {
-        // Land the flyer(s) just grounded (Gravité zone / Anti-Air) BEFORE the immediate terrain/hazard
-        // damage floats, so a mon visibly touches down first instead of dying mid-air.
-        this.refreshGravityGrounding();
+        // Land the mon(s) just grounded (Gravité / Zone Magique / Anti-Air) BEFORE the immediate
+        // terrain/hazard damage floats, so a mon visibly touches down first instead of dying mid-air.
+        this.refreshGroundingPose();
         await combatBeat(BATTLE_STEP_DELAY_MS);
       }
       if (event.type === BattleEventType.DamageDealt && "targetId" in event) {
@@ -3085,7 +3085,7 @@ export class BattleOrchestrator {
     this.refreshAuraRings();
     this.refreshFieldTerrainVisuals();
     this.refreshDistortionVisuals();
-    this.refreshGravityGrounding();
+    this.refreshGroundingPose();
     this.refreshEntryHazardVisuals();
   }
 
@@ -3187,17 +3187,16 @@ export class BattleOrchestrator {
   }
 
   /**
-   * Gravité: land every airborne mon (Vol / Lévitation / Ballon) that stands in a Gravity zone, and
-   * let those outside float again. Keeps the sprite pose in sync with the core grounding as zones are
-   * posted, expire, or mons move in and out.
+   * Land every mon that would float (Vol / Lévitation / Ballon) but is grounded on its tile — Gravité,
+   * Anti-Air, or a Zone Magique suppressing its Ballon — and let the others float again. Keeps the
+   * sprite pose in sync with the core grounding as zones are posted, expire, or mons move in and out.
    */
-  private refreshGravityGrounding(): void {
-    for (const [id, pokemon] of this.state.pokemon) {
-      if (!this.engine.isAirborneIgnoringGravity(id)) {
+  private refreshGroundingPose(): void {
+    for (const id of this.state.pokemon.keys()) {
+      if (!this.engine.isAirborneIgnoringZones(id)) {
         continue;
       }
-      const grounded = isEffectivelyGrounded(this.state, pokemon);
-      this.board.setGroundedByGravity(id, grounded);
+      this.board.setGroundedByGravity(id, !this.engine.isAirborne(id));
     }
   }
 

@@ -5,6 +5,7 @@ import { BattleEventType } from "../../enums/battle-event-type";
 import { FieldGlobalKind } from "../../enums/field-global-kind";
 import { PlayerId } from "../../enums/player-id";
 import { PokemonType } from "../../enums/pokemon-type";
+import { StatusType } from "../../enums/status-type";
 import { TerrainType } from "../../enums/terrain-type";
 import { buildMoveTestEngine, damageTo, MockPokemon } from "../../testing";
 import { postFieldGlobalZone } from "../field-global-system";
@@ -163,5 +164,77 @@ describe("gravity — grounds a Flying defender", () => {
       targetPosition: { x: 6, y: 5 },
     });
     expect(damageTo(airborneHit.events, "foe")).toBe(0);
+  });
+});
+
+describe("gravity — movement judged per tile (plan 249)", () => {
+  it("does not offer a lava tile inside the zone to a flyer coming from outside", () => {
+    const flyer = MockPokemon.fresh(MockPokemon.base, {
+      id: "flyer",
+      playerId: PlayerId.Player1,
+      position: { x: 10, y: 5 },
+      typeOverride: [PokemonType.Flying],
+    });
+    const owner = MockPokemon.fresh(MockPokemon.base, {
+      id: "owner",
+      playerId: PlayerId.Player2,
+      position: { x: 5, y: 5 },
+    });
+    const { engine, state } = buildMoveTestEngine([flyer, owner], { gridSize: 12 });
+    postFieldGlobalZone(state, owner, FieldGlobalKind.Gravity);
+    const insideLava = { x: 8, y: 5 };
+    const outsideLava = { x: 10, y: 7 };
+    for (const position of [insideLava, outsideLava]) {
+      const tile = state.grid[position.y]?.[position.x];
+      if (!tile) {
+        throw new Error("missing tile");
+      }
+      tile.terrain = TerrainType.Lava;
+    }
+
+    const reachable = engine.getReachableTilesForPokemon("flyer");
+
+    expect(reachable).not.toContainEqual(insideLava);
+    expect(reachable).toContainEqual(outsideLava);
+  });
+
+  it("burns a flyer on a Magma tile inside the zone even after flying over one outside", () => {
+    const flyer = MockPokemon.fresh(MockPokemon.base, {
+      id: "flyer",
+      playerId: PlayerId.Player1,
+      position: { x: 10, y: 5 },
+      typeOverride: [PokemonType.Flying],
+    });
+    const owner = MockPokemon.fresh(MockPokemon.base, {
+      id: "owner",
+      playerId: PlayerId.Player2,
+      position: { x: 5, y: 5 },
+    });
+    const { engine, state } = buildMoveTestEngine([flyer, owner], { gridSize: 12 });
+    postFieldGlobalZone(state, owner, FieldGlobalKind.Gravity);
+    for (const position of [
+      { x: 9, y: 5 },
+      { x: 8, y: 5 },
+    ]) {
+      const tile = state.grid[position.y]?.[position.x];
+      if (!tile) {
+        throw new Error("missing tile");
+      }
+      tile.terrain = TerrainType.Magma;
+    }
+
+    const result = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.Move,
+      pokemonId: "flyer",
+      path: [
+        { x: 9, y: 5 },
+        { x: 8, y: 5 },
+      ],
+    });
+
+    expect(result.success).toBe(true);
+    expect(
+      state.pokemon.get("flyer")?.statusEffects.some((s) => s.type === StatusType.Burned),
+    ).toBe(true);
   });
 });

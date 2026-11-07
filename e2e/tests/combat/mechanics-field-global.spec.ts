@@ -130,7 +130,7 @@ test("§5.29 Zone Magique : neutralise le Ballon → Séisme touche le porteur (
 }) => {
   const scene = await bootSandbox(MAGIC_ROOM_SUPPRESSES_BALLOON);
 
-  await scene.castFirstMove(2, 3); // Zone Magique (Self) posée sur la propre case du Mackogneur.
+  await scene.castFirstMove(2, 4); // Zone Magique (Self) posée sur la propre case du Mackogneur.
   await expect(log(page, /déploie Zone Magique/)).toBeAttached({ timeout: 10_000 });
 
   // Le cast ne clôt pas le tour : on l'achève (« Attendre »), l'IA (Ronflex inerte à Groz'Yeux) rejoue,
@@ -143,8 +143,8 @@ test("§5.29 Zone Magique : neutralise le Ballon → Séisme touche le porteur (
   // est DANS la Zone Magique : son Ballon est neutralisé, l'immunité Sol tombe → il encaisse les dégâts.
   await attackButton.click();
   await page.getByTestId("move-item").filter({ hasText: "Séisme" }).click();
-  await scene.clickTile(2, 3);
-  await scene.clickTile(2, 3);
+  await scene.clickTile(2, 4);
+  await scene.clickTile(2, 4);
   await expect(log(page, /Ronflex perd \d+ PV/)).toBeAttached({ timeout: 10_000 });
 });
 

@@ -7,7 +7,7 @@ import {
   activeHeldItemId,
   decrementFieldGlobalTimer,
   FIELD_GLOBAL_DEFAULT_DURATION,
-  isGroundedByGravityZone,
+  isEffectivelyGrounded,
   isHeldItemSuppressed,
   isInFieldGlobalZone,
   postFieldGlobalZone,
@@ -113,7 +113,7 @@ describe("activeHeldItemId", () => {
   });
 });
 
-describe("isGroundedByGravityZone", () => {
+describe("isEffectivelyGrounded", () => {
   it("grounds a mon standing in a Gravité zone only", () => {
     const { state } = freshState();
     const caster = state.pokemon.get("caster");
@@ -123,10 +123,33 @@ describe("isGroundedByGravityZone", () => {
     }
     foe.position = { x: 6, y: 5 };
     postFieldGlobalZone(state, caster, FieldGlobalKind.Gravity);
-    expect(isGroundedByGravityZone(state, foe)).toBe(true);
+    expect(isEffectivelyGrounded(state, foe)).toBe(true);
     postFieldGlobalZone(state, caster, FieldGlobalKind.WonderRoom);
     foe.position = { x: 9, y: 9 };
-    expect(isGroundedByGravityZone(state, foe)).toBe(false);
+    expect(isEffectivelyGrounded(state, foe)).toBe(false);
+  });
+
+  it("judges the tile it is given, not the tile the mon stands on", () => {
+    const { state } = freshState();
+    const caster = state.pokemon.get("caster");
+    const foe = state.pokemon.get("foe");
+    if (!caster || !foe) {
+      throw new Error("missing mons");
+    }
+    foe.position = { x: 9, y: 9 };
+    postFieldGlobalZone(state, caster, FieldGlobalKind.Gravity);
+    expect(isEffectivelyGrounded(state, foe, caster.position)).toBe(true);
+    expect(isEffectivelyGrounded(state, foe)).toBe(false);
+  });
+
+  it("grounds a smacked-down mon anywhere", () => {
+    const { state } = freshState();
+    const foe = state.pokemon.get("foe");
+    if (!foe) {
+      throw new Error("missing mon");
+    }
+    foe.smackedDown = true;
+    expect(isEffectivelyGrounded(state, foe)).toBe(true);
   });
 });
 

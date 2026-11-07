@@ -89,9 +89,13 @@ export function decrementFieldGlobalTimer(
   return expired;
 }
 
-/** True if the held item of `pokemon` is suppressed (the holder stands in a Zone Magique). */
-export function isHeldItemSuppressed(state: BattleState, pokemon: PokemonInstance): boolean {
-  return isInFieldGlobalZone(state, pokemon.position, FieldGlobalKind.MagicRoom);
+/** True if the held item of `pokemon` is suppressed on `position` (a Zone Magique covers it). */
+export function isHeldItemSuppressed(
+  state: BattleState,
+  pokemon: PokemonInstance,
+  position: Position = pokemon.position,
+): boolean {
+  return isInFieldGlobalZone(state, position, FieldGlobalKind.MagicRoom);
 }
 
 /** The held item of `pokemon`, or `undefined` while a Zone Magique suppresses it. */
@@ -102,18 +106,19 @@ export function activeHeldItemId(
   return isHeldItemSuppressed(state, pokemon) ? undefined : pokemon.heldItemId;
 }
 
-/** True if `pokemon` is grounded by a Gravité zone it currently stands in (loses airborne status). */
-export function isGroundedByGravityZone(state: BattleState, pokemon: PokemonInstance): boolean {
-  return isInFieldGlobalZone(state, pokemon.position, FieldGlobalKind.Gravity);
-}
-
 /**
- * True if `pokemon` is grounded by any effect that strips its airborne status: standing in a Gravité
- * zone, or having been hit by Anti-Air (smack-down). A grounded Flying-type loses its Ground-move
- * immunity and becomes vulnerable to grounded-only entry hazards.
+ * True if `pokemon`, standing on `position`, is grounded by any effect that strips its airborne
+ * status: a Gravité zone covering that tile, or having been hit by Anti-Air (smack-down). A grounded
+ * Flying-type loses its Ground-move immunity and becomes vulnerable to grounded-only entry hazards.
  */
-export function isEffectivelyGrounded(state: BattleState, pokemon: PokemonInstance): boolean {
-  return isGroundedByGravityZone(state, pokemon) || pokemon.smackedDown === true;
+export function isEffectivelyGrounded(
+  state: BattleState,
+  pokemon: PokemonInstance,
+  position: Position = pokemon.position,
+): boolean {
+  return (
+    isInFieldGlobalZone(state, position, FieldGlobalKind.Gravity) || pokemon.smackedDown === true
+  );
 }
 
 /**

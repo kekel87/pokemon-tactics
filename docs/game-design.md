@@ -812,7 +812,9 @@ Chaque Pokemon possède **1 talent** via hooks enregistrés dans `AbilityHandler
 
 ### Lévitation = vol mécanique
 
-**Lévitation** confère mêmes bénéfices mécaniques que type Vol : traversée obstacles, pas de pénalité terrain (passage lava/deep_water), immunité dégâts de chute, immunité Sol via `onTypeImmunity`. **Ne peut pas atterrir sur lava ou deep_water.** Via `isEffectivelyFlying(instance, types)` exporté depuis `@pokemon-tactic/core`.
+**Lévitation** confère mêmes bénéfices mécaniques que type Vol : traversée obstacles, pas de pénalité terrain (passage lava/deep_water), immunité dégâts de chute, immunité Sol via `onTypeImmunity`. **Ne peut pas atterrir sur lava ou deep_water.** Via `isEffectivelyFlying(state, instance, types)` exporté depuis `@pokemon-tactic/core`.
+
+**Statut « en l'air » jugé case par case (plan 249).** Un déplacement juge chaque case du trajet au statut qu'a le Pokémon sur cette case (`isAirborneAt`) : entrer, s'y arrêter, pénalité de terrain, Magma et pièges d'entrée. Une Gravité pose au sol tout Pokémon volant ou en lévitation qui s'y trouve ; une Zone Magique neutralise le Ballon, donc pose au sol son porteur (Lévitation, type Vol et Vol Magnétik ne sont pas des objets et restent en l'air). Survoler un dénivelé ou un obstacle exige d'être en l'air sur les deux cases. Poser l'une de ces zones sur un Pokémon qu'elle cloue au-dessus de la lave ou d'un piège applique l'effet tout de suite.
 
 ### Les 20 talents du roster POC
 

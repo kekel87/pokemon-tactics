@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { postFieldGlobalZone } from "../battle/field-global-system";
+import { FieldGlobalKind } from "../enums/field-global-kind";
+import { HeldItemId } from "../enums/held-item-id";
 import { PlayerId } from "../enums/player-id";
-import { buildMoveRegistry, MockPokemon } from "../testing";
+import { PokemonType } from "../enums/pokemon-type";
+import { buildItemTestEngine, buildMoveRegistry, MockMove, MockPokemon } from "../testing";
 import { MockBattle } from "../testing/mock-battle";
 import { HARD_PROFILE, MEDIUM_PROFILE } from "./ai-profiles";
 import {
@@ -10,6 +14,7 @@ import {
   anyEnemyPhysicalStriker,
   enemyHasStatDecreaseMoveInRange,
   enemyHasStatusMoveInRange,
+  isImmuneToMoveType,
   lastMoveIsLowValue,
   lastMoveIsThreat,
   occupantAt,
@@ -368,5 +373,46 @@ describe("threat-detection — occupantAt", () => {
     const state = MockBattle.stateFrom([living, koAlly], 6, 6);
     expect(occupantAt(state, { x: 3, y: 3 })?.id).toBe("ko");
     expect(occupantAt(state, { x: 5, y: 5 })).toBeUndefined();
+  });
+});
+
+describe("threat-detection — isImmuneToMoveType et Ballon sous Zone Magique (plan 249)", () => {
+  const earthquake = MockMove.fresh(MockMove.physical, {
+    id: "earthquake",
+    type: PokemonType.Ground,
+  });
+
+  function buildBalloonScenario(holderPosition: { x: number; y: number }, withZone: boolean) {
+    const holder = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder",
+      playerId: PlayerId.Player1,
+      position: holderPosition,
+      heldItemId: HeldItemId.AirBalloon,
+    });
+    const owner = MockPokemon.fresh(MockPokemon.base, {
+      id: "owner",
+      playerId: PlayerId.Player2,
+      position: { x: 5, y: 5 },
+    });
+    const { engine, state } = buildItemTestEngine([holder, owner], 12, "holder");
+    if (withZone) {
+      postFieldGlobalZone(state, owner, FieldGlobalKind.MagicRoom);
+    }
+    return { engine, holder };
+  }
+
+  it("treats a Ballon holder outside any zone as immune to a Ground move", () => {
+    const { engine, holder } = buildBalloonScenario({ x: 10, y: 5 }, true);
+    expect(isImmuneToMoveType(holder, earthquake, engine)).toBe(true);
+  });
+
+  it("does not treat a Ballon holder inside a Zone Magique as immune", () => {
+    const { engine, holder } = buildBalloonScenario({ x: 6, y: 5 }, true);
+    expect(isImmuneToMoveType(holder, earthquake, engine)).toBe(false);
+  });
+
+  it("keeps the immunity when no zone exists at all", () => {
+    const { engine, holder } = buildBalloonScenario({ x: 6, y: 5 }, false);
+    expect(isImmuneToMoveType(holder, earthquake, engine)).toBe(true);
   });
 });

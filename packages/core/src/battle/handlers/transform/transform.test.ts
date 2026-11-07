@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { PokemonGender } from "../../../enums/pokemon-gender";
 import { PokemonType } from "../../../enums/pokemon-type";
 import { StatName } from "../../../enums/stat-name";
+import { MockBattle } from "../../../testing/mock-battle";
 import { MockPokemon } from "../../../testing/mock-pokemon";
 import { effectiveAbilityId } from "../../effective-ability";
 import { effectiveBaseSpeed } from "../../effective-base-speed";
@@ -11,6 +12,8 @@ import { effectiveGender } from "../../effective-gender";
 import { effectiveMoveIds } from "../../effective-move-ids";
 import { effectiveWeight } from "../../effective-weight";
 import { applyTransform } from "./apply-transform";
+
+const NO_ZONE_STATE = MockBattle.stateFrom([]);
 
 const GYARADOS_TYPES = [PokemonType.Water, PokemonType.Flying];
 
@@ -101,7 +104,7 @@ describe("applyTransform — Morphing copy (plan 157)", () => {
 
     const types = resolveBaseTypes(morphed, new Map());
     expect(types).toContain(PokemonType.Flying);
-    expect(isEffectivelyFlying(morphed, types)).toBe(true);
+    expect(isEffectivelyFlying(NO_ZONE_STATE, morphed, types)).toBe(true);
   });
 
   it("handles a copied mon with no ability without falling back to the species ability", () => {

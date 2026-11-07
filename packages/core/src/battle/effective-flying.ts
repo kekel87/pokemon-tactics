@@ -1,8 +1,11 @@
 import { HeldItemId } from "../enums/held-item-id";
 import { PokemonType } from "../enums/pokemon-type";
 import { StatusType } from "../enums/status-type";
+import type { BattleState } from "../types/battle-state";
 import type { PokemonInstance } from "../types/pokemon-instance";
+import type { Position } from "../types/position";
 import { effectiveAbilityId } from "./effective-ability";
+import { isEffectivelyGrounded, isHeldItemSuppressed } from "./field-global-system";
 
 export function isRoosted(pokemon: PokemonInstance): boolean {
   return pokemon.volatileStatuses.some((v) => v.type === StatusType.Roosted);
@@ -42,9 +45,10 @@ export function getEffectiveTypes(
   return [...types];
 }
 
-export function isEffectivelyFlying(
+function isNaturallyAirborne(
   pokemon: PokemonInstance,
   types: readonly PokemonType[],
+  holdsActiveBalloon: boolean,
 ): boolean {
   // Roost strips the Flying type entirely for the turn; Ingrain only grounds (keeps the type
   // defensively but removes Ground immunity / Levitate / Magnet Rise / Ballon while rooted).
@@ -56,9 +60,65 @@ export function isEffectivelyFlying(
   return (
     types.includes(PokemonType.Flying) ||
     effectiveAbilityId(pokemon) === "levitate" ||
-    pokemon.heldItemId === HeldItemId.AirBalloon ||
-    // Vol Magnétik (magnet-rise, plan 154): temporary levitation. A Gravité zone / Anti-Air still
-    // grounds the mon — those dominate through the engine's `isEffectivelyGrounded` precheck.
+    holdsActiveBalloon ||
+    // Vol Magnétik (magnet-rise, plan 154): temporary levitation.
     (pokemon.magnetRiseTurns ?? 0) > 0
   );
+}
+
+/**
+ * Airborne by nature at `position` (Vol, Lévitation, Ballon, Vol Magnétik). A Zone Magique covering
+ * `position` suppresses the Ballon (plan 249). Gravité / Anti-Air are NOT applied here: see
+ * `isAirborneAt`.
+ */
+export function isEffectivelyFlying(
+  state: BattleState,
+  pokemon: PokemonInstance,
+  types: readonly PokemonType[],
+  position: Position = pokemon.position,
+): boolean {
+  const holdsActiveBalloon =
+    pokemon.heldItemId === HeldItemId.AirBalloon && !isHeldItemSuppressed(state, pokemon, position);
+  return isNaturallyAirborne(pokemon, types, holdsActiveBalloon);
+}
+
+/** Airborne with no zone anywhere: whether the mon's sprite can ever hover. */
+export function isAirborneIgnoringZones(
+  pokemon: PokemonInstance,
+  types: readonly PokemonType[],
+): boolean {
+  return isNaturallyAirborne(pokemon, types, pokemon.heldItemId === HeldItemId.AirBalloon);
+}
+
+/**
+ * The full airborne status of `pokemon` were it standing on `position`: airborne by nature there, and
+ * not grounded by a Gravité zone covering `position` or by Anti-Air. Every per-tile movement rule
+ * (enter, stop, terrain, entry hazards, landing) reads this, so a zone crossed mid-path counts.
+ */
+export function isAirborneAt(
+  state: BattleState,
+  pokemon: PokemonInstance,
+  types: readonly PokemonType[],
+  position: Position = pokemon.position,
+): boolean {
+  return (
+    !isEffectivelyGrounded(state, pokemon, position) &&
+    isEffectivelyFlying(state, pokemon, types, position)
+  );
+}
+
+/**
+ * Types used for TERRAIN immunity on `position`. A mon grounded there (Gravité, Anti-Air) loses its
+ * Flying-type terrain immunity too, so it can no longer cross or rest on lava, nor overfly obstacles.
+ * Other type resistances (Fire vs Magma, Water vs Water…) are physical and stay.
+ */
+export function terrainTypesAt(
+  state: BattleState,
+  pokemon: PokemonInstance,
+  types: PokemonType[],
+  position: Position = pokemon.position,
+): PokemonType[] {
+  return isEffectivelyGrounded(state, pokemon, position)
+    ? types.filter((type) => type !== PokemonType.Flying)
+    : types;
 }

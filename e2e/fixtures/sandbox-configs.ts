@@ -766,9 +766,9 @@ export const GRAVITY_BLOCKS_AERIAL = {
 // un move statut), soit non-binaires au journal (magnitude de soin/coups → dépend du seed). Cf. §5.29.
 
 /** Zone Magique neutralise le Ballon — le joueur Mackogneur (machamp) a deux moves : Zone Magique
- *  (`magic-room`, Self → posée sur sa propre case (2,3), diamant r3) puis Séisme (`earthquake`, Sol,
+ *  (`magic-room`, Self → posée sur sa propre case (2,4), diamant r3) puis Séisme (`earthquake`, Sol,
  *  Zone r2 auto-centrée, caster exclu). Le dummy Ronflex (snorlax, Normal, espèce ≠ lanceur → nom
- *  filtrable au journal) est adjacent en (2,2), DANS le diamant de la Zone Magique, porteur du Ballon
+ *  filtrable au journal) est adjacent en (2,5), DANS le diamant de la Zone Magique, porteur du Ballon
  *  (`dummyHeldItem: "air-balloon"`) et endurant (`dummyHp: 999` → survit au Séisme, on observe les
  *  dégâts et non un K.O.). Le dummy est en `ai` + Groz'Yeux (`dummyMove: "leer"`, sans dégât) pour
  *  rester en place et ne pas polluer le journal. Tour 1 : pose de la Zone Magique (le cast ne clôt pas
@@ -780,11 +780,12 @@ export const MAGIC_ROOM_SUPPRESSES_BALLOON = {
   ...DUEL,
   pokemon: "machamp",
   moves: ["magic-room", "earthquake"],
-  playerPosition: { x: 2, y: 3 },
+  // Cases normales : sous Zone Magique le porteur touche le sol, un marais l'empoisonnerait (plan 249).
+  playerPosition: { x: 2, y: 4 },
   dummyPokemon: "snorlax",
   dummyControl: "ai",
   dummyMove: "leer",
-  dummyPosition: { x: 2, y: 2 },
+  dummyPosition: { x: 2, y: 5 },
   dummyHeldItem: "air-balloon",
   dummyHp: 999,
 } as const;
@@ -2773,4 +2774,23 @@ export const WIDE_GUARD_WALL_BLOCKS_COVER = {
       ],
     },
   ],
+} as const;
+
+// --- §5.29 Ballon sous Zone Magique (plan 249, sur `sandbox-flat`) ---
+
+/** Un porteur de Ballon (Florizarre) en (2,5), une Zone Magique d'une case posée en (0,5), la lave :
+ *  sous la zone le Ballon ne compte plus, la lave n'est pas proposée au déplacement. L'eau profonde
+ *  (5,5), hors zone, reste atteignable (le Ballon lévite). Schéma v2 `teams` : seul lui propage
+ *  `debugTiles`. */
+export const BALLOON_UNDER_MAGIC_ROOM = {
+  seed: 1,
+  mapUrl: "assets/maps/dev/sandbox-flat.tmj",
+  teams: [
+    {
+      control: "player",
+      members: [{ pokemon: "venusaur", position: { x: 2, y: 5 }, heldItem: "air-balloon" }],
+    },
+    { control: "passive", members: [{ pokemon: "snorlax", position: { x: 0, y: 0 } }] },
+  ],
+  debugTiles: { globalZones: [{ kind: "magic-room", x: 0, y: 5 }] },
 } as const;

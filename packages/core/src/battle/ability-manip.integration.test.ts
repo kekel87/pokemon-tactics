@@ -5,8 +5,10 @@ import { PlayerId } from "../enums/player-id";
 import { StatName } from "../enums/stat-name";
 import { StatusType } from "../enums/status-type";
 import { TerrainType } from "../enums/terrain-type";
-import { buildItemTestEngine, MockPokemon } from "../testing";
+import { buildItemTestEngine, MockBattle, MockPokemon } from "../testing";
 import { isEffectivelyFlying } from "./effective-flying";
+
+const NO_ZONE_STATE = MockBattle.stateFrom([]);
 
 // Famille Misc Batch C (plan 153) : manipulation runtime du talent via abilityIdOverride / abilitySuppressed.
 
@@ -131,7 +133,7 @@ describe("Ability manip — Suc Digestif (gastro-acid)", () => {
     const { engine } = buildItemTestEngine([caster, target]);
 
     const targetTypes = engine.getPokemonTypes(target.id);
-    expect(isEffectivelyFlying(target, targetTypes)).toBe(true);
+    expect(isEffectivelyFlying(NO_ZONE_STATE, target, targetTypes)).toBe(true);
 
     engine.submitAction(PlayerId.Player1, {
       kind: ActionKind.UseMove,
@@ -140,7 +142,7 @@ describe("Ability manip — Suc Digestif (gastro-acid)", () => {
       targetPosition: { x: 1, y: 0 },
     });
 
-    expect(isEffectivelyFlying(target, targetTypes)).toBe(false);
+    expect(isEffectivelyFlying(NO_ZONE_STATE, target, targetTypes)).toBe(false);
   });
 
   it("de-levitating a mon floating over lava drowns it immediately (interaction complète)", () => {

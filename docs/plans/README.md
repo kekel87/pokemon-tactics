@@ -74,3 +74,4 @@ Les seuls sur lesquels on travaille.
 | 246 | [Plan 246 : un replay refusé le dit au joueur](./246-replay-refuse-avec-message.md) | done |
 | 247 | [Plan 247 : Zone Magique neutralise aussi Lumargile et Champ'Duit](./247-zone-magique-objets-de-duree.md) | done |
 | 248 | [Plan 248 : l'arrêt 1 donne confiance et preuves](./248-arret-1-confiance-et-preuves.md) | done |
+| 249 | [Plan 249 : Ballon sous Zone Magique, « en l'air » jugé case par case](./249-ballon-sous-zone-magique.md) | done |

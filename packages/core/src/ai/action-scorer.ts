@@ -6,7 +6,7 @@ import { getEffectivePowerFloor } from "../battle/dynamic-power-system";
 import { effectiveAbilityId } from "../battle/effective-ability";
 import { effectiveBaseSpeed } from "../battle/effective-base-speed";
 import { effectiveCombatStats } from "../battle/effective-combat-stats";
-import { isEffectivelyFlying } from "../battle/effective-flying";
+import { isAirborneAt, terrainTypesAt } from "../battle/effective-flying";
 import { effectiveGender } from "../battle/effective-gender";
 import { effectiveMoveIds } from "../battle/effective-move-ids";
 import { HAZARD_REMOVAL_RADIUS, maxLayersFor } from "../battle/entry-hazard-system";
@@ -2870,12 +2870,17 @@ function scoreMove(
   let score = improvement > 0 ? improvement * weights.positioning : 0;
 
   const pokemonTypes = engine.getPokemonTypes(currentPokemon.id);
-  const isFlying = isEffectivelyFlying(currentPokemon, pokemonTypes);
+  const state = engine.getGameState(currentPokemon.playerId);
+  const isFlying = isAirborneAt(state, currentPokemon, pokemonTypes, destination);
   const destinationTile = action.path.length > 0 ? engine.getTileAt(destination) : null;
   if (
     destinationTile &&
     DANGEROUS_TERRAINS.has(destinationTile.terrain) &&
-    !isTerrainImmune(destinationTile.terrain, pokemonTypes, isFlying)
+    !isTerrainImmune(
+      destinationTile.terrain,
+      terrainTypesAt(state, currentPokemon, pokemonTypes, destination),
+      isFlying,
+    )
   ) {
     score -= DANGEROUS_TERRAIN_PENALTY;
   }

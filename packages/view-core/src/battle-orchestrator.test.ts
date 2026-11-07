@@ -7,6 +7,7 @@ import {
   BattleEventType,
   type BattleState,
   Direction,
+  FieldGlobalKind,
   Grid,
   type MoveDefinition,
   Nature,
@@ -159,6 +160,7 @@ function setup(
     turnClock?: BattleOrchestratorConfig["turnClock"];
     submittedEvents?: readonly BattleEvent[];
     board?: Partial<BoardView>;
+    engineOverrides?: Record<string, unknown>;
     onPresentationCue?: BattleOrchestratorConfig["onPresentationCue"];
     presentationSettled?: BattleOrchestratorConfig["presentationSettled"];
   },
@@ -207,10 +209,12 @@ function setup(
     getReachableTilesForPokemon: () => REACHABLE_TILES,
     estimateDamage: () => null,
     getPokemonTypes: () => [],
-    isAirborneIgnoringGravity: () => false,
+    isAirborneIgnoringZones: () => false,
+    isAirborne: () => false,
     predictCtTimeline: () => [],
     previewMoveCtCost: () => ({ base: 600, pressureBonus: 0, total: 600 }),
     previewCasterMoveContext: () => null,
+    ...options?.engineOverrides,
   } as unknown as BattleEngine;
 
   const board: BoardView = {
@@ -1529,6 +1533,7 @@ function stageEvents(
   options: {
     move?: MoveDefinition;
     board?: Partial<BoardView>;
+    engineOverrides?: Record<string, unknown>;
     humanPlayerIds?: readonly string[];
     localPlayerIds?: readonly string[];
     presentationSettled?: BattleOrchestratorConfig["presentationSettled"];
@@ -2102,5 +2107,65 @@ describe("BattleOrchestrator — les repères du son (plan 238)", () => {
 
     expect(tick.playMoveEffect).not.toHaveBeenCalled();
     expect(tick.forms).toEqual([]);
+  });
+});
+
+describe("BattleOrchestrator — pose au sol sous Zone Magique (plan 249)", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const magicRoomPosted: BattleEvent = {
+    type: BattleEventType.FieldGlobalPosted,
+    casterId: ACTIVE_ID,
+    kind: FieldGlobalKind.MagicRoom,
+    anchor: ACTIVE_POSITION,
+    tiles: [ACTIVE_POSITION],
+    durationTurns: 5,
+  };
+
+  async function playGrounding(overrides: { floats: boolean; airborneAfterPost: boolean }) {
+    let zonePosted = false;
+    const grounded: [string, boolean][] = [];
+    const staging = stageEvents([magicRoomPosted], {
+      board: { setGroundedByGravity: (id, value) => grounded.push([id, value]) },
+      engineOverrides: {
+        isAirborneIgnoringZones: () => overrides.floats,
+        isAirborne: () => !zonePosted || overrides.airborneAfterPost,
+        submitAction: () => {
+          zonePosted = true;
+          return { success: true, events: [magicRoomPosted] };
+        },
+      },
+    });
+    staging.impact.resolve();
+    staging.done.resolve();
+    await vi.advanceTimersByTimeAsync(5000);
+    return grounded;
+  }
+
+  it("lands a Ballon holder when a Zone Magique is posted on it", async () => {
+    const grounded = await playGrounding({ floats: true, airborneAfterPost: false });
+
+    const own = grounded.filter(([id]) => id === ACTIVE_ID).map(([, value]) => value);
+    expect(own[0]).toBe(false);
+    expect(own.at(-1)).toBe(true);
+  });
+
+  it("keeps a floating mon in the air when the zone does not cover it", async () => {
+    const grounded = await playGrounding({ floats: true, airborneAfterPost: true });
+
+    expect(grounded.length).toBeGreaterThan(0);
+    expect(grounded.every(([, value]) => value === false)).toBe(true);
+  });
+
+  it("leaves the pose alone for a mon that never floats", async () => {
+    const grounded = await playGrounding({ floats: false, airborneAfterPost: false });
+
+    expect(grounded).toEqual([]);
   });
 });

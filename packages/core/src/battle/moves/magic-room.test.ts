@@ -1,12 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ActionKind } from "../../enums/action-kind";
 import { BattleEventType } from "../../enums/battle-event-type";
+import { EntryHazardKind } from "../../enums/entry-hazard-kind";
 import { FieldGlobalKind } from "../../enums/field-global-kind";
 import { HeldItemId } from "../../enums/held-item-id";
 import { PlayerId } from "../../enums/player-id";
 import { StatusType } from "../../enums/status-type";
+import { TerrainType } from "../../enums/terrain-type";
 import { buildItemTestEngine, buildMoveTestEngine, damageTo, MockPokemon } from "../../testing";
-import { postFieldGlobalZone } from "../field-global-system";
+import type { BattleState } from "../../types/battle-state";
+import type { Position } from "../../types/position";
+import { isInFieldGlobalZone, postFieldGlobalZone } from "../field-global-system";
 
 // Zone Magique (magic-room) — move integration tests.
 
@@ -381,5 +385,146 @@ describe("magic-room — Pierrallégée (float-stone) neutralisation", () => {
     expect(damageTo(inZoneHit.events, "defender")).toBeGreaterThan(
       damageTo(outOfZoneHit.events, "defender"),
     );
+  });
+});
+
+describe("magic-room — Ballon (air-balloon) holder loses its levitation (plan 249)", () => {
+  const INSIDE: Position = { x: 8, y: 5 };
+  const OUTSIDE: Position = { x: 9, y: 5 };
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  // The zone owner stands at (5,5); the Ballon holder starts at (10,5), outside the zone.
+  function buildWalkScenario(withZone: boolean) {
+    const holder = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder",
+      playerId: PlayerId.Player1,
+      position: { x: 10, y: 5 },
+      heldItemId: HeldItemId.AirBalloon,
+    });
+    const owner = MockPokemon.fresh(MockPokemon.base, {
+      id: "owner",
+      playerId: PlayerId.Player2,
+      position: { x: 5, y: 5 },
+    });
+    const { engine, state } = buildItemTestEngine([holder, owner], 12, "holder");
+    if (withZone) {
+      postFieldGlobalZone(state, owner, FieldGlobalKind.MagicRoom);
+    }
+    return { engine, state };
+  }
+
+  it("the zone covers INSIDE but not OUTSIDE (scenario sanity)", () => {
+    const { state } = buildWalkScenario(true);
+    expect(isInFieldGlobalZone(state, INSIDE, FieldGlobalKind.MagicRoom)).toBe(true);
+    expect(isInFieldGlobalZone(state, OUTSIDE, FieldGlobalKind.MagicRoom)).toBe(false);
+  });
+
+  function setTerrain(state: BattleState, position: Position, terrain: TerrainType): void {
+    const tile = state.grid[position.y]?.[position.x];
+    if (!tile) {
+      throw new Error("missing tile");
+    }
+    tile.terrain = terrain;
+  }
+
+  function walkTo(scenario: ReturnType<typeof buildWalkScenario>) {
+    return scenario.engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.Move,
+      pokemonId: "holder",
+      path: [OUTSIDE, INSIDE],
+    });
+  }
+
+  it("triggers Picots on a tile inside the zone", () => {
+    const scenario = buildWalkScenario(true);
+    scenario.state.entryHazards.push({ kind: EntryHazardKind.Spikes, tile: INSIDE, layers: 1 });
+    const before = scenario.state.pokemon.get("holder")?.currentHp ?? 0;
+    expect(walkTo(scenario).success).toBe(true);
+    expect(scenario.state.pokemon.get("holder")?.currentHp ?? 0).toBeLessThan(before);
+  });
+
+  it("still floats over the same Picots without the zone", () => {
+    const scenario = buildWalkScenario(false);
+    scenario.state.entryHazards.push({ kind: EntryHazardKind.Spikes, tile: INSIDE, layers: 1 });
+    const before = scenario.state.pokemon.get("holder")?.currentHp ?? 0;
+    expect(walkTo(scenario).success).toBe(true);
+    expect(scenario.state.pokemon.get("holder")?.currentHp).toBe(before);
+  });
+
+  it("floats over Picots on the outside tile of a path that enters the zone", () => {
+    const scenario = buildWalkScenario(true);
+    scenario.state.entryHazards.push({ kind: EntryHazardKind.Spikes, tile: OUTSIDE, layers: 1 });
+    const before = scenario.state.pokemon.get("holder")?.currentHp ?? 0;
+    expect(walkTo(scenario).success).toBe(true);
+    expect(scenario.state.pokemon.get("holder")?.currentHp).toBe(before);
+  });
+
+  it("does not offer a lava tile inside the zone, but still one outside", () => {
+    const scenario = buildWalkScenario(true);
+    const outsideLava: Position = { x: 10, y: 7 };
+    setTerrain(scenario.state, INSIDE, TerrainType.Lava);
+    setTerrain(scenario.state, outsideLava, TerrainType.Lava);
+    const reachable = scenario.engine.getReachableTilesForPokemon("holder");
+    expect(reachable).not.toContainEqual(INSIDE);
+    expect(reachable).toContainEqual(outsideLava);
+    expect(walkTo(scenario).success).toBe(false);
+  });
+
+  it("drowns a holder floating over lava the instant the zone is posted on it", () => {
+    const caster = MockPokemon.fresh(MockPokemon.base, {
+      id: "caster",
+      playerId: PlayerId.Player1,
+      position: { x: 5, y: 5 },
+      moveIds: ["magic-room"],
+    });
+    const holder = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder",
+      playerId: PlayerId.Player2,
+      position: { x: 6, y: 5 },
+      heldItemId: HeldItemId.AirBalloon,
+    });
+    const { engine, state } = buildItemTestEngine([caster, holder], 12, "caster");
+    setTerrain(state, holder.position, TerrainType.Lava);
+
+    engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "caster",
+      moveId: "magic-room",
+      targetPosition: { x: 5, y: 5 },
+    });
+
+    expect(state.pokemon.get("holder")?.currentHp).toBe(0);
+  });
+
+  it("keeps the Ballon intact when hit by a non-Ground move inside the zone", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0.5);
+    const attacker = MockPokemon.fresh(MockPokemon.base, {
+      id: "attacker",
+      playerId: PlayerId.Player1,
+      position: { x: 5, y: 5 },
+      moveIds: ["tackle"],
+    });
+    const holder = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder",
+      playerId: PlayerId.Player2,
+      position: { x: 6, y: 5 },
+      heldItemId: HeldItemId.AirBalloon,
+      combatStats: { hp: 300, attack: 50, defense: 50, spAttack: 50, spDefense: 50, speed: 50 },
+    });
+    const { engine, state } = buildItemTestEngine([attacker, holder], 12, "attacker");
+    postFieldGlobalZone(state, attacker, FieldGlobalKind.MagicRoom);
+
+    const hit = engine.submitAction(PlayerId.Player1, {
+      kind: ActionKind.UseMove,
+      pokemonId: "attacker",
+      moveId: "tackle",
+      targetPosition: { x: 6, y: 5 },
+    });
+
+    expect(damageTo(hit.events, "holder")).toBeGreaterThan(0);
+    expect(state.pokemon.get("holder")?.heldItemId).toBe(HeldItemId.AirBalloon);
   });
 });
