@@ -18,7 +18,6 @@ import type { EffectContext, SharedEffectState, TypeChart } from "./effect-handl
 import { EffectHandlerRegistry } from "./effect-handler-registry";
 import { effectiveHeldItem } from "./effective-held-item";
 import { isEffectivelyGrounded } from "./field-global-system";
-import { enumerateZoneTiles } from "./field-terrain-system";
 import { handleCopyAbility } from "./handlers/ability-manip/handle-copy-ability";
 import { handleSetAbility } from "./handlers/ability-manip/handle-set-ability";
 import { handleSuppressAbility } from "./handlers/ability-manip/handle-suppress-ability";
@@ -101,6 +100,7 @@ import { handleSoakType } from "./handlers/type-change/handle-soak-type";
 import type { HeldItemHandlerRegistry } from "./held-item-handler-registry";
 import { consumeHeldItem } from "./held-item-transfer";
 import { isSecondaryEffect } from "./secondary-effect";
+import { enumerateZoneTiles } from "./zone-tiles";
 
 interface ProcessContext {
   attacker: PokemonInstance;

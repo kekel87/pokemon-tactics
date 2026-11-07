@@ -2,7 +2,7 @@ import type { BattleState } from "../types/battle-state";
 import type { DistortionZone } from "../types/distortion-zone";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
-import { enumerateZoneTiles } from "./field-terrain-system";
+import { enumerateZoneTiles } from "./zone-tiles";
 
 export const DISTORTION_DEFAULT_DURATION = 5;
 export const DISTORTION_RADIUS = 3;

@@ -72,3 +72,4 @@ Les seuls sur lesquels on travaille.
 | 244 | [Plan 244 : Replier une partie des sous-agents en skills](./244-repli-sous-agents-en-skills.md) | done |
 | 245 | [Plan 245 : appliquer la méthode agents de l'humain](./245-methode-agents.md) | done |
 | 246 | [Plan 246 : un replay refusé le dit au joueur](./246-replay-refuse-avec-message.md) | done |
+| 247 | [Plan 247 : Zone Magique neutralise aussi Lumargile et Champ'Duit](./247-zone-magique-objets-de-duree.md) | done |

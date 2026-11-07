@@ -4,6 +4,7 @@ import { HeldItemId } from "../enums/held-item-id";
 import { PlayerId } from "../enums/player-id";
 import { buildMoveTestEngine, MockPokemon } from "../testing";
 import {
+  activeHeldItemId,
   decrementFieldGlobalTimer,
   FIELD_GLOBAL_DEFAULT_DURATION,
   isGroundedByGravityZone,
@@ -93,6 +94,22 @@ describe("isHeldItemSuppressed", () => {
     expect(isHeldItemSuppressed(state, foe)).toBe(true);
     foe.position = { x: 9, y: 9 };
     expect(isHeldItemSuppressed(state, foe)).toBe(false);
+  });
+});
+
+describe("activeHeldItemId", () => {
+  it("returns the held item outside a Zone Magique and undefined inside", () => {
+    const { state } = freshState();
+    const caster = state.pokemon.get("caster");
+    const foe = state.pokemon.get("foe");
+    if (!caster || !foe) {
+      throw new Error("missing mons");
+    }
+    foe.heldItemId = HeldItemId.LightClay;
+    postFieldGlobalZone(state, caster, FieldGlobalKind.MagicRoom);
+    expect(activeHeldItemId(state, foe)).toBe(HeldItemId.LightClay);
+    foe.position = { x: 6, y: 5 };
+    expect(activeHeldItemId(state, foe)).toBeUndefined();
   });
 });
 

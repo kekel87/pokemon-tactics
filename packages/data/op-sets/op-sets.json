@@ -265,15 +265,15 @@
       "pokemonId": "ninetales",
       "name": "Sun Setter",
       "role": "support",
-      "ability": "flash-fire",
+      "ability": "drought",
       "heldItemId": "heat-rock",
       "nature": "timid",
-      "moveIds": ["flamethrower", "will-o-wisp", "confuse-ray", "nasty-plot"],
-      "statSpread": { "spAttack": 4, "spDefense": 0, "speed": 31 },
+      "moveIds": ["weather-ball", "encore", "healing-wish", "will-o-wisp"],
+      "statSpread": { "hp": 31, "speed": 31 },
       "gender": null,
       "source": "smogon",
       "sourceUrl": "https://www.smogon.com/dex/sv/pokemon/ninetales/",
-      "notes": "Will-O-Wisp + Confuse Ray support. Flash Fire absorbs Fire moves."
+      "notes": "SV OU Sun Setter: Drought + Heat Rock sets 8 turns of sun. Weather Ball over Overheat (Overheat is a self-centered zone that hits allies)."
     },
     {
       "id": "wigglytuff-support",

@@ -8,14 +8,19 @@ import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
 import type { TeamAura } from "../types/team-aura";
 import { effectiveAbilityId } from "./effective-ability";
+import { activeHeldItemId } from "./field-global-system";
 
 export const AURA_DEFAULT_DURATION = 5;
 export const AURA_EXTENDED_DURATION = 8;
 export const AURA_RADIUS = 3;
 
-export function auraDurationForCaster(caster: PokemonInstance, kind: AuraKind): number {
+export function auraDurationForCaster(
+  state: BattleState,
+  caster: PokemonInstance,
+  kind: AuraKind,
+): number {
   if (kind === AuraKind.Reflect || kind === AuraKind.LightScreen) {
-    return caster.heldItemId === HeldItemId.LightClay
+    return activeHeldItemId(state, caster) === HeldItemId.LightClay
       ? AURA_EXTENDED_DURATION
       : AURA_DEFAULT_DURATION;
   }
@@ -66,7 +71,7 @@ export function postAura(state: BattleState, caster: PokemonInstance, kind: Aura
   const aura: TeamAura = {
     kind,
     casterPokemonId: caster.id,
-    remainingRounds: auraDurationForCaster(caster, kind),
+    remainingRounds: auraDurationForCaster(state, caster, kind),
     postedAtAction: state.actionCounter ?? 0,
   };
   if (existingIndex >= 0) {

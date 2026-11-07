@@ -94,7 +94,7 @@ import {
 } from "./entry-hazard-system";
 import { FacingZone, getFacingModifier, getFacingZone } from "./facing-modifier";
 import { calculateFallDamage } from "./fall-damage";
-import { isAirborneMove, isEffectivelyGrounded } from "./field-global-system";
+import { activeHeldItemId, isAirborneMove, isEffectivelyGrounded } from "./field-global-system";
 import {
   decrementFieldTerrainsTimer,
   isEnemyPsychicBarrierAt,
@@ -1585,7 +1585,7 @@ export class BattleEngine {
         const weatherEvents = setWeather(
           this.state,
           weather,
-          effectiveWeatherTurns(pokemon.heldItemId, weather, turns),
+          effectiveWeatherTurns(activeHeldItemId(this.state, pokemon), weather, turns),
           pokemon.id,
         );
         this.startupEvents.push(...weatherEvents);

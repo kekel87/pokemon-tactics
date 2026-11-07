@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { AuraKind } from "../enums/aura-kind";
+import { FieldGlobalKind } from "../enums/field-global-kind";
+import { HeldItemId } from "../enums/held-item-id";
 import { PlayerId } from "../enums/player-id";
 import { buildMoveTestEngine, MockMove, MockPokemon } from "../testing";
 import {
+  AURA_DEFAULT_DURATION,
+  AURA_EXTENDED_DURATION,
   AURA_RADIUS,
   computeBrickBreakInteraction,
   computeScreenMultiplier,
@@ -10,6 +14,7 @@ import {
   isWithinAuraRadius,
   postAura,
 } from "./aura-system";
+import { postFieldGlobalZone } from "./field-global-system";
 
 const physicalMove = MockMove.physical;
 const specialMove = MockMove.special;
@@ -413,5 +418,39 @@ describe("isWithinAuraRadius", () => {
   it("is symmetric in its arguments", () => {
     const target = { x: 3, y: 6 };
     expect(isWithinAuraRadius(centre, target)).toBe(isWithinAuraRadius(target, centre));
+  });
+});
+
+describe("postAura — Lumargile (light-clay) under Zone Magique", () => {
+  function lightClayCaster() {
+    const caster = MockPokemon.fresh(MockPokemon.base, {
+      id: "caster",
+      position: { x: 2, y: 2 },
+      heldItemId: HeldItemId.LightClay,
+    });
+    const foe = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe",
+      playerId: PlayerId.Player2,
+      position: { x: 4, y: 2 },
+    });
+    const { state } = buildMoveTestEngine([caster, foe]);
+    return { state, caster, foe };
+  }
+
+  it("extends Light Screen to 8 rounds outside a Zone Magique", () => {
+    const { state, caster } = lightClayCaster();
+
+    const aura = postAura(state, caster, AuraKind.LightScreen);
+
+    expect(aura.remainingRounds).toBe(AURA_EXTENDED_DURATION);
+  });
+
+  it("keeps Reflect at 5 rounds when the caster stands in a Zone Magique", () => {
+    const { state, caster, foe } = lightClayCaster();
+    postFieldGlobalZone(state, foe, FieldGlobalKind.MagicRoom);
+
+    const aura = postAura(state, caster, AuraKind.Reflect);
+
+    expect(aura.remainingRounds).toBe(AURA_DEFAULT_DURATION);
   });
 });

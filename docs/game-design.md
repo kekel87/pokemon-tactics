@@ -868,7 +868,7 @@ La météo est un état global du combat (`BattleState.weather`) affectant dég�
 
 - `weatherTurnsRemaining` décrémenté en `weather-tick` **au tour du poseur seulement** (tours du lanceur ; tours « fantômes » après son K.O.).
 - Quand il atteint 0 → météo passe à `None`.
-- Chaque météo a son rocher, qui la porte de 5 à **8 tours** (`handle-set-weather.ts`) : Roche Chaude = Plein soleil, Roche Humide = Pluie, Roche Lisse = Tempête de sable, Roche Glace = Neige. Sous Zone Magique, le porteur n'étend plus la durée. Corrigé au plan 225 : le document attribuait à la seule Roche Chaude le Soleil et le Sable.
+- Chaque météo a son rocher, qui la porte de 5 à **8 tours** (`handle-set-weather.ts`) : Roche Chaude = Plein soleil, Roche Humide = Pluie, Roche Lisse = Tempête de sable, Roche Glace = Neige. Sous Zone Magique, le porteur n'étend plus la durée. Même règle pour Lumargile (Protection, Mur Lumière) et Champ'Duit (champs) : un lanceur debout dans une Zone Magique au moment de la pose obtient 5 tours, pas 8. Corrigé au plan 225 : le document attribuait à la seule Roche Chaude le Soleil et le Sable.
 
 ### Weather war
 

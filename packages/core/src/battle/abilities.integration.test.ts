@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ActionKind } from "../enums/action-kind";
 import { BattleEventType } from "../enums/battle-event-type";
+import { FieldGlobalKind } from "../enums/field-global-kind";
 import { HeldItemId } from "../enums/held-item-id";
 import { PlayerId } from "../enums/player-id";
 import { PokemonGender } from "../enums/pokemon-gender";
@@ -9,6 +10,7 @@ import { StatusType } from "../enums/status-type";
 import { Weather } from "../enums/weather";
 import { buildMoveTestEngine, MockPokemon } from "../testing";
 import type { BattleEvent } from "../types/battle-event";
+import { postFieldGlobalZone } from "./field-global-system";
 
 describe("ability system integration", () => {
   afterEach(() => {
@@ -3792,6 +3794,30 @@ describe("ability system integration", () => {
 
     expect(build().weatherTurnsRemaining).toBe(5);
     expect(build(HeldItemId.HeatRock).weatherTurnsRemaining).toBe(8);
+  });
+
+  it("drought ignores a Heat Rock suppressed by a Zone Magique", () => {
+    const holder = MockPokemon.fresh(MockPokemon.base, {
+      id: "holder",
+      definitionId: "vulpix",
+      playerId: PlayerId.Player1,
+      position: { x: 0, y: 0 },
+      abilityId: "drought",
+      heldItemId: HeldItemId.HeatRock,
+    });
+    const foe = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe",
+      playerId: PlayerId.Player2,
+      position: { x: 3, y: 0 },
+    });
+
+    const { state } = buildMoveTestEngine([holder, foe], {
+      prepareState: (freshState) => {
+        postFieldGlobalZone(freshState, foe, FieldGlobalKind.MagicRoom);
+      },
+    });
+
+    expect(state.weatherTurnsRemaining).toBe(5);
   });
 
   it("steadfast raises Speed when the holder flinches", () => {

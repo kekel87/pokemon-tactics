@@ -1,5 +1,6 @@
 import { loadAllPokemonTypes, loadData, typeChart } from "@pokemon-tactic/data";
 import { BattleEngine } from "../battle/BattleEngine";
+import type { BattleState } from "../types/battle-state";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { RandomFn } from "../utils/prng";
 import { buildMoveRegistry } from "./build-move-registry";
@@ -14,6 +15,8 @@ export interface BuildMoveTestEngineOptions {
    * move-mechanic tests pin the actor so the result is independent of relative Speed.
    */
   activePokemonId?: string;
+  /** Runs on the fresh state before the engine is built, so battle-start triggers already see it. */
+  prepareState?: (state: BattleState) => void;
 }
 
 export function buildMoveTestEngine(
@@ -25,6 +28,7 @@ export function buildMoveTestEngine(
   const data = loadData();
   const pokemonTypesMap = loadAllPokemonTypes();
   const state = MockBattle.stateFrom(pokemon, gridSize, gridSize);
+  options.prepareState?.(state);
   const engine = new BattleEngine(
     state,
     moveRegistry,

@@ -2,17 +2,17 @@ import { describe, expect, it } from "vitest";
 import { ActionKind } from "../enums/action-kind";
 import { BattleEventType } from "../enums/battle-event-type";
 import { Direction } from "../enums/direction";
+import { FieldGlobalKind } from "../enums/field-global-kind";
 import { FieldTerrain } from "../enums/field-terrain";
 import { HeldItemId } from "../enums/held-item-id";
 import { PlayerId } from "../enums/player-id";
 import { PokemonType } from "../enums/pokemon-type";
 import { buildMoveTestEngine, endTurnUntilActor, MockPokemon } from "../testing";
+import { postFieldGlobalZone } from "./field-global-system";
 import {
   decrementFieldTerrainsTimer,
-  enumerateZoneTiles,
   FIELD_TERRAIN_DEFAULT_DURATION,
   FIELD_TERRAIN_EXTENDED_DURATION,
-  FIELD_TERRAIN_RADIUS,
   fieldTerrainDurationForCaster,
   getActiveZonesOfKind,
   getFieldTerrainAt,
@@ -29,54 +29,38 @@ import {
 // ---------------------------------------------------------------------------
 
 describe("fieldTerrainDurationForCaster", () => {
+  function terrainCaster(heldItemId?: HeldItemId) {
+    const caster = MockPokemon.fresh(MockPokemon.base, {
+      id: "caster",
+      position: { x: 2, y: 2 },
+      heldItemId,
+    });
+    const foe = MockPokemon.fresh(MockPokemon.base, {
+      id: "foe",
+      playerId: PlayerId.Player2,
+      position: { x: 4, y: 2 },
+    });
+    const { state } = buildMoveTestEngine([caster, foe]);
+    return { state, caster, foe };
+  }
+
   it("returns default duration (5) when caster holds no item", () => {
-    const caster = MockPokemon.fresh(MockPokemon.base, { id: "caster" });
-    expect(fieldTerrainDurationForCaster(caster)).toBe(FIELD_TERRAIN_DEFAULT_DURATION);
-    expect(fieldTerrainDurationForCaster(caster)).toBe(5);
+    const { state, caster } = terrainCaster();
+    expect(fieldTerrainDurationForCaster(state, caster)).toBe(FIELD_TERRAIN_DEFAULT_DURATION);
   });
 
   it("returns extended duration (8) when caster holds TerrainExtender", () => {
-    const caster = MockPokemon.fresh(MockPokemon.base, {
-      id: "caster",
-      heldItemId: HeldItemId.TerrainExtender,
-    });
-    expect(fieldTerrainDurationForCaster(caster)).toBe(FIELD_TERRAIN_EXTENDED_DURATION);
-    expect(fieldTerrainDurationForCaster(caster)).toBe(8);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// enumerateZoneTiles
-// ---------------------------------------------------------------------------
-
-describe("enumerateZoneTiles", () => {
-  it("returns 25 tiles for an r3 diamond centred in a 10x10 grid", () => {
-    const caster = MockPokemon.fresh(MockPokemon.base, { id: "c", position: { x: 5, y: 5 } });
-    const foe = MockPokemon.fresh(MockPokemon.base, {
-      id: "f",
-      playerId: PlayerId.Player2,
-      position: { x: 9, y: 9 },
-    });
-    const { state } = buildMoveTestEngine([caster, foe], { gridSize: 10 });
-    const tiles = enumerateZoneTiles(state, { x: 5, y: 5 }, FIELD_TERRAIN_RADIUS);
-    expect(tiles.length).toBe(25);
+    const { state, caster } = terrainCaster(HeldItemId.TerrainExtender);
+    expect(fieldTerrainDurationForCaster(state, caster)).toBe(FIELD_TERRAIN_EXTENDED_DURATION);
   });
 
-  it("truncates out-of-bounds tiles at a corner", () => {
-    const caster = MockPokemon.fresh(MockPokemon.base, { id: "c", position: { x: 0, y: 0 } });
-    const foe = MockPokemon.fresh(MockPokemon.base, {
-      id: "f",
-      playerId: PlayerId.Player2,
-      position: { x: 5, y: 5 },
-    });
-    const { state } = buildMoveTestEngine([caster, foe]);
-    const tiles = enumerateZoneTiles(state, { x: 0, y: 0 }, FIELD_TERRAIN_RADIUS);
-    // Full diamond would include negative coordinates — only in-bounds tiles count
-    expect(tiles.length).toBeLessThan(25);
-    for (const tile of tiles) {
-      expect(tile.x).toBeGreaterThanOrEqual(0);
-      expect(tile.y).toBeGreaterThanOrEqual(0);
-    }
+  it("ignores TerrainExtender when the caster stands in a Zone Magique", () => {
+    const { state, caster, foe } = terrainCaster(HeldItemId.TerrainExtender);
+    postFieldGlobalZone(state, foe, FieldGlobalKind.MagicRoom);
+
+    postFieldTerrain(state, caster, FieldTerrain.Grassy);
+
+    expect(state.fieldTerrains[0]?.remainingTurns).toBe(FIELD_TERRAIN_DEFAULT_DURATION);
   });
 });
 

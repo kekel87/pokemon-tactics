@@ -9,6 +9,8 @@ import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
 import type { TargetingPattern } from "../types/targeting-pattern";
 import { isEffectivelyFlying } from "./effective-flying";
+import { activeHeldItemId } from "./field-global-system";
+import { enumerateZoneTiles } from "./zone-tiles";
 
 export const FIELD_TERRAIN_DEFAULT_DURATION = 5;
 export const FIELD_TERRAIN_EXTENDED_DURATION = 8;
@@ -27,32 +29,10 @@ export const FIELD_TERRAIN_REDUCTION = 0.5;
  */
 export const PSYCHIC_BARRIER_IMPACT_HEIGHT = 2;
 
-export function fieldTerrainDurationForCaster(caster: PokemonInstance): number {
-  return caster.heldItemId === HeldItemId.TerrainExtender
+export function fieldTerrainDurationForCaster(state: BattleState, caster: PokemonInstance): number {
+  return activeHeldItemId(state, caster) === HeldItemId.TerrainExtender
     ? FIELD_TERRAIN_EXTENDED_DURATION
     : FIELD_TERRAIN_DEFAULT_DURATION;
-}
-
-/** Enumerate the in-bounds Manhattan-diamond (radius r) tiles centered on `anchor`. */
-export function enumerateZoneTiles(
-  state: BattleState,
-  anchor: Position,
-  radius: number,
-): Position[] {
-  const height = state.grid.length;
-  const width = state.grid[0]?.length ?? 0;
-  const tiles: Position[] = [];
-  for (let dy = -radius; dy <= radius; dy++) {
-    const spread = radius - Math.abs(dy);
-    for (let dx = -spread; dx <= spread; dx++) {
-      const x = anchor.x + dx;
-      const y = anchor.y + dy;
-      if (x >= 0 && x < width && y >= 0 && y < height) {
-        tiles.push({ x, y });
-      }
-    }
-  }
-  return tiles;
 }
 
 /**
@@ -77,7 +57,7 @@ export function postFieldTerrain(
     casterId: caster.id,
     tiles: enumerateZoneTiles(state, anchor, FIELD_TERRAIN_RADIUS),
     anchor,
-    remainingTurns: fieldTerrainDurationForCaster(caster),
+    remainingTurns: fieldTerrainDurationForCaster(state, caster),
   };
   state.fieldTerrains.push(zone);
   return zone;

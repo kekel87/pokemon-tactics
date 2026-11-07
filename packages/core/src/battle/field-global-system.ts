@@ -1,11 +1,12 @@
 import { FieldGlobalKind } from "../enums/field-global-kind";
+import type { HeldItemId } from "../enums/held-item-id";
 import type { BattleState } from "../types/battle-state";
 import type { FieldGlobalZone } from "../types/field-global-zone";
 import type { MoveDefinition } from "../types/move-definition";
 import type { PokemonInstance } from "../types/pokemon-instance";
 import type { Position } from "../types/position";
 import { SemiInvulnerableState } from "../types/semi-invulnerable-state";
-import { enumerateZoneTiles } from "./field-terrain-system";
+import { enumerateZoneTiles } from "./zone-tiles";
 
 export const FIELD_GLOBAL_DEFAULT_DURATION = 5;
 export const FIELD_GLOBAL_RADIUS = 3;
@@ -91,6 +92,14 @@ export function decrementFieldGlobalTimer(
 /** True if the held item of `pokemon` is suppressed (the holder stands in a Zone Magique). */
 export function isHeldItemSuppressed(state: BattleState, pokemon: PokemonInstance): boolean {
   return isInFieldGlobalZone(state, pokemon.position, FieldGlobalKind.MagicRoom);
+}
+
+/** The held item of `pokemon`, or `undefined` while a Zone Magique suppresses it. */
+export function activeHeldItemId(
+  state: BattleState,
+  pokemon: PokemonInstance,
+): HeldItemId | undefined {
+  return isHeldItemSuppressed(state, pokemon) ? undefined : pokemon.heldItemId;
 }
 
 /** True if `pokemon` is grounded by a Gravité zone it currently stands in (loses airborne status). */
