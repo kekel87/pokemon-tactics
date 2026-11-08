@@ -45,6 +45,10 @@ explicitement le menu.
 4. Attends la sélection humaine. Exécute en **ordre fixe** :
    `{test-writer → /simplify (sur les tests)} en arrière-plan ∥ /consigner dans le tour → [résumé du diff WIP→final] → /ci-gate full → commit + push (amende le WIP)`
    (`∥` = en parallèle : tests vs `docs/`, ensembles d'écriture disjoints. Borner chaque prompt.)
+   Dès le retour de `test-writer` : reclasser les preuves de l'arrêt 1 avec les tests ajoutés (grille de
+   `next/arret-1.md`), dire en 3 à 5 lignes ce qui est désormais couvert, ce qui reste vu nulle part, et si
+   la réponse de l'humain à « Tu testes ? » tient. Si elle ne tient plus, proposer le scénario manquant
+   avant le gate. Critère : l'humain sait si sa réponse à l'arrêt 1 était la bonne.
 5. **Stop sur fail bloquant** (`pnpm audit:core` rouge, `/relire-code` Critical, `/ci-gate` rouge,
    contrôle injoignable au clavier ou au pad).
 
