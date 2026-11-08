@@ -60,6 +60,8 @@ deux releases de suite (v2026.10.2, v2026.10.3).
 **Post-publish (main loop)** :
 - 🔴 **AFFICHER LE DEVLOG ITCH VERBATIM — OBLIGATOIRE.** Le devlog markdown généré en Phase 2 doit être **collé intégralement en chat dans un bloc de code** (titre, type, date, visibility, puis le body markdown complet). NE JAMAIS le résumer, paraphraser ou renvoyer vers le rapport de l'agent : l'humain doit pouvoir le copier-coller directement dans le dashboard itch.io. Récidive connue (feedback humain répété).
 - Met le wiki à jour dans le tour, en suivant `.claude/skills/consigner/wiki.md`, avec le brief de la synthèse (sync Changelog/Mechanics/Home **et Roadmap/Feuille-de-route** EN+FR, alignées sur `docs/roadmap.md` sans sujet interne ni chiffre de télémétrie). La Roadmap manquait à cette liste et est restée figée de v2026.7.2 à v2026.10.2.
+- Finir le tour sur le devlog : la release n'est close qu'une fois que l'humain a confirmé le devlog itch publié.
+  Aucun autre sujet (axe suivant, `/next`) avant cette confirmation.
 
 ## Garanties
 
