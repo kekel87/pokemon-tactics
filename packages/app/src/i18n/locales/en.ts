@@ -366,16 +366,19 @@ const en: Translations = {
   "replay.hint":
     "Paste the code a player shared with you, or load the file downloaded at the end of a battle.",
   "replay.pasteLabel": "Replay code",
-  "replay.pastePlaceholder": "PTR1.…",
+  "replay.pastePlaceholder": "PTR2.…",
   "replay.start": "Start replay",
   "replay.loadFile": "Load a file",
   "replay.error.notACode": "This text is not a replay code.",
   "replay.error.unreadable": "This code is damaged or incomplete.",
-  "replay.error.unknownFormat": "This code comes from an unknown replay format.",
+  "replay.error.unknownFormat":
+    "This code comes from a newer version of the game: update the game to watch it.",
   "replay.error.otherVersion":
-    "Replay from another version of the game: it can no longer be replayed faithfully.",
+    "This code comes from an older version of the game: it can no longer be replayed.",
   "replay.error.rejected":
-    "This replay cannot be played: one of its actions is impossible (edited code or another version of the game).",
+    "This replay cannot be played: the code was edited, or this battle plays out differently in this version of the game.",
+  "replay.error.diverged":
+    "This replay cannot be played: this battle plays out differently in this version of the game.",
   "replay.error.loadFailed": "The replay could not load. Check your connection and try again.",
   "replay.bar.restart": "Start",
   "replay.bar.stepBack": "Previous action",

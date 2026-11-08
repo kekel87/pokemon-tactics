@@ -365,16 +365,19 @@ const es: Translations = {
   "replay.hint":
     "Pega el código que te ha compartido un jugador, o carga el archivo descargado al final de un combate.",
   "replay.pasteLabel": "Código del replay",
-  "replay.pastePlaceholder": "PTR1.…",
+  "replay.pastePlaceholder": "PTR2.…",
   "replay.start": "Iniciar el replay",
   "replay.loadFile": "Cargar un archivo",
   "replay.error.notACode": "Este texto no es un código de replay.",
   "replay.error.unreadable": "Este código está dañado o incompleto.",
-  "replay.error.unknownFormat": "Este código viene de un formato de replay desconocido.",
+  "replay.error.unknownFormat":
+    "Este código viene de una versión más reciente del juego: actualiza el juego para verlo.",
   "replay.error.otherVersion":
-    "Replay de otra versión del juego: ya no puede reproducirse fielmente.",
+    "Este código viene de una versión anterior del juego: ya no puede reproducirse.",
   "replay.error.rejected":
-    "Este replay no puede reproducirse: una de sus acciones es imposible (código modificado u otra versión del juego).",
+    "Este replay no puede reproducirse: el código ha sido modificado, o este combate se desarrolla de otra forma en esta versión del juego.",
+  "replay.error.diverged":
+    "Este replay no puede reproducirse: este combate se desarrolla de otra forma en esta versión del juego.",
   "replay.error.loadFailed":
     "El replay no se ha podido cargar. Comprueba tu conexión y vuelve a intentarlo.",
   "replay.bar.restart": "Inicio",

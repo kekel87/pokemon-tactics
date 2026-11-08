@@ -27,6 +27,7 @@ const VERSION_TEXT = __APP_VERSION__;
 const REPLAY_FAILURE_KEYS: Record<ReplayFailure, TranslationKey> = {
   [ReplayFailure.Rejected]: "replay.error.rejected",
   [ReplayFailure.LoadFailed]: "replay.error.loadFailed",
+  [ReplayFailure.Diverged]: "replay.error.diverged",
 };
 
 /**
@@ -231,10 +232,10 @@ export function createMainMenuScreen(navigate: Navigate): Screen<"main-menu"> {
         // Retiré sur place, sans re-rendu : le bouton garde le focus que la fenêtre lui rendra.
         replayFailure = null;
         root?.querySelector("[data-testid='replay-error']")?.remove();
-        openReplayImportModal((data) =>
+        openReplayImportModal((replay) =>
           navigate("combat", {
-            mapUrl: data.mapUrl,
-            replay: data,
+            mapUrl: replay.data.mapUrl,
+            replay,
           }),
         );
       }),

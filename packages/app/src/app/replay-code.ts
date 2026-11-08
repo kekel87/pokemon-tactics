@@ -3,12 +3,17 @@
  *
  * Comme la sauvegarde de reprise (plan 181), on ne stocke que les ENTRÉES du combat — carte, équipes,
  * placements, graine, journal d'actions. Rejouer ce journal sur un moteur neuf reconstruit tout le
- * reste, exactement. Le code est donc court, mais lié à la version du jeu qui l'a produit : une mise à
- * jour peut changer un calcul, et un vieux code se rejouerait alors de travers sans que rien ne le
- * dise. Un autre `buildVersion` est refusé avec un message clair plutôt que rejoué faux.
+ * reste, exactement. Le code est donc court, mais une mise à jour du jeu peut changer un calcul, et un
+ * vieux code se rejouerait alors de travers sans que rien ne le dise.
  *
- * Le format est versionné (`format`) pour qu'un export par événements, qui survivrait aux mises à
- * jour, puisse s'ajouter plus tard sans casser les codes existants.
+ * Le code porte donc l'empreinte de son déroulé (plan 250), cumulée sur l'état après chaque action :
+ * l'écran de combat rejoue le journal sans rendu avant de le montrer, et refuse s'il ne retrouve pas la
+ * même empreinte. Un code survit ainsi à toute mise à jour qui ne touche pas à l'état de SON combat, ce
+ * que la version du jeu (qui change à chaque commit) ne savait pas dire. L'état comprend les statistiques
+ * de base : un équilibrage d'une espèce présente périme les codes où elle joue, par prudence.
+ *
+ * Le format est dans le préfixe (`PTR2.`) pour qu'un export par événements, qui survivrait à tout,
+ * puisse s'ajouter plus tard sans casser les codes existants.
  */
 
 import {
@@ -21,9 +26,25 @@ import {
 import { mapIdFromUrl, mapUrlFromId } from "../maps/map-identity";
 import type { CombatSetup } from "./screens";
 
-/** Marqueur : distingue « ce n'est pas un code de replay » de « ce code est abîmé ». */
-const CODE_PREFIX = "PTR1.";
-const CODE_FORMAT = 1;
+/**
+ * Marqueur `PTR<format>.` : distingue « ce n'est pas un code de replay » de « ce code est abîmé », et
+ * dit le format avant toute lecture, donc aussi pour un format futur que ce build ne sait pas lire.
+ */
+const CODE_MARKER = /PTR(\d+)\./;
+const CODE_FORMAT = 2;
+const CODE_PREFIX = `PTR${CODE_FORMAT}.`;
+/** Le format du plan 242, lié à la version exacte du jeu : il ne se rejoue plus. */
+const LEGACY_FORMAT = 1;
+
+/*
+ * Bornes lues AVANT de décompresser et de parser un texte collé par un tiers. Un combat 6v6 de 600 actions
+ * mesuré au plan 250 tient en 5 076 caractères : les bornes laissent un facteur 40 de marge.
+ */
+const MAX_CODE_LENGTH = 200_000;
+const MAX_JSON_BYTES = 2_000_000;
+
+/** Guillemets et accents graves qu'un chat ou un document met après un code copié. */
+const TRAILING_QUOTES = /[`"'“”‘’«»]+$/;
 
 /** Tout ce qu'il faut pour rebâtir la position de départ d'un combat, puis le rejouer. */
 export interface ReplayData {
@@ -37,10 +58,11 @@ export interface ReplayData {
   forfeits?: ReplayForfeit[];
 }
 
-interface ReplayEnvelope {
-  format: number;
-  buildVersion: string;
+/** Un replay partagé : les entrées du combat, et l'empreinte de leur déroulé. */
+export interface SharedReplay {
   data: ReplayData;
+  /** Empreinte cumulée de l'état après chaque action (`fastForwardBattle`), comparée au rejeu. */
+  fingerprint: string;
 }
 
 export const ReplayCodeError = {
@@ -50,7 +72,7 @@ export const ReplayCodeError = {
   Unreadable: "unreadable",
   /** Un format que cette version du jeu ne connaît pas. */
   UnknownFormat: "unknown-format",
-  /** Produit par une autre version du jeu : rejoué, il raconterait peut-être un autre combat. */
+  /** Un code du format 1, lié à une version précise du jeu : il ne se rejoue plus. */
   OtherVersion: "other-version",
 } as const;
 export type ReplayCodeError = (typeof ReplayCodeError)[keyof typeof ReplayCodeError];
@@ -61,35 +83,73 @@ export const ReplayFailure = {
   Rejected: "rejected",
   /** La carte ou les sprites n'ont pas pu se charger. */
   LoadFailed: "load-failed",
+  /** Rejoué, le journal ne retrouve pas l'empreinte du code : cette version déroule le combat autrement. */
+  Diverged: "diverged",
 } as const;
 export type ReplayFailure = (typeof ReplayFailure)[keyof typeof ReplayFailure];
 
 export type ReplayDecodeResult =
-  | { readonly ok: true; readonly data: ReplayData }
+  | { readonly ok: true; readonly replay: SharedReplay }
   | { readonly ok: false; readonly error: ReplayCodeError };
 
 /**
- * Le setup tel qu'il voyage dans un code : sans ce qui n'a de sens que pour la partie vivante.
+ * Le setup tel qu'il voyage dans un code : les seuls champs que le rejeu lit, recopiés un par un.
  *
- * Le code du salon et l'identifiant de télémétrie sont retirés — un code partagé ne doit pas faire
- * fuiter l'adresse d'un salon. `localSeat` reste : il dit « partie en ligne » et pilote la règle de
- * Vœu Soin, que le replay doit reproduire à l'identique.
+ * Une liste blanche et non une liste noire : un champ ajouté plus tard à `CombatSetup` ne part pas dans
+ * les codes sans qu'on le décide, et le reste vide `unclassified` oblige à le décider : le typecheck
+ * échoue tant que le champ n'est ni gardé ni écarté ici. Le code du salon et l'identifiant de
+ * télémétrie n'y sont pas : un code partagé ne doit pas faire fuiter l'adresse d'un salon.
+ * `localSeat` y est : il dit « partie en ligne » et pilote la règle de Vœu Soin, que le replay doit
+ * reproduire à l'identique.
  */
-function shareableSetup(setup: CombatSetup): CombatSetup {
+export function shareableSetup(setup: CombatSetup): CombatSetup {
   const {
+    teams,
+    formatKey,
+    autoPlacement,
+    damagePreview,
+    musicId,
+    seeds,
+    localSeat,
+    musicChoiceId: _musicChoiceId,
+    telemetryTeams: _telemetryTeams,
     roomCode: _roomCode,
     battleId: _battleId,
-    telemetryTeams: _telemetryTeams,
-    ...rest
+    ...unclassified
   } = setup;
-  return rest;
+  const _everyFieldClassified: Record<string, never> = unclassified;
+  return {
+    teams,
+    formatKey,
+    autoPlacement,
+    damagePreview,
+    ...(musicId === undefined ? {} : { musicId }),
+    ...(seeds === undefined ? {} : { seeds }),
+    ...(localSeat === undefined ? {} : { localSeat }),
+  };
 }
 
-async function pipeThrough(
-  bytes: Uint8Array<ArrayBuffer>,
-  stream: CompressionStream | DecompressionStream,
-): Promise<Uint8Array<ArrayBuffer>> {
-  const piped = new Blob([bytes]).stream().pipeThrough(stream);
+/** Décompresse en s'arrêtant dès que la sortie dépasse `MAX_JSON_BYTES` : `null` au-delà. */
+async function inflateBounded(bytes: Uint8Array<ArrayBuffer>): Promise<Uint8Array | null> {
+  const reader = new Blob([bytes])
+    .stream()
+    .pipeThrough(new DecompressionStream("deflate-raw"))
+    .getReader();
+  const chunks: Uint8Array<ArrayBuffer>[] = [];
+  let total = 0;
+  for (let read = await reader.read(); !read.done; read = await reader.read()) {
+    total += read.value.length;
+    if (total > MAX_JSON_BYTES) {
+      await reader.cancel();
+      return null;
+    }
+    chunks.push(read.value);
+  }
+  return new Uint8Array(await new Blob(chunks).arrayBuffer());
+}
+
+async function deflate(bytes: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {
+  const piped = new Blob([bytes]).stream().pipeThrough(new CompressionStream("deflate-raw"));
   return new Uint8Array(await new Response(piped).arrayBuffer());
 }
 
@@ -184,30 +244,44 @@ export function isReplayData(value: unknown): value is ReplayData {
   return areReplayForfeits(entry.forfeits, entry.actions.length, playerIds);
 }
 
-export async function encodeReplayCode(data: ReplayData, buildVersion: string): Promise<string> {
-  const envelope: ReplayEnvelope = {
-    format: CODE_FORMAT,
-    buildVersion,
-    data: { ...data, setup: shareableSetup(data.setup) },
+export async function encodeReplayCode(replay: SharedReplay): Promise<string> {
+  const envelope: SharedReplay = {
+    fingerprint: replay.fingerprint,
+    data: { ...replay.data, setup: shareableSetup(replay.data.setup) },
   };
   const json = new TextEncoder().encode(JSON.stringify(envelope));
-  const compressed = await pipeThrough(json, new CompressionStream("deflate-raw"));
+  const compressed = await deflate(json);
   return `${CODE_PREFIX}${toBase64Url(compressed)}`;
 }
 
-export async function decodeReplayCode(
-  text: string,
-  buildVersion: string,
-): Promise<ReplayDecodeResult> {
-  // Un code collé depuis un chat arrive souvent coupé en lignes, ou entouré d'espaces.
-  const cleaned = text.replace(/\s+/g, "");
-  if (!cleaned.startsWith(CODE_PREFIX)) {
+export async function decodeReplayCode(text: string): Promise<ReplayDecodeResult> {
+  /*
+   * Un code collé depuis un chat arrive souvent coupé en lignes, entouré d'espaces, de guillemets ou
+   * d'un bloc de code (` ```text `). Le marqueur se cherche donc partout : tout ce qui le précède est de
+   * l'emballage, et l'alphabet base64url ne contient aucun guillemet.
+   */
+  const joined = text.replace(/\s+/g, "");
+  const marker = CODE_MARKER.exec(joined);
+  if (marker === null) {
     return { ok: false, error: ReplayCodeError.NotACode };
+  }
+  const cleaned = joined.slice(marker.index).replace(TRAILING_QUOTES, "");
+  const format = Number(marker[1]);
+  if (format === LEGACY_FORMAT) {
+    return { ok: false, error: ReplayCodeError.OtherVersion };
+  }
+  if (format !== CODE_FORMAT) {
+    return { ok: false, error: ReplayCodeError.UnknownFormat };
+  }
+  if (cleaned.length > MAX_CODE_LENGTH) {
+    return { ok: false, error: ReplayCodeError.Unreadable };
   }
   let parsed: unknown;
   try {
-    const compressed = fromBase64Url(cleaned.slice(CODE_PREFIX.length));
-    const json = await pipeThrough(compressed, new DecompressionStream("deflate-raw"));
+    const json = await inflateBounded(fromBase64Url(cleaned.slice(marker[0].length)));
+    if (json === null) {
+      return { ok: false, error: ReplayCodeError.Unreadable };
+    }
     parsed = JSON.parse(new TextDecoder().decode(json));
   } catch {
     return { ok: false, error: ReplayCodeError.Unreadable };
@@ -215,14 +289,8 @@ export async function decodeReplayCode(
   if (typeof parsed !== "object" || parsed === null) {
     return { ok: false, error: ReplayCodeError.Unreadable };
   }
-  const envelope = parsed as Partial<ReplayEnvelope>;
-  if (envelope.format !== CODE_FORMAT) {
-    return { ok: false, error: ReplayCodeError.UnknownFormat };
-  }
-  if (envelope.buildVersion !== buildVersion) {
-    return { ok: false, error: ReplayCodeError.OtherVersion };
-  }
-  if (!isReplayData(envelope.data)) {
+  const envelope = parsed as Partial<SharedReplay>;
+  if (typeof envelope.fingerprint !== "string" || !isReplayData(envelope.data)) {
     return { ok: false, error: ReplayCodeError.Unreadable };
   }
   /*
@@ -234,5 +302,8 @@ export async function decodeReplayCode(
   if (mapUrl === undefined) {
     return { ok: false, error: ReplayCodeError.Unreadable };
   }
-  return { ok: true, data: { ...envelope.data, mapUrl } };
+  return {
+    ok: true,
+    replay: { fingerprint: envelope.fingerprint, data: { ...envelope.data, mapUrl } },
+  };
 }

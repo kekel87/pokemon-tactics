@@ -1096,7 +1096,8 @@ Chaque combat = séquence d'actions déterministe :
 **Revoir un combat** (plan 242) : un combat fini, **local ou en ligne** (plan 243), se copie en code texte (ou en fichier) depuis l'écran de victoire, et se rejoue depuis le menu principal, « Revoir un combat ».
 - La lecture montre **tout** (aucun brouillard : objets, talents et attaques révélés) — une phrase prévient avant le partage.
 - Barre de lecture : début, action précédente / suivante, lecture / pause, vitesse ×0,5 · ×1 · ×2 · ×4. L'IA n'est jamais relancée : on rejoue le journal.
-- Un code est **lié à la version** du jeu qui l'a produit : un code d'une autre version est refusé (« replay d'une autre version »), jamais rejoué de travers.
+- Un code **survit aux mises à jour** tant qu'elles ne changent pas le déroulé de son combat (plan 250) : il porte l'empreinte de l'état après chaque action, et le jeu la vérifie avant de lancer la lecture. Un combat qui se déroule autrement dans la nouvelle version (dégâts, talent, statistiques d'une espèce présente) est refusé avec un message, jamais rejoué de travers. Les codes `PTR1.` d'avant le plan 250 ne se rejouent plus.
+- Un code collé avec des guillemets, des accents graves ou dans un bloc de code est accepté.
 - Les abandons se rejouent : à 3 joueurs ou plus, le replay continue après l'abandon jusqu'au vrai vainqueur. Une partie **interrompue** (les deux parties ne concordent plus, en 1v1) n'a pas de replay.
 - Pas de lien partageable (itch.io) ; pas de spectateur en direct.
 

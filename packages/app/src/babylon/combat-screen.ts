@@ -69,7 +69,13 @@ import {
 import { healthRatiosBySide, soleLocalSide } from "../analytics/team-telemetry.js";
 import { AbandonSource, countAction, TelemetryAction } from "../analytics/telemetry.js";
 import { type BattleResumeSave, battleResumeStore } from "../app/battle-persistence.js";
-import { encodeReplayCode, type ReplayData, ReplayFailure } from "../app/replay-code.js";
+import {
+  encodeReplayCode,
+  type ReplayData,
+  ReplayFailure,
+  type SharedReplay,
+  shareableSetup,
+} from "../app/replay-code.js";
 import type { Navigate, Screen } from "../app/screen-manager.js";
 import type { CombatSetup, ScreenParamsById } from "../app/screens.js";
 import { battleAudioReady } from "../audio/audio-preload";
@@ -128,6 +134,7 @@ import {
   type BattleInputs,
   buildBattle,
   fastForwardBattle,
+  replayFingerprint,
   resumeBattle,
 } from "./battle-resume.js";
 import {
@@ -1425,6 +1432,7 @@ function startBattleLoop(
     insets,
     battle,
     handles: result.handles,
+    map,
     mapUrl,
     inputs,
     navigate,
@@ -1448,6 +1456,8 @@ function runResolvedBattle(options: {
   insets: ChromeInsetProbe;
   battle: BattleSetupResult;
   handles: ReadonlyMap<string, CombatPokemonHandle>;
+  /** La carte du combat : de quoi le rejouer à neuf pour l'empreinte du code de replay (plan 250). */
+  map: MapDefinition;
   mapUrl: string;
   inputs: BattleInputs;
   navigate: Navigate;
@@ -1472,6 +1482,7 @@ function runResolvedBattle(options: {
     insets,
     battle,
     handles,
+    map,
     mapUrl,
     inputs,
     navigate,
@@ -1670,7 +1681,13 @@ function runResolvedBattle(options: {
     getElapsedMs,
     // En ligne aussi : les abandons (volontaire, absence, divergence à 3 camps et plus) sont
     // enregistrés à leur place dans le journal et se rejouent comme dans la partie (plan 243).
-    replayExport: replayExportOf(currentReplayData),
+    replayExport: replayExportOf(() => {
+      const live = currentReplayData();
+      // Rejoué à neuf depuis ce que le code emporte, comme le fera le lecteur : les deux empreintes
+      // sortent du même calcul, sur le même setup filtré.
+      const data = { ...live, setup: shareableSetup(live.setup) };
+      return { data, fingerprint: replayFingerprint(replayInputs(data), data, map) };
+    }),
   });
   online?.attach(orchestrator, signal);
   signal.addEventListener("abort", () => releaseOnlineRoom(), { once: true });
@@ -1685,11 +1702,13 @@ function runResolvedBattle(options: {
  * Lit le journal AU MOMENT du clic, pas à la construction : le dialogue de victoire s'ouvre une fois
  * le dernier coup joué, et c'est alors que le journal décrit le combat complet.
  */
-function replayExportOf(currentBattle: () => ReplayData): {
+function replayExportOf(currentBattle: () => SharedReplay): {
   copy: () => Promise<boolean>;
   download: () => void;
 } {
-  const currentCode = (): Promise<string> => encodeReplayCode(currentBattle(), __APP_VERSION__);
+  // Asynchrone de bout en bout : le rejeu de l'empreinte peut lever, et l'erreur doit finir en promesse
+  // rejetée, rattrapée ci-dessous, plutôt que remonter jusqu'au clic.
+  const currentCode = async (): Promise<string> => encodeReplayCode(currentBattle());
   return {
     copy: async () => {
       try {
@@ -1700,18 +1719,23 @@ function replayExportOf(currentBattle: () => ReplayData): {
       }
     },
     download: () => {
-      void currentCode().then((code) => {
-        const url = URL.createObjectURL(new Blob([code], { type: "text/plain" }));
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "pokemon-tactics-replay.txt";
-        // Attaché au document et URL révoquée plus tard : certains navigateurs (Firefox, Safari)
-        // démarrent le téléchargement après le clic, et une URL déjà révoquée donne un fichier vide.
-        document.body.append(link);
-        link.click();
-        link.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
-      });
+      void currentCode()
+        .then((code) => {
+          const url = URL.createObjectURL(new Blob([code], { type: "text/plain" }));
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = "pokemon-tactics-replay.txt";
+          // Attaché au document et URL révoquée plus tard : certains navigateurs (Firefox, Safari)
+          // démarrent le téléchargement après le clic, et une URL déjà révoquée donne un fichier vide.
+          document.body.append(link);
+          link.click();
+          link.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        })
+        .catch((error: unknown) => {
+          // biome-ignore lint/suspicious/noConsole: seule trace d'un code qui n'a pas pu être produit
+          console.warn("[replay] code impossible à produire :", error);
+        });
     },
   };
 }
@@ -1778,6 +1802,7 @@ function startResumedBattle(
     insets,
     battle,
     handles: spawnBillboardsFromState(combat, battle.state),
+    map,
     mapUrl: save.mapUrl,
     inputs,
     navigate,
@@ -2101,7 +2126,8 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
     stage = activeStage;
     const setup = params.setup;
     const resume = params.resume;
-    const replayData = params.replay;
+    const sharedReplay = params.replay;
+    const replayData = sharedReplay?.data;
     startBattleMusic(setup ?? resume?.setup ?? replayData?.setup);
     // A resumed battle carries the map it was played on; `params.mapUrl` and `resume.mapUrl` agree
     // today, but the saved one is the authority — the engine is rebuilt from it. Same for a replay.
@@ -2122,7 +2148,7 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
     pointerSource = attachPointerSourceForScene(activeStage.canvas, activeCombat);
     overlay.setProgress(0.2);
 
-    if (replayData) {
+    if (sharedReplay && replayData) {
       // Même discipline que la reprise : tout ce qui peut échouer est dans le try, un échec rend au
       // menu au lieu de laisser le joueur sous un voile de chargement.
       const backToMenu = (replayFailure: ReplayFailure, error: unknown): void => {
@@ -2142,10 +2168,16 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
          * passe ici la lecture animée passera aussi. Sans ce contrôle, une action refusée arrêtait la
          * lecture en plein combat sans rien dire.
          */
+        let fingerprint: string;
         try {
-          fastForwardBattle(replayInputs(replayData), replayData, loaded.map);
+          fingerprint = replayFingerprint(replayInputs(replayData), replayData, loaded.map);
         } catch (error) {
           backToMenu(ReplayFailure.Rejected, error);
+          return;
+        }
+        // Toutes les actions passent, mais le combat ne se déroule plus pareil (plan 250).
+        if (fingerprint !== sharedReplay.fingerprint) {
+          backToMenu(ReplayFailure.Diverged, new Error("replay fingerprint mismatch"));
           return;
         }
         overlay.setProgress(0.6);

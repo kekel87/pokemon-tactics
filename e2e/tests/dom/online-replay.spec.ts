@@ -36,7 +36,7 @@ test("replay en ligne : un duel gagné par abandon se copie et se rejoue jusqu'�
     await share.getByTestId("copy-replay").click();
     await expect(share.getByTestId("copy-replay")).toHaveText("Code copié !");
     const code = await host.page.evaluate(() => navigator.clipboard.readText());
-    expect(code.startsWith("PTR1.")).toBe(true);
+    expect(code.startsWith("PTR2.")).toBe(true);
 
     // Le recoller au menu et le rejouer jusqu'au bout.
     await host.menu.goto();

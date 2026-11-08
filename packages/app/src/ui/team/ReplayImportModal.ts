@@ -1,5 +1,5 @@
 import { Modal } from "@pokemon-tactic/ui-dom";
-import { decodeReplayCode, ReplayCodeError, type ReplayData } from "../../app/replay-code";
+import { decodeReplayCode, ReplayCodeError, type SharedReplay } from "../../app/replay-code";
 import { t } from "../../i18n";
 import type { TranslationKey } from "../../i18n/types";
 
@@ -18,7 +18,7 @@ const ERROR_KEYS: Record<ReplayCodeError, TranslationKey> = {
   [ReplayCodeError.OtherVersion]: "replay.error.otherVersion",
 };
 
-export function openReplayImportModal(onLoaded: (data: ReplayData) => void): void {
+export function openReplayImportModal(onLoaded: (replay: SharedReplay) => void): void {
   const modal = new Modal({
     title: t("replay.title"),
     closeAriaLabel: t("teamBuilder.aria.close"),
@@ -54,7 +54,7 @@ export function openReplayImportModal(onLoaded: (data: ReplayData) => void): voi
       return;
     }
     decoding = true;
-    const result = await decodeReplayCode(text, __APP_VERSION__);
+    const result = await decodeReplayCode(text);
     decoding = false;
     if (!result.ok) {
       feedback.textContent = t(ERROR_KEYS[result.error]);
@@ -62,7 +62,7 @@ export function openReplayImportModal(onLoaded: (data: ReplayData) => void): voi
       return;
     }
     modal.close();
-    onLoaded(result.data);
+    onLoaded(result.replay);
   };
 
   const start = document.createElement("button");

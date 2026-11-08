@@ -15,7 +15,7 @@ import { BattleModeScreen, TeamSelectScreen } from "../../pages/screens";
 //
 // Le code n'est jamais un fichier commité : il est PRODUIT par un vrai combat hors ligne, copié par le
 // bouton de l'écran de victoire, puis recollé dans la fenêtre du menu. C'est le seul moyen de prouver
-// l'aller-retour de bout en bout — et un code forgé mentirait sur le `buildVersion` du build servi.
+// l'aller-retour de bout en bout — et un code forgé mentirait sur l'empreinte du combat rejoué.
 //
 // Pourquoi pas le studio sandbox : il monte son propre orchestrateur, SANS export de replay (celui-ci
 // n'existe que sur le chemin réel menu → équipes → combat). Le combat est donc le duel Alakazam contre
@@ -41,28 +41,49 @@ async function playOfflineDuelToVictory(page: Page): Promise<void> {
   await expect(page.getByTestId("replay-share")).toBeVisible({ timeout: 120_000 });
 }
 
-const CODE_PREFIX = "PTR1.";
+const CODE_PREFIX = "PTR2.";
+
+/** Ce que les falsifications lisent de l'enveloppe d'un code ; le reste passe tel quel. */
+interface CodeEnvelope {
+  fingerprint: string;
+  data: { actions: { path?: unknown; targetPosition?: unknown }[] };
+}
+
+/** Décode l'enveloppe d'un vrai code, laisse `tamper` la falsifier, et la ré-encode sous le même préfixe. */
+function tamperEnvelope(code: string, tamper: (envelope: CodeEnvelope) => void): string {
+  const envelope: CodeEnvelope = JSON.parse(
+    inflateRawSync(Buffer.from(code.slice(CODE_PREFIX.length), "base64url")).toString("utf8"),
+  );
+  tamper(envelope);
+  return CODE_PREFIX + deflateRawSync(Buffer.from(JSON.stringify(envelope))).toString("base64url");
+}
 
 /**
- * Falsifie un vrai code : même enveloppe et même `buildVersion` (il passe donc tous les gardes de
+ * Falsifie un vrai code : même enveloppe et même empreinte (il passe donc tous les gardes de
  * forme), mais la première action de déplacement ou de move vise une case hors de la grille.
  */
 function forgeImpossibleAction(code: string): string {
-  const envelope = JSON.parse(
-    inflateRawSync(Buffer.from(code.slice(CODE_PREFIX.length), "base64url")).toString("utf8"),
-  );
-  const impossible = { x: 999, y: 999 };
-  const action = envelope.data.actions.find(
-    (candidate: { path?: unknown; targetPosition?: unknown }) =>
-      candidate.path !== undefined || candidate.targetPosition !== undefined,
-  );
-  expect(action, "le combat produit contient une action à falsifier").toBeDefined();
-  if (action.path === undefined) {
-    action.targetPosition = impossible;
-  } else {
-    action.path = [impossible];
-  }
-  return CODE_PREFIX + deflateRawSync(Buffer.from(JSON.stringify(envelope))).toString("base64url");
+  return tamperEnvelope(code, (envelope) => {
+    const impossible = { x: 999, y: 999 };
+    const action = envelope.data.actions.find(
+      (candidate) => candidate.path !== undefined || candidate.targetPosition !== undefined,
+    );
+    if (action === undefined) {
+      throw new Error("le combat produit contient une action à falsifier");
+    }
+    if (action.path === undefined) {
+      action.targetPosition = impossible;
+    } else {
+      action.path = [impossible];
+    }
+  });
+}
+
+/** Falsifie un vrai code : le combat est intact et rejouable, mais l'empreinte annoncée est fausse. */
+function forgeFingerprint(code: string): string {
+  return tamperEnvelope(code, (envelope) => {
+    envelope.fingerprint = `${envelope.fingerprint}0`;
+  });
 }
 
 test("replay : la fenêtre refuse un texte quelconque et un code tronqué, avec un message clair", async ({
@@ -81,7 +102,7 @@ test("replay : la fenêtre refuse un texte quelconque et un code tronqué, avec 
   await page.getByTestId("replay-start").click();
   await expect(error).toHaveText("Ce texte n'est pas un code de replay.");
 
-  await input.fill("PTR1.AAAA");
+  await input.fill("PTR2.AAAA");
   await page.getByTestId("replay-start").click();
   await expect(error).toHaveText("Ce code est abîmé ou incomplet.");
   // Aucun combat n'est monté sur un refus : la fenêtre reste, le menu est toujours dessous.
@@ -111,7 +132,7 @@ test("replay : un combat gagné se copie, se recolle au menu et se rejoue avec s
   await share.getByTestId("copy-replay").click();
   await expect(share.getByTestId("copy-replay")).toHaveText("Code copié !");
   const code = await page.evaluate(() => navigator.clipboard.readText());
-  expect(code.startsWith("PTR1.")).toBe(true);
+  expect(code.startsWith(CODE_PREFIX)).toBe(true);
 
   // 2. Le recoller au menu principal.
   const menu = new MainMenu(page);
@@ -203,7 +224,7 @@ test("replay : un code dont une action est impossible ramène au menu avec un me
   // Le journal est vérifié en entier avant la lecture : retour au menu, avec la cause.
   const failure = page.getByTestId("replay-error");
   await expect(failure).toHaveText(
-    "Ce replay ne peut pas être rejoué : une de ses actions est impossible (code modifié ou autre version du jeu).",
+    "Ce replay ne peut pas être rejoué : le code a été modifié, ou ce combat se déroule autrement dans cette version du jeu.",
     { timeout: 30_000 },
   );
   await expect(menu.reviewBattle).toBeVisible();
@@ -212,4 +233,31 @@ test("replay : un code dont une action est impossible ramène au menu avec un me
   await menu.reviewBattle.click();
   await expect(page.getByTestId("replay-code-input")).toBeVisible();
   await expect(failure).toHaveCount(0);
+});
+
+test("replay : un code dont l'empreinte est fausse ramène au menu avec « se déroule autrement »", async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(240_000);
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await playOfflineDuelToVictory(page);
+  const copy = page.getByTestId("replay-share").getByTestId("copy-replay");
+  await copy.click();
+  await expect(copy).toHaveText("Code copié !");
+  const code = await page.evaluate(() => navigator.clipboard.readText());
+  expect(code.startsWith(CODE_PREFIX)).toBe(true);
+
+  const menu = new MainMenu(page);
+  await menu.goto();
+  await menu.reviewBattle.click();
+  await page.getByTestId("replay-code-input").fill(forgeFingerprint(code));
+  await page.getByTestId("replay-start").click();
+
+  // Le journal se rejoue sans erreur : seul l'écart d'empreinte trahit la falsification.
+  await expect(page.getByTestId("replay-error")).toHaveText(
+    "Ce replay ne peut pas être rejoué : ce combat se déroule autrement dans cette version du jeu.",
+    { timeout: 30_000 },
+  );
+  await expect(menu.reviewBattle).toBeVisible();
 });

@@ -816,16 +816,24 @@ Un combat fini, **local ou en ligne**, se partage en **code texte** et se relit 
 combat ». Le plan 242 n'a touché ni le core ni le protocole ; l'enregistrement des abandons (plan 243,
 décisions #1188 à #1190) est le seul changement du core.
 
-- **`app/replay-code.ts`** : `encodeReplayCode` / `decodeReplayCode` (asynchrones). Format `PTR1.` + base64url
-  du `deflate-raw` (`CompressionStream`, sans dépendance) de l'enveloppe `{ format: 1, buildVersion, data }`,
-  `data` = `ReplayData` = carte + setup partageable (sans `roomCode`, `battleId`, `telemetryTeams` ;
-  `localSeat` gardé) + équipes de placement + placements + graine + journal d'actions + abandons (`forfeits?`, validés par `isReplayData` : triés, rang dans le journal, joueur connu, motif de `ForfeitReason`). Quatre refus distincts
-  (`ReplayCodeError` : pas un code, abîmé, format inconnu, autre version) ; un `buildVersion` différent n'est
-  jamais rejoué. La carte est validée contre le registre (`mapIdFromUrl` / `mapUrlFromId`) et chargée par
-  l'URL du registre, pas celle du code. `isReplayData`, garde de forme, est partagé avec
-  `battle-persistence.ts` (§ 5k).
+- **`app/replay-code.ts`** : `encodeReplayCode` / `decodeReplayCode` (asynchrones). Format `PTR2.` + base64url
+  du `deflate-raw` (`CompressionStream`, sans dépendance) de l'enveloppe `SharedReplay` = `{ fingerprint, data }`
+  (plan 250 ; le format est dans le préfixe `PTR<n>.`). `data` = `ReplayData` = carte + setup partageable
+  (`shareableSetup`, liste blanche que le typecheck force à classer chaque champ de `CombatSetup` ; sans
+  `roomCode`, `battleId`, `telemetryTeams`, `musicChoiceId` ; `localSeat` gardé) + équipes de placement +
+  placements + graine + journal d'actions + abandons (`forfeits?`, validés par `isReplayData` : triés, rang
+  dans le journal, joueur connu, motif de `ForfeitReason`). Refus distincts (`ReplayCodeError` : pas un code,
+  abîmé, format inconnu ou plus récent, `PTR1.` d'une ancienne version). Le marqueur se cherche partout dans
+  le texte collé ; plafonds avant décodage (200 000 caractères, 2 Mo décompressés). La carte est validée contre
+  le registre (`mapIdFromUrl` / `mapUrlFromId`) et chargée par l'URL du registre, pas celle du code.
+  `isReplayData`, garde de forme, est partagé avec `battle-persistence.ts` (§ 5k).
+- **Empreinte** (`babylon/battle-resume.ts`, `replayFingerprint`) : `checksumOf` cumulé de
+  `canonicalizeBattleState` au départ puis après chaque action et abandon, via l'`onStep` optionnel de
+  `fastForwardBattle`. Calculée à la copie par un rejeu neuf du setup filtré, recalculée par le lecteur avant
+  la lecture : un écart renvoie au menu (`ReplayFailure.Diverged`). Un 6 contre 6 de 600 actions : code de
+  5 076 caractères, rejeu avec empreinte en 268 ms.
 - **Pas de lien** (itch.io ne transmet pas la query string à l'iframe) : code collable + fichier `.txt` en
-  repli ; un 6 contre 6 fait ~2 900 caractères, au-dessus des 2 000 de Discord sans Nitro.
+  repli ; un 6 contre 6 fait ~2 900 à 5 000 caractères, au-dessus des 2 000 de Discord sans Nitro.
 - **Export** : section « Replay » du dialogue de victoire (`ui-dom/battle-chrome.ts`, options `onCopyReplay` /
   `onDownloadReplay`), **en ligne comme hors ligne** depuis le plan 243 — abandon, absence et divergence à
   3 camps et plus sont dans le journal. Sauf une partie **interrompue** (divergence d'états en 1v1,

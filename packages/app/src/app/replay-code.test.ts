@@ -6,9 +6,12 @@ import {
   encodeReplayCode,
   ReplayCodeError,
   type ReplayData,
+  type SharedReplay,
 } from "./replay-code";
 
-const BUILD = "test-build";
+const FINGERPRINT = "test-fingerprint";
+
+const shared = (data: ReplayData): SharedReplay => ({ data, fingerprint: FINGERPRINT });
 
 const replay: ReplayData = {
   mapUrl: MockBattleResume.mapUrl,
@@ -20,7 +23,7 @@ const replay: ReplayData = {
 };
 
 /** Fabrique un code à partir d'une enveloppe arbitraire, avec le même emballage que le vrai. */
-async function codeOf(payload: string): Promise<string> {
+async function codeOf(payload: string, marker = "PTR2."): Promise<string> {
   const stream = new Blob([new TextEncoder().encode(payload)])
     .stream()
     .pipeThrough(new CompressionStream("deflate-raw"));
@@ -29,18 +32,18 @@ async function codeOf(payload: string): Promise<string> {
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=+$/, "");
-  return `PTR1.${base64}`;
+  return `${marker}${base64}`;
 }
 
 const envelope = (overrides: Record<string, unknown>) =>
-  JSON.stringify({ format: 1, buildVersion: BUILD, data: replay, ...overrides });
+  JSON.stringify({ fingerprint: FINGERPRINT, data: replay, ...overrides });
 
 describe("replay code", () => {
   it("round-trips a replay to identical data", async () => {
-    const code = await encodeReplayCode(replay, BUILD);
-    const result = await decodeReplayCode(code, BUILD);
+    const code = await encodeReplayCode(shared(replay));
+    const result = await decodeReplayCode(code);
 
-    expect(result).toEqual({ ok: true, data: replay });
+    expect(result).toEqual({ ok: true, replay: shared(replay) });
   });
 
   it("strips the room code, battle id and telemetry teams but keeps the local seat", async () => {
@@ -55,56 +58,56 @@ describe("replay code", () => {
       },
     };
 
-    const result = await decodeReplayCode(await encodeReplayCode(withLiveFields, BUILD), BUILD);
+    const result = await decodeReplayCode(await encodeReplayCode(shared(withLiveFields)));
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data.setup).toEqual({ ...replay.setup, localSeat: 1 });
-      expect(result.data.setup).not.toHaveProperty("roomCode");
-      expect(result.data.setup).not.toHaveProperty("battleId");
-      expect(result.data.setup).not.toHaveProperty("telemetryTeams");
+      expect(result.replay.data.setup).toEqual({ ...replay.setup, localSeat: 1 });
+      expect(result.replay.data.setup).not.toHaveProperty("roomCode");
+      expect(result.replay.data.setup).not.toHaveProperty("battleId");
+      expect(result.replay.data.setup).not.toHaveProperty("telemetryTeams");
     }
   });
 
   it("tolerates whitespace and line breaks in a pasted code", async () => {
-    const code = await encodeReplayCode(replay, BUILD);
+    const code = await encodeReplayCode(shared(replay));
     const wrapped = `  ${code.slice(0, 20)}\n${code.slice(20, 40)}\r\n ${code.slice(40)}  \n`;
 
-    expect(await decodeReplayCode(wrapped, BUILD)).toEqual({ ok: true, data: replay });
+    expect(await decodeReplayCode(wrapped)).toEqual({ ok: true, replay: shared(replay) });
   });
 
   it("refuses a text that is not a replay code", async () => {
-    expect(await decodeReplayCode("bonjour tout le monde", BUILD)).toEqual({
+    expect(await decodeReplayCode("bonjour tout le monde")).toEqual({
       ok: false,
       error: ReplayCodeError.NotACode,
     });
   });
 
   it("refuses a truncated code as unreadable", async () => {
-    const code = await encodeReplayCode(replay, BUILD);
+    const code = await encodeReplayCode(shared(replay));
 
-    expect(await decodeReplayCode(code.slice(0, 30), BUILD)).toEqual({
+    expect(await decodeReplayCode(code.slice(0, 30))).toEqual({
       ok: false,
       error: ReplayCodeError.Unreadable,
     });
   });
 
   it("refuses a marker with nothing after it as unreadable", async () => {
-    expect(await decodeReplayCode("PTR1.", BUILD)).toEqual({
+    expect(await decodeReplayCode("PTR2.")).toEqual({
       ok: false,
       error: ReplayCodeError.Unreadable,
     });
   });
 
   it("refuses a payload that is not valid JSON as unreadable", async () => {
-    expect(await decodeReplayCode(await codeOf("{pas du json"), BUILD)).toEqual({
+    expect(await decodeReplayCode(await codeOf("{pas du json"))).toEqual({
       ok: false,
       error: ReplayCodeError.Unreadable,
     });
   });
 
   it("refuses a JSON payload that is not an object as unreadable", async () => {
-    expect(await decodeReplayCode(await codeOf("null"), BUILD)).toEqual({
+    expect(await decodeReplayCode(await codeOf("null"))).toEqual({
       ok: false,
       error: ReplayCodeError.Unreadable,
     });
@@ -113,43 +116,81 @@ describe("replay code", () => {
   it("refuses a payload whose data has the wrong shape as unreadable", async () => {
     const code = await codeOf(envelope({ data: { mapUrl: MockBattleResume.mapUrl } }));
 
-    expect(await decodeReplayCode(code, BUILD)).toEqual({
+    expect(await decodeReplayCode(code)).toEqual({
       ok: false,
       error: ReplayCodeError.Unreadable,
     });
   });
 
   it("refuses a format this version does not know", async () => {
-    expect(await decodeReplayCode(await codeOf(envelope({ format: 2 })), BUILD)).toEqual({
+    expect(await decodeReplayCode(await codeOf(envelope({}), "PTR9."))).toEqual({
       ok: false,
       error: ReplayCodeError.UnknownFormat,
     });
   });
 
-  it("refuses a code written by another build of the game", async () => {
-    const code = await encodeReplayCode(replay, "another-build");
+  it("refuses a code of the first format as another version", async () => {
+    const legacy = JSON.stringify({ format: 1, buildVersion: "old-build", data: replay });
 
-    expect(await decodeReplayCode(code, BUILD)).toEqual({
+    expect(await decodeReplayCode(await codeOf(legacy, "PTR1."))).toEqual({
       ok: false,
       error: ReplayCodeError.OtherVersion,
     });
   });
 
+  it("refuses a code without a fingerprint as unreadable", async () => {
+    const code = await codeOf(JSON.stringify({ data: replay }));
+
+    expect(await decodeReplayCode(code)).toEqual({ ok: false, error: ReplayCodeError.Unreadable });
+  });
+
+  it.each([
+    ["double quotes", (code: string) => `"${code}"`],
+    ["typographic quotes", (code: string) => `“${code}”`],
+    ["backticks", (code: string) => `\`${code}\``],
+    ["a code block", (code: string) => `\`\`\`\n${code}\n\`\`\``],
+    ["a code block with a language", (code: string) => `\`\`\`text\n${code}\n\`\`\``],
+  ])("accepts a code wrapped in %s", async (_label, wrap) => {
+    const code = await encodeReplayCode(shared(replay));
+
+    expect(await decodeReplayCode(wrap(code))).toEqual({ ok: true, replay: shared(replay) });
+  });
+
+  it("refuses an oversized text as unreadable before decoding it", async () => {
+    const code = `PTR2.${"A".repeat(200_001)}`;
+
+    expect(await decodeReplayCode(code)).toEqual({ ok: false, error: ReplayCodeError.Unreadable });
+  });
+
+  it("refuses a payload that inflates beyond the limit as unreadable", async () => {
+    const code = await codeOf(envelope({ padding: " ".repeat(2_000_001) }));
+
+    expect(await decodeReplayCode(code)).toEqual({ ok: false, error: ReplayCodeError.Unreadable });
+  });
+
+  it("leaves the rematch music choice out of the code", async () => {
+    const withChoice = { ...replay, setup: { ...replay.setup, musicChoiceId: "random" } };
+
+    const result = await decodeReplayCode(await encodeReplayCode(shared(withChoice)));
+
+    expect(result).toEqual({ ok: true, replay: shared(replay) });
+  });
+
   it("brings a foreign host's map URL back to the registry URL", async () => {
     const hostile = { ...replay, mapUrl: "https://example.com/assets/maps/simple-arena.tmj" };
 
-    const result = await decodeReplayCode(await encodeReplayCode(hostile, BUILD), BUILD);
+    const result = await decodeReplayCode(await encodeReplayCode(shared(hostile)));
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data.mapUrl).toBe(MockBattleResume.mapUrl);
+      expect(result.replay.data.mapUrl).toBe(MockBattleResume.mapUrl);
     }
   });
 
   it("refuses a map that is not in the registry", async () => {
     const unknown = { ...replay, mapUrl: "https://example.com/evil.tmj" };
 
-    expect(await decodeReplayCode(await encodeReplayCode(unknown, BUILD), BUILD)).toEqual({
+    expect(await decodeReplayCode(await encodeReplayCode(shared(unknown)))).toEqual({
       ok: false,
       error: ReplayCodeError.Unreadable,
     });
@@ -167,13 +208,13 @@ describe("replay code", () => {
       ],
     };
 
-    const result = await decodeReplayCode(await encodeReplayCode(withForfeits, BUILD), BUILD);
+    const result = await decodeReplayCode(await encodeReplayCode(shared(withForfeits)));
 
-    expect(result).toEqual({ ok: true, data: withForfeits });
+    expect(result).toEqual({ ok: true, replay: shared(withForfeits) });
   });
 
   it("accepts a replay without a forfeits field", async () => {
-    const result = await decodeReplayCode(await codeOf(envelope({})), BUILD);
+    const result = await decodeReplayCode(await codeOf(envelope({})));
 
     expect(result.ok).toBe(true);
   });
@@ -201,7 +242,7 @@ describe("replay code", () => {
   ])("refuses forfeits with %s as unreadable", async (_label, forfeits) => {
     const code = await codeOf(envelope({ data: { ...replay, forfeits } }));
 
-    expect(await decodeReplayCode(code, BUILD)).toEqual({
+    expect(await decodeReplayCode(code)).toEqual({
       ok: false,
       error: ReplayCodeError.Unreadable,
     });

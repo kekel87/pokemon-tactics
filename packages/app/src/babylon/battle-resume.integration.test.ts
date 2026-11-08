@@ -1,8 +1,20 @@
-import { ActionKind, type BattleState, type MapDefinition } from "@pokemon-tactic/core";
+import {
+  ActionKind,
+  type BattleState,
+  ForfeitReason,
+  type MapDefinition,
+  PlayerId,
+} from "@pokemon-tactic/core";
 import { pocArena } from "@pokemon-tactic/data";
 import { describe, expect, it } from "vitest";
 import { MockBattleResume } from "../testing/mock-battle-resume";
-import { type BattleInputs, buildBattle, resumeBattle } from "./battle-resume";
+import {
+  type BattleInputs,
+  buildBattle,
+  fastForwardBattle,
+  replayFingerprint,
+  resumeBattle,
+} from "./battle-resume";
 
 const MAP: MapDefinition = pocArena;
 const INPUTS: BattleInputs = MockBattleResume.inputs;
@@ -136,5 +148,67 @@ describe("battle resume", () => {
     expect(() => resumeBattle(lethalInputs, live.engine.exportReplay(), MAP)).toThrow(
       "already over",
     );
+  });
+});
+
+describe("replay fingerprint (plan 250)", () => {
+  function playedLog(inputs: BattleInputs, count: number) {
+    const live = buildBattle(inputs, MAP);
+    live.engine.consumeStartupEvents();
+    playActions(live, count);
+    return live.engine.exportReplay();
+  }
+
+  it("is the same when the same log is replayed twice", () => {
+    // Given a log of several actions
+    const log = playedLog(INPUTS, 6);
+
+    // When it is fingerprinted twice
+    const first = replayFingerprint(INPUTS, log, MAP);
+    const second = replayFingerprint(INPUTS, log, MAP);
+
+    // Then both fingerprints agree
+    expect(first).toBe(second);
+    expect(first).not.toBe("");
+  });
+
+  it("differs when the log has one action less", () => {
+    const log = playedLog(INPUTS, 6);
+    const shorter = { actions: log.actions.slice(0, -1) };
+
+    expect(replayFingerprint(INPUTS, shorter, MAP)).not.toBe(replayFingerprint(INPUTS, log, MAP));
+  });
+
+  it("differs when the same actions are replayed with another seed", () => {
+    // Given a log that stays replayable under a different seed (status moves and turn ends only)
+    const log = playedLog(INPUTS, 6);
+    const otherInputs = { ...INPUTS, seed: INPUTS.seed + 1 };
+
+    // When the same actions run on another PRNG sequence
+    // Then the fingerprint tells them apart
+    expect(replayFingerprint(otherInputs, log, MAP)).not.toBe(replayFingerprint(INPUTS, log, MAP));
+  });
+
+  it("differs when a forfeit sits at another place in the log", () => {
+    const log = playedLog(INPUTS, 6);
+    const forfeitAfter = (afterAction: number) => ({
+      actions: log.actions.slice(0, afterAction),
+      forfeits: [{ afterAction, playerId: PlayerId.Player2, reason: ForfeitReason.Resigned }],
+    });
+
+    expect(replayFingerprint(INPUTS, forfeitAfter(2), MAP)).not.toBe(
+      replayFingerprint(INPUTS, forfeitAfter(3), MAP),
+    );
+  });
+
+  it("leaves the fast-forwarded state unchanged when no step callback is given", () => {
+    const log = playedLog(INPUTS, 6);
+    const steps: BattleState[] = [];
+
+    const silent = fastForwardBattle(INPUTS, log, MAP);
+    const observed = fastForwardBattle(INPUTS, log, MAP, (state) => steps.push(state));
+
+    expect(snapshot(silent.battle.state)).toEqual(snapshot(observed.battle.state));
+    expect(steps).toHaveLength(log.actions.length + 1);
   });
 });

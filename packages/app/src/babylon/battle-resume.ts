@@ -13,11 +13,19 @@
 import type {
   BattleEvent,
   BattleReplay,
+  BattleState,
   MapDefinition,
   PlacementEntry,
   PlacementTeam,
 } from "@pokemon-tactic/core";
-import { BattleEventType, createPrng, DEFAULT_BATTLE_LEVEL, runReplay } from "@pokemon-tactic/core";
+import {
+  BattleEventType,
+  canonicalizeBattleState,
+  checksumOf,
+  createPrng,
+  DEFAULT_BATTLE_LEVEL,
+  runReplay,
+} from "@pokemon-tactic/core";
 import { type BattleSetupResult, createBattleFromPlacements } from "@pokemon-tactic/view-core";
 import type { CombatSetup } from "../app/screens";
 import { buildTeamOverrides } from "../team/build-overrides.js";
@@ -124,12 +132,14 @@ export function fastForwardBattle(
   inputs: BattleInputs,
   log: BattleLog,
   map: MapDefinition,
+  onStep?: (state: BattleState) => void,
 ): ResumedBattle {
   const battle = buildBattle(inputs, map);
   // Drained in the same order as the live path (the orchestrator does it in `start()`), so the
   // entry-time abilities are applied and logged before the first replayed action, and `start()` finds
   // nothing left to animate on resume.
   const logEvents: BattleEvent[] = [...battle.engine.consumeStartupEvents()];
+  onStep?.(battle.engine.getGameState(""));
 
   runReplay(
     {
@@ -138,7 +148,30 @@ export function fastForwardBattle(
       seed: inputs.seed,
     },
     () => battle.engine,
-    (events) => logEvents.push(...events),
+    (events) => {
+      logEvents.push(...events);
+      onStep?.(battle.engine.getGameState(""));
+    },
   );
   return { battle, logEvents };
+}
+
+/**
+ * L'empreinte du déroulé d'un combat (plan 250) : somme de contrôle cumulée de l'état au départ, puis
+ * après chaque action et chaque abandon. Un code de replay la porte ; le lecteur la recalcule et la
+ * compare. Cumulée et non finale : un changement qui fait diverger le combat en route puis retomber sur
+ * le même état de fin (des dégâts différents sur un Pokémon mis K.O. de toute façon) se voit quand même.
+ *
+ * Lève comme `fastForwardBattle` si le journal ne se rejoue pas.
+ */
+export function replayFingerprint(
+  inputs: BattleInputs,
+  log: BattleLog,
+  map: MapDefinition,
+): string {
+  let fingerprint = "";
+  fastForwardBattle(inputs, log, map, (state) => {
+    fingerprint = checksumOf(fingerprint + canonicalizeBattleState(state));
+  });
+  return fingerprint;
 }

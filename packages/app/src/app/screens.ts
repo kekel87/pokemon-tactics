@@ -2,7 +2,7 @@ import type { TeamSelection } from "@pokemon-tactic/core";
 import type { NetworkErrorCode, NetworkSeeds, RoomRole } from "@pokemon-tactic/network";
 import type { TelemetryTeam } from "../analytics/telemetry";
 import type { BattleResumeSave } from "./battle-persistence";
-import type { ReplayData, ReplayFailure } from "./replay-code";
+import type { ReplayFailure, SharedReplay } from "./replay-code";
 
 /**
  * Screen FSM (plan 120) — screen IDs and legal transition table.
@@ -170,7 +170,7 @@ export interface ScreenParamsById {
     setup?: CombatSetup;
     resume?: BattleResumeSave;
     /** Rejoue un combat terminé (plan 242) au lieu d'en jouer un. */
-    replay?: ReplayData;
+    replay?: SharedReplay;
   };
 }
 
