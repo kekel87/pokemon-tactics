@@ -124,3 +124,6 @@ assets-src/effects/
 # PokeAPI cries, regeneratable via `pnpm build-audio`. Only the packed bundle
 # (packages/app/public/assets/audio/sounds.bin + sounds-manifest.json) ships.
 assets-src/audio/
+
+# Références visuelles non libres du mode Aventure (cartes de fans, captures) : jamais commitées.
+assets-src/references/

@@ -41,6 +41,7 @@ La mémoire du projet est un graphe SQLite, plus des fichiers : `STATUS.md`, `do
 | Graphe, entité `plan-196` | Avant télémétrie, Worker Cloudflare, `pnpm stats` |
 | `packages/data` | Roster, movesets, moves, talents (source de vérité, jamais recopiée) |
 | `docs/game-design.md` | Avant une mécanique de jeu |
+| `docs/aventure.md` | Avant de parler du solo, du mode Aventure ou de la carte du monde (arrêté, idées, ouvert, recherches) |
 | `docs/architecture.md` | Avant de créer un fichier ou package, de changer la structure |
 | `docs/roadmap.md` · `docs/plans/` | Quoi faire ensuite · plan en cours avant de coder |
 | `docs/methodology.md` | Workflow, parallélisme des agents |
