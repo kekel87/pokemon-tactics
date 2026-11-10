@@ -1969,7 +1969,9 @@ function startReplayBattle(options: {
       battle,
       handles: current.handles,
       signal: abort.signal,
-      onExit: () => navigate("main-menu", undefined),
+      // Un replay rend au Stade de Combat, où vit « Revoir un combat » (plan 251) : on en enchaîne sans
+      // repasser par le menu principal.
+      onExit: () => navigate("battle-mode", undefined),
       // « Rejouer » du dialogue de victoire : le même replay, depuis le début, en lecture.
       onReplay: () => startSegment(0, true),
       wireTurnReady: (built) => (activePokemonId) => {
@@ -2035,7 +2037,7 @@ function startReplayBattle(options: {
         combatClock.setSlowMotion(speed);
         refreshBar();
       },
-      onQuit: () => navigate("main-menu", undefined),
+      onQuit: () => navigate("battle-mode", undefined),
     },
     { position: 0, total, playing: true, speed },
   );
@@ -2150,12 +2152,13 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
 
     if (sharedReplay && replayData) {
       // Même discipline que la reprise : tout ce qui peut échouer est dans le try, un échec rend au
-      // menu au lieu de laisser le joueur sous un voile de chargement.
-      const backToMenu = (replayFailure: ReplayFailure, error: unknown): void => {
-        // biome-ignore lint/suspicious/noConsole: seule trace de la cause — le joueur retombe au menu
-        console.warn("[replay] lecture impossible, retour au menu :", error);
+      // Stade de Combat (où vit « Revoir un combat », plan 251) au lieu de laisser le joueur sous un
+      // voile de chargement.
+      const backToBattleStadium = (replayFailure: ReplayFailure, error: unknown): void => {
+        // biome-ignore lint/suspicious/noConsole: seule trace de la cause — le joueur retombe au Stade de Combat
+        console.warn("[replay] lecture impossible, retour au Stade de Combat :", error);
         overlay.cancel();
-        navigate("main-menu", { replayFailure });
+        navigate("battle-mode", { replayFailure });
       };
       try {
         const [loaded] = await Promise.all([loadTiledMap(mapUrl), activeCombat.ready]);
@@ -2172,12 +2175,12 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
         try {
           fingerprint = replayFingerprint(replayInputs(replayData), replayData, loaded.map);
         } catch (error) {
-          backToMenu(ReplayFailure.Rejected, error);
+          backToBattleStadium(ReplayFailure.Rejected, error);
           return;
         }
         // Toutes les actions passent, mais le combat ne se déroule plus pareil (plan 250).
         if (fingerprint !== sharedReplay.fingerprint) {
-          backToMenu(ReplayFailure.Diverged, new Error("replay fingerprint mismatch"));
+          backToBattleStadium(ReplayFailure.Diverged, new Error("replay fingerprint mismatch"));
           return;
         }
         overlay.setProgress(0.6);
@@ -2199,7 +2202,7 @@ export function createCombatScreen(navigate: Navigate, backend: RendererBackend)
           signal: abort.signal,
         });
       } catch (error) {
-        backToMenu(ReplayFailure.LoadFailed, error);
+        backToBattleStadium(ReplayFailure.LoadFailed, error);
         return;
       }
       await battleAudioReady(replayData.setup.musicId);

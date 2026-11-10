@@ -6,6 +6,7 @@ const hostStub = {} as HTMLElement;
 
 const PARAMS: ScreenParamsById = {
   "main-menu": undefined,
+  adventure: undefined,
   "battle-mode": undefined,
   lobby: undefined,
   "team-select": { mapId: "volcano" },

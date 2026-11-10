@@ -1,8 +1,25 @@
 import { expect, test } from "../../fixtures";
 import { MainMenu } from "../../pages/MainMenu";
 import { BattleModeScreen, TeamSelectScreen } from "../../pages/screens";
+import { MyTeamsScreen } from "../../pages/teamBuilder";
 
-test("menu → mode de combat → sélection d'équipe → retour", async ({ page }) => {
+test("menu → Stade de Combat → Constructeur d'équipe → retour au Stade de Combat", async ({
+  page,
+}) => {
+  const menu = new MainMenu(page);
+  const battleMode = new BattleModeScreen(page);
+  const myTeams = new MyTeamsScreen(page);
+
+  await menu.goto();
+  await menu.openTeamBuilder();
+  await expect(myTeams.newTeam).toBeVisible();
+
+  await myTeams.back.click();
+  await expect(battleMode.title).toBeVisible();
+  await expect(battleMode.teamBuilder).toBeVisible();
+});
+
+test("menu → Stade de Combat → sélection d'équipe → retour", async ({ page }) => {
   const menu = new MainMenu(page);
   const battleMode = new BattleModeScreen(page);
   const teamSelect = new TeamSelectScreen(page);

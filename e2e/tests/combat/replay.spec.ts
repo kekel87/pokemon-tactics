@@ -92,7 +92,7 @@ test("replay : la fenêtre refuse un texte quelconque et un code tronqué, avec 
   const menu = new MainMenu(page);
   await menu.goto();
 
-  await menu.reviewBattle.click();
+  await menu.openReviewBattle();
   const input = page.getByTestId("replay-code-input");
   const error = page.getByTestId("replay-import-error");
   await expect(input).toBeVisible();
@@ -137,7 +137,7 @@ test("replay : un combat gagné se copie, se recolle au menu et se rejoue avec s
   // 2. Le recoller au menu principal.
   const menu = new MainMenu(page);
   await menu.goto();
-  await menu.reviewBattle.click();
+  await menu.openReviewBattle();
   await page.getByTestId("replay-code-input").fill(code);
   await page.getByTestId("replay-start").click();
   await new CombatScene(page).waitReady();
@@ -217,20 +217,21 @@ test("replay : un code dont une action est impossible ramène au menu avec un me
 
   const menu = new MainMenu(page);
   await menu.goto();
-  await menu.reviewBattle.click();
+  await menu.openReviewBattle();
   await page.getByTestId("replay-code-input").fill(forgeImpossibleAction(code));
   await page.getByTestId("replay-start").click();
 
-  // Le journal est vérifié en entier avant la lecture : retour au menu, avec la cause.
+  // Le journal est vérifié en entier avant la lecture : retour au Stade de Combat, avec la cause.
+  const stadium = new BattleModeScreen(page);
   const failure = page.getByTestId("replay-error");
   await expect(failure).toHaveText(
     "Ce replay ne peut pas être rejoué : le code a été modifié, ou ce combat se déroule autrement dans cette version du jeu.",
     { timeout: 30_000 },
   );
-  await expect(menu.reviewBattle).toBeVisible();
+  await expect(stadium.reviewBattle).toBeVisible();
 
   // Un nouvel essai efface l'échec précédent.
-  await menu.reviewBattle.click();
+  await stadium.reviewBattle.click();
   await expect(page.getByTestId("replay-code-input")).toBeVisible();
   await expect(failure).toHaveCount(0);
 });
@@ -250,14 +251,16 @@ test("replay : un code dont l'empreinte est fausse ramène au menu avec « se d�
 
   const menu = new MainMenu(page);
   await menu.goto();
-  await menu.reviewBattle.click();
+  await menu.openReviewBattle();
   await page.getByTestId("replay-code-input").fill(forgeFingerprint(code));
   await page.getByTestId("replay-start").click();
 
+  const stadium = new BattleModeScreen(page);
   // Le journal se rejoue sans erreur : seul l'écart d'empreinte trahit la falsification.
   await expect(page.getByTestId("replay-error")).toHaveText(
     "Ce replay ne peut pas être rejoué : ce combat se déroule autrement dans cette version du jeu.",
     { timeout: 30_000 },
   );
-  await expect(menu.reviewBattle).toBeVisible();
+  await expect(stadium.title).toBeVisible();
+  await expect(stadium.reviewBattle).toBeVisible();
 });

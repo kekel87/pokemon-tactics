@@ -20,7 +20,7 @@ async function openPokemonPicker(page: Page): Promise<PokemonPicker> {
   const edit = new TeamEditScreen(page);
   const picker = new PokemonPicker(page);
   await menu.goto();
-  await menu.teamBuilder.click();
+  await menu.openTeamBuilder();
   await teams.newTeam.click();
   await edit.slot(1).click();
   await expect(picker.title).toBeVisible();
@@ -34,7 +34,7 @@ async function openFlorizarreEdit(page: Page): Promise<void> {
   const slots = new TeamEditScreen(page);
   const picker = new PokemonPicker(page);
   await menu.goto();
-  await menu.teamBuilder.click();
+  await menu.openTeamBuilder();
   await teams.newTeam.click();
   await slots.slot(1).click();
   await picker.search.fill("flo");

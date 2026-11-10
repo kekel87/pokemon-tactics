@@ -205,7 +205,7 @@ test("§6.0 le même repli vaut pour le sélecteur de Pokemon du Constructeur d'
   const historyStack = new BrowserHistory(page);
 
   await menu.goto();
-  await menu.teamBuilder.click();
+  await menu.openTeamBuilder();
   await myTeams.newTeam.click();
 
   // Un autre écran, une autre modale, le même défaut : tous les sélecteurs sont bâtis sur le `Modal`

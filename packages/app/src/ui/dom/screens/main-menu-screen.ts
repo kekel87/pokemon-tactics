@@ -6,29 +6,22 @@ import {
   TelemetryAction,
   TelemetryScreen,
 } from "../../../analytics/telemetry";
+import { isAdventureUnlocked } from "../../../app/adventure-unlock";
 import {
   type BattleResumeSave,
   battleResumeStore,
   isOnlineSave,
   isResumableOnlineSave,
 } from "../../../app/battle-persistence";
-import { ReplayFailure } from "../../../app/replay-code";
 import type { Navigate, Screen } from "../../../app/screen-manager";
 import { getLanguage, nextLanguage, setLanguage, t } from "../../../i18n";
 import type { TranslationKey } from "../../../i18n/types";
 import { MAPS_REGISTRY } from "../../../maps/maps-registry";
 import { networkErrorCodeOf } from "../../../network/network-error";
 import { holdOnlineRoom, onlineRoomDeps, releaseOnlineRoom } from "../../../network/online-room";
-import { openReplayImportModal } from "../../team/ReplayImportModal";
-import { bindScreenInput, el, menuButton } from "./elements";
+import { bindScreenInput, comingSoonButton, el, menuButton } from "./elements";
 
 const VERSION_TEXT = __APP_VERSION__;
-
-const REPLAY_FAILURE_KEYS: Record<ReplayFailure, TranslationKey> = {
-  [ReplayFailure.Rejected]: "replay.error.rejected",
-  [ReplayFailure.LoadFailed]: "replay.error.loadFailed",
-  [ReplayFailure.Diverged]: "replay.error.diverged",
-};
 
 /**
  * Entry point back into a battle interrupted by a reload (plan 181) — shown only when a save exists,
@@ -161,16 +154,15 @@ function resumeEntry(
 }
 
 /**
- * DOM port of MainMenuScene: title, 5 entries (Aventure disabled) plus a 6th when a battle is waiting
- * to be resumed, version, language toggle.
+ * Le menu principal (plan 251) : les deux modes, Aventure et Stade de Combat, puis Paramètres et
+ * Crédits ; « Reprendre le combat » en tête quand un combat du Stade attend. Ce qui ne sert qu'au Stade
+ * (replays, Constructeur d'équipe, Tutoriel) vit dans son écran.
  */
 export function createMainMenuScreen(navigate: Navigate): Screen<"main-menu"> {
   let root: HTMLElement | null = null;
   let unbindScreenInput: (() => void) | null = null;
   /** Pourquoi la dernière tentative de reprise en ligne a échoué. `null` = rien à dire. */
   let resumeFailure: NetworkErrorCode | null = null;
-  /** Pourquoi le replay qui vient d'être lancé n'a pas pu l'être (plan 246). Gardé pour la langue. */
-  let replayFailure: ReplayFailure | null = null;
 
   const showResumeFailure = (code: NetworkErrorCode): void => {
     resumeFailure = code;
@@ -219,27 +211,11 @@ export function createMainMenuScreen(navigate: Navigate): Screen<"main-menu"> {
       );
       buttons.append(failure);
     }
-    if (replayFailure !== null) {
-      const failure = el("p", "mn-error", "replay-error");
-      failure.textContent = t(REPLAY_FAILURE_KEYS[replayFailure]);
-      buttons.append(failure);
-    }
     buttons.append(
-      menuButton(t("menu.adventure")),
+      isAdventureUnlocked()
+        ? menuButton(t("menu.adventure"), () => navigate("adventure", undefined))
+        : comingSoonButton(t("menu.adventure")),
       menuButton(t("menu.battle"), () => navigate("battle-mode", undefined)),
-      menuButton(t("menu.reviewBattle"), () => {
-        // Un nouvel essai : l'échec du précédent ne doit pas rester sous la fenêtre d'import.
-        // Retiré sur place, sans re-rendu : le bouton garde le focus que la fenêtre lui rendra.
-        replayFailure = null;
-        root?.querySelector("[data-testid='replay-error']")?.remove();
-        openReplayImportModal((replay) =>
-          navigate("combat", {
-            mapUrl: replay.data.mapUrl,
-            replay,
-          }),
-        );
-      }),
-      menuButton(t("menu.teamBuilder"), () => navigate("my-teams", undefined)),
       menuButton(t("menu.settings"), () => navigate("settings", undefined)),
       menuButton(t("menu.credits"), () => navigate("credits", undefined)),
     );
@@ -260,15 +236,14 @@ export function createMainMenuScreen(navigate: Navigate): Screen<"main-menu"> {
   };
 
   return {
-    mount(host, params) {
+    mount(host) {
       countScreen(TelemetryScreen.MainMenu);
-      replayFailure = params?.replayFailure ?? null;
       /*
        * Toute retombée au menu principal met fin à une éventuelle session en ligne (plan 199).
        *
        * C'est le point de fermeture qui **couvre tous les cas** : le salon appartient à la session
        * et non à l'écran qui le crée — pour que l'accusé de lancement ait le temps de partir — et
-       * `combat` ne transite que vers ici (`SCREEN_TRANSITIONS`). Quitter un combat en ligne, ou
+       * `combat` ne transite que vers ici (`SCREEN_TRANSITIONS`), sauf un replay, jamais en ligne. Quitter un combat en ligne, ou
        * l'abandonner, referme donc le canal sans que l'écran de combat ait à connaître le réseau.
        * Sans effet quand on jouait en local.
        */

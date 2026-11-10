@@ -24,10 +24,10 @@ export class EnglishScreens {
 
   // --- Menu principal (clés `menu.*`)
   get battle(): Locator {
-    return this.page.getByRole("button", { name: "Battle", exact: true });
+    return this.page.getByRole("button", { name: "Battle Stadium", exact: true });
   }
 
-  // --- Mode de combat (`battleMode.*`)
+  // --- Stade de Combat (`battleMode.*`)
   get local(): Locator {
     return this.page.getByRole("button", { name: "Local", exact: true });
   }

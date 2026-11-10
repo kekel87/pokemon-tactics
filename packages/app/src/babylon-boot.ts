@@ -54,6 +54,7 @@ import {
   normalizeSandboxConfig,
   type SandboxConfig,
 } from "./types/SandboxConfig.js";
+import { createAdventureScreen } from "./ui/dom/screens/adventure-screen.js";
 import { createBattleModeScreen } from "./ui/dom/screens/battle-mode-screen.js";
 import { createControlsScreen } from "./ui/dom/screens/controls-screen.js";
 import { createCreditsScreen } from "./ui/dom/screens/credits-screen.js";
@@ -171,6 +172,7 @@ async function boot(root: HTMLElement): Promise<void> {
     root,
     {
       "main-menu": () => createMainMenuScreen(navigate),
+      adventure: () => createAdventureScreen(navigate),
       "battle-mode": () => createBattleModeScreen(navigate),
       lobby: () => createLobbyScreen(navigate),
       "team-select": () => createTeamSelectScreen(navigate),

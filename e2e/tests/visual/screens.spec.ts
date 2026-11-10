@@ -16,7 +16,7 @@ test("golden : menu principal", async ({ page }) => {
   await expect(page).toHaveScreenshot("main-menu.png");
 });
 
-test("golden : écran mode de combat", async ({ page }) => {
+test("golden : écran Stade de Combat", async ({ page }) => {
   const menu = new MainMenu(page);
   const battleMode = new BattleModeScreen(page);
   await menu.goto();

@@ -7,7 +7,7 @@ import { bindScreenInput } from "./elements";
 export function createMyTeamsScreen(navigate: Navigate): Screen<"my-teams"> {
   let view: MyTeamsView | null = null;
   let unbindScreenInput: (() => void) | null = null;
-  const goBack = (): void => navigate("main-menu", undefined);
+  const goBack = (): void => navigate("battle-mode", undefined);
 
   return {
     mount(host) {

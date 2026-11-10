@@ -14,7 +14,7 @@ test("menu principal : l'espagnol se choisit, persiste au rechargement, et le to
   await menu.goto();
 
   await menu.selectLanguage("ES");
-  await expect(page.getByRole("button", { name: "Combate", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Estadio de Combate", exact: true })).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem("pt-lang"))).toBe("es");
   // `<html lang>` suit la langue du jeu (lecteurs d'écran, traduction automatique du navigateur).
   await expect(page.locator("html")).toHaveAttribute("lang", "es");

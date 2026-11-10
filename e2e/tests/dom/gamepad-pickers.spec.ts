@@ -29,7 +29,7 @@ async function openTeamEditWithPad(page: Page): Promise<TeamEditScreen> {
   const myTeams = new MyTeamsScreen(page);
   const edit = new TeamEditScreen(page);
   await menu.goto();
-  await menu.teamBuilder.click();
+  await menu.openTeamBuilder();
   await myTeams.newTeam.click();
   // Le poller démarre ici, une fois l'`InputSystem` en place — pas sur `load`, qui est une course.
   await connectPad(page);

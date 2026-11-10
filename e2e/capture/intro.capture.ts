@@ -148,13 +148,16 @@ test("séquence d'intro", async ({ page }) => {
   /*
    * Navigation à la manette : le liseré descend d'entrée en entrée, visible à l'image.
    *
-   * Le premier cran atterrit sur « Combat » et non sur « Aventure » — mesuré via `focus-trace.txt`,
-   * pas supposé. Deux crans suffisent donc pour « Constructeur d'équipe ». Cette trace est écrite à
-   * chaque run : si une entrée de menu est ajoutée, elle dira immédiatement où le focus atterrit.
+   * Le premier cran atterrit sur « Battle Stadium » et non sur « Adventure » (désactivée, hors du
+   * parcours du focus) — mesuré via `focus-trace.txt`, pas supposé. Le Constructeur d'équipe vit au
+   * Stade de Combat depuis le plan 251 : on y entre, puis on descend jusqu'à lui. Cette trace est
+   * écrite à chaque run : si une entrée est ajoutée, elle dira immédiatement où le focus atterrit.
    */
   await padMoveTo(page, "down", "Battle");
   await recorder.holdForPacing(600);
   await recorder.capture("focus-combat", "Play with a controller");
+  await padActivate(page, () => ui.local.isVisible());
+  await recorder.holdForPacing(700);
   await padMoveTo(page, "down", "Team Builder");
   await recorder.holdForPacing(700);
   await recorder.capture("focus-constructeur");
@@ -329,16 +332,12 @@ test("séquence d'intro", async ({ page }) => {
   // Retour : B remonte d'un écran, comme la manette le fait vraiment.
   await padBack(page, () => ui.teamCard("Blaze & Psy").isVisible());
   await recorder.holdForPacing(600);
-  await padBack(page, () => ui.battle.isVisible());
-  await recorder.holdForPacing(700);
-
-  await padMoveTo(page, "up", "Battle");
-  await recorder.holdForPacing(600);
-  await padActivate(page, () => ui.local.isVisible());
+  // Le Constructeur d'équipe rend au Stade de Combat (plan 251), d'où part aussi « Local ».
+  await padBack(page, () => ui.local.isVisible());
   await recorder.holdForPacing(900);
   await recorder.capture("mode-combat", "Turn-based tactical battles");
 
-  await padMoveTo(page, "down", "Local");
+  await padMoveTo(page, "up", "Local");
   await recorder.holdForPacing(700);
   /*
    * 🔴 « Local » entre DROIT dans la sélection d'équipe depuis le plan 208 : il n'y a plus d'écran de

@@ -56,8 +56,8 @@ test("§6.11 aucune sauvegarde : le menu principal n'offre pas de reprise", asyn
   expect(await store.read()).toBeNull();
   await expect(menu.resume).toHaveCount(0);
   // Et le menu est inchangé : la reprise s'AJOUTE en tête, elle ne remplace aucune entrée.
-  await expect(menu.entries).toHaveCount(6);
-  await expect(menu.entries.first()).toHaveText("Aventure");
+  await expect(menu.entries).toHaveCount(4);
+  await expect(menu.entries.first()).toHaveText("Aventure Bientôt");
   await expect(menu.combat).toBeVisible();
 });
 

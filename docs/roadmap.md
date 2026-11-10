@@ -92,6 +92,7 @@ d'apparition n'indique une priorité.
       à une méga-carte mondiale. 🔴 Garde-fou : **pas de scénario complet ni de monde sur-mesure**
       (temps limité) — on s'appuie sur l'univers Pokemon existant. Découpage en lots, verrou et
       ouverture publique : `docs/aventure.md` § Découpage en lots (`decision-1227`, `decision-1228`).
+      **Lot 1 fait** (plan 251, 2026-11-10) : menu principal Aventure / Stade de Combat, Aventure verrouillé.
 - [ ] **Conditions de victoire alternatives**
 - [ ] **Draft/ban phase** — bannir des espèces à tour de rôle (interdites aux deux camps) puis choisir
       la sienne en voyant l'adversaire. Effet de bord : **corrige l'équilibrage sans équilibrer** —
@@ -116,11 +117,11 @@ d'apparition n'indique une priorité.
 
 - [x] **Revoir un combat — replay partageable + lecteur** — livré par les plans 242 et 243 (2026-11-01,
       publiés en `v2026.11.1`). Un combat fini, **local ou en ligne**, se copie en code texte `PTR1.…` (ou se
-      télécharge en fichier) depuis la victoire ; le menu principal le relit avec barre de lecture (début,
+      télécharge en fichier) depuis la victoire ; le Stade de Combat le relit avec barre de lecture (début,
       action précédente / suivante, lecture, vitesse ×0,5 à ×4). **Pas de lien** : itch.io ne transmet pas la
       query string à l'iframe. Un code d'une autre version est refusé, jamais rejoué faux. Les abandons,
       absences et départs d'un camp se rejouent au même moment que dans la partie (plan 243). Un code dont
-      une action est refusée ramène au menu avec un message (plan 246). Le spectateur
+      une action est refusée ramène au Stade de Combat avec un message (plan 246). Le spectateur
       en direct est écarté (« too much »), à rouvrir si des joueurs le demandent. → graphe : `plan-242`,
       `plan-243`, `plan-246`, `decision-1180` à `decision-1190`, `decision-1193`, `decision-1194`.
 - [ ] **Défi du jour** (graine quotidienne). 🔴 C'est **le matchmaking des jeux sans joueurs

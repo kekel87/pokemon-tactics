@@ -8,7 +8,10 @@ export class MyTeamsScreen {
   readonly newTeam: Locator;
   readonly generateRandom: Locator;
   readonly cards: Locator;
+  /** « ◀ Retour » : rend au Stade de Combat, d'où s'ouvre le Constructeur d'équipe (plan 251). */
+  readonly back: Locator;
   constructor(page: Page) {
+    this.back = page.getByTestId("screen-back");
     this.newTeam = page.getByRole("button", { name: "+ Nouvelle équipe" });
     this.generateRandom = page.getByRole("button", { name: "Générer aléatoire" });
     this.cards = page.getByTestId("team-card");

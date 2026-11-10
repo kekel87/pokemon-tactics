@@ -33,6 +33,7 @@ type ParamlessScreenId = {
 
 const RESTORABLE_SCREENS = [
   "main-menu",
+  // Pas `adventure` : restauré sans `?aventure=1`, il contournerait le verrou (plan 251).
   "battle-mode",
   // Le `lobby` ne prend aucun paramètre, et y revenir après un rechargement est la bonne réponse :
   // le salon qu'on était en train de préparer n'existe plus (l'adresse a été rendue à l'annuaire),

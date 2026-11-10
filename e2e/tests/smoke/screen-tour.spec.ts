@@ -54,12 +54,12 @@ test("tour des écrans : les 10 écrans DOM montent et la navigation revient", a
     // Comptages en dur ASSUMÉS, ici et pour les cartes : ce tour est joué à chaque gate, donc
     // ajouter une entrée de menu ou une carte le fera virer au rouge. C'est voulu — c'est aussi de
     // la couverture, et un écran qui gagne ou perd une entrée mérite qu'on le décide sciemment.
-    await expect(menu.entries).toHaveCount(6);
+    await expect(menu.entries).toHaveCount(4);
     await expect(menu.adventure).toBeDisabled();
     await expect(menu.version).toBeVisible();
   });
 
-  await test.step("2. mode de combat", async () => {
+  await test.step("2. Stade de Combat", async () => {
     await menu.combat.click();
     await expect(mode.title).toBeVisible();
     await expect(mode.local).toBeEnabled();
@@ -113,7 +113,7 @@ test("tour des écrans : les 10 écrans DOM montent et la navigation revient", a
   });
 
   await test.step("7. mes équipes", async () => {
-    await menu.teamBuilder.click();
+    await menu.openTeamBuilder();
     await expect(myTeams.newTeam).toBeVisible();
     await expect(myTeams.generateRandom).toBeVisible();
   });
@@ -124,7 +124,10 @@ test("tour des écrans : les 10 écrans DOM montent et la navigation revient", a
     await expect(teamEdit.slot(1)).toBeVisible();
     await teamEdit.back.click();
     await expect(myTeams.newTeam).toBeVisible();
+    // Le Constructeur d'équipe rend au Stade de Combat, d'où il s'ouvre (plan 251).
     await page.keyboard.press("Escape");
+    await expect(mode.title).toBeVisible();
+    await mode.back.click();
     await expect(menu.title).toBeVisible();
   });
 

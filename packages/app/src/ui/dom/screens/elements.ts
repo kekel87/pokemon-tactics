@@ -43,6 +43,19 @@ export function menuButton(label: string, action?: () => void): HTMLButtonElemen
 }
 
 /**
+ * Une entrée prévue mais pas encore jouable (plan 251) : désactivée, avec « Bientôt » à côté du nom
+ * pour que le joueur comprenne qu'elle viendra, au lieu d'un bouton grisé muet.
+ */
+export function comingSoonButton(label: string): HTMLButtonElement {
+  const button = menuButton(label);
+  const soon = el("span", "mn-soon");
+  soon.textContent = t("menu.comingSoon");
+  // L'espace entre dans le nom accessible (« Aventure Bientôt ») : la marge CSS ne sépare qu'à l'écran.
+  button.append(" ", soon);
+  return button;
+}
+
+/**
  * L'en-tête d'un écran PLEIN : « ◀ Retour » puis le titre, sur une barre à bordure basse.
  *
  * 🔴 Le projet n'a que **deux** mises en page, et c'est un retour explicite de l'humain

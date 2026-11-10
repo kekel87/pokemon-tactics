@@ -1,9 +1,15 @@
 import { expect, type Locator, type Page } from "@playwright/test";
+import { BattleModeScreen } from "./screens";
 
 /** Page Object for the main menu (FR labels, accessible-name selectors — no fragile CSS). */
 export class MainMenu {
   readonly title: Locator;
+  /**
+   * « Aventure » : désactivée sans `?aventure=1`, et son nom accessible porte alors « Bientôt »
+   * (« Aventure Bientôt ») ; actif avec, le nom est « Aventure » seul (plan 251).
+   */
   readonly adventure: Locator;
+  /** « Stade de Combat » (ex « Combat », plan 251) : ouvre l'écran qui regroupe les modes de jeu. */
   readonly combat: Locator;
   /**
    * « Reprendre le combat — <carte> » (plan 181) — present ONLY when a resumable battle is stored, so
@@ -13,9 +19,6 @@ export class MainMenu {
   readonly resume: Locator;
   /** The menu entries in DOM order — the resume entry must come FIRST when it exists. */
   readonly entries: Locator;
-  /** « Revoir un combat » (plan 242) — ouvre la fenêtre où l'on colle un code de replay. */
-  readonly reviewBattle: Locator;
-  readonly teamBuilder: Locator;
   readonly settings: Locator;
   readonly credits: Locator;
   readonly version: Locator;
@@ -24,16 +27,26 @@ export class MainMenu {
 
   constructor(private readonly page: Page) {
     this.title = page.getByRole("heading", { level: 1, name: "POKEMON TACTICS" });
-    this.adventure = page.getByRole("button", { name: "Aventure", exact: true });
-    this.combat = page.getByRole("button", { name: "Combat", exact: true });
+    this.adventure = page.getByRole("button", { name: /^Aventure( Bientôt)?$/ });
+    this.combat = page.getByRole("button", { name: "Stade de Combat", exact: true });
     this.resume = page.getByRole("button", { name: /^Reprendre le combat/ });
     this.entries = page.getByRole("navigation").getByRole("button");
-    this.reviewBattle = page.getByRole("button", { name: "Revoir un combat", exact: true });
-    this.teamBuilder = page.getByRole("button", { name: "Constructeur d'équipe" });
     this.settings = page.getByRole("button", { name: "Paramètres" });
     this.credits = page.getByRole("button", { name: "Crédits" });
     this.version = page.getByTestId("app-version");
     this.languageToggle = page.getByTestId("language-toggle");
+  }
+
+  /** Menu principal → Stade de Combat → « Constructeur d'équipe » (Mes équipes). */
+  async openTeamBuilder(): Promise<void> {
+    await this.combat.click();
+    await new BattleModeScreen(this.page).teamBuilder.click();
+  }
+
+  /** Menu principal → Stade de Combat → « Revoir un combat » (la fenêtre du code de replay). */
+  async openReviewBattle(): Promise<void> {
+    await this.combat.click();
+    await new BattleModeScreen(this.page).reviewBattle.click();
   }
 
   /** Clicks the language toggle until it shows `code` ("FR" / "EN" / "ES") — the toggle cycles. */

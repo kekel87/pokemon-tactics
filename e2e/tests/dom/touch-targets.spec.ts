@@ -99,7 +99,7 @@ test.describe("§6.10 plancher tactile des écrans de menu", () => {
     await expectTouchFloorHeld(page, "crédits");
   });
 
-  test("§6.10 mode de combat, sélection d'équipe et choix de la carte tiennent le plancher", async ({
+  test("§6.10 Stade de Combat, sélection d'équipe et choix de la carte tiennent le plancher", async ({
     page,
   }) => {
     const menu = new MainMenu(page);
@@ -110,7 +110,7 @@ test.describe("§6.10 plancher tactile des écrans de menu", () => {
     await menu.goto();
     await menu.combat.click();
     await expect(battleMode.title).toBeVisible();
-    await expectTouchFloorHeld(page, "mode de combat");
+    await expectTouchFloorHeld(page, "Stade de Combat");
 
     // Segments de format, cases « Placement auto » / « Prévisualisation dégâts », « Lancer ▶ » — les
     // trois familles nommées par le backlog — plus les deux boutons du bandeau de partie, qui sont
@@ -148,7 +148,7 @@ test.describe("§6.10 plancher tactile des écrans de menu", () => {
     const edit = new PokemonEdit(page);
 
     await menu.goto();
-    await menu.teamBuilder.click();
+    await menu.openTeamBuilder();
     await expect(teams.newTeam).toBeVisible();
     await expectTouchFloorHeld(page, "mes équipes");
 

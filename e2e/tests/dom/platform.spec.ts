@@ -102,7 +102,7 @@ test("§6.10 reprise d'écran : un écran à paramètres n'est pas restauré (re
 
   await menu.goto();
   await menu.combat.click();
-  // « Mode de combat » est sans paramètre → restaurable, donc enregistré.
+  // « Stade de Combat » est sans paramètre → restaurable, donc enregistré.
   expect(await shell.persistedScreenId()).toBe("battle-mode");
 
   /*

@@ -10,6 +10,7 @@ import type { ReplayFailure, SharedReplay } from "./replay-code";
  */
 export type ScreenId =
   | "main-menu"
+  | "adventure"
   | "battle-mode"
   | "lobby"
   | "team-select"
@@ -121,8 +122,14 @@ export interface CombatSetup {
 /** Params passed to each screen's mount(). Extended as plan 120 steps land. */
 export interface ScreenParamsById {
   /** Une cause, quand on revient d'un replay qui n'a pas pu être lu (plan 246). */
-  "main-menu": { readonly replayFailure: ReplayFailure } | undefined;
-  "battle-mode": undefined;
+  "main-menu": undefined;
+  /** L'écran Aventure (plan 251), atteint seulement derrière le verrou `adventure-unlock.ts`. */
+  adventure: undefined;
+  /**
+   * Une cause, quand on revient d'un replay qui n'a pas pu être lu (plan 246) : « Revoir un combat »
+   * vit ici depuis le plan 251, le message s'affiche donc sous le bouton qui l'a lancé.
+   */
+  "battle-mode": { readonly replayFailure: ReplayFailure } | undefined;
   /**
    * Une cause de refus, quand on **revient** au lobby au lieu d'y entrer (plan 209, Lot C3).
    *
@@ -177,23 +184,27 @@ export interface ScreenParamsById {
 export const SCREEN_TRANSITIONS: Readonly<Record<ScreenId, readonly ScreenId[]>> = {
   // `combat` is reachable straight from the menu by the resume entry (plan 181) — the only way into a
   // battle that skips map + team selection, because the saved battle already carries both.
-  "main-menu": ["battle-mode", "my-teams", "settings", "credits", "combat"],
-  // 🔴 Plus d'escale sur le choix du terrain (plan 208) : « Jeu en solo » entre DROIT dans la
+  "main-menu": ["adventure", "battle-mode", "settings", "credits", "combat"],
+  adventure: ["main-menu"],
+  // 🔴 Plus d'escale sur le choix du terrain (plan 208) : « Local » entre DROIT dans la
   // sélection d'équipe, avec la carte retenue d'office (dernière jouée, sinon tirage). La carte se
   // change depuis là, en modale, ce qui préserve la composition en cours au lieu de la jeter.
-  "battle-mode": ["team-select", "lobby", "main-menu"],
+  "battle-mode": ["team-select", "lobby", "my-teams", "combat", "main-menu"],
   // Idem pour l'hôte : le salon naît à l'entrée de la salle d'attente, sans détour par un écran de
   // terrain. L'invité y entrait déjà directement, la carte lui arrivant de l'hôte (plan 199).
   lobby: ["team-select", "battle-mode"],
   // Le retour de la salle d'attente rend au `lobby` en ligne, au choix du mode en local — l'écran
   // de terrain qu'il rendait auparavant n'existe plus.
   "team-select": ["combat", "battle-mode", "lobby"],
-  "my-teams": ["team-edit", "main-menu"],
+  // Le Constructeur d'équipe vit au Stade de Combat depuis le plan 251 : il ne sert pas en Aventure.
+  "my-teams": ["team-edit", "battle-mode"],
   "team-edit": ["my-teams"],
   settings: ["main-menu", "controls"],
   // On n'entre dans les contrôles que depuis Réglages : le retour y ramène, plutôt que d'éjecter le
   // joueur jusqu'au menu principal (revue 2026-08-25).
   controls: ["settings"],
   credits: ["main-menu"],
-  combat: ["main-menu"],
+  // `battle-mode` seulement pour un replay (plan 251), lu, quitté ou illisible : il rend au bouton qui
+  // l'a lancé. Un replay n'est jamais en ligne : le menu principal reste le seul point de fermeture du salon.
+  combat: ["main-menu", "battle-mode"],
 };

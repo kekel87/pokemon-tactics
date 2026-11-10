@@ -56,7 +56,7 @@ describe("i18n", () => {
 
     it("returns the spanish translation when language is es", () => {
       setLanguage(Language.Spanish);
-      expect(t("menu.battle")).toBe("Combate");
+      expect(t("menu.battle")).toBe("Estadio de Combate");
       expect(t("menu.settings")).toBe("Ajustes");
     });
   });

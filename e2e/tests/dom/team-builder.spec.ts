@@ -13,7 +13,7 @@ test("§6.5 mes équipes : état vide affiche « Aucune équipe pour l'instant �
   const menu = new MainMenu(page);
   // Contexte e2e neuf → aucune équipe persistée.
   await menu.goto();
-  await menu.teamBuilder.click();
+  await menu.openTeamBuilder();
   await expect(page.getByText("Aucune équipe pour l'instant")).toBeVisible();
 });
 
@@ -26,7 +26,7 @@ test("équipe : créer, ajouter un Pokemon, renommer → persiste en localStorag
   const picker = new PokemonPicker(page);
 
   await menu.goto();
-  await menu.teamBuilder.click();
+  await menu.openTeamBuilder();
   await teams.newTeam.click();
 
   await edit.slot(1).click();
@@ -47,7 +47,7 @@ test("équipe : générer aléatoire crée une équipe persistée", async ({ pag
   const edit = new TeamEditScreen(page);
 
   await menu.goto();
-  await menu.teamBuilder.click();
+  await menu.openTeamBuilder();
   await teams.generateRandom.click();
 
   // « Générer aléatoire » ouvre direct l'édition de la nouvelle équipe → persistée.
@@ -66,7 +66,7 @@ test("équipe : « Tout vider » demande confirmation puis vide les slots", asyn
   const picker = new PokemonPicker(page);
 
   await menu.goto();
-  await menu.teamBuilder.click();
+  await menu.openTeamBuilder();
   await teams.newTeam.click();
 
   await edit.slot(1).click();
@@ -91,7 +91,7 @@ test("équipe : supprimer (avec confirmation) retire la carte", async ({ page })
   const edit = new TeamEditScreen(page);
 
   await menu.goto();
-  await menu.teamBuilder.click();
+  await menu.openTeamBuilder();
   await teams.generateRandom.click();
   await edit.back.click();
   await expect(teams.cards).toHaveCount(1);

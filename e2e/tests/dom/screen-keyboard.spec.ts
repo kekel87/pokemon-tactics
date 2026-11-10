@@ -21,7 +21,7 @@ test("§4.19 clavier : le menu principal répond aux flèches", async ({ page })
   await page.keyboard.press("ArrowDown");
 
   // « Aventure » est la première entrée mais elle est DÉSACTIVÉE : un bouton désactivé n'est pas un
-  // arrêt de focus, donc la flèche atterrit sur « Combat ».
+  // arrêt de focus, donc la flèche atterrit sur « Stade de Combat ».
   await expect(menu.combat).toBeFocused();
 });
 
@@ -40,7 +40,7 @@ test("§4.19 clavier : Espace active l'entrée focalisée du menu principal", as
   const mode = new BattleModeScreen(page);
   await menu.goto();
 
-  // « Aventure » est désactivé, donc la première entrée FOCALISABLE est « Combat ».
+  // « Aventure » est désactivé, donc la première entrée FOCALISABLE est « Stade de Combat ».
   await page.keyboard.press("ArrowDown");
   await expect(menu.combat).toBeFocused();
   await page.keyboard.press("Space");
@@ -53,7 +53,7 @@ test("§4.19 clavier : chaque écran de menu répond aux flèches et à Échap",
   const mode = new BattleModeScreen(page);
   await menu.goto();
 
-  // Mode de combat.
+  // Stade de Combat.
   await menu.combat.click();
   await expect(mode.title).toBeVisible();
   await page.keyboard.press("ArrowDown");
@@ -77,11 +77,12 @@ test("§4.19 clavier : chaque écran de menu répond aux flèches et à Échap",
   await expect(menu.title).toBeVisible();
 
   // Mes équipes.
-  await menu.teamBuilder.click();
+  await menu.openTeamBuilder();
   await page.keyboard.press("ArrowDown");
   await expect(page.locator("button:focus")).toHaveCount(1);
+  // Échap rend au Stade de Combat, d'où s'ouvre le Constructeur d'équipe (plan 251).
   await page.keyboard.press("Escape");
-  await expect(menu.title).toBeVisible();
+  await expect(mode.title).toBeVisible();
 });
 
 test("§4.19 clavier : le choix de carte garde ses flèches pour la SÉLECTION", async ({ page }) => {

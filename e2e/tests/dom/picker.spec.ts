@@ -9,7 +9,7 @@ async function openPickerOnSlot1(page: import("@playwright/test").Page): Promise
   const edit = new TeamEditScreen(page);
   const picker = new PokemonPicker(page);
   await menu.goto();
-  await menu.teamBuilder.click();
+  await menu.openTeamBuilder();
   await teams.newTeam.click();
   await edit.slot(1).click();
   await expect(picker.title).toBeVisible();

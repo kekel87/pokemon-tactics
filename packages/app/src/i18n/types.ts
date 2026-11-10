@@ -355,6 +355,9 @@ export interface Translations {
   "pokemon.snorlax": string;
   "pokemon.dragonite": string;
   "menu.adventure": string;
+  "menu.comingSoon": string;
+  "adventure.title": string;
+  "adventure.new": string;
   "menu.battle": string;
   "battle.replaySection": string;
   "battle.copyReplay": string;

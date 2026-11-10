@@ -3,19 +3,40 @@ import type { Locator, Page } from "@playwright/test";
 // Lightweight Page Objects for the DOM screens. One screen is mounted at a time
 // (ScreenManager dispose-then-mount), so labels like "Retour" are unambiguous.
 
+/** L'écran « Stade de Combat » (ex « Mode de combat », plan 251), ouvert par le menu principal. */
 export class BattleModeScreen {
   readonly title: Locator;
   readonly local: Locator;
   /** Ouvre l'écran `lobby` depuis le plan 199. */
   readonly online: Locator;
-  /** Le seul mode encore à faire — toujours désactivé. */
+  /** Le seul mode encore à faire — toujours désactivé, son nom accessible porte « Bientôt ». */
   readonly tutorial: Locator;
   readonly back: Locator;
+  readonly reviewBattle: Locator;
+  readonly teamBuilder: Locator;
   constructor(page: Page) {
-    this.title = page.getByText("Mode de combat", { exact: true });
+    this.title = page.getByRole("heading", { level: 1, name: "Stade de Combat" });
+    this.reviewBattle = page.getByRole("button", { name: "Revoir un combat", exact: true });
+    this.teamBuilder = page.getByRole("button", { name: "Constructeur d'équipe", exact: true });
     this.local = page.getByRole("button", { name: "Local", exact: true });
     this.online = page.getByRole("button", { name: "En ligne", exact: true });
-    this.tutorial = page.getByRole("button", { name: "Tutoriel", exact: true });
+    this.tutorial = page.getByRole("button", { name: "Tutoriel Bientôt", exact: true });
+    this.back = page.getByRole("button", { name: "Retour" });
+  }
+}
+
+/** L'écran « Aventure » (plan 251) — n'existe que sous `?aventure=1`. */
+export class AdventureScreen {
+  readonly title: Locator;
+  /** Désactivé, son nom accessible porte « Bientôt ». */
+  readonly newAdventure: Locator;
+  readonly back: Locator;
+  constructor(page: Page) {
+    this.title = page.getByRole("heading", { level: 1, name: "Aventure" });
+    this.newAdventure = page.getByRole("button", {
+      name: "Nouvelle aventure Bientôt",
+      exact: true,
+    });
     this.back = page.getByRole("button", { name: "Retour" });
   }
 }

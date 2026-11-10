@@ -40,7 +40,7 @@ test("replay en ligne : un duel gagn√© par abandon se copie et se rejoue jusqu'√
 
     // Le recoller au menu et le rejouer jusqu'au bout.
     await host.menu.goto();
-    await host.menu.reviewBattle.click();
+    await host.menu.openReviewBattle();
     await host.page.getByTestId("replay-code-input").fill(code);
     await host.page.getByTestId("replay-start").click();
     await host.scene.waitReady();

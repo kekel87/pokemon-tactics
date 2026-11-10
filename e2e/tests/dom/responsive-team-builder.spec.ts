@@ -28,7 +28,7 @@ const openNewTeam = async (page: Page): Promise<TeamEditScreen> => {
   const teams = new MyTeamsScreen(page);
   const slots = new TeamEditScreen(page);
   await menu.goto();
-  await menu.teamBuilder.click();
+  await menu.openTeamBuilder();
   await teams.newTeam.click();
   await expect(slots.slot(1)).toBeVisible();
   return slots;

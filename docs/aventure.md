@@ -47,7 +47,7 @@ Le jeu se scinde en deux modes qui partagent le moteur de combat mais pas leurs 
 | Persistance | PV et K.O. restent d'un combat à l'autre jusqu'au soin | `decision-1221` |
 | Entraînement | Seulement les SP (façon Pokémon Champions), pas d'IV ni d'EV, pas d'élevage ni d'œufs ; les SP doivent être faciles à régler | `decision-1223` |
 | Mécanique extra | Seule la Méga-Évolution (malgré le manque d'assets) | `decision-1224` |
-| Livraison | Dans `main`, lot par lot, derrière un verrou ; menu principal revu (Combat ou Aventure), bouton Aventure verrouillé « bientôt » | `decision-1227` |
+| Livraison | Dans `main`, lot par lot, derrière un verrou ; menu principal revu (Aventure ou Stade de Combat), bouton Aventure verrouillé « Bientôt », ouvert par `?aventure=1` (GitHub Pages, pas itch.io) | `decision-1227`, `decision-1229` à `decision-1231` |
 | Ouverture publique | Quand Kanto se joue de bout en bout, en accès anticipé ; ne jamais casser les sauvegardes quand une région sort | `decision-1228` |
 
 ## Découpage en lots
@@ -55,7 +55,8 @@ Le jeu se scinde en deux modes qui partagent le moteur de combat mais pas leurs 
 Chaque lot a son plan dans `docs/plans/` au moment de le lancer ; l'ordre peut bouger.
 
 0. **Prototype de carte**, hors jeu (en cours) : Kanto juste, rendu et données fixés.
-1. **Menu et verrou** : nouveau menu principal Combat / Aventure, Aventure verrouillé « bientôt ».
+1. **Menu et verrou** (fait, plan 251) : menu principal Aventure / Stade de Combat, Aventure verrouillé « Bientôt »,
+   ouvert par `?aventure=1`.
 2. **Carte dans le jeu** (cachée) : écran de carte de Kanto, déplacement au clic, menu d'actions au clic droit ;
    données de carte dans `packages/data`, images empaquetées.
 3. **Boucle de base** : rencontre sauvage sur une route, combat existant, retour à la carte ; sauvegarde versionnée
