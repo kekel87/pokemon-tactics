@@ -1,0 +1,632 @@
+{
+  "Unova_Abundant_Shrine_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 196.5,
+    "cy": 76.5,
+    "box": [194, 74, 199, 79]
+  },
+  "Unova_Abyssal_Ruins_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 241.5,
+    "cy": 62.5,
+    "box": [239, 60, 244, 65]
+  },
+  "Unova_Accumula_Town_Map.png": {
+    "base": 0,
+    "n": 44,
+    "cx": 231.5,
+    "cy": 137.5,
+    "box": [228, 134, 235, 141]
+  },
+  "Unova_Anville_Town_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 6.5,
+    "cy": 29.5,
+    "box": [4, 27, 9, 32]
+  },
+  "Unova_Aspertia_City_Map.png": {
+    "base": 0,
+    "n": 44,
+    "cx": 13.5,
+    "cy": 152.5,
+    "box": [10, 149, 17, 156]
+  },
+  "Unova_Black_City_White_Forest_Black_Tower_White_Treehollow_Map.png": {
+    "base": 0,
+    "n": 44,
+    "cx": 189.5,
+    "cy": 90.5,
+    "box": [186, 87, 193, 94]
+  },
+  "Unova_Castelia_City_Map.png": {
+    "base": 0,
+    "n": 44,
+    "cx": 131.5,
+    "cy": 129.5,
+    "box": [128, 126, 135, 133]
+  },
+  "Unova_Castelia_Sewers_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 155.5,
+    "cy": 142.5,
+    "box": [153, 140, 158, 145]
+  },
+  "Unova_Cave_of_Being_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 40.5,
+    "cy": 137.5,
+    "box": [38, 135, 43, 140]
+  },
+  "Unova_Celestial_Tower_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 53.5,
+    "cy": 49.5,
+    "box": [51, 47, 56, 52]
+  },
+  "Unova_Challengers_Cave_Map.png": {
+    "base": 0,
+    "n": 3579,
+    "cx": 151.0,
+    "cy": 83.0,
+    "box": [0, 3, 255, 167]
+  },
+  "Unova_Chargestone_Cave_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 41.5,
+    "cy": 79.5,
+    "box": [39, 77, 44, 82]
+  },
+  "Unova_Clay_Tunnel_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 71.5,
+    "cy": 76.5,
+    "box": [69, 74, 74, 79]
+  },
+  "Unova_Cold_Storage_Map.png": {
+    "base": 0,
+    "n": 3574,
+    "cx": 151.1,
+    "cy": 83.1,
+    "box": [0, 3, 255, 167]
+  },
+  "Unova_Desert_Resort_Map.png": {
+    "base": 0,
+    "n": 20,
+    "cx": 122.5,
+    "cy": 103.5,
+    "box": [118, 103, 127, 104]
+  },
+  "Unova_Dragonspiral_Tower_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 65.5,
+    "cy": 30.5,
+    "box": [63, 28, 68, 33]
+  },
+  "Unova_Dreamyard_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 238.5,
+    "cy": 117.5,
+    "box": [236, 115, 241, 120]
+  },
+  "Unova_Driftveil_City_Map.png": {
+    "base": 0,
+    "n": 44,
+    "cx": 73.5,
+    "cy": 90.5,
+    "box": [70, 87, 77, 94]
+  },
+  "Unova_Driftveil_Drawbridge_Map.png": {
+    "base": 0,
+    "n": 32,
+    "cx": 103.5,
+    "cy": 88.5,
+    "box": [96, 88, 111, 89]
+  },
+  "Unova_Entralink_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 131.5,
+    "cy": 66.5,
+    "box": [129, 64, 134, 69]
+  },
+  "Unova_Floccesy_Ranch_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 40.5,
+    "cy": 117.5,
+    "box": [38, 115, 43, 120]
+  },
+  "Unova_Floccesy_Town_Map.png": {
+    "base": 0,
+    "n": 92,
+    "cx": 141.5,
+    "cy": 93.6,
+    "box": [29, 60, 244, 130]
+  },
+  "Unova_Giant_Chasm_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 207.5,
+    "cy": 35.5,
+    "box": [205, 33, 210, 38]
+  },
+  "Unova_Humilau_City_Map.png": {
+    "base": 0,
+    "n": 92,
+    "cx": 238.2,
+    "cy": 50.1,
+    "box": [231, 32, 244, 67]
+  },
+  "Unova_Icirrus_City_Map.png": {
+    "base": 0,
+    "n": 44,
+    "cx": 73.5,
+    "cy": 42.5,
+    "box": [70, 39, 77, 46]
+  },
+  "Unova_Join_Avenue_Map.png": {
+    "base": 0,
+    "n": 12,
+    "cx": 131.5,
+    "cy": 103.5,
+    "box": [130, 102, 133, 105]
+  },
+  "Unova_Lacunosa_Town_Map.png": {
+    "base": 0,
+    "n": 44,
+    "cx": 189.5,
+    "cy": 42.5,
+    "box": [186, 39, 193, 46]
+  },
+  "Unova_Lentimas_Town_Map.png": {
+    "base": 0,
+    "n": 92,
+    "cx": 215.2,
+    "cy": 64.9,
+    "box": [183, 60, 244, 70]
+  },
+  "Unova_Liberty_Garden_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 73.5,
+    "cy": 144.5,
+    "box": [71, 142, 76, 147]
+  },
+  "Unova_Lostlorn_Forest_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 145.5,
+    "cy": 83.5,
+    "box": [143, 81, 148, 86]
+  },
+  "Unova_Marine_Tube_Map.png": {
+    "base": 0,
+    "n": 60,
+    "cx": 251.5,
+    "cy": 53.0,
+    "box": [251, 38, 252, 68]
+  },
+  "Unova_Marvelous_Bridge_Map.png": {
+    "base": 0,
+    "n": 32,
+    "cx": 159.5,
+    "cy": 88.5,
+    "box": [152, 88, 167, 89]
+  },
+  "Unova_Mistralton_Cave_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 63.5,
+    "cy": 70.5,
+    "box": [61, 68, 66, 73]
+  },
+  "Unova_Mistralton_City_Map.png": {
+    "base": 0,
+    "n": 44,
+    "cx": 39.5,
+    "cy": 66.5,
+    "box": [36, 63, 43, 70]
+  },
+  "Unova_Moor_of_Icirrus_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 87.5,
+    "cy": 35.5,
+    "box": [85, 33, 90, 38]
+  },
+  "Unova_Nacrene_City_Map.png": {
+    "base": 0,
+    "n": 44,
+    "cx": 202.5,
+    "cy": 117.5,
+    "box": [199, 114, 206, 121]
+  },
+  "Unova_Nimbasa_City_Map.png": {
+    "base": 0,
+    "n": 44,
+    "cx": 131.5,
+    "cy": 90.5,
+    "box": [128, 87, 135, 94]
+  },
+  "Unova_Ns_Castle_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 181.5,
+    "cy": 5.5,
+    "box": [179, 3, 184, 8]
+  },
+  "Unova_Nuvema_Town_Map.png": {
+    "base": 0,
+    "n": 44,
+    "cx": 231.5,
+    "cy": 157.5,
+    "box": [228, 154, 235, 161]
+  },
+  "Unova_Opelucid_City_Map.png": {
+    "base": 0,
+    "n": 44,
+    "cx": 131.5,
+    "cy": 42.5,
+    "box": [128, 39, 135, 46]
+  },
+  "Unova_P2_Laboratory_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 213.5,
+    "cy": 150.5,
+    "box": [211, 148, 216, 153]
+  },
+  "Unova_Pinwheel_Forest_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 193.5,
+    "cy": 124.5,
+    "box": [191, 122, 196, 127]
+  },
+  "Unova_Plasma_Frigate_Map.png": {
+    "base": 0,
+    "n": 120,
+    "cx": 206.7,
+    "cy": 81.8,
+    "box": [75, 33, 237, 153]
+  },
+  "Unova_Pok%C3%A9_Transfer_Lab_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 176.5,
+    "cy": 83.5,
+    "box": [174, 81, 179, 86]
+  },
+  "Unova_Pok%C3%A9mon_League_Map.png": {
+    "base": 0,
+    "n": 44,
+    "cx": 169.5,
+    "cy": 14.5,
+    "box": [166, 11, 173, 18]
+  },
+  "Unova_Pok%C3%A9mon_World_Tournament_Map.png": {
+    "base": 0,
+    "n": 60,
+    "cx": 208.5,
+    "cy": 71.3,
+    "box": [75, 60, 244, 104]
+  },
+  "Unova_Pok%C3%A9star_Studios_Map.png": {
+    "base": 0,
+    "n": 60,
+    "cx": 205.9,
+    "cy": 73.7,
+    "box": [62, 60, 244, 116]
+  },
+  "Unova_Pokemon_League_BW_Map.png": {
+    "base": 0,
+    "n": 3618,
+    "cx": 151.3,
+    "cy": 82.2,
+    "box": [0, 3, 255, 167]
+  },
+  "Unova_Relic_Castle_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 114.5,
+    "cy": 103.5,
+    "box": [112, 101, 117, 106]
+  },
+  "Unova_Relic_Passage_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 104.5,
+    "cy": 117.5,
+    "box": [102, 115, 107, 120]
+  },
+  "Unova_Reversal_Mountain_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 205.5,
+    "cy": 66.5,
+    "box": [203, 64, 208, 69]
+  },
+  "Unova_Route_10_Map.png": {
+    "base": 0,
+    "n": 3577,
+    "cx": 150.7,
+    "cy": 83.3,
+    "box": [0, 3, 255, 167]
+  },
+  "Unova_Route_11_Map.png": {
+    "base": 0,
+    "n": 24,
+    "cx": 143.5,
+    "cy": 42.5,
+    "box": [138, 42, 149, 43]
+  },
+  "Unova_Route_12_Map.png": {
+    "base": 0,
+    "n": 28,
+    "cx": 176.5,
+    "cy": 42.5,
+    "box": [170, 42, 183, 43]
+  },
+  "Unova_Route_13_Map.png": {
+    "base": 0,
+    "n": 70,
+    "cx": 206.6,
+    "cy": 54.4,
+    "box": [195, 46, 218, 63]
+  },
+  "Unova_Route_14_Map.png": {
+    "base": 0,
+    "n": 75,
+    "cx": 206.2,
+    "cy": 78.5,
+    "box": [195, 70, 218, 87]
+  },
+  "Unova_Route_15_Map.png": {
+    "base": 0,
+    "n": 28,
+    "cx": 176.5,
+    "cy": 90.5,
+    "box": [170, 90, 183, 91]
+  },
+  "Unova_Route_16_Map.png": {
+    "base": 0,
+    "n": 24,
+    "cx": 143.5,
+    "cy": 90.5,
+    "box": [138, 90, 149, 91]
+  },
+  "Unova_Route_17_Map.png": {
+    "base": 0,
+    "n": 24,
+    "cx": 219.5,
+    "cy": 157.5,
+    "box": [214, 157, 225, 158]
+  },
+  "Unova_Route_18_Map.png": {
+    "base": 0,
+    "n": 24,
+    "cx": 208.5,
+    "cy": 157.5,
+    "box": [203, 157, 214, 158]
+  },
+  "Unova_Route_19_Map.png": {
+    "base": 0,
+    "n": 65,
+    "cx": 17.0,
+    "cy": 133.7,
+    "box": [13, 126, 26, 146]
+  },
+  "Unova_Route_1_Map.png": {
+    "base": 0,
+    "n": 16,
+    "cx": 231.5,
+    "cy": 147.5,
+    "box": [231, 144, 232, 151]
+  },
+  "Unova_Route_20_Map.png": {
+    "base": 0,
+    "n": 48,
+    "cx": 50.5,
+    "cy": 126.5,
+    "box": [39, 126, 62, 127]
+  },
+  "Unova_Route_21_Map.png": {
+    "base": 0,
+    "n": 16,
+    "cx": 234.5,
+    "cy": 45.5,
+    "box": [234, 42, 235, 49]
+  },
+  "Unova_Route_22_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 219.5,
+    "cy": 35.5,
+    "box": [211, 35, 228, 36]
+  },
+  "Unova_Route_23_Map.png": {
+    "base": 0,
+    "n": 74,
+    "cx": 195.7,
+    "cy": 25.8,
+    "box": [188, 15, 204, 36]
+  },
+  "Unova_Route_2_Map.png": {
+    "base": 0,
+    "n": 21,
+    "cx": 230.0,
+    "cy": 127.4,
+    "box": [228, 124, 232, 131]
+  },
+  "Unova_Route_3_Map.png": {
+    "base": 0,
+    "n": 26,
+    "cx": 215.0,
+    "cy": 117.5,
+    "box": [209, 117, 221, 118]
+  },
+  "Unova_Route_4_Map.png": {
+    "base": 0,
+    "n": 32,
+    "cx": 131.5,
+    "cy": 115.5,
+    "box": [131, 108, 132, 123]
+  },
+  "Unova_Route_5_Map.png": {
+    "base": 0,
+    "n": 24,
+    "cx": 119.5,
+    "cy": 90.5,
+    "box": [114, 90, 125, 91]
+  },
+  "Unova_Route_6_Map.png": {
+    "base": 0,
+    "n": 73,
+    "cx": 56.3,
+    "cy": 78.2,
+    "box": [44, 70, 68, 87]
+  },
+  "Unova_Route_7_Map.png": {
+    "base": 0,
+    "n": 70,
+    "cx": 56.4,
+    "cy": 54.5,
+    "box": [45, 46, 68, 63]
+  },
+  "Unova_Route_8_Map.png": {
+    "base": 0,
+    "n": 28,
+    "cx": 86.5,
+    "cy": 42.5,
+    "box": [80, 42, 93, 43]
+  },
+  "Unova_Route_9_Map.png": {
+    "base": 0,
+    "n": 24,
+    "cx": 119.5,
+    "cy": 42.5,
+    "box": [114, 42, 125, 43]
+  },
+  "Unova_Seaside_Cave_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 234.5,
+    "cy": 52.5,
+    "box": [232, 50, 237, 55]
+  },
+  "Unova_Skyarrow_Bridge_Map.png": {
+    "base": 0,
+    "n": 50,
+    "cx": 159.8,
+    "cy": 121.6,
+    "box": [149, 119, 171, 124]
+  },
+  "Unova_Strange_House_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 197.5,
+    "cy": 58.5,
+    "box": [195, 56, 200, 61]
+  },
+  "Unova_Striaton_City_Map.png": {
+    "base": 0,
+    "n": 44,
+    "cx": 227.5,
+    "cy": 117.5,
+    "box": [224, 114, 231, 121]
+  },
+  "Unova_Tubeline_Bridge_Map.png": {
+    "base": 0,
+    "n": 32,
+    "cx": 103.5,
+    "cy": 40.5,
+    "box": [96, 40, 111, 41]
+  },
+  "Unova_Twist_Mountain_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 71.5,
+    "cy": 54.5,
+    "box": [69, 52, 74, 57]
+  },
+  "Unova_Undella_Bay_B2W2_Map.png": {
+    "base": 0,
+    "n": 28,
+    "cx": 231.2,
+    "cy": 59.2,
+    "box": [227, 56, 235, 63]
+  },
+  "Unova_Undella_Bay_Map.png": {
+    "base": 0,
+    "n": 4530,
+    "cx": 158.6,
+    "cy": 79.8,
+    "box": [0, 0, 255, 167]
+  },
+  "Unova_Undella_Town_Map.png": {
+    "base": 0,
+    "n": 44,
+    "cx": 223.5,
+    "cy": 66.5,
+    "box": [220, 63, 227, 70]
+  },
+  "Unova_Unity_Tower_Map.png": {
+    "base": 0,
+    "n": 12,
+    "cx": 98.5,
+    "cy": 156.5,
+    "box": [97, 155, 100, 158]
+  },
+  "Unova_Victory_Road_B2W2_Map.png": {
+    "base": 0,
+    "n": 12,
+    "cx": 183.5,
+    "cy": 15.5,
+    "box": [182, 14, 185, 17]
+  },
+  "Unova_Victory_Road_Map.png": {
+    "base": 0,
+    "n": 3574,
+    "cx": 151.1,
+    "cy": 83.1,
+    "box": [0, 3, 255, 167]
+  },
+  "Unova_Village_Bridge_Map.png": {
+    "base": 0,
+    "n": 32,
+    "cx": 159.5,
+    "cy": 40.5,
+    "box": [152, 40, 167, 41]
+  },
+  "Unova_Virbank_City_Map.png": {
+    "base": 0,
+    "n": 44,
+    "cx": 68.5,
+    "cy": 126.5,
+    "box": [65, 123, 72, 130]
+  },
+  "Unova_Virbank_Complex_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 63.5,
+    "cy": 137.5,
+    "box": [61, 135, 66, 140]
+  },
+  "Unova_Wellspring_Cave_Map.png": {
+    "base": 0,
+    "n": 36,
+    "cx": 214.5,
+    "cy": 109.5,
+    "box": [212, 107, 217, 112]
+  }
+}

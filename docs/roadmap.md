@@ -90,7 +90,8 @@ d'apparition n'indique une priorité.
       distincte du combat. Déplacement overworld, rivaux mobiles, rencontres aléatoires sur les
       sections de route, villes (arènes, boutiques, events). Départ : **Kanto**, sans fermer la porte
       à une méga-carte mondiale. 🔴 Garde-fou : **pas de scénario complet ni de monde sur-mesure**
-      (temps limité) — on s'appuie sur l'univers Pokemon existant.
+      (temps limité) — on s'appuie sur l'univers Pokemon existant. Découpage en lots, verrou et
+      ouverture publique : `docs/aventure.md` § Découpage en lots (`decision-1227`, `decision-1228`).
 - [ ] **Conditions de victoire alternatives**
 - [ ] **Draft/ban phase** — bannir des espèces à tour de rôle (interdites aux deux camps) puis choisir
       la sienne en voyant l'adversaire. Effet de bord : **corrige l'équilibrage sans équilibrer** —

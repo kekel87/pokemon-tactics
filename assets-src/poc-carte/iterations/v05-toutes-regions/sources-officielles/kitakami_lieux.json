@@ -1,0 +1,100 @@
+{
+  "Kitakami_Apple_Hills_Map.png": {
+    "score": 0.728,
+    "scale": 2.0,
+    "x": 1575,
+    "y": 2506,
+    "box": [1092, 2192, 2058, 2818]
+  },
+  "Kitakami_Chilling_Waterhead_Map.png": {
+    "score": 0.589,
+    "scale": 2.0,
+    "x": 2137,
+    "y": 1612,
+    "box": [1900, 1348, 2374, 1876]
+  },
+  "Kitakami_Crystal_Pool_Map.png": {
+    "score": 0.434,
+    "scale": 2.0,
+    "x": 1620,
+    "y": 1684,
+    "box": [1380, 1444, 1860, 1924]
+  },
+  "Kitakami_Fellhorn_Gorge_Map.png": {
+    "score": 0.726,
+    "scale": 2.0,
+    "x": 2871,
+    "y": 1676,
+    "box": [2296, 1212, 3402, 2140]
+  },
+  "Kitakami_Infernal_Pass_Map.png": {
+    "score": 0.877,
+    "scale": 2.0,
+    "x": 1590,
+    "y": 1593,
+    "box": [660, 892, 2522, 2292]
+  },
+  "Kitakami_Kitakami_Road_Map.png": {
+    "score": 0.853,
+    "scale": 2.0,
+    "x": 1649,
+    "y": 2881,
+    "box": [916, 2320, 2384, 3398]
+  },
+  "Kitakami_Kitakami_Wilds_Map.png": {
+    "score": 0.932,
+    "scale": 2.0,
+    "x": 2338,
+    "y": 710,
+    "box": [1232, 40, 3400, 1426]
+  },
+  "Kitakami_Mossfell_Confluence_Map.png": {
+    "score": 0.796,
+    "scale": 2.0,
+    "x": 2949,
+    "y": 2689,
+    "box": [2456, 1936, 3400, 3398]
+  },
+  "Kitakami_Mossui_Town_Map.png": {
+    "score": 0.644,
+    "scale": 2.0,
+    "x": 1959,
+    "y": 2488,
+    "box": [1756, 2320, 2162, 2656]
+  },
+  "Kitakami_Oni%27s_Maw_Map.png": {
+    "score": 0.628,
+    "scale": 2.0,
+    "x": 1795,
+    "y": 2014,
+    "box": [1436, 1756, 2154, 2270]
+  },
+  "Kitakami_Oni_Mountain_Map.png": {
+    "score": 0.92,
+    "scale": 2.0,
+    "x": 1590,
+    "y": 1634,
+    "box": [660, 892, 2522, 2374]
+  },
+  "Kitakami_Paradise_Barrens_Map.png": {
+    "score": 0.852,
+    "scale": 2.0,
+    "x": 765,
+    "y": 648,
+    "box": [40, 40, 1534, 1302]
+  },
+  "Kitakami_Reveler%27s_Road_Map.png": {
+    "score": 0.87,
+    "scale": 2.0,
+    "x": 2365,
+    "y": 2634,
+    "box": [1888, 1824, 2842, 3400]
+  },
+  "Kitakami_Timeless_Woods_Map.png": {
+    "score": 0.86,
+    "scale": 2.0,
+    "x": 2543,
+    "y": 756,
+    "box": [2084, 388, 3004, 1124]
+  }
+}

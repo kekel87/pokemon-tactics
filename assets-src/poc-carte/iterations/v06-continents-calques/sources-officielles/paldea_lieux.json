@@ -1,0 +1,324 @@
+{
+  "Paldea_Alfornada_Cavern_Map.png": {
+    "score": 0.705,
+    "scale": 1.85,
+    "x": 504,
+    "y": 2569,
+    "box": [280, 2332, 728, 2806]
+  },
+  "Paldea_Alfornada_Map.png": {
+    "score": 0.627,
+    "scale": 1.85,
+    "x": 509,
+    "y": 2647,
+    "box": [364, 2504, 656, 2791]
+  },
+  "Paldea_Artazon_Map.png": {
+    "score": 0.674,
+    "scale": 1.85,
+    "x": 2268,
+    "y": 2197,
+    "box": [2072, 2036, 2414, 2402]
+  },
+  "Paldea_Asado_Desert_Map.png": {
+    "score": 0.801,
+    "scale": 1.85,
+    "x": 589,
+    "y": 1609,
+    "box": [116, 1300, 1061, 1874]
+  },
+  "Paldea_Cabo_Poco_Map.png": {
+    "score": 0.805,
+    "scale": 1.85,
+    "x": 1460,
+    "y": 2865,
+    "box": [1256, 2724, 1665, 3002]
+  },
+  "Paldea_Cascarrafa_Map.png": {
+    "score": 0.534,
+    "scale": 1.85,
+    "x": 893,
+    "y": 1578,
+    "box": [724, 1392, 1063, 1764]
+  },
+  "Paldea_Casseroya_Lake_Map.png": {
+    "score": 0.911,
+    "scale": 1.85,
+    "x": 800,
+    "y": 876,
+    "box": [152, 324, 1384, 1349]
+  },
+  "Paldea_Colonnade_Hollow_Map.png": {
+    "score": 0.673,
+    "scale": 1.85,
+    "x": 735,
+    "y": 1348,
+    "box": [512, 1200, 958, 1496]
+  },
+  "Paldea_Cortondo_Map.png": {
+    "score": 0.585,
+    "scale": 1.85,
+    "x": 858,
+    "y": 2295,
+    "box": [704, 2156, 1011, 2434]
+  },
+  "Paldea_Dalizapa_Passage_Map.png": {
+    "score": 0.825,
+    "scale": 1.85,
+    "x": 1533,
+    "y": 1418,
+    "box": [1132, 1144, 1987, 1690]
+  },
+  "Paldea_East_Paldean_Sea_Map.png": {
+    "score": 0.934,
+    "scale": 1.85,
+    "x": 2650,
+    "y": 1832,
+    "box": [2212, 1140, 3000, 2524]
+  },
+  "Paldea_East_Province_%28Area_One%29_Map.png": {
+    "score": 0.854,
+    "scale": 1.85,
+    "x": 2231,
+    "y": 2009,
+    "box": [1640, 1528, 2822, 2523]
+  },
+  "Paldea_East_Province_%28Area_Three%29_Map.png": {
+    "score": 0.877,
+    "scale": 1.85,
+    "x": 2291,
+    "y": 1459,
+    "box": [1712, 1108, 2870, 1809]
+  },
+  "Paldea_East_Province_%28Area_Two%29_Map.png": {
+    "score": 0.806,
+    "scale": 1.85,
+    "x": 2292,
+    "y": 1815,
+    "box": [1836, 1444, 2752, 2145]
+  },
+  "Paldea_Glaseado_Mountain_Map.png": {
+    "score": 0.899,
+    "scale": 1.85,
+    "x": 1500,
+    "y": 1036,
+    "box": [840, 256, 2209, 1816]
+  },
+  "Paldea_Grasswither_Shrine_Map.png": {
+    "score": 0.44,
+    "scale": 1.9,
+    "x": 753,
+    "y": 2546,
+    "box": [328, 2144, 1177, 2948]
+  },
+  "Paldea_Great_Crater_of_Paldea_Map.png": {
+    "score": 0.907,
+    "scale": 1.85,
+    "x": 1425,
+    "y": 1816,
+    "box": [932, 1320, 1892, 2299]
+  },
+  "Paldea_Icerend_Shrine_Map.jpg": {
+    "score": 0.671,
+    "scale": 1.7,
+    "x": 1332,
+    "y": 858,
+    "box": [696, 500, 1968, 1216]
+  },
+  "Paldea_Inlet_Grotto_Map.png": {
+    "score": 0.748,
+    "scale": 1.85,
+    "x": 1495,
+    "y": 2712,
+    "box": [1352, 2600, 1641, 2892]
+  },
+  "Paldea_Levincia_Map.png": {
+    "score": 0.84,
+    "scale": 1.85,
+    "x": 2484,
+    "y": 1717,
+    "box": [2284, 1504, 2684, 1930]
+  },
+  "Paldea_Los_Platos_Map.png": {
+    "score": 0.603,
+    "scale": 1.85,
+    "x": 1440,
+    "y": 2610,
+    "box": [1296, 2476, 1585, 2744]
+  },
+  "Paldea_Medali_Map.png": {
+    "score": 0.551,
+    "scale": 1.85,
+    "x": 1195,
+    "y": 1374,
+    "box": [1040, 1228, 1351, 1520]
+  },
+  "Paldea_Mesagoza_Map.png": {
+    "score": 0.838,
+    "scale": 1.85,
+    "x": 1399,
+    "y": 2251,
+    "box": [1204, 1992, 1681, 2499]
+  },
+  "Paldea_Montenevera_Map.png": {
+    "score": 0.476,
+    "scale": 1.8,
+    "x": 1637,
+    "y": 854,
+    "box": [1504, 712, 1770, 996]
+  },
+  "Paldea_Naranja_and_Uva_Academy_Map.png": {
+    "score": 0.792,
+    "scale": 1.85,
+    "x": 1476,
+    "y": 2197,
+    "box": [1288, 2008, 1584, 2335]
+  },
+  "Paldea_North_Paldean_Sea_Map.png": {
+    "score": 0.965,
+    "scale": 1.85,
+    "x": 1327,
+    "y": 641,
+    "box": [32, 36, 2711, 1331]
+  },
+  "Paldea_North_Province_%28Area_One%29_Map.png": {
+    "score": 0.919,
+    "scale": 1.85,
+    "x": 2149,
+    "y": 821,
+    "box": [1720, 312, 2662, 1330]
+  },
+  "Paldea_North_Province_%28Area_Three%29_Map.png": {
+    "score": 0.864,
+    "scale": 1.85,
+    "x": 1317,
+    "y": 487,
+    "box": [980, 228, 1653, 746]
+  },
+  "Paldea_North_Province_%28Area_Two%29_Map.png": {
+    "score": 0.949,
+    "scale": 1.85,
+    "x": 2572,
+    "y": 733,
+    "box": [2136, 36, 3002, 1514]
+  },
+  "Paldea_Poco_Path_Map.png": {
+    "score": 0.751,
+    "scale": 1.85,
+    "x": 1456,
+    "y": 2789,
+    "box": [1248, 2636, 1664, 2941]
+  },
+  "Paldea_Pok%C3%A9mon_League_Map.png": {
+    "score": 0.873,
+    "scale": 1.85,
+    "x": 1204,
+    "y": 2052,
+    "box": [992, 1848, 1416, 2255]
+  },
+  "Paldea_Porto_Marinada_Map.png": {
+    "score": 0.845,
+    "scale": 1.85,
+    "x": 302,
+    "y": 1479,
+    "box": [132, 1312, 471, 1647]
+  },
+  "Paldea_Socarrat_Trail_Map.png": {
+    "score": 0.758,
+    "scale": 1.85,
+    "x": 663,
+    "y": 588,
+    "box": [328, 360, 998, 815]
+  },
+  "Paldea_South_Paldean_Sea_Map.png": {
+    "score": 0.896,
+    "scale": 1.85,
+    "x": 1516,
+    "y": 2677,
+    "box": [32, 2332, 3001, 3002]
+  },
+  "Paldea_South_Province_%28Area_Five%29_Map.png": {
+    "score": 0.835,
+    "scale": 1.85,
+    "x": 1880,
+    "y": 2521,
+    "box": [1412, 2116, 2402, 2926]
+  },
+  "Paldea_South_Province_%28Area_Four%29_Map.png": {
+    "score": 0.807,
+    "scale": 1.85,
+    "x": 1014,
+    "y": 2553,
+    "box": [544, 2224, 1554, 2931]
+  },
+  "Paldea_South_Province_%28Area_One%29_Map.png": {
+    "score": 0.751,
+    "scale": 1.85,
+    "x": 1581,
+    "y": 2547,
+    "box": [1180, 2084, 1983, 3000]
+  },
+  "Paldea_South_Province_%28Area_Six%29_Map.png": {
+    "score": 0.883,
+    "scale": 1.85,
+    "x": 535,
+    "y": 2627,
+    "box": [188, 2312, 882, 2943]
+  },
+  "Paldea_South_Province_%28Area_Three%29_Map.png": {
+    "score": 0.802,
+    "scale": 1.85,
+    "x": 1858,
+    "y": 2216,
+    "box": [1444, 1972, 2273, 2459]
+  },
+  "Paldea_South_Province_%28Area_Two%29_Map.png": {
+    "score": 0.809,
+    "scale": 1.85,
+    "x": 1009,
+    "y": 2163,
+    "box": [588, 1804, 1435, 2603]
+  },
+  "Paldea_Tagtree_Thicket_Map.png": {
+    "score": 0.785,
+    "scale": 1.85,
+    "x": 1954,
+    "y": 1261,
+    "box": [1684, 1032, 2267, 1580]
+  },
+  "Paldea_West_Paldean_Sea_Map.png": {
+    "score": 0.933,
+    "scale": 1.85,
+    "x": 262,
+    "y": 1830,
+    "box": [36, 1144, 493, 2519]
+  },
+  "Paldea_West_Province_%28Area_One%29_Map.png": {
+    "score": 0.857,
+    "scale": 1.85,
+    "x": 658,
+    "y": 1932,
+    "box": [32, 1324, 1198, 2567]
+  },
+  "Paldea_West_Province_%28Area_Three%29_Map.png": {
+    "score": 0.856,
+    "scale": 1.85,
+    "x": 1152,
+    "y": 1265,
+    "box": [772, 800, 1558, 1799]
+  },
+  "Paldea_West_Province_%28Area_Two%29_Map.png": {
+    "score": 0.822,
+    "scale": 1.85,
+    "x": 563,
+    "y": 1430,
+    "box": [104, 1136, 1022, 1658]
+  },
+  "Paldea_Zapapico_Map.png": {
+    "score": 0.645,
+    "scale": 1.85,
+    "x": 1883,
+    "y": 1610,
+    "box": [1720, 1456, 2046, 1763]
+  }
+}

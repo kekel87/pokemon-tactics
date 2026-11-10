@@ -1,0 +1,1385 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Carte du monde P10</title>
+<link rel="icon" href="data:,">
+<style>
+  :root { --cream: #f8f4e4; --ink: #282838; --edge: #383848; }
+  html, body { margin: 0; height: 100%; background: #2050a8; overflow: hidden; }
+  body { font-family: "Liberation Sans", Arial, sans-serif; color: var(--ink); }
+  canvas { display: block; cursor: grab; touch-action: none; }
+  canvas.dragging { cursor: grabbing; }
+  canvas.pointing { cursor: pointer; }
+  .box {
+    background: var(--cream); border: 3px solid var(--edge); border-radius: 6px;
+    box-shadow: 0 0 0 2px #e8d8b0 inset, 3px 3px 0 rgba(0, 0, 0, 0.25); user-select: none;
+  }
+  #panel { position: fixed; left: 12px; top: 12px; min-width: 260px; max-width: 350px; padding: 10px 14px;
+    font-size: 14px; line-height: 1.45; }
+  #panel .row { display: flex; gap: 8px; }
+  #panel .key { color: #6a6058; min-width: 92px; }
+  #panel .value { font-weight: bold; }
+  #panel .transport { margin-top: 4px; font-size: 13px; color: #405080; }
+  #panel button { margin-top: 6px; }
+  button.action { font: bold 13px "Liberation Sans", Arial, sans-serif; color: var(--ink); background: #fffaf0;
+    border: 2px solid var(--edge); border-radius: 4px; padding: 3px 9px; cursor: pointer; }
+  button.action:hover, .menu button:hover, .menu button:focus { background: #f8d030; outline: none; }
+  #help { position: fixed; right: 10px; bottom: 10px; padding: 5px 9px; font-size: 11px; line-height: 1.4;
+    max-width: 300px; opacity: 0.93; background: rgba(248, 244, 228, 0.94); border-width: 2px; }
+  #help b { display: inline-block; min-width: 14px; text-align: center; background: #383848; color: #f8f4e4;
+    border-radius: 3px; padding: 0 3px; font-size: 11px; }
+  #help .off { color: #9a9080; }
+  #help .on { color: #286018; font-weight: bold; }
+  #zoom { position: fixed; right: 12px; top: 12px; padding: 4px 9px; font-weight: bold; font-size: 13px; border-width: 2px; }
+  .menu { position: fixed; z-index: 5; min-width: 190px; padding: 6px 0 4px; font-size: 14px; display: none; }
+  .menu .title { padding: 0 12px 4px; font-weight: bold; border-bottom: 2px solid #e0d4b0; margin-bottom: 3px; }
+  .menu .title small { display: block; font-weight: normal; color: #6a6058; font-size: 12px; }
+  .menu button { display: flex; justify-content: space-between; gap: 14px; width: 100%; text-align: left;
+    background: none; border: 0; padding: 4px 12px 4px 22px; font: 14px "Liberation Sans", Arial, sans-serif;
+    color: var(--ink); cursor: pointer; position: relative; }
+  .menu button::before { content: ""; position: absolute; left: 8px; top: 9px; border: 5px solid transparent;
+    border-left-color: transparent; }
+  .menu button:hover::before, .menu button:focus::before { border-left-color: #383848; }
+  .menu button .cost { color: #6a6058; font-size: 12px; }
+  .menu button.todo { color: #6a6058; }
+  #toast { position: fixed; left: 50%; top: 16px; transform: translateX(-50%); padding: 7px 14px; font-size: 14px;
+    display: none; z-index: 6; }
+</style>
+</head>
+<body>
+<canvas id="map"></canvas>
+<div id="panel" class="box">
+  <div class="row"><span class="key">Lieu actuel</span><span class="value" id="here">…</span></div>
+  <div class="row"><span class="key">Prochain lieu</span><span class="value" id="next">—</span></div>
+  <div class="row"><span class="key">Destination</span><span class="value" id="dest">—</span></div>
+  <div class="transport" id="transport">Clic gauche : aller quelque part. Clic droit : que faire ici ?</div>
+  <button class="action" id="actions-here">Actions ici…</button>
+</div>
+<div id="zoom" class="box">×2</div>
+<div id="help" class="box"></div>
+<div id="menu" class="menu box"></div>
+<div id="toast" class="box"></div>
+<script>
+"use strict";
+// ---------------------------------------------------------------- réglages
+const ZOOMS = [1, 2, 3, 4];
+// px de zone par seconde ; à pied ×1,7 par rapport à la P09, Maj enfoncée : ×2 en plus
+const SPEED = { route: 55, acces: 55, surf: 50, eau: 50, tunnel: 90, train: 220, ferry: 120 };
+const RUN = 2;
+const COST = { route: 1, acces: 1, surf: 1.15, eau: 1.15, tunnel: 0.8, train: 0.3, ferry: 0.55 };
+const TRANSPORT = { route: "À pied", acces: "À pied", surf: "En Surf", eau: "En Surf", tunnel: "Sous terre",
+  train: "En Train Magnétique", ferry: "En bateau" };
+const SERVICES = ["Train Magnétique", "Flèche des Mers", "Aquaria"];
+const START = "Bourg Palette";
+const COLORS = { roadEdge: "#986838", road: "#e0b870", abyss: "#2050a8", reach: "#f8d030" };
+// miniatures des villes de Kanto : carte pret et largeur dans la zone (px)
+const CITY_MAPS = {
+  "Bourg Palette": ["PalletTown", 40], "Jadielle": ["ViridianCity", 58], "Argenta": ["PewterCity", 60],
+  "Azuria": ["CeruleanCity", 62], "Lavanville": ["LavenderTown", 46], "Carmin sur Mer": ["VermilionCity", 62],
+  "Céladopole": ["CeladonCity", 74], "Parmanie": ["FuchsiaCity", 60], "Safrania": ["SaffronCity", 70],
+  "Cramois'Île": ["CinnabarIsland", 46], "Plateau Indigo": ["IndigoPlateau_Exterior", 46],
+};
+const VARIANTS = ["iso", "fidele", "p09"];
+const VARIANT_NAMES = { iso: "variante isométrique", fidele: "miniature fidèle", p09: "icône P09" };
+
+// effets : touche, nom, actif au départ
+const EFFECTS = {
+  clouds: { key: "1", name: "Nuages et leur ombre", on: true },
+  shadows: { key: "2", name: "Ombres de nuages", on: true },
+  glints: { key: "3", name: "Reflets du soleil", on: true },
+  foam: { key: "4", name: "Écume des côtes", on: true },
+  birds: { key: "5", name: "Vol de Goélise", on: true },
+  daynight: { key: "6", name: "Cycle jour / soir / nuit", on: false },
+};
+
+// ---------------------------------------------------------------- état
+const canvas = document.getElementById("map");
+const ctx = canvas.getContext("2d");
+let dpr = Math.max(1, Math.round(window.devicePixelRatio || 1));
+let zoomIndex = 1;
+const camera = { x: 0, y: 0, follow: true };
+let data, nodes, edges, adjacency, images = {}, treeSprites = [], sparkleBuckets = new Map(), treeBuckets = new Map();
+let foamBuckets = new Map();
+let townIcons = {}, lieuIcons = {}, transportIcons = {}, cityThumbs = {}, cloudSprites = [];
+let variant = "iso";
+const player = { node: 0, x: 0, y: 0, dir: "down", walkTime: 0, queue: [], segment: null, progress: 0, kind: null };
+let hovered = null, destination = null, linkLabels = [];
+let time = 0, running = false, dayPhase = 0;   // dayPhase : 0 jour, 1 soir, 2 nuit (manuel), ou cycle si l'effet est actif
+let clouds = [], shadowBlobs = [], birds = [], nextBirds = 3;
+
+function scale() { return ZOOMS[zoomIndex] * dpr; }
+
+// ---------------------------------------------------------------- chargement
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("image introuvable : " + src));
+    image.src = src;
+  });
+}
+function loadOptional(src) { return loadImage(src).catch(() => null); }
+
+async function load() {
+  data = await (await fetch("japon.json")).json();
+  const [eau, terre, nuages, red, surf, seagallop, aquaria, goelise] = await Promise.all(
+    ["layers/01-eau.png", "layers/02-terre.png", "layers/09-nuages.png", "sprites/red.png", "sprites/surf.png",
+      "sprites/fleche-des-mers.png", "sprites/aquaria.png", "sprites/goelise.png"].map(loadImage));
+  images = { eau, terre, nuages, red, surf, seagallop, aquaria, goelise };
+  treeSprites = await Promise.all(data.sprites_arbres.map((name) => loadImage(`sprites/arbres/${name}.png`)));
+  cloudSprites = (await Promise.all([11, 22, 33, 44].map((n) => loadImage(`sprites/nuages/nuage-${n}.png`))))
+    .map((image) => ({ image, shadow: silhouette(image) }));
+  for (const [name, [file]] of Object.entries(CITY_MAPS)) {
+    const [fidele, iso] = await Promise.all([loadOptional(`villes/fidele/${file}.png`), loadOptional(`villes/iso/${file}.png`)]);
+    cityThumbs[name] = { fidele, iso };
+  }
+  nodes = data.noeuds;
+  edges = data.aretes;
+  adjacency = nodes.map(() => []);
+  for (const edge of edges) {
+    adjacency[edge.a].push({ edge, other: edge.b, points: edge.points });
+    adjacency[edge.b].push({ edge, other: edge.a, points: edge.points.slice().reverse() });
+  }
+  nameSteps();
+  buildTrees();
+  buildWater();
+  buildIcons();
+  buildLinkLabels();
+  buildSky();
+  const start = nodes.find((node) => node.name === START);
+  player.node = start.id;
+  player.x = start.x;
+  player.y = start.y;
+  camera.x = start.x;
+  camera.y = start.y - 40;
+  resize();
+  updatePanel();
+  updateHelp();
+  requestAnimationFrame(frame);
+}
+
+// Une étape sans route connue est désignée par la ville ou le lieu le plus proche dans le graphe.
+function nameSteps() {
+  const distance = nodes.map(() => Infinity);
+  const near = nodes.map(() => null);
+  const open = [];
+  for (const node of nodes) {
+    if (node.type !== "etape") { distance[node.id] = 0; near[node.id] = node.name; open.push(node.id); }
+  }
+  const done = new Set();
+  while (open.length) {
+    let best = 0;
+    for (let k = 1; k < open.length; k++) if (distance[open[k]] < distance[open[best]]) best = k;
+    const u = open.splice(best, 1)[0];
+    if (done.has(u)) continue;
+    done.add(u);
+    for (const { edge, other } of adjacency[u]) {
+      const d = distance[u] + edge.length;
+      if (d < distance[other]) { distance[other] = d; near[other] = near[u]; open.push(other); }
+    }
+  }
+  for (const node of nodes) if (node.type === "etape") node.near = near[node.id];
+}
+
+function label(node) {
+  if (node.type === "etape") return node.route || (node.near ? `Étape près de ${node.near}` : "Étape");
+  return node.name;
+}
+function fullLabel(node) {
+  return node.detail ? `${node.name} (${node.detail})` : label(node);
+}
+
+function bucketKey(x, y) { return `${Math.floor(x / 128)},${Math.floor(y / 128)}`; }
+function addToBucket(map, x, y, item) {
+  const key = bucketKey(x, y);
+  if (!map.has(key)) map.set(key, []);
+  map.get(key).push(item);
+}
+function* visibleBuckets(map, view, margin) {
+  const x0 = Math.floor((view.x0 - margin) / 128), x1 = Math.floor((view.x1 + margin) / 128);
+  const y0 = Math.floor((view.y0 - margin) / 128), y1 = Math.floor((view.y1 + margin) / 128);
+  for (let by = y0; by <= y1; by++) for (let bx = x0; bx <= x1; bx++) {
+    const list = map.get(`${bx},${by}`);
+    if (list) yield list;
+  }
+}
+
+function buildTrees() {
+  for (const [x, y, essence, k] of data.arbres) {
+    // déphasage du vent : une onde qui traverse la carte d'ouest en est, plus un peu de hasard par arbre
+    const phase = x * 0.045 + y * 0.012 + ((x * 7.13 + y * 3.71) % 1) * 1.4;
+    addToBucket(treeBuckets, x, y, { x, y, sprite: treeSprites[essence], k, phase });
+  }
+}
+
+// Vaguelettes (eau libre) et écume (bord de côte), tirées une fois depuis le calque d'eau.
+function buildWater() {
+  const [W, H] = data.size;
+  const work = document.createElement("canvas");
+  work.width = W; work.height = H;
+  const wctx = work.getContext("2d", { willReadFrequently: true });
+  wctx.drawImage(images.eau, 0, 0);
+  const alpha = wctx.getImageData(0, 0, W, H).data;
+  const water = (x, y) => x >= 0 && y >= 0 && x < W && y < H && alpha[(y * W + x) * 4 + 3] > 200;
+  let seed = 7;
+  const random = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+  for (let gy = 4; gy < H; gy += 11) {
+    for (let gx = 4; gx < W; gx += 17) {
+      const x = gx + Math.floor(random() * 12), y = gy + Math.floor(random() * 8);
+      if (!water(x, y) || !water(x + 10, y) || !water(x - 10, y) || !water(x, y + 8) || !water(x, y - 8)) continue;
+      const near = !water(x + 18, y) || !water(x - 18, y) || !water(x, y + 14) || !water(x, y - 14);
+      addToBucket(sparkleBuckets, x, y, { x, y, phase: random() * Math.PI * 2, speed: 0.7 + random() * 0.8,
+        length: near ? 2 : 3 + Math.floor(random() * 2), color: near ? "#e8f8ff" : "#a8d8f8", glint: random() });
+    }
+  }
+  // écume : un point tous les ~3 px le long des côtes, avec la direction du large
+  for (let y = 2; y < H - 2; y += 3) {
+    for (let x = 2; x < W - 2; x += 3) {
+      if (!water(x, y)) continue;
+      const nx = (water(x + 2, y) ? 0 : -1) + (water(x - 2, y) ? 0 : 1);
+      const ny = (water(x, y + 2) ? 0 : -1) + (water(x, y - 2) ? 0 : 1);
+      if (!nx && !ny) continue;
+      addToBucket(foamBuckets, x, y, { x, y, nx, ny, phase: ((x * 0.035 + y * 0.027) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) });
+    }
+  }
+}
+
+// silhouette sombre d'un sprite (ombre portée au sol)
+function silhouette(image) {
+  const c = document.createElement("canvas");
+  c.width = image.width; c.height = image.height;
+  const g = c.getContext("2d");
+  g.drawImage(image, 0, 0);
+  g.globalCompositeOperation = "source-in";
+  g.fillStyle = "#102040";
+  g.fillRect(0, 0, c.width, c.height);
+  return c;
+}
+
+// Nuages qui dérivent au-dessus de Kanto et alentour ; ombres seules (taches douces) qui glissent.
+const SKY = { x0: 1250, y0: 1560, x1: 2250, y1: 2250 };
+function buildSky() {
+  let seed = 3;
+  const random = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+  for (let i = 0; i < 11; i++) {
+    clouds.push({ x: SKY.x0 + random() * (SKY.x1 - SKY.x0), y: SKY.y0 + random() * (SKY.y1 - SKY.y0),
+      speed: 3 + random() * 3.5, sprite: cloudSprites[i % cloudSprites.length], k: 0.8 + random() * 0.45 });
+  }
+  for (let i = 0; i < 9; i++) {
+    const c = document.createElement("canvas");
+    const w = 150 + Math.floor(random() * 110), h = 80 + Math.floor(random() * 50);
+    c.width = w; c.height = h;
+    const g = c.getContext("2d");
+    g.filter = "blur(9px)";
+    g.fillStyle = "#0c1a38";
+    for (let k = 0; k < 7; k++) {
+      g.beginPath();
+      g.ellipse(w * (0.25 + random() * 0.5), h * (0.35 + random() * 0.3), w * (0.12 + random() * 0.12), h * (0.18 + random() * 0.12), 0, 0, Math.PI * 2);
+      g.fill();
+    }
+    shadowBlobs.push({ x: SKY.x0 + random() * (SKY.x1 - SKY.x0), y: SKY.y0 + random() * (SKY.y1 - SKY.y0),
+      speed: 5 + random() * 4, canvas: c });
+  }
+}
+
+// ---------------------------------------------------------------- icônes en pixel art (dessinées à ×1)
+function pixelMap(rows, palette) {
+  const c = document.createElement("canvas");
+  c.width = rows[0].length; c.height = rows.length;
+  const g = c.getContext("2d");
+  rows.forEach((row, y) => [...row].forEach((ch, x) => {
+    if (palette[ch]) { g.fillStyle = palette[ch]; g.fillRect(x, y, 1, 1); }
+  }));
+  return c;
+}
+
+const PALETTE = {
+  k: "#383848", R: "#e05840", r: "#b03828", w: "#f8f0e0", s: "#d0c8b8", b: "#68b0f0", d: "#8a5a30",
+  g: "#58a840", G: "#387830", t: "#7a5030", B: "#4890e0", L: "#90c8f8", y: "#f8d030", Y: "#c89818",
+  n: "#8a6a50", N: "#5a4434", K: "#201818", S: "#e8d8a0", e: "#a08850", c: "#b8c0d0", C: "#8890a8",
+};
+const HOUSE = ["...kkk...", "..kRRRk..", ".kRRRRRk.", "kRRRrRRRk", "kkkkkkkkk", ".kwwwwwk.", ".kwbwdwk.", ".kwwwdwk.", ".kkkkkkk."];
+const TOWER_BUILDING = [".kkkkk.", ".kcccck", ".kcbcbk", ".kcccck", ".kcbcbk", ".kcccck", ".kcbcbk", ".kcccck", ".kcbcbk", ".kccdck", ".kkkkkk"];
+
+function buildTown(big) {
+  const w = big ? 30 : 24, h = big ? 22 : 18;
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const g = c.getContext("2d");
+  const cx = (w - 1) / 2, cy = h - 6.5, rx = w / 2 - 0.5, ry = 6;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const d = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2;
+    if (d <= 1) { g.fillStyle = d > 0.72 ? PALETTE.e : PALETTE.S; g.fillRect(x, y, 1, 1); }
+  }
+  const house = pixelMap(HOUSE, PALETTE);
+  if (big) {
+    g.drawImage(pixelMap(TOWER_BUILDING, PALETTE), 11, 0);
+    g.drawImage(house, 2, 6); g.drawImage(house, 19, 7); g.drawImage(house, 10, 12);
+  } else {
+    g.drawImage(house, 2, 3); g.drawImage(house, 13, 2); g.drawImage(house, 8, 8);
+  }
+  return c;
+}
+
+const GLYPHS = {
+  cave: ["..nnn..", ".nnnnn.", "nnKKKnn", "nKKKKKn", "nKKKKKn", "NKKKKKN"],
+  forest: ["...g...", "..ggg..", ".gGggg.", "gggGggg", ".gggGg.", "...t...", "...t..."],
+  tower: ["..kkk..", "..cbc..", "..ccc..", ".kccck.", ".cbcbc.", ".ccccc.", ".ccdcc."],
+  lake: [".......", ".LLLLL.", "LLBBBLL", "LBBBBBL", "LLBBBLL", ".LLLLL."],
+  ruins: ["kkkkkkk", "ccccccc", ".c.c.c.", ".c.c.c.", ".c.c.c.", "ccccccc"],
+  island: ["...gg..", "..g.tgg", "....t..", "....t..", ".SSSSS.", "LLLLLLL"],
+  plant: ["....yY.", "...yY..", "..yyyY.", ".yyyY..", "...yY..", "..yY...", ".yY...."],
+  star: ["...y...", "...y...", "yyyyyyy", ".yyyyy.", "..yyy..", ".yy.yy.", ".y...y."],
+  bus: [".yyyyy.", "yLyLyLy", "yyyyyyy", "yyyyyyy", ".K...K."],
+  tunnel: ["..kkk..", ".kcccK.", "kcKKKck", "kcKsKck", "kcKssck", "kcKsssk"],
+};
+
+function buildLieu(style) {
+  const size = 15, c = document.createElement("canvas");
+  c.width = size; c.height = size;
+  const g = c.getContext("2d");
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const d = Math.abs(x - 7) + Math.abs(y - 7);
+    if (d <= 7) { g.fillStyle = d >= 6 ? PALETTE.k : "#f8f0d0"; g.fillRect(x, y, 1, 1); }
+  }
+  const glyph = pixelMap(GLYPHS[style] || GLYPHS.star, PALETTE);
+  g.drawImage(glyph, Math.floor((size - glyph.width) / 2), Math.floor((size - glyph.height) / 2));
+  return c;
+}
+
+function buildIcons() {
+  townIcons = { small: buildTown(false), big: buildTown(true) };
+  for (const style of Object.keys(GLYPHS)) lieuIcons[style] = buildLieu(style);
+  transportIcons.train = pixelMap([
+    "..kkkkkkkkkkk...", ".kccccccccccck..", "kcbbcbbcbbcbbcck", "kcbbcbbcbbcbbcck", "kccccccccccccccK",
+    "kBBBBBBBBBBBBBBk", ".kkKkkkkkkkKkkk.",
+  ], PALETTE);
+}
+
+function buildLinkLabels() {
+  const best = new Map();
+  for (const edge of edges) {
+    if (!edge.name || !["train", "ferry"].includes(edge.kind)) continue;
+    if (!best.has(edge.name) || best.get(edge.name).length < edge.length) best.set(edge.name, edge);
+  }
+  linkLabels = [...best.values()].map((edge) => {
+    const mid = pointAlong(edge.points, edge.length / 2);
+    return { name: edge.name, x: mid.x, y: mid.y };
+  });
+}
+
+// ---------------------------------------------------------------- géométrie
+function pointAlong(points, distance) {
+  for (let i = 1; i < points.length; i++) {
+    const [ax, ay] = points[i - 1], [bx, by] = points[i];
+    const length = Math.hypot(bx - ax, by - ay);
+    if (distance <= length && length > 0) {
+      const t = distance / length;
+      return { x: ax + (bx - ax) * t, y: ay + (by - ay) * t, dx: bx - ax, dy: by - ay };
+    }
+    distance -= length;
+  }
+  const n = points.length;
+  const [ax, ay] = points[Math.max(0, n - 2)], [bx, by] = points[n - 1];
+  return { x: bx, y: by, dx: bx - ax, dy: by - ay };
+}
+
+function view() {
+  const s = scale();
+  const w = canvas.width / s, h = canvas.height / s;
+  return { x0: camera.x - w / 2, y0: camera.y - h / 2, x1: camera.x + w / 2, y1: camera.y + h / 2, w, h };
+}
+
+function clampCamera() {
+  const [W, H] = data.size;
+  const v = view();
+  camera.x = v.w >= W ? W / 2 : Math.min(Math.max(camera.x, v.w / 2), W - v.w / 2);
+  camera.y = v.h >= H ? H / 2 : Math.min(Math.max(camera.y, v.h / 2), H - v.h / 2);
+}
+
+// Origine entière en pixels d'écran : toutes les images tombent sur la même grille, sans flou.
+function origin() {
+  const s = scale(), v = view();
+  return { ox: Math.round(-v.x0 * s), oy: Math.round(-v.y0 * s), s };
+}
+function toScreen(x, y, o) { return [o.ox + x * o.s, o.oy + y * o.s]; }
+function toZone(px, py) {
+  const o = origin();
+  return [(px * dpr - o.ox) / o.s, (py * dpr - o.oy) / o.s];
+}
+
+// ---------------------------------------------------------------- chemins et choix du transport
+// allowed(edge) : arête utilisable ? (tous les modes par défaut)
+function shortestPath(from, to, allowed = () => true) {
+  const distance = nodes.map(() => Infinity), previous = nodes.map(() => null);
+  distance[from] = 0;
+  const done = new Uint8Array(nodes.length);
+  const open = [from];
+  while (open.length) {
+    let best = 0;
+    for (let k = 1; k < open.length; k++) if (distance[open[k]] < distance[open[best]]) best = k;
+    const u = open.splice(best, 1)[0];
+    if (done[u]) continue;
+    done[u] = 1;
+    if (u === to) break;
+    for (const step of adjacency[u]) {
+      if (!allowed(step.edge)) continue;
+      const d = distance[u] + step.edge.length * COST[step.edge.kind];
+      if (d < distance[step.other]) { distance[step.other] = d; previous[step.other] = { from: u, step }; open.push(step.other); }
+    }
+  }
+  if (!Number.isFinite(distance[to])) return null;
+  const path = [];
+  for (let n = to; n !== from; n = previous[n].from) path.unshift(previous[n].step);
+  return path;
+}
+
+function travelSeconds(path) {
+  return path.reduce((sum, step) => sum + step.edge.length / SPEED[step.edge.kind], 0);
+}
+
+// Moyens possibles : à pied (avec Surf et souterrains), et chaque ligne (train, bateaux) qui sert vraiment le trajet.
+function travelOptions(from, to) {
+  const options = [];
+  const foot = shortestPath(from, to, (edge) => edge.kind !== "train" && edge.kind !== "ferry");
+  if (foot) {
+    const surf = foot.some((step) => step.edge.kind === "surf" || step.edge.kind === "eau");
+    options.push({ label: surf ? "À pied et en Surf" : "À pied", path: foot });
+  }
+  for (const service of SERVICES) {
+    const path = shortestPath(from, to, (edge) => (edge.kind !== "train" && edge.kind !== "ferry") || edge.name === service);
+    if (!path || !path.some((step) => step.edge.name === service)) continue;
+    const verb = service === "Train Magnétique" ? "En Train Magnétique" : `En bateau (${service})`;
+    options.push({ label: verb, path, service });
+  }
+  return options;
+}
+
+function currentStart() { return player.segment ? player.segment.other : player.node; }
+
+function travelTo(target, anchor) {
+  const from = currentStart();
+  if (target === from && !player.segment) { toast(`Tu es déjà à ${fullLabel(nodes[target])}.`); return; }
+  if (target === from) { follow([]); return; }
+  const options = travelOptions(from, target);
+  if (!options.length) {
+    document.getElementById("transport").textContent = `Pas de chemin connu vers ${label(nodes[target])} (zone encore coupée du réseau).`;
+    return;
+  }
+  if (options.length === 1) { follow(options[0].path, target); return; }
+  options.sort((a, b) => travelSeconds(a.path) - travelSeconds(b.path));
+  openMenu(anchor, `Aller à ${fullLabel(nodes[target])}`, "Comment y aller ?", options.map((option) => ({
+    label: option.label, cost: `${Math.max(1, Math.round(travelSeconds(option.path)))} s`,
+    run: () => follow(option.path, target),
+  })));
+}
+
+function follow(path, target = null) {
+  player.queue = path;
+  destination = path.length ? target : null;
+  camera.follow = true;
+  if (!player.segment) startNextSegment();
+  updatePanel();
+}
+
+function startNextSegment() {
+  player.segment = player.queue.shift() || null;
+  player.progress = 0;
+  player.kind = player.segment ? player.segment.edge.kind : null;
+  if (!player.segment) destination = null;
+  updatePanel();
+}
+
+function updatePlayer(dt) {
+  if (!player.segment) return;
+  const seg = player.segment;
+  player.progress += SPEED[seg.edge.kind] * (running ? RUN : 1) * dt;
+  player.walkTime += dt * (running ? 1.6 : 1);
+  if (player.progress >= seg.edge.length) {
+    player.node = seg.other;
+    player.x = nodes[seg.other].x;
+    player.y = nodes[seg.other].y;
+    startNextSegment();
+    return;
+  }
+  const p = pointAlong(seg.points, player.progress);
+  player.x = p.x;
+  player.y = p.y;
+  if (Math.abs(p.dx) > Math.abs(p.dy) * 1.15) player.dir = p.dx > 0 ? "right" : "left";
+  else if (Math.abs(p.dy) > 0.01) player.dir = p.dy > 0 ? "down" : "up";
+}
+
+// ---------------------------------------------------------------- menu contextuel (façon Final Fantasy Tactics)
+const menu = document.getElementById("menu");
+function openMenu(anchor, title, subtitle, items) {
+  menu.innerHTML = "";
+  const head = document.createElement("div");
+  head.className = "title";
+  head.textContent = title;
+  if (subtitle) { const small = document.createElement("small"); small.textContent = subtitle; head.appendChild(small); }
+  menu.appendChild(head);
+  for (const item of items) {
+    const button = document.createElement("button");
+    if (item.todo) button.className = "todo";
+    const text = document.createElement("span");
+    text.textContent = item.label;
+    button.appendChild(text);
+    if (item.cost) { const cost = document.createElement("span"); cost.className = "cost"; cost.textContent = item.cost; button.appendChild(cost); }
+    button.addEventListener("click", () => { closeMenu(); item.run(); });
+    menu.appendChild(button);
+  }
+  menu.style.display = "block";
+  const x = anchor ? anchor.x : window.innerWidth / 2, y = anchor ? anchor.y : window.innerHeight / 2;
+  const w = menu.offsetWidth, h = menu.offsetHeight;
+  menu.style.left = Math.min(window.innerWidth - w - 8, x + 12) + "px";
+  menu.style.top = Math.min(window.innerHeight - h - 8, Math.max(8, y - 10)) + "px";
+  menu.querySelector("button")?.focus();
+}
+function closeMenu() { menu.style.display = "none"; }
+
+let toastTimer = 0;
+function toast(text) {
+  const box = document.getElementById("toast");
+  box.textContent = text;
+  box.style.display = "block";
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { box.style.display = "none"; }, 2600);
+}
+function notYet(action, node) { toast(`« ${action} » à ${fullLabel(node)} : pas encore dans le prototype.`); }
+
+const PLACE_ACTION = { cave: "Explorer la grotte", forest: "Explorer la forêt", tower: "Monter dans la tour",
+  plant: "Explorer la centrale", ruins: "Fouiller le manoir", island: "Explorer les îles", tunnel: "Descendre au souterrain",
+  lake: "Explorer le lac" };
+
+function actionsFor(node) {
+  const here = !player.segment && player.node === node.id;
+  const items = [];
+  if (!here) items.push({ label: "Aller ici", run: () => travelTo(node.id, lastPointer) });
+  if (node.type === "ville") {
+    items.push({ label: "Entrer en ville", todo: true, run: () => notYet("Entrer en ville", node) });
+    items.push({ label: "Centre Pokémon", todo: true, run: () => notYet("Centre Pokémon", node) });
+    items.push({ label: "Boutique", todo: true, run: () => notYet("Boutique", node) });
+  } else if (node.type === "lieu") {
+    items.push({ label: PLACE_ACTION[node.style] || "Explorer", todo: true, run: () => notYet(PLACE_ACTION[node.style] || "Explorer", node) });
+    if (node.traverse) items.push({ label: "Traverser", run: () => crossPlace(node) });
+  } else {
+    items.push({ label: node.water ? "Pêcher" : "Chercher des Pokémon sauvages", todo: true,
+      run: () => notYet(node.water ? "Pêcher" : "Chercher des Pokémon sauvages", node) });
+  }
+  // lignes qui partent d'ici : train et bateaux
+  for (const { edge, other } of adjacency[node.id]) {
+    if (edge.kind !== "train" && edge.kind !== "ferry") continue;
+    const verb = edge.kind === "train" ? "Prendre le Train Magnétique" : `Prendre le bateau (${edge.name})`;
+    items.push({ label: `${verb} → ${label(nodes[other])}`, run: () => takeLine(node, edge, other) });
+  }
+  return items;
+}
+
+function takeLine(node, edge, other) {
+  const from = currentStart();
+  const before = node.id === from ? [] : shortestPath(from, node.id, (e) => e.kind !== "train" && e.kind !== "ferry");
+  if (!before) { toast(`Pas de chemin à pied vers ${label(node)}.`); return; }
+  const ride = adjacency[node.id].find((step) => step.edge === edge && step.other === other);
+  follow([...before, ride], other);
+}
+
+// Traverser un lieu : aller jusqu'à la sortie d'en face (le voisin à pied le plus éloigné de la position actuelle).
+function crossPlace(node) {
+  const from = currentStart();
+  const exits = adjacency[node.id].filter((step) => step.edge.kind === "route");
+  if (!exits.length) return;
+  let best = exits[0], bestDistance = -1;
+  for (const step of exits) {
+    const d = Math.hypot(nodes[step.other].x - nodes[from].x, nodes[step.other].y - nodes[from].y);
+    if (d > bestDistance) { best = step; bestDistance = d; }
+  }
+  const path = shortestPath(from, best.other, (e) => e.kind !== "train" && e.kind !== "ferry");
+  if (path) follow(path, best.other);
+}
+
+function openActions(nodeId, anchor) {
+  const node = nodes[nodeId];
+  const kind = { ville: "Ville", lieu: node.traverse ? "Lieu de passage" : "Lieu", etape: "Étape" }[node.type];
+  openMenu(anchor, fullLabel(node), `${kind} · ${node.region}`, actionsFor(node));
+}
+
+// ---------------------------------------------------------------- panneau et aide
+function updatePanel() {
+  const here = nodes[player.node];
+  document.getElementById("here").textContent = player.segment ? `En route depuis ${label(here)}` : `${fullLabel(here)} (${here.region})`;
+  document.getElementById("next").textContent = player.segment ? fullLabel(nodes[player.segment.other]) : "—";
+  document.getElementById("dest").textContent = destination !== null
+    ? `${fullLabel(nodes[destination])} · ${player.queue.length + (player.segment ? 1 : 0)} étape(s)` : "—";
+  const transport = document.getElementById("transport");
+  if (player.segment) {
+    const kind = player.segment.edge.kind;
+    const name = player.segment.edge.name;
+    transport.textContent = TRANSPORT[kind] + (name && !TRANSPORT[kind].includes(name) ? ` · ${name}` : "") + (running ? " · en courant" : "");
+  } else {
+    transport.textContent = "Clic gauche : aller quelque part. Clic droit : que faire ici ?";
+  }
+}
+
+function updateHelp() {
+  const lines = [
+    "<b>clic</b> aller · <b>clic droit</b> actions · <b>glisser</b> carte · <b>molette</b> zoom",
+    "<b>Maj</b> courir (×2) · <b>Espace</b> recentrer",
+    `<b>V</b> villes : ${VARIANT_NAMES[variant]}`,
+    `<b>N</b> heure : ${["jour", "soir", "nuit"][dayPhase]}`,
+  ];
+  for (const effect of Object.values(EFFECTS)) {
+    lines.push(`<b>${effect.key}</b> <span class="${effect.on ? "on" : "off"}">${effect.name} : ${effect.on ? "oui" : "non"}</span>`);
+  }
+  document.getElementById("help").innerHTML = lines.join("<br>");
+}
+
+// ---------------------------------------------------------------- dessin
+function drawPolyline(points, o) {
+  ctx.beginPath();
+  points.forEach(([x, y], i) => {
+    const [sx, sy] = toScreen(x, y, o);
+    i ? ctx.lineTo(sx, sy) : ctx.moveTo(sx, sy);
+  });
+}
+
+function edgeVisible(edge, v) {
+  if (!edge.box) {
+    const xs = edge.points.map((p) => p[0]), ys = edge.points.map((p) => p[1]);
+    edge.box = [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
+  }
+  const [a, b, c, d] = edge.box;
+  return c >= v.x0 - 20 && a <= v.x1 + 20 && d >= v.y0 - 20 && b <= v.y1 + 20;
+}
+
+function drawEdges(o, v) {
+  const f = o.s / 2;
+  ctx.lineJoin = "round";
+  const visible = edges.filter((edge) => edgeVisible(edge, v));
+  // souterrains : pointillé brun discret
+  for (const edge of visible) {
+    if (edge.kind !== "tunnel") continue;
+    drawPolyline(edge.points, o);
+    ctx.lineCap = "round";
+    ctx.setLineDash([1 * f, 7 * f]);
+    ctx.strokeStyle = "rgba(72, 48, 32, 0.55)";
+    ctx.lineWidth = 3 * f;
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  // mer : pointillés clairs (Surf, bateaux)
+  for (const edge of visible) {
+    if (!["surf", "eau", "ferry"].includes(edge.kind)) continue;
+    const ferry = edge.kind === "ferry";
+    drawPolyline(edge.points, o);
+    ctx.lineCap = "butt";
+    ctx.setLineDash(ferry ? [9 * f, 6 * f] : [5 * f, 6 * f]);
+    ctx.lineDashOffset = ferry ? -time * 12 * f : 0;
+    ctx.strokeStyle = "rgba(24, 56, 128, 0.45)";
+    ctx.lineWidth = (ferry ? 5 : 3.5) * f;
+    ctx.stroke();
+    ctx.strokeStyle = ferry ? "#ffffff" : "#d8f0ff";
+    ctx.lineWidth = (ferry ? 3 : 2) * f;
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  ctx.lineDashOffset = 0;
+  // ponts (Piste Cyclable) : ombre sur l'eau et piles
+  for (const edge of visible) {
+    if (!edge.bridge) continue;
+    ctx.lineCap = "butt";
+    drawPolyline(edge.points.map(([x, y]) => [x + 1.5, y + 3]), o);
+    ctx.strokeStyle = "rgba(16, 32, 72, 0.35)";
+    ctx.lineWidth = 9 * f;
+    ctx.stroke();
+    drawPolyline(edge.points, o);
+    ctx.setLineDash([2 * f, 6 * f]);
+    ctx.strokeStyle = "#5a4030";
+    ctx.lineWidth = 12 * f;
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  // routes : bord brun puis sable (deux passes pour que les croisements restent propres)
+  const land = visible.filter((edge) => edge.kind === "route" || edge.kind === "acces");
+  ctx.lineCap = "round";
+  for (const pass of [0, 1]) {
+    for (const edge of land) {
+      drawPolyline(edge.points, o);
+      const access = edge.kind === "acces";
+      ctx.strokeStyle = pass ? (access ? "#ead098" : edge.bridge ? "#d8c0a0" : COLORS.road) : COLORS.roadEdge;
+      ctx.lineWidth = (access ? (pass ? 2.5 : 4.5) : (pass ? 4.5 : 7.5)) * f;
+      ctx.stroke();
+    }
+  }
+  // Train Magnétique : traverses puis deux rails
+  for (const edge of visible) {
+    if (edge.kind !== "train") continue;
+    drawPolyline(edge.points, o);
+    ctx.lineCap = "butt";
+    ctx.setLineDash([2 * f, 4 * f]);
+    ctx.strokeStyle = "#6a4830";
+    ctx.lineWidth = 11 * f;
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.strokeStyle = "#404050";
+    ctx.lineWidth = 6 * f;
+    ctx.stroke();
+    ctx.strokeStyle = "#b8b0a8";
+    ctx.lineWidth = 3 * f;
+    ctx.stroke();
+  }
+}
+
+function neighbours() {
+  if (player.segment) return new Set();
+  return new Set(adjacency[player.node].map((step) => step.other));
+}
+
+function drawSteps(o, v, reachable) {
+  const f = o.s / 2;
+  for (const node of nodes) {
+    if (node.type !== "etape" || node.x < v.x0 - 10 || node.x > v.x1 + 10 || node.y < v.y0 - 10 || node.y > v.y1 + 10) continue;
+    const [sx, sy] = toScreen(node.x, node.y, o);
+    ctx.beginPath();
+    ctx.arc(sx, sy, 4.5 * f, 0, Math.PI * 2);
+    ctx.fillStyle = "#ffffff";
+    ctx.fill();
+    ctx.lineWidth = 1.6 * f;
+    ctx.strokeStyle = "#383848";
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(sx, sy, 1.8 * f, 0, Math.PI * 2);
+    ctx.fillStyle = node.water ? "#4078e0" : "#e04040";
+    ctx.fill();
+  }
+}
+
+// étapes atteignables d'un clic (anneau jaune) et drapeau de destination, par-dessus villes et arbres
+function drawReach(o, reachable) {
+  const f = o.s / 2;
+  for (const id of reachable) {
+    const node = nodes[id];
+    const [sx, sy] = toScreen(node.x, node.y, o);
+    const pulse = 1 + 0.25 * Math.sin(time * 5);
+    const r = (node.type === "etape" ? 9 : 15) * f * pulse;
+    ctx.beginPath();
+    ctx.arc(sx, sy, r, 0, Math.PI * 2);
+    ctx.lineWidth = 5 * f;
+    ctx.strokeStyle = "#383848";
+    ctx.stroke();
+    ctx.lineWidth = 3 * f;
+    ctx.strokeStyle = COLORS.reach;
+    ctx.stroke();
+  }
+  if (destination !== null) {
+    const node = nodes[destination];
+    const [sx, sy] = toScreen(node.x, node.y, o);
+    const bob = Math.round(Math.sin(time * 4) * 2 * f);
+    ctx.fillStyle = "#383848";
+    ctx.fillRect(sx - f, sy - 22 * f + bob, 2 * f, 16 * f);
+    ctx.fillStyle = "#e04040";
+    ctx.beginPath();
+    ctx.moveTo(sx + f, sy - 22 * f + bob);
+    ctx.lineTo(sx + 11 * f, sy - 18 * f + bob);
+    ctx.lineTo(sx + f, sy - 14 * f + bob);
+    ctx.fill();
+  }
+}
+
+function iconScale(s) { return Math.max(1, Math.round(s * 0.8)); }
+
+function drawTree(tree, o) {
+  const sprite = tree.sprite;
+  const k = Math.max(1, Math.round(tree.k * o.s));
+  const [sx, sy] = toScreen(tree.x, tree.y, o);
+  const left = Math.round(sx - (sprite.width * k) / 2), top = Math.round(sy - sprite.height * k);
+  const sway = Math.sin(time * 1.7 + tree.phase) * 0.8 + Math.sin(time * 0.6 + tree.phase * 0.5) * 0.6;
+  const bands = [[0, 0.34, 1], [0.34, 0.67, 0.5], [0.67, 1, 0]];
+  for (const [a, b, weight] of bands) {
+    const y0 = Math.round(sprite.height * a), y1 = Math.round(sprite.height * b);
+    const shift = Math.round(sway * weight) * k;
+    ctx.drawImage(sprite, 0, y0, sprite.width, y1 - y0, left + shift, top + y0 * k, sprite.width * k, (y1 - y0) * k);
+  }
+}
+
+// miniature de ville (Kanto) : taille dans la zone, image de la variante choisie
+function thumbOf(node) {
+  if (node.type !== "ville" || variant === "p09") return null;
+  const entry = CITY_MAPS[node.name];
+  const set = cityThumbs[node.name];
+  if (!entry || !set || !set[variant]) return null;
+  const image = set[variant];
+  const w = entry[1] * (variant === "iso" ? 1.05 : 1);
+  return { image, w, h: (w * image.height) / image.width };
+}
+
+// miniature fidèle : vue de dessus, posée à plat sous les arbres et le joueur
+function drawFlatThumbs(o, v) {
+  if (variant !== "fidele") return;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  for (const node of nodes) {
+    if (node.type !== "ville" || node.x < v.x0 - 50 || node.x > v.x1 + 50 || node.y < v.y0 - 50 || node.y > v.y1 + 50) continue;
+    const thumb = thumbOf(node);
+    if (!thumb) continue;
+    const [sx, sy] = toScreen(node.x, node.y, o);
+    const w = thumb.w * o.s, h = thumb.h * o.s;
+    ctx.drawImage(thumb.image, Math.round(sx - w / 2), Math.round(sy - h / 2), Math.round(w), Math.round(h));
+  }
+  ctx.imageSmoothingEnabled = false;
+}
+
+function drawPlace(node, o) {
+  const thumb = thumbOf(node);
+  const [sx, sy] = toScreen(node.x, node.y, o);
+  if (thumb) {
+    if (variant === "fidele") return;   // déjà posée à plat
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    const w = thumb.w * o.s, h = thumb.h * o.s;
+    ctx.drawImage(thumb.image, Math.round(sx - w / 2), Math.round(sy - h * 0.62), Math.round(w), Math.round(h));
+    ctx.imageSmoothingEnabled = false;
+    return;
+  }
+  const k = iconScale(o.s);
+  const icon = node.type === "ville" ? townIcons[node.big ? "big" : "small"] : (lieuIcons[node.style] || lieuIcons.star);
+  const ground = node.type === "ville" ? icon.height - 6.5 : icon.height / 2;
+  ctx.drawImage(icon, Math.round(sx - (icon.width * k) / 2), Math.round(sy - ground * k), icon.width * k, icon.height * k);
+}
+
+const FRAMES = { down: [3, 0, 4, 0], up: [5, 1, 6, 1], left: [7, 2, 8, 2], right: [7, 2, 8, 2] };
+const STAND = { down: 0, up: 1, left: 2, right: 2 };
+const SURF_FRAMES = { down: [0, 1], up: [2, 3], left: [4, 5], right: [4, 5] };
+
+function drawPlayer(o) {
+  const k = Math.max(1, o.s);
+  const [sx, sy] = toScreen(player.x, player.y, o);
+  const kind = player.segment ? player.segment.edge.kind : null;
+  if (kind === "tunnel") return;    // sous terre : on ne le voit pas
+  if (kind === "train") {
+    const icon = transportIcons.train;
+    const kt = o.s + 1;
+    ctx.save();
+    ctx.translate(Math.round(sx), Math.round(sy));
+    if (player.dir === "left") ctx.scale(-1, 1);
+    ctx.drawImage(icon, Math.round((-icon.width * kt) / 2), Math.round(-icon.height * kt), icon.width * kt, icon.height * kt);
+    ctx.restore();
+    return;
+  }
+  if (kind === "ferry") {
+    // bateau officiel : Flèche des Mers (Rouge Feu) ou paquebot pour l'Aquaria ; le dresseur est à bord
+    const ship = player.segment.edge.name === "Aquaria" ? images.aquaria : images.seagallop;
+    const ks = Math.max(1, Math.round(o.s / 2));
+    const p = pointAlong(player.segment.points, Math.min(player.segment.edge.length, player.progress + 2));
+    const right = p.dx > 0;
+    const bob = Math.round(Math.sin(time * 2.5)) * ks;
+    ctx.save();
+    ctx.translate(Math.round(sx), Math.round(sy) + bob);
+    if (right) ctx.scale(-1, 1);
+    ctx.drawImage(ship, Math.round(-ship.width * ks / 2), Math.round(-ship.height * ks * 0.62), ship.width * ks, ship.height * ks);
+    ctx.restore();
+    return;
+  }
+  if (kind === "surf" || kind === "eau") {
+    // Surf : le dresseur assis sur son Pokémon (sprite officiel de Rouge Feu, 4 directions)
+    const frames = SURF_FRAMES[player.dir];
+    const frame = frames[Math.floor(time * 3) % 2];
+    const bob = Math.round(Math.sin(time * 4)) * k;
+    ctx.save();
+    ctx.translate(Math.round(sx), Math.round(sy) + bob);
+    if (player.dir === "right") ctx.scale(-1, 1);
+    ctx.drawImage(images.surf, frame * 32, 0, 32, 32, -16 * k, -26 * k, 32 * k, 32 * k);
+    ctx.restore();
+    return;
+  }
+  ctx.fillStyle = "rgba(16, 24, 48, 0.35)";
+  ctx.beginPath();
+  ctx.ellipse(sx, sy, 6 * k, 2.5 * k, 0, 0, Math.PI * 2);
+  ctx.fill();
+  const moving = Boolean(player.segment);
+  const frame = moving ? FRAMES[player.dir][Math.floor(player.walkTime * 8) % 4] : STAND[player.dir];
+  ctx.save();
+  ctx.translate(Math.round(sx), Math.round(sy));
+  if (player.dir === "right") ctx.scale(-1, 1);
+  ctx.drawImage(images.red, frame * 16, 0, 16, 32, -8 * k, -31 * k, 16 * k, 32 * k);
+  ctx.restore();
+}
+
+function cartouche(text, x, y, size, small, highlight) {
+  ctx.font = `bold ${size}px "Liberation Sans", Arial, sans-serif`;
+  const w = Math.ceil(ctx.measureText(text).width) + size * 0.8, h = Math.round(size * 1.45);
+  const left = Math.round(x - w / 2), top = Math.round(y);
+  ctx.fillStyle = highlight ? "#f8e070" : small ? "rgba(248, 244, 228, 0.9)" : "#f8f8f0";
+  ctx.strokeStyle = small && !highlight ? "#786c58" : "#383848";
+  ctx.lineWidth = small ? Math.max(1, size / 10) : Math.max(1.5, size / 7);
+  ctx.beginPath();
+  ctx.roundRect(left, top, w, h, size / 4);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = "#282838";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, left + w / 2, top + h / 2 + 1);
+  return [left, top, left + w, top + h];
+}
+
+function labelOffset(node, o, k) {
+  const thumb = thumbOf(node);
+  if (thumb) return (variant === "iso" ? thumb.h * 0.4 : thumb.h / 2) * o.s + 2 * dpr;
+  return 8 * k;
+}
+
+function drawLabels(o, v, reachable) {
+  const zoom = ZOOMS[zoomIndex];
+  const taken = [];
+  const free = (box) => taken.every((b) => box[2] <= b[0] || box[0] >= b[2] || box[3] <= b[1] || box[1] >= b[3]);
+  const inView = (node) => node.x > v.x0 - 60 && node.x < v.x1 + 60 && node.y > v.y0 - 40 && node.y < v.y1 + 40;
+  const k = iconScale(o.s);
+  // nom au survol d'abord (ville, lieu ou étape), mis en avant
+  if (hovered !== null && inView(nodes[hovered])) {
+    const node = nodes[hovered];
+    const [sx, sy] = toScreen(node.x, node.y, o);
+    const size = 14 * dpr;
+    const top = node.type === "etape" ? sy - 12 * o.s / 2 - size * 1.5 : sy - labelOffset(node, o, k) - size * 1.6;
+    taken.push(cartouche(fullLabel(node), sx, top, size, false, true));
+  }
+  const cities = nodes.filter((n) => n.type === "ville" && inView(n) && (zoom >= 2 || n.big) && n.id !== hovered);
+  const places = nodes.filter((n) => n.type === "lieu" && inView(n) && n.id !== hovered && (zoom >= 3 || reachable.has(n.id)));
+  for (const node of [...cities, ...places]) {
+    const [sx, sy] = toScreen(node.x, node.y, o);
+    const city = node.type === "ville";
+    const size = (city ? 13 : 11) * dpr * (zoom >= 3 ? 1.1 : 1);
+    const below = sy + labelOffset(node, o, k);
+    ctx.font = `bold ${size}px "Liberation Sans", Arial, sans-serif`;
+    const w = ctx.measureText(node.name).width + size;
+    const h = size * 1.45;
+    const options = [[sx, below], [sx, sy - (city ? 20 : 9) * k - h], [sx + w / 2 + 9 * k, sy - h / 2], [sx - w / 2 - 9 * k, sy - h / 2]];
+    let chosen = null;
+    for (const [x, y] of options) {
+      const box = [x - w / 2, y, x + w / 2, y + h];
+      if (free(box)) { chosen = [x, y]; break; }
+    }
+    if (!chosen) { if (!city) continue; chosen = options[0]; }
+    taken.push(cartouche(node.name, chosen[0], chosen[1], size, !city));
+  }
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  for (const item of linkLabels) {
+    if (item.x < v.x0 || item.x > v.x1 || item.y < v.y0 || item.y > v.y1) continue;
+    const [sx, sy] = toScreen(item.x, item.y, o);
+    ctx.font = `italic bold ${11 * dpr}px "Liberation Sans", Arial, sans-serif`;
+    ctx.lineWidth = 3 * dpr;
+    ctx.strokeStyle = "#283860";
+    ctx.strokeText(item.name, sx, sy - 14 * dpr);
+    ctx.fillStyle = "#f8f8ff";
+    ctx.fillText(item.name, sx, sy - 14 * dpr);
+  }
+}
+
+function drawTitles(o, v) {
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `bold ${30 * dpr}px "Liberation Sans", Arial, sans-serif`;
+  for (const title of data.titres) {
+    if (title.x < v.x0 - 200 || title.x > v.x1 + 200 || title.y < v.y0 - 50 || title.y > v.y1 + 50) continue;
+    const [sx, sy] = toScreen(title.x, title.y, o);
+    ctx.lineWidth = 6 * dpr;
+    ctx.strokeStyle = "#283868";
+    ctx.strokeText(title.name.toUpperCase(), sx, sy);
+    ctx.fillStyle = "#f8f8f0";
+    ctx.fillText(title.name.toUpperCase(), sx, sy);
+  }
+}
+
+// vaguelettes (toujours) et reflets du soleil (effet 3) : éclats blancs qui suivent une bande lumineuse
+function drawSparkles(o, v) {
+  const f = o.s;
+  const glints = EFFECTS.glints.on;
+  for (const list of visibleBuckets(sparkleBuckets, v, 8)) {
+    for (const sp of list) {
+      const light = Math.sin(time * sp.speed * 1.6 + sp.phase);
+      const shift = Math.round(Math.sin(time * 0.9 + sp.phase) * 1.5);
+      const [sx, sy] = toScreen(sp.x + shift, sp.y, o);
+      if (light >= 0.35) {
+        ctx.globalAlpha = Math.min(1, (light - 0.35) * 2.2);
+        ctx.fillStyle = sp.color;
+        ctx.fillRect(sx, sy, sp.length * f, Math.max(1, f / 2));
+        ctx.fillRect(sx + f, sy - Math.max(1, f / 2), Math.max(1, (sp.length - 2) * f), Math.max(1, f / 2));
+      }
+      if (glints) {
+        // bande de soleil qui balaie la mer en diagonale, éclat bref en étoile
+        const band = Math.sin(sp.x * 0.012 - sp.y * 0.02 + time * 0.35);
+        const flash = Math.sin(time * 3.1 + sp.glint * 40);
+        if (band > 0.55 && flash > 0.82) {
+          const a = (flash - 0.82) / 0.18 * (band - 0.55) / 0.45;
+          ctx.globalAlpha = Math.min(1, a * 1.6);
+          ctx.fillStyle = "#ffffff";
+          const p = Math.max(1, Math.round(f / 2));
+          ctx.fillRect(sx + f, sy - 2 * p, p, 5 * p);
+          ctx.fillRect(sx + f - 2 * p, sy, 5 * p, p);
+        }
+      }
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
+// écume (effet 4) : liseré blanc qui vient et repart le long des côtes
+function drawFoam(o, v) {
+  if (!EFFECTS.foam.on) return;
+  const p = Math.max(1, Math.round(o.s / 2));
+  ctx.fillStyle = "#f4fcff";
+  for (const list of visibleBuckets(foamBuckets, v, 6)) {
+    for (const pt of list) {
+      // la vague monte vers la plage puis se retire en s'effaçant
+      const cycle = ((time * 0.45 + pt.phase / (Math.PI * 2)) % 1);
+      const out = 1 + (1 - cycle) * 6;
+      const [sx, sy] = toScreen(pt.x + pt.nx * out, pt.y + pt.ny * out, o);
+      ctx.globalAlpha = Math.sin(cycle * Math.PI) * 0.9;
+      ctx.fillRect(Math.round(sx), Math.round(sy), 3 * p, 2 * p);
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
+function wrap(value, a, b) { const w = b - a; return a + ((((value - a) % w) + w) % w); }
+
+// ombres de nuages seules (effet 2)
+function drawShadowBlobs(o, v) {
+  if (!EFFECTS.shadows.on) return;
+  ctx.imageSmoothingEnabled = true;
+  ctx.globalAlpha = 0.13;
+  for (const blob of shadowBlobs) {
+    const x = wrap(blob.x + time * blob.speed, SKY.x0 - 150, SKY.x1 + 150), y = blob.y + Math.sin(time * 0.05 + blob.x) * 6;
+    if (x + blob.canvas.width < v.x0 || x > v.x1 || y + blob.canvas.height < v.y0 || y > v.y1) continue;
+    const [sx, sy] = toScreen(x, y, o);
+    ctx.drawImage(blob.canvas, Math.round(sx), Math.round(sy), blob.canvas.width * o.s, blob.canvas.height * o.s);
+  }
+  ctx.globalAlpha = 1;
+  ctx.imageSmoothingEnabled = false;
+}
+
+// nuages qui dérivent (effet 1) : l'ombre au sol au sud-est (soleil au nord-ouest), le nuage au-dessus
+function cloudPositions() {
+  return clouds.map((c) => ({ c, x: wrap(c.x + time * c.speed, SKY.x0 - 120, SKY.x1 + 120), y: c.y }));
+}
+function drawCloudShadows(o, v) {
+  if (!EFFECTS.clouds.on) return;
+  ctx.globalAlpha = 0.2;
+  for (const { c, x, y } of cloudPositions()) {
+    const w = c.sprite.image.width * c.k, h = c.sprite.image.height * c.k;
+    const gx = x + 34, gy = y + 52;
+    if (gx + w < v.x0 || gx > v.x1 || gy + h < v.y0 || gy > v.y1) continue;
+    const [sx, sy] = toScreen(gx, gy, o);
+    ctx.drawImage(c.sprite.shadow, Math.round(sx), Math.round(sy), Math.round(w * o.s), Math.round(h * o.s));
+  }
+  ctx.globalAlpha = 1;
+}
+function drawClouds(o, v) {
+  if (!EFFECTS.clouds.on) return;
+  ctx.globalAlpha = 0.93;
+  for (const { c, x, y } of cloudPositions()) {
+    const w = c.sprite.image.width * c.k, h = c.sprite.image.height * c.k;
+    if (x + w < v.x0 || x > v.x1 || y + h < v.y0 || y > v.y1) continue;
+    const [sx, sy] = toScreen(x, y, o);
+    const kk = Math.max(1, Math.round(c.k * o.s));
+    ctx.drawImage(c.sprite.image, Math.round(sx), Math.round(sy), c.sprite.image.width * kk, c.sprite.image.height * kk);
+  }
+  ctx.globalAlpha = 1;
+}
+
+// vol de Goélise (effet 5) : de petits groupes traversent l'écran, avec leur ombre
+function updateBirds(dt) {
+  if (!EFFECTS.birds.on) { birds = []; return; }
+  nextBirds -= dt;
+  if (nextBirds <= 0) {
+    nextBirds = 9 + Math.random() * 8;
+    const toRight = Math.random() < 0.6;
+    const y = 0.15 + Math.random() * 0.55;
+    const count = 2 + Math.floor(Math.random() * 3);
+    for (let i = 0; i < count; i++) {
+      birds.push({ x: toRight ? -0.05 - i * 0.04 : 1.05 + i * 0.04, y: y + (i % 2 ? 0.04 : -0.02) * i,
+        dir: toRight ? 1 : -1, speed: 0.07 + Math.random() * 0.01, flap: Math.random() * 6 });
+    }
+  }
+  for (const bird of birds) { bird.x += bird.dir * bird.speed * dt; bird.flap += dt; }
+  birds = birds.filter((bird) => bird.x > -0.3 && bird.x < 1.3);
+}
+function drawBirds() {
+  if (!EFFECTS.birds.on) return;
+  const k = 2 * dpr, W = canvas.width, H = canvas.height;
+  for (const bird of birds) {
+    const x = Math.round(bird.x * W), y = Math.round(bird.y * H + Math.sin(bird.flap * 1.3) * 6 * dpr);
+    ctx.fillStyle = "rgba(16, 24, 48, 0.22)";
+    ctx.beginPath();
+    ctx.ellipse(x + 30 * dpr, y + 70 * dpr, 7 * dpr, 2.5 * dpr, 0, 0, Math.PI * 2);
+    ctx.fill();
+    const frame = 4 + (Math.floor(bird.flap * 6) % 2);
+    ctx.save();
+    ctx.translate(x, y);
+    if (bird.dir > 0) ctx.scale(-1, 1);
+    ctx.drawImage(images.goelise, frame * 16, 0, 16, 16, -8 * k, -8 * k, 16 * k, 16 * k);
+    ctx.restore();
+  }
+}
+
+// jour / soir / nuit (touche N, et cycle automatique avec l'effet 6) : teinte multipliée, lumières des villes la nuit
+function daylight() {
+  if (EFFECTS.daynight.on) {
+    const t = (time / 40) % 3;         // 40 s par phase
+    const i = Math.floor(t), f = t - i;
+    const blend = f < 0.75 ? 0 : (f - 0.75) / 0.25;
+    return { from: i, to: (i + 1) % 3, blend };
+  }
+  return { from: dayPhase, to: dayPhase, blend: 0 };
+}
+const TINTS = [[255, 255, 255], [255, 196, 150], [92, 104, 176]];
+function drawDaylight(o, v) {
+  const { from, to, blend } = daylight();
+  const tint = TINTS[from].map((c, i) => Math.round(c + (TINTS[to][i] - c) * blend));
+  const night = (from === 2 ? 1 - blend : 0) + (to === 2 ? blend : 0);
+  if (tint.every((c) => c === 255)) return;
+  ctx.globalCompositeOperation = "multiply";
+  ctx.fillStyle = `rgb(${tint.join(",")})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.globalCompositeOperation = "source-over";
+  if (night < 0.05) return;
+  // lumières : halo chaud et fenêtres qui s'allument sur chaque ville
+  ctx.globalCompositeOperation = "lighter";
+  for (const node of nodes) {
+    if (node.type !== "ville" || node.x < v.x0 - 60 || node.x > v.x1 + 60 || node.y < v.y0 - 60 || node.y > v.y1 + 60) continue;
+    const [sx, sy] = toScreen(node.x, node.y, o);
+    const r = (node.big ? 34 : 24) * o.s;
+    const gradient = ctx.createRadialGradient(sx, sy, 0, sx, sy, r);
+    gradient.addColorStop(0, `rgba(255, 196, 96, ${0.42 * night})`);
+    gradient.addColorStop(1, "rgba(255, 160, 64, 0)");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(sx - r, sy - r, r * 2, r * 2);
+    let seed = Math.floor(node.x * 13 + node.y * 7);
+    const p = Math.max(1, Math.round(o.s * 0.8));
+    for (let i = 0; i < (node.big ? 26 : 12); i++) {
+      seed = (seed * 16807) % 2147483647;
+      const dx = ((seed % 1000) / 1000 - 0.5) * r * 1.1;
+      seed = (seed * 16807) % 2147483647;
+      const dy = ((seed % 1000) / 1000 - 0.5) * r * 0.8;
+      const blink = Math.sin(time * 0.7 + i * 1.7) > -0.8 ? 1 : 0.3;
+      ctx.fillStyle = `rgba(255, 232, 140, ${0.9 * night * blink})`;
+      ctx.fillRect(Math.round(sx + dx), Math.round(sy + dy), p, p);
+    }
+  }
+  ctx.globalCompositeOperation = "source-over";
+}
+
+function drawLayer(image, o, v, dx = 0, dy = 0) {
+  const x0 = Math.max(0, Math.floor(v.x0 - dx) - 1), y0 = Math.max(0, Math.floor(v.y0 - dy) - 1);
+  const x1 = Math.min(image.width, Math.ceil(v.x1 - dx) + 1), y1 = Math.min(image.height, Math.ceil(v.y1 - dy) + 1);
+  if (x1 <= x0 || y1 <= y0) return;
+  const [sx, sy] = toScreen(x0 + dx, y0 + dy, o);
+  ctx.drawImage(image, x0, y0, x1 - x0, y1 - y0, Math.round(sx), Math.round(sy), (x1 - x0) * o.s, (y1 - y0) * o.s);
+}
+
+function render() {
+  clampCamera();
+  const o = origin(), v = view();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.imageSmoothingEnabled = false;
+  ctx.fillStyle = COLORS.abyss;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  drawLayer(images.eau, o, v);
+  drawSparkles(o, v);
+  drawLayer(images.terre, o, v);
+  drawFoam(o, v);
+  drawEdges(o, v);
+  drawFlatThumbs(o, v);
+  const reachable = neighbours();
+  drawSteps(o, v, reachable);
+  const items = [];
+  for (const list of visibleBuckets(treeBuckets, v, 40)) for (const tree of list) items.push({ y: tree.y, tree });
+  for (const node of nodes) {
+    if (node.type === "etape" || node.x < v.x0 - 40 || node.x > v.x1 + 40 || node.y < v.y0 - 40 || node.y > v.y1 + 50) continue;
+    items.push({ y: node.y, node });
+  }
+  items.push({ y: player.y + 0.5, player: true });
+  items.sort((a, b) => a.y - b.y);
+  for (const item of items) {
+    if (item.tree) drawTree(item.tree, o);
+    else if (item.node) drawPlace(item.node, o);
+    else drawPlayer(o);
+  }
+  drawReach(o, reachable);
+  drawShadowBlobs(o, v);
+  drawCloudShadows(o, v);
+  drawDaylight(o, v);
+  drawLayer(images.nuages, o, v, Math.round(Math.sin(time * 0.15) * 4), 0);
+  drawClouds(o, v);
+  drawBirds();
+  drawTitles(o, v);
+  drawLabels(o, v, reachable);
+}
+
+// ---------------------------------------------------------------- boucle
+let last = performance.now();
+const fps = { frames: 0, since: performance.now(), value: 0 };
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  time += dt;
+  updatePlayer(dt);
+  updateBirds(dt);
+  if (camera.follow) {
+    const lerp = 1 - Math.pow(0.002, dt);
+    camera.x += (player.x - camera.x) * lerp;
+    camera.y += (player.y - 20 - camera.y) * lerp;
+  }
+  render();
+  fps.frames++;
+  if (now - fps.since > 1000) { fps.value = fps.frames * 1000 / (now - fps.since); fps.frames = 0; fps.since = now; }
+  requestAnimationFrame(frame);
+}
+
+// ---------------------------------------------------------------- contrôles
+function resize() {
+  dpr = Math.max(1, Math.round(window.devicePixelRatio || 1));
+  canvas.width = window.innerWidth * dpr;
+  canvas.height = window.innerHeight * dpr;
+  canvas.style.width = window.innerWidth + "px";
+  canvas.style.height = window.innerHeight + "px";
+}
+window.addEventListener("resize", resize);
+
+function nodeAt(px, py) {
+  const [x, y] = toZone(px, py);
+  const s = scale() / dpr;
+  let best = null, bestDistance = Infinity;
+  for (const node of nodes) {
+    const thumb = thumbOf(node);
+    const radius = thumb ? Math.max(16 / s, Math.min(thumb.w, thumb.h) * 0.42) : (node.type === "etape" ? 9 : 16) / s;
+    const d = Math.hypot(node.x - x, node.y - y) * (node.type === "ville" ? 1.25 : 1);
+    if (d < radius && d < bestDistance) { best = node.id; bestDistance = d; }
+  }
+  return best;
+}
+
+let drag = null, lastPointer = null;
+canvas.addEventListener("contextmenu", (event) => event.preventDefault());
+canvas.addEventListener("pointerdown", (event) => {
+  closeMenu();
+  if (event.button !== 0) return;
+  drag = { x: event.clientX, y: event.clientY, cx: camera.x, cy: camera.y, moved: false };
+  canvas.setPointerCapture(event.pointerId);
+});
+canvas.addEventListener("pointermove", (event) => {
+  if (drag) {
+    const dx = event.clientX - drag.x, dy = event.clientY - drag.y;
+    if (Math.hypot(dx, dy) > 4) drag.moved = true;
+    if (drag.moved) {
+      canvas.classList.add("dragging");
+      const s = scale() / dpr;
+      camera.x = drag.cx - dx / s;
+      camera.y = drag.cy - dy / s;
+      camera.follow = false;
+    }
+    return;
+  }
+  hovered = nodeAt(event.clientX, event.clientY);
+  canvas.classList.toggle("pointing", hovered !== null);
+});
+canvas.addEventListener("pointerleave", () => { hovered = null; });
+canvas.addEventListener("pointerup", (event) => {
+  canvas.classList.remove("dragging");
+  lastPointer = { x: event.clientX, y: event.clientY };
+  if (event.button === 2) {
+    const target = nodeAt(event.clientX, event.clientY);
+    if (target !== null) openActions(target, lastPointer);
+    return;
+  }
+  if (drag && !drag.moved) {
+    const target = nodeAt(event.clientX, event.clientY);
+    if (target !== null) travelTo(target, lastPointer);
+  }
+  drag = null;
+});
+canvas.addEventListener("wheel", (event) => {
+  event.preventDefault();
+  const before = toZone(event.clientX, event.clientY);
+  const next = Math.min(ZOOMS.length - 1, Math.max(0, zoomIndex + (event.deltaY < 0 ? 1 : -1)));
+  if (next === zoomIndex) return;
+  zoomIndex = next;
+  const after = toZone(event.clientX, event.clientY);
+  camera.x += before[0] - after[0];
+  camera.y += before[1] - after[1];
+  camera.follow = false;
+  document.getElementById("zoom").textContent = `×${ZOOMS[zoomIndex]}`;
+}, { passive: false });
+document.getElementById("actions-here").addEventListener("click", (event) => {
+  const rect = event.target.getBoundingClientRect();
+  openActions(currentStart(), { x: rect.right, y: rect.top });
+});
+window.addEventListener("keydown", (event) => {
+  if (event.key === "Shift") { running = true; updatePanel(); return; }
+  if (event.code === "Space") { camera.follow = true; event.preventDefault(); return; }
+  if (event.key === "Escape") { closeMenu(); return; }
+  const key = event.key.toLowerCase();
+  if (key === "v") { variant = VARIANTS[(VARIANTS.indexOf(variant) + 1) % VARIANTS.length]; toast(`Villes : ${VARIANT_NAMES[variant]}`); }
+  else if (key === "n") { dayPhase = (dayPhase + 1) % 3; EFFECTS.daynight.on = false; }
+  else {
+    const effect = Object.values(EFFECTS).find((e) => e.key === event.key);
+    if (!effect) return;
+    effect.on = !effect.on;
+  }
+  updateHelp();
+});
+window.addEventListener("keyup", (event) => { if (event.key === "Shift") { running = false; updatePanel(); } });
+window.addEventListener("blur", () => { running = false; });
+
+// Accès pour les tests (Playwright) : position à l'écran d'un nœud, état du joueur.
+window.p10 = {
+  find: (name, detail) => nodes.find((n) => n.name === name && (!detail || n.detail === detail)),
+  screenOf(name, detail) {
+    const node = this.find(name, detail), o = origin();
+    const [x, y] = toScreen(node.x, node.y, o);
+    return { x: x / dpr, y: y / dpr };
+  },
+  neighbours: () => [...neighbours()].map((id) => fullLabel(nodes[id])),
+  options(name) { return travelOptions(currentStart(), this.find(name).id).map((o) => `${o.label} (${Math.round(travelSeconds(o.path))} s)`); },
+  goTo(name, service) {
+    const target = this.find(name).id;
+    const options = travelOptions(currentStart(), target);
+    const option = options.find((o) => (service ? o.service === service : !o.service)) || options[0];
+    follow(option.path, target);
+  },
+  teleport(name, detail) {
+    const node = this.find(name, detail);
+    player.node = node.id; player.x = node.x; player.y = node.y; player.segment = null; player.queue = [];
+    destination = null; camera.x = node.x; camera.y = node.y; camera.follow = true; updatePanel();
+  },
+  path(from, to) {
+    const p = shortestPath(this.find(from).id, this.find(to).id, (e) => e.kind !== "train" && e.kind !== "ferry");
+    return p ? p.map((s) => `${fullLabel(nodes[s.other])} [${s.edge.kind}]`) : null;
+  },
+  state: () => ({ node: fullLabel(nodes[player.node]), moving: Boolean(player.segment), kind: player.kind,
+    queue: player.queue.length, x: player.x, y: player.y, fps: Math.round(fps.value), zoom: ZOOMS[zoomIndex] }),
+  setZoom(z) { zoomIndex = ZOOMS.indexOf(z); document.getElementById("zoom").textContent = `×${z}`; },
+  center(name, dx = 0, dy = 0) { const n = this.find(name); camera.x = n.x + dx; camera.y = n.y + dy; camera.follow = false; },
+  follow() { camera.follow = true; },
+  setTime(t) { time = t; },
+  effects: EFFECTS,
+  setEffect(name, on) { EFFECTS[name].on = on; updateHelp(); },
+  setVariant(name) { variant = name; updateHelp(); },
+  setPhase(p) { dayPhase = p; EFFECTS.daynight.on = false; updateHelp(); },
+  hover(name) { hovered = name ? this.find(name).id : null; },
+  spawnBirds() { nextBirds = 0; },
+  cloudSpot(i = 0) { const c = cloudPositions()[i]; return { x: c.x + 40, y: c.y + 30 }; },
+  centerAt(x, y) { camera.x = x; camera.y = y; camera.follow = false; },
+  townIcon: (big) => townIcons[big ? "big" : "small"].toDataURL(),
+  bench(count = 30) { const t = performance.now(); for (let i = 0; i < count; i++) { time += 0.016; updateBirds(0.016); render(); } return (performance.now() - t) / count; },
+};
+
+load().catch((error) => {
+  document.getElementById("transport").textContent = "Erreur de chargement : " + error.message;
+  console.error(error);
+});
+</script>
+</body>
+</html>

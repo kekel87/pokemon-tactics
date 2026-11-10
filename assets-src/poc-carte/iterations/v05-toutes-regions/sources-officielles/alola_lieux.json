@@ -1,0 +1,611 @@
+{
+  "Alola_Aether_House_Map.png": {
+    "score": 0.775,
+    "scale": 0.46,
+    "x": 316,
+    "y": 184,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Akala_Outskirts_Map.png": {
+    "score": 0.74,
+    "scale": 0.55,
+    "x": 243,
+    "y": 107,
+    "box": [212, 15, 303, 126]
+  },
+  "Alola_Altar_of_the_Moone_Map.png": {
+    "score": 0.443,
+    "scale": 0.55,
+    "x": 54,
+    "y": 107,
+    "box": [3, 74, 94, 144]
+  },
+  "Alola_Altar_of_the_Sunne_Map.png": {
+    "score": 0.443,
+    "scale": 0.55,
+    "x": 54,
+    "y": 107,
+    "box": [3, 74, 94, 144]
+  },
+  "Alola_Ancient_Poni_Path_Map.png": {
+    "score": 0.557,
+    "scale": 0.55,
+    "x": 53,
+    "y": 107,
+    "box": [2, 74, 93, 144]
+  },
+  "Alola_Battle_Royal_Dome_Map.png": {
+    "score": 0.758,
+    "scale": 0.55,
+    "x": 273,
+    "y": 68,
+    "box": [212, 15, 303, 124]
+  },
+  "Alola_Battle_Tree_Map.png": {
+    "score": 0.475,
+    "scale": 0.55,
+    "x": 66,
+    "y": 86,
+    "box": [2, 74, 93, 144]
+  },
+  "Alola_Berry_fields_Map.png": {
+    "score": 0.695,
+    "scale": 0.55,
+    "x": 114,
+    "y": 44,
+    "box": [95, 19, 196, 102]
+  },
+  "Alola_Big_Wave_Beach_Map.png": {
+    "score": 0.81,
+    "scale": 0.55,
+    "x": 100,
+    "y": 38,
+    "box": [88, 19, 196, 102]
+  },
+  "Alola_Blush_Mountain_Map.png": {
+    "score": 0.76,
+    "scale": 0.46,
+    "x": 366,
+    "y": 176,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Brooklet_Hill_Map.png": {
+    "score": 0.728,
+    "scale": 0.55,
+    "x": 250,
+    "y": 50,
+    "box": [212, 15, 303, 124]
+  },
+  "Alola_Diglett%27s_Tunnel_Map.png": {
+    "score": 0.727,
+    "scale": 0.55,
+    "x": 243,
+    "y": 107,
+    "box": [212, 15, 303, 124]
+  },
+  "Alola_Dividing_Peak_Tunnel_Map.png": {
+    "score": 0.711,
+    "scale": 0.55,
+    "x": 282,
+    "y": 43,
+    "box": [212, 14, 303, 123]
+  },
+  "Alola_Exeggutor_Island_Map.png": {
+    "score": 0.474,
+    "scale": 0.55,
+    "x": 28,
+    "y": 129,
+    "box": [2, 74, 93, 144]
+  },
+  "Alola_Haina_Desert_Map.png": {
+    "score": 0.76,
+    "scale": 0.46,
+    "x": 347,
+    "y": 179,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Hano_Beach_Map.png": {
+    "score": 0.782,
+    "scale": 0.55,
+    "x": 283,
+    "y": 87,
+    "box": [213, 15, 304, 124]
+  },
+  "Alola_Hano_Grand_Resort_Map.png": {
+    "score": 0.797,
+    "scale": 0.55,
+    "x": 274,
+    "y": 82,
+    "box": [212, 15, 303, 124]
+  },
+  "Alola_Hau%27oli_Cemetery_Map.png": {
+    "score": 0.677,
+    "scale": 0.55,
+    "x": 114,
+    "y": 44,
+    "box": [95, 19, 196, 102]
+  },
+  "Alola_Hau%27oli_City_Map.png": {
+    "score": 0.695,
+    "scale": 0.55,
+    "x": 124,
+    "y": 72,
+    "box": [95, 19, 196, 102]
+  },
+  "Alola_Heahea_Beach_Map.png": {
+    "score": 0.826,
+    "scale": 0.55,
+    "x": 230,
+    "y": 79,
+    "box": [212, 14, 303, 123]
+  },
+  "Alola_Heahea_City_Map.png": {
+    "score": 0.788,
+    "scale": 0.55,
+    "x": 242,
+    "y": 84,
+    "box": [212, 15, 303, 124]
+  },
+  "Alola_Hokulani_Observatory_Map.png": {
+    "score": 0.744,
+    "scale": 0.46,
+    "x": 332,
+    "y": 149,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Iki_Town_Map.png": {
+    "score": 0.718,
+    "scale": 0.55,
+    "x": 133,
+    "y": 44,
+    "box": [95, 19, 196, 102]
+  },
+  "Alola_Kala%27e_Bay_Map.png": {
+    "score": 0.739,
+    "scale": 0.55,
+    "x": 153,
+    "y": 44,
+    "box": [95, 19, 196, 102]
+  },
+  "Alola_Kantonian_Gym_Map.png": {
+    "score": 0.775,
+    "scale": 0.46,
+    "x": 355,
+    "y": 149,
+    "box": [298, 114, 383, 215]
+  },
+  "Alola_Konikoni_City_Map.png": {
+    "score": 0.819,
+    "scale": 0.55,
+    "x": 224,
+    "y": 105,
+    "box": [212, 15, 303, 124]
+  },
+  "Alola_Lake_of_the_Moone_Map.png": {
+    "score": 0.752,
+    "scale": 0.46,
+    "x": 315,
+    "y": 161,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Lake_of_the_Sunne_Map.png": {
+    "score": 0.752,
+    "scale": 0.46,
+    "x": 315,
+    "y": 161,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Lush_Jungle_Map.png": {
+    "score": 0.716,
+    "scale": 0.55,
+    "x": 250,
+    "y": 50,
+    "box": [212, 15, 303, 124]
+  },
+  "Alola_Mahalo_Trail_Map.png": {
+    "score": 0.669,
+    "scale": 0.55,
+    "x": 133,
+    "y": 44,
+    "box": [95, 19, 196, 102]
+  },
+  "Alola_Malie_City_Map.png": {
+    "score": 0.767,
+    "scale": 0.46,
+    "x": 353,
+    "y": 145,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Malie_Garden_Map.png": {
+    "score": 0.755,
+    "scale": 0.46,
+    "x": 353,
+    "y": 145,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Melemele_Meadow_Map.png": {
+    "score": 0.695,
+    "scale": 0.55,
+    "x": 137,
+    "y": 39,
+    "box": [95, 19, 196, 102]
+  },
+  "Alola_Melemele_Sea_Map.png": {
+    "score": 0.687,
+    "scale": 0.55,
+    "x": 166,
+    "y": 81,
+    "box": [95, 19, 196, 102]
+  },
+  "Alola_Memorial_Hill_Map.png": {
+    "score": 0.752,
+    "scale": 0.55,
+    "x": 243,
+    "y": 107,
+    "box": [212, 15, 303, 127]
+  },
+  "Alola_Mount_Hokulani_Map.png": {
+    "score": 0.752,
+    "scale": 0.46,
+    "x": 332,
+    "y": 150,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Mount_Lanakila_Map.png": {
+    "score": 0.761,
+    "scale": 0.46,
+    "x": 330,
+    "y": 181,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Paniola_Ranch_Map.png": {
+    "score": 0.786,
+    "scale": 0.55,
+    "x": 253,
+    "y": 65,
+    "box": [212, 15, 303, 124]
+  },
+  "Alola_Paniola_Town_Map.png": {
+    "score": 0.796,
+    "scale": 0.55,
+    "x": 253,
+    "y": 65,
+    "box": [212, 15, 303, 124]
+  },
+  "Alola_Pikachu_Valley_Map.png": {
+    "score": 0.778,
+    "scale": 0.55,
+    "x": 246,
+    "y": 75,
+    "box": [212, 14, 303, 123]
+  },
+  "Alola_Plains_Grotto_Map.png": {
+    "score": 0.603,
+    "scale": 0.55,
+    "x": 76,
+    "y": 107,
+    "box": [3, 74, 94, 144]
+  },
+  "Alola_Po_Town_Map.png": {
+    "score": 0.749,
+    "scale": 0.46,
+    "x": 319,
+    "y": 135,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Pok%C3%A9mon_League_Map.png": {
+    "score": 0.772,
+    "scale": 0.46,
+    "x": 330,
+    "y": 181,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Poni_Beach_Map.png": {
+    "score": 0.72,
+    "scale": 0.55,
+    "x": 31,
+    "y": 114,
+    "box": [2, 74, 93, 144]
+  },
+  "Alola_Poni_Breaker_Coast_Map.png": {
+    "score": 0.571,
+    "scale": 0.55,
+    "x": 70,
+    "y": 129,
+    "box": [2, 74, 93, 144]
+  },
+  "Alola_Poni_Coast_Map.png": {
+    "score": 0.648,
+    "scale": 0.55,
+    "x": 84,
+    "y": 98,
+    "box": [2, 74, 93, 144]
+  },
+  "Alola_Poni_Gauntlet_Map.png": {
+    "score": 0.573,
+    "scale": 0.55,
+    "x": 66,
+    "y": 86,
+    "box": [2, 74, 93, 144]
+  },
+  "Alola_Poni_Grove_Map.png": {
+    "score": 0.598,
+    "scale": 0.55,
+    "x": 72,
+    "y": 120,
+    "box": [2, 74, 93, 144]
+  },
+  "Alola_Poni_Meadow_Map.png": {
+    "score": 0.585,
+    "scale": 0.55,
+    "x": 76,
+    "y": 108,
+    "box": [2, 74, 93, 144]
+  },
+  "Alola_Poni_Plains_Map.png": {
+    "score": 0.607,
+    "scale": 0.55,
+    "x": 76,
+    "y": 108,
+    "box": [2, 74, 93, 144]
+  },
+  "Alola_Poni_Wilds_Map.png": {
+    "score": 0.607,
+    "scale": 0.55,
+    "x": 38,
+    "y": 115,
+    "box": [2, 74, 93, 144]
+  },
+  "Alola_Resolution_Cave_Map.png": {
+    "score": 0.579,
+    "scale": 0.55,
+    "x": 76,
+    "y": 108,
+    "box": [2, 74, 93, 144]
+  },
+  "Alola_Route_10_Map.png": {
+    "score": 0.771,
+    "scale": 0.46,
+    "x": 332,
+    "y": 150,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Route_11_Map.png": {
+    "score": 0.796,
+    "scale": 0.46,
+    "x": 351,
+    "y": 160,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Route_12_Map.png": {
+    "score": 0.784,
+    "scale": 0.46,
+    "x": 366,
+    "y": 176,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Route_13_Map.png": {
+    "score": 0.774,
+    "scale": 0.46,
+    "x": 347,
+    "y": 179,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Route_14_Map.png": {
+    "score": 0.801,
+    "scale": 0.46,
+    "x": 330,
+    "y": 204,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Route_15_Map.png": {
+    "score": 0.789,
+    "scale": 0.46,
+    "x": 315,
+    "y": 184,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Route_16_Map.png": {
+    "score": 0.788,
+    "scale": 0.46,
+    "x": 315,
+    "y": 161,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Route_17_Map.png": {
+    "score": 0.763,
+    "scale": 0.46,
+    "x": 319,
+    "y": 135,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Route_1_Map.png": {
+    "score": 0.679,
+    "scale": 0.55,
+    "x": 151,
+    "y": 72,
+    "box": [95, 19, 196, 102]
+  },
+  "Alola_Route_2_Map.png": {
+    "score": 0.71,
+    "scale": 0.55,
+    "x": 114,
+    "y": 44,
+    "box": [95, 19, 196, 102]
+  },
+  "Alola_Route_3_Map.png": {
+    "score": 0.725,
+    "scale": 0.55,
+    "x": 137,
+    "y": 39,
+    "box": [95, 19, 196, 102]
+  },
+  "Alola_Route_4_Map.png": {
+    "score": 0.806,
+    "scale": 0.55,
+    "x": 246,
+    "y": 78,
+    "box": [212, 15, 303, 124]
+  },
+  "Alola_Route_5_Map.png": {
+    "score": 0.758,
+    "scale": 0.55,
+    "x": 250,
+    "y": 50,
+    "box": [212, 15, 303, 124]
+  },
+  "Alola_Route_6_Map.png": {
+    "score": 0.803,
+    "scale": 0.55,
+    "x": 257,
+    "y": 72,
+    "box": [212, 15, 303, 124]
+  },
+  "Alola_Route_7_Map.png": {
+    "score": 0.769,
+    "scale": 0.55,
+    "x": 282,
+    "y": 43,
+    "box": [213, 15, 304, 124]
+  },
+  "Alola_Route_8_Map.png": {
+    "score": 0.769,
+    "scale": 0.55,
+    "x": 259,
+    "y": 33,
+    "box": [212, 15, 303, 124]
+  },
+  "Alola_Route_9_Map.png": {
+    "score": 0.775,
+    "scale": 0.55,
+    "x": 243,
+    "y": 107,
+    "box": [212, 15, 303, 124]
+  },
+  "Alola_Royal_Avenue_Map.png": {
+    "score": 0.783,
+    "scale": 0.55,
+    "x": 273,
+    "y": 68,
+    "box": [212, 15, 303, 124]
+  },
+  "Alola_Ruins_of_Abundance_Map.png": {
+    "score": 0.763,
+    "scale": 0.46,
+    "x": 347,
+    "y": 179,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Ruins_of_Conflict_Map.png": {
+    "score": 0.658,
+    "scale": 0.55,
+    "x": 133,
+    "y": 44,
+    "box": [95, 19, 196, 102]
+  },
+  "Alola_Ruins_of_Hope_Map.png": {
+    "score": 0.498,
+    "scale": 0.55,
+    "x": 70,
+    "y": 128,
+    "box": [2, 74, 93, 144]
+  },
+  "Alola_Ruins_of_Life_Map.png": {
+    "score": 0.741,
+    "scale": 0.55,
+    "x": 243,
+    "y": 107,
+    "box": [212, 15, 303, 124]
+  },
+  "Alola_Sandy_Cave_Map.png": {
+    "score": 0.791,
+    "scale": 0.55,
+    "x": 100,
+    "y": 40,
+    "box": [88, 19, 196, 102]
+  },
+  "Alola_Seafolk_Village_Map.png": {
+    "score": 0.486,
+    "scale": 0.55,
+    "x": 28,
+    "y": 129,
+    "box": [2, 74, 93, 144]
+  },
+  "Alola_Seaward_Cave_Map.png": {
+    "score": 0.695,
+    "scale": 0.55,
+    "x": 137,
+    "y": 39,
+    "box": [95, 19, 196, 102]
+  },
+  "Alola_Shady_House_Map.png": {
+    "score": 0.749,
+    "scale": 0.46,
+    "x": 319,
+    "y": 135,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Tapu_Village_Map.png": {
+    "score": 0.775,
+    "scale": 0.46,
+    "x": 330,
+    "y": 181,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Team_Rocket%27s_Castle_Map.png": {
+    "score": 0.333,
+    "scale": 0.4,
+    "x": 347,
+    "y": 167,
+    "box": [325, 148, 370, 186]
+  },
+  "Alola_Ten_Carat_Hill_Map.png": {
+    "score": 0.646,
+    "scale": 0.55,
+    "x": 151,
+    "y": 72,
+    "box": [95, 19, 196, 102]
+  },
+  "Alola_Thrifty_Megamart_Abandoned_Site_Map.png": {
+    "score": 0.784,
+    "scale": 0.46,
+    "x": 330,
+    "y": 204,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Trainers%27_School_Map.png": {
+    "score": 0.737,
+    "scale": 0.55,
+    "x": 160,
+    "y": 76,
+    "box": [88, 19, 196, 102]
+  },
+  "Alola_Ula%27ula_Beach_Map.png": {
+    "score": 0.814,
+    "scale": 0.46,
+    "x": 373,
+    "y": 188,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Ula%27ula_Meadow_Map.png": {
+    "score": 0.773,
+    "scale": 0.46,
+    "x": 315,
+    "y": 161,
+    "box": [298, 114, 385, 215]
+  },
+  "Alola_Vast_Poni_Canyon_Map.png": {
+    "score": 0.527,
+    "scale": 0.55,
+    "x": 53,
+    "y": 107,
+    "box": [2, 74, 93, 144]
+  },
+  "Alola_Verdant_Cavern_Map.png": {
+    "score": 0.668,
+    "scale": 0.55,
+    "x": 115,
+    "y": 44,
+    "box": [95, 19, 196, 102]
+  }
+}

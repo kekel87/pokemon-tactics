@@ -1,0 +1,366 @@
+{
+  "Kalos_Ambrette_Town_Map.png": {
+    "base": 0,
+    "n": 75,
+    "cx": 60.8,
+    "cy": 120.3,
+    "box": [57, 115, 66, 127]
+  },
+  "Kalos_Anistar_City_Map.png": {
+    "base": 0,
+    "n": 67,
+    "cx": 227.5,
+    "cy": 57.7,
+    "box": [224, 52, 233, 64]
+  },
+  "Kalos_Azure_Bay_Map.png": {
+    "base": 0,
+    "n": 16,
+    "cx": 75.0,
+    "cy": 39.0,
+    "box": [68, 34, 82, 44]
+  },
+  "Kalos_Camphrier_Town_Map.png": {
+    "base": 0,
+    "n": 74,
+    "cx": 107.8,
+    "cy": 90.4,
+    "box": [104, 85, 113, 97]
+  },
+  "Kalos_Chamber_of_Emptiness_Map.png": {
+    "base": 0,
+    "n": 69,
+    "cx": 180.9,
+    "cy": 93.9,
+    "box": [177, 89, 186, 100]
+  },
+  "Kalos_Connecting_Cave_Map.png": {
+    "base": 0,
+    "n": 66,
+    "cx": 60.1,
+    "cy": 89.8,
+    "box": [56, 85, 65, 95]
+  },
+  "Kalos_Coumarine_City_Map.png": {
+    "base": 0,
+    "n": 75,
+    "cx": 90.7,
+    "cy": 43.2,
+    "box": [87, 37, 96, 50]
+  },
+  "Kalos_Couriway_Town_Map.png": {
+    "base": 0,
+    "n": 73,
+    "cx": 240.6,
+    "cy": 70.4,
+    "box": [237, 64, 247, 77]
+  },
+  "Kalos_Cyllage_City_Map.png": {
+    "base": 0,
+    "n": 74,
+    "cx": 47.7,
+    "cy": 89.4,
+    "box": [44, 84, 53, 96]
+  },
+  "Kalos_Dendemille_Town_Map.png": {
+    "base": 0,
+    "n": 71,
+    "cx": 177.9,
+    "cy": 43.4,
+    "box": [174, 38, 183, 50]
+  },
+  "Kalos_Frost_Cavern_Map.png": {
+    "base": 0,
+    "n": 62,
+    "cx": 187.7,
+    "cy": 32.3,
+    "box": [184, 27, 193, 38]
+  },
+  "Kalos_Geosenge_Town_Map.png": {
+    "base": 0,
+    "n": 78,
+    "cx": 25.7,
+    "cy": 73.3,
+    "box": [22, 67, 32, 80]
+  },
+  "Kalos_Glittering_Cave_Map.png": {
+    "base": 0,
+    "n": 65,
+    "cx": 96.0,
+    "cy": 120.1,
+    "box": [92, 115, 101, 127]
+  },
+  "Kalos_Kiloude_City_Map.png": {
+    "base": 0,
+    "n": 70,
+    "cx": 194.8,
+    "cy": 148.5,
+    "box": [191, 143, 200, 155]
+  },
+  "Kalos_Laverre_City_Map.png": {
+    "base": 0,
+    "n": 71,
+    "cx": 134.6,
+    "cy": 12.4,
+    "box": [131, 6, 140, 19]
+  },
+  "Kalos_Lost_Hotel_Map.png": {
+    "base": 0,
+    "n": 67,
+    "cx": 154.9,
+    "cy": 37.1,
+    "box": [151, 32, 160, 43]
+  },
+  "Kalos_Lumiose_City_Map.png": {
+    "base": 0,
+    "n": 78,
+    "cx": 135.8,
+    "cy": 55.2,
+    "box": [132, 49, 141, 62]
+  },
+  "Kalos_Parfum_Palace_Map.png": {
+    "base": 0,
+    "n": 67,
+    "cx": 77.8,
+    "cy": 68.1,
+    "box": [74, 63, 83, 74]
+  },
+  "Kalos_Pok%C3%A9_Ball_Factory_Map.png": {
+    "base": 0,
+    "n": 59,
+    "cx": 135.2,
+    "cy": 3.5,
+    "box": [131, 0, 140, 8]
+  },
+  "Kalos_Pok%C3%A9mon_League_Map.png": {
+    "base": 0,
+    "n": 69,
+    "cx": 190.7,
+    "cy": 66.5,
+    "box": [187, 61, 196, 73]
+  },
+  "Kalos_Pok%C3%A9mon_Village_Map.png": {
+    "base": 0,
+    "n": 69,
+    "cx": 208.7,
+    "cy": 120.0,
+    "box": [205, 114, 214, 126]
+  },
+  "Kalos_Power_Plant_Map.png": {
+    "base": 0,
+    "n": 69,
+    "cx": 101.1,
+    "cy": 60.8,
+    "box": [97, 55, 106, 66]
+  },
+  "Kalos_Reflection_Cave_Map.png": {
+    "base": 0,
+    "n": 73,
+    "cx": 35.0,
+    "cy": 59.9,
+    "box": [31, 54, 40, 66]
+  },
+  "Kalos_Route_10_Map.png": {
+    "base": 0,
+    "n": 44,
+    "cx": 32.9,
+    "cy": 87.5,
+    "box": [26, 82, 40, 93]
+  },
+  "Kalos_Route_11_Map.png": {
+    "base": 0,
+    "n": 19,
+    "cx": 27.3,
+    "cy": 72.1,
+    "box": [25, 69, 30, 75]
+  },
+  "Kalos_Route_12_Map.png": {
+    "base": 0,
+    "n": 116,
+    "cx": 62.7,
+    "cy": 54.5,
+    "box": [43, 49, 83, 60]
+  },
+  "Kalos_Route_13_Map.png": {
+    "base": 0,
+    "n": 80,
+    "cx": 106.4,
+    "cy": 55.0,
+    "box": [92, 50, 121, 60]
+  },
+  "Kalos_Route_14_Map.png": {
+    "base": 0,
+    "n": 52,
+    "cx": 131.5,
+    "cy": 36.5,
+    "box": [131, 24, 132, 49]
+  },
+  "Kalos_Route_15_Map.png": {
+    "base": 0,
+    "n": 99,
+    "cx": 152.6,
+    "cy": 33.4,
+    "box": [136, 21, 170, 47]
+  },
+  "Kalos_Route_16_Map.png": {
+    "base": 0,
+    "n": 70,
+    "cx": 156.6,
+    "cy": 55.6,
+    "box": [144, 51, 170, 60]
+  },
+  "Kalos_Route_17_Map.png": {
+    "base": 0,
+    "n": 101,
+    "cx": 199.0,
+    "cy": 56.5,
+    "box": [180, 50, 219, 63]
+  },
+  "Kalos_Route_18_Map.png": {
+    "base": 0,
+    "n": 19,
+    "cx": 231.4,
+    "cy": 69.8,
+    "box": [228, 67, 234, 73]
+  },
+  "Kalos_Route_19_Map.png": {
+    "base": 0,
+    "n": 38,
+    "cx": 227.5,
+    "cy": 85.0,
+    "box": [221, 80, 234, 91]
+  },
+  "Kalos_Route_1_Map.png": {
+    "base": 0,
+    "n": 28,
+    "cx": 168.0,
+    "cy": 131.8,
+    "box": [140, 73, 170, 138]
+  },
+  "Kalos_Route_20_Map.png": {
+    "base": 0,
+    "n": 71,
+    "cx": 211.5,
+    "cy": 110.3,
+    "box": [207, 98, 216, 123]
+  },
+  "Kalos_Route_21_Map.png": {
+    "base": 0,
+    "n": 60,
+    "cx": 201.5,
+    "cy": 92.0,
+    "box": [192, 91, 211, 93]
+  },
+  "Kalos_Route_22_Map.png": {
+    "base": 0,
+    "n": 55,
+    "cx": 172.5,
+    "cy": 93.1,
+    "box": [162, 91, 183, 95]
+  },
+  "Kalos_Route_2_Map.png": {
+    "base": 0,
+    "n": 25,
+    "cx": 167.8,
+    "cy": 113.8,
+    "box": [140, 73, 170, 119]
+  },
+  "Kalos_Route_3_Map.png": {
+    "base": 0,
+    "n": 30,
+    "cx": 162.4,
+    "cy": 100.5,
+    "box": [140, 73, 166, 104]
+  },
+  "Kalos_Route_4_Map.png": {
+    "base": 0,
+    "n": 50,
+    "cx": 145.4,
+    "cy": 79.7,
+    "box": [140, 73, 151, 87]
+  },
+  "Kalos_Route_5_Map.png": {
+    "base": 0,
+    "n": 58,
+    "cx": 117.5,
+    "cy": 80.6,
+    "box": [109, 72, 140, 90]
+  },
+  "Kalos_Route_6_Map.png": {
+    "base": 0,
+    "n": 67,
+    "cx": 89.0,
+    "cy": 84.5,
+    "box": [78, 76, 100, 93]
+  },
+  "Kalos_Route_7_Map.png": {
+    "base": 0,
+    "n": 116,
+    "cx": 80.2,
+    "cy": 95.8,
+    "box": [61, 73, 140, 98]
+  },
+  "Kalos_Route_8_Map.png": {
+    "base": 0,
+    "n": 60,
+    "cx": 50.3,
+    "cy": 111.8,
+    "box": [45, 101, 55, 122]
+  },
+  "Kalos_Route_9_Map.png": {
+    "base": 0,
+    "n": 58,
+    "cx": 74.6,
+    "cy": 126.7,
+    "box": [63, 126, 88, 128]
+  },
+  "Kalos_Santalune_City_Map.png": {
+    "base": 0,
+    "n": 71,
+    "cx": 160.8,
+    "cy": 88.5,
+    "box": [157, 83, 166, 95]
+  },
+  "Kalos_Santalune_Forest_Map.png": {
+    "base": 0,
+    "n": 71,
+    "cx": 172.8,
+    "cy": 100.8,
+    "box": [169, 95, 178, 106]
+  },
+  "Kalos_Sea_Spirit%27s_Den_Map.png": {
+    "base": 0,
+    "n": 75,
+    "cx": 67.0,
+    "cy": 22.9,
+    "box": [63, 17, 73, 29]
+  },
+  "Kalos_Shalour_City_Map.png": {
+    "base": 0,
+    "n": 75,
+    "cx": 40.8,
+    "cy": 54.3,
+    "box": [37, 49, 46, 61]
+  },
+  "Kalos_Snowbelle_City_Map.png": {
+    "base": 0,
+    "n": 76,
+    "cx": 219.9,
+    "cy": 87.5,
+    "box": [216, 82, 226, 94]
+  },
+  "Kalos_Terminus_Cave_Map.png": {
+    "base": 0,
+    "n": 65,
+    "cx": 248.8,
+    "cy": 56.2,
+    "box": [245, 51, 254, 62]
+  },
+  "Kalos_Victory_Road_Map.png": {
+    "base": 0,
+    "n": 70,
+    "cx": 190.8,
+    "cy": 84.8,
+    "box": [187, 79, 196, 90]
+  }
+}

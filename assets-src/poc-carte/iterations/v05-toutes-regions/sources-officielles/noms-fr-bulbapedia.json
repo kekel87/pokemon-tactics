@@ -1,0 +1,1447 @@
+{
+  "Viridian Forest": {
+    "page": "Viridian Forest",
+    "fr": "Forêt de Jade",
+    "missing": false
+  },
+  "Mt. Moon": {
+    "page": "Mt. Moon",
+    "fr": "Mont Sélénite",
+    "missing": false
+  },
+  "Rock Tunnel": {
+    "page": "Rock Tunnel",
+    "fr": "Grotte Sombre",
+    "missing": false
+  },
+  "Diglett's Cave": {
+    "page": "Diglett's Cave",
+    "fr": "Grotte Taupiqueur",
+    "missing": false
+  },
+  "Victory Road (Kanto)": {
+    "page": "Victory Road (Kanto)",
+    "fr": "Route Victoire (Kanto)",
+    "missing": false
+  },
+  "Cerulean Cave": {
+    "page": "Cerulean Cave",
+    "fr": "Caverne Azurée",
+    "missing": false
+  },
+  "Pokémon Tower": {
+    "page": "Pokémon Tower",
+    "fr": "Tour Pokémon",
+    "missing": false
+  },
+  "Power Plant (Kanto)": {
+    "page": "Kanto Power Plant",
+    "fr": "Centrale abandonnée",
+    "missing": false
+  },
+  "Seafoam Islands": {
+    "page": "Seafoam Islands",
+    "fr": "Îles Écume",
+    "missing": false
+  },
+  "Pokémon Mansion": {
+    "page": "Pokémon Mansion",
+    "fr": null,
+    "missing": false
+  },
+  "Kanto Safari Zone": {
+    "page": "Kanto Safari Zone",
+    "fr": "Parc Safari (Kanto)",
+    "missing": false
+  },
+  "Sprout Tower": {
+    "page": "Sprout Tower",
+    "fr": "Tour Chétiflor",
+    "missing": false
+  },
+  "Ruins of Alph": {
+    "page": "Ruins of Alph",
+    "fr": "Ruines d'Alpha",
+    "missing": false
+  },
+  "Union Cave": {
+    "page": "Union Cave",
+    "fr": "Caves Jumelles",
+    "missing": false
+  },
+  "Slowpoke Well": {
+    "page": "Slowpoke Well",
+    "fr": "Puits Ramoloss",
+    "missing": false
+  },
+  "Ilex Forest": {
+    "page": "Ilex Forest",
+    "fr": "Bois aux Chênes",
+    "missing": false
+  },
+  "Goldenrod Radio Tower": {
+    "page": "Goldenrod Radio Tower",
+    "fr": "Tour Radio de Doublonville",
+    "missing": false
+  },
+  "National Park": {
+    "page": "National Park",
+    "fr": "Parc Naturel",
+    "missing": false
+  },
+  "Bell Tower": {
+    "page": "Bell Tower",
+    "fr": "Tour Carillon",
+    "missing": false
+  },
+  "Burned Tower": {
+    "page": "Burned Tower",
+    "fr": "Tour Cendrée",
+    "missing": false
+  },
+  "Glitter Lighthouse": {
+    "page": "Olivine Lighthouse",
+    "fr": "Phare (Johto)",
+    "missing": false
+  },
+  "Battle Tower (Generation II)": {
+    "page": "Battle Tower (Generation II)",
+    "fr": "Tour de Combat (deuxième génération)",
+    "missing": false
+  },
+  "Whirl Islands": {
+    "page": "Whirl Islands",
+    "fr": "Tourb'Îles",
+    "missing": false
+  },
+  "Mt. Mortar": {
+    "page": "Mt. Mortar",
+    "fr": "Mont Creuset",
+    "missing": false
+  },
+  "Lake of Rage": {
+    "page": "Lake of Rage",
+    "fr": "Lac Colère",
+    "missing": false
+  },
+  "Ice Path": {
+    "page": "Ice Path",
+    "fr": "Route de Glace",
+    "missing": false
+  },
+  "Dragon's Den": {
+    "page": "Dragon's Den",
+    "fr": "Antre du Dragon",
+    "missing": false
+  },
+  "Dark Cave": {
+    "page": "Dark Cave",
+    "fr": "Antre Noir",
+    "missing": false
+  },
+  "Mt. Silver": {
+    "page": "Mt. Silver",
+    "fr": "Mont Argenté",
+    "missing": false
+  },
+  "Granite Cave": {
+    "page": "Granite Cave",
+    "fr": "Grotte Granite",
+    "missing": false
+  },
+  "Mt. Chimney": {
+    "page": "Mt. Chimney",
+    "fr": "Mont Chimnée",
+    "missing": false
+  },
+  "Hoenn Safari Zone": {
+    "page": "Hoenn Safari Zone",
+    "fr": "Parc Safari (Hoenn)",
+    "missing": false
+  },
+  "Battle Frontier (Generation III)": {
+    "page": "Battle Frontier (Generation III)",
+    "fr": "Zone de Combat (troisième génération)",
+    "missing": false
+  },
+  "Petalburg Woods": {
+    "page": "Petalburg Woods",
+    "fr": "Bois Clémenti",
+    "missing": false
+  },
+  "Rusturf Tunnel": {
+    "page": "Rusturf Tunnel",
+    "fr": "Tunnel Mérazon",
+    "missing": false
+  },
+  "Abandoned Ship": {
+    "page": "Abandoned Ship",
+    "fr": "Épave",
+    "missing": false
+  },
+  "New Mauville": {
+    "page": "New Mauville",
+    "fr": "New Lavandia",
+    "missing": false
+  },
+  "Meteor Falls": {
+    "page": "Meteor Falls",
+    "fr": "Site Météore",
+    "missing": false
+  },
+  "Mt. Pyre": {
+    "page": "Mt. Pyre",
+    "fr": "Mont Mémoria",
+    "missing": false
+  },
+  "Shoal Cave": {
+    "page": "Shoal Cave",
+    "fr": "Grotte Tréfonds",
+    "missing": false
+  },
+  "Seafloor Cavern": {
+    "page": "Seafloor Cavern",
+    "fr": "Caverne Fondmer",
+    "missing": false
+  },
+  "Victory Road (Hoenn)": {
+    "page": "Victory Road (Hoenn)",
+    "fr": "Route Victoire (Hoenn)",
+    "missing": false
+  },
+  "Cave of Origin": {
+    "page": "Cave of Origin",
+    "fr": "Grotte Origine",
+    "missing": false
+  },
+  "Sky Pillar": {
+    "page": "Sky Pillar",
+    "fr": "Pilier Céleste",
+    "missing": false
+  },
+  "Southern Island": {
+    "page": "Southern Island",
+    "fr": "Île du Sud",
+    "missing": false
+  },
+  "Desert Ruins": {
+    "page": "Desert Ruins",
+    "fr": "Ruines Désert",
+    "missing": false
+  },
+  "Ancient Tomb": {
+    "page": "Ancient Tomb",
+    "fr": "Tombeau Antique",
+    "missing": false
+  },
+  "Island Cave": {
+    "page": "Island Cave",
+    "fr": "Grotte de l'Îlot",
+    "missing": false
+  },
+  "Sealed Chamber": {
+    "page": "Sealed Chamber",
+    "fr": "Sanctuaire (Hoenn)",
+    "missing": false
+  },
+  "Fiery Path": {
+    "page": "Fiery Path",
+    "fr": "Chemin Ardent",
+    "missing": false
+  },
+  "Scorched Slab": {
+    "page": "Scorched Slab",
+    "fr": "Grotte Zénith",
+    "missing": false
+  },
+  "Mirage Island": {
+    "page": "Mirage Island",
+    "fr": null,
+    "missing": false
+  },
+  "Eterna Forest": {
+    "page": "Eterna Forest",
+    "fr": "Forêt de Vestigion",
+    "missing": false
+  },
+  "Valley Windworks": {
+    "page": "Valley Windworks",
+    "fr": "Parc Éolien",
+    "missing": false
+  },
+  "Fuego Ironworks": {
+    "page": "Fuego Ironworks",
+    "fr": "Forge Fuego",
+    "missing": false
+  },
+  "Mt. Coronet": {
+    "page": "Mount Coronet",
+    "fr": "Mont Couronné",
+    "missing": false
+  },
+  "Spear Pillar": {
+    "page": "Spear Pillar",
+    "fr": "Colonnes Lances",
+    "missing": false
+  },
+  "Lost Tower": {
+    "page": "Lost Tower",
+    "fr": "Tour Perdue",
+    "missing": false
+  },
+  "Iron Island": {
+    "page": "Iron Island",
+    "fr": "Île de Fer",
+    "missing": false
+  },
+  "Oreburgh Mine": {
+    "page": "Oreburgh Mine",
+    "fr": "Mine de Charbourg",
+    "missing": false
+  },
+  "Wayward Cave": {
+    "page": "Wayward Cave",
+    "fr": "Grotte des Égarés",
+    "missing": false
+  },
+  "Great Marsh": {
+    "page": "Great Marsh",
+    "fr": "Grand Marais",
+    "missing": false
+  },
+  "Victory Road (Sinnoh)": {
+    "page": "Victory Road (Sinnoh)",
+    "fr": "Route Victoire (Sinnoh)",
+    "missing": false
+  },
+  "Stark Mountain": {
+    "page": "Stark Mountain",
+    "fr": "Mont Abrupt",
+    "missing": false
+  },
+  "Snowpoint Temple": {
+    "page": "Snowpoint Temple",
+    "fr": "Temple de Frimapic",
+    "missing": false
+  },
+  "Pal Park": {
+    "page": "Pal Park",
+    "fr": "Parc des Amis",
+    "missing": false
+  },
+  "Lake Verity": {
+    "page": "Lake Verity",
+    "fr": "Lac Vérité",
+    "missing": false
+  },
+  "Lake Valor": {
+    "page": "Lake Valor",
+    "fr": "Lac Courage",
+    "missing": false
+  },
+  "Lake Acuity": {
+    "page": "Lake Acuity",
+    "fr": "Lac Savoir",
+    "missing": false
+  },
+  "Berry Forest": {
+    "page": "Berry Forest",
+    "fr": "Bois Baies",
+    "missing": false
+  },
+  "Mt. Ember": {
+    "page": "Mt. Ember",
+    "fr": "Mont Braise",
+    "missing": false
+  },
+  "Icefall Cave": {
+    "page": "Icefall Cave",
+    "fr": "Grotte de Glace",
+    "missing": false
+  },
+  "Lost Cave": {
+    "page": "Lost Cave",
+    "fr": "Grotte Perdue",
+    "missing": false
+  },
+  "Memorial Pillar": {
+    "page": "Memorial Pillar",
+    "fr": "Mémorial",
+    "missing": false
+  },
+  "Navel Rock": {
+    "page": "Navel Rock",
+    "fr": "Roc Nombri",
+    "missing": false
+  },
+  "Altering Cave": {
+    "page": "Altering Cave",
+    "fr": "Grotte Métamo",
+    "missing": false
+  },
+  "Birth Island": {
+    "page": "Birth Island",
+    "fr": "Île Aurore",
+    "missing": false
+  },
+  "Dotted Hole": {
+    "page": "Dotted Hole",
+    "fr": "Trou Percé",
+    "missing": false
+  },
+  "Pattern Bush": {
+    "page": "Pattern Bush",
+    "fr": "Forbuissons",
+    "missing": false
+  },
+  "Tanoby Chambers": {
+    "page": "Tanoby Chambers",
+    "fr": "Chambres Tanoby",
+    "missing": false
+  },
+  "Trainer Tower": {
+    "page": "Trainer Tower",
+    "fr": "Tour Dresseurs",
+    "missing": false
+  },
+  "Nuvema Town": {
+    "page": "Nuvema Town",
+    "fr": "Renouet",
+    "missing": false
+  },
+  "Accumula Town": {
+    "page": "Accumula Town",
+    "fr": "Arabelle",
+    "missing": false
+  },
+  "Striaton City": {
+    "page": "Striaton City",
+    "fr": "Ogoesse",
+    "missing": false
+  },
+  "Nacrene City": {
+    "page": "Nacrene City",
+    "fr": "Maillard",
+    "missing": false
+  },
+  "Castelia City": {
+    "page": "Castelia City",
+    "fr": "Volucité",
+    "missing": false
+  },
+  "Nimbasa City": {
+    "page": "Nimbasa City",
+    "fr": "Méanville",
+    "missing": false
+  },
+  "Driftveil City": {
+    "page": "Driftveil City",
+    "fr": "Port Yoneuve",
+    "missing": false
+  },
+  "Mistralton City": {
+    "page": "Mistralton City",
+    "fr": "Parsemille",
+    "missing": false
+  },
+  "Icirrus City": {
+    "page": "Icirrus City",
+    "fr": "Flocombe",
+    "missing": false
+  },
+  "Opelucid City": {
+    "page": "Opelucid City",
+    "fr": "Janusia",
+    "missing": false
+  },
+  "Lacunosa Town": {
+    "page": "Lacunosa Town",
+    "fr": "Entrelasque",
+    "missing": false
+  },
+  "Undella Town": {
+    "page": "Undella Town",
+    "fr": "Vaguelone",
+    "missing": false
+  },
+  "Black City": {
+    "page": "Black City",
+    "fr": "Ville Noire",
+    "missing": false
+  },
+  "White Forest": {
+    "page": "White Forest",
+    "fr": "Forêt Blanche",
+    "missing": false
+  },
+  "Aspertia City": {
+    "page": "Aspertia City",
+    "fr": "Pavonnay",
+    "missing": false
+  },
+  "Floccesy Town": {
+    "page": "Floccesy Town",
+    "fr": "Amaillide",
+    "missing": false
+  },
+  "Virbank City": {
+    "page": "Virbank City",
+    "fr": "Ondes-sur-Mer",
+    "missing": false
+  },
+  "Lentimas Town": {
+    "page": "Lentimas Town",
+    "fr": "Arpentières",
+    "missing": false
+  },
+  "Humilau City": {
+    "page": "Humilau City",
+    "fr": "Papeloa",
+    "missing": false
+  },
+  "Anville Town": {
+    "page": "Anville Town",
+    "fr": "Rotombourg",
+    "missing": false
+  },
+  "Pokémon League (Unova)": {
+    "page": "Pokémon League (Unova)",
+    "fr": "Ligue Pokémon (Unys)",
+    "missing": false
+  },
+  "Dreamyard": {
+    "page": "Dreamyard",
+    "fr": "Vestiges du Rêve",
+    "missing": false
+  },
+  "Pinwheel Forest": {
+    "page": "Pinwheel Forest",
+    "fr": "Forêt d'Empoigne",
+    "missing": false
+  },
+  "Desert Resort": {
+    "page": "Desert Resort",
+    "fr": "Désert Délassant",
+    "missing": false
+  },
+  "Relic Castle": {
+    "page": "Relic Castle",
+    "fr": "Château Enfoui",
+    "missing": false
+  },
+  "Chargestone Cave": {
+    "page": "Chargestone Cave",
+    "fr": "Grotte Électrolithe",
+    "missing": false
+  },
+  "Twist Mountain": {
+    "page": "Twist Mountain",
+    "fr": "Mont Foré",
+    "missing": false
+  },
+  "Dragonspiral Tower": {
+    "page": "Dragonspiral Tower",
+    "fr": "Tour Dragospire",
+    "missing": false
+  },
+  "Celestial Tower": {
+    "page": "Celestial Tower",
+    "fr": "Tour des Cieux",
+    "missing": false
+  },
+  "Giant Chasm": {
+    "page": "Giant Chasm",
+    "fr": "Grotte Cyclopéenne",
+    "missing": false
+  },
+  "Abundant Shrine": {
+    "page": "Abundant Shrine",
+    "fr": "Autel Abondance",
+    "missing": false
+  },
+  "Liberty Garden": {
+    "page": "Liberty Garden",
+    "fr": "Île Liberté",
+    "missing": false
+  },
+  "Victory Road (Unova)": {
+    "page": "Victory Road (Unova)",
+    "fr": "Route Victoire (Unys)",
+    "missing": false
+  },
+  "Lostlorn Forest": {
+    "page": "Lostlorn Forest",
+    "fr": "Bois des Illusions",
+    "missing": false
+  },
+  "Pokéstar Studios": {
+    "page": "Pokéstar Studios",
+    "fr": "Pokéwood",
+    "missing": false
+  },
+  "Join Avenue": {
+    "page": "Join Avenue",
+    "fr": "Galerie Concorde",
+    "missing": false
+  },
+  "Pokémon World Tournament": {
+    "page": "Pokémon World Tournament",
+    "fr": "Pokémon World Tournament",
+    "missing": false
+  },
+  "Reversal Mountain": {
+    "page": "Reversal Mountain",
+    "fr": "Mont Renenvers",
+    "missing": false
+  },
+  "Strange House": {
+    "page": "Strange House",
+    "fr": "Manoir de l'Étrange",
+    "missing": false
+  },
+  "Relic Passage": {
+    "page": "Relic Passage",
+    "fr": "Chemin Enfoui",
+    "missing": false
+  },
+  "Castelia Sewers": {
+    "page": "Castelia Sewers",
+    "fr": "Égouts de Volucité",
+    "missing": false
+  },
+  "Abyssal Ruins": {
+    "page": "Abyssal Ruins",
+    "fr": "Ruines des Abysses (Unys)",
+    "missing": false
+  },
+  "Seaside Cave": {
+    "page": "Seaside Cave",
+    "fr": "Grotte Littorale (Unys)",
+    "missing": false
+  },
+  "Entralink": {
+    "page": "Entralink",
+    "fr": "Heylink",
+    "missing": false
+  },
+  "Wellspring Cave": {
+    "page": "Wellspring Cave",
+    "fr": "Veine Souterraine",
+    "missing": false
+  },
+  "Mistralton Cave": {
+    "page": "Mistralton Cave",
+    "fr": "Grotte Parsemille",
+    "missing": false
+  },
+  "Clay Tunnel": {
+    "page": "Clay Tunnel",
+    "fr": "Route Bardane",
+    "missing": false
+  },
+  "Floccesy Ranch": {
+    "page": "Floccesy Ranch",
+    "fr": "Ranch d'Amaillide",
+    "missing": false
+  },
+  "Cave of Being": {
+    "page": "Cave of Being",
+    "fr": "Caverne des Esprits",
+    "missing": false
+  },
+  "Moor of Icirrus": {
+    "page": "Moor of Icirrus",
+    "fr": "Tourbière Flocombe",
+    "missing": false
+  },
+  "P2 Laboratory": {
+    "page": "P2 Laboratory",
+    "fr": "Labo P2",
+    "missing": false
+  },
+  "Virbank Complex": {
+    "page": "Virbank Complex",
+    "fr": "Z.I. d'Ondes-sur-Mer",
+    "missing": false
+  },
+  "Undella Bay": {
+    "page": "Undella Bay",
+    "fr": "Baie Vaguelone",
+    "missing": false
+  },
+  "Marine Tube": {
+    "page": "Marine Tube",
+    "fr": "Aquatube",
+    "missing": false
+  },
+  "Unity Tower": {
+    "page": "Unity Tower",
+    "fr": "Tour Union",
+    "missing": false
+  },
+  "Village Bridge": {
+    "page": "Village Bridge",
+    "fr": "Pont du Hameau",
+    "missing": false
+  },
+  "Vaniville Town": {
+    "page": "Vaniville Town",
+    "fr": "Bourg Croquis",
+    "missing": false
+  },
+  "Aquacorde Town": {
+    "page": "Aquacorde Town",
+    "fr": "Quarellis",
+    "missing": false
+  },
+  "Santalune City": {
+    "page": "Santalune City",
+    "fr": "Neuvartault",
+    "missing": false
+  },
+  "Lumiose City": {
+    "page": "Lumiose City",
+    "fr": "Illumis",
+    "missing": false
+  },
+  "Camphrier Town": {
+    "page": "Camphrier Town",
+    "fr": "Fort-Vanitas",
+    "missing": false
+  },
+  "Ambrette Town": {
+    "page": "Ambrette Town",
+    "fr": "Roche-sur-Gliffe",
+    "missing": false
+  },
+  "Cyllage City": {
+    "page": "Cyllage City",
+    "fr": "Relifac-le-Haut",
+    "missing": false
+  },
+  "Geosenge Town": {
+    "page": "Geosenge Town",
+    "fr": "Cromlac'h",
+    "missing": false
+  },
+  "Shalour City": {
+    "page": "Shalour City",
+    "fr": "Yantreizh",
+    "missing": false
+  },
+  "Coumarine City": {
+    "page": "Coumarine City",
+    "fr": "Port Tempères",
+    "missing": false
+  },
+  "Laverre City": {
+    "page": "Laverre City",
+    "fr": "Romant-sous-Bois",
+    "missing": false
+  },
+  "Dendemille Town": {
+    "page": "Dendemille Town",
+    "fr": "La Frescale",
+    "missing": false
+  },
+  "Anistar City": {
+    "page": "Anistar City",
+    "fr": "Flusselles",
+    "missing": false
+  },
+  "Couriway Town": {
+    "page": "Couriway Town",
+    "fr": "Mozheim",
+    "missing": false
+  },
+  "Snowbelle City": {
+    "page": "Snowbelle City",
+    "fr": "Auffrac-les-Congères",
+    "missing": false
+  },
+  "Kiloude City": {
+    "page": "Kiloude City",
+    "fr": "Batisques",
+    "missing": false
+  },
+  "Pokémon League (Kalos)": {
+    "page": "Pokémon League (Kalos)",
+    "fr": "Ligue Pokémon (Kalos)",
+    "missing": false
+  },
+  "Santalune Forest": {
+    "page": "Santalune Forest",
+    "fr": "Forêt de Neuvartault",
+    "missing": false
+  },
+  "Parfum Palace": {
+    "page": "Parfum Palace",
+    "fr": "Palais Chaydeuvre",
+    "missing": false
+  },
+  "Connecting Cave": {
+    "page": "Connecting Cave",
+    "fr": "Cave Connecterre",
+    "missing": false
+  },
+  "Reflection Cave": {
+    "page": "Reflection Cave",
+    "fr": "Grotte Miroitante",
+    "missing": false
+  },
+  "Glittering Cave": {
+    "page": "Glittering Cave",
+    "fr": "Grotte Étincelante",
+    "missing": false
+  },
+  "Azure Bay": {
+    "page": "Azure Bay",
+    "fr": "Baie Azur",
+    "missing": false
+  },
+  "Sea Spirit's Den": {
+    "page": "Sea Spirit's Den",
+    "fr": "Antre Néréen",
+    "missing": false
+  },
+  "Kalos Power Plant": {
+    "page": "Kalos Power Plant",
+    "fr": "Centrale de Kalos",
+    "missing": false
+  },
+  "Lost Hotel": {
+    "page": "Lost Hotel",
+    "fr": "Hôtel Désolation",
+    "missing": false
+  },
+  "Frost Cavern": {
+    "page": "Frost Cavern",
+    "fr": "Caverne Gelée (Kalos)",
+    "missing": false
+  },
+  "Pokémon Village": {
+    "page": "Pokémon Village",
+    "fr": "Village Pokémon",
+    "missing": false
+  },
+  "Chamber of Emptiness": {
+    "page": "Chamber of Emptiness",
+    "fr": "Chambre Néant",
+    "missing": false
+  },
+  "Terminus Cave": {
+    "page": "Terminus Cave",
+    "fr": "Grotte Coda",
+    "missing": false
+  },
+  "Victory Road (Kalos)": {
+    "page": "Victory Road (Kalos)",
+    "fr": "Route Victoire (Kalos)",
+    "missing": false
+  },
+  "Poké Ball Factory": {
+    "page": "Poké Ball Factory",
+    "fr": "Usine de Poké Balls",
+    "missing": false
+  },
+  "Iki Town": {
+    "page": "Iki Town",
+    "fr": "Lili'i",
+    "missing": false
+  },
+  "Hau'oli City": {
+    "page": "Hau'oli City",
+    "fr": "Ekaeka",
+    "missing": false
+  },
+  "Heahea City": {
+    "page": "Heahea City",
+    "fr": "Ho'ohale",
+    "missing": false
+  },
+  "Paniola Town": {
+    "page": "Paniola Town",
+    "fr": "Ohana",
+    "missing": false
+  },
+  "Konikoni City": {
+    "page": "Konikoni City",
+    "fr": "Konikoni",
+    "missing": false
+  },
+  "Malie City": {
+    "page": "Malie City",
+    "fr": "Malié",
+    "missing": false
+  },
+  "Po Town": {
+    "page": "Po Town",
+    "fr": "Kokohio",
+    "missing": false
+  },
+  "Tapu Village": {
+    "page": "Tapu Village",
+    "fr": "Village Toko",
+    "missing": false
+  },
+  "Seafolk Village": {
+    "page": "Seafolk Village",
+    "fr": "Village Flottant",
+    "missing": false
+  },
+  "Pokémon League (Alola)": {
+    "page": "Pokémon League (Alola)",
+    "fr": "Ligue Pokémon (Alola)",
+    "missing": false
+  },
+  "Verdant Cavern": {
+    "page": "Verdant Cavern",
+    "fr": "Grotte Verdoyante",
+    "missing": false
+  },
+  "Melemele Meadow": {
+    "page": "Melemele Meadow",
+    "fr": "Jardin de Mele-Mele",
+    "missing": false
+  },
+  "Ten Carat Hill": {
+    "page": "Ten Carat Hill",
+    "fr": "Colline Dicarat",
+    "missing": false
+  },
+  "Kala'e Bay": {
+    "page": "Kala'e Bay",
+    "fr": "Baie de Kala'e",
+    "missing": false
+  },
+  "Ruins of Conflict": {
+    "page": "Ruins of Conflict",
+    "fr": "Ruines du Conflit",
+    "missing": false
+  },
+  "Brooklet Hill": {
+    "page": "Brooklet Hill",
+    "fr": "Colline Clapotis",
+    "missing": false
+  },
+  "Wela Volcano Park": {
+    "page": "Wela Volcano Park",
+    "fr": "Parc Volcanique",
+    "missing": false
+  },
+  "Lush Jungle": {
+    "page": "Lush Jungle",
+    "fr": "Jungle Sombrefeuille",
+    "missing": false
+  },
+  "Diglett's Tunnel": {
+    "page": "Diglett's Tunnel",
+    "fr": "Tunnel Taupiqueur",
+    "missing": false
+  },
+  "Memorial Hill": {
+    "page": "Memorial Hill",
+    "fr": "Colline Memento",
+    "missing": false
+  },
+  "Ruins of Life": {
+    "page": "Ruins of Life",
+    "fr": "Ruines de l'Éveil",
+    "missing": false
+  },
+  "Hano Grand Resort": {
+    "page": "Hano Grand Resort",
+    "fr": "Club Hano-Hano",
+    "missing": false
+  },
+  "Royal Avenue": {
+    "page": "Royal Avenue",
+    "fr": "Rue du Dôme Royal",
+    "missing": false
+  },
+  "Aether Paradise": {
+    "page": "Aether Paradise",
+    "fr": "Paradis Æther",
+    "missing": false
+  },
+  "Hokulani Observatory": {
+    "page": "Hokulani Observatory",
+    "fr": "Observatoire",
+    "missing": false
+  },
+  "Mount Lanakila": {
+    "page": "Mount Lanakila",
+    "fr": "Mont Lanakila",
+    "missing": false
+  },
+  "Haina Desert": {
+    "page": "Haina Desert",
+    "fr": "Désert Haina",
+    "missing": false
+  },
+  "Ruins of Abundance": {
+    "page": "Ruins of Abundance",
+    "fr": "Ruines de l'Essor",
+    "missing": false
+  },
+  "Exeggutor Island": {
+    "page": "Exeggutor Island",
+    "fr": "Île Noadkoko",
+    "missing": false
+  },
+  "Vast Poni Canyon": {
+    "page": "Vast Poni Canyon",
+    "fr": "Grand Canyon de Poni",
+    "missing": false
+  },
+  "Ruins of Hope": {
+    "page": "Ruins of Hope",
+    "fr": "Ruines de l'Au-Delà",
+    "missing": false
+  },
+  "Battle Tree": {
+    "page": "Battle Tree",
+    "fr": "Arbre de Combat",
+    "missing": false
+  },
+  "Resolution Cave": {
+    "page": "Resolution Cave",
+    "fr": "Caverne Coda",
+    "missing": false
+  },
+  "Poni Wilds": {
+    "page": "Poni Wilds",
+    "fr": "Prairie de Poni",
+    "missing": false
+  },
+  "Postwick": {
+    "page": "Postwick",
+    "fr": "Paddoxton",
+    "missing": false
+  },
+  "Wedgehurst": {
+    "page": "Wedgehurst",
+    "fr": "Brasswick",
+    "missing": false
+  },
+  "Motostoke": {
+    "page": "Motostoke",
+    "fr": "Motorby",
+    "missing": false
+  },
+  "Turffield": {
+    "page": "Turffield",
+    "fr": "Greenbury",
+    "missing": false
+  },
+  "Hulbury": {
+    "page": "Hulbury",
+    "fr": "Skifford",
+    "missing": false
+  },
+  "Stow-on-Side": {
+    "page": "Stow-on-Side",
+    "fr": "Old Chister",
+    "missing": false
+  },
+  "Ballonlea": {
+    "page": "Ballonlea",
+    "fr": "Corrifey",
+    "missing": false
+  },
+  "Hammerlocke": {
+    "page": "Hammerlocke",
+    "fr": "Kickenham",
+    "missing": false
+  },
+  "Circhester": {
+    "page": "Circhester",
+    "fr": "Ludester",
+    "missing": false
+  },
+  "Spikemuth": {
+    "page": "Spikemuth",
+    "fr": "Smashings",
+    "missing": false
+  },
+  "Wyndon": {
+    "page": "Wyndon",
+    "fr": "Winscor",
+    "missing": false
+  },
+  "Slumbering Weald": {
+    "page": "Slumbering Weald",
+    "fr": "Forêt de Sleepwood",
+    "missing": false
+  },
+  "Wild Area": {
+    "page": "Wild Area",
+    "fr": "Terres Sauvages",
+    "missing": false
+  },
+  "Galar Mine": {
+    "page": "Galar Mine",
+    "fr": "Mine de Galar",
+    "missing": false
+  },
+  "Galar Mine No. 2": {
+    "page": "Galar Mine No. 2",
+    "fr": "Mine de Galar n° 2",
+    "missing": false
+  },
+  "Glimwood Tangle": {
+    "page": "Glimwood Tangle",
+    "fr": "Forêt de Lumirinth",
+    "missing": false
+  },
+  "Route 9 Tunnel": {
+    "page": "Route 9 Tunnel",
+    "fr": "Tunnel de la Route 9",
+    "missing": false
+  },
+  "Rolling Fields": {
+    "page": "Rolling Fields",
+    "fr": "Plaine Verdoyante",
+    "missing": false
+  },
+  "Dappled Grove": {
+    "page": "Dappled Grove",
+    "fr": "Bois de Clairjour",
+    "missing": false
+  },
+  "Watchtower Ruins": {
+    "page": "Watchtower Ruins",
+    "fr": "Tour en ruines",
+    "missing": false
+  },
+  "East Lake Axewell": {
+    "page": "East Lake Axewell",
+    "fr": "Lac Coupenotte Est",
+    "missing": false
+  },
+  "West Lake Axewell": {
+    "page": "West Lake Axewell",
+    "fr": "Lac Coupenotte Ouest",
+    "missing": false
+  },
+  "Axew's Eye": {
+    "page": "Axew's Eye",
+    "fr": "Œil du Lac",
+    "missing": false
+  },
+  "South Lake Miloch": {
+    "page": "South Lake Miloch",
+    "fr": "Lac Milobellus Sud",
+    "missing": false
+  },
+  "Giant's Seat": {
+    "page": "Giant's Seat",
+    "fr": "Siège du Géant",
+    "missing": false
+  },
+  "North Lake Miloch": {
+    "page": "North Lake Miloch",
+    "fr": "Lac Milobellus Nord",
+    "missing": false
+  },
+  "Motostoke Riverbank": {
+    "page": "Motostoke Riverbank",
+    "fr": "Berges de Motorby",
+    "missing": false
+  },
+  "Bridge Field": {
+    "page": "Bridge Field",
+    "fr": "Prairie Entre-Ponts",
+    "missing": false
+  },
+  "Stony Wilderness": {
+    "page": "Stony Wilderness",
+    "fr": "Plaine Rocheuse",
+    "missing": false
+  },
+  "Dusty Bowl": {
+    "page": "Dusty Bowl",
+    "fr": "Fosse des Sables",
+    "missing": false
+  },
+  "Giant's Mirror": {
+    "page": "Giant's Mirror",
+    "fr": "Miroir du Géant",
+    "missing": false
+  },
+  "Hammerlocke Hills": {
+    "page": "Hammerlocke Hills",
+    "fr": "Plateau de Kickenham",
+    "missing": false
+  },
+  "Giant's Cap": {
+    "page": "Giant's Cap",
+    "fr": "Coiffe du Géant",
+    "missing": false
+  },
+  "Lake of Outrage": {
+    "page": "Lake of Outrage",
+    "fr": "Lac Ouragan",
+    "missing": false
+  },
+  "Energy Plant": {
+    "page": "Energy Plant",
+    "fr": "Salle du réacteur",
+    "missing": false
+  },
+  "Rose Tower": {
+    "page": "Rose Tower",
+    "fr": "Shehroz Tower",
+    "missing": false
+  },
+  "Cabo Poco": {
+    "page": "Cabo Poco",
+    "fr": "Cuchalaga",
+    "missing": false
+  },
+  "Los Platos": {
+    "page": "Los Platos",
+    "fr": "Plato Real",
+    "missing": false
+  },
+  "Mesagoza": {
+    "page": "Mesagoza",
+    "fr": "Mesaledo",
+    "missing": false
+  },
+  "Artazon": {
+    "page": "Artazon",
+    "fr": "Cuencia",
+    "missing": false
+  },
+  "Levincia": {
+    "page": "Levincia",
+    "fr": "Levalendura",
+    "missing": false
+  },
+  "Zapapico": {
+    "page": "Zapapico",
+    "fr": "Pinchoria",
+    "missing": false
+  },
+  "Cascarrafa": {
+    "page": "Cascarrafa",
+    "fr": "Jarramanca",
+    "missing": false
+  },
+  "Porto Marinada": {
+    "page": "Porto Marinada",
+    "fr": "Porto Marinada",
+    "missing": false
+  },
+  "Medali": {
+    "page": "Medali",
+    "fr": "Mezclamora",
+    "missing": false
+  },
+  "Montenevera": {
+    "page": "Montenevera",
+    "fr": "Frigao",
+    "missing": false
+  },
+  "Alfornada": {
+    "page": "Alfornada",
+    "fr": "Alforneira",
+    "missing": false
+  },
+  "Cortondo": {
+    "page": "Cortondo",
+    "fr": "Sevaro",
+    "missing": false
+  },
+  "Pokémon League (Paldea)": {
+    "page": "Pokémon League (Paldea)",
+    "fr": "Ligue Pokémon (Paldea)",
+    "missing": false
+  },
+  "Area Zero": {
+    "page": "Area Zero",
+    "fr": "Zone Zéro",
+    "missing": false
+  },
+  "Great Crater of Paldea": {
+    "page": "Great Crater of Paldea",
+    "fr": "Cratère de Paldea",
+    "missing": false
+  },
+  "Inlet Grotto": {
+    "page": "Inlet Grotto",
+    "fr": "Caverne de la Crique",
+    "missing": false
+  },
+  "Alfornada Cavern": {
+    "page": "Alfornada Cavern",
+    "fr": "Grotte d'Alforneira",
+    "missing": false
+  },
+  "Colonnade Hollow": {
+    "page": "Colonnade Hollow",
+    "fr": null,
+    "missing": false
+  },
+  "Dalizapa Passage": {
+    "page": "Dalizapa Passage",
+    "fr": "Tunnel Mezcla-Pincho",
+    "missing": false
+  },
+  "Glaseado Mountain": {
+    "page": "Glaseado Mountain",
+    "fr": "Mont Nappé",
+    "missing": false
+  },
+  "Asado Desert": {
+    "page": "Asado Desert",
+    "fr": "Désert Rôtissable",
+    "missing": false
+  },
+  "Casseroya Lake": {
+    "page": "Casseroya Lake",
+    "fr": "Lac Asrol",
+    "missing": false
+  },
+  "Tagtree Thicket": {
+    "page": "Tagtree Thicket",
+    "fr": "Bosquet Tagué",
+    "missing": false
+  },
+  "Socarrat Trail": {
+    "page": "Socarrat Trail",
+    "fr": "Forêt Toastée",
+    "missing": false
+  },
+  "Poco Path": {
+    "page": "Poco Path",
+    "fr": "Route de Cuchalaga",
+    "missing": false
+  },
+  "Grasswither Shrine": {
+    "page": "Grasswither Shrine",
+    "fr": "Sanctuaire (Paldea)",
+    "missing": false
+  },
+  "Icerend Shrine": {
+    "page": "Icerend Shrine",
+    "fr": "Sanctuaire (Paldea)",
+    "missing": false
+  },
+  "Mossui Town": {
+    "page": "Mossui Town",
+    "fr": "Jaderaude",
+    "missing": false
+  },
+  "Kitakami Road": {
+    "page": "Kitakami Road",
+    "fr": "Route de Septentria",
+    "missing": false
+  },
+  "Apple Hills": {
+    "page": "Apple Hills",
+    "fr": "Coteau Pommes",
+    "missing": false
+  },
+  "Reveler's Road": {
+    "page": "Reveler's Road",
+    "fr": "Sentier de la Liesse",
+    "missing": false
+  },
+  "Oni Mountain": {
+    "page": "Oni Mountain",
+    "fr": "Mont Strueux",
+    "missing": false
+  },
+  "Crystal Pool": {
+    "page": "Crystal Pool",
+    "fr": "Lac Cristallin (Septentria)",
+    "missing": false
+  },
+  "Infernal Pass": {
+    "page": "Infernal Pass",
+    "fr": "Val Infernal",
+    "missing": false
+  },
+  "Paradise Barrens": {
+    "page": "Paradise Barrens",
+    "fr": "Lande de la Quiétude",
+    "missing": false
+  },
+  "Kitakami Wilds": {
+    "page": "Kitakami Wilds",
+    "fr": "Terres Vierges de Septentria",
+    "missing": false
+  },
+  "Timeless Woods": {
+    "page": "Timeless Woods",
+    "fr": "Forêt Ternelle",
+    "missing": false
+  },
+  "Chilling Waterhead": {
+    "page": "Chilling Waterhead",
+    "fr": "Grotte Douche Froide",
+    "missing": false
+  },
+  "Fellhorn Gorge": {
+    "page": "Fellhorn Gorge",
+    "fr": "Gorge de la Corne",
+    "missing": false
+  },
+  "Mossfell Confluence": {
+    "page": "Mossfell Confluence",
+    "fr": "Rives du Confluent",
+    "missing": false
+  },
+  "Oni's Maw": {
+    "page": "Oni's Maw",
+    "fr": "Gueule du Monstre",
+    "missing": false
+  },
+  "Wistful Fields": {
+    "page": "Wistful Fields",
+    "fr": "Plaine des Glycines",
+    "missing": false
+  },
+  "Kitakami Hall": {
+    "page": "Kitakami Hall",
+    "fr": "Septemplion",
+    "missing": false
+  },
+  "Kitakami": {
+    "page": "Kitakami",
+    "fr": "Septentria",
+    "missing": false
+  },
+  "Unova": {
+    "page": "Unova",
+    "fr": "Unys",
+    "missing": false
+  },
+  "Kalos": {
+    "page": "Kalos",
+    "fr": "Kalos",
+    "missing": false
+  },
+  "Alola": {
+    "page": "Alola",
+    "fr": "Alola",
+    "missing": false
+  },
+  "Galar": {
+    "page": "Galar",
+    "fr": "Galar",
+    "missing": false
+  },
+  "Paldea": {
+    "page": "Paldea",
+    "fr": "Paldea",
+    "missing": false
+  },
+  "Hisui": {
+    "page": "Hisui",
+    "fr": "Hisui",
+    "missing": false
+  }
+}

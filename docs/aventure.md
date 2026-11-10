@@ -47,6 +47,23 @@ Le jeu se scinde en deux modes qui partagent le moteur de combat mais pas leurs 
 | Persistance | PV et K.O. restent d'un combat à l'autre jusqu'au soin | `decision-1221` |
 | Entraînement | Seulement les SP (façon Pokémon Champions), pas d'IV ni d'EV, pas d'élevage ni d'œufs ; les SP doivent être faciles à régler | `decision-1223` |
 | Mécanique extra | Seule la Méga-Évolution (malgré le manque d'assets) | `decision-1224` |
+| Livraison | Dans `main`, lot par lot, derrière un verrou ; menu principal revu (Combat ou Aventure), bouton Aventure verrouillé « bientôt » | `decision-1227` |
+| Ouverture publique | Quand Kanto se joue de bout en bout, en accès anticipé ; ne jamais casser les sauvegardes quand une région sort | `decision-1228` |
+
+## Découpage en lots
+
+Chaque lot a son plan dans `docs/plans/` au moment de le lancer ; l'ordre peut bouger.
+
+0. **Prototype de carte**, hors jeu (en cours) : Kanto juste, rendu et données fixés.
+1. **Menu et verrou** : nouveau menu principal Combat / Aventure, Aventure verrouillé « bientôt ».
+2. **Carte dans le jeu** (cachée) : écran de carte de Kanto, déplacement au clic, menu d'actions au clic droit ;
+   données de carte dans `packages/data`, images empaquetées.
+3. **Boucle de base** : rencontre sauvage sur une route, combat existant, retour à la carte ; sauvegarde versionnée
+   avec export / import et migrations.
+4. **Dresseur sur la grille** : soins et capture par Poké Ball.
+5. **Vie de la campagne** : Centres Pokémon et défaite, persistance des PV et K.O., argent et boutiques.
+6. **Progression de Kanto** : dresseurs de route, arènes et badges, routes bloquées puis débloquées.
+7. **Ouverture publique** de Kanto en accès anticipé ; puis Johto et les autres régions, comme des données en plus.
 
 Déjà arrêté le 2026-09-16 : régions reprises telles quelles (Kanto d'abord), progression par badges sans histoire
 à écrire, trajet qui prend du temps (on ne se téléporte pas), rencontres visibles sur la carte avant d'y entrer
@@ -73,6 +90,18 @@ mécanisme de fuite (`idee-aventure-carte-en-graphe-de-noeuds`, `idee-rencontres
   Ibérique). Beaucoup de fans ont fait une carte de ce genre.
 - **Rendu HD-2D** de la carte du monde et des décors, repères : Gamma Emerald et Dott.
 - **Une carte du monde détaillée et jolie en pixel art**, quitte à la générer : les cartes de fans trouvées sont jugées « hyper moches », elles ne servent qu'au placement des régions.
+- **La terre hors des régions vient des vrais continents** ; l'échelle d'ensemble reste à régler, peut-être en
+  masquant les distances par des nuages.
+- **Des grandes zones plutôt qu'un seul planisphère** : Japon, Europe, Unys, Alola, chacune à son niveau de zoom.
+  Changer de zone est une ellipse (survol des nuages, bateau). Le joueur ne voit jamais le monde entier. À la vraie
+  échelle, Paldea fait environ 16 fois Kanto et Unys à peu près autant que Kanto.
+- **Une carte vivante** : eau, vent, arbres, ombre des nuages animés ; météo et jour / nuit peut-être. Elle se rend
+  donc par calques séparés (fond, routes, villes, étapes, arbres).
+- **Voyager en bateau, en avion, en train** entre les lieux.
+- **Se déplacer plus vite sur la carte** : voler d'une ville à l'autre avec un Pokémon Vol ou le badge requis, ou la
+  bicyclette. Le vol remettrait en question le « on ne se téléporte pas » du 2026-09-16.
+- **Routes bloquées** que le joueur débloque au fur et à mesure, pour sentir la progression.
+- **Routes à angle droit seulement**, ou libres : pas tranché.
 - **Niveau des ennemis selon le nombre total de badges**, toutes régions confondues (« sur les 80 badges et quelques »).
   À vérifier : Alola a des épreuves, Hisui n'a pas d'arène.
 - **Expérience par action** façon FFT (ça varie le jeu). Repli si trop complexe : comme Pokémon (expérience au K.O.,
@@ -95,6 +124,8 @@ mécanisme de fuite (`idee-aventure-carte-en-graphe-de-noeuds`, `idee-rencontres
 
 ## Ouvert
 
+- **Génération d'images** : pas maintenant, et pas d'outil payant. PixelLab a déjà été essayé (tier 1, payant même
+  pour les cartes) et n'a pas convaincu. Au pire, des POC d'images générées par le code (`decision-1225`).
 - **Courbe de progression sur toutes les régions** : enchaîner une région après l'autre avec un nouveau starter sans
   repartir de zéro, et à terme commencer n'importe où. Impression de l'humain : les modèles A, B et D de la recherche
   sont compatibles ; il veut savoir comment font les autres jeux avant de trancher la synchronisation vers le bas
@@ -105,6 +136,22 @@ mécanisme de fuite (`idee-aventure-carte-en-graphe-de-noeuds`, `idee-rencontres
 - **Fin de jeu intéressante** : après le niveau 50, Pokémon n'est plus que du grind ; s'inspirer de FFT et des autres.
 - **Comment produire la carte du monde** : quelle source, quel assemblage, quel rendu.
 - **Le type du dresseur sur la grille** (probablement Normal, sans talent ni STAB) et la durée X de son K.O.
+
+## Itérations sur la carte du monde
+
+Chaque essai est archivé hors git dans `assets-src/references/aventure/poc-carte/iterations/vNN-<sujet>/` (script et
+image), et on repart toujours d'une itération existante. Ce que l'humain a aimé ou non à chaque itération est consigné
+dans `journal-iterations-carte-du-monde`, à relire avant d'en lancer une nouvelle. Direction artistique : tuiles
+officielles Game Boy Advance d'abord, sprites Mystery Dungeon, sans se fermer aux autres jeux (`decision-1226`).
+
+État, méthode et leçons en un seul endroit : `methode-carte-du-monde-lecons-des-iterations`. En bref :
+- **Structure en cours d'essai** : des grandes zones (Japon, Europe, Unys, Alola), chacune à son zoom ; Japon soudé
+  au centre, Paldea sur toute la péninsule et soudée à Kalos, vraie terre sans contenu sous des nuages.
+- **Ce qui marche** : Natural Earth pour les côtes réelles, relief réel des tuiles Terrarium d'AWS, une seule rampe
+  de couleurs d'altitude pour les régions et la vraie terre, côtes recalculées depuis la hauteur, calques séparés.
+- **Ce qui a été rejeté** : tuiles collées sans détourage, montagnes et rochers en sprites semés au hasard, décor
+  sans donnée derrière, continents écrasés, régions japonaises flottant en mer.
+- **Ordre** : structure, puis décor, puis animations.
 
 ## Ce que disent les recherches
 
