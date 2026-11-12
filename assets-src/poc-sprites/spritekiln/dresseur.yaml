@@ -1,0 +1,1186 @@
+# Gabarit dresseur commun, tiré de Red (validé 2026-11-12). Règles : ../regles-dresseurs.md
+spritekiln: 1
+name: dresseur
+camera:
+  pitch: 30
+  scale: 0.065
+size: 56
+extends: humanoid
+brief:
+  summary: 'GABARIT dresseur enfant (~28 px, tête 1.55, proportions de Red validées le 2026-11-12) : corps neutre, yeux peints calés sur la grille, 9 animations relues. Un personnage l''étend et ne donne
+    que ce qui change.'
+  must_keep: []
+  simplify: []
+remove:
+- use.sword
+- parts.coat
+- parts.belt
+- parts.eye_L
+- animations.attack
+ramps:
+  skin:
+  - '#3a1c12'
+  - '#7a4632'
+  - '#c07e60'
+  - '#f0bc98'
+  - '#ffe4cc'
+  hair:
+  - '#120a0a'
+  - '#2e1c18'
+  - '#4a2e24'
+  - '#664232'
+  top:
+  - '#0e1a30'
+  - '#24487a'
+  - '#3c78b0'
+  - '#68aad4'
+  - '#9cd0e8'
+  bottom:
+  - '#06060a'
+  - '#14141c'
+  - '#24242e'
+  - '#3a3a48'
+  shoe:
+  - '#2a0808'
+  - '#62161a'
+  - '#9c2a2a'
+  - '#d04a40'
+  - '#f07a60'
+  item:
+  - '#1e0c2a'
+  - '#4a2266'
+  - '#7a3ca0'
+  - '#b070d0'
+  - '#e0b0f0'
+  item_cap:
+  - '#2a2c38'
+  - '#5a5c6c'
+  - '#9ca0b0'
+  - '#d4d6e0'
+  - '#f6f6fa'
+materials:
+  skin:
+    ramp: skin
+    gamma: 0.6
+    line_color: '#7a4632'
+  hair:
+    ramp: hair
+  top:
+    ramp: top
+  sleeve:
+    ramp: top
+  bottom:
+    ramp: bottom
+  shoe:
+    ramp: shoe
+  cloth:
+    ramp: bottom
+  item:
+    ramp: item
+  item_cap:
+    ramp: item_cap
+use:
+- kit: head
+  at: head
+  with:
+    width: 1.1
+    jaw: 0.3
+    chin: 0.4
+    nose: 0
+    ears: 0
+- kit: hair
+  at: head
+  with:
+    fringe: 0.15
+    part: 0.2
+    locks: 0.5
+    length: 0
+    volume: 0.6
+bones:
+  torso_rot:
+    pos: '[0, 0.68 + bob, 0]'
+  headbase:
+    pos:
+    - 0
+    - 0.58
+    - 0.02
+  head:
+    scale: 1.55
+  shoulder_L:
+    pos:
+    - 0.185
+    - 0.46
+    - 0.0
+  hip_L:
+    pos:
+    - 0.095
+    - -0.02
+    - 0.0
+ik:
+  arm_L:
+    lengths:
+    - 0.24
+    - 0.23
+  leg_L:
+    lengths:
+    - 0.3
+    - 0.28
+parts:
+  torso:
+    material: top
+    prims:
+    - ellipsoid:
+        c:
+        - 0
+        - 0.04
+        - 0
+        r:
+        - 0.15
+        - 0.11
+        - 0.11
+    - ellipsoid:
+        c:
+        - 0
+        - 0.22
+        - 0.0
+        r:
+        - 0.145
+        - 0.14
+        - 0.11
+    - ellipsoid:
+        c:
+        - 0
+        - 0.38
+        - 0.0
+        r:
+        - 0.175
+        - 0.13
+        - 0.12
+    paint:
+    - material: bottom
+      prims:
+      - box:
+          c:
+          - 0
+          - -0.02
+          - 0
+          half:
+          - 0.2
+          - 0.07
+          - 0.2
+  neck:
+    material: skin
+    prims:
+    - cone:
+        a:
+        - 0
+        - 0.48
+        - 0
+        b:
+        - 0
+        - 0.6
+        - 0.02
+        r:
+        - 0.055
+        - 0.05
+  arm_L:
+    material: skin
+    prims:
+    - sphere:
+        c: '@shoulder_L'
+        r: 0.065
+    - cone:
+        a: '@shoulder_L'
+        b: '@elbow_L'
+        r:
+        - 0.058
+        - 0.048
+    - cone:
+        a: '@elbow_L'
+        b: '@wrist_L'
+        r:
+        - 0.046
+        - 0.04
+  sleeve_L:
+    material: sleeve
+    blend: 0.02
+    prims:
+    - sphere:
+        c: '@shoulder_L'
+        r: 0.075
+    - cone:
+        a: '@shoulder_L'
+        b:
+          between:
+          - '@shoulder_L'
+          - '@elbow_L'
+          t: 0.55
+        r:
+        - 0.072
+        - 0.066
+  hand_L:
+    material: skin
+    prims:
+    - sphere:
+        c:
+        - 0
+        - 0
+        - 0.035
+        r: 0.045
+  leg_L:
+    material: bottom
+    prims:
+    - cone:
+        a: '@hip_L'
+        b: '@knee_L'
+        r:
+        - 0.085
+        - 0.07
+    - cone:
+        a: '@knee_L'
+        b: '@ankle_L'
+        r:
+        - 0.07
+        - 0.075
+  boot_L:
+    material: shoe
+    prims:
+    - cone:
+        a:
+        - 0
+        - 0.08
+        - 0
+        b:
+        - 0
+        - -0.02
+        - 0.0
+        r:
+        - 0.06
+        - 0.06
+    - ellipsoid:
+        c:
+        - 0
+        - -0.035
+        - 0.045
+        r:
+        - 0.065
+        - 0.045
+        - 0.115
+  head:
+    paint:
+    - material: ink
+      prims:
+      - box:
+          c: '[(0.063 + 0.05*pulse(yaw, -90, 50) - 0.025*pulse(yaw, 45, 30)), 0.115, 0.13 - 0.06*pulse(yaw, -90, 50) - 0.15*pulse(yaw, 90, 50)]'
+          half: '[0.018, 0.05, 0.05 - 0.032*pulse(yaw, -90, 50)]'
+      - box:
+          c: '[-(0.063 + 0.05*pulse(yaw, 90, 50) - 0.025*pulse(yaw, -45, 30)), 0.115, 0.13 - 0.06*pulse(yaw, 90, 50) - 0.15*pulse(yaw, -90, 50)]'
+          half: '[0.018, 0.05, 0.05 - 0.032*pulse(yaw, 90, 50)]'
+  held_item:
+    material: item
+    space: wrist_R
+    when: item_show > 0.5
+    priority: 2
+    min_cover: 2
+    prims:
+    - cone:
+        a:
+        - 0
+        - -0.02
+        - 0.07
+        b:
+        - 0
+        - 0.07
+        - 0.07
+        r:
+        - 0.045
+        - 0.04
+    paint:
+    - material: item_cap
+      prims:
+      - box:
+          c:
+          - 0
+          - 0.075
+          - 0.07
+          half:
+          - 0.05
+          - 0.02
+          - 0.05
+animations:
+  walk:
+    channels:
+      lean: 0.08
+      head_pitch: -0.12
+      head_yaw: -0.10*cos(p)
+  idle:
+    channels:
+      head_pitch: -0.08
+      bob: 0.05*sin(p)
+  throw:
+    loop: false
+    keys:
+    - ms: 100
+      set:
+        head_pitch: -0.08
+        hand_R:
+        - 0.3
+        - 0.18
+        - 0.2
+        hand_L:
+        - 0.3
+        - 0.1
+        - 0.1
+    - ms: 120
+      set:
+        twist: -0.4
+        head_yaw: 0.26
+        lean: 0.0
+        bob: -0.03
+        squash: 0.97
+        head_pitch: -0.1
+        hand_R: '[0.30 + 0.10*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60)), 0.58, -0.18]'
+        hand_L:
+        - 0.26
+        - 0.3
+        - 0.26
+        foot_L:
+        - 0.13
+        - 0
+        - 0.12
+        foot_R:
+        - 0.13
+        - 0
+        - -0.06
+    - ms: 180
+      event: windup
+      set:
+        twist: -0.55
+        head_yaw: 0.36
+        lean: -0.04
+        bob: -0.05
+        squash: 0.95
+        head_pitch: -0.12
+        hand_R: '[0.28 + 0.12*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60)), 0.68, -0.26]'
+        hand_L:
+        - 0.24
+        - 0.34
+        - 0.3
+        foot_L:
+        - 0.13
+        - 0
+        - 0.14
+        foot_R:
+        - 0.13
+        - 0
+        - -0.08
+    - ms: 50
+      set:
+        twist: 0.1
+        head_yaw: -0.06
+        lean: 0.12
+        squash: 1.03
+        head_pitch: -0.1
+        hand_R: '[0.18 + 0.10*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60)), 0.72, 0.18]'
+        hand_L:
+        - 0.28
+        - 0.22
+        - 0.1
+        foot_L:
+        - 0.13
+        - 0
+        - 0.16
+        foot_R:
+        - 0.13
+        - 0.02
+        - -0.1
+        root:
+        - 0
+        - 0
+        - 0.04
+    - ms: 60
+      event: release
+      set:
+        twist: 0.4
+        head_yaw: -0.26
+        lean: 0.24
+        squash: 1.02
+        head_pitch: -0.08
+        hand_R: '[0.10 + 0.12*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60)), 0.50 + 0.08*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60)), 0.42]'
+        hand_L:
+        - 0.3
+        - 0.1
+        - -0.06
+        foot_L:
+        - 0.13
+        - 0
+        - 0.16
+        foot_R:
+        - 0.13
+        - 0.04
+        - -0.1
+        pitch_foot_R: 0.4
+        root:
+        - 0
+        - 0
+        - 0.07
+    - ms: 110
+      set:
+        twist: 0.55
+        head_yaw: -0.36
+        lean: 0.28
+        bob: -0.03
+        head_pitch: -0.06
+        hand_R:
+        - -0.06
+        - 0.16
+        - 0.3
+        hand_L:
+        - 0.3
+        - 0.1
+        - -0.1
+        foot_L:
+        - 0.13
+        - 0
+        - 0.16
+        foot_R:
+        - 0.13
+        - 0.02
+        - -0.08
+        pitch_foot_R: 0.3
+        root:
+        - 0
+        - 0
+        - 0.07
+    - ms: 130
+      set:
+        twist: 0.2
+        head_yaw: -0.2
+        lean: 0.05
+        head_pitch: -0.08
+        hand_R:
+        - 0.22
+        - 0.08
+        - 0.2
+        foot_L:
+        - 0.13
+        - 0
+        - 0.1
+        foot_R:
+        - 0.13
+        - 0
+        - -0.02
+        root:
+        - 0
+        - 0
+        - 0.04
+    - ms: 140
+      set:
+        head_pitch: -0.08
+        root:
+        - 0
+        - 0
+        - 0.01
+  hop:
+    loop: false
+    keys:
+    - ms: 80
+      set:
+        head_pitch: -0.08
+        bob: -0.04
+        squash: 0.97
+        lean: 0.1
+        hand_L:
+        - 0.3
+        - 0.04
+        - -0.04
+        hand_R:
+        - 0.3
+        - 0.04
+        - -0.04
+    - ms: 140
+      set:
+        head_pitch: -0.04
+        bob: -0.12
+        squash: 0.92
+        lean: 0.2
+        hand_L:
+        - 0.27
+        - 0.06
+        - -0.2
+        hand_R:
+        - 0.27
+        - 0.06
+        - -0.2
+    - ms: 60
+      event: takeoff
+      set:
+        head_pitch: -0.1
+        bob: 0.0
+        squash: 1.07
+        lean: 0.06
+        root:
+        - 0
+        - 0.12
+        - 0
+        hand_L:
+        - 0.27
+        - 0.42
+        - 0.2
+        hand_R:
+        - 0.27
+        - 0.42
+        - 0.2
+        foot_L:
+        - 0.13
+        - 0.0
+        - -0.04
+        foot_R:
+        - 0.13
+        - 0.0
+        - -0.04
+        pitch_foot_L: 0.5
+        pitch_foot_R: 0.5
+    - ms: 120
+      set:
+        head_pitch: -0.1
+        bob: -0.02
+        squash: 1.0
+        lean: 0.08
+        root:
+        - 0
+        - 0.3
+        - 0
+        hand_L:
+        - 0.32
+        - 0.36
+        - 0.16
+        hand_R:
+        - 0.32
+        - 0.36
+        - 0.16
+        foot_L:
+        - 0.13
+        - 0.14
+        - 0.06
+        foot_R:
+        - 0.13
+        - 0.14
+        - 0.06
+        pitch_foot_L: 0.2
+        pitch_foot_R: 0.2
+    - ms: 100
+      set:
+        head_pitch: -0.08
+        bob: 0.0
+        squash: 1.02
+        lean: 0.06
+        root:
+        - 0
+        - 0.16
+        - 0
+        hand_L:
+        - 0.36
+        - 0.3
+        - 0.08
+        hand_R:
+        - 0.36
+        - 0.3
+        - 0.08
+        foot_L:
+        - 0.13
+        - 0.02
+        - 0.04
+        foot_R:
+        - 0.13
+        - 0.02
+        - 0.04
+    - ms: 70
+      event: land
+      set:
+        head_pitch: -0.04
+        bob: -0.12
+        squash: 0.91
+        lean: 0.18
+        hand_L:
+        - 0.36
+        - 0.14
+        - 0.1
+        hand_R:
+        - 0.36
+        - 0.14
+        - 0.1
+    - ms: 110
+      set:
+        head_pitch: -0.06
+        bob: -0.05
+        squash: 0.97
+        lean: 0.1
+        hand_L:
+        - 0.32
+        - 0.08
+        - 0.06
+        hand_R:
+        - 0.32
+        - 0.08
+        - 0.06
+    - ms: 100
+      set:
+        head_pitch: -0.08
+  faint:
+    loop: false
+    keys:
+    - ms: 110
+      set:
+        head_pitch: -0.22
+        lean: -0.12
+        bob: -0.02
+        root:
+        - 0
+        - 0
+        - -0.04
+        hand_L:
+        - 0.36
+        - 0.16
+        - -0.06
+        hand_R:
+        - 0.36
+        - 0.16
+        - -0.06
+    - ms: 130
+      set:
+        head_pitch: 0.12
+        lean: 0.1
+        bob: -0.1
+        squash: 0.97
+        root:
+        - 0
+        - 0
+        - -0.04
+        hand_L:
+        - 0.32
+        - 0.06
+        - 0.04
+        hand_R:
+        - 0.32
+        - 0.06
+        - 0.04
+        foot_L:
+        - 0.13
+        - 0
+        - -0.02
+        foot_R:
+        - 0.13
+        - 0
+        - -0.02
+    - ms: 120
+      set:
+        head_pitch: 0.26
+        lean: 0.2
+        bob: -0.22
+        squash: 0.96
+        root:
+        - 0
+        - 0
+        - -0.02
+        hand_L:
+        - 0.28
+        - 0.04
+        - 0.1
+        hand_R:
+        - 0.28
+        - 0.04
+        - 0.1
+        foot_L:
+        - 0.13
+        - 0.0
+        - -0.1
+        foot_R:
+        - 0.13
+        - 0.0
+        - -0.1
+        pitch_foot_L: 0.6
+        pitch_foot_R: 0.6
+    - ms: 90
+      event: knees
+      set:
+        head_pitch: 0.34
+        lean: 0.24
+        bob: -0.36
+        squash: 0.94
+        hand_L:
+        - 0.26
+        - 0.02
+        - 0.14
+        hand_R:
+        - 0.26
+        - 0.02
+        - 0.14
+        twist: 0.55*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))
+        head_yaw: -0.30*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))
+        foot_L:
+        - 0.19
+        - -0.01
+        - -0.17
+        foot_R:
+        - 0.19
+        - -0.01
+        - -0.17
+        pitch_foot_L: 1.9
+        pitch_foot_R: 1.9
+    - ms: 130
+      set:
+        head_pitch: 0.42
+        lean: 0.27
+        bob: -0.33
+        squash: 0.97
+        hand_L:
+        - 0.28
+        - -0.02
+        - 0.18
+        hand_R:
+        - 0.28
+        - -0.02
+        - 0.18
+        twist: 0.55*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))
+        head_yaw: -0.30*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))
+        foot_L:
+        - 0.19
+        - -0.01
+        - -0.17
+        foot_R:
+        - 0.19
+        - -0.01
+        - -0.17
+        pitch_foot_L: 1.9
+        pitch_foot_R: 1.9
+    - ms: 700
+      event: down
+      set:
+        head_pitch: 0.42
+        lean: 0.25
+        bob: -0.34
+        squash: 0.96
+        hand_L:
+        - 0.28
+        - -0.02
+        - 0.18
+        hand_R:
+        - 0.28
+        - -0.02
+        - 0.18
+        twist: 0.55*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))
+        head_yaw: -0.30*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))
+        foot_L:
+        - 0.19
+        - -0.01
+        - -0.17
+        foot_R:
+        - 0.19
+        - -0.01
+        - -0.17
+        pitch_foot_L: 1.9
+        pitch_foot_R: 1.9
+  hurt:
+    loop: false
+    keys:
+    - ms: 60
+      event: hit
+      set:
+        head_pitch: -0.24
+        lean: -0.2
+        bob: -0.04
+        squash: 0.95
+        root:
+        - 0
+        - 0.03
+        - -0.1
+        twist: 0.1
+        roll: 0.18*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))
+        hand_L:
+        - 0.36
+        - 0.18
+        - -0.1
+        hand_R:
+        - 0.36
+        - 0.18
+        - -0.1
+    - ms: 90
+      set:
+        head_pitch: -0.16
+        lean: -0.12
+        bob: -0.02
+        squash: 0.98
+        root:
+        - 0
+        - 0
+        - -0.12
+        twist: 0.06
+        roll: 0.10*(pulse(yaw, 0, 60) + pulse(abs(yaw), 180, 60))
+        hand_L:
+        - 0.34
+        - 0.12
+        - -0.06
+        hand_R:
+        - 0.34
+        - 0.12
+        - -0.06
+    - ms: 80
+      set:
+        head_pitch: -0.1
+        lean: 0.0
+        root:
+        - 0
+        - 0
+        - -0.06
+        hand_L:
+        - 0.33
+        - 0.08
+        - 0.02
+        hand_R:
+        - 0.33
+        - 0.08
+        - 0.02
+    - ms: 80
+      set:
+        head_pitch: -0.08
+        root:
+        - 0
+        - 0
+        - -0.01
+  command:
+    loop: false
+    keys:
+    - ms: 110
+      set:
+        head_pitch: -0.08
+        twist: -0.2
+        head_yaw: 0.14
+        lean: 0.0
+        hand_R:
+        - 0.04
+        - 0.36
+        - 0.14
+        foot_R:
+        - 0.13
+        - 0
+        - -0.04
+    - ms: 160
+      event: windup
+      set:
+        head_pitch: -0.08
+        twist: -0.3
+        head_yaw: 0.2
+        lean: -0.03
+        squash: 0.97
+        bob: -0.02
+        hand_R:
+        - -0.02
+        - 0.4
+        - 0.12
+        hand_L:
+        - 0.28
+        - 0.1
+        - 0.0
+        foot_R:
+        - 0.13
+        - 0
+        - -0.06
+    - ms: 50
+      set:
+        head_pitch: -0.1
+        twist: 0.12 - 0.27*(pulse(yaw, 0, 40) + pulse(yaw, -45, 40))
+        head_yaw: -0.08
+        lean: 0.08
+        squash: 1.03
+        hand_R: '[0.24 + 0.12*pulse(abs(yaw), 180, 60) + 0.16*(pulse(yaw, 0, 40) + pulse(yaw, -45, 40)), 0.46 + 0.16*(pulse(yaw, 0, 40) + pulse(yaw, -45, 40)), 0.34 - 0.12*(pulse(yaw, 0, 40) + pulse(yaw,
+          -45, 40))]'
+        hand_L:
+        - 0.26
+        - 0.1
+        - -0.04
+        foot_L:
+        - 0.13
+        - 0
+        - 0.14
+        foot_R:
+        - 0.13
+        - 0
+        - -0.06
+    - ms: 90
+      event: order
+      set:
+        head_pitch: -0.08
+        twist: 0.26 - 0.41*(pulse(yaw, 0, 40) + pulse(yaw, -45, 40))
+        head_yaw: -0.26 + 0.41*(pulse(yaw, 0, 40) + pulse(yaw, -45, 40))
+        lean: 0.05
+        root:
+        - 0
+        - 0
+        - 0.03
+        hand_R: '[0.12 + 0.32*(pulse(yaw, 0, 40) + pulse(yaw, -45, 40)) + 0.26*pulse(abs(yaw), 180, 60), 0.50 + 0.24*(pulse(yaw, 0, 40) + pulse(yaw, -45, 40)) + 0.10*pulse(abs(yaw), 180, 60), 0.44 - 0.26*(pulse(yaw,
+          0, 40) + pulse(yaw, -45, 40)) - 0.14*pulse(abs(yaw), 180, 60)]'
+        hand_L:
+        - 0.24
+        - 0.12
+        - -0.04
+        foot_L:
+        - 0.13
+        - 0
+        - 0.16
+        foot_R:
+        - 0.13
+        - 0
+        - -0.06
+    - ms: 380
+      set:
+        head_pitch: -0.08
+        twist: 0.26 - 0.41*(pulse(yaw, 0, 40) + pulse(yaw, -45, 40))
+        head_yaw: -0.26 + 0.41*(pulse(yaw, 0, 40) + pulse(yaw, -45, 40))
+        lean: 0.05
+        root:
+        - 0
+        - 0
+        - 0.03
+        hand_R: '[0.12 + 0.32*(pulse(yaw, 0, 40) + pulse(yaw, -45, 40)) + 0.26*pulse(abs(yaw), 180, 60), 0.45 + 0.24*(pulse(yaw, 0, 40) + pulse(yaw, -45, 40)) + 0.10*pulse(abs(yaw), 180, 60), 0.44 - 0.26*(pulse(yaw,
+          0, 40) + pulse(yaw, -45, 40)) - 0.14*pulse(abs(yaw), 180, 60)]'
+        hand_L:
+        - 0.24
+        - 0.12
+        - -0.04
+        foot_L:
+        - 0.13
+        - 0
+        - 0.16
+        foot_R:
+        - 0.13
+        - 0
+        - -0.06
+    - ms: 130
+      set:
+        head_pitch: -0.08
+        twist: 0.1
+        head_yaw: -0.1
+        lean: 0.05
+        root:
+        - 0
+        - 0
+        - 0.02
+        hand_R:
+        - 0.3
+        - 0.2
+        - 0.2
+        foot_L:
+        - 0.13
+        - 0
+        - 0.08
+    - ms: 120
+      set:
+        head_pitch: -0.08
+  item:
+    loop: false
+    keys:
+    - ms: 110
+      set:
+        head_pitch: -0.06
+        twist: 0.35 - 0.60*(pulse(yaw, -45, 45) + pulse(yaw, -90, 45))
+        head_yaw: -0.35 + 0.60*(pulse(yaw, -45, 45) + pulse(yaw, -90, 45))
+        lean: 0.05
+        hand_R:
+        - 0.26
+        - 0.24
+        - -0.1
+    - ms: 130
+      event: rummage
+      set:
+        head_pitch: -0.04
+        twist: 0.70 - 1.10*(pulse(yaw, -45, 45) + pulse(yaw, -90, 45))
+        head_yaw: -0.90 + 1.32*(pulse(yaw, -45, 45) + pulse(yaw, -90, 45))
+        lean: 0.05
+        hand_R: '[0.30 - 0.18*(pulse(yaw, -45, 45) + pulse(yaw, -90, 45)), 0.30 + 0.02*(pulse(yaw, -45, 45) + pulse(yaw, -90, 45)), -0.20 - 0.06*(pulse(yaw, -45, 45) + pulse(yaw, -90, 45))]'
+        hand_L:
+        - 0.3
+        - 0.1
+        - 0.1
+    - ms: 110
+      set:
+        head_pitch: -0.04
+        twist: 0.70 - 1.10*(pulse(yaw, -45, 45) + pulse(yaw, -90, 45))
+        head_yaw: -0.90 + 1.32*(pulse(yaw, -45, 45) + pulse(yaw, -90, 45))
+        lean: 0.05
+        hand_R: '[0.34 - 0.20*(pulse(yaw, -45, 45) + pulse(yaw, -90, 45)), 0.19 + 0.07*(pulse(yaw, -45, 45) + pulse(yaw, -90, 45)), -0.25 - 0.02*(pulse(yaw, -45, 45) + pulse(yaw, -90, 45))]'
+        hand_L:
+        - 0.3
+        - 0.1
+        - 0.1
+    - ms: 110
+      set:
+        head_pitch: -0.04
+        twist: 0.70 - 1.10*(pulse(yaw, -45, 45) + pulse(yaw, -90, 45))
+        head_yaw: -0.90 + 1.32*(pulse(yaw, -45, 45) + pulse(yaw, -90, 45))
+        lean: 0.05
+        hand_R: '[0.28 - 0.18*(pulse(yaw, -45, 45) + pulse(yaw, -90, 45)), 0.33 + 0.01*(pulse(yaw, -45, 45) + pulse(yaw, -90, 45)), -0.20 - 0.06*(pulse(yaw, -45, 45) + pulse(yaw, -90, 45))]'
+        hand_L:
+        - 0.3
+        - 0.1
+        - 0.1
+    - ms: 90
+      set:
+        head_pitch: -0.08
+        twist: -0.1
+        head_yaw: 0.1
+        lean: 0.05
+        hand_R:
+        - 0.3
+        - 0.3
+        - 0.04
+        item_show: 1
+    - ms: 70
+      event: use
+      set:
+        head_pitch: -0.08
+        twist: 0.24
+        head_yaw: -0.24
+        lean: 0.05
+        root:
+        - 0
+        - 0
+        - 0.03
+        hand_R: '[0.12 + 0.26*pulse(yaw, 0, 60) + 0.26*pulse(abs(yaw), 180, 60), 0.40 + 0.06*pulse(yaw, 0, 60), 0.44 - 0.14*pulse(abs(yaw), 180, 60)]'
+        hand_L:
+        - 0.26
+        - 0.1
+        - -0.02
+        foot_L:
+        - 0.13
+        - 0
+        - 0.12
+        item_show: 1
+    - ms: 380
+      set:
+        head_pitch: -0.08
+        twist: 0.24
+        head_yaw: -0.24
+        lean: 0.05
+        root:
+        - 0
+        - 0
+        - 0.03
+        hand_R: '[0.12 + 0.26*pulse(yaw, 0, 60) + 0.26*pulse(abs(yaw), 180, 60), 0.38 + 0.06*pulse(yaw, 0, 60), 0.44 - 0.14*pulse(abs(yaw), 180, 60)]'
+        hand_L:
+        - 0.26
+        - 0.1
+        - -0.02
+        foot_L:
+        - 0.13
+        - 0
+        - 0.12
+        item_show: 1
+    - ms: 120
+      set:
+        head_pitch: -0.08
+        twist: 0.08
+        head_yaw: -0.08
+        lean: 0.05
+        root:
+        - 0
+        - 0
+        - 0.01
+        hand_R:
+        - 0.3
+        - 0.16
+        - 0.16
+        foot_L:
+        - 0.13
+        - 0
+        - 0.06
+    - ms: 120
+      set:
+        head_pitch: -0.08
+  celebrate:
+    loop: false
+    keys:
+    - ms: 130
+      set:
+        head_pitch: -0.08
+        lean: 0.05
+        twist: 0.0
+        head_yaw: 0.0
+        bob: -0.06
+        hand_R:
+        - 0.24
+        - 0.1
+        - 0.1
+        hand_L:
+        - 0.24
+        - 0.1
+        - 0.1
+    - ms: 90
+      event: cheer
+      set:
+        head_pitch: -0.08
+        lean: 0.05
+        twist: 0.0
+        head_yaw: 0.0
+        root:
+        - 0
+        - 0.2
+        - 0
+        bob: 0.02
+        hand_R: &id001
+        - 0.44
+        - 0.82
+        - -0.05
+        hand_L: *id001
+        foot_L:
+        - 0.13
+        - 0.04
+        - 0.02
+        foot_R:
+        - 0.13
+        - 0.04
+        - 0.02
+    - ms: 120
+      set:
+        head_pitch: -0.08
+        lean: 0.05
+        twist: 0.0
+        head_yaw: 0.0
+        root:
+        - 0
+        - 0
+        - 0
+        bob: -0.04
+        hand_R:
+        - 0.42
+        - 0.76
+        - -0.05
+        hand_L:
+        - 0.42
+        - 0.76
+        - -0.05
+    - ms: 700
+      set:
+        head_pitch: -0.08
+        lean: 0.05
+        twist: 0.0
+        head_yaw: 0.0
+        root:
+        - 0
+        - 0
+        - 0
+        bob: 0.0
+        hand_R: *id001
+        hand_L: *id001
+channels:
+  item_show: 0
+sockets:
+  palm_L:
+    bone: wrist_L
+    offset:
+    - 0
+    - 0
+    - 0.05
+snap:
+- root
+- torso_rot

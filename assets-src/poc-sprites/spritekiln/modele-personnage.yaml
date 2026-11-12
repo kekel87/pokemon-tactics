@@ -1,0 +1,40 @@
+# Modèle court d'un dresseur : copier en <dossier>/<id>.yaml, remplir les <…>, ne rien ajouter d'autre que ce
+# qui change. Le reste (squelette, caméra, snap, yeux calés, 9 animations) vient du gabarit.
+# Règles et pièges : ../regles-dresseurs.md (expressions des yeux, proportions, images tenues).
+spritekiln: 1
+name: <id>
+extends: ../../../../poc-sprites/spritekiln/dresseur.yaml   # chemin depuis references/aventure/sprites-dresseurs/spritekiln-<id>/
+
+brief:
+  summary: "<qui, âge, caractère>"
+  reference: splash.png (seen from s)
+  head: "<coiffure, couleur, expression des yeux>"
+  must_keep: [<3 à 5 traits reconnaissables de loin>]
+  simplify: [<ce qui disparaît à 30 px>]
+
+# Couleurs : 4-5 tons du plus sombre au plus clair. Deux vêtements voisins : teintes franchement différentes.
+ramps:
+  skin: [<…>]
+  hair: [<…>]
+  top: [<…>]
+  bottom: [<…>]
+  shoe: [<…>]
+
+use:
+  - {kit: head, at: head, with: {width: 1.0, jaw: 0.3, chin: 0.4, nose: 0, ears: 0}}
+  - {kit: hair, at: head, with: {fringe: 0.3, part: 0.2, locks: 0.5, length: 0, volume: 0.8}}
+
+# Carrure : enfant = rien à écrire. Ado ou adulte : copier la ligne du tableau des proportions de la feuille de
+# règles (bones torso_rot, head, shoulder_L ; ik arm_L, leg_L ; size), puis lancer
+# `adapter_animations.py ../../../../poc-sprites/spritekiln/dresseur.yaml <id>.yaml` et coller son bloc
+# `animations:` ici. Recalculer le x des yeux si head.scale change (feuille de règles).
+
+parts:
+  # head: {paint: [...]}   # expression des yeux autre que celle du gabarit : copier le bloc de
+  #                        # yeux-expressions.yaml (normaux, ouverts, plissés, colère) ; une liste remplace celle du gabarit en entier
+  # <vêtements et accessoires propres : manches, jupe (cône sur coatbase), chapeau, sac ou sacoche…>
+
+# animations:
+#   throw / faint / item / celebrate : les gestes de caractère validés par l'humain (garder noms et events :
+#   release ; dernière image tenue longue ; rummage puis use ; cheer). Images tenues : lean 0.05,
+#   head_yaw = -twist, head_pitch -0.08, pas de squash.

@@ -1,6 +1,6 @@
 # Mode Aventure : base de connaissances
 
-**Statut** : cadrage, phase de réflexion. Aucun plan, aucune ligne de code. Dernière mise à jour : 2026-11-09.
+**Statut** : cadrage, phase de réflexion. Aucun plan, aucune ligne de code. Dernière mise à jour : 2026-11-12.
 
 Ce document rassemble tout ce qui a été dit, décidé, refusé et cherché sur le solo. Le détail et l'historique de
 chaque point vivent dans le graphe de mémoire (`node scripts/memory/query.mjs --open <nom>`) ; ce fichier est le
@@ -48,6 +48,11 @@ Le jeu se scinde en deux modes qui partagent le moteur de combat mais pas leurs 
 | Entraînement | Seulement les SP (façon Pokémon Champions), pas d'IV ni d'EV, pas d'élevage ni d'œufs ; les SP doivent être faciles à régler | `decision-1223` |
 | Mécanique extra | Seule la Méga-Évolution (malgré le manque d'assets) | `decision-1224` |
 | Livraison | Dans `main`, lot par lot, derrière un verrou ; menu principal revu (Aventure ou Stade de Combat), bouton Aventure verrouillé « Bientôt », ouvert par `?aventure=1` (GitHub Pages, pas itch.io) | `decision-1227`, `decision-1229` à `decision-1231` |
+| Grottes | Tracé en pointillés découpé en étapes, une salle par étape ; événements posés sur une étape (Team Rocket au Mont Sélénite) | `decision-1232` |
+| Portraits | Sprites de Pokémon Showdown (pixel art, toutes régions), artistes crédités | `decision-1233` |
+| Obstacles des CS | Verrous de carte ouverts par une étape de la trame, sans capacité ni Pokémon requis, valables pour toutes les régions | `decision-1234` |
+| Entraîner le générateur | Non : jamais documenté sur carte AMD | `decision-1235` |
+| Sprites des dresseurs | SpriteKiln depuis l'artwork officiel, 9 animations dont 4 au caractère du personnage ; pas pour les Pokémon (Méga-Dracaufeu Y jugé « pas ouf ») | `decision-1236` |
 | Ouverture publique | Quand Kanto se joue de bout en bout, en accès anticipé ; ne jamais casser les sauvegardes quand une région sort | `decision-1228` |
 
 ## Découpage en lots
@@ -120,13 +125,31 @@ mécanisme de fuite (`idee-aventure-carte-en-graphe-de-noeuds`, `idee-rencontres
 - **Légendaires** : certains se déplacent sur la carte, d'autres attendent à un endroit précis.
 - **Tutoriels** : le début de la campagne en sert, et un tutoriel de combat à part existera aussi
   (`idee-tutoriel-replay-commente`).
+- **Avatar du joueur** : un seul personnage androgyne, que le jeu ne genre jamais (dialogues en tournures épicènes) ;
+  choix du nom, personnalisation par les couleurs et quelques accessoires ; ses sprites se feront par `/dresseur`
+  (`idee-avatar-joueur-genre-neutre-et-personnalisation`).
+- **Sprites des dresseurs d'abord** (joueur, dresseurs, champions), dans la perspective de Mystery Dungeon : les
+  sprites GBA sont écartés (autre perspective, jambes cachées). Références de perspective : planches de FFTA et
+  Tactics Ogre (Pokémon Conquest écarté) ; environ 75 à 100 images cohérentes par personnage
+  (`idee-sprites-dresseurs-iso-par-generation`). Méthode arrêtée (`decision-1236`) : SpriteKiln depuis l'artwork
+  officiel, par le skill `/dresseur` ; Red, Pierre, Ondine et Major Bob validés. Prochaine étape : les voir en jeu
+  sur la grille, à côté des Pokémon.
+- **Les portraits de tous les personnages de la licence**, à récupérer (`idee-portraits-personnages-de-la-licence`).
+- **Dresseur sur la grille partout dans l'Aventure** : contre les sauvages (soigner, capturer) et en duel contre
+  dresseurs et champions, où l'adversaire soigne aussi ; jamais dans le Stade de Combat. Penchant du 2026-11-11, pas
+  arrêté : à condition de savoir produire les sprites iso animés de tous les dresseurs et champions
+  (`idee-dresseur-unite-sur-le-terrain`).
+- **Icônes d'aide sur la carte du monde** : événement ici, revenir ici, prochaine étape là
+  (`idee-icones-de-quete-sur-la-carte-du-monde`).
+- **Petits Pokémon décoratifs sur la carte** (Taupiqueur près de la Cave Taupiqueur, Pokémon des montagnes), sans
+  charger : la carte doit rester minimaliste et simple (`idee-petits-pokemon-decoratifs-sur-la-carte`).
 - **Plus tard, ne pas proposer** : défi du jour, puzzles tactiques, conditions de victoire alternatives
   (`feedback-ne-plus-proposer-defi-du-jour-ni-puzzles`).
 
 ## Ouvert
 
-- **Génération d'images** : pas maintenant, et pas d'outil payant. PixelLab a déjà été essayé (tier 1, payant même
-  pour les cartes) et n'a pas convaincu. Au pire, des POC d'images générées par le code (`decision-1225`).
+- **Génération d'images** : pas d'outil payant (PixelLab essayé, pas convaincant). Depuis le 2026-11-10, un
+  générateur local et gratuit est disponible (skill `image-locale`, FLUX.2 sur le PC fixe) (`decision-1225`).
 - **Courbe de progression sur toutes les régions** : enchaîner une région après l'autre avec un nouveau starter sans
   repartir de zéro, et à terme commencer n'importe où. Impression de l'humain : les modèles A, B et D de la recherche
   sont compatibles ; il veut savoir comment font les autres jeux avant de trancher la synchronisation vers le bas
@@ -136,6 +159,13 @@ mécanisme de fuite (`idee-aventure-carte-en-graphe-de-noeuds`, `idee-rencontres
 - **Équilibrage des combats contre plusieurs sauvages** (`decision-1220`).
 - **Fin de jeu intéressante** : après le niveau 50, Pokémon n'est plus que du grind ; s'inspirer de FFT et des autres.
 - **Comment produire la carte du monde** : quelle source, quel assemblage, quel rendu.
+- **Le plan de jeu du solo** : enchaînement des événements, quête principale, mécaniques, dialogues, choix du starter
+  et de la région de départ. La trame est celle du canon façon Rouge / Bleu (Pokédex, arènes, quelques missions
+  comme le colis ou Léo), sans histoire en plus et avec peu de texte : seuls les personnages de la trame parlent,
+  pas les dresseurs. Rival : se balade, ou posé aux endroits du canon en bloquant un chemin
+  (`question-ouverte-trame-du-solo-quete-dialogues-starters`).
+- **Les cartes de combat du solo** : garder les cartes actuelles, en faire une par lieu, les refaire, ou les générer
+  de façon procédurale (l'humain y croit moins) (`question-ouverte-cartes-de-combat-du-solo`).
 - **Le type du dresseur sur la grille** (probablement Normal, sans talent ni STAB) et la durée X de son K.O.
 
 ## Itérations sur la carte du monde
@@ -210,6 +240,85 @@ Toutes du 2026-11-09, faites par des sous-agents ; « non vérifié » dans le g
   Emerald Extended Cut (un continent unique, mais 103 Pokémon ajoutés).
 - Sources d'assets : décompilations `pret` et pokeemerald-expansion, PokeAPI/sprites, EeveeExpo, veekun.
 - Nintendo retire surtout ce qui fait du bruit (gros pic de téléchargements, date de sortie annoncée).
+
+### Trame de Kanto, grottes, portraits (`reflexion-2026-11-11-trame-kanto-grottes-portraits`)
+
+Rapport complet hors git : `assets-src/references/aventure/recherches/2026-11-11-trame-grottes-portraits.md`.
+
+- La trame de Rouge / Bleu tient en 27 étapes, qui se réduisent à 13 verrous (Pokédex, Pierre, Coupe, Passe Bateau,
+  Thé aux gardes, Scope Sylphe, Poké Flûte, Bicyclette, Surf, Force, Clé Secrète, 7 puis 8 badges) et 8 combats de
+  rival. Environ 300 à 350 boîtes de dialogue obligatoires en tout.
+- Grottes : Mont Sélénite 3 cartes, 12 dresseurs, 1 événement ; Grotte 2 cartes, 15 dresseurs ; Cave Taupiqueur
+  3 cartes, aucun dresseur, facultative.
+- Fil sans texte ailleurs : un marqueur « prochaine étape », des PNJ-verrous à condition visible, peu de personnages
+  récurrents (rival, Giovanni).
+- Portraits : aucun jeu pixel homogène couvrant toutes les régions. Pokémon Showdown (environ 1500 sprites 80×80,
+  toutes régions, pixel art) ; Pokémon Masters EX (1007 bustes 256×256, rendu 3D) via Bulbagarden Archives.
+
+### Trame de Kanto dans les remakes (`reflexion-2026-11-11-trame-kanto-et-remakes`)
+
+Rapport complet hors git : `assets-src/references/aventure/recherches/2026-11-11-trame-remakes.md`.
+
+- Rouge Feu / Vert Feuille : mêmes verrous que Rouge / Bleu, plus du facultatif (îles Sevii, Thé gratuit, Memorydex).
+- Let's Go : Techniques Secrètes données par des PNJ sans badge, conditions d'entrée d'arène (un type, un niveau,
+  un nombre d'espèces), rival ami (Trace) qui guide, Jessie et James récurrents.
+
+### Références de sprites de dresseurs (`reflexion-2026-11-11-references-sprites-dresseurs`)
+
+Rapport et 11 images hors git : `assets-src/references/aventure/recherches/` et `sprites-dresseurs/`.
+
+- Aucun sprite d'humain au style Mystery Dungeon n'existe (SpriteCollab : Pokémon seulement) : il faudra les produire.
+- Gabarit de format : les Pokémon humanoïdes de Mystery Dungeon (Gallame, Lucario, Charmina), 8 directions
+  réellement dessinées, cadres de 24×48 à 32×56.
+- Pokémon Conquest n'a pas d'humains sur la grille ; FFTA et Tactics Ogre restent à voir (sites fermés aux agents).
+- Piste de l'agent : un mannequin humain rendu aux 8 angles, le générateur ne servant qu'à habiller et styliser.
+
+### Générer des sprites cohérents (`reflexion-2026-11-11-generation-sprites-bonnes-pratiques`)
+
+- Aucun générateur ne tient seul des dizaines d'images cohérentes : la cohérence vient d'une structure (modèle 3D
+  rendu sous 8 angles, squelette de pose), le générateur habille.
+- Post-traitement : générer en grand, détourer, puis réduire sur une grille et une palette partagées
+  (`proper-pixel-art`, `unfake`), retouche dans Pixelorama.
+- Premier essai proposé : test A (générateur seul, image-à-image depuis un concept) contre test B (mannequin Mixamo
+  rendu par Blender aux 8 angles), jugés sur planche.
+
+### Entraîner le générateur au pixel art (`reflexion-2026-11-11-fine-tune-lora-pixel-art`)
+
+- Un module LoRA de style Mystery Dungeon, entraîné sur nos 151 espèces (10 360 images distinctes), est la piste
+  sérieuse ; jamais documenté sur une carte AMD : test de 50 pas d'abord.
+- Pixel perfect visé par construction : canevas 64×64 agrandi ×8, une couleur par cellule, palette imposée.
+- Le module dérive de sprites CC BY-NC : privé, jamais distribué ni commité.
+
+### Comparatif de trois méthodes sur Red (2026-11-11, `idee-sprites-dresseurs-iso-par-generation`)
+
+Planche, tableau et animations hors git : `assets-src/references/aventure/sprites-dresseurs/comparatif/`.
+
+- FLUX.2 klein + module pixel-art-sprite, sur une pose de Gallame : le rendu le plus proche de Mystery Dungeon ;
+  la vue de face donnée en référence aux autres directions améliore la cohérence, mais la marche ne tient pas
+  (deux pas presque identiques) et les yeux restent illisibles à 30 px.
+- SDXL + Pixel Art XL : ignore la direction demandée et se réduit mal à 30 px. Écarté.
+- SpriteKiln : 8 directions cohérentes par construction, attente et marche complètes en vrai pixel, en quelques
+  secondes sur le processeur. Défauts : visage minuscule sous la casquette, modèle écrit de tête et jugé
+  « bizarre ». Prochain essai : son mode « depuis une illustration » (`ref prep`, `ref compare`).
+- Scripts de ces essais, dans `assets-src/poc-sprites/` : `conversion_pmd.py` (image générée vers le gabarit PMD,
+  trois tons par matière, contour noir fermé), `grille.py` (réduction à une grille), `reduire.sh` (détourage et
+  palette imposée), `voxel_red.py` (Red en voxels par le code, rejeté : « Minecraft »).
+
+### SpriteKiln depuis l'artwork (2026-11-12, `decision-1236`)
+
+Fiches animées et modèles hors git : `assets-src/references/aventure/sprites-dresseurs/` (`fiche-<id>-animations.gif`,
+`spritekiln-<id>/`).
+
+- Ce qui a fait la différence : partir de l'artwork officiel en pied (Poképédia), proportions chibi Mystery Dungeon
+  (épaules étroites, grosse tête), yeux peints et calés sur la grille de pixels, tête figée sur les images tenues.
+  Le détail est dans `assets-src/poc-sprites/regles-dresseurs.md`.
+- Taille sans l'ombre : Red et Ondine 28-29 px, Pierre 32 px, Major Bob 36 px, au-dessus de Machopeur.
+- Coût mesuré : en un coup (une seule image regardée, contrôles en texte), environ 7 min et 170 000 jetons par
+  personnage ; une relecture de directeur artistique automatique multiplie le coût par quatre environ.
+- Les yeux restent la limite : le visage fait 6 à 8 px de large ; quatre expressions sont prêtes (normaux,
+  plissés, ouverts, colère).
+- Pokémon : Méga-Dracaufeu Y fait d'une traite se reconnaît mais paraît maigre, délavé et lisse à côté du
+  Dracaufeu PMD ; écarté.
 
 ## Références visuelles et liens
 

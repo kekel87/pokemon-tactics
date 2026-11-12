@@ -127,3 +127,6 @@ assets-src/audio/
 
 # Références visuelles non libres du mode Aventure (cartes de fans, captures) : jamais commitées.
 assets-src/references/
+
+# Cache de rendu SpriteKiln (régénéré à chaque rendu).
+.kilncache/
