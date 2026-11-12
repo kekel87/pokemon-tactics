@@ -11,7 +11,10 @@ reconstituer.
 
 1. `git status --porcelain` et `git diff --stat HEAD` : rien à commiter → le dire et s'arrêter.
    Critère : la liste des fichiers du commit est connue.
-2. Gate : `/ci-gate full` vert dans le tour. Sinon le lancer ; rouge → s'arrêter.
+2. Gate : seulement si le lot touche ce qu'il vérifie (`packages/`, `e2e/`, `scripts/` en TypeScript, config
+   du monorepo : `package.json`, `tsconfig*`, `biome.json`, `pnpm-*`). Alors `/ci-gate full` vert dans le tour,
+   sinon le lancer ; rouge → s'arrêter. Un lot de docs, de skills, d'assets ou de scripts de prototype
+   (`assets-src/`) se commite sans gate : il ne prouverait rien et coûte des jetons à l'humain.
 3. Rédiger le titre à partir de ce que le tour sait du lot (plan en cours, but du changement) ; le diff ne
    sert qu'à vérifier qu'il ne manque rien. `git log --oneline -5` donne le ton.
    Critère : chaque règle de la référence ci-dessous est tenue.

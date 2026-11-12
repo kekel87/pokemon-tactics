@@ -33,7 +33,7 @@ explicitement le menu.
    |--------|--------------|
    | `tests (test-writer)` | changement observable automatisable → tests unitaires restants (hors core, déjà faits pendant le dev) + scénario e2e + cahier de recette (graphe, entités `recette`), **puis `/simplify` sur ce code de test**. Décoché si purement pixel/anim |
    | `consigner` | documents `docs/` impactés, fait à consigner au graphe, nouvelle mécanique, nouveau Pokemon/move/talent |
-   | `gate + commit` | **toujours coché** — `/ci-gate full` puis commit + push |
+   | `gate + commit` | **toujours coché** — `/ci-gate full` puis commit + push ; sans gate si le lot ne touche rien de ce qu'il vérifie (règle de `/commit`, étape 2) |
 
    Spéciaux selon contexte :
    - **Plan en rédaction** (`docs/plans/*.md` draft non commit) : menu remplacé par `[x] /relire-plan`,
