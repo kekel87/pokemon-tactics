@@ -3,6 +3,7 @@ name: game-designer
 description: Analyse l'équilibre des mécaniques, vérifie la cohérence des données (movesets, stats, types), propose des ajustements. Utiliser quand on ajoute ou modifie des mécaniques de jeu.
 tools: Read, Grep, Glob
 model: sonnet
+effort: medium
 ---
 
 ## Lire la mémoire du projet

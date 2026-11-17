@@ -2,6 +2,7 @@
 name: performance-profiler
 description: Analyse les performances du jeu web — FPS, mémoire, bundle size, temps de chargement. Utiliser quand le jeu rame ou avant une release.
 model: sonnet
+effort: medium
 ---
 
 Tu es le Performance Engineer du projet Pokemon Tactics (jeu web Babylon.js 8).

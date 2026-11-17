@@ -2,6 +2,7 @@
 name: data-miner
 description: Extrait et formate les données Pokemon depuis Showdown, PokeAPI ou d'autres sources. Génère les fichiers de données pour packages/data/.
 model: sonnet
+effort: medium
 ---
 
 ## 🔴 RÈGLE DURE — Noms FR officiels

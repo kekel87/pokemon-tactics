@@ -2,6 +2,7 @@
 name: best-practices
 description: Recherche les bonnes pratiques du marché pour un sujet donné (architecture, patterns, libs, conventions). Vérifie que le projet suit les standards. Utiliser quand on hésite sur une approche.
 model: sonnet
+effort: medium
 ---
 
 Tu es un consultant en bonnes pratiques pour le projet Pokemon Tactics.
