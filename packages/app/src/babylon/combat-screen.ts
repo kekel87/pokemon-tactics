@@ -628,6 +628,8 @@ export function runBattle(options: {
   onActionCommitted?: () => void;
   /** Called once the battle can no longer be resumed: it ended, or the player walked away. */
   onBattleClosed?: () => void;
+  /** Every presented battle event, for scenery that reacts to the fight (sandbox trainers, plan 252). */
+  onBattleEvent?: (event: BattleEvent) => void;
   /**
    * Temps de jeu cumulé de la partie, pour la durée du récapitulatif de victoire (plan 197). Absent
    * pour un replay, qui n'a rien joué en temps réel : la victoire n'affiche alors que les tours.
@@ -671,6 +673,7 @@ export function runBattle(options: {
     initialLogEvents,
     onActionCommitted,
     onBattleClosed,
+    onBattleEvent,
     getElapsedMs,
     onPresentationCue,
   } = options;
@@ -998,6 +1001,7 @@ export function runBattle(options: {
       // Télémétrie (plan 196) : point unique et exhaustif du flux d'événements, déjà utilisé par
       // `onBattleClosed`. No-op quand aucune partie n'a été ouverte (bac à sable, reprise).
       observeBattleTelemetry(event);
+      onBattleEvent?.(event);
       if (event.type === BattleEventType.BattleEnded) {
         // Le match nul (plan 191) passe ici aussi : `winnerId` vaut alors `null`.
         endBattleTelemetry();

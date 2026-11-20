@@ -31,11 +31,16 @@ import { getSandboxStudioDom } from "../sandbox-studio-dom";
 import { getAbilityInfo } from "../team/team-builder-data";
 import {
   type AiProfileKey,
+  isSandboxTrainerId,
   normalizeSandboxConfig,
+  SANDBOX_TRAINER_IDS,
   type SandboxConfig,
   type SandboxMemberConfig,
   type SandboxTeamConfig,
+  type SandboxTrainerId,
   type TeamControl,
+  TRAINER_ANIMATIONS,
+  type TrainerAnimation,
 } from "../types/SandboxConfig";
 import { createMovesList, type MovesList } from "./dom/MovesList";
 import { openItemPickerModal } from "./team/ItemPickerModal";
@@ -121,6 +126,9 @@ const SANDBOX_MAPS: SelectOption[] = [
   ...MAPS_REGISTRY.map((entry) => ({ value: entry.url, label: entry.displayName.fr })),
 ];
 
+/** A trainer's name as the games print it (Red keeps his name in every language). */
+const TRAINER_LABELS: Readonly<Record<SandboxTrainerId, string>> = { red: "Red" };
+
 /** Single control-select value: three of them collapse `control:"scored"` + `aiProfile`. */
 type ControlValue = "player" | "passive" | "easy" | "medium" | "hard";
 
@@ -170,12 +178,14 @@ interface MemberUiState {
 interface TeamUiState {
   control: TeamControl;
   aiProfile: AiProfileKey | undefined;
+  trainer: SandboxTrainerId | undefined;
   members: MemberUiState[];
   section: HTMLElement;
 }
 
 export class SandboxPanel {
   private readonly onConfigChanged: (config: SandboxConfig) => void;
+  private readonly onTrainerAnimation: (teamIndex: number, animation: TrainerAnimation) => void;
   private readonly abort = new AbortController();
   private readonly gameData = loadData();
 
@@ -191,8 +201,13 @@ export class SandboxPanel {
 
   private readonly teams: [TeamUiState, TeamUiState];
 
-  constructor(initialConfig: SandboxConfig, onConfigChanged: (config: SandboxConfig) => void) {
+  constructor(
+    initialConfig: SandboxConfig,
+    onConfigChanged: (config: SandboxConfig) => void,
+    onTrainerAnimation: (teamIndex: number, animation: TrainerAnimation) => void,
+  ) {
     this.onConfigChanged = onConfigChanged;
+    this.onTrainerAnimation = onTrainerAnimation;
     this.weatherTurns = initialConfig.weatherTurns ?? 5;
     // Prefer the explicit mode (survives the studio's rebuild-on-every-change); else
     // infer: seed present → deterministic (reproducible), absent → random.
@@ -280,12 +295,19 @@ export class SandboxPanel {
     });
     headerRow.appendChild(controlField.row);
     section.appendChild(headerRow);
+    section.appendChild(this.buildTrainerRow(teamConfig.trainer, teamIndex));
 
     const membersList = document.createElement("div");
     membersList.className = "sb-members";
     section.appendChild(membersList);
 
-    const teamState: TeamUiState = { control, aiProfile, members: [], section };
+    const teamState: TeamUiState = {
+      control,
+      aiProfile,
+      trainer: teamConfig.trainer,
+      members: [],
+      section,
+    };
 
     teamConfig.members.forEach((member, memberIndex) => {
       const memberState = this.buildMemberDetails(
@@ -312,6 +334,59 @@ export class SandboxPanel {
 
     container.replaceChildren(section);
     return teamState;
+  }
+
+  /**
+   * Trainer picker (plan 252) and, once one stands on the grid, a debug list that plays any of its
+   * nine animations once. The list resets to its placeholder so the same animation can replay.
+   */
+  private buildTrainerRow(trainer: SandboxTrainerId | undefined, teamIndex: number): HTMLElement {
+    const row = document.createElement("div");
+    row.className = "sb-team-header";
+    const trainerField = createLabeledSelect({
+      label: t("sandbox.trainer"),
+      options: [
+        { value: "", label: t("sandbox.trainer.none") },
+        ...SANDBOX_TRAINER_IDS.map((id) => ({ value: id, label: TRAINER_LABELS[id] })),
+      ],
+      selected: trainer ?? "",
+      layout: "inline",
+      testId: `sandbox-trainer-${teamIndex}`,
+      onChange: () => {
+        const config = this.readConfig();
+        const team = config.teams[teamIndex];
+        if (!team) {
+          return;
+        }
+        const value = trainerField.select.value;
+        team.trainer = isSandboxTrainerId(value) ? value : undefined;
+        this.onConfigChanged(config);
+      },
+      signal: this.abort.signal,
+    });
+    row.appendChild(trainerField.row);
+    if (trainer) {
+      const animationField = createLabeledSelect({
+        label: t("sandbox.trainerAnimation"),
+        options: [
+          { value: "", label: "…" },
+          ...TRAINER_ANIMATIONS.map((animation) => ({ value: animation, label: animation })),
+        ],
+        selected: "",
+        layout: "inline",
+        testId: `sandbox-trainer-animation-${teamIndex}`,
+        onChange: () => {
+          const animation = TRAINER_ANIMATIONS.find((name) => name === animationField.select.value);
+          animationField.select.value = "";
+          if (animation) {
+            this.onTrainerAnimation(teamIndex, animation);
+          }
+        },
+        signal: this.abort.signal,
+      });
+      row.appendChild(animationField.row);
+    }
+    return row;
   }
 
   private buildMemberDetails(
@@ -905,6 +980,9 @@ export class SandboxPanel {
     };
     if (team.control === "scored") {
       result.aiProfile = team.aiProfile ?? "hard";
+    }
+    if (team.trainer) {
+      result.trainer = team.trainer;
     }
     return result;
   }

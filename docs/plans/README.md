@@ -77,3 +77,4 @@ Les seuls sur lesquels on travaille.
 | 249 | [Plan 249 : Ballon sous Zone Magique, « en l'air » jugé case par case](./249-ballon-sous-zone-magique.md) | done |
 | 250 | [Plan 250 : codes de replay qui survivent aux mises à jour](./250-codes-de-replay-durables.md) | done |
 | 251 | [Plan 251 : menu principal Stade de Combat / Aventure](./251-menu-stade-de-combat-et-aventure.md) | done |
+| 252 | [Plan 252 : Red sur la grille de combat (preuve visuelle)](./252-dresseur-red-sur-la-grille.md) | done |

@@ -200,6 +200,9 @@ export interface Translations {
   "sandbox.control.easy": string;
   "sandbox.control.medium": string;
   "sandbox.control.hard": string;
+  "sandbox.trainer": string;
+  "sandbox.trainer.none": string;
+  "sandbox.trainerAnimation": string;
   "sandbox.addPokemon": string;
   "sandbox.removePokemon": string;
   "status.burned": string;

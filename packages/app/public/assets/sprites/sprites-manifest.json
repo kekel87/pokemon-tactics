@@ -154,7 +154,8 @@
     "wartortle": { "png": [34683096, 56426], "json": [34739522, 138671] },
     "weedle": { "png": [34878193, 38312], "json": [34916505, 146918] },
     "weepinbell": { "png": [35063423, 45436], "json": [35108859, 145641] },
-    "zubat": { "png": [35254500, 77545], "json": [35332045, 218150] }
+    "zubat": { "png": [35254500, 77545], "json": [35332045, 218150] },
+    "trainer-red": { "png": [35550195, 181991], "json": [35732186, 81233] }
   },
   "offsets": {
     "bulbasaur": {
@@ -5760,7 +5761,8 @@
           "SouthWest": [12, 16]
         }
       }
-    }
+    },
+    "trainer-red": { "footOffsetY": 12, "headOffsetY": -14, "shadowSize": 1 }
   },
   "portraits": {
     "bulbasaur": 0,

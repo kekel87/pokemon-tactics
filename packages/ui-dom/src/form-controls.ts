@@ -34,6 +34,8 @@ export interface CreateLabeledSelectOptions {
   layout?: "split" | "inline";
   onChange?: (value: string) => void;
   signal?: AbortSignal;
+  /** `data-testid` of the select: keeps keyboard/pad focus across a panel rebuild, e2e handle. */
+  testId?: string;
 }
 
 export interface LabeledSelect {
@@ -72,6 +74,9 @@ export function createLabeledSelect(options: CreateLabeledSelectOptions): Labele
     select.addEventListener("change", () => options.onChange?.(select.value), {
       signal: options.signal,
     });
+  }
+  if (options.testId !== undefined) {
+    select.dataset.testid = options.testId;
   }
   row.appendChild(select);
   return { row, select };

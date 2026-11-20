@@ -170,6 +170,8 @@ export interface CombatPokemonHandle {
   koAnimationDurationMs(): number;
   /** Real ms of a Pokémon's Hurt reaction pose, to let it finish before a lethal Faint. */
   hurtAnimationDurationMs(): number;
+  /** Real ms of any one-shot animation the atlas carries (0 when absent), e.g. to loop it with a pause. */
+  animationDurationMs(animation: string): number;
 }
 
 /** The in-engine combat board: terrain, highlights, sprites, picking, camera. */

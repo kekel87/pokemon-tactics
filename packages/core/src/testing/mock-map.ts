@@ -148,6 +148,22 @@ export abstract class MockMap {
 
   static readonly gridCenter6x6 = { x: 3, y: 3 };
 
+  /** A copy of `map` with some tiles' terrain replaced, keyed `"x,y"` (plan 252). */
+  static withTerrain(
+    map: MapDefinition,
+    overrides: ReadonlyMap<string, TerrainType>,
+  ): MapDefinition {
+    return {
+      ...map,
+      tiles: map.tiles.map((row) =>
+        row.map((tile) => ({
+          ...tile,
+          terrain: overrides.get(`${tile.position.x},${tile.position.y}`) ?? tile.terrain,
+        })),
+      ),
+    };
+  }
+
   /**
    * Une phase de placement SIMULTANÉ à deux camps sur la carte 6x6 (plan 211).
    *

@@ -31,6 +31,7 @@ import {
   runBattle,
   spawnBillboardsFromState,
 } from "./combat-screen.js";
+import { type SandboxTrainers, spawnSandboxTrainers } from "./sandbox-trainers.js";
 
 /**
  * Profil d'une équipe du STUDIO SANDBOX. Le repli sur `"hard"` est propre au studio et reste ici,
@@ -84,6 +85,8 @@ function startSandboxBattle(options: {
   onReplay: () => void;
   /** Report the engine-resolved spawn tiles back to the studio panel. */
   onPositionsResolved?: (resolved: ResolvedSpawn[]) => void;
+  /** Hand the placed trainers to the studio's debug animation list (plan 252). */
+  onTrainersPlaced?: (trainers: SandboxTrainers) => void;
 }): BattleOrchestrator {
   const {
     backend,
@@ -96,11 +99,14 @@ function startSandboxBattle(options: {
     signal,
     onReplay,
     onPositionsResolved,
+    onTrainersPlaced,
   } = options;
   const seed = resolveSandboxSeed(config);
   const battle = createSandboxBattle({ ...config, seed }, map);
   // Includes a member that starts fainted (hp:0 ally for Vœu Soin / revive scenarios).
   const handles = spawnBillboardsFromState(combat, battle.state);
+  const trainers = spawnSandboxTrainers(combat, battle.state, map, config.teams, teamPlayerId);
+  onTrainersPlaced?.(trainers);
 
   const resolved: ResolvedSpawn[] = [];
   config.teams.forEach((team, teamIndex) => {
@@ -135,6 +141,7 @@ function startSandboxBattle(options: {
     // encore la préférence persistée (plan 198).
     damagePreview: getSettings().damagePreview,
     getElapsedMs: () => Date.now() - mountedAt,
+    onBattleEvent: (event) => trainers.observe(event),
     // A "player" team is human-driven; hotseat (both teams player) hands the viewpoint over with the
     // turn, exactly like `viewerPlayerId` expects.
     humanPlayerIds: config.teams
@@ -213,6 +220,8 @@ export function mountSandboxStudio(
 ): { dispose(): void } {
   initSandboxStudioDom(host);
   let panel: SandboxPanel | null = null;
+  /** Trainers of the mounted battle, for the panel's debug animation list (plan 252). */
+  let trainers: SandboxTrainers | null = null;
   let stage: GameStage | null = null;
   let combat: CombatScene | null = null;
   let pointerSource: PointerSource | null = null;
@@ -229,6 +238,8 @@ export function mountSandboxStudio(
     loading = null;
     orchestrator?.dispose();
     orchestrator = null;
+    trainers?.dispose();
+    trainers = null;
     pointerSource?.dispose();
     pointerSource = null;
     combat?.dispose();
@@ -284,6 +295,9 @@ export function mountSandboxStudio(
       signal: localAbort.signal,
       onReplay: () => remount(config),
       onPositionsResolved: (resolved) => panel?.setResolvedPositions(resolved),
+      onTrainersPlaced: (placed) => {
+        trainers = placed;
+      },
     });
     // Sandbox auto-spawns immediately → wait for those sprite atlases too before fading.
     await activeCombat.whenReady();
@@ -301,7 +315,11 @@ export function mountSandboxStudio(
     }
     teardownBattle();
     panel?.destroy();
-    panel = new SandboxPanel(config, (next) => remount(next));
+    panel = new SandboxPanel(
+      config,
+      (next) => remount(next),
+      (teamIndex, animation) => trainers?.play(teamIndex, animation),
+    );
     void mountContent(config);
   }
 

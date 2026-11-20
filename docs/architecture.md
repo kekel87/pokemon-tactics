@@ -730,6 +730,11 @@ packages/app/public/assets/sprites/  ← commités/shippés (3 fichiers)
 - **Par combattant (lazy)** : `getAtlasBlobUrl(id)` slice le `.bin` aux offsets du manifeste → `Blob` → `URL.createObjectURL` → `new Texture(blobUrl, scene)`. Upload GPU seulement pour les ~12 combattants actifs — VRAM identique à l'ancien pipeline.
 - **Cache applicatif** : `Map<pokemonId, blobUrl>` permanent par session (décision #541 — pas de révocation). Combat suivant réutilise les URLs sans refetch.
 - **Portraits** : `getPortraitStyle(id)` retourne `{backgroundImage, backgroundPosition, backgroundSize}` pointant vers `portraits.png` à l'index du manifeste — remplace les anciennes URLs `portrait-normal.png` individuelles.
+- **Dresseurs (plan 252)** : sources SpriteKiln hors git dans `assets-src/sprites/trainers/<id>/atlas.{png,json}`.
+  `scripts/trainer-atlas.ts` renomme les images au format PMD (`idle_s_0` → `Idle-South-0`, durées en ticks
+  de 24 ms) et `pack-sprites.ts` les range dans `sprites.bin` sous l'id `trainer-<id>`
+  (`TRAINER_SPRITE_ID_PREFIX`), avec des offsets mesurés sur l'alpha de l'attente sud, pied enfoncé de 4 px
+  (l'ancrage PMD est le centre de l'ombre). Un dresseur passe ainsi par le même billboard qu'un Pokémon.
 - **Icônes d'objets tenus (plan 168)** : pipeline miroir, source [Showdown itemicons](https://play.pokemonshowdown.com/sprites/itemicons/) plutôt que PMDCollab. `scripts/extract-item-icons.ts` fetch la spritesheet `itemicons-sheet.png` et découpe 117 icônes 24×24 par `spritenum` ; `pack-sprites.ts` compose `item-icons.png` (grid 16×24) + `itemIconGrid`/`itemIcons` dans le manifeste (`MANIFEST_VERSION` 1→2). `getItemIconUrl(itemId)` (`packages/app/src/team/item-icon-sheet.ts`, mirror `portrait-sheet.ts`) crop→dataURL, câblé `I18nContext`/`PresentationContext` → `InfoPanelData.itemIconUrl` → `InfoPanel` (icône officielle + nom FR, remplace l'emoji 🎒).
 
 **Clés d'animation atlas** : `{pokemonId}-{anim}-{direction}` (ex : `bulbasaur-idle-south`)

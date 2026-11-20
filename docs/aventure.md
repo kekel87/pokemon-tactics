@@ -132,8 +132,8 @@ mécanisme de fuite (`idee-aventure-carte-en-graphe-de-noeuds`, `idee-rencontres
   sprites GBA sont écartés (autre perspective, jambes cachées). Références de perspective : planches de FFTA et
   Tactics Ogre (Pokémon Conquest écarté) ; environ 75 à 100 images cohérentes par personnage
   (`idee-sprites-dresseurs-iso-par-generation`). Méthode arrêtée (`decision-1236`) : SpriteKiln depuis l'artwork
-  officiel, par le skill `/dresseur` ; Red, Pierre, Ondine et Major Bob validés. Prochaine étape : les voir en jeu
-  sur la grille, à côté des Pokémon.
+  officiel, par le skill `/dresseur` ; Red, Pierre, Ondine et Major Bob validés. Red se voit sur la grille du bac à
+  sable, en décor derrière son équipe (plan 252) : ancrage, 8 directions et réactions validés en recette.
 - **Les portraits de tous les personnages de la licence**, à récupérer (`idee-portraits-personnages-de-la-licence`).
 - **Dresseur sur la grille partout dans l'Aventure** : contre les sauvages (soigner, capturer) et en duel contre
   dresseurs et champions, où l'adversaire soigne aussi ; jamais dans le Stade de Combat. Penchant du 2026-11-11, pas

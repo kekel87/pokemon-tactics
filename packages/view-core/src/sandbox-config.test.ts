@@ -180,4 +180,25 @@ describe("normalizeSandboxConfig", () => {
     });
     expect(config.teams[0].members[0]?.direction).toBe(Direction.East);
   });
+
+  it("keeps a known trainer on its team", () => {
+    const config = normalizeSandboxConfig({
+      teams: [
+        { control: "player", members: [{ pokemon: "venusaur" }], trainer: "red" },
+        { control: "passive", members: [{ pokemon: "dummy" }] },
+      ],
+    });
+    expect(config.teams[0].trainer).toBe("red");
+    expect(config.teams[1].trainer).toBeUndefined();
+  });
+
+  it("drops an unknown trainer", () => {
+    const config = normalizeSandboxConfig({
+      teams: [
+        { control: "player", members: [{ pokemon: "venusaur" }], trainer: "gary" },
+        { control: "passive", members: [{ pokemon: "dummy" }] },
+      ],
+    });
+    expect(config.teams[0].trainer).toBeUndefined();
+  });
 });

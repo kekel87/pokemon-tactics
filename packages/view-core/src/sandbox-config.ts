@@ -9,6 +9,7 @@ import {
   type StatusType,
   Weather,
 } from "@pokemon-tactic/core";
+import { TRAINER_SPRITE_ID_PREFIX } from "./constants.js";
 
 export interface Position2D {
   x: number;
@@ -20,6 +21,33 @@ export type TeamControl = "player" | "passive" | "scored";
 
 /** AI difficulty for a "scored" team (maps to core EASY/MEDIUM/HARD profiles). */
 export type AiProfileKey = "easy" | "medium" | "hard";
+
+/** Trainers whose SpriteKiln atlas is packed in `sprites.bin` as `trainer-<id>` (plan 252). */
+export const SANDBOX_TRAINER_IDS = ["red"] as const;
+export type SandboxTrainerId = (typeof SANDBOX_TRAINER_IDS)[number];
+
+/** The nine SpriteKiln animations of a trainer, under their PMD names in the packed atlas. */
+export const TRAINER_ANIMATIONS = [
+  "Idle",
+  "Walk",
+  "Throw",
+  "Hop",
+  "Hurt",
+  "Faint",
+  "Command",
+  "Item",
+  "Celebrate",
+] as const;
+export type TrainerAnimation = (typeof TRAINER_ANIMATIONS)[number];
+
+/** Sprite-bundle id of a trainer: prefixed so it never collides with a Pokémon id. */
+export function trainerSpriteId(trainerId: string): string {
+  return `${TRAINER_SPRITE_ID_PREFIX}${trainerId}`;
+}
+
+export function isSandboxTrainerId(value: unknown): value is SandboxTrainerId {
+  return SANDBOX_TRAINER_IDS.some((id) => id === value);
+}
 
 /** One Pokémon inside a sandbox team. All fields but `pokemon` are optional overrides. */
 export interface SandboxMemberConfig {
@@ -66,6 +94,8 @@ export interface SandboxTeamConfig {
   aiProfile?: AiProfileKey;
   /** 1..6 members. */
   members: SandboxMemberConfig[];
+  /** Trainer standing behind the team, as scenery only: the engine never sees it (plan 252). */
+  trainer?: SandboxTrainerId;
 }
 
 /**
@@ -254,6 +284,9 @@ function normalizeTeam(raw: Partial<SandboxTeamConfig> | undefined, fallback: Sa
   };
   if (control === "scored") {
     team.aiProfile = raw.aiProfile ?? "hard";
+  }
+  if (isSandboxTrainerId(raw.trainer)) {
+    team.trainer = raw.trainer;
   }
   return team;
 }

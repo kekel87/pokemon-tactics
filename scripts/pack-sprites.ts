@@ -24,6 +24,8 @@ import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "
 import { join, resolve } from "node:path";
 import sharp from "sharp";
 import { HeldItemId } from "../packages/core/src/enums/held-item-id.js";
+import { TRAINER_SPRITE_ID_PREFIX } from "../packages/view-core/src/constants.js";
+import { convertSpriteKilnAtlas, type SpriteKilnAtlas } from "./trainer-atlas.js";
 
 interface SpriteConfig {
   pokedexEntries: { name: string }[];
@@ -71,10 +73,59 @@ const PORTRAIT_CELL = 40;
 const PORTRAIT_COLS = 32;
 const ITEM_ICON_CELL = 24;
 const ITEM_ICON_COLS = 16;
+/** SpriteKiln trainer sources (plan 252), one `<id>/atlas.{png,json}` folder per trainer. */
+const TRAINERS_DIR = join(ROOT_DIR, "assets-src/sprites/trainers");
+/**
+ * PMD anchors a sprite on its shadow centre, a few pixels above the lowest foot pixel (in the 3/4
+ * view the feet overlap the shadow); grounding a trainer on its lowest pixel made it float.
+ */
+const TRAINER_FOOT_SINK_PX = 4;
+/** Medium shadow: a trainer stands about as wide as a mid-sized Pokémon. */
+const TRAINER_SHADOW_SIZE = 1;
 
 function loadConfig(): SpriteConfig {
   const configPath = join(ROOT_DIR, "scripts/sprite-config.json");
   return JSON.parse(readFileSync(configPath, "utf-8")) as SpriteConfig;
+}
+
+/**
+ * Grounding offsets of a trainer, read from the alpha of its first South idle frame: the PMD
+ * convention measures the feet and the head in pixels from the frame centre (feet positive, head
+ * negative).
+ */
+async function measureTrainerOffsets(png: Buffer, atlas: SpriteKilnAtlas): Promise<SpriteOffsets> {
+  const idle = atlas.frames.idle_s_0;
+  if (!idle) {
+    throw new Error("Trainer atlas has no idle_s_0 frame");
+  }
+  if (idle.trimmed) {
+    throw new Error("Trainer idle_s_0 frame is trimmed: offsets need the untrimmed frame");
+  }
+  const { x, y, w, h } = idle.frame;
+  const { data, info } = await sharp(png)
+    .extract({ left: x, top: y, width: w, height: h })
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  let top = h;
+  let bottom = -1;
+  for (let row = 0; row < info.height; row += 1) {
+    for (let col = 0; col < info.width; col += 1) {
+      if ((data[(row * info.width + col) * info.channels + 3] ?? 0) > 0) {
+        top = Math.min(top, row);
+        bottom = Math.max(bottom, row);
+      }
+    }
+  }
+  if (bottom < 0) {
+    throw new Error("Trainer idle_s_0 frame is fully transparent");
+  }
+  const center = Math.floor(h / 2);
+  return {
+    footOffsetY: bottom - center - TRAINER_FOOT_SINK_PX,
+    headOffsetY: top - center,
+    shadowSize: TRAINER_SHADOW_SIZE,
+  };
 }
 
 /** Names to pack, in `sprite-config` order, restricted to folders that actually carry an atlas. */
@@ -151,6 +202,25 @@ async function main(): Promise<void> {
       portraits[name] = portraitIndex;
       portraitIndex += 1;
     }
+  }
+
+  const trainerIds = existsSync(TRAINERS_DIR)
+    ? readdirSync(TRAINERS_DIR)
+        .filter((id) => existsSync(join(TRAINERS_DIR, id, "atlas.png")))
+        .sort()
+    : [];
+  for (const trainerId of trainerIds) {
+    const trainerDirectory = join(TRAINERS_DIR, trainerId);
+    const pngBuffer = readFileSync(join(trainerDirectory, "atlas.png"));
+    const source = JSON.parse(
+      readFileSync(join(trainerDirectory, "atlas.json"), "utf-8"),
+    ) as SpriteKilnAtlas;
+    const id = `${TRAINER_SPRITE_ID_PREFIX}${trainerId}`;
+    atlas[id] = {
+      png: append(pngBuffer),
+      json: append(Buffer.from(JSON.stringify(convertSpriteKilnAtlas(source)))),
+    };
+    offsets[id] = await measureTrainerOffsets(pngBuffer, source);
   }
 
   // item-icons.png — grid sheet of the held-item icons, indexed by HeldItemId.
@@ -231,7 +301,7 @@ async function main(): Promise<void> {
 
   const mb = (bytes: number): string => `${(bytes / 1_048_576).toFixed(1)} MB`;
   console.log(
-    `Packed ${names.length} sprites → sprites.bin (${mb(bin.length)}), ` +
+    `Packed ${names.length} sprites + ${trainerIds.length} trainers → sprites.bin (${mb(bin.length)}), ` +
       `${portraitIndex} portraits → portraits.png (${PORTRAIT_COLS}×${portraitRows}), ` +
       `${itemIconIndex} item icons → item-icons.png (${ITEM_ICON_COLS}×${itemIconRows}), ` +
       `manifest v${MANIFEST_VERSION}.`,

@@ -313,3 +313,6 @@ export const BATTLE_TEXT_COLOR_ITEM_CONSUMED = "#888888";
 export const BATTLE_TEXT_COLOR_CRITICAL = "#ff8800";
 export const BATTLE_TEXT_COLOR_KO = "#ff2222";
 export const BATTLE_TEXT_COLOR_TAUNT = "#ff8855";
+
+/** Sprite-bundle id prefix of a trainer (plan 252): `pack-sprites` writes it, the sandbox reads it. */
+export const TRAINER_SPRITE_ID_PREFIX = "trainer-";
