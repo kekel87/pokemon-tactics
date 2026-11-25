@@ -15,7 +15,8 @@ Les docs complètes (`spritekiln/docs/agent/*.md`) ne servent que pour une quest
 ## Proportions (même caméra pour tous : `pitch 30`, `scale 0.065`)
 | | `torso_rot` y | `head.scale` | épaule | bras IK | jambes IK | `size` | hauteur |
 |---|---|---|---|---|---|---|---|
-| Enfant (Red, Ondine) | 0.68-0.70 | 1.55 | 0.18, 0.46 | 0.24 + 0.23 | 0.30 + 0.28 | 56 | 28 px |
+| Petit enfant (Gamin) | 0.475 | 1.5 | 0.15, 0.247 | 0.16 + 0.152 | 0.199 + 0.176 | 56 | 21 px |
+| Enfant (Red, Ondine, Fillette) | 0.68-0.70 | 1.55 | 0.18, 0.46 | 0.24 + 0.23 | 0.30 + 0.28 | 56 | 28 px |
 | Ado (Pierre) | 0.80 | 1.6 | 0.235, 0.54 | 0.28 + 0.27 | 0.36 + 0.342 | 56 | 32 px |
 | Adulte (Major Bob) | 1.0 | 1.75 | 0.29, 0.55 | 0.36 + 0.34 | 0.46 + 0.44 | 72 (`center [0, 1.2, 0]`) | 36 px |
 

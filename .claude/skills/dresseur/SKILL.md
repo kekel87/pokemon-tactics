@@ -21,7 +21,8 @@ Tout le travail est hors de git (motif `assets-src/references/` du `.gitignore`)
    dans l'aperçu, chaque point avec sa valeur par défaut) : pitch en une phrase ; carrure (enfant, ado, adulte : tableau de
    `assets-src/poc-sprites/regles-dresseurs.md`) ; expression des yeux (normaux, ouverts, plissés, colère) ; ce
    qu'il porte pour l'objet (sac, sacoche, rien = poche) ; les 4 gestes de caractère (lancer, K.O., objet,
-   célébration) tirés de sa personnalité. Critère : l'humain a répondu ; ses corrections sont reprises telles
+   célébration) tirés de sa personnalité. Tenue et couleurs se décrivent depuis le seul artwork retenu, jamais
+   depuis une autre génération (sinon l'agent reproduit un accessoire absent). Critère : l'humain a répondu ; ses corrections sont reprises telles
    quelles. Écrire ensuite `B/spritekiln-<id>/pitch.txt` (personnalité, gestes, source de l'image).
 3. **Passe en un coup.** Un agent `general-purpose`, modèle `sonnet`, par personnage, en parallèle et en
    arrière-plan, avec le brief de [brief-en-un-coup.md](brief-en-un-coup.md) rempli. Ne pas ajouter de
